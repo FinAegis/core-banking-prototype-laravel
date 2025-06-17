@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\VoteController;
 use App\Http\Controllers\Api\BasketController;
 use App\Http\Controllers\Api\BasketAccountController;
+use App\Http\Controllers\Api\StablecoinController;
+use App\Http\Controllers\Api\StablecoinOperationsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -120,6 +122,44 @@ Route::prefix('v2')->group(function () {
             Route::post('/decompose', [BasketAccountController::class, 'decompose']);
             Route::post('/compose', [BasketAccountController::class, 'compose']);
         });
+    });
+    
+    // Stablecoin management endpoints
+    Route::prefix('stablecoins')->group(function () {
+        Route::get('/', [StablecoinController::class, 'index']);
+        Route::get('/metrics', [StablecoinController::class, 'systemMetrics']);
+        Route::get('/health', [StablecoinController::class, 'systemHealth']);
+        Route::get('/{code}', [StablecoinController::class, 'show']);
+        Route::get('/{code}/metrics', [StablecoinController::class, 'metrics']);
+        Route::get('/{code}/collateral-distribution', [StablecoinController::class, 'collateralDistribution']);
+        Route::post('/{code}/execute-stability', [StablecoinController::class, 'executeStabilityMechanism']);
+        
+        // Admin operations (require additional permissions in real implementation)
+        Route::post('/', [StablecoinController::class, 'store']);
+        Route::put('/{code}', [StablecoinController::class, 'update']);
+        Route::post('/{code}/deactivate', [StablecoinController::class, 'deactivate']);
+        Route::post('/{code}/reactivate', [StablecoinController::class, 'reactivate']);
+    });
+    
+    // Stablecoin operations endpoints
+    Route::prefix('stablecoin-operations')->group(function () {
+        Route::post('/mint', [StablecoinOperationsController::class, 'mint']);
+        Route::post('/burn', [StablecoinOperationsController::class, 'burn']);
+        Route::post('/add-collateral', [StablecoinOperationsController::class, 'addCollateral']);
+        
+        // Position management
+        Route::get('/accounts/{accountUuid}/positions', [StablecoinOperationsController::class, 'getAccountPositions']);
+        Route::get('/positions/{positionUuid}', [StablecoinOperationsController::class, 'getPositionDetails']);
+        Route::get('/positions/at-risk', [StablecoinOperationsController::class, 'getPositionsAtRisk']);
+        
+        // Liquidation operations
+        Route::get('/liquidation/opportunities', [StablecoinOperationsController::class, 'getLiquidationOpportunities']);
+        Route::post('/liquidation/execute', [StablecoinOperationsController::class, 'executeAutoLiquidation']);
+        Route::post('/liquidation/positions/{positionUuid}', [StablecoinOperationsController::class, 'liquidatePosition']);
+        Route::get('/liquidation/positions/{positionUuid}/reward', [StablecoinOperationsController::class, 'calculateLiquidationReward']);
+        
+        // Simulation and analytics
+        Route::post('/simulation/{stablecoinCode}/mass-liquidation', [StablecoinOperationsController::class, 'simulateMassLiquidation']);
     });
 });
 
