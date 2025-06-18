@@ -18,14 +18,16 @@ class StablecoinTest extends TestCase
     {
         parent::setUp();
         
-        // Create assets for testing
-        Asset::create([
-            'code' => 'USD',
-            'name' => 'US Dollar',
-            'type' => 'fiat',
-            'precision' => 2,
-            'is_active' => true
-        ]);
+        // Create assets for testing if they don't exist
+        Asset::firstOrCreate(
+            ['code' => 'USD'],
+            [
+                'name' => 'US Dollar',
+                'type' => 'fiat',
+                'precision' => 2,
+                'is_active' => true
+            ]
+        );
     }
 
     /** @test */

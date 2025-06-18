@@ -29,22 +29,26 @@ class CollateralServiceTest extends TestCase
         $this->exchangeRateService = Mockery::mock(ExchangeRateService::class);
         $this->service = new CollateralService($this->exchangeRateService);
         
-        // Create assets
-        Asset::create([
-            'code' => 'USD',
-            'name' => 'US Dollar',
-            'type' => 'fiat',
-            'precision' => 2,
-            'is_active' => true
-        ]);
+        // Create assets if they don't exist
+        Asset::firstOrCreate(
+            ['code' => 'USD'],
+            [
+                'name' => 'US Dollar',
+                'type' => 'fiat',
+                'precision' => 2,
+                'is_active' => true
+            ]
+        );
         
-        Asset::create([
-            'code' => 'EUR',
-            'name' => 'Euro',
-            'type' => 'fiat',
-            'precision' => 2,
-            'is_active' => true
-        ]);
+        Asset::firstOrCreate(
+            ['code' => 'EUR'],
+            [
+                'name' => 'Euro',
+                'type' => 'fiat',
+                'precision' => 2,
+                'is_active' => true
+            ]
+        );
     }
 
     protected function tearDown(): void

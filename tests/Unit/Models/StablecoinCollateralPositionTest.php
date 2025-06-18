@@ -23,14 +23,16 @@ class StablecoinCollateralPositionTest extends TestCase
     {
         parent::setUp();
         
-        // Create assets
-        $this->asset = Asset::create([
-            'code' => 'USD',
-            'name' => 'US Dollar',
-            'type' => 'fiat',
-            'precision' => 2,
-            'is_active' => true
-        ]);
+        // Create assets if they don't exist
+        $this->asset = Asset::firstOrCreate(
+            ['code' => 'USD'],
+            [
+                'name' => 'US Dollar',
+                'type' => 'fiat',
+                'precision' => 2,
+                'is_active' => true
+            ]
+        );
 
         // Create stablecoin
         $this->stablecoin = Stablecoin::create([
@@ -248,8 +250,12 @@ class StablecoinCollateralPositionTest extends TestCase
     /** @test */
     public function it_has_scopes()
     {
+        $account1 = Account::factory()->create();
+        $account2 = Account::factory()->create();
+        $account3 = Account::factory()->create();
+        
         StablecoinCollateralPosition::create([
-            'account_uuid' => $this->account->uuid,
+            'account_uuid' => $account1->uuid,
             'stablecoin_code' => $this->stablecoin->code,
             'collateral_asset_code' => $this->asset->code,
             'collateral_amount' => 150000,
@@ -259,7 +265,7 @@ class StablecoinCollateralPositionTest extends TestCase
         ]);
 
         StablecoinCollateralPosition::create([
-            'account_uuid' => $this->account->uuid,
+            'account_uuid' => $account2->uuid,
             'stablecoin_code' => $this->stablecoin->code,
             'collateral_asset_code' => $this->asset->code,
             'collateral_amount' => 110000,
@@ -270,7 +276,7 @@ class StablecoinCollateralPositionTest extends TestCase
         ]);
 
         StablecoinCollateralPosition::create([
-            'account_uuid' => $this->account->uuid,
+            'account_uuid' => $account3->uuid,
             'stablecoin_code' => $this->stablecoin->code,
             'collateral_asset_code' => $this->asset->code,
             'collateral_amount' => 150000,
