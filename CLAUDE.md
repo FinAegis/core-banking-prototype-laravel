@@ -36,7 +36,17 @@ All contributions (human or AI-generated) must include:
 
 # Run tests with specific number of processes
 ./vendor/bin/pest --parallel --processes=4
+
+# CI-specific test configuration
+# Use phpunit.ci.xml for GitHub Actions
+./vendor/bin/pest --configuration=phpunit.ci.xml --parallel --coverage --min=50
 ```
+
+#### Test Coverage Requirements
+- **Minimum Coverage**: 50% for all new code
+- **Critical Areas**: API controllers, domain services, workflows
+- **Coverage Reports**: Available in `coverage-html/` directory after running with --coverage
+- **CI Integration**: Automated coverage checks on all PRs
 
 ### CI/CD and GitHub Actions
 The project includes comprehensive GitHub Actions workflows:

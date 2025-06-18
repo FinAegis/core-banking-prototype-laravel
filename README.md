@@ -227,27 +227,53 @@ $result = $workflow->start($accountUuid, $requestedBy);
 
 ## 🧪 Testing
 
-The platform includes comprehensive test coverage:
+The platform includes comprehensive test coverage using Pest PHP testing framework:
 
 ```bash
 # Run all tests
 ./vendor/bin/pest
 
+# Run tests in parallel (faster execution)
+./vendor/bin/pest --parallel
+
 # Run with coverage report
-./vendor/bin/pest --coverage
+./vendor/bin/pest --coverage --min=50
 
 # Run specific test suites
-./vendor/bin/pest tests/Domain/
-./vendor/bin/pest tests/Feature/
+./vendor/bin/pest tests/Domain/         # Domain layer tests
+./vendor/bin/pest tests/Feature/        # Feature tests
+./vendor/bin/pest tests/Console/        # Console command tests
+
+# Run specific test file
+./vendor/bin/pest tests/Domain/Account/Aggregates/LedgerAggregateTest.php
+
+# Run tests with specific filter
+./vendor/bin/pest --filter="it_can_create_account"
 
 # Run admin dashboard tests
 ./vendor/bin/pest tests/Feature/Filament/
 ```
 
 ### Test Structure
-- **Unit Tests**: Domain logic and aggregates
-- **Integration Tests**: Workflow orchestration
-- **Feature Tests**: Full user scenarios
+- **Unit Tests**: Domain logic, models, and value objects
+- **Integration Tests**: Workflow orchestration and activity execution
+- **Feature Tests**: API endpoints, controllers, and user interactions
+- **Filament Tests**: Admin dashboard resources and actions
+
+### Test Coverage Areas
+- **Domain Layer**: Aggregates, events, projectors, reactors, services
+- **API Controllers**: Account, Transfer, Asset, Exchange Rate, Basket, Stablecoin endpoints
+- **Workflows**: All business process workflows with compensation testing
+- **Admin Dashboard**: Resource pages, actions, widgets, and bulk operations
+- **Multi-Asset Operations**: Cross-currency transfers, exchange rates, basket management
+- **Governance System**: Polls, votes, and automated workflow execution
+
+### CI/CD Integration
+Tests run automatically on:
+- Pull requests to main branch
+- Pushes to main branch
+- Uses GitHub Actions with MySQL, Redis, and parallel test execution
+- Minimum coverage requirement: 50%
 
 ## 📖 Documentation
 
