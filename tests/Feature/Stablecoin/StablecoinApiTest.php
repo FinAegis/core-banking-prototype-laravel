@@ -10,10 +10,11 @@ use App\Domain\Asset\Models\Asset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use Tests\Traits\CreatesStablecoins;
 
 class StablecoinApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesStablecoins;
 
     protected User $user;
 
@@ -25,32 +26,14 @@ class StablecoinApiTest extends TestCase
         $this->user = User::factory()->create();
         Sanctum::actingAs($this->user);
         
-        // Create assets if they don't exist
-        Asset::firstOrCreate(
-            ['code' => 'USD'],
-            [
-                'name' => 'US Dollar',
-                'type' => 'fiat',
-                'precision' => 2,
-                'is_active' => true
-            ]
-        );
-        
-        Asset::firstOrCreate(
-            ['code' => 'EUR'],
-            [
-                'name' => 'Euro',
-                'type' => 'fiat',
-                'precision' => 2,
-                'is_active' => true
-            ]
-        );
+        // Ensure required assets exist
+        $this->ensureAssetsExist();
     }
 
     /** @test */
     public function it_can_list_stablecoins()
     {
-        Stablecoin::create([
+        $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
@@ -72,7 +55,7 @@ class StablecoinApiTest extends TestCase
             'burning_enabled' => true,
         ]);
 
-        Stablecoin::create([
+        $this->createStablecoinWithAsset([
             'code' => 'FEUR',
             'name' => 'FinAegis EUR',
             'symbol' => 'FEUR',
@@ -122,7 +105,7 @@ class StablecoinApiTest extends TestCase
     /** @test */
     public function it_can_get_stablecoin_details()
     {
-        $stablecoin = Stablecoin::create([
+        $stablecoin = $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
@@ -240,7 +223,7 @@ class StablecoinApiTest extends TestCase
     /** @test */
     public function it_can_update_a_stablecoin()
     {
-        $stablecoin = Stablecoin::create([
+        $stablecoin = $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
@@ -286,7 +269,7 @@ class StablecoinApiTest extends TestCase
     /** @test */
     public function it_can_get_system_metrics()
     {
-        Stablecoin::create([
+        $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
@@ -335,7 +318,7 @@ class StablecoinApiTest extends TestCase
     /** @test */
     public function it_can_check_system_health()
     {
-        Stablecoin::create([
+        $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
@@ -382,7 +365,7 @@ class StablecoinApiTest extends TestCase
     /** @test */
     public function it_can_deactivate_a_stablecoin()
     {
-        $stablecoin = Stablecoin::create([
+        $stablecoin = $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
@@ -422,7 +405,7 @@ class StablecoinApiTest extends TestCase
     /** @test */
     public function it_can_reactivate_a_stablecoin()
     {
-        $stablecoin = Stablecoin::create([
+        $stablecoin = $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',

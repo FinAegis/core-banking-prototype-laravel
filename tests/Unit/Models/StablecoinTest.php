@@ -279,4 +279,179 @@ class StablecoinTest extends TestCase
         $this->assertEquals(1, Stablecoin::mintingEnabled()->count());
         $this->assertEquals(1, Stablecoin::burningEnabled()->count());
     }
+
+    /** @test */
+    public function it_belongs_to_peg_asset()
+    {
+        $stablecoin = Stablecoin::create([
+            'code' => 'FUSD',
+            'name' => 'FinAegis USD',
+            'symbol' => 'FUSD',
+            'peg_asset_code' => 'USD',
+            'peg_ratio' => 1.0,
+            'target_price' => 1.0,
+            'stability_mechanism' => 'collateralized',
+            'collateral_ratio' => 1.5,
+            'min_collateral_ratio' => 1.2,
+            'liquidation_penalty' => 0.1,
+            'total_supply' => 0,
+            'max_supply' => 10000000,
+            'total_collateral_value' => 0,
+            'mint_fee' => 0.005,
+            'burn_fee' => 0.003,
+            'precision' => 2,
+            'is_active' => true,
+            'minting_enabled' => true,
+            'burning_enabled' => true,
+        ]);
+        
+        $pegAsset = $stablecoin->pegAsset;
+        $this->assertInstanceOf(Asset::class, $pegAsset);
+        $this->assertEquals('USD', $pegAsset->code);
+    }
+
+    /** @test */
+    public function it_has_active_positions_relationship()
+    {
+        $stablecoin = Stablecoin::create([
+            'code' => 'FUSD',
+            'name' => 'FinAegis USD',
+            'symbol' => 'FUSD',
+            'peg_asset_code' => 'USD',
+            'peg_ratio' => 1.0,
+            'target_price' => 1.0,
+            'stability_mechanism' => 'collateralized',
+            'collateral_ratio' => 1.5,
+            'min_collateral_ratio' => 1.2,
+            'liquidation_penalty' => 0.1,
+            'total_supply' => 0,
+            'max_supply' => 10000000,
+            'total_collateral_value' => 0,
+            'mint_fee' => 0.005,
+            'burn_fee' => 0.003,
+            'precision' => 2,
+            'is_active' => true,
+            'minting_enabled' => true,
+            'burning_enabled' => true,
+        ]);
+        
+        $account = \App\Models\Account::factory()->create();
+        
+        StablecoinCollateralPosition::create([
+            'account_uuid' => $account->uuid,
+            'stablecoin_code' => 'FUSD',
+            'collateral_asset_code' => 'USD',
+            'collateral_amount' => 150000,
+            'debt_amount' => 100000,
+            'collateral_ratio' => 1.5,
+            'status' => 'active',
+        ]);
+        
+        StablecoinCollateralPosition::create([
+            'account_uuid' => $account->uuid,
+            'stablecoin_code' => 'FUSD',
+            'collateral_asset_code' => 'USD',
+            'collateral_amount' => 0,
+            'debt_amount' => 0,
+            'collateral_ratio' => 0,
+            'status' => 'closed',
+        ]);
+        
+        $activePositions = $stablecoin->activePositions;
+        $this->assertCount(1, $activePositions);
+    }
+
+    /** @test */
+    public function it_can_scope_by_mechanism()
+    {
+        Stablecoin::create([
+            'code' => 'CUSD',
+            'name' => 'Collateralized USD',
+            'symbol' => 'CUSD',
+            'peg_asset_code' => 'USD',
+            'peg_ratio' => 1.0,
+            'target_price' => 1.0,
+            'stability_mechanism' => 'collateralized',
+            'collateral_ratio' => 1.5,
+            'min_collateral_ratio' => 1.2,
+            'liquidation_penalty' => 0.1,
+            'total_supply' => 0,
+            'max_supply' => 10000000,
+            'total_collateral_value' => 0,
+            'mint_fee' => 0.005,
+            'burn_fee' => 0.003,
+            'precision' => 2,
+            'is_active' => true,
+            'minting_enabled' => true,
+            'burning_enabled' => true,
+        ]);
+        
+        Stablecoin::create([
+            'code' => 'AUSD',
+            'name' => 'Algorithmic USD',
+            'symbol' => 'AUSD',
+            'peg_asset_code' => 'USD',
+            'peg_ratio' => 1.0,
+            'target_price' => 1.0,
+            'stability_mechanism' => 'algorithmic',
+            'collateral_ratio' => 0,
+            'min_collateral_ratio' => 0,
+            'liquidation_penalty' => 0,
+            'total_supply' => 0,
+            'max_supply' => 50000000,
+            'total_collateral_value' => 0,
+            'mint_fee' => 0.001,
+            'burn_fee' => 0.001,
+            'precision' => 2,
+            'is_active' => true,
+            'minting_enabled' => true,
+            'burning_enabled' => true,
+            'algo_mint_reward' => 0.02,
+            'algo_burn_penalty' => 0.02,
+        ]);
+        
+        $collateralized = Stablecoin::byMechanism('collateralized')->get();
+        $this->assertCount(1, $collateralized);
+        $this->assertEquals('CUSD', $collateralized->first()->code);
+        
+        $algorithmic = Stablecoin::byMechanism('algorithmic')->get();
+        $this->assertCount(1, $algorithmic);
+        $this->assertEquals('AUSD', $algorithmic->first()->code);
+    }
+
+    /** @test */
+    public function it_casts_decimal_attributes_correctly()
+    {
+        $stablecoin = Stablecoin::create([
+            'code' => 'FUSD',
+            'name' => 'FinAegis USD',
+            'symbol' => 'FUSD',
+            'peg_asset_code' => 'USD',
+            'peg_ratio' => 1.0,
+            'target_price' => 1.0,
+            'stability_mechanism' => 'collateralized',
+            'collateral_ratio' => 1.5,
+            'min_collateral_ratio' => 1.2,
+            'liquidation_penalty' => 0.1,
+            'total_supply' => 0,
+            'max_supply' => 10000000,
+            'total_collateral_value' => 0,
+            'mint_fee' => 0.005,
+            'burn_fee' => 0.003,
+            'precision' => 2,
+            'is_active' => true,
+            'minting_enabled' => true,
+            'burning_enabled' => true,
+        ]);
+        
+        $fresh = Stablecoin::find('FUSD');
+        
+        $this->assertIsFloat($fresh->peg_ratio);
+        $this->assertIsFloat($fresh->target_price);
+        $this->assertIsFloat($fresh->collateral_ratio);
+        $this->assertIsFloat($fresh->min_collateral_ratio);
+        $this->assertIsFloat($fresh->liquidation_penalty);
+        $this->assertIsFloat($fresh->mint_fee);
+        $this->assertIsFloat($fresh->burn_fee);
+    }
 }

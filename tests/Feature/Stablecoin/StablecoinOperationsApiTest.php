@@ -12,10 +12,11 @@ use App\Domain\Asset\Models\Asset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use Tests\Traits\CreatesStablecoins;
 
 class StablecoinOperationsApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesStablecoins;
 
     protected User $user;
     protected Account $account;
@@ -30,23 +31,16 @@ class StablecoinOperationsApiTest extends TestCase
         $this->user = User::factory()->create();
         Sanctum::actingAs($this->user);
         
-        // Create assets if they don't exist
-        $this->usdAsset = Asset::firstOrCreate(
-            ['code' => 'USD'],
-            [
-                'name' => 'US Dollar',
-                'type' => 'fiat',
-                'precision' => 2,
-                'is_active' => true
-            ]
-        );
+        // Ensure required assets exist
+        $this->ensureAssetsExist();
+        $this->usdAsset = Asset::find('USD');
         
         // Create account with USD balance
         $this->account = Account::factory()->create();
         $this->account->addBalance('USD', 1000000); // $10,000
         
         // Create stablecoin
-        $this->stablecoin = Stablecoin::create([
+        $this->stablecoin = $this->createStablecoinWithAsset([
             'code' => 'FUSD',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
@@ -101,6 +95,7 @@ class StablecoinOperationsApiTest extends TestCase
             ->assertJsonPath('data.status', 'active');
 
         // Check that collateral was locked
+        $this->account->refresh();
         $this->assertEquals(850000, $this->account->getBalance('USD')); // $10,000 - $1,500
         
         // Check that stablecoin was minted (minus fee)
@@ -145,7 +140,7 @@ class StablecoinOperationsApiTest extends TestCase
         $response = $this->postJson('/api/v2/stablecoin-operations/mint', $data);
 
         $response->assertBadRequest()
-            ->assertJsonPath('error', 'Insufficient collateral. Required ratio: 1.5, provided ratio: 1');
+            ->assertJsonPath('error', 'Insufficient collateral. Required ratio: 1.5000, provided ratio: 1');
     }
 
     /** @test */

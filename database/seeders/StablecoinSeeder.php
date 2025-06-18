@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Stablecoin;
+use App\Domain\Asset\Models\Asset;
 use Illuminate\Database\Seeder;
 
 class StablecoinSeeder extends Seeder
@@ -120,6 +121,22 @@ class StablecoinSeeder extends Seeder
         ];
 
         foreach ($stablecoins as $stablecoinData) {
+            // Create the stablecoin as an asset first
+            Asset::firstOrCreate(
+                ['code' => $stablecoinData['code']],
+                [
+                    'name' => $stablecoinData['name'],
+                    'type' => 'custom', // Stablecoins are custom assets
+                    'precision' => $stablecoinData['precision'],
+                    'is_active' => $stablecoinData['is_active'],
+                    'metadata' => array_merge(
+                        ['asset_type' => 'stablecoin'],
+                        $stablecoinData['metadata'] ?? []
+                    ),
+                ]
+            );
+            
+            // Then create the stablecoin
             Stablecoin::firstOrCreate(
                 ['code' => $stablecoinData['code']],
                 $stablecoinData

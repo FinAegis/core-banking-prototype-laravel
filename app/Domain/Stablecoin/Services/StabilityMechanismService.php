@@ -80,12 +80,20 @@ class StabilityMechanismService
         
         // 2. Handle undercollateralization
         if ($globalRatio < $minRatio) {
-            $liquidationResult = $this->liquidationService->liquidateEligiblePositions();
-            $actions[] = [
-                'type' => 'emergency_liquidation',
-                'reason' => 'Global collateralization below minimum',
-                'details' => $liquidationResult,
-            ];
+            if ($this->liquidationService) {
+                $liquidationResult = $this->liquidationService->liquidateEligiblePositions();
+                $actions[] = [
+                    'type' => 'emergency_liquidation',
+                    'reason' => 'Global collateralization below minimum',
+                    'details' => $liquidationResult,
+                ];
+            } else {
+                $actions[] = [
+                    'type' => 'emergency_liquidation_needed',
+                    'reason' => 'Global collateralization below minimum',
+                    'details' => 'Liquidation service not available',
+                ];
+            }
         } elseif ($globalRatio < $targetRatio) {
             // Gradually increase collateral requirements or fees
             $actions[] = $this->adjustCollateralRequirements($stablecoin, 'increase');
@@ -363,12 +371,20 @@ class StabilityMechanismService
                 $unhealthyStablecoins++;
                 
                 // Trigger emergency liquidation
-                $emergencyResult = $this->liquidationService->emergencyLiquidation($stablecoin->code);
-                $systemHealth['emergency_actions'][] = [
-                    'stablecoin_code' => $stablecoin->code,
-                    'action' => 'emergency_liquidation',
-                    'result' => $emergencyResult,
-                ];
+                if ($this->liquidationService) {
+                    $emergencyResult = $this->liquidationService->emergencyLiquidation($stablecoin->code);
+                    $systemHealth['emergency_actions'][] = [
+                        'stablecoin_code' => $stablecoin->code,
+                        'action' => 'emergency_liquidation',
+                        'result' => $emergencyResult,
+                    ];
+                } else {
+                    $systemHealth['emergency_actions'][] = [
+                        'stablecoin_code' => $stablecoin->code,
+                        'action' => 'emergency_liquidation_needed',
+                        'result' => 'Liquidation service not available',
+                    ];
+                }
             }
             
             $systemHealth['stablecoin_status'][] = $stablecoinStatus;

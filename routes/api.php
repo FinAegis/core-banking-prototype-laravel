@@ -149,8 +149,8 @@ Route::prefix('v2')->group(function () {
         
         // Position management
         Route::get('/accounts/{accountUuid}/positions', [StablecoinOperationsController::class, 'getAccountPositions']);
-        Route::get('/positions/{positionUuid}', [StablecoinOperationsController::class, 'getPositionDetails']);
         Route::get('/positions/at-risk', [StablecoinOperationsController::class, 'getPositionsAtRisk']);
+        Route::get('/positions/{positionUuid}', [StablecoinOperationsController::class, 'getPositionDetails']);
         
         // Liquidation operations
         Route::get('/liquidation/opportunities', [StablecoinOperationsController::class, 'getLiquidationOpportunities']);
