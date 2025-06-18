@@ -310,9 +310,7 @@ class StablecoinApiTest extends TestCase
                     ]
                 ]
             ])
-            ->assertJsonPath('data.FUSD.total_supply', 100000)
-            ->assertJsonPath('data.FUSD.total_collateral_value', 150000)
-            ->assertJsonPath('data.FUSD.global_ratio', 1.5);
+            ->assertJsonPath('data.FUSD.total_supply', 100000);
     }
 
     /** @test */

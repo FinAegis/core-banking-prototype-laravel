@@ -392,7 +392,8 @@ class StabilityMechanismService
         
         // Overall system status
         if ($unhealthyStablecoins > 0) {
-            $systemHealth['overall_status'] = $unhealthyStablecoins > 1 ? 'critical' : 'warning';
+            // If any stablecoin is unhealthy, it's critical
+            $systemHealth['overall_status'] = 'critical';
         }
         
         return $systemHealth;

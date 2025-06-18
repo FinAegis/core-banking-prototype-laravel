@@ -249,7 +249,7 @@ it('handles invalid account UUIDs gracefully', function () {
 it('can include optional description in transfer', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
-    $fromAccount = Account::factory()->withBalance(1000)->create();
+    $fromAccount = Account::factory()->withBalance(100000)->create(); // $1000.00
     $toAccount = Account::factory()->create();
 
     // Ensure accounts are properly persisted and refreshed
@@ -263,7 +263,7 @@ it('can include optional description in transfer', function () {
     $response = $this->postJson('/api/transfers', [
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
-        'amount' => 250,
+        'amount' => 25000, // $250.00 in cents
         'description' => 'Salary payment',
     ]);
 
