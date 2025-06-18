@@ -7,6 +7,7 @@ namespace Tests\Unit\Models;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
 use App\Domain\Asset\Models\Asset;
+use App\Models\Account;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -347,8 +348,10 @@ class StablecoinTest extends TestCase
             'status' => 'active',
         ]);
         
+        // Create a different account for the closed position
+        $anotherAccount = Account::factory()->create();
         StablecoinCollateralPosition::create([
-            'account_uuid' => $account->uuid,
+            'account_uuid' => $anotherAccount->uuid,
             'stablecoin_code' => 'FUSD',
             'collateral_asset_code' => 'USD',
             'collateral_amount' => 0,
@@ -446,12 +449,22 @@ class StablecoinTest extends TestCase
         
         $fresh = Stablecoin::find('FUSD');
         
-        $this->assertIsFloat($fresh->peg_ratio);
-        $this->assertIsFloat($fresh->target_price);
-        $this->assertIsFloat($fresh->collateral_ratio);
-        $this->assertIsFloat($fresh->min_collateral_ratio);
-        $this->assertIsFloat($fresh->liquidation_penalty);
-        $this->assertIsFloat($fresh->mint_fee);
-        $this->assertIsFloat($fresh->burn_fee);
+        // Decimal casts return strings in PHP, not floats
+        $this->assertIsString($fresh->peg_ratio);
+        $this->assertIsString($fresh->target_price);
+        $this->assertIsString($fresh->collateral_ratio);
+        $this->assertIsString($fresh->min_collateral_ratio);
+        $this->assertIsString($fresh->liquidation_penalty);
+        $this->assertIsString($fresh->mint_fee);
+        $this->assertIsString($fresh->burn_fee);
+        
+        // But they should be numeric strings
+        $this->assertIsNumeric($fresh->peg_ratio);
+        $this->assertIsNumeric($fresh->target_price);
+        $this->assertIsNumeric($fresh->collateral_ratio);
+        $this->assertIsNumeric($fresh->min_collateral_ratio);
+        $this->assertIsNumeric($fresh->liquidation_penalty);
+        $this->assertIsNumeric($fresh->mint_fee);
+        $this->assertIsNumeric($fresh->burn_fee);
     }
 }

@@ -171,4 +171,12 @@ class Stablecoin extends Model
     {
         return $query->where('burning_enabled', true);
     }
+
+    /**
+     * Scope to filter by stability mechanism.
+     */
+    public function scopeByMechanism($query, string $mechanism)
+    {
+        return $query->where('stability_mechanism', $mechanism);
+    }
 }
