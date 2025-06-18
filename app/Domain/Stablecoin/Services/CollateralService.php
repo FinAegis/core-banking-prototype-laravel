@@ -25,7 +25,12 @@ class CollateralService
             return $amount;
         }
 
-        $rate = $this->exchangeRateService->getRate($fromAsset, $pegAsset);
+        $rateObject = $this->exchangeRateService->getRate($fromAsset, $pegAsset);
+        if (!$rateObject) {
+            throw new \RuntimeException("Exchange rate not found for {$fromAsset} to {$pegAsset}");
+        }
+        
+        $rate = $rateObject->rate;
         return (int) round($amount * $rate);
     }
 

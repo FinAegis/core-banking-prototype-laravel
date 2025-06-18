@@ -15,7 +15,7 @@ class StabilityMechanismService
     public function __construct(
         private readonly ExchangeRateService $exchangeRateService,
         private readonly CollateralService $collateralService,
-        private readonly LiquidationService $liquidationService
+        private readonly ?LiquidationService $liquidationService = null
     ) {}
 
     /**
@@ -444,5 +444,324 @@ class StabilityMechanismService
         
         // Simple diversification score: 1 - max_concentration
         return 1 - ($maxPercentage / 100);
+    }
+    
+    /**
+     * Check the peg deviation for a stablecoin.
+     */
+    public function checkPegDeviation(string $stablecoinCode): array
+    {
+        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
+        $rateObject = $this->exchangeRateService->getRate($stablecoin->code, $stablecoin->peg_asset_code);
+        
+        if (!$rateObject) {
+            throw new \RuntimeException("Exchange rate not found for {$stablecoin->code} to {$stablecoin->peg_asset_code}");
+        }
+        
+        $currentPrice = $rateObject->rate;
+        $targetPrice = $stablecoin->target_price;
+        
+        $deviation = $currentPrice - $targetPrice;
+        $percentage = ($deviation / $targetPrice) * 100;
+        
+        return [
+            'deviation' => $deviation,
+            'percentage' => $percentage,
+            'direction' => $deviation > 0 ? 'above' : ($deviation < 0 ? 'below' : 'at'),
+            'within_threshold' => abs($percentage) <= 1.0, // 1% threshold
+            'current_price' => $currentPrice,
+            'target_price' => $targetPrice,
+        ];
+    }
+    
+    /**
+     * Apply stability mechanism based on the stablecoin type.
+     */
+    public function applyStabilityMechanism(string $stablecoinCode): array
+    {
+        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
+        $deviation = $this->checkPegDeviation($stablecoinCode);
+        $actions = [];
+        
+        if (abs($deviation['percentage']) <= 1.0) {
+            return []; // Within acceptable range
+        }
+        
+        switch ($stablecoin->stability_mechanism) {
+            case 'collateralized':
+                $actions = $this->applyCollateralizedMechanism($stablecoin, $deviation);
+                break;
+            case 'algorithmic':
+                $actions = $this->applyAlgorithmicMechanism($stablecoin, $deviation);
+                break;
+            case 'hybrid':
+                $actions = array_merge(
+                    $this->applyCollateralizedMechanism($stablecoin, $deviation),
+                    $this->applyAlgorithmicMechanism($stablecoin, $deviation)
+                );
+                break;
+        }
+        
+        // Fire event
+        event('stability.mechanism.applied', [
+            'stablecoin_code' => $stablecoinCode,
+            'deviation' => $deviation,
+            'actions' => $actions,
+        ]);
+        
+        return $actions;
+    }
+    
+    /**
+     * Apply collateralized stability mechanism.
+     */
+    private function applyCollateralizedMechanism(Stablecoin $stablecoin, array $deviation): array
+    {
+        $actions = [];
+        
+        // Adjust fees based on deviation
+        $feeAdjustment = $this->calculateFeeAdjustment($stablecoin->code);
+        
+        if ($feeAdjustment['new_mint_fee'] !== $stablecoin->mint_fee || 
+            $feeAdjustment['new_burn_fee'] !== $stablecoin->burn_fee) {
+            
+            $stablecoin->mint_fee = $feeAdjustment['new_mint_fee'];
+            $stablecoin->burn_fee = $feeAdjustment['new_burn_fee'];
+            $stablecoin->save();
+            
+            $actions[] = [
+                'action' => 'adjust_fees',
+                'timestamp' => now(),
+                'reason' => "Price deviation of {$deviation['percentage']}%",
+                'new_mint_fee' => $feeAdjustment['new_mint_fee'],
+                'new_burn_fee' => $feeAdjustment['new_burn_fee'],
+            ];
+        }
+        
+        return $actions;
+    }
+    
+    /**
+     * Apply algorithmic stability mechanism.
+     */
+    private function applyAlgorithmicMechanism(Stablecoin $stablecoin, array $deviation): array
+    {
+        $actions = [];
+        $incentives = $this->calculateSupplyIncentives($stablecoin->code);
+        
+        // Update algorithmic rewards/penalties
+        if ($incentives['recommended_action'] === 'burn') {
+            $stablecoin->algo_burn_penalty = $incentives['burn_reward'];
+            $stablecoin->algo_mint_reward = 0;
+        } else {
+            $stablecoin->algo_mint_reward = $incentives['mint_reward'];
+            $stablecoin->algo_burn_penalty = 0;
+        }
+        
+        $stablecoin->save();
+        
+        $actions[] = [
+            'action' => 'adjust_supply',
+            'timestamp' => now(),
+            'direction' => $deviation['direction'] === 'above' ? 'expand' : 'contract',
+            'burn_incentive' => $incentives['burn_reward'],
+            'mint_incentive' => $incentives['mint_reward'],
+        ];
+        
+        // Also adjust algorithmic incentives
+        $actions[] = [
+            'action' => 'adjust_incentives',
+            'timestamp' => now(),
+            'reason' => "Algorithmic adjustment for {$deviation['percentage']}% deviation",
+        ];
+        
+        return $actions;
+    }
+    
+    /**
+     * Calculate fee adjustments based on price deviation.
+     */
+    public function calculateFeeAdjustment(string $stablecoinCode): array
+    {
+        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
+        $deviation = $this->checkPegDeviation($stablecoinCode);
+        
+        $baseMintFee = $stablecoin->mint_fee;
+        $baseBurnFee = $stablecoin->burn_fee;
+        
+        // If price is above peg, increase mint fees and decrease burn fees
+        // If price is below peg, decrease mint fees and increase burn fees
+        $adjustmentFactor = min(abs($deviation['percentage']) / 10, 1.0); // Cap at 100% adjustment
+        
+        if ($deviation['direction'] === 'above') {
+            $newMintFee = min(0.1, $baseMintFee * (1 + $adjustmentFactor));
+            $newBurnFee = max(0, $baseBurnFee * (1 - $adjustmentFactor));
+        } elseif ($deviation['direction'] === 'below') {
+            $newMintFee = max(0, $baseMintFee * (1 - $adjustmentFactor));
+            $newBurnFee = min(0.1, $baseBurnFee * (1 + $adjustmentFactor));
+        } else {
+            $newMintFee = $baseMintFee;
+            $newBurnFee = $baseBurnFee;
+        }
+        
+        return [
+            'new_mint_fee' => round($newMintFee, 6),
+            'new_burn_fee' => round($newBurnFee, 6),
+            'adjustment_reason' => "Price {$deviation['direction']} peg by {$deviation['percentage']}%",
+        ];
+    }
+    
+    /**
+     * Calculate supply incentives for algorithmic stablecoins.
+     */
+    public function calculateSupplyIncentives(string $stablecoinCode): array
+    {
+        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
+        $deviation = $this->checkPegDeviation($stablecoinCode);
+        
+        if ($deviation['direction'] === 'below') {
+            // Need to reduce supply - incentivize burning
+            return [
+                'recommended_action' => 'burn',
+                'burn_reward' => min(0.1, abs($deviation['percentage']) * 0.01),
+                'mint_penalty' => 0,
+            ];
+        } elseif ($deviation['direction'] === 'above') {
+            // Need to increase supply - incentivize minting
+            return [
+                'recommended_action' => 'mint',
+                'mint_reward' => min(0.1, abs($deviation['percentage']) * 0.01),
+                'burn_penalty' => 0,
+            ];
+        }
+        
+        return [
+            'recommended_action' => 'none',
+            'mint_reward' => 0,
+            'burn_reward' => 0,
+            'mint_penalty' => 0,
+            'burn_penalty' => 0,
+        ];
+    }
+    
+    /**
+     * Monitor all stablecoin pegs.
+     */
+    public function monitorAllPegs(): array
+    {
+        $monitoring = [];
+        $stablecoins = Stablecoin::active()->get();
+        
+        foreach ($stablecoins as $stablecoin) {
+            try {
+                $deviation = $this->checkPegDeviation($stablecoin->code);
+                
+                $monitoring[] = [
+                    'stablecoin_code' => $stablecoin->code,
+                    'deviation' => $deviation,
+                    'status' => abs($deviation['percentage']) <= 1.0 ? 'healthy' : 
+                               (abs($deviation['percentage']) <= 5.0 ? 'warning' : 'critical'),
+                    'last_checked' => now(),
+                ];
+            } catch (\Exception $e) {
+                $monitoring[] = [
+                    'stablecoin_code' => $stablecoin->code,
+                    'status' => 'error',
+                    'error' => $e->getMessage(),
+                    'last_checked' => now(),
+                ];
+            }
+        }
+        
+        return $monitoring;
+    }
+    
+    /**
+     * Execute emergency actions for extreme deviations.
+     */
+    public function executeEmergencyActions(string $stablecoinCode): array
+    {
+        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
+        $deviation = $this->checkPegDeviation($stablecoinCode);
+        $actions = [];
+        
+        if (abs($deviation['percentage']) > 10.0) {
+            // Pause minting if price is too high
+            if ($deviation['direction'] === 'above' && $stablecoin->minting_enabled) {
+                $stablecoin->minting_enabled = false;
+                $stablecoin->save();
+                
+                $actions[] = [
+                    'action' => 'pause_minting',
+                    'timestamp' => now(),
+                    'reason' => "Extreme price deviation: {$deviation['percentage']}% above peg",
+                ];
+            }
+            
+            // Max out fees
+            $stablecoin->mint_fee = 0.1;
+            $stablecoin->save();
+            
+            $actions[] = [
+                'action' => 'max_fee_adjustment',
+                'timestamp' => now(),
+                'reason' => "Emergency fee adjustment due to {$deviation['percentage']}% deviation",
+            ];
+        }
+        
+        return $actions;
+    }
+    
+    /**
+     * Get stability recommendations for a stablecoin.
+     */
+    public function getStabilityRecommendations(string $stablecoinCode): array
+    {
+        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
+        $recommendations = [];
+        
+        // Check collateralization
+        if ($stablecoin->stability_mechanism === 'collateralized' || 
+            $stablecoin->stability_mechanism === 'hybrid') {
+            
+            $globalRatio = $stablecoin->total_collateral_value / max(1, $stablecoin->total_supply);
+            
+            if ($globalRatio < $stablecoin->collateral_ratio) {
+                $recommendations[] = [
+                    'action' => 'increase_collateral_requirements',
+                    'reason' => 'Global collateralization below target',
+                    'current_ratio' => $globalRatio,
+                    'target_ratio' => $stablecoin->collateral_ratio,
+                ];
+                
+                $recommendations[] = [
+                    'action' => 'incentivize_collateral_deposits',
+                    'reason' => 'Encourage users to add more collateral',
+                ];
+            }
+        }
+        
+        // Check supply utilization
+        if ($stablecoin->max_supply > 0) {
+            $utilization = $stablecoin->total_supply / $stablecoin->max_supply;
+            
+            if ($utilization > 0.8) {
+                $recommendations[] = [
+                    'action' => 'reduce_max_supply',
+                    'reason' => 'High supply utilization may limit growth',
+                    'current_utilization' => $utilization,
+                ];
+                
+                if ($stablecoin->stability_mechanism === 'algorithmic' || 
+                    $stablecoin->stability_mechanism === 'hybrid') {
+                    $recommendations[] = [
+                        'action' => 'increase_burn_incentives',
+                        'reason' => 'Reduce supply through algorithmic incentives',
+                    ];
+                }
+            }
+        }
+        
+        return $recommendations;
     }
 }
