@@ -9,7 +9,6 @@ This documentation is organized into logical sections for easy navigation:
 ### 01-VISION/ 🎯
 **Strategic vision and business direction**
 - [`GCU_USER_VISION.md`](01-VISION/GCU_USER_VISION.md) - Complete user-facing vision for GCU
-- [`BUSINESS_MODEL.md`](01-VISION/BUSINESS_MODEL.md) - Revenue model, economics, and market strategy
 - [`REGULATORY_STRATEGY.md`](01-VISION/REGULATORY_STRATEGY.md) - Compliance pathway and regulatory framework
 
 ### 02-ARCHITECTURE/ 🏗️
@@ -43,8 +42,8 @@ This documentation is organized into logical sections for easy navigation:
 - **APIs**: Visit `/api/documentation` in running application
 
 ### For Business
-- **Business Model**: [Revenue and Economics](01-VISION/BUSINESS_MODEL.md)
-- **Market Opportunity**: $2.5T addressable market
+- **GCU Vision**: [User-Facing Product Vision](01-VISION/GCU_USER_VISION.md)
+- **Market Opportunity**: Revolutionary user-controlled global currency
 - **Competitive Advantage**: Multi-bank distribution + user control
 
 ### For Regulators
@@ -68,9 +67,9 @@ This documentation is organized into logical sections for easy navigation:
 4. **Focus on practical**: 5-month timeline vs 12+ months academic approach
 
 ### Market Position
-- **Primary Market**: High-inflation countries ($500B market)
+- **Primary Market**: High-inflation countries and international users
 - **Competitive Edge**: Real banks + deposit insurance + user control
-- **Revenue Model**: 0.01% conversion fees (vs 2-4% traditional)
+- **Value Proposition**: Low-cost global currency with democratic control
 
 ## 📋 Implementation Status
 
@@ -100,7 +99,6 @@ This documentation is organized into logical sections for easy navigation:
 ### Coverage
 - **Vision**: Complete strategic direction
 - **Technical**: Architecture and implementation details
-- **Business**: Revenue model and market analysis
 - **Regulatory**: Compliance pathway and framework
 - **Features**: Comprehensive capability matrix
 
@@ -128,7 +126,7 @@ This documentation is organized into logical sections for easy navigation:
 
 ### Internal Team
 - **Technical Questions**: See architecture documentation
-- **Business Questions**: See vision and business model docs
+- **Vision Questions**: See GCU user vision document
 - **Regulatory Questions**: See regulatory strategy
 
 ### External Inquiries

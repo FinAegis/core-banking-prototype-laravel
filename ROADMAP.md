@@ -169,7 +169,7 @@
 - [ ] **Audit Trails**: Enhanced logging for regulatory requirements  
 - [ ] **Data Protection**: GDPR compliance improvements
 
-**Resources**: 3-4 developers, 6 weeks | **Budget**: $150k | **Dependencies**: Current platform (ready)
+**Resources**: 3-4 developers, 6 weeks | **Dependencies**: Current platform (ready)
 
 ### 🏦 Phase 5: Real Bank Integration (Q2 2025) - 8 weeks
 **Status: 📋 PLANNED**
@@ -193,7 +193,7 @@
 - [ ] **Reconciliation**: Daily automated balance reconciliation
 - [ ] **Reporting Dashboard**: Bank operation insights
 
-**Resources**: 4-5 developers, 8 weeks | **Budget**: $200k | **Dependencies**: Bank partnerships, API access
+**Resources**: 4-5 developers, 8 weeks | **Dependencies**: Bank partnerships, API access
 
 ### 🚀 Phase 6: GCU Launch (Q3 2025) - 6 weeks  
 **Status: 📋 PLANNED**
@@ -217,7 +217,7 @@
 - [ ] **Documentation**: User guides and developer docs
 - [ ] **Beta Testing**: Limited user beta program
 
-**Resources**: 5-6 developers, 6 weeks | **Budget**: $180k | **Dependencies**: Regulatory approval
+**Resources**: 5-6 developers, 6 weeks | **Dependencies**: Regulatory approval
 
 ### 🔮 Phase 7: Advanced Features (Q4 2025+)
 **Status: 📋 FUTURE**
@@ -318,23 +318,6 @@
 - [ ] 1000+ beta users onboarded successfully
 - [ ] Lithuanian EMI license regulatory approval received
 - [ ] GCU currency basket live and rebalancing monthly
-
-## 💰 GCU Implementation Budget
-
-### Development Costs
-- **Phase 4 (Foundation)**: $150k (3-4 developers × 6 weeks)
-- **Phase 5 (Bank Integration)**: $200k (4-5 developers × 8 weeks)
-- **Phase 6 (GCU Launch)**: $180k (5-6 developers × 6 weeks)
-- **Total Development**: $530k
-
-### Additional Costs  
-- **Bank Integration**: $50k (API access, certification)
-- **Regulatory Compliance**: $100k (legal, EMI licensing)
-- **Security Audit**: $25k (third-party security review)
-- **Marketing/Launch**: $75k (GCU website, branding, PR)
-- **Total Additional**: $250k
-
-**Grand Total**: $780k over 20 weeks (5 months)
 
 ## 🎯 Quick Wins (Immediate Implementation)
 
