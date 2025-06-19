@@ -204,13 +204,19 @@ app/Domain/
 - **Webhook Management**: Configuration, monitoring, and delivery tracking
 - **User Management**: Complete user administration with role-based access
 
-### Recent Updates (Phase 4 Implementation)
-- **User Bank Preferences**: Model for multi-bank fund allocation with configurable percentages
+### Recent Updates (Phase 4 & 4.1 Implementation)
+- **Enhanced User Bank Preferences**: Expanded model with 5 banks (Paysera, Deutsche Bank, Santander, Revolut, Wise)
+- **Bank Distribution Algorithm**: Intelligent fund allocation with rounding handling and validation
+- **Bank Allocation Service**: Complete service layer for managing user bank preferences
+- **Admin Interface**: Filament resource for bank allocation management with visual indicators
+- **Bank Network Widget**: Dashboard widget showing bank partner network and insurance coverage
+- **Deposit Insurance Tracking**: Calculate total coverage across multiple banks (up to €500,000)
+- **Diversification Analysis**: Automated checks for healthy fund distribution
+- **Primary Bank Selection**: Designate primary bank for urgent transfers
 - **Voting Template Service**: Automated creation of monthly currency basket voting polls
 - **Asset-Weighted Voting Strategy**: Democratic voting where 1 primary asset unit = 1 vote
 - **Basket Update Workflow**: Automated basket composition updates based on poll results
 - **Primary Basket Configuration**: Configurable primary currency basket (defaults: USD 40%, EUR 30%, GBP 15%, CHF 10%, JPY 3%, Gold 2%)
-- **Enhanced Admin Dashboard**: Primary basket widget for real-time composition visualization
 - **Console Commands**: `php artisan voting:setup` for poll management
 
 ## 🔧 Usage Examples
