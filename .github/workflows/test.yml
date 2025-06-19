@@ -69,6 +69,11 @@ jobs:
     - name: Generate application key
       run: php artisan key:generate
 
+    - name: Clear configuration cache
+      run: |
+        php artisan config:clear
+        php artisan cache:clear
+
     - name: Configure environment for testing
       run: |
         sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env
@@ -94,7 +99,9 @@ jobs:
       run: php artisan db:seed --force
 
     - name: Run tests
-      run: ./vendor/bin/pest --configuration=phpunit.ci.xml --parallel --coverage --min=38
+      run: |
+        export APP_KEY=$(grep APP_KEY .env | cut -d '=' -f2)
+        ./vendor/bin/pest --configuration=phpunit.ci.xml --parallel --coverage --min=40
 
     - name: Upload coverage reports to Codecov
       if: success()
