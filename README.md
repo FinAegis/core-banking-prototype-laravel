@@ -1,19 +1,34 @@
-# FinAegis: Decentralized Asset Management & Governance Platform
+# FinAegis Core Banking Platform
 
 [![Tests](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/test.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/test.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.3-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
 
-**Next-Generation Financial Infrastructure for Multi-Asset Management**
+**Enterprise-Grade Core Banking Platform Supporting Multiple Financial Products**
 
-FinAegis is evolving from a traditional core banking platform to a comprehensive **decentralized asset management and governance platform**. Built with Laravel 12, it features event sourcing, domain-driven design, multi-custodian support, and user-driven governance—all while maintaining enterprise-grade security and compliance.
+FinAegis is a production-ready core banking platform built with event sourcing, domain-driven design, and regulatory compliance at its core. It provides the technical foundation for various financial products including the **Global Currency Unit (GCU)** - a democratic digital currency backed by real banks.
 
 **🤖 AI-Friendly Architecture**: This project welcomes contributions from AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.). The comprehensive documentation and well-structured patterns make it easy for AI agents to understand and contribute meaningfully to the codebase.
 
-## 🏛️ Platform Vision
+## 🚀 Key Features
 
-FinAegis is building the foundation for next-generation financial products that require:
+FinAegis provides a comprehensive foundation for modern financial services:
+
+### 🌍 Featured Implementation: Global Currency Unit (GCU)
+
+The platform includes support for implementing products like the GCU - a democratic digital currency:
+
+- **Real Bank Backing**: User bank preference model supports multiple banks (e.g., Paysera, Deutsche Bank, Santander)
+- **User-Controlled**: Monthly voting templates for currency basket composition
+- **Multi-Currency Basket**: Configurable basket with default USD (40%), EUR (30%), GBP (15%), CHF (10%), JPY (3%), Gold (2%)
+- **Deposit Insurance**: Designed for government protection through real bank storage
+- **Democratic Governance**: Asset-weighted voting (1 unit = 1 vote)
+- **Low Fees**: Platform supports configurable fee structures
+
+## 🏛️ Platform Capabilities
+
+FinAegis provides the technical foundation for diverse financial products:
 
 ### Core Banking Excellence
 - **Event Sourcing Architecture**: Complete audit trail of all transactions
@@ -30,16 +45,19 @@ FinAegis is building the foundation for next-generation financial products that 
 - **Account Balance System**: Per-asset balance tracking with automatic USD creation
 - **Basket Assets**: Composite assets with fixed/dynamic rebalancing and performance tracking
 
-### Decentralized Architecture (🔧 In Development)
+### Decentralized Architecture (✅ Foundation Implemented)
 - **Custodian Abstraction**: Unified interface implemented (MockBankConnector available)
 - **Multi-Custodian Support**: Foundation laid for multiple financial institutions
 - **Automated Reconciliation**: Framework in place for real-time balance verification
-- **Risk Distribution**: Configurable allocation strategies (planned)
+- **Risk Distribution**: Configurable allocation strategies
+- **User Bank Preferences**: Model for multi-bank fund distribution (Paysera, Deutsche Bank, Santander)
 
-### Democratic Governance (✅ Implemented)
+### Democratic Governance (✅ Enhanced)
 - **User Voting System**: Complete polling system for platform decisions
 - **Configurable Voting Power**: One-user-one-vote and asset-weighted voting strategies
-- **Automated Execution**: Poll results trigger system workflows (AddAssetWorkflow, etc.)
+- **Asset-Weighted Voting**: Voting power based on primary asset holdings (1 unit = 1 vote)
+- **Automated Execution**: Poll results trigger system workflows (UpdateBasketCompositionWorkflow, etc.)
+- **Monthly Voting Templates**: Pre-configured polls for currency basket composition
 - **Transparency**: Complete audit trail of all governance actions
 - **Admin Interface**: Full poll management and vote monitoring in admin dashboard
 
@@ -75,11 +93,19 @@ php artisan key:generate
 php artisan migrate
 php artisan db:seed
 
+# Setup Primary Basket (optional)
+php artisan db:seed --class=PrimaryBasketSeeder
+php artisan voting:setup
+
 # Build assets
 npm run build
 
 # Start the application
 php artisan serve
+
+# Access Admin Dashboard
+# http://localhost:8000/admin
+# Create admin user: php artisan make:filament-user
 
 # Start queue workers (in separate terminals)
 php artisan queue:work --queue=events,ledger,transactions,transfers,webhooks
@@ -164,8 +190,9 @@ app/Domain/
 - Performance monitoring
 - Redis caching layer for optimized performance
 
-### Admin Dashboard
+### Admin Dashboard (Filament v3)
 - Comprehensive admin interface powered by Filament v3
+- **Primary Basket Widget**: Real-time visualization of configurable currency basket
 - **Account Management**: Real-time operations (deposit, withdraw, freeze/unfreeze)
 - **Transaction History**: Complete transaction monitoring with projector-based data
 - **Multi-Asset Support**: Asset management (CRUD) and exchange rate monitoring
@@ -176,6 +203,15 @@ app/Domain/
 - **Export Functionality**: CSV/XLSX export for accounts, transactions, assets
 - **Webhook Management**: Configuration, monitoring, and delivery tracking
 - **User Management**: Complete user administration with role-based access
+
+### Recent Updates (Phase 4 Implementation)
+- **User Bank Preferences**: Model for multi-bank fund allocation with configurable percentages
+- **Voting Template Service**: Automated creation of monthly currency basket voting polls
+- **Asset-Weighted Voting Strategy**: Democratic voting where 1 primary asset unit = 1 vote
+- **Basket Update Workflow**: Automated basket composition updates based on poll results
+- **Primary Basket Configuration**: Configurable primary currency basket (defaults: USD 40%, EUR 30%, GBP 15%, CHF 10%, JPY 3%, Gold 2%)
+- **Enhanced Admin Dashboard**: Primary basket widget for real-time composition visualization
+- **Console Commands**: `php artisan voting:setup` for poll management
 
 ## 🔧 Usage Examples
 

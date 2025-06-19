@@ -95,11 +95,12 @@ it('handles missing exchange rates gracefully', function () {
     ]);
     
     // Create a new asset without exchange rate
-    Asset::create(['code' => 'JPY', 'name' => 'Japanese Yen', 'type' => 'fiat', 'precision' => 0]);
+    // JPY is already created by migration, so we'll use a different asset
+    Asset::create(['code' => 'NOK', 'name' => 'Norwegian Krone', 'type' => 'fiat', 'precision' => 2]);
     
     $basket->components()->createMany([
         ['asset_code' => 'USD', 'weight' => 50.0],
-        ['asset_code' => 'JPY', 'weight' => 50.0], // No exchange rate exists
+        ['asset_code' => 'NOK', 'weight' => 50.0], // No exchange rate exists
     ]);
     
     $value = $this->service->calculateValue($basket);

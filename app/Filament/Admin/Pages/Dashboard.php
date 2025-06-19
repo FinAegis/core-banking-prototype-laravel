@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\AccountResource\Widgets\AccountStatsOverview;
 use App\Filament\Admin\Resources\AccountResource\Widgets\RecentTransactionsChart;
 use App\Filament\Admin\Resources\AccountResource\Widgets\AccountBalanceChart;
 use App\Filament\Admin\Resources\AccountResource\Widgets\SystemHealthWidget;
+use App\Filament\Admin\Widgets\PrimaryBasketWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
@@ -17,6 +18,7 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
+            PrimaryBasketWidget::class,
             AccountStatsOverview::class,
             RecentTransactionsChart::class,
             AccountBalanceChart::class,

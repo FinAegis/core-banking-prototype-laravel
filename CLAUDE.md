@@ -139,6 +139,20 @@ php artisan queue:clear
 php artisan make:filament-user
 ```
 
+### GCU Platform Management
+```bash
+# Set up GCU voting polls
+php artisan gcu:setup-voting                  # Create next month's poll
+php artisan gcu:setup-voting --month=2025-07  # Create specific month
+php artisan gcu:setup-voting --year=2025      # Create all polls for year
+
+# Seed GCU basket configuration
+php artisan db:seed --class=GCUBasketSeeder
+
+# Access GCU admin dashboard
+# http://localhost:8000/admin (rebranded as GCU Platform)
+```
+
 ### Admin Dashboard Management
 ```bash
 # Create admin user
@@ -956,6 +970,60 @@ test('account can hold multiple asset balances', function () {
 });
 ```
 
+## GCU Platform Development Patterns
+
+### User Bank Preferences
+```php
+// Creating default bank preferences for a user
+$user = User::factory()->create();
+$preferences = UserBankPreference::getDefaultAllocations();
+
+foreach ($preferences as $pref) {
+    $user->bankPreferences()->create($pref);
+}
+
+// Validate allocations sum to 100%
+$isValid = UserBankPreference::validateAllocations($user->uuid);
+
+// Get user's primary bank
+$primaryBank = $user->bankPreferences()
+    ->where('is_primary', true)
+    ->first();
+```
+
+### GCU Voting Polls
+```php
+// Create monthly voting poll
+$votingService = app(GCUVotingTemplateService::class);
+$poll = $votingService->createMonthlyBasketVotingPoll();
+
+// Create emergency rebalancing poll
+$emergencyPoll = $votingService->createEmergencyRebalancingPoll(
+    'Major USD devaluation detected'
+);
+
+// Calculate voting power
+$strategy = new AssetWeightedVotingStrategy();
+$votingPower = $strategy->calculatePower($user, $poll);
+```
+
+### GCU Basket Management
+```php
+// Access GCU basket configuration
+$gcuBasket = BasketAsset::where('code', 'GCU')->first();
+
+// Get current composition
+$composition = $gcuBasket->components->map(function ($component) {
+    return [
+        'asset' => $component->asset_code,
+        'weight' => $component->weight,
+    ];
+});
+
+// Check if user has GCU
+$hasGCU = $account->getBalance('GCU') > 0;
+```
+
 ## Important Files and Locations
 - Event configuration: `config/event-sourcing.php`
 - Workflow configuration: `config/workflows.php`
@@ -986,3 +1054,12 @@ test('account can hold multiple asset balances', function () {
 - Basket tests: `tests/Feature/Basket/`
 - Basket migration: `database/migrations/2025_06_16_232847_create_basket_assets_tables.php`
 - Basket documentation: `docs/BASKET_ASSETS_DESIGN.md`
+
+### GCU Platform Locations
+- User bank preferences: `app/Models/UserBankPreference.php`
+- GCU voting templates: `app/Domain/Governance/Services/GCUVotingTemplateService.php`
+- Voting strategies: `app/Domain/Governance/Strategies/`
+- GCU basket widget: `app/Filament/Admin/Widgets/GCUBasketWidget.php`
+- GCU commands: `app/Console/Commands/SetupGCUVotingPolls.php`
+- GCU seeders: `database/seeders/GCUBasketSeeder.php`
+- GCU tests: `tests/Feature/Governance/GCUVotingTemplateTest.php`

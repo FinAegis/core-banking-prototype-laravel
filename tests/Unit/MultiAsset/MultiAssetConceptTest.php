@@ -170,10 +170,10 @@ class MultiAssetConceptTest extends TestCase
     #[Test]
     public function it_demonstrates_composite_asset_basket()
     {
-        // Example of a currency basket (like SDR or GCU)
+        // Example of a currency basket (like SDR)
         $basket = [
-            'code' => 'GCU',
-            'name' => 'Global Currency Unit',
+            'code' => 'BASKET',
+            'name' => 'Currency Basket',
             'type' => 'composite',
             'composition' => [
                 ['asset' => 'USD', 'weight' => 0.40], // 40% USD

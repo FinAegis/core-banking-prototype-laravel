@@ -1,10 +1,10 @@
 <x-filament-panels::page>
     <div class="space-y-4">
         <div class="text-2xl font-bold tracking-tight">
-            Welcome to FinAegis Admin Dashboard
+            Welcome to FinAegis Dashboard
         </div>
         <div class="text-sm text-gray-600 dark:text-gray-400">
-            Monitor and manage your core banking platform
+            Enterprise-grade core banking platform
         </div>
     </div>
     

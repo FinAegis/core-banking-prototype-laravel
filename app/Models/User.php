@@ -107,4 +107,20 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(Account::class, 'user_uuid', 'uuid');
     }
+
+    /**
+     * Get the bank preferences for the user.
+     */
+    public function bankPreferences()
+    {
+        return $this->hasMany(UserBankPreference::class, 'user_uuid', 'uuid');
+    }
+
+    /**
+     * Get active bank preferences for the user.
+     */
+    public function activeBankPreferences()
+    {
+        return $this->bankPreferences()->active();
+    }
 }

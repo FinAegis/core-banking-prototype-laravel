@@ -162,7 +162,8 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_handles_missing_exchange_rates()
     {
         // Create basket with asset that has no exchange rate
-        Asset::factory()->create(['code' => 'JPY', 'name' => 'Japanese Yen', 'type' => 'fiat']);
+        // JPY is already created by migration, so we'll use a different asset
+        Asset::factory()->create(['code' => 'NOK', 'name' => 'Norwegian Krone', 'type' => 'fiat']);
         
         $basket = BasketAsset::create([
             'code' => 'MISSING_RATE_BASKET',
@@ -173,7 +174,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         $basket->components()->createMany([
             ['asset_code' => 'USD', 'weight' => 50.0],
-            ['asset_code' => 'JPY', 'weight' => 50.0], // No exchange rate for JPY
+            ['asset_code' => 'NOK', 'weight' => 50.0], // No exchange rate for NOK
         ]);
         
         $value = $this->service->calculateValue($basket);
