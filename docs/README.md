@@ -1,6 +1,6 @@
-# FinAegis → GCU Documentation
+# FinAegis Platform Documentation
 
-**Comprehensive documentation for the Global Currency Unit platform transformation**
+**Comprehensive documentation for FinAegis platform and GCU implementation**
 
 ## 📁 Documentation Structure
 

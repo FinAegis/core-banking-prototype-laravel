@@ -1,13 +1,13 @@
-# FinAegis → GCU Implementation Roadmap
+# FinAegis Platform Roadmap
 
 **Last Updated:** 2025-06-19  
 **Version:** 3.0 (GCU Implementation)
 
 ## Vision
 
-FinAegis is transforming into the **Global Currency Unit (GCU) platform** - a revolutionary user-controlled digital currency where funds stay in real banks with deposit insurance, users vote on currency composition, and everyone benefits from distributed yet regulated financial innovation.
+**FinAegis** is a powerful multi-asset banking platform that enables revolutionary financial products. **Global Currency Unit (GCU)** is the first major implementation built on FinAegis - a user-controlled digital currency where funds stay in real banks with deposit insurance, users vote on currency composition, and everyone benefits from distributed yet regulated financial innovation.
 
-**Key Insight**: FinAegis already has 80% of the technical infrastructure needed for GCU. We will leverage our proven architecture while adding GCU's user-facing vision.
+**Key Insight**: FinAegis already has 80% of the technical infrastructure needed for GCU. We will leverage our proven platform architecture to build GCU as a showcase implementation.
 
 ## Strategic Goals
 
@@ -460,4 +460,4 @@ For questions or suggestions about this roadmap, please open a discussion on Git
 
 ---
 
-**This roadmap transforms FinAegis into the GCU platform while leveraging our proven technical excellence and delivering a revolutionary user-controlled global currency in a practical, achievable timeline.**
+**This roadmap shows how to build GCU using the FinAegis platform while leveraging our proven technical excellence and delivering a revolutionary user-controlled global currency in a practical, achievable timeline.**
