@@ -26,7 +26,7 @@ class CustodianWebhookControllerTest extends TestCase
         $this->verificationService = Mockery::mock(WebhookVerificationService::class);
         $this->app->instance(WebhookVerificationService::class, $this->verificationService);
     }
-
+    
     protected function tearDown(): void
     {
         Mockery::close();
@@ -418,10 +418,10 @@ class CustodianWebhookControllerTest extends TestCase
             ->once()
             ->andReturn(true);
         
-        // Mock the CustodianWebhook model to throw an exception
-        $this->mock('overload:' . CustodianWebhook::class)
-            ->shouldReceive('create')
-            ->andThrow(new \Exception('Database error'));
+        // Force an error in the webhook creation by mocking a static method
+        CustodianWebhook::saving(function () {
+            throw new \RuntimeException('Database error');
+        });
         
         $response = $this->postJson('/api/webhooks/custodian/paysera', json_decode($payload, true), [
             'X-Paysera-Signature' => 'test-signature',
@@ -455,7 +455,7 @@ class CustodianWebhookControllerTest extends TestCase
         $webhook = CustodianWebhook::where('event_id', 'evt_job_test')->first();
         
         Queue::assertPushed(\App\Jobs\ProcessCustodianWebhook::class, function ($job) use ($webhook) {
-            return $job->webhookUuid === $webhook->uuid;
+            return $job->webhookId === $webhook->uuid;
         });
     }
 }

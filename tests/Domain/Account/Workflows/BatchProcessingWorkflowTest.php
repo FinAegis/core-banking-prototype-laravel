@@ -2,6 +2,10 @@
 
 use App\Domain\Account\Workflows\BatchProcessingWorkflow;
 use Workflow\WorkflowStub;
+use Illuminate\Support\Facades\Cache;
+
+// Remove the lock approach as it's causing timeouts
+// Tests should be isolated by the testing framework itself
 
 it('can execute batch processing operations', function () {
     WorkflowStub::fake();

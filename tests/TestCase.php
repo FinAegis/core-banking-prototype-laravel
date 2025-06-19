@@ -27,6 +27,14 @@ abstract class TestCase extends BaseTestCase
     protected User $business_user;
 
     protected Account $account;
+    
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        
+        // Close any Mockery mocks
+        \Mockery::close();
+    }
 
     /**
      * @return void
@@ -94,9 +102,22 @@ abstract class TestCase extends BaseTestCase
      */
     protected function createRoles(): void
     {
-        collect(UserRoles::cases())->each(
-            fn ($role) => Role::factory()->withRole($role)->create()
-        );
+        // Check if roles already exist in the database
+        $existingRoles = Role::whereIn('name', array_column(UserRoles::cases(), 'value'))->count();
+        
+        if ($existingRoles >= count(UserRoles::cases())) {
+            return;
+        }
+        
+        // Use a database transaction to ensure atomic operation
+        \DB::transaction(function () {
+            collect(UserRoles::cases())->each(function ($role) {
+                Role::firstOrCreate(
+                    ['name' => $role->value],
+                    ['guard_name' => 'web']
+                );
+            });
+        });
     }
 
     /**

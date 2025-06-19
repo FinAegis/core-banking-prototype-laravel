@@ -23,7 +23,7 @@ final readonly class PollResult
         int $totalEligibleVotingPower
     ): self {
         $totalVotes = count($votes);
-        $totalVotingPower = array_sum(array_column($votes, 'voting_power'));
+        $totalVotingPower = (int) array_sum(array_column($votes, 'voting_power'));
         
         // Initialize results for all options
         $optionResults = [];

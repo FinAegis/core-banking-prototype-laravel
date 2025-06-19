@@ -119,7 +119,10 @@ class CustodianWebhookTest extends TestCase
         $this->assertIsArray($fresh->headers);
         $this->assertIsArray($fresh->payload);
         $this->assertInstanceOf(\Carbon\Carbon::class, $fresh->processed_at);
+        $this->assertArrayHasKey('content-type', $fresh->headers);
         $this->assertEquals('application/json', $fresh->headers['content-type']);
+        $this->assertArrayHasKey('test', $fresh->payload);
+        $this->assertEquals('data', $fresh->payload['test']);
     }
 
     /** @test */

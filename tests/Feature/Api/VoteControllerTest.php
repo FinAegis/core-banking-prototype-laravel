@@ -30,12 +30,14 @@ it('can cast a vote on an active poll', function () {
             'message' => 'Vote cast successfully',
         ]);
 
-    $this->assertDatabaseHas('votes', [
-        'poll_id' => $poll->id,
-        'user_uuid' => $this->user->uuid,
-        'selected_options' => json_encode(['yes']),
-        'voting_power' => 1,
-    ]);
+    // Check vote was created with correct data
+    $vote = \App\Domain\Governance\Models\Vote::where('poll_id', $poll->id)
+        ->where('user_uuid', $this->user->uuid)
+        ->first();
+    
+    expect($vote)->not->toBeNull();
+    expect($vote->selected_options)->toBe(['yes']);
+    expect($vote->voting_power)->toBe(1);
 });
 
 it('can cast multiple votes on multiple choice poll', function () {
@@ -58,11 +60,13 @@ it('can cast multiple votes on multiple choice poll', function () {
             'message' => 'Vote cast successfully',
         ]);
 
-    $this->assertDatabaseHas('votes', [
-        'poll_id' => $poll->id,
-        'user_uuid' => $this->user->uuid,
-        'selected_options' => json_encode(['option1', 'option3']),
-    ]);
+    // Check vote was created with correct data
+    $vote = \App\Domain\Governance\Models\Vote::where('poll_id', $poll->id)
+        ->where('user_uuid', $this->user->uuid)
+        ->first();
+    
+    expect($vote)->not->toBeNull();
+    expect($vote->selected_options)->toBe(['option1', 'option3']);
 });
 
 it('cannot vote on inactive poll', function () {
@@ -122,7 +126,7 @@ it('cannot vote twice on same poll', function () {
     ]);
 
     // First vote
-    Vote::create([
+    Vote::factory()->create([
         'poll_id' => $poll->id,
         'user_uuid' => $this->user->uuid,
         'selected_options' => ['yes'],

@@ -135,7 +135,7 @@ class Poll extends Model
         // Calculate total eligible voting power
         // For now, we'll use the sum of all votes as a baseline
         // This could be enhanced to calculate actual eligible users
-        $totalEligibleVotingPower = max(
+        $totalEligibleVotingPower = (int) max(
             $this->votes()->sum('voting_power'),
             1 // Prevent division by zero
         );
@@ -169,7 +169,7 @@ class Poll extends Model
 
     public function getTotalVotingPower(): int
     {
-        return $this->votes()->sum('voting_power');
+        return (int) $this->votes()->sum('voting_power');
     }
 
     public function scopeActive($query)

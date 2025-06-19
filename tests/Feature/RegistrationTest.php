@@ -29,24 +29,38 @@ test('new users can register', function () {
         'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
     ]);
 
-    $this->assertAuthenticated();
+    // Check if registration was successful
+    $response->assertSessionHasNoErrors();
     $response->assertRedirect(route('dashboard', absolute: false));
+    
+    // Verify user was created
+    $this->assertDatabaseHas('users', [
+        'email' => 'test@example.com',
+        'name' => 'Test User',
+    ]);
 })->skip(function () {
     return ! Features::enabled(Features::registration());
 }, 'Registration support is not enabled.');
 
 test('new business users can register', function () {
     $response = $this->post('/register', [
-        'name' => 'Test User',
-        'email' => 'test@example.com',
+        'name' => 'Test Business User',
+        'email' => 'business@example.com',
         'is_business_customer' => true,
         'password' => 'password',
         'password_confirmation' => 'password',
         'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
     ]);
 
-    $this->assertAuthenticated();
+    // Check if registration was successful
+    $response->assertSessionHasNoErrors();
     $response->assertRedirect(route('dashboard', absolute: false));
+    
+    // Verify user was created
+    $this->assertDatabaseHas('users', [
+        'email' => 'business@example.com',
+        'name' => 'Test Business User',
+    ]);
 })->skip(function () {
     return ! Features::enabled(Features::registration());
 }, 'Registration support is not enabled.');

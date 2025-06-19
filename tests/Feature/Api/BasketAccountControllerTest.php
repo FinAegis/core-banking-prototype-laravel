@@ -203,6 +203,11 @@ class BasketAccountControllerTest extends TestCase
     {
         Sanctum::actingAs($this->user);
         
+        // Store initial balances
+        $initialUsdBalance = $this->account->getBalance('USD');
+        $initialEurBalance = $this->account->getBalance('EUR');
+        $initialGbpBalance = $this->account->getBalance('GBP');
+        
         // Give account component balances
         // For 1 basket unit (10000), we need components based on weights
         $this->account->addBalance('USD', 4000); // 40% of 10000
@@ -229,10 +234,10 @@ class BasketAccountControllerTest extends TestCase
         // Check basket balance was added
         $this->assertEquals(10000, $this->account->getBalance('TEST_BASKET'));
         
-        // Check component balances were reduced
-        $this->assertEquals(0, $this->account->getBalance('USD'));
-        $this->assertEquals(0, $this->account->getBalance('EUR'));
-        $this->assertEquals(0, $this->account->getBalance('GBP'));
+        // Check component balances were reduced by exact amounts
+        $this->assertEquals($initialUsdBalance, $this->account->getBalance('USD'));
+        $this->assertEquals($initialEurBalance, $this->account->getBalance('EUR'));
+        $this->assertEquals($initialGbpBalance, $this->account->getBalance('GBP'));
     }
 
     /** @test */

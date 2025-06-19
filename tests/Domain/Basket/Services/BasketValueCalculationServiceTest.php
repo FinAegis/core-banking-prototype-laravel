@@ -310,7 +310,7 @@ it('can invalidate cached values', function () {
 
 it('ensures basket is registered as asset when calculating value', function () {
     $basket = BasketAsset::create([
-        'code' => 'ASSET_CREATION_BASKET',
+        'code' => 'ASSET_CREATE_BSK',
         'name' => 'Asset Creation Basket',
     ]);
     
@@ -320,7 +320,7 @@ it('ensures basket is registered as asset when calculating value', function () {
     ]);
     
     // Asset should not exist yet
-    expect(Asset::where('code', 'ASSET_CREATION_BASKET')->exists())->toBeFalse();
+    expect(Asset::where('code', 'ASSET_CREATE_BSK')->exists())->toBeFalse();
     
     // Calculate value - this internally calls toAsset()
     $value = $this->service->calculateValue($basket);
@@ -334,5 +334,5 @@ it('ensures basket is registered as asset when calculating value', function () {
     expect($asset->is_basket)->toBeTrue();
     
     // Verify it was created
-    expect(Asset::where('code', 'ASSET_CREATION_BASKET')->exists())->toBeTrue();
+    expect(Asset::where('code', 'ASSET_CREATE_BSK')->exists())->toBeTrue();
 });

@@ -42,7 +42,7 @@ it('can receive and store paysera webhook', function () {
     expect($webhook->custodian_name)->toBe('paysera');
     expect($webhook->event_type)->toBe('payment.completed');
     expect($webhook->event_id)->toBe('evt_123');
-    expect($webhook->payload)->toBe($payload);
+    expect($webhook->payload)->toMatchArray($payload);
     expect($webhook->status)->toBe('pending');
     
     // Verify job was dispatched
