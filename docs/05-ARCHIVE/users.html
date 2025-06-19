@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Users - GCU Global Currency Unit</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .user-hero {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .voting-widget {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin: 2rem 0;
+        }
+        
+        .currency-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .currency-option:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .currency-option.selected {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        .currency-slider {
+            width: 100%;
+            margin: 1rem 0;
+        }
+        
+        .current-allocation {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            margin: 2rem 0;
+            border-collapse: collapse;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .comparison-table th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        
+        .check-mark {
+            color: #10b981;
+            font-weight: bold;
+        }
+        
+        .cross-mark {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        
+        .faq-item {
+            background: white;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .faq-question {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-answer {
+            color: #64748b;
+            line-height: 1.6;
+            display: none;
+        }
+        
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+        
+        .conversion-demo {
+            background: #e0e7ff;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+        
+        .demo-step {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .demo-icon {
+            width: 40px;
+            height: 40px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>GCU</h2>
+                <span>Global Currency Unit</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="users.html" class="nav-link active">For Users</a></li>
+                <li><a href="business.html" class="nav-link">For Business</a></li>
+                <li><a href="technology.html" class="nav-link">Technology</a></li>
+                <li><a href="about.html" class="nav-link">About GCU</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- User Hero Section -->
+        <section class="user-hero">
+            <div class="container">
+                <h1>Your Currency, Your Vote, Your Control</h1>
+                <p style="font-size: 1.25rem; margin: 1rem 0; opacity: 0.9;">Hold GCU, vote on its composition, spend in any currency worldwide</p>
+                <div style="margin-top: 2rem;">
+                    <a href="#voting" class="btn btn-primary" style="background: white; color: #10b981;">Try Voting Demo</a>
+                    <a href="#conversion" class="btn btn-outline" style="border-color: white; color: white;">See Conversion Demo</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- What is GCU -->
+        <section class="content-section">
+            <div class="container">
+                <h2 class="section-title">What is GCU?</h2>
+                
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3>🗳️ Democratic Currency</h3>
+                        <p>You and other GCU holders vote on the currency basket composition. No central authority decides - the community controls the mix of USD, EUR, GBP, CHF, JPY, and Gold.</p>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3>💱 Hold One, Spend Many</h3>
+                        <p>Store your value in GCU, but spend in any local currency. Going to Japan? Your GCU automatically converts to JPY at market rates.</p>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3>📊 100% Transparent</h3>
+                        <p>Every GCU token is backed 1:1 by real assets in banks. Real-time verification, third-party audits, blockchain proof of reserves.</p>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3>💰 Minimal Fees</h3>
+                        <p>Only pay the tiny spread between buy/sell rates (0.01-0.05%). No hidden fees, no markup, no surprises.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Voting Demo -->
+        <section id="voting" class="content-section" style="background: #f8fafc;">
+            <div class="container">
+                <h2 class="section-title">Try the Voting System</h2>
+                <p style="text-align: center; color: #64748b; margin-bottom: 2rem;">Your money in banks backs GCU - you decide the currency mix</p>
+                
+                <div class="voting-widget">
+                    <h3>Your Preferred Currency Allocation</h3>
+                    <p style="color: #64748b; margin-bottom: 2rem;">Adjust the sliders to see how you would vote on GCU composition</p>
+                    
+                    <div style="display: grid; gap: 1rem;">
+                        <div class="currency-option">
+                            <div>
+                                <strong>USD - US Dollar</strong>
+                                <div style="font-size: 0.875rem; color: #64748b;">Most liquid, global reserve currency</div>
+                            </div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">
+                                <span id="usd-percent">35</span>%
+                            </div>
+                        </div>
+                        
+                        <div class="currency-option">
+                            <div>
+                                <strong>EUR - Euro</strong>
+                                <div style="font-size: 0.875rem; color: #64748b;">European stability, ECB backing</div>
+                            </div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">
+                                <span id="eur-percent">25</span>%
+                            </div>
+                        </div>
+                        
+                        <div class="currency-option">
+                            <div>
+                                <strong>GBP - British Pound</strong>
+                                <div style="font-size: 0.875rem; color: #64748b;">Financial center, independent monetary policy</div>
+                            </div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">
+                                <span id="gbp-percent">20</span>%
+                            </div>
+                        </div>
+                        
+                        <div class="currency-option">
+                            <div>
+                                <strong>CHF - Swiss Franc</strong>
+                                <div style="font-size: 0.875rem; color: #64748b;">Safe haven, low inflation history</div>
+                            </div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">
+                                <span id="chf-percent">10</span>%
+                            </div>
+                        </div>
+                        
+                        <div class="currency-option">
+                            <div>
+                                <strong>JPY - Japanese Yen</strong>
+                                <div style="font-size: 0.875rem; color: #64748b;">Asian stability, carry trade hedge</div>
+                            </div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">
+                                <span id="jpy-percent">5</span>%
+                            </div>
+                        </div>
+                        
+                        <div class="currency-option">
+                            <div>
+                                <strong>Gold - Precious Metal</strong>
+                                <div style="font-size: 0.875rem; color: #64748b;">Inflation hedge, crisis protection</div>
+                            </div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #f59e0b;">
+                                <span id="gold-percent">5</span>%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="current-allocation">
+                        <h4>Current Global Vote vs Your Preference</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                            <div>
+                                <strong>Current Community Vote:</strong><br>
+                                USD 35%, EUR 25%, GBP 20%, CHF 10%, JPY 5%, Gold 5%
+                            </div>
+                            <div>
+                                <strong>Your Vote Would Make:</strong><br>
+                                <span id="result-allocation">Same as current allocation</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conversion Demo -->
+        <section id="conversion" class="content-section">
+            <div class="container">
+                <h2 class="section-title">How Spending Works</h2>
+                
+                <div class="conversion-demo">
+                    <h3>Real Example: Coffee in Tokyo</h3>
+                    <p style="margin-bottom: 2rem;">You have 100 GCU, want to buy coffee for ¥500 in Tokyo</p>
+                    
+                    <div class="demo-step">
+                        <div class="demo-icon">1</div>
+                        <div>
+                            <h4>Check GCU Balance</h4>
+                            <p style="margin: 0; color: #64748b;">You have 100 GCU = $102.34 at current rates</p>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-step">
+                        <div class="demo-icon">2</div>
+                        <div>
+                            <h4>Real-time Conversion</h4>
+                            <p style="margin: 0; color: #64748b;">¥500 = $3.42 at current USD/JPY rate (146.1)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-step">
+                        <div class="demo-icon">3</div>
+                        <div>
+                            <h4>GCU Deduction</h4>
+                            <p style="margin: 0; color: #64748b;">3.34 GCU deducted ($3.42 ÷ $1.0234 GCU rate + 0.02% spread)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-step">
+                        <div class="demo-icon">✓</div>
+                        <div>
+                            <h4>Payment Complete</h4>
+                            <p style="margin: 0; color: #64748b;">Merchant receives ¥500, you have 96.66 GCU remaining</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Table -->
+        <section class="content-section" style="background: #f8fafc;">
+            <div class="container">
+                <h2 class="section-title">GCU vs Traditional Solutions</h2>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>GCU</th>
+                            <th>Traditional Banks</th>
+                            <th>Other Stablecoins</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>User Control</td>
+                            <td><span class="check-mark">✓</span> Vote on composition</td>
+                            <td><span class="cross-mark">✗</span> No control</td>
+                            <td><span class="cross-mark">✗</span> Company controlled</td>
+                        </tr>
+                        <tr>
+                            <td>Transparency</td>
+                            <td><span class="check-mark">✓</span> Real-time blockchain proof</td>
+                            <td><span class="cross-mark">✗</span> Limited visibility</td>
+                            <td><span class="cross-mark">✗</span> Varying levels</td>
+                        </tr>
+                        <tr>
+                            <td>Global Spending</td>
+                            <td><span class="check-mark">✓</span> Any currency, instant</td>
+                            <td><span class="cross-mark">✗</span> Limited, slow</td>
+                            <td><span class="cross-mark">✗</span> Limited acceptance</td>
+                        </tr>
+                        <tr>
+                            <td>Conversion Fees</td>
+                            <td><span class="check-mark">✓</span> 0.01-0.05% spread</td>
+                            <td><span class="cross-mark">✗</span> 2-4% typical</td>
+                            <td><span class="cross-mark">✗</span> 0.1-1% + gas</td>
+                        </tr>
+                        <tr>
+                            <td>Stability</td>
+                            <td><span class="check-mark">✓</span> Diversified basket</td>
+                            <td><span class="check-mark">✓</span> Single currency</td>
+                            <td><span class="cross-mark">✗</span> Usually USD only</td>
+                        </tr>
+                        <tr>
+                            <td>Password Recovery</td>
+                            <td><span class="check-mark">✓</span> Bank recovery process</td>
+                            <td><span class="check-mark">✓</span> Standard recovery</td>
+                            <td><span class="cross-mark">✗</span> Lost forever</td>
+                        </tr>
+                        <tr>
+                            <td>Deposit Insurance</td>
+                            <td><span class="check-mark">✓</span> Multi-bank coverage</td>
+                            <td><span class="check-mark">✓</span> Single bank limit</td>
+                            <td><span class="cross-mark">✗</span> No insurance</td>
+                        </tr>
+                        <tr>
+                            <td>Criminal Protection</td>
+                            <td><span class="check-mark">✓</span> KYC prevents abuse</td>
+                            <td><span class="check-mark">✓</span> Identity verified</td>
+                            <td><span class="cross-mark">✗</span> Often anonymous</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 3rem;">
+                    <h3 style="text-align: center; margin-bottom: 2rem;">Real Value Display in Your Currency</h3>
+                    <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <p style="text-align: center; margin-bottom: 2rem; color: #64748b;">
+                            Every transaction shows the exact value in your native currency - no confusion, no surprises
+                        </p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🇪🇺</div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">European User</div>
+                                <div style="color: #64748b;">Sees: €50.00 = 48.85 GCU</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🇺🇸</div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">American User</div>
+                                <div style="color: #64748b;">Sees: $100.00 = 97.70 GCU</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🇹🇷</div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Turkish User</div>
+                                <div style="color: #64748b;">Sees: ₺1,000 = 30.25 GCU</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🇦🇷</div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Argentine User</div>
+                                <div style="color: #64748b;">Sees: $10,000 ARS = 9.77 GCU</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Getting Started -->
+        <section class="content-section">
+            <div class="container">
+                <h2 class="section-title">Getting Started</h2>
+                
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <div style="display: grid; gap: 2rem;">
+                        <div style="display: flex; align-items: flex-start;">
+                            <div style="background: #10b981; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1.5rem; flex-shrink: 0;">1</div>
+                            <div>
+                                <h3 style="margin-bottom: 0.5rem;">Join Waitlist</h3>
+                                <p style="color: #64748b;">GCU is currently in development. Join our waitlist to be among the first users when we launch.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start;">
+                            <div style="background: #10b981; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1.5rem; flex-shrink: 0;">2</div>
+                            <div>
+                                <h3 style="margin-bottom: 0.5rem;">Identity Verification</h3>
+                                <p style="color: #64748b;">Complete KYC process according to EU regulations. Your data is protected and only used for compliance.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start;">
+                            <div style="background: #10b981; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1.5rem; flex-shrink: 0;">3</div>
+                            <div>
+                                <h3 style="margin-bottom: 0.5rem;">Buy Your First GCU</h3>
+                                <p style="color: #64748b;">Exchange your local currency for GCU at market rates. Start with any amount - there's no minimum.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start;">
+                            <div style="background: #10b981; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1.5rem; flex-shrink: 0;">4</div>
+                            <div>
+                                <h3 style="margin-bottom: 0.5rem;">Cast Your Vote</h3>
+                                <p style="color: #64748b;">Vote on the currency composition based on your preferences and global economic outlook.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 3rem;">
+                        <a href="#" class="btn btn-primary">Join Waitlist</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="content-section" style="background: #f8fafc;">
+            <div class="container">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How is GCU different from other stablecoins?</span>
+                            <span>+</span>
+                        </div>
+                        <div class="faq-answer">
+                            GCU is the first user-controlled currency basket. Unlike USDC or USDT (pegged to USD only), GCU holders vote on the composition of major currencies and gold. This provides diversification and gives users democratic control over their money's backing.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>What are the conversion fees?</span>
+                            <span>+</span>
+                        </div>
+                        <div class="faq-answer">
+                            GCU charges only the minimal spread between buy/sell rates (0.01-0.05%). This is much lower than traditional banks (2-4%) or even most crypto exchanges (0.1-1%). The system earns only from this small spread, with no hidden fees.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How secure are my funds?</span>
+                            <span>+</span>
+                        </div>
+                        <div class="faq-answer">
+                            Every GCU token is backed 1:1 by real assets held in regulated banks and custodians. We provide real-time blockchain proof of reserves, third-party audits, and full regulatory compliance with EU banking laws.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How does voting work?</span>
+                            <span>+</span>
+                        </div>
+                        <div class="faq-answer">
+                            Each GCU token represents one vote. Holders can vote on the currency basket composition monthly. Voting is weighted by holdings, and the results determine how new reserves are allocated and existing reserves are rebalanced.
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>Can I spend GCU anywhere?</span>
+                            <span>+</span>
+                        </div>
+                        <div class="faq-answer">
+                            You can spend GCU anywhere our payment network is accepted, which will initially include major merchants and ATMs. GCU automatically converts to the local currency at the point of sale using real-time exchange rates.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="container">
+                <div class="cta-content">
+                    <h2>Be Part of the Currency Revolution</h2>
+                    <p>Join thousands of people who want democratic control over their global currency</p>
+                    <div class="cta-buttons">
+                        <a href="#" class="btn btn-primary">Join Waitlist</a>
+                        <a href="#" class="btn btn-outline">Download Whitepaper</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 GCU - Global Currency Unit. User-controlled digital currency for the global economy.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.875rem; opacity: 0.8;">
+                    <a href="#" style="color: inherit; text-decoration: none; margin: 0 1rem;">Privacy</a>
+                    <a href="#" style="color: inherit; text-decoration: none; margin: 0 1rem;">Terms</a>
+                    <a href="#" style="color: inherit; text-decoration: none; margin: 0 1rem;">Help</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

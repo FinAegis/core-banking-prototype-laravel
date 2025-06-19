@@ -1,19 +1,21 @@
-# FinAegis Platform Roadmap
+# FinAegis → GCU Implementation Roadmap
 
-**Last Updated:** 2025-06-15  
-**Version:** 2.0
+**Last Updated:** 2025-06-19  
+**Version:** 3.0 (GCU Implementation)
 
 ## Vision
 
-FinAegis is evolving from a traditional core banking platform to a comprehensive **decentralized asset management and governance platform**. This roadmap outlines our journey to support multi-asset ledgers, multi-custodian management, and user-driven governance while maintaining our core principles of being scalable, secure, and auditable.
+FinAegis is transforming into the **Global Currency Unit (GCU) platform** - a revolutionary user-controlled digital currency where funds stay in real banks with deposit insurance, users vote on currency composition, and everyone benefits from distributed yet regulated financial innovation.
+
+**Key Insight**: FinAegis already has 80% of the technical infrastructure needed for GCU. We will leverage our proven architecture while adding GCU's user-facing vision.
 
 ## Strategic Goals
 
-1. **Multi-Asset Support**: Transform from currency-centric to asset-centric architecture
-2. **Decentralized Custody**: Enable funds to be held across multiple financial institutions
-3. **Democratic Governance**: Implement user-driven decision making through polling
-4. **Universal Modularity**: Build reusable components for complex financial products
-5. **Maintain Core Excellence**: Preserve existing banking functionality while expanding capabilities
+1. **User-Controlled Global Currency**: Enable users to hold GCU backed by basket of currencies (USD/EUR/GBP/CHF/JPY/Gold)
+2. **Multi-Bank Distribution**: Allow users to choose bank allocation (40% Paysera, 30% Deutsche Bank, 30% Santander) 
+3. **Democratic Currency Control**: Monthly voting on currency basket composition with user governance
+4. **Regulatory Compliance**: Lithuanian EMI license pathway with full KYC/AML compliance
+5. **Real Bank Integration**: Replace mock connectors with actual bank APIs while maintaining technical excellence
 
 ---
 
@@ -145,31 +147,103 @@ FinAegis is evolving from a traditional core banking platform to a comprehensive
   - ✅ `POST /api/custodians/{id}/reconcile` - Trigger reconciliation
   - ✅ `GET /api/custodians/{id}/transactions` - Transaction history
 
-### 🔮 Phase 4: Advanced Features (Q4 2025)
-**Status: 🔄 IN PROGRESS**
+### 🎯 Phase 4: GCU Foundation Enhancement (Q1 2025) - 6 weeks
+**Status: 🔄 NEXT PHASE**
+**Goal**: Enhance existing FinAegis platform for GCU readiness
 
-#### 4.1 Complex Financial Products
-- [x] **Basket Assets** 🔄 **IN PROGRESS**
+#### 4.1 User Bank Selection (Week 1-2)
+- [ ] **Multi-Bank Allocation Model**: Extend existing custodian abstraction
+- [ ] **User Bank Preferences**: Add bank selection to user profile  
+- [ ] **Distribution Algorithm**: Logic to split funds across chosen banks
+- [ ] **Admin Interface**: Bank allocation management in existing dashboard
+
+#### 4.2 Enhanced Governance (Week 3-4)
+- [ ] **Currency Basket Voting**: Extend existing poll system for basket composition
+- [ ] **Monthly Rebalancing**: Automated basket updates based on votes
+- [ ] **Voting Power**: Asset-weighted voting (already partially implemented)
+- [ ] **User Dashboard**: Voting interface in existing frontend
+
+#### 4.3 Compliance Framework (Week 5-6)
+- [ ] **Enhanced KYC**: Strengthen existing user verification
+- [ ] **Regulatory Reporting**: Automated compliance reports
+- [ ] **Audit Trails**: Enhanced logging for regulatory requirements  
+- [ ] **Data Protection**: GDPR compliance improvements
+
+**Resources**: 3-4 developers, 6 weeks | **Budget**: $150k | **Dependencies**: Current platform (ready)
+
+### 🏦 Phase 5: Real Bank Integration (Q2 2025) - 8 weeks
+**Status: 📋 PLANNED**
+**Goal**: Replace mock connectors with real bank APIs
+
+#### 5.1 Primary Bank Partners (Week 1-3)
+- [ ] **Paysera Connector**: EMI license partner integration
+- [ ] **Deutsche Bank API**: Corporate banking API integration  
+- [ ] **Santander Integration**: API connection for EU operations
+- [ ] **Balance Synchronization**: Real-time balance reconciliation
+
+#### 5.2 Transaction Processing (Week 4-6)
+- [ ] **Multi-Bank Transfers**: Route transfers across bank network
+- [ ] **Settlement Logic**: Handle inter-bank settlements
+- [ ] **Error Handling**: Robust failure recovery across banks
+- [ ] **Performance Optimization**: Sub-second transaction processing
+
+#### 5.3 Monitoring & Operations (Week 7-8)
+- [ ] **Bank Health Monitoring**: Real-time bank connector status
+- [ ] **Alerting System**: Automated alerts for bank issues
+- [ ] **Reconciliation**: Daily automated balance reconciliation
+- [ ] **Reporting Dashboard**: Bank operation insights
+
+**Resources**: 4-5 developers, 8 weeks | **Budget**: $200k | **Dependencies**: Bank partnerships, API access
+
+### 🚀 Phase 6: GCU Launch (Q3 2025) - 6 weeks  
+**Status: 📋 PLANNED**
+**Goal**: Launch GCU with full user experience
+
+#### 6.1 User Interface (Week 1-2)
+- [ ] **GCU Wallet**: User-friendly wallet interface
+- [ ] **Bank Selection Flow**: Intuitive bank allocation UI
+- [ ] **Voting Interface**: Monthly basket voting UI
+- [ ] **Transaction History**: Enhanced transaction views
+
+#### 6.2 Mobile & API (Week 3-4)
+- [ ] **Mobile App**: Native iOS/Android apps
+- [ ] **Public API**: External developer API
+- [ ] **Webhook Integration**: Real-time event notifications
+- [ ] **Third-party Integrations**: Partner platform connections
+
+#### 6.3 Launch Preparation (Week 5-6)  
+- [ ] **Load Testing**: System performance validation
+- [ ] **Security Audit**: Third-party security review
+- [ ] **Documentation**: User guides and developer docs
+- [ ] **Beta Testing**: Limited user beta program
+
+**Resources**: 5-6 developers, 6 weeks | **Budget**: $180k | **Dependencies**: Regulatory approval
+
+### 🔮 Phase 7: Advanced Features (Q4 2025+)
+**Status: 📋 FUTURE**
+
+#### 7.1 Complex Financial Products
+- [x] **Basket Assets** ✅ **COMPLETED**
   - [x] Implement composite assets (e.g., currency baskets) ✅ **COMPLETED**
   - [x] Create rebalancing algorithms ✅ **COMPLETED**
   - [ ] Add performance tracking 🔄 **IN PROGRESS**
   - **Progress**: Core models, services, and database schema implemented
 
-- [ ] **Stablecoin Support**
-  - Build framework for stablecoin issuance
-  - Implement collateral management
-  - Add automated stability mechanisms
+- [ ] **Advanced Stablecoin Support**
+  - Enhanced collateral management for GCU
+  - Automated stability mechanisms
+  - Cross-chain integration
 
-#### 4.2 Advanced Governance
+#### 7.2 Advanced Governance
 - [ ] **Tiered Governance**
-  - Implement proposal system with thresholds
-  - Add delegation mechanisms
-  - Create governance token support
+  - Enhanced proposal system for major platform changes
+  - Delegation mechanisms for governance tokens
+  - Multi-tier voting for different decision types
 
 - [ ] **Automated Compliance**
-  - Build rule engine for regulatory compliance
-  - Implement automated reporting
-  - Add jurisdiction-aware features
+  - Advanced rule engine for multi-jurisdiction compliance
+  - Real-time regulatory reporting
+  - AI-powered compliance monitoring
 
 ---
 
@@ -212,23 +286,102 @@ FinAegis is evolving from a traditional core banking platform to a comprehensive
 
 ## Success Metrics
 
-### Phase 1 Completion Criteria
+### Phase 1-3 Completion Criteria (✅ COMPLETED)
 - ✅ All accounts support multiple asset balances
 - ✅ Exchange rate service operational with 99.9% uptime
 - ✅ Mock custodian passes all integration tests
 - ✅ Existing features remain fully functional
-
-### Phase 2 Completion Criteria
 - ✅ Governance system supports 10,000+ concurrent votes
-- ✅ At least one production custodian integrated
 - ✅ Multi-asset transfers process in <2 seconds
 - ✅ Saga pattern ensures 100% consistency
-
-### Phase 3 Completion Criteria
 - ✅ Admin dashboard fully supports all new features
 - ✅ API coverage for all platform capabilities
 - ✅ Performance maintained at 10,000+ TPS
 - ✅ Zero-downtime deployments achieved
+
+### Phase 4 (GCU Foundation) Success Criteria
+- [ ] User bank allocation functionality working
+- [ ] Monthly currency basket voting implemented  
+- [ ] Enhanced compliance workflows active
+- [ ] All existing tests passing + new test coverage ≥50%
+
+### Phase 5 (Bank Integration) Success Criteria
+- [ ] 3+ real bank connectors operational (Paysera, Deutsche Bank, Santander)
+- [ ] Cross-bank transfers working in <5 seconds
+- [ ] 99.9% uptime across bank connections
+- [ ] Real-time balance reconciliation working
+- [ ] Bank failure scenarios handled gracefully
+
+### Phase 6 (GCU Launch) Success Criteria
+- [ ] Mobile apps published to app stores (iOS, Android)
+- [ ] Public API documentation complete
+- [ ] 1000+ beta users onboarded successfully
+- [ ] Lithuanian EMI license regulatory approval received
+- [ ] GCU currency basket live and rebalancing monthly
+
+## 💰 GCU Implementation Budget
+
+### Development Costs
+- **Phase 4 (Foundation)**: $150k (3-4 developers × 6 weeks)
+- **Phase 5 (Bank Integration)**: $200k (4-5 developers × 8 weeks)
+- **Phase 6 (GCU Launch)**: $180k (5-6 developers × 6 weeks)
+- **Total Development**: $530k
+
+### Additional Costs  
+- **Bank Integration**: $50k (API access, certification)
+- **Regulatory Compliance**: $100k (legal, EMI licensing)
+- **Security Audit**: $25k (third-party security review)
+- **Marketing/Launch**: $75k (GCU website, branding, PR)
+- **Total Additional**: $250k
+
+**Grand Total**: $780k over 20 weeks (5 months)
+
+## 🎯 Quick Wins (Immediate Implementation)
+
+### 1. Rebrand to GCU Platform (1 day)
+- [ ] Update admin dashboard to show "GCU Platform"
+- [ ] Add GCU branding and currency basket widgets
+- [ ] Showcase multi-bank distribution visualization
+
+### 2. Pre-configure GCU Basket (3 days)
+- [ ] Create "GCU Basket" with USD/EUR/GBP/CHF/JPY/Gold
+- [ ] Set up monthly rebalancing schedule
+- [ ] Add basket performance analytics
+
+### 3. User Bank Preference Model (2 days)
+- [ ] Add `user_bank_preferences` table
+- [ ] Extend user model with bank allocation settings
+- [ ] Create admin interface for bank selection
+
+### 4. Currency Voting Templates (2 days)
+- [ ] Create poll templates for monthly votes
+- [ ] Pre-populate currency options
+- [ ] Set up automated poll scheduling
+
+### 5. Documentation Consolidation (5 days)
+- [ ] Create unified `GCU_VISION.md`
+- [ ] Reorganize docs into logical structure
+- [ ] Archive over-engineered research docs
+
+### 6. Demo Environment (2 days)
+- [ ] Set up public demo at `demo.gcu.global`
+- [ ] Populate with sample GCU data
+- [ ] Create demo user accounts
+
+## 🏛️ Regulatory Strategy
+
+### Lithuanian EMI License Pathway
+1. **Q1 2025**: Engage Paysera for partnership discussions
+2. **Q2 2025**: Submit EMI license application via Paysera sponsorship
+3. **Q3 2025**: Complete regulatory review and approval process
+4. **Q4 2025**: EU passport activation for 27-country market access
+
+### Compliance Framework
+- **KYC/AML**: Enhanced user verification workflows
+- **MiCA Regulation**: Compliance with EU crypto-asset regulations  
+- **GDPR**: Data protection and privacy controls
+- **PCI DSS**: Secure payment card handling
+- **Basel III**: Risk management framework
 
 ---
 
@@ -273,4 +426,38 @@ For questions or suggestions about this roadmap, please open a discussion on Git
 
 ---
 
-**Note**: This roadmap is a living document and will be updated quarterly based on progress, community feedback, and market needs.
+## 🌍 Market Opportunity
+
+### Addressable Market
+- **Primary**: High-inflation countries (Argentina, Turkey, Nigeria) - $500B market
+- **Secondary**: Digital nomads and international workers - $50B market  
+- **Tertiary**: Businesses needing multi-currency operations - $2T market
+
+### Competitive Advantages
+1. **Real Bank Deposits**: Government deposit insurance protection (€100k/$250k per bank)
+2. **User-Controlled Governance**: Democratic currency basket decisions
+3. **Multi-Bank Distribution**: No single point of failure across 5 banks in 5 countries
+4. **Regulatory Compliant**: KYC-only users, bank-friendly approach
+5. **Low Fees**: 0.01% conversion fees vs 2-4% traditional banking
+
+## 🎯 Next Steps
+
+### Immediate (This Week)
+1. [x] **Complete documentation cleanup** using proposed structure ✅ **COMPLETED**
+2. [ ] **Archive GCU research documents** that won't be implemented
+3. [ ] **Create consolidated GCU vision document**
+4. [ ] **Begin Quick Win #1**: Rebrand admin dashboard
+
+### Month 1 (January 2025)
+1. [ ] **Start Phase 4 development** with existing team
+2. [ ] **Begin bank partnership negotiations** (Paysera priority)
+3. [ ] **Engage regulatory consultants** for Lithuanian EMI license
+
+### Month 2-3 (February-March 2025)
+1. [ ] **Complete Phase 4** foundation enhancements
+2. [ ] **Secure bank API access** for development environment
+3. [ ] **Begin Phase 5** real bank integration development
+
+---
+
+**This roadmap transforms FinAegis into the GCU platform while leveraging our proven technical excellence and delivering a revolutionary user-controlled global currency in a practical, achievable timeline.**
