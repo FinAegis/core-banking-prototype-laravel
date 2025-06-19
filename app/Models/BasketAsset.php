@@ -128,6 +128,7 @@ class BasketAsset extends Model
                 'type' => 'custom',
                 'precision' => 4,
                 'is_active' => $this->is_active ?? true,
+                'is_basket' => true,
                 'metadata' => [
                     'basket_id' => $this->id,
                     'basket_type' => $this->type,
