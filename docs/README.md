@@ -14,28 +14,21 @@ This documentation is organized into logical sections for easy navigation:
 
 ### 02-ARCHITECTURE/ 🏗️
 **Technical architecture and system design**
-- [`PLATFORM_ARCHITECTURE.md`](../ARCHITECTURE.md) - Current FinAegis architecture (maintained)
-- [`MULTI_ASSET_ARCHITECTURE.md`](MULTI_ASSET_ARCHITECTURE.md) - Multi-asset system design
-- [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md) - Complete database design
+- [`ARCHITECTURE.md`](02-ARCHITECTURE/ARCHITECTURE.md) - Complete platform architecture
+- [`MULTI_ASSET_ARCHITECTURE.md`](02-ARCHITECTURE/MULTI_ASSET_ARCHITECTURE.md) - Multi-asset system design
 
 ### 03-FEATURES/ ✨
 **Feature specifications and capabilities**
-- [`FEATURES.md`](FEATURES.md) - Comprehensive feature matrix
-- [`BASKET_ASSETS_DESIGN.md`](BASKET_ASSETS_DESIGN.md) - Composite asset implementation
-- [`ADMIN_DASHBOARD.md`](ADMIN_DASHBOARD.md) - Admin interface documentation
+- [`FEATURES.md`](03-FEATURES/FEATURES.md) - Comprehensive feature matrix
 
 ### 04-TECHNICAL/ ⚙️
 **Technical implementation details**
-- [`CUSTODIAN_INTEGRATION.md`](CUSTODIAN_INTEGRATION.md) - External custodian framework
-- [`WEBHOOK_INTEGRATION.md`](WEBHOOK_INTEGRATION.md) - Event notification system
+- [`DATABASE_SCHEMA.md`](04-TECHNICAL/DATABASE_SCHEMA.md) - Complete database design
+- [`CUSTODIAN_INTEGRATION.md`](04-TECHNICAL/CUSTODIAN_INTEGRATION.md) - External custodian framework
+- [`WEBHOOK_INTEGRATION.md`](04-TECHNICAL/WEBHOOK_INTEGRATION.md) - Event notification system
+- [`BASKET_ASSETS_DESIGN.md`](04-TECHNICAL/BASKET_ASSETS_DESIGN.md) - Composite asset implementation
+- [`ADMIN_DASHBOARD.md`](04-TECHNICAL/ADMIN_DASHBOARD.md) - Admin interface documentation
 - API documentation available at `/api/documentation`
-
-### 05-ARCHIVE/ 📦
-**Historical and reference documents**
-- Original GCU research documents (academic approach - not implemented)
-- Over-engineered blockchain/AI proposals that were superseded
-- Public website files and marketing materials
-- See [`05-ARCHIVE/README.md`](05-ARCHIVE/README.md) for details
 
 ## 🚀 Quick Start
 
@@ -45,8 +38,8 @@ This documentation is organized into logical sections for easy navigation:
 - **Benefits**: Inflation protection, democratic control, bank insurance
 
 ### For Developers
-- **Architecture**: [Platform Architecture](../ARCHITECTURE.md)
-- **Features**: [Feature Matrix](FEATURES.md)
+- **Architecture**: [Platform Architecture](02-ARCHITECTURE/ARCHITECTURE.md)
+- **Features**: [Feature Matrix](03-FEATURES/FEATURES.md)
 - **APIs**: Visit `/api/documentation` in running application
 
 ### For Business

@@ -317,12 +317,12 @@ The platform includes a powerful admin dashboard built with Filament:
 ### Additional Resources
 
 - **[Development Guide](DEVELOPMENT.md)**: Complete developer documentation
-- **[System Architecture](ARCHITECTURE.md)**: Technical architecture overview
+- **[System Architecture](docs/02-ARCHITECTURE/ARCHITECTURE.md)**: Technical architecture overview
 - **[Workflow Patterns](WORKFLOW_PATTERNS.md)**: Saga patterns and best practices
 - **[API Implementation](API_IMPLEMENTATION.md)**: Complete API layer documentation
 - **[BIAN API Documentation](BIAN_API_DOCUMENTATION.md)**: BIAN-compliant API following banking industry standards
-- **[Admin Dashboard Guide](docs/ADMIN_DASHBOARD.md)**: Comprehensive admin interface documentation
-- **[Webhook Integration Guide](docs/WEBHOOK_INTEGRATION.md)**: Webhook configuration and integration documentation
+- **[Admin Dashboard Guide](docs/04-TECHNICAL/ADMIN_DASHBOARD.md)**: Comprehensive admin interface documentation
+- **[Webhook Integration Guide](docs/04-TECHNICAL/WEBHOOK_INTEGRATION.md)**: Webhook configuration and integration documentation
 
 ### API Endpoints
 
