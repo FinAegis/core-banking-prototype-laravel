@@ -1024,6 +1024,124 @@ $composition = $gcuBasket->components->map(function ($component) {
 $hasGCU = $account->getBalance('GCU') > 0;
 ```
 
+### Phase 4.2: Enhanced Governance Patterns
+
+#### User Voting Interface
+```php
+// Get active polls for user
+use App\Http\Controllers\Api\UserVotingController;
+
+$controller = app(UserVotingController::class);
+$activePolls = $controller->index($request);
+
+// Submit basket allocation vote
+$voteData = [
+    'allocations' => [
+        'USD' => 35,
+        'EUR' => 30,
+        'GBP' => 20,
+        'CHF' => 10,
+        'JPY' => 3,
+        'XAU' => 2,
+    ]
+];
+
+$controller->vote($poll->uuid, new Request($voteData));
+
+// Get voting dashboard data
+$dashboard = $controller->dashboard($request);
+// Returns: stats, active_polls, voting_history, next_poll_date
+```
+
+#### Weighted Voting Calculation
+```php
+use App\Domain\Governance\Workflows\UpdateBasketCompositionWorkflow;
+
+// The workflow automatically calculates weighted averages
+$workflow = app(UpdateBasketCompositionWorkflow::class);
+$workflow->execute($poll);
+
+// Example of how weights are calculated:
+// User A: 1000 GCU votes USD=40%, EUR=30%
+// User B: 500 GCU votes USD=35%, EUR=35%
+// Result: USD = (1000*40 + 500*35)/(1000+500) = 38.33%
+```
+
+#### GCU Configuration via Environment
+```php
+// In .env file:
+GCU_ENABLED=true
+GCU_BASKET_CODE=GCU
+GCU_BASKET_NAME="Global Currency Unit"
+GCU_BASKET_SYMBOL=Ǥ
+GCU_BASKET_DESCRIPTION="Democratic global currency backed by real banks"
+
+// Seeder uses configuration
+php artisan db:seed --class=GCUBasketSeeder
+
+// Access in code
+$gcuEnabled = config('app.gcu_enabled', false);
+$gcuCode = config('app.gcu_basket_code', 'GCU');
+```
+
+#### Frontend Integration Examples
+```javascript
+// Vue.js Component Usage
+import GCUVotingDashboard from './components/GCUVotingDashboard.vue';
+
+// React Integration
+const VotingDashboard = () => {
+    const [polls, setPolls] = useState([]);
+    
+    useEffect(() => {
+        fetch('/api/voting/polls')
+            .then(res => res.json())
+            .then(data => setPolls(data.data));
+    }, []);
+    
+    return <div>{/* Render polls */}</div>;
+};
+
+// Vanilla JavaScript
+fetch('/api/voting/polls/' + pollId + '/vote', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify({ allocations: {...} })
+});
+```
+
+#### Testing Phase 4.2 Features
+```php
+// Test GCU basket creation
+test('can create GCU basket from configuration', function () {
+    config(['app.gcu_enabled' => true]);
+    config(['app.gcu_basket_code' => 'TEST_GCU']);
+    
+    $this->artisan('db:seed', ['--class' => 'GCUBasketSeeder']);
+    
+    $basket = BasketAsset::where('code', 'TEST_GCU')->first();
+    expect($basket)->not->toBeNull();
+    expect($basket->type)->toBe('dynamic');
+});
+
+// Test weighted voting calculation
+test('calculates weighted average correctly', function () {
+    $votes = collect([
+        ['voting_power' => 1000, 'allocations' => ['USD' => 40]],
+        ['voting_power' => 500, 'allocations' => ['USD' => 35]],
+    ]);
+    
+    $weightedAverage = $votes->sum(function ($vote) {
+        return $vote['voting_power'] * $vote['allocations']['USD'];
+    }) / $votes->sum('voting_power');
+    
+    expect($weightedAverage)->toBe(38.333333);
+});
+```
+
 ## Important Files and Locations
 - Event configuration: `config/event-sourcing.php`
 - Workflow configuration: `config/workflows.php`
@@ -1063,3 +1181,13 @@ $hasGCU = $account->getBalance('GCU') > 0;
 - GCU commands: `app/Console/Commands/SetupGCUVotingPolls.php`
 - GCU seeders: `database/seeders/GCUBasketSeeder.php`
 - GCU tests: `tests/Feature/Governance/GCUVotingTemplateTest.php`
+
+### Phase 4.2 Specific Locations
+- User voting controller: `app/Http/Controllers/Api/UserVotingController.php`
+- User voting resource: `app/Http/Resources/UserVotingPollResource.php`
+- Vue voting dashboard: `resources/js/components/GCUVotingDashboard.vue`
+- Integration examples: `resources/js/components/voting-integration-example.js`
+- GCU widget blade: `resources/views/filament/admin/widgets/gcu-basket-widget.blade.php`
+- User voting tests: `tests/Feature/Api/UserVotingControllerTest.php`
+- Basket composition workflow: `app/Domain/Governance/Workflows/UpdateBasketCompositionWorkflow.php`
+- Monthly poll schedule: `routes/console.php` (line 20)
