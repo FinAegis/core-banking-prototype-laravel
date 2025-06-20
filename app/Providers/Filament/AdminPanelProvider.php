@@ -67,14 +67,11 @@ class AdminPanelProvider extends PanelProvider
      */
     protected function getBrandName(): string
     {
-        $brandName = 'FinAegis Platform';
-        
-        // Add implementation info if GCU is enabled
+        // Show GCU if enabled, otherwise show FinAegis
         if (config('app.gcu_enabled', false)) {
-            $gcuName = config('app.gcu_basket_name', 'GCU');
-            $brandName .= ' • ' . $gcuName;
+            return config('app.gcu_basket_name', 'Global Currency Unit');
         }
         
-        return $brandName;
+        return 'FinAegis Admin';
     }
 }
