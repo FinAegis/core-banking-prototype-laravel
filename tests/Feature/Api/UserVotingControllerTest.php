@@ -250,6 +250,7 @@ it('can get voting dashboard data', function () {
     
     // Clean up any existing polls to ensure test isolation
     Poll::query()->delete();
+    Vote::query()->delete();
     
     // Create some test data
     Poll::factory()->count(2)->create([

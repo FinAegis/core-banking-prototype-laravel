@@ -119,6 +119,10 @@ it('can transfer funds from custodian to internal account', function () {
 
 it('can transfer funds from internal account to custodian', function () {
     \Workflow\WorkflowStub::fake();
+    
+    // Ensure clean state
+    Account::where('user_uuid', $this->user->uuid)->delete();
+    
     $account = Account::factory()->withBalance(50000)->create(['user_uuid' => $this->user->uuid]);
     
     $response = $this->postJson('/api/custodians/mock/transfer', [
