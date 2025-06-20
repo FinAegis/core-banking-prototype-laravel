@@ -60,6 +60,7 @@ class Asset extends Model
         'type',
         'precision',
         'is_active',
+        'is_basket',
         'metadata',
     ];
     
@@ -71,6 +72,7 @@ class Asset extends Model
     protected $casts = [
         'precision' => 'integer',
         'is_active' => 'boolean',
+        'is_basket' => 'boolean',
         'metadata' => 'array',
     ];
     
@@ -225,14 +227,4 @@ class Asset extends Model
         return $query->where('type', $type);
     }
     
-    /**
-     * Check if the asset is a basket
-     *
-     * @return bool
-     */
-    public function getIsBasketAttribute(): bool
-    {
-        return $this->type === self::TYPE_CUSTOM && 
-               ($this->metadata['asset_subtype'] ?? null) === 'basket';
-    }
 }

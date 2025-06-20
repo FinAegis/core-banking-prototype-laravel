@@ -160,7 +160,7 @@ class BasketAssetFactory extends Factory
             // Create random components that sum to 100%
             $remainingWeight = 100.0;
             $numComponents = $this->faker->numberBetween(2, 5);
-            $assets = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD'];
+            $assets = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'XAU'];
             $selectedAssets = $this->faker->randomElements($assets, $numComponents);
 
             foreach ($selectedAssets as $index => $assetCode) {

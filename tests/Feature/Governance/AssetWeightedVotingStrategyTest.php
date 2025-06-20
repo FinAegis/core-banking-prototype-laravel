@@ -63,7 +63,7 @@ test('voting power combines multiple accounts', function () {
     expect($votingPower)->toBe(125); // 50 + 75 = 125 votes
 });
 
-test('minimum voting power is 1 for any primary asset holder', function () {
+test('voting power for tiny holdings rounds down to zero', function () {
     $user = User::factory()->create();
     $account = Account::factory()->create(['user_uuid' => $user->uuid]);
     $poll = Poll::factory()->create();
@@ -74,7 +74,7 @@ test('minimum voting power is 1 for any primary asset holder', function () {
     $strategy = new AssetWeightedVotingStrategy();
     $votingPower = $strategy->calculatePower($user, $poll);
     
-    expect($votingPower)->toBe(1); // Minimum 1 vote
+    expect($votingPower)->toBe(0); // Less than 1 unit = 0 votes
 });
 
 test('user with no primary asset has no voting power', function () {
@@ -88,7 +88,7 @@ test('user with no primary asset has no voting power', function () {
     $strategy = new AssetWeightedVotingStrategy();
     $votingPower = $strategy->calculatePower($user, $poll);
     
-    expect($votingPower)->toBe(1); // Still gets minimum 1 vote
+    expect($votingPower)->toBe(0); // No PRIMARY = no voting power
 });
 
 test('user is eligible to vote if they have primary asset', function () {
@@ -149,6 +149,6 @@ test('user with no accounts has no voting power', function () {
     $strategy = new AssetWeightedVotingStrategy();
     $votingPower = $strategy->calculatePower($user, $poll);
     
-    expect($votingPower)->toBe(1); // Minimum 1 vote
+    expect($votingPower)->toBe(0); // No accounts = no voting power
     expect($strategy->isEligible($user, $poll))->toBeFalse();
 });

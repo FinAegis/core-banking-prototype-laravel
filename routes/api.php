@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\BasketController;
 use App\Http\Controllers\Api\BasketAccountController;
 use App\Http\Controllers\Api\StablecoinController;
 use App\Http\Controllers\Api\StablecoinOperationsController;
+use App\Http\Controllers\Api\UserVotingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/stats', [VoteController::class, 'stats']);
         Route::get('/{id}', [VoteController::class, 'show']);
         Route::post('/{id}/verify', [VoteController::class, 'verify']);
+    });
+    
+    // User-friendly voting interface
+    Route::prefix('voting')->group(function () {
+        Route::get('/polls', [UserVotingController::class, 'getActivePolls']);
+        Route::get('/polls/upcoming', [UserVotingController::class, 'getUpcomingPolls']);
+        Route::get('/polls/history', [UserVotingController::class, 'getVotingHistory']);
+        Route::post('/polls/{uuid}/vote', [UserVotingController::class, 'submitBasketVote']);
+        Route::get('/dashboard', [UserVotingController::class, 'getDashboard']);
     });
 });
 

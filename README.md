@@ -408,6 +408,13 @@ POST   /api/polls                       # Create poll
 POST   /api/polls/{id}/vote             # Submit vote
 GET    /api/polls/{id}/results          # View results
 
+# User Voting Interface (GCU)
+GET    /api/voting/polls                # Active polls with user context
+GET    /api/voting/polls/upcoming       # Upcoming polls
+GET    /api/voting/polls/history        # User's voting history
+POST   /api/voting/polls/{uuid}/vote    # Submit basket allocation vote
+GET    /api/voting/dashboard            # Voting dashboard data
+
 # BIAN-Compliant APIs
 POST   /api/bian/current-account        # BIAN current account
 POST   /api/bian/payment-initiation     # BIAN payment processing
@@ -532,6 +539,13 @@ See our comprehensive [Development Roadmap](ROADMAP.md) for detailed implementat
 - [x] **Webhook system**: Real-time event notifications with HMAC security
 - [x] **Enhanced analytics dashboard**: Charts, widgets, and real-time statistics
 - [x] **System health monitoring**: Performance metrics and queue monitoring
+
+### Phase 4.2: Enhanced Governance (✅ Completed)
+- [x] **GCU Implementation**: Environment-configurable basket implementation
+- [x] **Enhanced Voting Workflow**: Weighted average calculation from votes
+- [x] **User Voting Interface**: API endpoints and Vue.js dashboard component
+- [x] **Monthly Poll Automation**: Scheduled task for poll creation
+- [x] **GCU Admin Widget**: Basket composition display with rebalancing info
 
 ### Next Phase: Production Integrations (Q1-Q2 2025)
 - [ ] **Production custodian integrations**: Paysera, Santander connectors

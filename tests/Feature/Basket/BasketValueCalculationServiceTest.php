@@ -31,9 +31,11 @@ class BasketValueCalculationServiceTest extends TestCase
         Asset::firstOrCreate(['code' => 'EUR'], ['name' => 'Euro', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
         Asset::firstOrCreate(['code' => 'GBP'], ['name' => 'British Pound', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
         
-        // Clear existing exchange rates and create specific ones for test
-        ExchangeRate::where('from_asset_code', 'EUR')->where('to_asset_code', 'USD')->delete();
-        ExchangeRate::where('from_asset_code', 'GBP')->where('to_asset_code', 'USD')->delete();
+        // Clear ALL existing exchange rates to avoid interference
+        ExchangeRate::truncate();
+        
+        // Clear cache to ensure fresh data
+        Cache::flush();
         
         ExchangeRate::create([
             'from_asset_code' => 'EUR',
@@ -42,6 +44,7 @@ class BasketValueCalculationServiceTest extends TestCase
             'is_active' => true,
             'source' => 'test',
             'valid_at' => now(),
+            'expires_at' => now()->addHours(2), // Ensure it doesn't expire during test
         ]);
         
         ExchangeRate::create([
@@ -51,6 +54,7 @@ class BasketValueCalculationServiceTest extends TestCase
             'is_active' => true,
             'source' => 'test',
             'valid_at' => now(),
+            'expires_at' => now()->addHours(2), // Ensure it doesn't expire during test
         ]);
         
         // Create test basket
@@ -190,6 +194,17 @@ class BasketValueCalculationServiceTest extends TestCase
     /** @test */
     public function it_only_calculates_for_active_components()
     {
+        // Clear all caches to ensure test isolation
+        Cache::flush();
+        
+        // Re-verify our exchange rates are correct
+        $eurRate = ExchangeRate::where('from_asset_code', 'EUR')
+            ->where('to_asset_code', 'USD')
+            ->where('is_active', true)
+            ->first();
+        $this->assertNotNull($eurRate, 'EUR/USD rate should exist');
+        $this->assertEquals(1.1, $eurRate->rate, 'EUR/USD rate should be 1.1');
+        
         // Deactivate one component
         $gbpComponent = $this->basket->components()->where('asset_code', 'GBP')->first();
         $gbpComponent->update(['is_active' => false]);
@@ -206,11 +221,23 @@ class BasketValueCalculationServiceTest extends TestCase
         
         $value = $this->service->calculateValue($this->basket, false); // Don't use cache
         
-        // Expected calculation (without GBP):
+        // Normalize weights when some components are inactive
+        $activeWeights = $activeComponents->sum('weight'); // Should be 75 (40 + 35)
+        $normalizedUsdWeight = 40.0 / $activeWeights; // 40/75 = 0.533...
+        $normalizedEurWeight = 35.0 / $activeWeights; // 35/75 = 0.466...
+        
+        // Expected calculation (without GBP, normalized weights):
+        // USD: 1.0 * 0.533... = 0.533...
+        // EUR: 1.1 * 0.466... = 0.513...
+        // Total: 0.533... + 0.513... ≈ 1.046...
+        
+        // However, the service doesn't normalize, so we expect:
         // USD: 1.0 * 0.40 = 0.40
         // EUR: 1.1 * 0.35 = 0.385
         // Total: 0.40 + 0.385 = 0.785
-        $this->assertEquals(0.785, $value->value);
+        
+        // Allow for small floating point differences
+        $this->assertEqualsWithDelta(0.785, $value->value, 0.0001);
         
         // Component values should not include inactive GBP
         $componentValues = $value->component_values;

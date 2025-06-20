@@ -33,8 +33,8 @@ class AssetWeightedVotingStrategy implements VotingPowerStrategy
         // 1 unit = 1 voting power (in cents, so divide by 100)
         $votingPower = intval($totalBalance / 100);
         
-        // Minimum voting power of 1 for any holder
-        return max(1, $votingPower);
+        // Return actual voting power (0 if no holdings)
+        return $votingPower;
     }
     
     /**

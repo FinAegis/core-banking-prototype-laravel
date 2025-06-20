@@ -141,16 +141,16 @@ php artisan make:filament-user
 
 ### GCU Platform Management
 ```bash
-# Set up GCU voting polls
-php artisan gcu:setup-voting                  # Create next month's poll
-php artisan gcu:setup-voting --month=2025-07  # Create specific month
-php artisan gcu:setup-voting --year=2025      # Create all polls for year
-
 # Seed GCU basket configuration
 php artisan db:seed --class=GCUBasketSeeder
 
-# Access GCU admin dashboard
-# http://localhost:8000/admin (rebranded as GCU Platform)
+# Set up GCU voting polls
+php artisan voting:setup                      # Create next month's poll
+php artisan voting:setup --month=2025-07      # Create specific month
+php artisan voting:setup --year=2025          # Create all polls for year
+
+# Access admin dashboard
+# http://localhost:8000/admin
 ```
 
 ### Admin Dashboard Management

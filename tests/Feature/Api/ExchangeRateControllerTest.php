@@ -165,7 +165,13 @@ it('can filter exchange rates by validity', function () {
 });
 
 it('can limit number of results', function () {
-    ExchangeRate::factory()->count(5)->valid()->create();
+    // Create exchange rates with different timestamps to avoid unique constraint
+    $baseTime = now();
+    foreach (range(1, 5) as $i) {
+        ExchangeRate::factory()->valid()->create([
+            'valid_at' => $baseTime->copy()->addSeconds($i)
+        ]);
+    }
 
     $response = $this->getJson('/api/v1/exchange-rates?limit=3');
 
