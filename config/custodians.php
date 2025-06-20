@@ -51,8 +51,21 @@ return [
             'description' => 'Santander bank integration for global banking services',
             'api_key' => env('SANTANDER_API_KEY'),
             'api_secret' => env('SANTANDER_API_SECRET'),
+            'certificate' => env('SANTANDER_CERTIFICATE_PATH'),
             'environment' => env('SANTANDER_ENVIRONMENT', 'production'),
             'webhook_secret' => env('SANTANDER_WEBHOOK_SECRET'),
+        ],
+        
+        'deutsche_bank' => [
+            'class' => \App\Domain\Custodian\Connectors\DeutscheBankConnector::class,
+            'enabled' => env('DEUTSCHE_BANK_ENABLED', false),
+            'name' => 'Deutsche Bank',
+            'description' => 'Deutsche Bank integration for corporate banking and SEPA payments',
+            'client_id' => env('DEUTSCHE_BANK_CLIENT_ID'),
+            'client_secret' => env('DEUTSCHE_BANK_CLIENT_SECRET'),
+            'account_id' => env('DEUTSCHE_BANK_ACCOUNT_ID'),
+            'environment' => env('DEUTSCHE_BANK_ENVIRONMENT', 'production'),
+            'webhook_secret' => env('DEUTSCHE_BANK_WEBHOOK_SECRET'),
         ],
         
     ],
