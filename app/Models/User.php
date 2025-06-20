@@ -48,6 +48,18 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'email_verified_at',
+        'kyc_status',
+        'kyc_submitted_at',
+        'kyc_approved_at',
+        'kyc_expires_at',
+        'kyc_level',
+        'pep_status',
+        'risk_rating',
+        'kyc_data',
+        'privacy_policy_accepted_at',
+        'terms_accepted_at',
+        'marketing_consent_at',
+        'data_retention_consent',
     ];
 
     /**
@@ -81,6 +93,15 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'kyc_submitted_at' => 'datetime',
+            'kyc_approved_at' => 'datetime',
+            'kyc_expires_at' => 'datetime',
+            'pep_status' => 'boolean',
+            'kyc_data' => 'encrypted:array',
+            'privacy_policy_accepted_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'marketing_consent_at' => 'datetime',
+            'data_retention_consent' => 'boolean',
         ];
     }
 
@@ -123,5 +144,31 @@ class User extends Authenticatable implements FilamentUser
     public function activeBankPreferences()
     {
         return $this->bankPreferences()->active();
+    }
+
+    /**
+     * Get the KYC documents for the user.
+     */
+    public function kycDocuments()
+    {
+        return $this->hasMany(KycDocument::class, 'user_uuid', 'uuid');
+    }
+
+    /**
+     * Check if user has completed KYC
+     */
+    public function hasCompletedKyc(): bool
+    {
+        return $this->kyc_status === 'approved' && 
+               ($this->kyc_expires_at === null || $this->kyc_expires_at->isFuture());
+    }
+
+    /**
+     * Check if user needs KYC
+     */
+    public function needsKyc(): bool
+    {
+        return in_array($this->kyc_status, ['not_started', 'rejected', 'expired']) ||
+               ($this->kyc_status === 'approved' && $this->kyc_expires_at && $this->kyc_expires_at->isPast());
     }
 }

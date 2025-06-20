@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\BasketAccountController;
 use App\Http\Controllers\Api\StablecoinController;
 use App\Http\Controllers\Api\StablecoinOperationsController;
 use App\Http\Controllers\Api\UserVotingController;
+use App\Http\Controllers\Api\KycController;
+use App\Http\Controllers\Api\GdprController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -170,6 +172,26 @@ Route::prefix('v2')->group(function () {
         
         // Simulation and analytics
         Route::post('/simulation/{stablecoinCode}/mass-liquidation', [StablecoinOperationsController::class, 'simulateMassLiquidation']);
+    });
+});
+
+// Compliance and KYC endpoints
+Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
+    // KYC endpoints
+    Route::prefix('kyc')->group(function () {
+        Route::get('/status', [KycController::class, 'status']);
+        Route::get('/requirements', [KycController::class, 'requirements']);
+        Route::post('/submit', [KycController::class, 'submit']);
+        Route::get('/documents/{documentId}/download', [KycController::class, 'downloadDocument']);
+    });
+    
+    // GDPR endpoints
+    Route::prefix('gdpr')->group(function () {
+        Route::get('/consent', [GdprController::class, 'consentStatus']);
+        Route::post('/consent', [GdprController::class, 'updateConsent']);
+        Route::post('/export', [GdprController::class, 'requestDataExport']);
+        Route::post('/delete', [GdprController::class, 'requestDeletion']);
+        Route::get('/retention-policy', [GdprController::class, 'retentionPolicy']);
     });
 });
 

@@ -28,3 +28,24 @@ Schedule::call(function () {
     $service->calculateAllBasketValues();
 })->hourly()
     ->description('Calculate and store basket values for performance tracking');
+
+// Regulatory reporting
+Schedule::command('compliance:generate-reports --type=ctr')
+    ->dailyAt('01:00')
+    ->description('Generate daily Currency Transaction Report')
+    ->appendOutputTo(storage_path('logs/regulatory-ctr.log'));
+
+Schedule::command('compliance:generate-reports --type=kyc')
+    ->dailyAt('02:00')
+    ->description('Generate daily KYC compliance report')
+    ->appendOutputTo(storage_path('logs/regulatory-kyc.log'));
+
+Schedule::command('compliance:generate-reports --type=sar')
+    ->weeklyOn(1, '03:00') // Monday at 3 AM
+    ->description('Generate weekly Suspicious Activity Report candidates')
+    ->appendOutputTo(storage_path('logs/regulatory-sar.log'));
+
+Schedule::command('compliance:generate-reports --type=summary')
+    ->monthlyOn(1, '04:00') // 1st of month at 4 AM
+    ->description('Generate monthly compliance summary')
+    ->appendOutputTo(storage_path('logs/regulatory-summary.log'));
