@@ -1,140 +1,73 @@
 # FinAegis Platform Documentation
 
-**Comprehensive documentation for FinAegis platform and GCU implementation**
+## Quick Start
 
-## 📁 Documentation Structure
+- **Vision**: [GCU Vision](../GCU_VISION.md) - Start here to understand the platform
+- **Setup**: [Main README](../README.md) - Installation and development guide
+- **API Docs**: `/api/documentation` when running locally
 
-This documentation is organized into logical sections for easy navigation:
+## Core Documentation
 
-### 01-VISION/ 🎯
-**Strategic vision and business direction**
-- [`GCU_USER_VISION.md`](01-VISION/GCU_USER_VISION.md) - Complete user-facing vision for GCU
-- [`REGULATORY_STRATEGY.md`](01-VISION/REGULATORY_STRATEGY.md) - Compliance pathway and regulatory framework
+### Platform Architecture
+- [Architecture Overview](02-ARCHITECTURE/ARCHITECTURE.md) - System design and patterns
+- [Multi-Asset Architecture](02-ARCHITECTURE/MULTI_ASSET_ARCHITECTURE.md) - Currency basket implementation
+- [Database Schema](04-TECHNICAL/DATABASE_SCHEMA.md) - Complete data model
 
-### 02-ARCHITECTURE/ 🏗️
-**Technical architecture and system design**
-- [`ARCHITECTURE.md`](02-ARCHITECTURE/ARCHITECTURE.md) - Complete platform architecture
-- [`MULTI_ASSET_ARCHITECTURE.md`](02-ARCHITECTURE/MULTI_ASSET_ARCHITECTURE.md) - Multi-asset system design
+### Key Features
+- [Feature Matrix](03-FEATURES/FEATURES.md) - Comprehensive capability list
+- [Admin Dashboard](04-TECHNICAL/ADMIN_DASHBOARD.md) - Management interface guide
+- [Basket Assets](04-TECHNICAL/BASKET_ASSETS_DESIGN.md) - Currency basket implementation
 
-### 03-FEATURES/ ✨
-**Feature specifications and capabilities**
-- [`FEATURES.md`](03-FEATURES/FEATURES.md) - Comprehensive feature matrix
+### Integration Guides
+- [Custodian Integration](04-TECHNICAL/CUSTODIAN_INTEGRATION.md) - Bank connector framework
+- [Webhook Integration](04-TECHNICAL/WEBHOOK_INTEGRATION.md) - Event notifications
+- [API Documentation](API_VOTING_ENDPOINTS.md) - Voting system endpoints
 
-### 04-TECHNICAL/ ⚙️
-**Technical implementation details**
-- [`DATABASE_SCHEMA.md`](04-TECHNICAL/DATABASE_SCHEMA.md) - Complete database design
-- [`CUSTODIAN_INTEGRATION.md`](04-TECHNICAL/CUSTODIAN_INTEGRATION.md) - External custodian framework
-- [`WEBHOOK_INTEGRATION.md`](04-TECHNICAL/WEBHOOK_INTEGRATION.md) - Event notification system
-- [`BASKET_ASSETS_DESIGN.md`](04-TECHNICAL/BASKET_ASSETS_DESIGN.md) - Composite asset implementation
-- [`ADMIN_DASHBOARD.md`](04-TECHNICAL/ADMIN_DASHBOARD.md) - Admin interface documentation
-- API documentation available at `/api/documentation`
+### Implementation Details
+- [Enhanced Governance](PHASE_4.2_ENHANCED_GOVERNANCE.md) - User voting system
+- [Regulatory Strategy](01-VISION/REGULATORY_STRATEGY.md) - Compliance framework
 
-## 🚀 Quick Start
+## Development Workflow
 
-### For Users
-- **Start here**: [GCU User Vision](01-VISION/GCU_USER_VISION.md)
-- **How it works**: Revolutionary multi-bank user-controlled currency
-- **Benefits**: Inflation protection, democratic control, bank insurance
+### 1. Understanding the Platform
+1. Read [GCU Vision](../GCU_VISION.md) for business context
+2. Review [Architecture](02-ARCHITECTURE/ARCHITECTURE.md) for technical design
+3. Check [Features](03-FEATURES/FEATURES.md) for capabilities
 
-### For Developers
-- **Architecture**: [Platform Architecture](02-ARCHITECTURE/ARCHITECTURE.md)
-- **Features**: [Feature Matrix](03-FEATURES/FEATURES.md)
-- **APIs**: Visit `/api/documentation` in running application
+### 2. Setting Up Development
+1. Follow [Main README](../README.md) for installation
+2. Run seeders to populate test data including GCU basket
+3. Access admin panel at `/admin` (create user with `php artisan make:filament-user`)
 
-### For Business
-- **GCU Vision**: [User-Facing Product Vision](01-VISION/GCU_USER_VISION.md)
-- **Market Opportunity**: Revolutionary user-controlled global currency
-- **Competitive Advantage**: Multi-bank distribution + user control
+### 3. Key Commands
+```bash
+# Testing
+./vendor/bin/pest --parallel
 
-### For Regulators
-- **Compliance**: [Regulatory Strategy](01-VISION/REGULATORY_STRATEGY.md)
-- **KYC/AML**: Full customer identification and monitoring
-- **Framework**: Lithuanian EMI license pathway
+# Basket Management
+php artisan baskets:rebalance
+php artisan baskets:performance
 
-## 🎯 Key Insights
+# Voting Setup
+php artisan voting:setup
 
-### Strategic Decision
-**FinAegis already has 80% of GCU's technical requirements** with superior architecture:
-- ✅ Event sourcing (better than blockchain for this use case)
-- ✅ Multi-asset support (currency baskets ready)
-- ✅ Democratic governance (voting system implemented)
-- ✅ Custodian abstraction (multi-bank framework ready)
+# Cache Management
+php artisan cache:warmup
+```
 
-### Implementation Approach
-1. **Keep FinAegis strengths**: Proven technical architecture
-2. **Add GCU features**: User bank selection, enhanced UX
-3. **Real bank integration**: Paysera, Deutsche Bank, Santander
-4. **Focus on practical**: 5-month timeline vs 12+ months academic approach
+### 4. API Integration
+- Base URL: `http://localhost:8000/api`
+- Authentication: Laravel Sanctum
+- Documentation: `/api/documentation`
+- Key endpoints: accounts, assets, polls, custodians
 
-### Market Position
-- **Primary Market**: High-inflation countries and international users
-- **Competitive Edge**: Real banks + deposit insurance + user control
-- **Value Proposition**: Low-cost global currency with democratic control
+## Quick Links
 
-## 📋 Implementation Status
-
-### ✅ Completed (Current FinAegis)
-- Multi-asset ledger with basket support
-- Democratic governance and polling system
-- Event sourcing with complete audit trails
-- Admin dashboard with comprehensive analytics
-- API layer with OpenAPI documentation
-- Custodian abstraction framework
-- Test coverage >50% with CI/CD
-
-### 🔄 In Progress (GCU Enhancement)
-- User bank selection preferences
-- Currency basket voting enhancement
-- Real bank connector development
-- Compliance framework strengthening
-
-### 📋 Planned (GCU Launch)
-- Paysera, Deutsche Bank, Santander integration
-- Mobile applications (iOS/Android)
-- Lithuanian EMI license application
-- Public beta with 1000+ users
-
-## 📊 Documentation Metrics
-
-### Coverage
-- **Vision**: Complete strategic direction
-- **Technical**: Architecture and implementation details
-- **Regulatory**: Compliance pathway and framework
-- **Features**: Comprehensive capability matrix
-
-### Maintenance
-- **Update Frequency**: Quarterly or with major changes
-- **Version Control**: All changes tracked in git
-- **Review Process**: Technical and business review required
-- **Accuracy**: Tested against actual implementation
-
-## 🤝 Contributing
-
-### Documentation Updates
-1. Follow existing structure and format
-2. Maintain accuracy with implementation
-3. Include clear examples and use cases
-4. Test all links and references
-
-### Review Process
-- Technical accuracy review
-- Business alignment verification
-- Regulatory compliance check
-- User experience validation
-
-## 📞 Support
-
-### Internal Team
-- **Technical Questions**: See architecture documentation
-- **Vision Questions**: See GCU user vision document
-- **Regulatory Questions**: See regulatory strategy
-
-### External Inquiries
-- **Website**: finaegis.local (development)
-- **API Docs**: `/api/documentation`
-- **GitHub**: Issue tracking and discussions
-- **Email**: Development team contact
+- **GitHub**: [FinAegis/core-banking-prototype-laravel](https://github.com/FinAegis/core-banking-prototype-laravel)
+- **Roadmap**: [ROADMAP.md](../ROADMAP.md)
+- **Contributing**: [CONTRIBUTING.md](../CONTRIBUTING.md)
+- **License**: [LICENSE](../LICENSE)
 
 ---
 
-**This documentation structure provides clear, organized information for all stakeholders while maintaining the technical excellence and practical focus that makes the GCU implementation achievable.**
+*For detailed technical documentation, explore the subdirectories. For business context, see [GCU Vision](../GCU_VISION.md).*

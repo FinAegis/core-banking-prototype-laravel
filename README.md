@@ -9,6 +9,8 @@
 
 FinAegis is a production-ready core banking platform built with event sourcing, domain-driven design, and regulatory compliance at its core. It provides the technical foundation for various financial products including the **Global Currency Unit (GCU)** - a democratic digital currency backed by real banks.
 
+📖 **See [GCU_VISION.md](GCU_VISION.md) for the complete platform vision and GCU implementation details.**
+
 **🤖 AI-Friendly Architecture**: This project welcomes contributions from AI coding assistants (Claude Code, GitHub Copilot, Cursor, etc.). The comprehensive documentation and well-structured patterns make it easy for AI agents to understand and contribute meaningfully to the codebase.
 
 ## 🚀 Key Features
