@@ -8,7 +8,7 @@ use App\Domain\Basket\Services\BasketRebalancingService;
 beforeEach(function () {
     // Create a dynamic basket for testing using direct creation to avoid factory callbacks
     $this->basket = BasketAsset::create([
-        'code' => 'TEST_BASKET_' . uniqid(),
+        'code' => 'TEST_' . substr(uniqid(), 0, 8),
         'name' => 'Test Basket',
         'type' => 'dynamic',
         'rebalance_frequency' => 'monthly',
@@ -97,7 +97,7 @@ it('handles no dynamic baskets scenario', function () {
 it('processes multiple baskets', function () {
     // Create another dynamic basket
     $anotherBasket = BasketAsset::create([
-        'code' => 'ANOTHER_BASKET_' . uniqid(),
+        'code' => 'OTHER_' . substr(uniqid(), 0, 8),
         'name' => 'Another Basket',
         'type' => 'dynamic',
         'rebalance_frequency' => 'monthly',
