@@ -93,18 +93,21 @@ describe('Exchange Rate Model Tests', function () {
         ExchangeRate::factory()->create([
             'valid_at' => now()->subDays(2),
             'expires_at' => now()->subDay(),
+            'is_active' => true,
         ]);
         
         // Create future rate
         ExchangeRate::factory()->create([
             'valid_at' => now()->addDay(),
             'expires_at' => now()->addDays(2),
+            'is_active' => true,
         ]);
         
         // Create current valid rate
         ExchangeRate::factory()->create([
             'valid_at' => now()->subHour(),
             'expires_at' => now()->addHour(),
+            'is_active' => true,
         ]);
         
         $validRates = ExchangeRate::valid()->get();
