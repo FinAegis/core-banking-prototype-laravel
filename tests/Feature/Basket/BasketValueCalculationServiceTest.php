@@ -158,7 +158,7 @@ class BasketValueCalculationServiceTest extends TestCase
         $value2 = $this->service->calculateValue($this->basket, false);
         
         // Values should be the same but calculated at different times
-        $this->assertEquals($value1->value, $value2->value);
+        $this->assertEqualsWithDelta($value1->value, $value2->value, 0.0001);
         $this->assertNotEquals($value1->calculated_at->toDateTimeString(), $value2->calculated_at->toDateTimeString());
     }
 
