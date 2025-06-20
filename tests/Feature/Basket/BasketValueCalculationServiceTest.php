@@ -31,11 +31,16 @@ class BasketValueCalculationServiceTest extends TestCase
         Asset::firstOrCreate(['code' => 'EUR'], ['name' => 'Euro', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
         Asset::firstOrCreate(['code' => 'GBP'], ['name' => 'British Pound', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
         
-        // Clear ALL existing exchange rates to avoid interference
-        ExchangeRate::truncate();
-        
         // Clear cache to ensure fresh data
         Cache::flush();
+        
+        // Create specific exchange rates with unique timestamps to ensure they're the latest
+        $now = now();
+        
+        // Delete any existing rates for our currency pairs to avoid conflicts
+        ExchangeRate::whereIn('from_asset_code', ['EUR', 'GBP'])
+            ->where('to_asset_code', 'USD')
+            ->delete();
         
         ExchangeRate::create([
             'from_asset_code' => 'EUR',
@@ -43,8 +48,8 @@ class BasketValueCalculationServiceTest extends TestCase
             'rate' => 1.1000,
             'is_active' => true,
             'source' => 'test',
-            'valid_at' => now(),
-            'expires_at' => now()->addHours(2), // Ensure it doesn't expire during test
+            'valid_at' => $now,
+            'expires_at' => $now->copy()->addHours(2), // Ensure it doesn't expire during test
         ]);
         
         ExchangeRate::create([
@@ -53,8 +58,8 @@ class BasketValueCalculationServiceTest extends TestCase
             'rate' => 1.2500,
             'is_active' => true,
             'source' => 'test',
-            'valid_at' => now(),
-            'expires_at' => now()->addHours(2), // Ensure it doesn't expire during test
+            'valid_at' => $now,
+            'expires_at' => $now->copy()->addHours(2), // Ensure it doesn't expire during test
         ]);
         
         // Create test basket
@@ -89,13 +94,20 @@ class BasketValueCalculationServiceTest extends TestCase
         $this->assertEquals('TEST_BASKET', $value->basket_asset_code);
         $this->assertGreaterThan(0, $value->value);
         
-        // Verify the value is calculated correctly based on current exchange rates
-        // The calculation should be: USD portion + (EUR rate * EUR weight) + (GBP rate * GBP weight)
-        $eurRate = ExchangeRate::where('from_asset_code', 'EUR')->where('to_asset_code', 'USD')->first()->rate;
-        $gbpRate = ExchangeRate::where('from_asset_code', 'GBP')->where('to_asset_code', 'USD')->first()->rate;
+        // Verify component values are stored correctly
+        $componentValues = $value->component_values;
+        $this->assertArrayHasKey('USD', $componentValues);
+        $this->assertArrayHasKey('EUR', $componentValues);
+        $this->assertArrayHasKey('GBP', $componentValues);
         
-        $expectedValue = (1.0 * 0.40) + ($eurRate * 0.35) + ($gbpRate * 0.25);
-        $this->assertEquals(round($expectedValue, 4), round($value->value, 4));
+        // Verify the component values match our expected rates
+        $this->assertEquals(1.0, $componentValues['USD']['value']); // USD to USD should always be 1.0
+        $this->assertEquals(1.10, $componentValues['EUR']['value']); // EUR to USD rate we set
+        $this->assertEquals(1.25, $componentValues['GBP']['value']); // GBP to USD rate we set
+        
+        // Calculate expected value based on our known rates
+        $expectedValue = (1.0 * 0.40) + (1.10 * 0.35) + (1.25 * 0.25);
+        $this->assertEqualsWithDelta($expectedValue, $value->value, 0.0001);
     }
 
     /** @test */
@@ -148,6 +160,15 @@ class BasketValueCalculationServiceTest extends TestCase
     /** @test */
     public function it_can_bypass_cache()
     {
+        // Ensure consistent test data - delete any rates that might interfere
+        ExchangeRate::whereIn('from_asset_code', ['EUR', 'GBP'])
+            ->where('to_asset_code', 'USD')
+            ->where('source', '!=', 'test')
+            ->delete();
+        
+        // Clear cache to ensure clean state
+        Cache::flush();
+        
         // First call with cache
         $value1 = $this->service->calculateValue($this->basket, true);
         
