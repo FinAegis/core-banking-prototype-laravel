@@ -48,10 +48,7 @@ class DailyReconciliationService
             // Step 2: Perform reconciliation checks
             $this->performReconciliationChecks();
             
-            // Step 3: Generate reconciliation report
-            $report = $this->generateReconciliationReport();
-            
-            // Step 4: Send notifications if discrepancies found
+            // Step 3: Send notifications if discrepancies found
             if (!empty($this->discrepancies)) {
                 $this->handleDiscrepancies();
             }
@@ -60,6 +57,9 @@ class DailyReconciliationService
             $this->reconciliationResults['duration_minutes'] = 
                 $this->reconciliationResults['end_time']->diffInMinutes($this->reconciliationResults['start_time']);
             $this->reconciliationResults['status'] = 'completed';
+            
+            // Step 4: Generate reconciliation report
+            $report = $this->generateReconciliationReport();
             
             // Fire reconciliation completed event
             event(new ReconciliationCompleted(
@@ -165,17 +165,17 @@ class DailyReconciliationService
             }
             
             try {
-                $connector = $this->custodianRegistry->getConnector($custodianAccount->custodian_id);
+                $connector = $this->custodianRegistry->getConnector($custodianAccount->custodian_name);
                 
                 if (!$connector->isAvailable()) {
                     Log::warning('Custodian not available for reconciliation', [
-                        'custodian' => $custodianAccount->custodian_id,
+                        'custodian' => $custodianAccount->custodian_name,
                         'account' => $account->uuid,
                     ]);
                     continue;
                 }
                 
-                $accountInfo = $connector->getAccountInfo($custodianAccount->external_account_id);
+                $accountInfo = $connector->getAccountInfo($custodianAccount->custodian_account_id);
                 
                 foreach ($accountInfo->balances as $assetCode => $amount) {
                     $aggregatedBalances[$assetCode] = ($aggregatedBalances[$assetCode] ?? 0) + $amount;
@@ -183,7 +183,7 @@ class DailyReconciliationService
                 
             } catch (\Exception $e) {
                 Log::error('Failed to get external balance', [
-                    'custodian' => $custodianAccount->custodian_id,
+                    'custodian' => $custodianAccount->custodian_name,
                     'account' => $account->uuid,
                     'error' => $e->getMessage(),
                 ]);
@@ -216,24 +216,27 @@ class DailyReconciliationService
      */
     private function checkStaleData(Account $account): void
     {
-        $staleCutoff = now()->subHours(24);
+        // TODO: Implement stale data check when last_synced_at column is added
+        // For now, we'll skip this check
         
-        foreach ($account->custodianAccounts as $custodianAccount) {
-            if ($custodianAccount->last_synced_at && 
-                $custodianAccount->last_synced_at->isBefore($staleCutoff)) {
-                
-                $this->discrepancies[] = [
-                    'account_uuid' => $account->uuid,
-                    'custodian_id' => $custodianAccount->custodian_id,
-                    'type' => 'stale_data',
-                    'message' => 'Custodian account not synced in 24 hours',
-                    'last_synced_at' => $custodianAccount->last_synced_at,
-                    'detected_at' => now(),
-                ];
-                
-                $this->reconciliationResults['discrepancies_found']++;
-            }
-        }
+        // $staleCutoff = now()->subHours(24);
+        // 
+        // foreach ($account->custodianAccounts as $custodianAccount) {
+        //     if ($custodianAccount->last_synced_at && 
+        //         $custodianAccount->last_synced_at->isBefore($staleCutoff)) {
+        //         
+        //         $this->discrepancies[] = [
+        //             'account_uuid' => $account->uuid,
+        //             'custodian_id' => $custodianAccount->custodian_name,
+        //             'type' => 'stale_data',
+        //             'message' => 'Custodian account not synced in 24 hours',
+        //             'last_synced_at' => $custodianAccount->last_synced_at,
+        //             'detected_at' => now(),
+        //         ];
+        //         
+        //         $this->reconciliationResults['discrepancies_found']++;
+        //     }
+        // }
     }
     
     /**

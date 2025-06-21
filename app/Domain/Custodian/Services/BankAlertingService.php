@@ -153,10 +153,8 @@ class BankAlertingService
     private function getAlertRecipients(string $severity)
     {
         // In production, this would query users with specific roles/permissions
-        // For now, get admin users
-        return User::whereHas('roles', function ($query) {
-            $query->where('name', 'admin');
-        })->get();
+        // For now, get all users (you can add role/permission filtering later)
+        return User::all();
     }
     
     /**

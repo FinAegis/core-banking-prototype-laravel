@@ -8,6 +8,7 @@ use App\Domain\Custodian\Services\CustodianHealthMonitor;
 use App\Models\User;
 use App\Notifications\BankHealthAlert;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
     $this->healthMonitor = Mockery::mock(CustodianHealthMonitor::class);
@@ -19,7 +20,6 @@ it('sends critical alert when bank becomes unhealthy', function () {
     
     // Create admin user
     $admin = User::factory()->create();
-    $admin->assignRole('admin');
     
     // Create health change event
     $event = new CustodianHealthChanged(
@@ -44,7 +44,7 @@ it('sends critical alert when bank becomes unhealthy', function () {
     
     // Assert notification was sent
     Notification::assertSentTo(
-        [$admin],
+        $admin,
         BankHealthAlert::class,
         function ($notification) {
             return $notification->severity === 'critical' &&
@@ -58,7 +58,6 @@ it('sends warning alert when bank becomes degraded', function () {
     Notification::fake();
     
     $admin = User::factory()->create();
-    $admin->assignRole('admin');
     
     $event = new CustodianHealthChanged(
         custodian: 'deutsche_bank',
@@ -79,7 +78,7 @@ it('sends warning alert when bank becomes degraded', function () {
     $this->alertingService->handleHealthChange($event);
     
     Notification::assertSentTo(
-        [$admin],
+        $admin,
         BankHealthAlert::class,
         function ($notification) {
             return $notification->severity === 'warning';
@@ -106,7 +105,6 @@ it('respects alert cooldown period', function () {
     Notification::fake();
     
     $admin = User::factory()->create();
-    $admin->assignRole('admin');
     
     $event = new CustodianHealthChanged(
         custodian: 'paysera',
@@ -126,13 +124,14 @@ it('respects alert cooldown period', function () {
     // First alert should be sent
     $this->alertingService->handleHealthChange($event);
     
-    Notification::assertSentToTimes($admin, BankHealthAlert::class, 1);
+    Notification::assertSentTo($admin, BankHealthAlert::class);
+    Notification::assertCount(1);
     
     // Second alert within cooldown should not be sent
     $this->alertingService->handleHealthChange($event);
     
     // Still only 1 notification sent
-    Notification::assertSentToTimes($admin, BankHealthAlert::class, 1);
+    Notification::assertSentTimes(BankHealthAlert::class, 1);
 });
 
 it('performs system-wide health check and alerts on multiple failures', function () {

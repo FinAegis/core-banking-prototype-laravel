@@ -41,7 +41,7 @@ class ListReconciliationReports extends ListRecords
         ];
     }
     
-    protected function getTableRecords(): Collection|LengthAwarePaginator
+    public function getTableRecords(): Collection|LengthAwarePaginator
     {
         // Get all reconciliation reports from file system
         $files = glob(storage_path('app/reconciliation/reconciliation-*.json'));
