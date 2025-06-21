@@ -307,8 +307,8 @@ class DeutscheBankConnector extends BaseCustodianConnector
             
             $amount = (int) round((float) $transaction['transactionAmount']['amount'] * 100);
             
-            // Make debits negative
-            if ($isDebit) {
+            // Make debits negative only if not already negative
+            if ($isDebit && $amount > 0) {
                 $amount = -$amount;
             }
             

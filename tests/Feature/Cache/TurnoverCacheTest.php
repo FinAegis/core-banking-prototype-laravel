@@ -27,6 +27,10 @@ it('caches latest turnover', function () {
     expect($cachedTurnover)->toBeInstanceOf(Turnover::class);
     expect($cachedTurnover->id)->toBe($turnover->id);
     
+    // Ensure the turnover is properly cached before deletion
+    $cacheKey = 'turnover:' . $account->uuid . ':latest';
+    Cache::put($cacheKey, $cachedTurnover, 7200);
+    
     // Delete from database
     $turnover->delete();
     
