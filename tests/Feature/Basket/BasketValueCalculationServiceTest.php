@@ -71,9 +71,9 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         $this->basket->components()->createMany([
-            ['asset_code' => 'USD', 'weight' => 40.0],
-            ['asset_code' => 'EUR', 'weight' => 35.0],
-            ['asset_code' => 'GBP', 'weight' => 25.0],
+            ['asset_code' => 'USD', 'weight' => 40.0, 'is_active' => true],
+            ['asset_code' => 'EUR', 'weight' => 35.0, 'is_active' => true],
+            ['asset_code' => 'GBP', 'weight' => 25.0, 'is_active' => true],
         ]);
     }
 
@@ -120,17 +120,8 @@ class BasketValueCalculationServiceTest extends TestCase
         // Clear cache again to ensure the new rates are used
         Cache::flush();
         
-        // Debug: Check what rates are actually in the database
-        $gbpRates = ExchangeRate::where('from_asset_code', 'GBP')
-            ->where('to_asset_code', 'USD')
-            ->where('is_active', true)
-            ->orderBy('valid_at', 'desc')
-            ->get();
-        
-        // If there are unexpected rates, fail with helpful message
-        if ($gbpRates->count() > 1 || ($gbpRates->first() && $gbpRates->first()->rate != 1.25)) {
-            $this->fail('Unexpected GBP-USD rates found: ' . $gbpRates->pluck('rate')->join(', '));
-        }
+        // Ensure the basket has fresh components loaded
+        $this->basket->load('components.asset');
         
         $value = $this->service->calculateValue($this->basket, false);
         
