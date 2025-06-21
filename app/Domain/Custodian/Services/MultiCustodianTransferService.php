@@ -515,7 +515,7 @@ class MultiCustodianTransferService
                 SUM(CASE WHEN transfer_type = "external" THEN 1 ELSE 0 END) as external,
                 SUM(CASE WHEN transfer_type = "bridge" THEN 1 ELSE 0 END) as bridge,
                 AVG(CASE WHEN status = "completed" AND completed_at IS NOT NULL 
-                    THEN (julianday(completed_at) - julianday(created_at)) * 86400
+                    THEN TIMESTAMPDIFF(SECOND, created_at, completed_at)
                     ELSE NULL END) as avg_completion_seconds
             ')
             ->first();

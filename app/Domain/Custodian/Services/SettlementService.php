@@ -506,7 +506,7 @@ class SettlementService
                 SUM(net_amount) as total_net,
                 SUM(transfer_count) as total_transfers,
                 AVG(CASE WHEN status = "completed" 
-                    THEN (julianday(completed_at) - julianday(created_at)) * 86400
+                    THEN TIMESTAMPDIFF(SECOND, created_at, completed_at)
                     ELSE NULL END) as avg_settlement_seconds
             ')
             ->first();
