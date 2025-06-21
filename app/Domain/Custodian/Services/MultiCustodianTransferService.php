@@ -530,7 +530,7 @@ class MultiCustodianTransferService
                 'external' => $stats->external ?? 0,
                 'bridge' => $stats->bridge ?? 0,
             ],
-            'avg_completion_seconds' => round($stats->avg_completion_seconds ?? 0, 2),
+            'avg_completion_seconds' => round((float) ($stats->avg_completion_seconds ?? 0), 2),
             'success_rate' => $stats->total_transfers > 0 
                 ? round(($stats->completed / $stats->total_transfers) * 100, 2) 
                 : 0,

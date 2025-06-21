@@ -528,7 +528,7 @@ class SettlementService
                 ? round((($stats->total_gross - $stats->total_net) / $stats->total_gross) * 100, 2)
                 : 0,
             'total_transfers_settled' => $stats->total_transfers ?? 0,
-            'avg_settlement_seconds' => round($stats->avg_settlement_seconds ?? 0, 2),
+            'avg_settlement_seconds' => round((float) ($stats->avg_settlement_seconds ?? 0), 2),
             'by_type' => $byType->keyBy('type')->map(function ($item) {
                 return [
                     'count' => $item->count,
