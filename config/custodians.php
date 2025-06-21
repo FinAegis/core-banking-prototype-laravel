@@ -118,6 +118,39 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Resilience Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure circuit breaker and retry settings for custodian operations.
+    |
+    */
+    
+    'resilience' => [
+        'circuit_breaker' => [
+            'failure_threshold' => env('CUSTODIAN_CB_FAILURE_THRESHOLD', 5),
+            'success_threshold' => env('CUSTODIAN_CB_SUCCESS_THRESHOLD', 2),
+            'timeout' => env('CUSTODIAN_CB_TIMEOUT', 60), // seconds
+            'failure_rate_threshold' => env('CUSTODIAN_CB_FAILURE_RATE', 0.5), // 50%
+            'sample_size' => env('CUSTODIAN_CB_SAMPLE_SIZE', 10),
+        ],
+        
+        'retry' => [
+            'max_attempts' => env('CUSTODIAN_RETRY_MAX_ATTEMPTS', 3),
+            'initial_delay_ms' => env('CUSTODIAN_RETRY_INITIAL_DELAY', 200),
+            'max_delay_ms' => env('CUSTODIAN_RETRY_MAX_DELAY', 5000),
+            'multiplier' => env('CUSTODIAN_RETRY_MULTIPLIER', 2.5),
+            'jitter' => env('CUSTODIAN_RETRY_JITTER', true),
+        ],
+        
+        'fallback' => [
+            'cache_ttl' => env('CUSTODIAN_FALLBACK_CACHE_TTL', 300), // seconds
+            'enable_queuing' => env('CUSTODIAN_FALLBACK_QUEUE', true),
+            'enable_alternative_routing' => env('CUSTODIAN_FALLBACK_ROUTING', true),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Monitoring and Logging
     |--------------------------------------------------------------------------
     |
