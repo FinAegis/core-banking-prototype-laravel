@@ -1,0 +1,19 @@
+default:
+    suites:
+        acceptance:
+            paths:
+                features: features
+            contexts:
+                - FeatureContext
+                - LaravelFeatureContext
+        api:
+            paths:
+                features: features/api
+            contexts:
+                - ApiContext
+
+    formatters:
+        pretty:
+            verbose: true
+            paths: false
+            snippets: false

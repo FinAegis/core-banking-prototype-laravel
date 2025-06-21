@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+
+// Ensure we're in the right directory
+chdir(dirname(__DIR__));
+
+// Bootstrap Laravel
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+// Run Behat
+$behat = __DIR__.'/../vendor/bin/behat';
+$args = implode(' ', array_slice($argv, 1));
+
+passthru("$behat $args", $exitCode);
+exit($exitCode);

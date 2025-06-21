@@ -10,7 +10,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/YOzaz/laravel-data-object-tools"
+            "url": "https://github.com/YOzaz/laravel-data-object-tools.git"
         }
     ],
     "authors": [
@@ -48,6 +48,10 @@
         "spatie/laravel-permission": "^6.9"
     },
     "require-dev": {
+        "behat/behat": "^3.22",
+        "behat/mink": "^1.12",
+        "behat/mink-browserkit-driver": "^2.2",
+        "dmore/behat-chrome-extension": "^1.4",
         "fakerphp/faker": "^1.23",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",
@@ -55,7 +59,8 @@
         "nunomaduro/collision": "^8.0",
         "pestphp/pest": "^3.0",
         "pestphp/pest-plugin-laravel": "^3.0",
-        "pestphp/pest-plugin-livewire": "^3.0"
+        "pestphp/pest-plugin-livewire": "^3.0",
+        "symfony/http-client": "^7.0"
     },
     "autoload": {
         "psr-4": {
