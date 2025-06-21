@@ -27,6 +27,8 @@ class SantanderConnector extends BaseCustodianConnector
     {
         // Ensure the name is set
         $config['name'] = $config['name'] ?? 'Santander';
+        // Set base URL for parent class
+        $config['base_url'] = self::API_BASE_URL;
         
         parent::__construct($config);
         
@@ -46,19 +48,8 @@ class SantanderConnector extends BaseCustodianConnector
 
     public function isAvailable(): bool
     {
-        try {
-            $response = Http::timeout(5)
-                ->withHeaders($this->getCommonHeaders())
-                ->get(self::API_BASE_URL . $this->getHealthCheckEndpoint());
-            
-            return $response->successful();
-        } catch (\Exception $e) {
-            Log::error('Santander health check failed', [
-                'error' => $e->getMessage(),
-            ]);
-            
-            return false;
-        }
+        // Use parent's implementation which includes circuit breaker
+        return parent::isAvailable();
     }
 
     /**

@@ -27,6 +27,8 @@ class DeutscheBankConnector extends BaseCustodianConnector
     {
         // Ensure the name is set
         $config['name'] = $config['name'] ?? 'Deutsche Bank';
+        // Set base URL for parent class
+        $config['base_url'] = self::API_BASE_URL;
         
         parent::__construct($config);
         
@@ -46,19 +48,8 @@ class DeutscheBankConnector extends BaseCustodianConnector
 
     public function isAvailable(): bool
     {
-        try {
-            $response = Http::timeout(5)
-                ->withHeaders(['X-API-Version' => '2.0'])
-                ->get(self::API_BASE_URL . $this->getHealthCheckEndpoint());
-            
-            return $response->successful();
-        } catch (\Exception $e) {
-            Log::error('Deutsche Bank health check failed', [
-                'error' => $e->getMessage(),
-            ]);
-            
-            return false;
-        }
+        // Use parent's implementation which includes circuit breaker
+        return parent::isAvailable();
     }
 
     /**

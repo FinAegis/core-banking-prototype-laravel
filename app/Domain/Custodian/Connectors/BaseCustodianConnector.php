@@ -60,17 +60,19 @@ abstract class BaseCustodianConnector implements ICustodianConnector
     public function isAvailable(): bool
     {
         try {
-            $response = $this->resilientApiRequest(
-                method: 'GET',
-                endpoint: $this->getHealthCheckEndpoint(),
+            // Use executeWithResilience directly since we need to handle non-Response return
+            return $this->executeWithResilience(
+                serviceIdentifier: "GET:{$this->getHealthCheckEndpoint()}",
+                operation: function () {
+                    $response = $this->client->get($this->getHealthCheckEndpoint());
+                    return $response->successful();
+                },
                 fallback: function () {
                     // If health check fails, return cached status or false
                     Log::warning("Custodian {$this->getName()} health check using fallback");
-                    return null;
+                    return false;
                 }
             );
-            
-            return $response !== null && $response->successful();
         } catch (\Exception $e) {
             Log::error("Custodian {$this->getName()} health check failed", [
                 'error' => $e->getMessage(),

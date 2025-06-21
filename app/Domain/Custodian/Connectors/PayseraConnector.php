@@ -28,6 +28,8 @@ class PayseraConnector extends BaseCustodianConnector
     {
         // Ensure the name is set
         $config['name'] = $config['name'] ?? 'Paysera';
+        // Set base URL for parent class
+        $config['base_url'] = self::API_BASE_URL;
         
         parent::__construct($config);
         
