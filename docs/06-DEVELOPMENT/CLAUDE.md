@@ -1263,6 +1263,314 @@ $userData = $gdprService->exportUserData($userId);
 $gdprService->anonymizeUser($userId);
 ```
 
+## Phase 5.2 Resilience Patterns
+
+### Circuit Breaker Implementation
+```php
+use App\Domain\Custodian\Services\CircuitBreakerService;
+
+// Configure circuit breaker
+$circuitBreaker = app(CircuitBreakerService::class);
+$circuitBreaker->configure('paysera', [
+    'failure_threshold' => 5,      // Open after 5 failures
+    'success_threshold' => 2,      // Close after 2 successes
+    'timeout' => 60,               // Reset timeout in seconds
+    'recovery_timeout' => 120,     // Half-open state duration
+]);
+
+// Use circuit breaker in connector
+class PayseraConnector extends BaseCustodianConnector
+{
+    protected function executeWithCircuitBreaker(string $operation, callable $callback)
+    {
+        $circuitBreaker = app(CircuitBreakerService::class);
+        
+        return $circuitBreaker->call($this->getName(), $operation, $callback);
+    }
+    
+    public function getBalance(string $accountId, string $assetCode): Money
+    {
+        return $this->executeWithCircuitBreaker('getBalance', function () use ($accountId, $assetCode) {
+            // Actual API call
+            return $this->apiRequest('GET', "/accounts/{$accountId}/balance");
+        });
+    }
+}
+
+// Check circuit state
+$state = $circuitBreaker->getState('paysera'); // 'closed', 'open', 'half_open'
+$stats = $circuitBreaker->getStatistics('paysera');
+```
+
+### Retry Service with Exponential Backoff
+```php
+use App\Domain\Custodian\Services\RetryService;
+
+$retryService = app(RetryService::class);
+
+// Configure retry policy
+$result = $retryService->execute(function () use ($connector, $request) {
+    return $connector->initiateTransfer($request);
+}, [
+    'max_attempts' => 3,
+    'initial_delay' => 1000,      // 1 second
+    'max_delay' => 30000,         // 30 seconds
+    'multiplier' => 2,            // Double delay each retry
+    'jitter' => true,             // Add randomness to prevent thundering herd
+    'retryable_exceptions' => [
+        \Illuminate\Http\Client\ConnectionException::class,
+        \Illuminate\Http\Client\RequestException::class,
+    ],
+]);
+
+// Custom retry logic for specific operations
+class CustodianTransferWorkflow extends Workflow
+{
+    public function execute(TransferRequest $request): \Generator
+    {
+        $retryService = app(RetryService::class);
+        
+        try {
+            $receipt = yield $retryService->executeAsync(
+                fn() => ActivityStub::make(InitiateTransferActivity::class, $request),
+                [
+                    'max_attempts' => 5,
+                    'on_retry' => function ($attempt, $exception) {
+                        Log::warning("Transfer retry attempt {$attempt}", [
+                            'exception' => $exception->getMessage(),
+                        ]);
+                    },
+                ]
+            );
+            
+            return $receipt;
+        } catch (\Exception $e) {
+            // All retries exhausted
+            yield ActivityStub::make(NotifyTransferFailureActivity::class, $request, $e);
+            throw $e;
+        }
+    }
+}
+```
+
+### Fallback Service for Graceful Degradation
+```php
+use App\Domain\Custodian\Services\FallbackService;
+
+$fallbackService = app(FallbackService::class);
+
+// Configure fallback chains
+$fallbackService->registerChain('balance_check', [
+    // Primary: Real-time API
+    fn($accountId) => $connector->getBalance($accountId, 'EUR'),
+    
+    // Fallback 1: Cached balance
+    fn($accountId) => Cache::get("balance:{$accountId}:EUR"),
+    
+    // Fallback 2: Last known balance from database
+    fn($accountId) => CustodianAccount::where('account_id', $accountId)
+        ->value('last_known_balance'),
+    
+    // Fallback 3: Return zero with warning
+    fn($accountId) => (function() use ($accountId) {
+        Log::error("All balance check methods failed for account: {$accountId}");
+        return new Money(0);
+    })(),
+]);
+
+// Execute with fallback
+$balance = $fallbackService->execute('balance_check', $accountId);
+
+// Fallback for transfer routing
+$fallbackService->registerChain('transfer_route', [
+    // Primary: Direct transfer
+    fn($req) => $this->directTransfer($req),
+    
+    // Fallback 1: Bridge through another bank
+    fn($req) => $this->bridgeTransfer($req),
+    
+    // Fallback 2: Queue for manual processing
+    fn($req) => $this->queueForManualProcessing($req),
+]);
+```
+
+### Health Monitoring Integration
+```php
+use App\Domain\Custodian\Services\CustodianHealthMonitor;
+
+$healthMonitor = app(CustodianHealthMonitor::class);
+
+// Register health checks
+$healthMonitor->registerCheck('paysera', function () {
+    $connector = app(CustodianRegistry::class)->getConnector('paysera');
+    return $connector->isAvailable();
+});
+
+// Monitor with callbacks
+$healthMonitor->monitor('paysera', [
+    'interval' => 30,  // Check every 30 seconds
+    'on_healthy' => function ($custodian) {
+        Cache::put("custodian:{$custodian}:status", 'healthy', 300);
+    },
+    'on_unhealthy' => function ($custodian, $error) {
+        // Trigger alerts
+        Notification::send(
+            User::whereAdmin()->get(),
+            new CustodianDownNotification($custodian, $error)
+        );
+        
+        // Update circuit breaker
+        app(CircuitBreakerService::class)->recordFailure($custodian);
+    },
+]);
+
+// Get health status
+$health = $healthMonitor->getHealth('paysera');
+// Returns: ['status' => 'healthy', 'last_check' => '2025-06-21 10:30:00', 'uptime' => 99.95]
+
+// Dashboard widget
+class CustodianHealthWidget extends BaseWidget
+{
+    protected function getStats(): array
+    {
+        $monitor = app(CustodianHealthMonitor::class);
+        $custodians = ['paysera', 'deutsche_bank', 'santander'];
+        
+        return collect($custodians)->map(function ($custodian) use ($monitor) {
+            $health = $monitor->getHealth($custodian);
+            return Stat::make($custodian, $health['uptime'] . '%')
+                ->description($health['status'])
+                ->color($health['status'] === 'healthy' ? 'success' : 'danger');
+        })->toArray();
+    }
+}
+```
+
+### Resilient Transfer Processing
+```php
+// Complete resilient transfer implementation
+class ResilientTransferService
+{
+    public function transfer(TransferRequest $request): TransactionReceipt
+    {
+        $circuitBreaker = app(CircuitBreakerService::class);
+        $retryService = app(RetryService::class);
+        $fallbackService = app(FallbackService::class);
+        $healthMonitor = app(CustodianHealthMonitor::class);
+        
+        // 1. Check health first
+        $custodian = $this->determineCustodian($request);
+        if (!$healthMonitor->isHealthy($custodian)) {
+            return $fallbackService->execute('transfer_route', $request);
+        }
+        
+        // 2. Execute with circuit breaker
+        try {
+            return $circuitBreaker->call($custodian, 'transfer', function () use ($request, $retryService) {
+                // 3. Execute with retry
+                return $retryService->execute(function () use ($request) {
+                    $connector = $this->getConnector($request->fromAccount);
+                    return $connector->initiateTransfer($request);
+                }, [
+                    'max_attempts' => 3,
+                    'initial_delay' => 1000,
+                ]);
+            });
+        } catch (CircuitOpenException $e) {
+            // 4. Circuit is open, use fallback
+            Log::warning("Circuit open for {$custodian}, using fallback");
+            return $fallbackService->execute('transfer_route', $request);
+        }
+    }
+}
+```
+
+### Testing Resilience Patterns
+```php
+// Test circuit breaker
+test('circuit breaker opens after threshold failures', function () {
+    $circuitBreaker = app(CircuitBreakerService::class);
+    $circuitBreaker->configure('test_service', [
+        'failure_threshold' => 3,
+        'timeout' => 60,
+    ]);
+    
+    // Simulate failures
+    for ($i = 0; $i < 3; $i++) {
+        try {
+            $circuitBreaker->call('test_service', 'operation', function () {
+                throw new \Exception('Service unavailable');
+            });
+        } catch (\Exception $e) {
+            // Expected
+        }
+    }
+    
+    expect($circuitBreaker->getState('test_service'))->toBe('open');
+    
+    // Subsequent calls should fail fast
+    expect(fn() => $circuitBreaker->call('test_service', 'operation', fn() => 'success'))
+        ->toThrow(CircuitOpenException::class);
+});
+
+// Test retry with exponential backoff
+test('retry service uses exponential backoff', function () {
+    $retryService = app(RetryService::class);
+    $attempts = 0;
+    $delays = [];
+    
+    try {
+        $retryService->execute(function () use (&$attempts, &$delays) {
+            $attempts++;
+            $delays[] = microtime(true);
+            throw new \Exception('Temporary failure');
+        }, [
+            'max_attempts' => 3,
+            'initial_delay' => 100,
+            'multiplier' => 2,
+            'jitter' => false,
+        ]);
+    } catch (\Exception $e) {
+        // Expected
+    }
+    
+    expect($attempts)->toBe(3);
+    
+    // Check delays approximately match exponential backoff
+    $delay1 = ($delays[1] - $delays[0]) * 1000; // Convert to ms
+    $delay2 = ($delays[2] - $delays[1]) * 1000;
+    
+    expect($delay1)->toBeGreaterThan(90)->toBeLessThan(110);   // ~100ms
+    expect($delay2)->toBeGreaterThan(190)->toBeLessThan(210);  // ~200ms
+});
+
+// Test fallback chain
+test('fallback service executes chain in order', function () {
+    $fallbackService = app(FallbackService::class);
+    $executed = [];
+    
+    $fallbackService->registerChain('test_chain', [
+        function () use (&$executed) {
+            $executed[] = 'primary';
+            throw new \Exception('Primary failed');
+        },
+        function () use (&$executed) {
+            $executed[] = 'secondary';
+            throw new \Exception('Secondary failed');
+        },
+        function () use (&$executed) {
+            $executed[] = 'tertiary';
+            return 'success';
+        },
+    ]);
+    
+    $result = $fallbackService->execute('test_chain');
+    
+    expect($executed)->toBe(['primary', 'secondary', 'tertiary']);
+    expect($result)->toBe('success');
+});
+```
+
 ## Important Files and Locations
 - Event configuration: `config/event-sourcing.php`
 - Workflow configuration: `config/workflows.php`
@@ -1329,3 +1637,12 @@ $gdprService->anonymizeUser($userId);
 - Custodian models: `app/Models/CustodianAccount.php`
 - Custodian config: `config/custodians.php`
 - Integration docs: `docs/CUSTODIAN_INTEGRATION.md`
+
+### Phase 5.2 Resilience Services Locations
+- Circuit breaker: `app/Domain/Custodian/Services/CircuitBreakerService.php`
+- Retry service: `app/Domain/Custodian/Services/RetryService.php`
+- Fallback service: `app/Domain/Custodian/Services/FallbackService.php`
+- Health monitor: `app/Domain/Custodian/Services/CustodianHealthMonitor.php`
+- Resilience tests: `tests/Feature/Custodian/ResilienceServicesTest.php`
+- Circuit breaker tests: `tests/Unit/Custodian/CircuitBreakerServiceTest.php`
+- Retry service tests: `tests/Unit/Custodian/RetryServiceTest.php`
