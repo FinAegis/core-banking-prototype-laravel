@@ -124,4 +124,27 @@ class CustodianRegistry
             return in_array($assetCode, $custodian->getSupportedAssets());
         });
     }
+
+    /**
+     * Alias for get method for backward compatibility
+     */
+    public function getConnector(string $name): ICustodianConnector
+    {
+        return $this->get($name);
+    }
+
+    /**
+     * List custodians as array
+     */
+    public function listCustodians(): array
+    {
+        $list = [];
+        foreach ($this->custodians as $name => $connector) {
+            $list[] = [
+                'id' => $name,
+                'name' => ucfirst(str_replace('_', ' ', $name)),
+            ];
+        }
+        return $list;
+    }
 }

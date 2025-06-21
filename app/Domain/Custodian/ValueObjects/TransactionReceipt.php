@@ -19,7 +19,8 @@ final class TransactionReceipt
         public readonly ?string $reference = null,
         public readonly ?Carbon $createdAt = null,
         public readonly ?Carbon $completedAt = null,
-        public readonly ?array $metadata = []
+        public readonly ?array $metadata = [],
+        public readonly ?string $failureReason = null
     ) {}
 
     public function isCompleted(): bool
@@ -51,6 +52,7 @@ final class TransactionReceipt
             'created_at' => $this->createdAt?->toISOString(),
             'completed_at' => $this->completedAt?->toISOString(),
             'metadata' => $this->metadata,
+            'failure_reason' => $this->failureReason,
         ];
     }
 }

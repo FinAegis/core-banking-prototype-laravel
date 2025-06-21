@@ -131,4 +131,48 @@ return [
         'alert_on_failure' => env('CUSTODIAN_ALERT_ON_FAILURE', true),
         'health_check_interval' => 300, // 5 minutes
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Transfer Routing Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure how transfers are routed between different custodians.
+    |
+    */
+    
+    'routing_strategy' => [
+        'primary' => 'same_custodian', // same_custodian, fastest, cheapest, balanced
+        'fallback' => 'fastest',
+        'max_bridge_fee' => 500, // Maximum fee in cents for bridge transfers
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Settlement Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure how inter-custodian settlements are processed.
+    |
+    */
+    
+    'settlement' => [
+        'type' => env('SETTLEMENT_TYPE', 'net'), // realtime, batch, net
+        'batch_interval_minutes' => env('SETTLEMENT_BATCH_INTERVAL', 60),
+        'min_settlement_amount' => env('SETTLEMENT_MIN_AMOUNT', 10000), // $100.00 in cents
+        'settlement_accounts' => [
+            'paysera' => [
+                'USD' => env('PAYSERA_SETTLEMENT_USD'),
+                'EUR' => env('PAYSERA_SETTLEMENT_EUR'),
+            ],
+            'deutsche_bank' => [
+                'USD' => env('DEUTSCHE_BANK_SETTLEMENT_USD'),
+                'EUR' => env('DEUTSCHE_BANK_SETTLEMENT_EUR'),
+            ],
+            'santander' => [
+                'USD' => env('SANTANDER_SETTLEMENT_USD'),
+                'EUR' => env('SANTANDER_SETTLEMENT_EUR'),
+            ],
+        ],
+    ],
 ];

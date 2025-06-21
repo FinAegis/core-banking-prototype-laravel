@@ -183,13 +183,51 @@ php artisan snapshot:create
 php artisan verify:transaction-hashes
 ```
 
+### Custodian Management
+```bash
+# Synchronize balances with external custodians
+php artisan custodian:sync-balances
+
+# Sync specific account
+php artisan custodian:sync-balances --account=uuid-here
+
+# Sync specific custodian
+php artisan custodian:sync-balances --custodian=paysera
+
+# Force sync even if recently synchronized
+php artisan custodian:sync-balances --force
+
+# Schedule automatic synchronization (add to kernel.php)
+# $schedule->command('custodian:sync-balances')->everyFiveMinutes();
+```
+
+### Compliance and Reporting
+```bash
+# Generate compliance reports
+php artisan compliance:generate-ctr --date=2025-06-21
+php artisan compliance:generate-sar --month=2025-06
+
+# Process KYC documents
+php artisan kyc:process-pending
+
+# Data protection (GDPR)
+php artisan gdpr:export-user-data user@example.com
+php artisan gdpr:anonymize-user user-uuid-here
+
+# Schedule compliance tasks (add to kernel.php)
+# $schedule->command('compliance:generate-ctr')->daily();
+# $schedule->command('compliance:generate-sar')->monthly();
+```
+
 ## Architecture Overview
 
 ### Domain-Driven Design Structure
 - **Account Domain** (`app/Domain/Account/`): Core banking account management with multi-asset support
 - **Asset Domain** (`app/Domain/Asset/`): Multi-asset ledger, exchange rates, and asset management
+- **Basket Domain** (`app/Domain/Basket/`): Basket asset management with rebalancing services
 - **Exchange Domain** (`app/Domain/Exchange/`): Exchange rate providers and currency conversion
-- **Custodian Domain** (`app/Domain/Custodian/`): External custodian integration framework
+- **Custodian Domain** (`app/Domain/Custodian/`): External custodian integration with real bank connectors
+- **Compliance Domain** (`app/Domain/Compliance/`): KYC, AML, and regulatory reporting
 - **Governance Domain** (`app/Domain/Governance/`): Democratic governance and polling system
 - **Payment Domain** (`app/Domain/Payment/`): Transfer and payment processing
 - Each domain has Aggregates, Events, Workflows, Activities, Projectors, Reactors, and Services
@@ -1142,6 +1180,89 @@ test('calculates weighted average correctly', function () {
 });
 ```
 
+## Custodian Integration Patterns
+
+### Real Bank Connectors
+Working with production bank APIs:
+```php
+use App\Domain\Custodian\Services\CustodianRegistry;
+
+// Get specific bank connector
+$registry = app(CustodianRegistry::class);
+$payseraConnector = $registry->getConnector('paysera');
+$deutscheBankConnector = $registry->getConnector('deutsche_bank');
+$santanderConnector = $registry->getConnector('santander');
+
+// Check balance
+$balance = $payseraConnector->getBalance('account-id', 'EUR');
+
+// Initiate transfer
+$request = new TransferRequest(
+    fromAccount: 'source-account',
+    toAccount: 'dest-account',
+    amount: new Money(10000), // €100.00
+    assetCode: 'EUR',
+    reference: 'REF123',
+    description: 'Payment'
+);
+$receipt = $connector->initiateTransfer($request);
+```
+
+### Multi-Bank Transfer Routing
+```php
+use App\Domain\Custodian\Services\MultiCustodianTransferService;
+
+$transferService = app(MultiCustodianTransferService::class);
+
+// Service automatically finds optimal route
+$receipt = $transferService->transfer(
+    fromAccount: $account1,
+    toAccount: $account2,
+    amount: new Money(50000),
+    assetCode: 'EUR',
+    reference: 'TRANSFER123'
+);
+
+// Routes can be:
+// - Internal (same bank)
+// - External (direct bank-to-bank)
+// - Bridge (through intermediate bank)
+```
+
+### Settlement Processing
+```php
+use App\Domain\Custodian\Services\SettlementService;
+
+$settlementService = app(SettlementService::class);
+
+// Process pending settlements (scheduled task)
+$results = $settlementService->processPendingSettlements();
+
+// Settlement types:
+// - Realtime: Immediate settlement
+// - Batch: Grouped by time interval
+// - Net: Offset debits/credits for efficiency
+
+// Get settlement statistics
+$stats = $settlementService->getSettlementStatistics();
+```
+
+### Compliance Workflows
+```php
+// Enhanced KYC workflow
+$workflow = WorkflowStub::make(EnhancedKYCWorkflow::class);
+$result = $workflow->start($userId, $documents);
+
+// Regulatory reporting
+$ctrReport = app(CTRReportService::class)->generateDailyReport(today());
+$sarReport = app(SARReportService::class)->generateMonthlyReport();
+
+// GDPR compliance
+$gdprService = app(GDPRService::class);
+$userData = $gdprService->exportUserData($userId);
+$gdprService->anonymizeUser($userId);
+```
+
 ## Important Files and Locations
 - Event configuration: `config/event-sourcing.php`
 - Workflow configuration: `config/workflows.php`
@@ -1191,3 +1312,20 @@ test('calculates weighted average correctly', function () {
 - User voting tests: `tests/Feature/Api/UserVotingControllerTest.php`
 - Basket composition workflow: `app/Domain/Governance/Workflows/UpdateBasketCompositionWorkflow.php`
 - Monthly poll schedule: `routes/console.php` (line 20)
+
+### Phase 4.3 Compliance Locations
+- KYC models: `app/Models/KYCDocument.php`, `app/Models/KYCVerification.php`
+- Compliance services: `app/Domain/Compliance/Services/`
+- Regulatory reports: `app/Domain/Compliance/Reports/`
+- GDPR service: `app/Domain/Compliance/Services/GDPRService.php`
+- Compliance commands: `app/Console/Commands/Generate*Report.php`
+- Compliance tests: `tests/Feature/Compliance/`
+
+### Phase 5 Bank Integration Locations
+- Custodian connectors: `app/Domain/Custodian/Connectors/`
+- Balance sync service: `app/Domain/Custodian/Services/BalanceSynchronizationService.php`
+- Multi-bank transfer: `app/Domain/Custodian/Services/MultiCustodianTransferService.php`
+- Settlement service: `app/Domain/Custodian/Services/SettlementService.php`
+- Custodian models: `app/Models/CustodianAccount.php`
+- Custodian config: `config/custodians.php`
+- Integration docs: `docs/CUSTODIAN_INTEGRATION.md`
