@@ -505,20 +505,42 @@ class MultiCustodianTransferService
      */
     public function getTransferStatistics(): array
     {
-        $stats = DB::table('custodian_transfers')
-            ->selectRaw('
-                COUNT(*) as total_transfers,
-                SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
-                SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed,
-                SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN transfer_type = "internal" THEN 1 ELSE 0 END) as internal,
-                SUM(CASE WHEN transfer_type = "external" THEN 1 ELSE 0 END) as external,
-                SUM(CASE WHEN transfer_type = "bridge" THEN 1 ELSE 0 END) as bridge,
-                AVG(CASE WHEN status = "completed" AND completed_at IS NOT NULL 
-                    THEN TIMESTAMPDIFF(SECOND, created_at, completed_at)
-                    ELSE NULL END) as avg_completion_seconds
-            ')
-            ->first();
+        // Use database-agnostic approach for better compatibility
+        $driver = DB::connection()->getDriverName();
+        
+        if ($driver === 'sqlite') {
+            // SQLite-compatible query
+            $stats = DB::table('custodian_transfers')
+                ->selectRaw('
+                    COUNT(*) as total_transfers,
+                    SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed,
+                    SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN transfer_type = "internal" THEN 1 ELSE 0 END) as internal,
+                    SUM(CASE WHEN transfer_type = "external" THEN 1 ELSE 0 END) as external,
+                    SUM(CASE WHEN transfer_type = "bridge" THEN 1 ELSE 0 END) as bridge,
+                    AVG(CASE WHEN status = "completed" AND completed_at IS NOT NULL 
+                        THEN (JULIANDAY(completed_at) - JULIANDAY(created_at)) * 86400
+                        ELSE NULL END) as avg_completion_seconds
+                ')
+                ->first();
+        } else {
+            // MySQL/MariaDB query
+            $stats = DB::table('custodian_transfers')
+                ->selectRaw('
+                    COUNT(*) as total_transfers,
+                    SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed,
+                    SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN transfer_type = "internal" THEN 1 ELSE 0 END) as internal,
+                    SUM(CASE WHEN transfer_type = "external" THEN 1 ELSE 0 END) as external,
+                    SUM(CASE WHEN transfer_type = "bridge" THEN 1 ELSE 0 END) as bridge,
+                    AVG(CASE WHEN status = "completed" AND completed_at IS NOT NULL 
+                        THEN TIMESTAMPDIFF(SECOND, created_at, completed_at)
+                        ELSE NULL END) as avg_completion_seconds
+                ')
+                ->first();
+        }
         
         return [
             'total' => (int) ($stats->total_transfers ?? 0),

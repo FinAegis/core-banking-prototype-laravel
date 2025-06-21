@@ -273,6 +273,65 @@ namespace App\Http\Controllers\Api\Documentation;
  *         }
  *     )
  * )
+ * 
+ * @OA\Schema(
+ *     schema="UserVotingPoll",
+ *     type="object",
+ *     title="User Voting Poll",
+ *     required={"uuid", "title", "type", "status", "options", "start_date", "end_date", "user_context"},
+ *     @OA\Property(property="uuid", type="string", format="uuid", example="990e8400-e29b-41d4-a716-446655440000"),
+ *     @OA\Property(property="title", type="string", example="Monthly GCU Basket Allocation for June 2025"),
+ *     @OA\Property(property="description", type="string", nullable=true, example="Vote on the currency allocation for the Global Currency Unit basket"),
+ *     @OA\Property(property="type", type="string", enum={"single_choice", "multiple_choice", "weighted_choice", "yes_no", "ranked_choice"}, example="weighted_choice"),
+ *     @OA\Property(property="status", type="string", enum={"draft", "active", "closed", "cancelled"}, example="active"),
+ *     @OA\Property(
+ *         property="options",
+ *         type="array",
+ *         @OA\Items(
+ *             type="object",
+ *             @OA\Property(property="id", type="string", example="USD"),
+ *             @OA\Property(property="label", type="string", example="US Dollar")
+ *         )
+ *     ),
+ *     @OA\Property(property="start_date", type="string", format="date-time", example="2025-06-01T00:00:00Z"),
+ *     @OA\Property(property="end_date", type="string", format="date-time", example="2025-06-08T00:00:00Z"),
+ *     @OA\Property(property="required_participation", type="number", format="float", nullable=true, example=25.0),
+ *     @OA\Property(property="current_participation", type="number", format="float", example=15.5),
+ *     @OA\Property(
+ *         property="user_context",
+ *         type="object",
+ *         @OA\Property(property="has_voted", type="boolean", example=false),
+ *         @OA\Property(property="voting_power", type="integer", example=1000),
+ *         @OA\Property(property="can_vote", type="boolean", example=true),
+ *         @OA\Property(
+ *             property="vote",
+ *             type="object",
+ *             nullable=true,
+ *             @OA\Property(
+ *                 property="selected_options",
+ *                 type="array",
+ *                 @OA\Items(type="string")
+ *             ),
+ *             @OA\Property(property="voted_at", type="string", format="date-time")
+ *         )
+ *     ),
+ *     @OA\Property(
+ *         property="metadata",
+ *         type="object",
+ *         @OA\Property(property="is_gcu_poll", type="boolean", example=true),
+ *         @OA\Property(property="voting_month", type="string", nullable=true, example="2025-06"),
+ *         @OA\Property(property="template", type="string", nullable=true, example="monthly_gcu_allocation")
+ *     ),
+ *     @OA\Property(property="results_visible", type="boolean", example=false),
+ *     @OA\Property(
+ *         property="time_remaining",
+ *         type="object",
+ *         nullable=true,
+ *         @OA\Property(property="days", type="integer", example=6),
+ *         @OA\Property(property="hours", type="integer", example=12),
+ *         @OA\Property(property="human_readable", type="string", example="6 days from now")
+ *     )
+ * )
  */
 class Schemas
 {

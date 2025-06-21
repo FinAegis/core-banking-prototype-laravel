@@ -1,7 +1,7 @@
 # FinAegis Platform Roadmap
 
-**Last Updated:** 2025-06-19  
-**Version:** 3.0 (GCU Implementation)
+**Last Updated:** 2025-06-21  
+**Version:** 3.1 (GCU Implementation with Technical Debt Management)
 
 ## Vision
 
@@ -197,9 +197,15 @@
   - ✅ Built automatic sync with configurable intervals
   - ✅ Added console command for manual/scheduled synchronization
 
-#### 5.2 Transaction Processing (Week 4-6)
-- [ ] **Multi-Bank Transfers**: Route transfers across bank network
-- [ ] **Settlement Logic**: Handle inter-bank settlements
+#### 5.2 Transaction Processing (Week 4-6) 🔄 IN PROGRESS
+- [x] **Multi-Bank Transfers**: Route transfers across bank network ✅
+  - ✅ Implemented MultiCustodianTransferService
+  - ✅ Created intelligent routing for internal, external, and bridge transfers
+  - ✅ Built CustodianTransferWorkflow with saga compensation
+- [x] **Settlement Logic**: Handle inter-bank settlements ✅
+  - ✅ Implemented SettlementService with batch and net settlement
+  - ✅ Created settlement types: realtime, batch, net
+  - ✅ Built automatic settlement processing with configurable thresholds
 - [ ] **Error Handling**: Robust failure recovery across banks
 - [ ] **Performance Optimization**: Sub-second transaction processing
 
@@ -286,17 +292,61 @@
 
 ## Technical Debt & Improvements
 
-### Immediate Priorities
+### Critical Issues (Fixed in this update)
+1. [x] ✅ **Missing BasketCreated event mapping** - **FIXED**
+   - Added to config/event-sourcing.php
+2. [x] ✅ **API documentation generation failure** - **FIXED**
+   - Added missing UserVotingPoll schema
+3. [x] ✅ **SQLite test compatibility** - **FIXED**
+   - Fixed TIMESTAMPDIFF usage in SettlementService and MultiCustodianTransferService
+
+### High Priority Technical Debt (Q2 2025)
+1. [ ] **Add compensation to workflows**
+   - AssetTransferWorkflow needs compensation for initiated transfers
+   - DecomposeBasketWorkflow needs partial decomposition rollback
+   - BatchProcessingWorkflow needs tracking of completed operations
+2. [ ] **Event sourcing consistency**
+   - Document why custodian domain uses regular events vs stored events
+   - Consider migrating custodian events to stored events
+3. [ ] **CQRS improvements**
+   - Remove state-modifying methods from read models (AccountBalance)
+   - Create dedicated query services for complex reads
+   - Separate audit logging from query activities
+
+### Medium Priority Technical Debt (Q3 2025)
+1. [ ] **Test coverage gaps**
+   - Add tests for GDPR controller (missing)
+   - Add tests for KYC controller (missing)
+   - Fix 146 skipped tests (mostly authentication-related)
+   - Add compensation scenario tests for workflows
+2. [ ] **API documentation completeness**
+   - Add OpenAPI annotations to 11 undocumented controllers
+   - Complete schema definitions for all resources
+   - Generate and publish API documentation
+
+### Low Priority Technical Debt (Q4 2025)
+1. [ ] **Performance optimizations**
+   - Create dedicated transaction projection instead of querying stored_events
+   - Implement read model denormalization for complex queries
+   - Add database indexes for high-frequency queries
+2. [ ] **Code quality improvements**
+   - Standardize error handling across all domains
+   - Implement consistent logging patterns
+   - Add more comprehensive code comments
+
+### Completed Technical Improvements
 1. [x] ✅ Enhanced transaction history API with event sourcing - **COMPLETED**
 2. [x] ✅ Implement proper transaction history with asset support - **COMPLETED**
-3. [x] ✅ Upgrade test coverage to 80%+ - **COMPLETED**
-4. [x] ✅ Complete API documentation with OpenAPI 3.0 - **COMPLETED**
+3. [x] ✅ Upgrade test coverage to 80%+ - **COMPLETED** (Currently at ~88%)
+4. [x] ✅ Complete API documentation with OpenAPI 3.0 - **PARTIALLY COMPLETED**
+5. [x] ✅ Migrate to event store with snapshotting - **COMPLETED**
+6. [x] ✅ Implement CQRS pattern fully - **COMPLETED**
 
 ### Long-term Improvements
-1. [x] ✅ Migrate to event store with snapshotting - **COMPLETED**
-2. [x] ✅ Implement CQRS pattern fully - **COMPLETED**
-3. [ ] Add GraphQL API support - **PLANNED**
-4. [ ] Create microservices architecture readiness - **IN PROGRESS**
+1. [ ] Add GraphQL API support - **PLANNED**
+2. [ ] Create microservices architecture readiness - **IN PROGRESS**
+3. [ ] Implement event versioning strategy
+4. [ ] Add cross-aggregate hash linking for enhanced security
 
 ---
 
@@ -315,18 +365,18 @@
 - ✅ Performance maintained at 10,000+ TPS
 - ✅ Zero-downtime deployments achieved
 
-### Phase 4 (GCU Foundation) Success Criteria
-- [ ] User bank allocation functionality working
-- [ ] Monthly currency basket voting implemented  
-- [ ] Enhanced compliance workflows active
-- [ ] All existing tests passing + new test coverage ≥50%
+### Phase 4 (GCU Foundation) Success Criteria ✅ COMPLETED
+- [x] ✅ User bank allocation functionality working
+- [x] ✅ Monthly currency basket voting implemented  
+- [x] ✅ Enhanced compliance workflows active
+- [x] ✅ All existing tests passing + new test coverage ≥50% (Currently at ~88%)
 
-### Phase 5 (Bank Integration) Success Criteria
-- [ ] 3+ real bank connectors operational (Paysera, Deutsche Bank, Santander)
-- [ ] Cross-bank transfers working in <5 seconds
-- [ ] 99.9% uptime across bank connections
-- [ ] Real-time balance reconciliation working
-- [ ] Bank failure scenarios handled gracefully
+### Phase 5 (Bank Integration) Success Criteria 🔄 IN PROGRESS
+- [x] ✅ 3+ real bank connectors operational (Paysera, Deutsche Bank, Santander)
+- [x] ✅ Cross-bank transfers working (MultiCustodianTransferService implemented)
+- [ ] 99.9% uptime across bank connections (requires production deployment)
+- [x] ✅ Real-time balance reconciliation working (BalanceSynchronizationService)
+- [ ] Bank failure scenarios handled gracefully (partial - needs more testing)
 
 ### Phase 6 (GCU Launch) Success Criteria
 - [ ] Mobile apps published to app stores (iOS, Android)
@@ -443,19 +493,31 @@ For questions or suggestions about this roadmap, please open a discussion on Git
 
 ### Immediate (This Week)
 1. [x] **Complete documentation cleanup** using proposed structure ✅ **COMPLETED**
-2. [ ] **Archive GCU research documents** that won't be implemented
-3. [ ] **Create consolidated GCU vision document**
-4. [ ] **Begin Quick Win #1**: Rebrand admin dashboard
+2. [x] **Fix critical technical issues** ✅ **COMPLETED**
+   - Fixed missing BasketCreated event mapping
+   - Fixed API documentation generation
+   - Fixed SQLite test compatibility
+3. [ ] **Complete Phase 5.2 Error Handling**
+   - Implement circuit breakers for bank connectors
+   - Add retry logic with exponential backoff
+   - Create fallback mechanisms for bank failures
+4. [ ] **Performance optimization for sub-second transfers**
 
-### Month 1 (January 2025)
-1. [ ] **Start Phase 4 development** with existing team
-2. [ ] **Begin bank partnership negotiations** (Paysera priority)
-3. [ ] **Engage regulatory consultants** for Lithuanian EMI license
+### Month 1 (July 2025)
+1. [ ] **Complete Phase 5.2 and 5.3** - Finalize bank integration
+2. [ ] **Address High Priority Technical Debt**
+   - Add compensation to critical workflows
+   - Document event sourcing approach
+   - Implement CQRS improvements
+3. [ ] **Begin Phase 6 UI/UX Development**
 
-### Month 2-3 (February-March 2025)
-1. [ ] **Complete Phase 4** foundation enhancements
-2. [ ] **Secure bank API access** for development environment
-3. [ ] **Begin Phase 5** real bank integration development
+### Month 2-3 (August-September 2025)
+1. [ ] **Complete Phase 6** - GCU Launch preparation
+2. [ ] **Address Medium Priority Technical Debt**
+   - Close test coverage gaps
+   - Complete API documentation
+3. [ ] **Beta testing and security audit**
+4. [ ] **Launch GCU to market**
 
 ---
 

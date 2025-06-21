@@ -13,6 +13,7 @@ use App\Domain\Asset\Workflows\Activities\FailAssetTransferActivity;
 use Workflow\Workflow;
 use Workflow\ActivityStub;
 use Workflow\ChildWorkflowStub;
+use App\Domain\Asset\Workflows\Activities\ReverseAssetTransferActivity;
 
 class AssetTransferWorkflow extends Workflow
 {
@@ -38,6 +39,17 @@ class AssetTransferWorkflow extends Workflow
                 $fromAmount,
                 $description
             );
+            
+            // Add compensation to reverse the initiated transfer if something fails
+            $this->addCompensation(fn() => ActivityStub::make(
+                ReverseAssetTransferActivity::class,
+                $transferId,
+                $fromAccountUuid,
+                $toAccountUuid,
+                $fromAssetCode,
+                $toAssetCode,
+                $fromAmount
+            ));
             
             // Step 2: If cross-asset transfer, validate exchange rate and calculate target amount
             $toAmount = $fromAmount; // Default for same-asset transfers
@@ -81,6 +93,9 @@ class AssetTransferWorkflow extends Workflow
             ];
             
         } catch (\Throwable $th) {
+            // Execute compensations in reverse order
+            yield from $this->compensate();
+            
             // Step 4: Handle failure
             yield ActivityStub::make(
                 FailAssetTransferActivity::class,

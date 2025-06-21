@@ -113,6 +113,7 @@ return [
         'asset_transfer_completed'      => App\Domain\Asset\Events\AssetTransferCompleted::class,
         'asset_transfer_failed'         => App\Domain\Asset\Events\AssetTransferFailed::class,
         'exchange_rate_updated'         => App\Domain\Asset\Events\ExchangeRateUpdated::class,
+        'basket_created'                => App\Domain\Basket\Events\BasketCreated::class,
         'basket_decomposed'             => App\Domain\Basket\Events\BasketDecomposed::class,
         'basket_composed'               => App\Domain\Basket\Events\BasketComposed::class,
         'basket_rebalanced'             => App\Domain\Basket\Events\BasketRebalanced::class,

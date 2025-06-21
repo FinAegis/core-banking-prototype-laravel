@@ -496,20 +496,42 @@ class SettlementService
      */
     public function getSettlementStatistics(): array
     {
-        $stats = DB::table('settlements')
-            ->selectRaw('
-                COUNT(*) as total_settlements,
-                SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
-                SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed,
-                SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
-                SUM(gross_amount) as total_gross,
-                SUM(net_amount) as total_net,
-                SUM(transfer_count) as total_transfers,
-                AVG(CASE WHEN status = "completed" 
-                    THEN TIMESTAMPDIFF(SECOND, created_at, completed_at)
-                    ELSE NULL END) as avg_settlement_seconds
-            ')
-            ->first();
+        // Use database-agnostic approach for better compatibility
+        $driver = DB::connection()->getDriverName();
+        
+        if ($driver === 'sqlite') {
+            // SQLite-compatible query
+            $stats = DB::table('settlements')
+                ->selectRaw('
+                    COUNT(*) as total_settlements,
+                    SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed,
+                    SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
+                    SUM(gross_amount) as total_gross,
+                    SUM(net_amount) as total_net,
+                    SUM(transfer_count) as total_transfers,
+                    AVG(CASE WHEN status = "completed" 
+                        THEN (JULIANDAY(completed_at) - JULIANDAY(created_at)) * 86400
+                        ELSE NULL END) as avg_settlement_seconds
+                ')
+                ->first();
+        } else {
+            // MySQL/MariaDB query
+            $stats = DB::table('settlements')
+                ->selectRaw('
+                    COUNT(*) as total_settlements,
+                    SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed,
+                    SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
+                    SUM(gross_amount) as total_gross,
+                    SUM(net_amount) as total_net,
+                    SUM(transfer_count) as total_transfers,
+                    AVG(CASE WHEN status = "completed" 
+                        THEN TIMESTAMPDIFF(SECOND, created_at, completed_at)
+                        ELSE NULL END) as avg_settlement_seconds
+                ')
+                ->first();
+        }
         
         $byType = DB::table('settlements')
             ->select('type', DB::raw('COUNT(*) as count'), DB::raw('SUM(net_amount) as amount'))
