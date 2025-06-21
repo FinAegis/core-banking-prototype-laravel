@@ -37,6 +37,11 @@ it('can be instantiated with valid config', function () {
 
 it('checks availability via health endpoint', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/status' => Http::response(['status' => 'operational'], 200),
     ]);
     
@@ -50,6 +55,11 @@ it('checks availability via health endpoint', function () {
 
 it('returns false when health check fails', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/status' => Http::response(['error' => 'Service unavailable'], 503),
     ]);
     
@@ -98,6 +108,11 @@ it('obtains access token with client credentials', function () {
 
 it('retrieves account balance', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/accounts/DE89370400440532013000/balances' => Http::response([
             'balances' => [
                 ['currency' => 'EUR', 'amount' => '25000.00'],
@@ -119,6 +134,11 @@ it('retrieves account balance', function () {
 
 it('returns zero balance for non-existent currency', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/accounts/DE89370400440532013000/balances' => Http::response([
             'balances' => [
                 ['currency' => 'EUR', 'amount' => '5000.00'],
@@ -138,6 +158,11 @@ it('returns zero balance for non-existent currency', function () {
 
 it('retrieves account information', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/accounts/DE89370400440532013000' => Http::response([
             'accountId' => 'DE89370400440532013000',
             'accountName' => 'Corporate Account',
@@ -179,6 +204,11 @@ it('retrieves account information', function () {
 
 it('initiates a SEPA transfer', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/payments/sepa' => Http::response([
             'paymentId' => 'DB-PAY-123456',
             'transactionStatus' => 'ACCP',
@@ -196,7 +226,7 @@ it('initiates a SEPA transfer', function () {
     $transferRequest = new TransferRequest(
         fromAccount: 'DE89370400440532013000',
         toAccount: 'DE89370400440532013001',
-        amount: new Money(100000), // €1,000
+        amount: new Money(2000000), // €20,000 (above instant payment threshold)
         assetCode: 'EUR',
         reference: 'REF123',
         description: 'Test SEPA payment'
@@ -206,7 +236,7 @@ it('initiates a SEPA transfer', function () {
     
     expect($receipt->id)->toBe('DB-PAY-123456');
     expect($receipt->status)->toBe('pending');
-    expect($receipt->amount)->toBe(100000);
+    expect($receipt->amount)->toBe(2000000);
     expect($receipt->fee)->toBe(150); // €1.50 in cents
     expect($receipt->isPending())->toBeTrue();
     expect($receipt->metadata['transfer_type'])->toBe('SEPA');
@@ -214,6 +244,11 @@ it('initiates a SEPA transfer', function () {
 
 it('initiates instant payment for small EUR amounts', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/payments/instant' => Http::response([
             'paymentId' => 'DB-INST-789012',
             'transactionStatus' => 'ACCC',
@@ -246,6 +281,11 @@ it('initiates instant payment for small EUR amounts', function () {
 
 it('retrieves transaction status', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/payments/DB-PAY-123456' => Http::response([
             'paymentId' => 'DB-PAY-123456',
             'transactionStatus' => 'ACCC',
@@ -274,6 +314,11 @@ it('retrieves transaction status', function () {
 
 it('cancels a transaction', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/payments/DB-PAY-123456' => Http::response([], 204),
     ]);
     
@@ -289,6 +334,11 @@ it('cancels a transaction', function () {
 
 it('validates account existence', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/accounts/DE89370400440532013000' => Http::response([
             'accountId' => 'DE89370400440532013000',
             'status' => 'ACTIVE',
@@ -305,6 +355,11 @@ it('validates account existence', function () {
 
 it('retrieves transaction history', function () {
     Http::fake([
+        'https://api.db.com/oauth2/token' => Http::response([
+            'access_token' => 'test-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+        ], 200),
         'https://api.db.com/v2/accounts/DE89370400440532013000/transactions?*' => Http::response([
             'transactions' => [
                 'booked' => [
@@ -340,7 +395,7 @@ it('retrieves transaction history', function () {
     
     expect($history)->toHaveCount(2);
     expect($history[0]['id'])->toBe('TXN001');
-    expect($history[0]['amount'])->toBe(50000); // €500 in cents
+    expect($history[0]['amount'])->toBe(-50000); // €500 in cents (negative for debit)
     expect($history[1]['id'])->toBe('TXN002');
     expect($history[1]['amount'])->toBe(150000); // €1,500 in cents
 });

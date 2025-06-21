@@ -301,13 +301,16 @@ class DeutscheBankConnector extends BaseCustodianConnector
         $transactions = [];
 
         foreach ($data['transactions']['booked'] ?? [] as $transaction) {
+            // Get the amount (may already be signed)
+            $amount = (int) round((float) $transaction['transactionAmount']['amount'] * 100);
+            
             $transactions[] = [
                 'id' => $transaction['transactionId'],
                 'status' => 'completed',
                 'from_account' => $transaction['debtorAccount']['iban'] ?? $accountId,
                 'to_account' => $transaction['creditorAccount']['iban'] ?? $accountId,
                 'asset_code' => $transaction['transactionAmount']['currency'],
-                'amount' => (int) round((float) $transaction['transactionAmount']['amount'] * 100),
+                'amount' => $amount,
                 'fee' => null,
                 'reference' => $transaction['endToEndId'] ?? $transaction['mandateId'] ?? null,
                 'created_at' => $transaction['bookingDate'],
