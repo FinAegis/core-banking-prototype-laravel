@@ -517,22 +517,22 @@ class SettlementService
             ->get();
         
         return [
-            'total' => $stats->total_settlements ?? 0,
-            'completed' => $stats->completed ?? 0,
-            'failed' => $stats->failed ?? 0,
-            'pending' => $stats->pending ?? 0,
-            'total_gross_amount' => $stats->total_gross ?? 0,
-            'total_net_amount' => $stats->total_net ?? 0,
-            'total_savings' => ($stats->total_gross ?? 0) - ($stats->total_net ?? 0),
+            'total' => (int) ($stats->total_settlements ?? 0),
+            'completed' => (int) ($stats->completed ?? 0),
+            'failed' => (int) ($stats->failed ?? 0),
+            'pending' => (int) ($stats->pending ?? 0),
+            'total_gross_amount' => (int) ($stats->total_gross ?? 0),
+            'total_net_amount' => (int) ($stats->total_net ?? 0),
+            'total_savings' => (int) (($stats->total_gross ?? 0) - ($stats->total_net ?? 0)),
             'savings_percentage' => $stats->total_gross > 0
-                ? round((($stats->total_gross - $stats->total_net) / $stats->total_gross) * 100, 2)
+                ? round(((float) ($stats->total_gross - $stats->total_net) / (float) $stats->total_gross) * 100, 2)
                 : 0,
-            'total_transfers_settled' => $stats->total_transfers ?? 0,
+            'total_transfers_settled' => (int) ($stats->total_transfers ?? 0),
             'avg_settlement_seconds' => round((float) ($stats->avg_settlement_seconds ?? 0), 2),
             'by_type' => $byType->keyBy('type')->map(function ($item) {
                 return [
-                    'count' => $item->count,
-                    'amount' => $item->amount,
+                    'count' => (int) $item->count,
+                    'amount' => (int) $item->amount,
                 ];
             })->toArray(),
         ];

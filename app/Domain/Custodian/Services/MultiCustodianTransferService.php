@@ -521,18 +521,18 @@ class MultiCustodianTransferService
             ->first();
         
         return [
-            'total' => $stats->total_transfers ?? 0,
-            'completed' => $stats->completed ?? 0,
-            'failed' => $stats->failed ?? 0,
-            'pending' => $stats->pending ?? 0,
+            'total' => (int) ($stats->total_transfers ?? 0),
+            'completed' => (int) ($stats->completed ?? 0),
+            'failed' => (int) ($stats->failed ?? 0),
+            'pending' => (int) ($stats->pending ?? 0),
             'by_type' => [
-                'internal' => $stats->internal ?? 0,
-                'external' => $stats->external ?? 0,
-                'bridge' => $stats->bridge ?? 0,
+                'internal' => (int) ($stats->internal ?? 0),
+                'external' => (int) ($stats->external ?? 0),
+                'bridge' => (int) ($stats->bridge ?? 0),
             ],
             'avg_completion_seconds' => round((float) ($stats->avg_completion_seconds ?? 0), 2),
             'success_rate' => $stats->total_transfers > 0 
-                ? round(($stats->completed / $stats->total_transfers) * 100, 2) 
+                ? round(((int) $stats->completed / (int) $stats->total_transfers) * 100, 2) 
                 : 0,
         ];
     }
