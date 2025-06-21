@@ -8,6 +8,7 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Custodian\ValueObjects\AccountInfo;
 use App\Domain\Custodian\ValueObjects\TransactionReceipt;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
+use App\Domain\Custodian\Services\FallbackService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +28,8 @@ class PayseraConnector extends BaseCustodianConnector
     {
         // Ensure the name is set
         $config['name'] = $config['name'] ?? 'Paysera';
+        // Set base URL for parent class
+        $config['base_url'] = self::API_BASE_URL;
         
         parent::__construct($config);
         
@@ -45,18 +48,8 @@ class PayseraConnector extends BaseCustodianConnector
 
     public function isAvailable(): bool
     {
-        try {
-            $response = Http::timeout(5)
-                ->get(self::API_BASE_URL . $this->getHealthCheckEndpoint());
-            
-            return $response->successful();
-        } catch (\Exception $e) {
-            Log::error('Paysera health check failed', [
-                'error' => $e->getMessage(),
-            ]);
-            
-            return false;
-        }
+        // Use parent's implementation which includes circuit breaker
+        return parent::isAvailable();
     }
 
     /**
@@ -89,47 +82,65 @@ class PayseraConnector extends BaseCustodianConnector
     }
 
     /**
-     * Make authenticated API request
+     * Make authenticated API request with resilience
      */
     private function apiRequest(string $method, string $endpoint, array $data = []): \Illuminate\Http\Client\Response
     {
-        $token = $this->getAccessToken();
+        // Update client with fresh token for each request
+        $this->client = $this->client->withToken($this->getAccessToken());
         
-        $this->logRequest($method, $endpoint, $data);
-
-        $request = Http::withToken($token)
-            ->acceptJson()
-            ->timeout(30);
-
-        return match (strtoupper($method)) {
-            'GET' => $request->get(self::API_BASE_URL . $endpoint, $data),
-            'POST' => $request->post(self::API_BASE_URL . $endpoint, $data),
-            'PUT' => $request->put(self::API_BASE_URL . $endpoint, $data),
-            'DELETE' => $request->delete(self::API_BASE_URL . $endpoint),
-            default => throw new \InvalidArgumentException("Unsupported HTTP method: {$method}"),
-        };
+        return $this->resilientApiRequest(
+            method: $method,
+            endpoint: self::API_BASE_URL . $endpoint,
+            data: $data
+        );
     }
 
     public function getBalance(string $accountId, string $assetCode): Money
     {
-        $response = $this->apiRequest('GET', "/accounts/{$accountId}/balance");
-
-        if (!$response->successful()) {
-            throw new \Exception("Failed to get balance: " . $response->body());
-        }
-
-        $data = $response->json();
+        $fallbackService = app(FallbackService::class);
         
-        // Paysera returns balances in an array, find the requested currency
-        foreach ($data['balances'] ?? [] as $balance) {
-            if ($balance['currency'] === $assetCode) {
-                // Paysera returns amounts in cents
-                return new Money((int) $balance['amount']);
-            }
-        }
+        try {
+            $response = $this->apiRequest('GET', "/accounts/{$accountId}/balance");
 
-        // No balance found for this currency
-        return new Money(0);
+            if (!$response->successful()) {
+                throw new \Exception("Failed to get balance: " . $response->body());
+            }
+
+            $data = $response->json();
+            
+            // Paysera returns balances in an array, find the requested currency
+            $balance = new Money(0);
+            foreach ($data['balances'] ?? [] as $balanceData) {
+                if ($balanceData['currency'] === $assetCode) {
+                    // Paysera returns amounts in cents
+                    $balance = new Money((int) $balanceData['amount']);
+                    break;
+                }
+            }
+            
+            // Cache the successful balance for future fallback
+            $fallbackService->cacheBalance($this->getName(), $accountId, $assetCode, $balance);
+            
+            return $balance;
+            
+        } catch (\Exception $e) {
+            // Try fallback
+            $fallbackBalance = $fallbackService->getFallbackBalance($this->getName(), $accountId, $assetCode);
+            
+            if ($fallbackBalance !== null) {
+                Log::warning("Using fallback balance for Paysera", [
+                    'account' => $accountId,
+                    'asset' => $assetCode,
+                    'error' => $e->getMessage(),
+                ]);
+                
+                return $fallbackBalance;
+            }
+            
+            // No fallback available, rethrow
+            throw $e;
+        }
     }
 
     public function getAccountInfo(string $accountId): AccountInfo
@@ -169,66 +180,114 @@ class PayseraConnector extends BaseCustodianConnector
 
     public function initiateTransfer(TransferRequest $request): TransactionReceipt
     {
-        $paymentData = [
-            'from_account' => $request->fromAccount,
-            'to_account' => $request->toAccount,
-            'amount' => $request->amount->getAmount(),
-            'currency' => $request->assetCode,
-            'description' => $request->description ?? $request->reference,
-            'reference' => $request->reference,
-        ];
+        $fallbackService = app(FallbackService::class);
+        
+        return $this->executeWithResilience(
+            serviceIdentifier: 'initiateTransfer',
+            operation: function () use ($request) {
+                $paymentData = [
+                    'from_account' => $request->fromAccount,
+                    'to_account' => $request->toAccount,
+                    'amount' => $request->amount->getAmount(),
+                    'currency' => $request->assetCode,
+                    'description' => $request->description ?? $request->reference,
+                    'reference' => $request->reference,
+                ];
 
-        $response = $this->apiRequest('POST', '/payments', $paymentData);
+                $response = $this->apiRequest('POST', '/payments', $paymentData);
 
-        if (!$response->successful()) {
-            throw new \Exception("Failed to initiate transfer: " . $response->body());
-        }
+                if (!$response->successful()) {
+                    throw new \Exception("Failed to initiate transfer: " . $response->body());
+                }
 
-        $data = $response->json();
+                $data = $response->json();
 
-        return new TransactionReceipt(
-            id: $data['id'],
-            status: $this->mapTransactionStatus($data['status']),
-            fromAccount: $data['from_account'],
-            toAccount: $data['to_account'],
-            assetCode: $data['currency'],
-            amount: (int) $data['amount'],
-            fee: isset($data['fee']) ? (int) $data['fee'] : null,
-            reference: $data['reference'] ?? null,
-            createdAt: Carbon::parse($data['created_at']),
-            completedAt: isset($data['completed_at']) ? Carbon::parse($data['completed_at']) : null,
-            metadata: [
-                'paysera_status' => $data['status'],
-                'paysera_id' => $data['id'],
-            ]
+                return new TransactionReceipt(
+                    id: $data['id'],
+                    status: $this->mapTransactionStatus($data['status']),
+                    fromAccount: $data['from_account'],
+                    toAccount: $data['to_account'],
+                    assetCode: $data['currency'],
+                    amount: (int) $data['amount'],
+                    fee: isset($data['fee']) ? (int) $data['fee'] : null,
+                    reference: $data['reference'] ?? null,
+                    createdAt: Carbon::parse($data['created_at']),
+                    completedAt: isset($data['completed_at']) ? Carbon::parse($data['completed_at']) : null,
+                    metadata: [
+                        'paysera_status' => $data['status'],
+                        'paysera_id' => $data['id'],
+                    ]
+                );
+            },
+            fallback: function () use ($request, $fallbackService) {
+                // Queue transfer for retry when service is available
+                Log::warning("Paysera transfer failed, queueing for retry", [
+                    'from' => $request->fromAccount,
+                    'to' => $request->toAccount,
+                    'amount' => $request->amount->getAmount(),
+                    'asset' => $request->assetCode,
+                ]);
+                
+                return $fallbackService->queueTransferForRetry(
+                    $this->getName(),
+                    $request->fromAccount,
+                    $request->toAccount,
+                    $request->amount,
+                    $request->assetCode,
+                    $request->reference,
+                    $request->description ?? ''
+                );
+            }
         );
     }
 
     public function getTransactionStatus(string $transactionId): TransactionReceipt
     {
-        $response = $this->apiRequest('GET', "/payments/{$transactionId}");
+        $fallbackService = app(FallbackService::class);
+        
+        return $this->executeWithResilience(
+            serviceIdentifier: 'getTransactionStatus',
+            operation: function () use ($transactionId) {
+                $response = $this->apiRequest('GET', "/payments/{$transactionId}");
 
-        if (!$response->successful()) {
-            throw new \Exception("Failed to get transaction status: " . $response->body());
-        }
+                if (!$response->successful()) {
+                    throw new \Exception("Failed to get transaction status: " . $response->body());
+                }
 
-        $data = $response->json();
+                $data = $response->json();
 
-        return new TransactionReceipt(
-            id: $data['id'],
-            status: $this->mapTransactionStatus($data['status']),
-            fromAccount: $data['from_account'],
-            toAccount: $data['to_account'],
-            assetCode: $data['currency'],
-            amount: (int) $data['amount'],
-            fee: isset($data['fee']) ? (int) $data['fee'] : null,
-            reference: $data['reference'] ?? null,
-            createdAt: Carbon::parse($data['created_at']),
-            completedAt: isset($data['completed_at']) ? Carbon::parse($data['completed_at']) : null,
-            metadata: [
-                'paysera_status' => $data['status'],
-                'paysera_id' => $data['id'],
-            ]
+                return new TransactionReceipt(
+                    id: $data['id'],
+                    status: $this->mapTransactionStatus($data['status']),
+                    fromAccount: $data['from_account'],
+                    toAccount: $data['to_account'],
+                    assetCode: $data['currency'],
+                    amount: (int) $data['amount'],
+                    fee: isset($data['fee']) ? (int) $data['fee'] : null,
+                    reference: $data['reference'] ?? null,
+                    createdAt: Carbon::parse($data['created_at']),
+                    completedAt: isset($data['completed_at']) ? Carbon::parse($data['completed_at']) : null,
+                    metadata: [
+                        'paysera_status' => $data['status'],
+                        'paysera_id' => $data['id'],
+                    ]
+                );
+            },
+            fallback: function () use ($transactionId, $fallbackService) {
+                // Try to get status from cached/database data
+                $status = $fallbackService->getFallbackTransferStatus($this->getName(), $transactionId);
+                
+                if ($status !== null) {
+                    Log::warning("Using fallback transaction status for Paysera", [
+                        'transaction_id' => $transactionId,
+                    ]);
+                    
+                    // Return the fallback status directly
+                    return $status;
+                }
+                
+                throw new \Exception("Cannot retrieve transaction status, service unavailable");
+            }
         );
     }
 

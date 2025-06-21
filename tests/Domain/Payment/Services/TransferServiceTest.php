@@ -1,6 +1,8 @@
 <?php
 
 use App\Domain\Payment\Services\TransferService;
+use App\Domain\Payment\Workflows\TransferWorkflow;
+use App\Models\Account;
 use Workflow\WorkflowStub;
 
 beforeEach(function () {
@@ -17,31 +19,34 @@ it('can be instantiated from container', function () {
 });
 
 it('can transfer money between accounts with string uuids and integer amount', function () {
-    $fromUuid = 'from-account-uuid';
-    $toUuid = 'to-account-uuid';
+    // Create accounts with sufficient balance
+    $fromAccount = Account::factory()->withBalance(50000)->create();
+    $toAccount = Account::factory()->create();
     $amount = 10000;
 
-    $this->transferService->transfer($fromUuid, $toUuid, $amount);
+    $this->transferService->transfer($fromAccount->uuid, $toAccount->uuid, $amount);
 
     expect(true)->toBeTrue();
 });
 
 it('can handle zero amount transfer', function () {
-    $fromUuid = 'from-account-uuid';
-    $toUuid = 'to-account-uuid';
+    // Create accounts
+    $fromAccount = Account::factory()->create();
+    $toAccount = Account::factory()->create();
     $amount = 0;
 
-    $this->transferService->transfer($fromUuid, $toUuid, $amount);
+    $this->transferService->transfer($fromAccount->uuid, $toAccount->uuid, $amount);
 
     expect(true)->toBeTrue();
 });
 
 it('can handle large amount transfer', function () {
-    $fromUuid = 'from-account-uuid';
-    $toUuid = 'to-account-uuid';
+    // Create account with large balance
+    $fromAccount = Account::factory()->withBalance(1000000000)->create();
+    $toAccount = Account::factory()->create();
     $amount = 999999999;
 
-    $this->transferService->transfer($fromUuid, $toUuid, $amount);
+    $this->transferService->transfer($fromAccount->uuid, $toAccount->uuid, $amount);
 
     expect(true)->toBeTrue();
 });
