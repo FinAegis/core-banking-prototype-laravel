@@ -412,3 +412,399 @@ Paginated responses include metadata:
   }
 }
 ```
+## Basket API
+
+### List Baskets
+
+```
+GET /api/v2/baskets
+```
+
+Query parameters:
+- `type` (string): Filter by basket type (fixed/dynamic)
+- `is_active` (boolean): Filter by active status
+
+Response:
+```json
+{
+  "data": [
+    {
+      "code": "GCU",
+      "name": "Global Currency Unit",
+      "type": "dynamic",
+      "is_active": true,
+      "rebalance_frequency": "monthly",
+      "last_rebalanced_at": "2025-06-21T00:00:00Z",
+      "components": [
+        {
+          "asset_code": "USD",
+          "weight": 35.0,
+          "min_weight": 30.0,
+          "max_weight": 40.0
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Get Basket Details
+
+```
+GET /api/v2/baskets/{code}
+```
+
+### Get Basket Value
+
+```
+GET /api/v2/baskets/{code}/value
+```
+
+Response:
+```json
+{
+  "basket_code": "GCU",
+  "value": 1.0234,
+  "currency": "USD",
+  "calculated_at": "2025-06-21T10:00:00Z",
+  "components": [
+    {
+      "asset_code": "USD",
+      "weight": 35.0,
+      "value": 0.3582,
+      "exchange_rate": 1.0
+    }
+  ]
+}
+```
+
+### Create Basket
+
+```
+POST /api/v2/baskets
+```
+
+Request body:
+```json
+{
+  "code": "STABLE_BASKET",
+  "name": "Stable Currency Basket",
+  "type": "fixed",
+  "rebalance_frequency": "monthly",
+  "components": [
+    {
+      "asset_code": "USD",
+      "weight": 40.0
+    },
+    {
+      "asset_code": "EUR",
+      "weight": 35.0
+    },
+    {
+      "asset_code": "GBP",
+      "weight": 25.0
+    }
+  ]
+}
+```
+
+### Rebalance Basket
+
+```
+POST /api/v2/baskets/{code}/rebalance
+```
+
+### Account Basket Operations
+
+#### Get Account Basket Holdings
+
+```
+GET /api/v2/accounts/{uuid}/baskets
+```
+
+#### Decompose Basket
+
+```
+POST /api/v2/accounts/{uuid}/baskets/decompose
+```
+
+Request body:
+```json
+{
+  "basket_code": "GCU",
+  "amount": 10000
+}
+```
+
+#### Compose Basket
+
+```
+POST /api/v2/accounts/{uuid}/baskets/compose
+```
+
+Request body:
+```json
+{
+  "basket_code": "GCU",
+  "amount": 10000
+}
+```
+
+## Compliance API
+
+### KYC Management
+
+#### Get KYC Status
+
+```
+GET /api/compliance/kyc/status
+```
+
+Response:
+```json
+{
+  "status": "approved",
+  "level": "enhanced",
+  "submitted_at": "2025-06-20T10:00:00Z",
+  "approved_at": "2025-06-20T11:00:00Z",
+  "expires_at": "2027-06-20T11:00:00Z",
+  "needs_kyc": false,
+  "documents": [
+    {
+      "id": "123",
+      "type": "passport",
+      "status": "verified",
+      "uploaded_at": "2025-06-20T10:00:00Z"
+    }
+  ]
+}
+```
+
+#### Get KYC Requirements
+
+```
+GET /api/compliance/kyc/requirements?level=enhanced
+```
+
+#### Submit KYC Documents
+
+```
+POST /api/compliance/kyc/submit
+```
+
+Request body (multipart/form-data):
+```
+documents[0][type]=passport
+documents[0][file]=@passport.jpg
+documents[1][type]=selfie
+documents[1][file]=@selfie.jpg
+```
+
+### GDPR API
+
+#### Get Consent Status
+
+```
+GET /api/compliance/gdpr/consent
+```
+
+#### Update Consent
+
+```
+POST /api/compliance/gdpr/consent
+```
+
+Request body:
+```json
+{
+  "marketing": true,
+  "data_retention": true
+}
+```
+
+#### Request Data Export
+
+```
+POST /api/compliance/gdpr/export
+```
+
+#### Request Account Deletion
+
+```
+POST /api/compliance/gdpr/delete
+```
+
+Request body:
+```json
+{
+  "confirm": true,
+  "reason": "No longer using the service"
+}
+```
+
+## Custodian API
+
+### List Custodians
+
+```
+GET /api/custodians
+```
+
+### Get Custodian Balance
+
+```
+GET /api/custodians/{custodian}/balance?account={account_id}&asset_code={asset}
+```
+
+### Initiate Custodian Transfer
+
+```
+POST /api/custodians/{custodian}/transfer
+```
+
+Request body:
+```json
+{
+  "from_account": "account123",
+  "to_account": "account456",
+  "amount": 10000,
+  "asset_code": "EUR",
+  "reference": "TRANSFER123"
+}
+```
+
+## Transaction Projections API
+
+### Get Account Transaction History
+
+```
+GET /api/v2/accounts/{account}/transaction-projections
+```
+
+Query parameters:
+- `asset_code`: Filter by asset
+- `type`: Filter by transaction type
+- `start_date`: Start date for range
+- `end_date`: End date for range
+- `page`: Page number
+- `per_page`: Items per page
+
+### Get Transaction Summary
+
+```
+GET /api/v2/accounts/{account}/transaction-projections/summary
+```
+
+### Get Balance History
+
+```
+GET /api/v2/accounts/{account}/transaction-projections/balance-history
+```
+
+### Export Transactions
+
+```
+GET /api/v2/accounts/{account}/transaction-projections/export
+```
+
+Returns CSV file with transaction history.
+
+### Search Transactions
+
+```
+GET /api/v2/transaction-projections/search
+```
+
+Query parameters:
+- `q`: Search query
+- `account_uuid`: Filter by account
+- `asset_code`: Filter by asset
+- `types[]`: Filter by transaction types
+- `start_date`: Start date
+- `end_date`: End date
+
+## Stablecoin API
+
+### List Stablecoins
+
+```
+GET /api/v2/stablecoins
+```
+
+### Get Stablecoin Metrics
+
+```
+GET /api/v2/stablecoins/{code}/metrics
+```
+
+### Mint Stablecoins
+
+```
+POST /api/v2/stablecoin-operations/mint
+```
+
+Request body:
+```json
+{
+  "stablecoin_code": "USDX",
+  "account_uuid": "account123",
+  "amount": 100000,
+  "collateral_asset_code": "USD",
+  "collateral_amount": 150000
+}
+```
+
+### Get Liquidation Opportunities
+
+```
+GET /api/v2/stablecoin-operations/liquidation/opportunities
+```
+
+## User Voting API
+
+### Get Active Polls
+
+```
+GET /api/voting/polls
+```
+
+### Submit Vote
+
+```
+POST /api/voting/polls/{uuid}/vote
+```
+
+Request body (for basket allocation):
+```json
+{
+  "allocations": {
+    "USD": 35,
+    "EUR": 30,
+    "GBP": 20,
+    "CHF": 10,
+    "JPY": 3,
+    "XAU": 2
+  }
+}
+```
+
+### Get Voting Dashboard
+
+```
+GET /api/voting/dashboard
+```
+
+Response:
+```json
+{
+  "stats": {
+    "total_polls": 24,
+    "participated": 18,
+    "participation_rate": 75
+  },
+  "active_polls": [...],
+  "voting_history": [...],
+  "next_poll_date": "2025-07-01"
+}
+```
+EOF < /dev/null
