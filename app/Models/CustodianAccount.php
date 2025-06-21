@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,7 +19,17 @@ use Carbon\Carbon;
  */
 class CustodianAccount extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
+
+    /**
+     * Get the columns that should receive a unique identifier.
+     *
+     * @return array<int, string>
+     */
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -27,13 +38,11 @@ class CustodianAccount extends Model
      */
     protected $fillable = [
         'account_uuid',
-        'custodian_id',
-        'external_account_id',
+        'custodian_name',
+        'custodian_account_id',
+        'custodian_account_name',
         'status',
         'is_primary',
-        'last_synced_at',
-        'sync_status',
-        'sync_error',
         'metadata',
     ];
 
@@ -44,7 +53,6 @@ class CustodianAccount extends Model
      */
     protected $casts = [
         'is_primary' => 'boolean',
-        'last_synced_at' => 'datetime',
         'metadata' => 'array',
     ];
 
@@ -52,16 +60,9 @@ class CustodianAccount extends Model
      * Status constants
      */
     public const STATUS_ACTIVE = 'active';
-    public const STATUS_INACTIVE = 'inactive';
-    public const STATUS_PENDING = 'pending';
     public const STATUS_SUSPENDED = 'suspended';
-
-    /**
-     * Sync status constants
-     */
-    public const SYNC_STATUS_SUCCESS = 'success';
-    public const SYNC_STATUS_FAILED = 'failed';
-    public const SYNC_STATUS_PENDING = 'pending';
+    public const STATUS_CLOSED = 'closed';
+    public const STATUS_PENDING = 'pending';
 
     /**
      * Get the internal account
@@ -90,21 +91,11 @@ class CustodianAccount extends Model
     /**
      * Scope a query to only include accounts for a specific custodian
      */
-    public function scopeForCustodian($query, string $custodianId)
+    public function scopeForCustodian($query, string $custodianName)
     {
-        return $query->where('custodian_id', $custodianId);
+        return $query->where('custodian_name', $custodianName);
     }
 
-    /**
-     * Scope a query to only include accounts that need synchronization
-     */
-    public function scopeNeedsSynchronization($query, int $minutesSinceLastSync = 5)
-    {
-        return $query->where(function ($q) use ($minutesSinceLastSync) {
-            $q->whereNull('last_synced_at')
-              ->orWhere('last_synced_at', '<', now()->subMinutes($minutesSinceLastSync));
-        });
-    }
 
     /**
      * Check if the account is active
@@ -115,59 +106,17 @@ class CustodianAccount extends Model
     }
 
     /**
-     * Check if synchronization has failed
+     * Set this account as primary
      */
-    public function hasSyncFailed(): bool
+    public function setAsPrimary(): void
     {
-        return $this->sync_status === self::SYNC_STATUS_FAILED;
-    }
-
-    /**
-     * Check if the account needs synchronization
-     */
-    public function needsSynchronization(int $minutesSinceLastSync = 5): bool
-    {
-        if (!$this->last_synced_at) {
-            return true;
-        }
-
-        return $this->last_synced_at->isBefore(now()->subMinutes($minutesSinceLastSync));
-    }
-
-    /**
-     * Get the time since last synchronization
-     */
-    public function getTimeSinceLastSync(): ?string
-    {
-        if (!$this->last_synced_at) {
-            return null;
-        }
-
-        return $this->last_synced_at->diffForHumans();
-    }
-
-    /**
-     * Mark as synchronized
-     */
-    public function markAsSynchronized(): void
-    {
-        $this->update([
-            'last_synced_at' => now(),
-            'sync_status' => self::SYNC_STATUS_SUCCESS,
-            'sync_error' => null,
-        ]);
-    }
-
-    /**
-     * Mark synchronization as failed
-     */
-    public function markSyncAsFailed(string $error): void
-    {
-        $this->update([
-            'last_synced_at' => now(),
-            'sync_status' => self::SYNC_STATUS_FAILED,
-            'sync_error' => $error,
-        ]);
+        // Remove primary from other accounts
+        self::where('account_uuid', $this->account_uuid)
+            ->where('id', '!=', $this->id)
+            ->update(['is_primary' => false]);
+        
+        // Set this as primary
+        $this->update(['is_primary' => true]);
     }
 
     /**

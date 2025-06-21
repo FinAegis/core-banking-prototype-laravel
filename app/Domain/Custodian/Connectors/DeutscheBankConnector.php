@@ -301,13 +301,24 @@ class DeutscheBankConnector extends BaseCustodianConnector
         $transactions = [];
 
         foreach ($data['transactions']['booked'] ?? [] as $transaction) {
+            // Determine if this is a debit or credit
+            $isDebit = isset($transaction['debtorAccount']['iban']) && 
+                       $transaction['debtorAccount']['iban'] === $accountId;
+            
+            $amount = (int) round((float) $transaction['transactionAmount']['amount'] * 100);
+            
+            // Make debits negative
+            if ($isDebit) {
+                $amount = -$amount;
+            }
+            
             $transactions[] = [
                 'id' => $transaction['transactionId'],
                 'status' => 'completed',
                 'from_account' => $transaction['debtorAccount']['iban'] ?? $accountId,
                 'to_account' => $transaction['creditorAccount']['iban'] ?? $accountId,
                 'asset_code' => $transaction['transactionAmount']['currency'],
-                'amount' => (int) round((float) $transaction['transactionAmount']['amount'] * 100),
+                'amount' => $amount,
                 'fee' => null,
                 'reference' => $transaction['endToEndId'] ?? $transaction['mandateId'] ?? null,
                 'created_at' => $transaction['bookingDate'],

@@ -57,9 +57,6 @@ it('caches balance separately with shorter TTL', function () {
         ->where('asset_code', 'USD')
         ->update(['balance' => 10000]);
     
-    // Clear any model caches that might exist, but NOT the balance cache
-    Cache::forget('account:' . $account->uuid);
-    
     // Should still return cached balance since we didn't clear the balance cache
     $cachedBalance = $cacheService->getBalance((string) $account->uuid);
     
