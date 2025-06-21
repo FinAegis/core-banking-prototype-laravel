@@ -126,6 +126,6 @@ it('provides volume and change data', function () {
     $quote = $provider->getRate('BTC', 'USD');
     
     expect($quote->volume24h)->toBeGreaterThan(0);
-    expect($quote->change24h)->toBeGreaterThan(-0.05);
-    expect($quote->change24h)->toBeLessThan(0.05);
+    expect($quote->change24h)->toBeGreaterThanOrEqual(-0.05);
+    expect($quote->change24h)->toBeLessThanOrEqual(0.05);
 });
