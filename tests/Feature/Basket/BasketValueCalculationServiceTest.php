@@ -88,6 +88,36 @@ class BasketValueCalculationServiceTest extends TestCase
         // Clear all caches to ensure fresh data
         Cache::flush();
         
+        // Create fresh exchange rates right before the test to ensure they're the most recent
+        $now = now();
+        
+        // Delete ALL exchange rates to ensure a clean state
+        ExchangeRate::truncate();
+        
+        // Create our test rates
+        ExchangeRate::create([
+            'from_asset_code' => 'EUR',
+            'to_asset_code' => 'USD',
+            'rate' => 1.1000,
+            'is_active' => true,
+            'source' => 'test',
+            'valid_at' => $now,
+            'expires_at' => $now->copy()->addHours(2),
+        ]);
+        
+        ExchangeRate::create([
+            'from_asset_code' => 'GBP',
+            'to_asset_code' => 'USD',
+            'rate' => 1.2500,
+            'is_active' => true,
+            'source' => 'test',
+            'valid_at' => $now,
+            'expires_at' => $now->copy()->addHours(2),
+        ]);
+        
+        // Clear cache again to ensure the new rates are used
+        Cache::flush();
+        
         $value = $this->service->calculateValue($this->basket, false);
         
         $this->assertInstanceOf(BasketValue::class, $value);
