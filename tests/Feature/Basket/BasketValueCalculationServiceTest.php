@@ -91,17 +91,19 @@ class BasketValueCalculationServiceTest extends TestCase
         // Create fresh exchange rates right before the test to ensure they're the most recent
         $now = now();
         
-        // Delete ALL exchange rates to ensure a clean state
-        ExchangeRate::truncate();
+        // First, deactivate all existing exchange rates for our pairs
+        ExchangeRate::whereIn('from_asset_code', ['EUR', 'GBP'])
+            ->where('to_asset_code', 'USD')
+            ->update(['is_active' => false]);
         
-        // Create our test rates
+        // Create our test rates with a very recent timestamp to ensure they're picked
         ExchangeRate::create([
             'from_asset_code' => 'EUR',
             'to_asset_code' => 'USD',
             'rate' => 1.1000,
             'is_active' => true,
             'source' => 'test',
-            'valid_at' => $now,
+            'valid_at' => $now->copy()->addSeconds(1), // Make it slightly in the future to ensure it's the latest
             'expires_at' => $now->copy()->addHours(2),
         ]);
         
@@ -111,12 +113,24 @@ class BasketValueCalculationServiceTest extends TestCase
             'rate' => 1.2500,
             'is_active' => true,
             'source' => 'test',
-            'valid_at' => $now,
+            'valid_at' => $now->copy()->addSeconds(1), // Make it slightly in the future to ensure it's the latest
             'expires_at' => $now->copy()->addHours(2),
         ]);
         
         // Clear cache again to ensure the new rates are used
         Cache::flush();
+        
+        // Debug: Check what rates are actually in the database
+        $gbpRates = ExchangeRate::where('from_asset_code', 'GBP')
+            ->where('to_asset_code', 'USD')
+            ->where('is_active', true)
+            ->orderBy('valid_at', 'desc')
+            ->get();
+        
+        // If there are unexpected rates, fail with helpful message
+        if ($gbpRates->count() > 1 || ($gbpRates->first() && $gbpRates->first()->rate != 1.25)) {
+            $this->fail('Unexpected GBP-USD rates found: ' . $gbpRates->pluck('rate')->join(', '));
+        }
         
         $value = $this->service->calculateValue($this->basket, false);
         
