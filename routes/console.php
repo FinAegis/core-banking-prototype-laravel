@@ -49,3 +49,41 @@ Schedule::command('compliance:generate-reports --type=summary')
     ->monthlyOn(1, '04:00') // 1st of month at 4 AM
     ->description('Generate monthly compliance summary')
     ->appendOutputTo(storage_path('logs/regulatory-summary.log'));
+
+// Bank Health Monitoring
+Schedule::command('banks:monitor-health --interval=60')
+    ->everyFiveMinutes()
+    ->description('Monitor bank connector health status')
+    ->appendOutputTo(storage_path('logs/bank-health-monitor.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        // Alert operations team on monitoring failure
+        \Log::critical('Bank health monitoring failed to run');
+    });
+
+// Custodian Balance Synchronization
+Schedule::command('custodian:sync-balances')
+    ->everyThirtyMinutes()
+    ->description('Synchronize balances with external custodians')
+    ->appendOutputTo(storage_path('logs/custodian-sync.log'))
+    ->withoutOverlapping();
+
+// Bank Health Alert Checks
+Schedule::command('banks:check-alerts')
+    ->everyTenMinutes()
+    ->description('Check bank health and send alerts if necessary')
+    ->appendOutputTo(storage_path('logs/bank-alerts.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        \Log::critical('Bank health alert check failed to run');
+    });
+
+// Daily Balance Reconciliation
+Schedule::command('reconciliation:daily')
+    ->dailyAt('02:00')
+    ->description('Perform daily balance reconciliation')
+    ->appendOutputTo(storage_path('logs/daily-reconciliation.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        \Log::critical('Daily reconciliation failed to run');
+    });
