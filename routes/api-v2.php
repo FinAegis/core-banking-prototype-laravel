@@ -30,6 +30,15 @@ Route::prefix('gcu')->group(function () {
 // Webhook event types (public information)
 Route::get('/webhooks/events', [WebhookController::class, 'events']);
 
+// Public basket endpoints (read-only)
+Route::prefix('baskets')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\BasketController::class, 'index']);
+    Route::get('/{code}', [\App\Http\Controllers\Api\BasketController::class, 'show']);
+    Route::get('/{code}/value', [\App\Http\Controllers\Api\BasketController::class, 'getValue']);
+    Route::get('/{code}/history', [\App\Http\Controllers\Api\BasketController::class, 'getHistory']);
+    Route::get('/{code}/performance', [\App\Http\Controllers\Api\BasketController::class, 'getPerformance']);
+});
+
 // Authenticated endpoints
 Route::middleware('auth:sanctum')->group(function () {
     // Webhook management
@@ -89,13 +98,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{uuid}', [\App\Http\Controllers\Api\TransferController::class, 'show']);
     });
 
-    // Basket assets
+    // Basket assets (protected operations)
     Route::prefix('baskets')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\BasketController::class, 'index']);
-        Route::get('/{code}', [\App\Http\Controllers\Api\BasketController::class, 'show']);
-        Route::get('/{code}/value', [\App\Http\Controllers\Api\BasketController::class, 'getValue']);
-        Route::get('/{code}/history', [\App\Http\Controllers\Api\BasketController::class, 'getHistory']);
-        Route::get('/{code}/performance', [\App\Http\Controllers\Api\BasketController::class, 'getPerformance']);
         Route::post('/', [\App\Http\Controllers\Api\BasketController::class, 'store']);
         Route::post('/{code}/rebalance', [\App\Http\Controllers\Api\BasketController::class, 'rebalance']);
     });
