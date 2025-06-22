@@ -1,7 +1,7 @@
 # FinAegis Platform Features
 
-**Version:** 2.0  
-**Last Updated:** 2025-06-16  
+**Version:** 3.0  
+**Last Updated:** 2025-06-22  
 **Documentation Status:** Complete
 
 This document provides a comprehensive overview of all features implemented in the FinAegis Core Banking Platform.
@@ -11,13 +11,16 @@ This document provides a comprehensive overview of all features implemented in t
 - [Core Banking Features](#core-banking-features)
 - [Multi-Asset Support](#multi-asset-support)
 - [Exchange Rate Management](#exchange-rate-management)
+- [Global Currency Unit (GCU)](#global-currency-unit-gcu)
 - [Custodian Integration](#custodian-integration)
 - [Governance System](#governance-system)
 - [Admin Dashboard](#admin-dashboard)
 - [API Endpoints](#api-endpoints)
 - [Transaction Processing](#transaction-processing)
+- [Performance Testing](#performance-testing)
 - [Caching & Performance](#caching--performance)
 - [Security Features](#security-features)
+- [Compliance Features](#compliance-features)
 - [Export & Reporting](#export--reporting)
 - [Webhooks & Events](#webhooks--events)
 
@@ -102,6 +105,72 @@ This document provides a comprehensive overview of all features implemented in t
 - **TTL management** with automatic expiration
 - **Cache invalidation** on rate updates
 - **Fallback mechanisms** for cache failures
+
+---
+
+## Global Currency Unit (GCU)
+
+### GCU Platform
+- **User-controlled digital currency** backed by real bank deposits
+- **Democratic governance** through monthly voting on composition
+- **Multi-bank distribution** across 5 partner banks for security
+- **Deposit insurance protection** up to €100k per bank
+- **Real-time value calculation** based on basket composition
+
+### GCU Wallet Interface
+- **Comprehensive dashboard** with real-time GCU balance display
+- **Asset breakdown visualization** showing basket components
+- **Quick action buttons** for buy, sell, and transfer operations
+- **Transaction history** filtered specifically for GCU operations
+- **Performance tracking** with historical value charts
+
+### Bank Allocation Management
+- **Interactive allocation interface** with visual sliders
+- **Multi-bank preference system** supporting 5 partner banks:
+  - Paysera (Lithuania) - up to 50%
+  - Deutsche Bank (Germany) - up to 40%
+  - Santander (Spain) - up to 40%
+  - Revolut (UK) - up to 30%
+  - N26 (Germany) - up to 30%
+- **Primary bank designation** for quick withdrawals
+- **Real-time validation** ensuring 100% allocation
+- **Deposit protection visualization** showing insurance coverage
+
+### Democratic Voting System
+- **Monthly basket composition voting** on the 1st of each month
+- **Asset-weighted voting power** based on GCU holdings
+- **Intuitive voting interface** with allocation sliders
+- **Real-time voting results** during active polls
+- **Automated rebalancing** on the 10th of each month
+- **Vote history tracking** for transparency
+
+### Basket Composition
+- **Dynamic basket management** with 6 components:
+  - USD (US Dollar) - typically 30-40%
+  - EUR (Euro) - typically 25-35%
+  - GBP (British Pound) - typically 15-25%
+  - CHF (Swiss Franc) - typically 5-15%
+  - JPY (Japanese Yen) - typically 2-5%
+  - XAU (Gold) - typically 1-3%
+- **Weighted average calculation** for democratic decision-making
+- **Automatic rebalancing** based on voting results
+- **Historical composition tracking** for analysis
+
+### GCU Operations
+- **GCU purchase** from any supported currency
+- **GCU sale** to any supported currency
+- **GCU transfers** between users with instant settlement
+- **Cross-currency conversions** at competitive rates (0.01% fee)
+- **Recurring conversions** for regular transactions
+
+### GCU API Endpoints
+- **GET /api/v2/gcu** - Current GCU information and composition
+- **GET /api/v2/gcu/value** - Real-time GCU value calculation
+- **POST /api/v2/gcu/buy** - Purchase GCU tokens
+- **POST /api/v2/gcu/sell** - Sell GCU tokens
+- **GET /api/v2/gcu/history** - Historical value and composition data
+- **GET /api/voting/polls** - Active governance polls
+- **POST /api/voting/polls/{id}/vote** - Submit basket composition vote
 
 ---
 
@@ -316,6 +385,36 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 
 ---
 
+## Performance Testing
+
+### Load Testing Framework
+- **Comprehensive LoadTest suite** with benchmarking capabilities
+- **RunLoadTests command** for isolated performance testing
+- **Performance benchmarks** with JSON storage and comparison
+- **CI/CD integration** for automated regression testing
+
+### Performance Metrics
+- **Account creation**: Target < 100ms average
+- **Transfer processing**: Target < 200ms average
+- **Exchange rate lookup**: Target < 50ms average
+- **Webhook delivery**: Real-time with retry logic
+- **Database queries**: Optimized with proper indexing
+- **Cache operations**: < 1ms for reads and writes
+
+### Performance Monitoring
+- **Real-time metrics** in admin dashboard
+- **Performance regression detection** in pull requests
+- **Automated alerts** for threshold violations
+- **Historical performance tracking** with benchmarks
+
+### Optimization Features
+- **Query optimization** with eager loading
+- **Database indexing** on critical paths
+- **Connection pooling** for high throughput
+- **Response compression** for API endpoints
+
+---
+
 ## Caching & Performance
 
 ### Redis Integration
@@ -372,6 +471,46 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 
 ---
 
+## Compliance Features
+
+### KYC (Know Your Customer)
+- **Multi-tier verification system** (Basic, Enhanced, Premium)
+- **Document management** for identity verification
+- **Automated document processing** with status tracking
+- **KYC workflow integration** with account limits
+- **Periodic review scheduling** for compliance
+
+### AML (Anti-Money Laundering)
+- **Transaction monitoring** with pattern detection
+- **Suspicious activity detection** using rule engine
+- **Sanctions screening** against global lists
+- **Risk scoring** for customers and transactions
+- **Automated CTR generation** for large transactions
+- **SAR reporting** for suspicious activities
+
+### GDPR Compliance
+- **Data export functionality** for user requests
+- **Right to deletion** with anonymization
+- **Consent management** for data processing
+- **Data retention policies** with automatic cleanup
+- **Audit trail** for all data access
+
+### Regulatory Reporting
+- **Currency Transaction Reports (CTR)** for daily threshold
+- **Suspicious Activity Reports (SAR)** for monthly review
+- **Automated report generation** with scheduling
+- **Regulatory dashboard** for compliance officers
+- **Historical report archiving** with retrieval
+
+### Audit & Compliance
+- **Complete audit trail** for all operations
+- **Compliance dashboard** with key metrics
+- **Regulatory alerts** for threshold breaches
+- **Documentation management** for policies
+- **Third-party audit support** with data access
+
+---
+
 ## Export & Reporting
 
 ### Export Formats
@@ -408,24 +547,42 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 - **Transfer events**: initiated, completed, failed
 - **Governance events**: poll created, vote cast, poll completed
 - **Asset events**: created, updated, rate changed
+- **GCU events**: purchase, sale, rebalancing, voting
+
+### Webhook Management
+- **Full CRUD operations** via API endpoints
+- **Webhook listing** with filtering and pagination
+- **Secret generation** for signature verification
+- **Active/inactive status** management
+- **Delivery history** tracking
 
 ### Webhook Configuration
-- **URL endpoint** configuration
-- **Event filtering** for specific events
+- **URL endpoint** configuration with validation
+- **Event filtering** for specific event types
 - **Custom headers** for authentication
 - **Retry policies** with exponential backoff
+- **Description** for webhook identification
+
+### Delivery System
+- **WebhookService** for centralized delivery
+- **Queue-based processing** for reliability
+- **Delivery tracking** with attempt counting
+- **Retry logic** with configurable limits
+- **Dead letter queue** for failed deliveries
 
 ### Delivery Guarantees
 - **At-least-once** delivery guarantee
 - **Idempotency** support for duplicate handling
-- **Delivery tracking** with status monitoring
-- **Failure handling** with retry mechanisms
+- **Delivery status tracking** (pending, delivered, failed)
+- **Failure handling** with automatic retries
+- **Manual retry** capability via API
 
 ### Security
 - **HMAC-SHA256** signature verification
 - **Timestamp validation** for replay protection
-- **IP whitelisting** for trusted sources
+- **Secret rotation** support
 - **SSL/TLS** encryption for data in transit
+- **API authentication** for webhook management
 
 ---
 
@@ -436,15 +593,21 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 | Core Banking | ✅ Complete | 100% | Complete |
 | Multi-Asset | ✅ Complete | 100% | Complete |
 | Exchange Rates | ✅ Complete | 100% | Complete |
-| Custodian Integration | ✅ Complete | 90% | Complete |
+| Global Currency Unit (GCU) | ✅ Complete | 100% | Complete |
+| Custodian Integration | ✅ Complete | 95% | Complete |
+| Bank Connectors | ✅ Complete | 100% | Complete |
 | Governance | ✅ Complete | 100% | Complete |
 | Admin Dashboard | ✅ Complete | 100% | Complete |
 | API Layer | ✅ Complete | 100% | Complete |
 | Transaction Processing | ✅ Complete | 100% | Complete |
+| Performance Testing | ✅ Complete | 100% | Complete |
 | Caching | ✅ Complete | 95% | Complete |
-| Security | ✅ Complete | 95% | Complete |
+| Security | ✅ Complete | 98% | Complete |
+| Compliance (KYC/AML/GDPR) | ✅ Complete | 100% | Complete |
 | Export/Reporting | ✅ Complete | 100% | Complete |
 | Webhooks | ✅ Complete | 100% | Complete |
+| User Interface | ✅ Complete | 100% | Complete |
+| Mobile API | ✅ Complete | 100% | Complete |
 
 ---
 
