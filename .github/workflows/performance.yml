@@ -1,0 +1,210 @@
+name: Performance Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'database/**'
+      - 'tests/**'
+      - '.github/workflows/performance.yml'
+  push:
+    branches: [ main ]
+  schedule:
+    # Run performance tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: 'Number of iterations per test'
+        required: false
+        default: '100'
+      concurrent:
+        description: 'Number of concurrent operations'
+        required: false
+        default: '10'
+
+jobs:
+  performance:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: finaegis_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+      
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, bcmath, sqlite3, mysql, redis, gd
+          coverage: none
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Prepare environment
+        run: |
+          cp .env.ci .env
+          php artisan key:generate
+          php artisan migrate --force
+          php artisan db:seed --force
+
+      - name: Warm up application
+        run: |
+          php artisan optimize
+          php artisan event:cache
+          php artisan view:cache
+          php artisan route:cache
+
+      - name: Run performance tests
+        id: performance-tests
+        run: |
+          ITERATIONS="${{ github.event.inputs.iterations || '100' }}"
+          CONCURRENT="${{ github.event.inputs.concurrent || '10' }}"
+          
+          php artisan test:load \
+            --iterations=$ITERATIONS \
+            --concurrent=$CONCURRENT \
+            --report \
+            --benchmark \
+            > performance-results.txt
+          
+          # Extract key metrics
+          echo "## Performance Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Configuration**" >> $GITHUB_STEP_SUMMARY
+          echo "- Iterations: $ITERATIONS" >> $GITHUB_STEP_SUMMARY
+          echo "- Concurrent: $CONCURRENT" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Parse and display results
+          if grep -q "All performance benchmarks passed" performance-results.txt; then
+            echo "✅ **All performance benchmarks passed**" >> $GITHUB_STEP_SUMMARY
+            echo "performance_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ **Some performance benchmarks failed**" >> $GITHUB_STEP_SUMMARY
+            echo "performance_passed=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Detailed Results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -n 30 performance-results.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: |
+            performance-results.txt
+            storage/app/benchmarks/*.json
+
+      - name: Compare with baseline
+        if: github.event_name == 'pull_request'
+        run: |
+          # Download previous benchmark from main branch
+          git fetch origin main
+          git checkout origin/main -- storage/app/benchmarks/ 2>/dev/null || true
+          
+          if [ -d "storage/app/benchmarks" ]; then
+            # Find the latest benchmark
+            LATEST_BENCHMARK=$(ls -t storage/app/benchmarks/*.json 2>/dev/null | head -1)
+            
+            if [ -n "$LATEST_BENCHMARK" ]; then
+              echo "Comparing with baseline: $LATEST_BENCHMARK"
+              php artisan test:compare-benchmarks "$LATEST_BENCHMARK" || true
+            fi
+          fi
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('performance-results.txt', 'utf8');
+            const passed = '${{ steps.performance-tests.outputs.performance_passed }}' === 'true';
+            
+            const icon = passed ? '✅' : '⚠️';
+            const title = passed ? 'Performance tests passed' : 'Performance regression detected';
+            
+            const body = `## ${icon} ${title}
+            
+            <details>
+            <summary>View detailed performance results</summary>
+            
+            \`\`\`
+            ${results.slice(-2000)}
+            \`\`\`
+            
+            </details>
+            
+            ${!passed ? '**Note:** Some performance benchmarks exceeded their thresholds. Please review the results and optimize if necessary.' : ''}
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail if performance regression
+        if: steps.performance-tests.outputs.performance_passed != 'true' && github.event_name == 'pull_request'
+        run: |
+          echo "❌ Performance regression detected!"
+          echo "Some operations exceeded their performance thresholds."
+          echo "Please review the results and optimize the code."
+          exit 1
