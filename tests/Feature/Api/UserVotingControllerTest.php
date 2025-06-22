@@ -307,6 +307,9 @@ it('only accepts basket voting through basket endpoint', function () {
 it('includes metadata in vote record', function () {
     Sanctum::actingAs($this->user);
     
+    // Give user GCU balance to enable voting
+    $this->account->addBalance('GCU', 10000); // 100 GCU
+    
     $poll = Poll::factory()->create([
         'status' => PollStatus::ACTIVE,
         'metadata' => ['template' => 'monthly_basket'],
