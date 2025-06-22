@@ -14,6 +14,38 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+    
+    // GCU Wallet Routes
+    Route::prefix('wallet')->name('wallet.')->group(function () {
+        Route::get('/bank-allocation', function () {
+            return view('wallet.bank-allocation');
+        })->name('bank-allocation');
+        
+        Route::get('/voting', function () {
+            return view('wallet.voting');
+        })->name('voting');
+        
+        Route::get('/transactions', function () {
+            return view('wallet.transactions');
+        })->name('transactions');
+        
+        // Placeholder routes for quick actions
+        Route::get('/deposit', function () {
+            return view('wallet.deposit');
+        })->name('deposit');
+        
+        Route::get('/withdraw', function () {
+            return view('wallet.withdraw');
+        })->name('withdraw');
+        
+        Route::get('/transfer', function () {
+            return view('wallet.transfer');
+        })->name('transfer');
+        
+        Route::get('/convert', function () {
+            return view('wallet.convert');
+        })->name('convert');
+    });
 });
 
 // API Documentation route
