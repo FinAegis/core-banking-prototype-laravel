@@ -12,46 +12,6 @@ use Illuminate\Http\JsonResponse;
  *     name="Public API",
  *     description="Public API endpoints for external developers"
  * )
- * 
- * @OA\Info(
- *     version="2.0.0",
- *     title="FinAegis Public API",
- *     description="Public API for the FinAegis GCU Platform. This API allows developers to integrate with the Global Currency Unit ecosystem.",
- *     @OA\Contact(
- *         email="api@finaegis.com",
- *         name="API Support"
- *     ),
- *     @OA\License(
- *         name="Apache 2.0",
- *         url="http://www.apache.org/licenses/LICENSE-2.0.html"
- *     )
- * )
- * 
- * @OA\Server(
- *     url="https://api.finaegis.com/v2",
- *     description="Production API Server"
- * )
- * 
- * @OA\Server(
- *     url="https://sandbox.api.finaegis.com/v2",
- *     description="Sandbox API Server"
- * )
- * 
- * @OA\SecurityScheme(
- *     securityScheme="apiKey",
- *     type="apiKey",
- *     in="header",
- *     name="X-API-Key",
- *     description="API key for authentication. Get your API key from the developer dashboard."
- * )
- * 
- * @OA\SecurityScheme(
- *     securityScheme="bearerAuth",
- *     type="http",
- *     scheme="bearer",
- *     bearerFormat="JWT",
- *     description="JWT Bearer token for user authentication"
- * )
  */
 class PublicApiController extends Controller
 {

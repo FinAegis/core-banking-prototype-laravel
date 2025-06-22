@@ -2,9 +2,82 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Public Pages
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('landing');
+})->name('home');
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::get('/features', function () {
+    return view('features.index');
+})->name('features');
+
+Route::get('/features/{feature}', function ($feature) {
+    return view('features.' . $feature);
+})->name('features.show');
+
+Route::get('/pricing', function () {
+    return view('pricing');
+})->name('pricing');
+
+Route::get('/security', function () {
+    return view('security');
+})->name('security');
+
+Route::get('/compliance', function () {
+    return view('compliance');
+})->name('compliance');
+
+Route::get('/developers', function () {
+    return view('developers.index');
+})->name('developers');
+
+Route::get('/developers/{section}', function ($section) {
+    return view('developers.' . $section);
+})->name('developers.show');
+
+Route::get('/support', function () {
+    return view('support.index');
+})->name('support');
+
+Route::get('/support/contact', function () {
+    return view('support.contact');
+})->name('support.contact');
+
+Route::get('/support/faq', function () {
+    return view('support.faq');
+})->name('support.faq');
+
+Route::get('/support/guides', function () {
+    return view('support.guides');
+})->name('support.guides');
+
+Route::get('/blog', function () {
+    return view('blog.index');
+})->name('blog');
+
+Route::get('/partners', function () {
+    return view('partners');
+})->name('partners');
+
+Route::get('/legal/terms', function () {
+    return view('legal.terms');
+})->name('legal.terms');
+
+Route::get('/legal/privacy', function () {
+    return view('legal.privacy');
+})->name('legal.privacy');
+
+Route::get('/legal/cookies', function () {
+    return view('legal.cookies');
+})->name('legal.cookies');
+
+Route::get('/status', function () {
+    return view('status');
+})->name('status');
 
 Route::middleware([
     'auth:sanctum',

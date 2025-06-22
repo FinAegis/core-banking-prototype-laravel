@@ -22,7 +22,8 @@
             <div class="mt-4">
                 <x-label for="is_business_customer">
                     <div class="flex items-center">
-                        <x-checkbox name="is_business_customer" id="is_business_customer" :checked="old('is_business_customer')" />
+                        <input type="hidden" name="is_business_customer" value="0">
+                        <x-checkbox name="is_business_customer" id="is_business_customer" value="1" :checked="old('is_business_customer')" />
                         <div class="ms-2">{{ __('Register as Business Customer') }}</div>
                     </div>
                 </x-label>

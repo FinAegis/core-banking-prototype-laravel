@@ -16,12 +16,24 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     
-                    <!-- GCU Wallet Links -->
+                    <x-nav-link href="{{ route('wallet.transactions') }}" :active="request()->routeIs('wallet.transactions')">
+                        {{ __('Transactions') }}
+                    </x-nav-link>
+                    
+                    <x-nav-link href="{{ route('wallet.bank-allocation') }}" :active="request()->routeIs('wallet.bank-allocation')">
+                        {{ __('Banks') }}
+                    </x-nav-link>
+                    
+                    <x-nav-link href="{{ route('wallet.voting') }}" :active="request()->routeIs('wallet.voting')">
+                        {{ __('Voting') }}
+                    </x-nav-link>
+                    
+                    <!-- Quick Actions Dropdown -->
                     <div class="hidden sm:flex sm:items-center">
                         <x-dropdown align="left" width="48">
                             <x-slot name="trigger">
                                 <button class="flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition duration-150 ease-in-out">
-                                    <div>{{ __('GCU Wallet') }}</div>
+                                    <div>{{ __('Quick Actions') }}</div>
                                     <div class="ms-1">
                                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -31,27 +43,37 @@
                             </x-slot>
                             
                             <x-slot name="content">
-                                <x-dropdown-link href="{{ route('wallet.transactions') }}">
-                                    {{ __('Transaction History') }}
-                                </x-dropdown-link>
-                                <x-dropdown-link href="{{ route('wallet.bank-allocation') }}">
-                                    {{ __('Bank Allocation') }}
-                                </x-dropdown-link>
-                                <x-dropdown-link href="{{ route('wallet.voting') }}">
-                                    {{ __('Governance Voting') }}
-                                </x-dropdown-link>
-                                <div class="border-t border-gray-200 dark:border-gray-600"></div>
                                 <x-dropdown-link href="{{ route('wallet.deposit') }}">
-                                    {{ __('Deposit') }}
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        {{ __('Deposit Funds') }}
+                                    </div>
                                 </x-dropdown-link>
                                 <x-dropdown-link href="{{ route('wallet.withdraw') }}">
-                                    {{ __('Withdraw') }}
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                        </svg>
+                                        {{ __('Withdraw Funds') }}
+                                    </div>
                                 </x-dropdown-link>
                                 <x-dropdown-link href="{{ route('wallet.transfer') }}">
-                                    {{ __('Transfer') }}
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                        </svg>
+                                        {{ __('Transfer Money') }}
+                                    </div>
                                 </x-dropdown-link>
                                 <x-dropdown-link href="{{ route('wallet.convert') }}">
-                                    {{ __('Convert') }}
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        {{ __('Convert Currency') }}
+                                    </div>
                                 </x-dropdown-link>
                             </x-slot>
                         </x-dropdown>
