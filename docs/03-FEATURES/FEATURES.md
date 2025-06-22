@@ -108,6 +108,56 @@ This document provides a comprehensive overview of all features implemented in t
 
 ---
 
+## Basket Assets
+
+### Core Functionality
+- **Composite asset creation** combining multiple underlying assets
+- **Fixed and dynamic basket types** with different rebalancing rules
+- **Weighted composition** with percentage-based allocations
+- **Automatic rebalancing** for dynamic baskets on schedule
+- **Real-time valuation** based on component exchange rates
+
+### Basket Management
+- **Basket definition** with code, name, and description
+- **Component management** with weights and min/max bounds
+- **Rebalancing schedules**: daily, weekly, monthly, quarterly
+- **Active/inactive status** for basket lifecycle management
+- **Metadata storage** for custom properties
+
+### Performance Tracking
+- **Comprehensive metrics** including returns, volatility, Sharpe ratio
+- **Multiple time periods**: hour, day, week, month, quarter, year
+- **Component attribution** showing individual asset contributions
+- **Maximum drawdown** calculation for risk assessment
+- **Benchmark comparison** against other baskets
+
+### API Endpoints
+- **GET /api/v2/baskets** - List all basket assets
+- **GET /api/v2/baskets/{code}** - Get basket details
+- **POST /api/v2/baskets** - Create new basket (admin)
+- **POST /api/v2/baskets/{code}/rebalance** - Trigger rebalancing
+- **GET /api/v2/baskets/{code}/value** - Current basket value
+- **GET /api/v2/baskets/{code}/history** - Historical values
+- **POST /api/v2/baskets/{code}/performance/calculate** - Calculate performance
+- **GET /api/v2/baskets/{code}/performance** - Get performance metrics
+- **GET /api/v2/baskets/{code}/performance/components** - Component breakdown
+
+### Admin Features
+- **Basket Asset Resource** for full CRUD operations
+- **Performance widgets** showing returns and volatility charts
+- **Component weight visualization** with pie charts
+- **Rebalancing history** tracking all adjustments
+- **Performance analytics** with exportable reports
+
+### Basket Operations
+- **Decomposition**: Convert basket holdings to individual assets
+- **Composition**: Combine individual assets into basket units
+- **Value calculation**: Real-time pricing based on components
+- **Performance calculation**: Automated metrics generation
+- **Rebalancing execution**: Automatic weight adjustment
+
+---
+
 ## Global Currency Unit (GCU)
 
 ### GCU Platform
@@ -593,6 +643,7 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 | Core Banking | ✅ Complete | 100% | Complete |
 | Multi-Asset | ✅ Complete | 100% | Complete |
 | Exchange Rates | ✅ Complete | 100% | Complete |
+| Basket Assets | ✅ Complete | 100% | Complete |
 | Global Currency Unit (GCU) | ✅ Complete | 100% | Complete |
 | Custodian Integration | ✅ Complete | 95% | Complete |
 | Bank Connectors | ✅ Complete | 100% | Complete |

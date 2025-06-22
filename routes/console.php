@@ -87,3 +87,16 @@ Schedule::command('reconciliation:daily')
     ->onFailure(function () {
         \Log::critical('Daily reconciliation failed to run');
     });
+
+// Basket Performance Calculation
+Schedule::command('basket:calculate-performance')
+    ->hourly()
+    ->description('Calculate hourly performance metrics for all baskets')
+    ->appendOutputTo(storage_path('logs/basket-performance.log'))
+    ->withoutOverlapping();
+
+// Daily basket performance summary
+Schedule::command('basket:calculate-performance --period=day')
+    ->dailyAt('00:30')
+    ->description('Calculate daily performance metrics for all baskets')
+    ->appendOutputTo(storage_path('logs/basket-performance-daily.log'));

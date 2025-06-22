@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\StablecoinOperationsController;
 use App\Http\Controllers\Api\UserVotingController;
 use App\Http\Controllers\Api\KycController;
 use App\Http\Controllers\Api\GdprController;
+use App\Http\Controllers\Api\BasketPerformanceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -120,13 +121,22 @@ Route::prefix('v2')->group(function () {
         Route::get('/{code}', [BasketController::class, 'show']);
         Route::get('/{code}/value', [BasketController::class, 'getValue']);
         Route::get('/{code}/history', [BasketController::class, 'getHistory']);
-        Route::get('/{code}/performance', [BasketController::class, 'getPerformance']);
+        
+        // Performance tracking endpoints
+        Route::get('/{code}/performance', [BasketPerformanceController::class, 'show']);
+        Route::get('/{code}/performance/history', [BasketPerformanceController::class, 'history']);
+        Route::get('/{code}/performance/summary', [BasketPerformanceController::class, 'summary']);
+        Route::get('/{code}/performance/components', [BasketPerformanceController::class, 'components']);
+        Route::get('/{code}/performance/top-performers', [BasketPerformanceController::class, 'topPerformers']);
+        Route::get('/{code}/performance/worst-performers', [BasketPerformanceController::class, 'worstPerformers']);
+        Route::get('/{code}/performance/compare', [BasketPerformanceController::class, 'compare']);
     });
     
     // Protected basket endpoints
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/baskets', [BasketController::class, 'store']);
         Route::post('/baskets/{code}/rebalance', [BasketController::class, 'rebalance']);
+        Route::post('/baskets/{code}/performance/calculate', [BasketPerformanceController::class, 'calculate']);
         
         // Basket operations on accounts
         Route::prefix('accounts/{uuid}/baskets')->group(function () {

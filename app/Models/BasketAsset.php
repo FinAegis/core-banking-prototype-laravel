@@ -65,6 +65,14 @@ class BasketAsset extends Model
     {
         return $this->hasMany(BasketValue::class, 'basket_asset_code', 'code');
     }
+    
+    /**
+     * Get the performance records of this basket.
+     */
+    public function performances(): HasMany
+    {
+        return $this->hasMany(BasketPerformance::class, 'basket_asset_code', 'code');
+    }
 
     /**
      * Get the latest value of this basket.

@@ -338,13 +338,92 @@ class BasketDecomposed extends ShouldBeStored
 3. **Performance Tests**: Large basket calculations
 4. **Edge Cases**: Invalid weights, missing components
 
+## Performance Tracking (Implemented)
+
+### Models
+
+1. **BasketPerformance**: Tracks performance metrics over different time periods
+   - Stores return percentages, volatility, Sharpe ratio, maximum drawdown
+   - Supports multiple period types (hour, day, week, month, quarter, year, all_time)
+   - Links to component performance for detailed analysis
+
+2. **ComponentPerformance**: Tracks individual component contributions
+   - Records weight changes and contribution to overall performance
+   - Enables identification of top and worst performers
+
+### Services
+
+1. **BasketPerformanceService**: Comprehensive performance calculation
+   - Calculates returns, volatility, Sharpe ratio, and maximum drawdown
+   - Supports all standard time periods
+   - Provides component-level performance attribution
+   - Includes comparison functionality against benchmarks
+
+### API Endpoints
+
+Performance tracking endpoints:
+- `GET /api/v2/baskets/{code}/performance` - Get performance for specific period
+- `GET /api/v2/baskets/{code}/performance/history` - Historical performance data
+- `GET /api/v2/baskets/{code}/performance/summary` - Multi-period summary
+- `GET /api/v2/baskets/{code}/performance/components` - Component breakdown
+- `GET /api/v2/baskets/{code}/performance/top-performers` - Best performing components
+- `GET /api/v2/baskets/{code}/performance/worst-performers` - Worst performing components
+- `POST /api/v2/baskets/{code}/performance/calculate` - Trigger calculation
+- `GET /api/v2/baskets/{code}/performance/compare` - Compare against benchmarks
+
+### Admin Dashboard
+
+1. **Performance Widgets**:
+   - `BasketPerformanceChart`: Line chart showing returns and volatility
+   - `BasketPerformanceStats`: Overview cards with key metrics
+   - `BasketPerformanceWidget`: Detailed performance table with filtering
+
+2. **Component Analysis**:
+   - Interactive modal showing component contributions
+   - Top/worst performer identification
+   - Weight change tracking
+
+### Scheduled Tasks
+
+Performance calculations run automatically:
+- Hourly: Calculate hourly performance for all active baskets
+- Daily: Calculate daily performance summary at 00:30
+
+### Console Commands
+
+- `basket:calculate-performance`: Manual performance calculation
+  - Options: `--basket=CODE`, `--period=PERIOD`
+  - Supports individual basket or all baskets
+  - Can calculate specific periods or all periods
+
+## Implementation Status
+
+### Completed Features
+
+1. ✅ **Basket Asset Models**: Full implementation with relationships
+2. ✅ **Value Calculation Service**: Real-time basket valuation
+3. ✅ **Rebalancing Service**: Automated and manual rebalancing
+4. ✅ **API Layer**: Complete REST API with OpenAPI documentation
+5. ✅ **Admin Interface**: Filament resources with widgets
+6. ✅ **Event Sourcing**: Full audit trail for basket operations
+7. ✅ **Performance Tracking**: Comprehensive metrics and analytics
+8. ✅ **Testing**: Unit and integration tests with factories
+
+### Database Schema Updates
+
+Added performance tracking tables:
+- `basket_performances`: Stores calculated performance metrics
+- `component_performances`: Stores component-level performance data
+
 ## Future Enhancements
 
 1. **Smart Rebalancing**: ML-based optimal rebalancing
 2. **Custom Strategies**: User-defined rebalancing strategies
-3. **Performance Tracking**: ROI and volatility metrics
+3. **Advanced Analytics**: Factor analysis and risk attribution
 4. **Basket NFTs**: Tokenized basket shares
+5. **Real-time Performance**: WebSocket-based live updates
+6. **Mobile SDK**: Native basket management for mobile apps
 
 ---
 
-This design provides a foundation for implementing basket assets while maintaining consistency with the existing FinAegis architecture.
+This design provides a comprehensive foundation for basket assets with full performance tracking, maintaining consistency with the existing FinAegis architecture.

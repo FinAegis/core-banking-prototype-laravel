@@ -49,6 +49,21 @@ class ViewBasketAsset extends ViewRecord
                         $this->notify('danger', $e->getMessage());
                     }
                 }),
+            
+            Actions\Action::make('calculate_performance')
+                ->label('Calculate Performance')
+                ->icon('heroicon-m-chart-bar')
+                ->color('success')
+                ->action(function () {
+                    try {
+                        $service = app(\App\Domain\Basket\Services\BasketPerformanceService::class);
+                        $performances = $service->calculateAllPeriods($this->getRecord());
+                        
+                        $this->notify('success', "Calculated performance for {$performances->count()} periods");
+                    } catch (\Exception $e) {
+                        $this->notify('danger', $e->getMessage());
+                    }
+                }),
         ];
     }
 
@@ -56,6 +71,20 @@ class ViewBasketAsset extends ViewRecord
     {
         return [
             BasketAssetResource\Widgets\BasketValueChart::class,
+        ];
+    }
+    
+    public function getRelationManagers(): array
+    {
+        return [
+            // Existing relation managers
+        ];
+    }
+    
+    protected function getFooterWidgets(): array
+    {
+        return [
+            BasketAssetResource\Widgets\BasketPerformanceWidget::class,
         ];
     }
 }
