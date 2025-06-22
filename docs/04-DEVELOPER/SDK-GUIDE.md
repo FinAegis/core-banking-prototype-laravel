@@ -198,7 +198,7 @@ Response includes a webhook secret for signature verification:
     "id": "wh_123456",
     "url": "https://your-app.com/webhooks/finaegis",
     "events": ["account.created", "transaction.completed", "transfer.completed"],
-    "secret": "whsec_1234567890abcdef",
+    "secret": "whsec_[your_webhook_secret]",
     "is_active": true
   }
 }

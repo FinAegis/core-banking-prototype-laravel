@@ -94,7 +94,7 @@ class WebhookController extends Controller
      *                 @OA\Property(property="id", type="string", format="uuid"),
      *                 @OA\Property(property="url", type="string"),
      *                 @OA\Property(property="events", type="array", @OA\Items(type="string")),
-     *                 @OA\Property(property="secret", type="string", example="whsec_1234567890abcdef"),
+     *                 @OA\Property(property="secret", type="string", example="whsec_[redacted]"),
      *                 @OA\Property(property="is_active", type="boolean"),
      *                 @OA\Property(property="created_at", type="string", format="date-time")
      *             )
