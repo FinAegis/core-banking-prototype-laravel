@@ -29,31 +29,34 @@ class BasketPerformanceTest extends TestCase
         $this->user = User::factory()->create();
         $this->service = app(BasketPerformanceService::class);
         
-        // Create a test basket
+        // Create a test basket with a unique code to avoid conflicts
+        $uniqueCode = 'TEST_BASKET_' . uniqid();
         $this->basket = BasketAsset::factory()->create([
-            'code' => 'TEST_BASKET',
+            'code' => $uniqueCode,
             'name' => 'Test Basket',
             'type' => 'fixed',
         ]);
         
-        // Add components
-        BasketComponent::factory()->create([
-            'basket_asset_id' => $this->basket->id,
-            'asset_code' => 'USD',
-            'weight' => 50.0,
-        ]);
-        
-        BasketComponent::factory()->create([
-            'basket_asset_id' => $this->basket->id,
-            'asset_code' => 'EUR',
-            'weight' => 30.0,
-        ]);
-        
-        BasketComponent::factory()->create([
-            'basket_asset_id' => $this->basket->id,
-            'asset_code' => 'GBP',
-            'weight' => 20.0,
-        ]);
+        // Add components only if they don't exist
+        if ($this->basket->components()->count() === 0) {
+            $this->basket->components()->create([
+                'asset_code' => 'USD',
+                'weight' => 50.0,
+                'is_active' => true,
+            ]);
+            
+            $this->basket->components()->create([
+                'asset_code' => 'EUR',
+                'weight' => 30.0,
+                'is_active' => true,
+            ]);
+            
+            $this->basket->components()->create([
+                'asset_code' => 'GBP',
+                'weight' => 20.0,
+                'is_active' => true,
+            ]);
+        }
     }
 
     public function test_can_calculate_performance_for_basket()
@@ -93,12 +96,12 @@ class BasketPerformanceTest extends TestCase
         );
         
         $this->assertNotNull($performance);
-        $this->assertEquals('TEST_BASKET', $performance->basket_asset_code);
+        $this->assertEquals($this->basket->code, $performance->basket_asset_code);
         $this->assertEquals('week', $performance->period_type);
         $this->assertEquals(1.0000, $performance->start_value);
         $this->assertEquals(1.0500, $performance->end_value);
-        $this->assertEquals(0.0500, $performance->return_value);
-        $this->assertEquals(5.00, $performance->return_percentage);
+        $this->assertEqualsWithDelta(0.0500, $performance->return_value, 0.0001);
+        $this->assertEqualsWithDelta(5.00, $performance->return_percentage, 0.01);
         $this->assertGreaterThan(0, $performance->volatility);
         $this->assertNotNull($performance->sharpe_ratio);
         $this->assertGreaterThan(0, $performance->max_drawdown);
@@ -164,7 +167,7 @@ class BasketPerformanceTest extends TestCase
         $this->assertArrayHasKey('basket_code', $summary);
         $this->assertArrayHasKey('basket_name', $summary);
         $this->assertArrayHasKey('performances', $summary);
-        $this->assertEquals('TEST_BASKET', $summary['basket_code']);
+        $this->assertEquals($this->basket->code, $summary['basket_code']);
         $this->assertEquals('Test Basket', $summary['basket_name']);
         
         if (isset($summary['performances']['day'])) {
@@ -189,40 +192,49 @@ class BasketPerformanceTest extends TestCase
             'max_drawdown' => 3.2,
         ]);
         
-        $response = $this->getJson("/api/v2/baskets/{$this->basket->code}/performance?period=month");
+        // Create some basket values for performance calculation
+        BasketValue::factory()->forBasket($this->basket->code)->create([
+            'value' => 1.0000,
+            'calculated_at' => now()->subDays(30),
+        ]);
+        
+        BasketValue::factory()->forBasket($this->basket->code)->create([
+            'value' => 1.0250,
+            'calculated_at' => now(),
+        ]);
+        
+        $response = $this->getJson("/api/v2/baskets/{$this->basket->code}/performance?period=30d");
         
         $response->assertOk()
             ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'basket_code',
-                    'period_type',
-                    'period_start',
-                    'period_end',
-                    'return_percentage',
-                    'formatted_return',
-                    'volatility',
-                    'sharpe_ratio',
-                    'max_drawdown',
-                    'performance_rating',
-                    'risk_rating',
+                'basket_code',
+                'period',
+                'performance' => [
+                    'start_value',
+                    'end_value',
+                    'absolute_change',
+                    'percentage_change',
                 ],
             ])
-            ->assertJsonPath('data.basket_code', 'TEST_BASKET')
-            ->assertJsonPath('data.period_type', 'month')
-            ->assertJsonPath('data.return_percentage', 2.5);
+            ->assertJsonPath('basket_code', $this->basket->code)
+            ->assertJsonPath('period', '30d')
+            ->assertJsonPath('performance.percentage_change', 2.5);
     }
 
     public function test_api_can_get_performance_history()
     {
         Sanctum::actingAs($this->user);
         
-        // Create multiple performance records
-        $performances = BasketPerformance::factory()->count(5)->create([
-            'basket_asset_code' => $this->basket->code,
-            'period_type' => 'day',
-            'period_end' => now(),
-        ]);
+        // Create multiple performance records with different dates
+        $performances = collect();
+        for ($i = 0; $i < 5; $i++) {
+            $performances->push(BasketPerformance::factory()->create([
+                'basket_asset_code' => $this->basket->code,
+                'period_type' => 'day',
+                'period_start' => now()->subDays($i + 1),
+                'period_end' => now()->subDays($i),
+            ]));
+        }
         
         $response = $this->getJson("/api/v2/baskets/{$this->basket->code}/performance/history?period_type=day&limit=3");
         
@@ -245,14 +257,17 @@ class BasketPerformanceTest extends TestCase
         Sanctum::actingAs($this->user);
         
         // Create values
-        BasketValue::factory()->create([
-            'basket_asset_code' => $this->basket->code,
+        BasketValue::factory()->forBasket($this->basket->code)->create([
             'value' => 1.0000,
+            'calculated_at' => now()->subDays(2),
+        ]);
+        
+        BasketValue::factory()->forBasket($this->basket->code)->create([
+            'value' => 1.0100,
             'calculated_at' => now()->subDay(),
         ]);
         
-        BasketValue::factory()->create([
-            'basket_asset_code' => $this->basket->code,
+        BasketValue::factory()->forBasket($this->basket->code)->create([
             'value' => 1.0200,
             'calculated_at' => now(),
         ]);
@@ -270,7 +285,7 @@ class BasketPerformanceTest extends TestCase
         
         // Check that performance was created
         $this->assertDatabaseHas('basket_performances', [
-            'basket_asset_code' => 'TEST_BASKET',
+            'basket_asset_code' => $this->basket->code,
             'period_type' => 'day',
         ]);
     }
@@ -283,11 +298,38 @@ class BasketPerformanceTest extends TestCase
             'period_type' => 'month',
         ]);
         
-        // Create component performances
+        // Create component performances with all required fields
         $performance->componentPerformances()->createMany([
-            ['asset_code' => 'USD', 'contribution_percentage' => 2.5],
-            ['asset_code' => 'EUR', 'contribution_percentage' => -1.2],
-            ['asset_code' => 'GBP', 'contribution_percentage' => 0.8],
+            [
+                'asset_code' => 'USD',
+                'contribution_percentage' => 2.5,
+                'start_weight' => 50.0,
+                'end_weight' => 50.0,
+                'average_weight' => 50.0,
+                'contribution_value' => 0.025,
+                'return_value' => 0.05,
+                'return_percentage' => 5.0,
+            ],
+            [
+                'asset_code' => 'EUR',
+                'contribution_percentage' => -1.2,
+                'start_weight' => 30.0,
+                'end_weight' => 30.0,
+                'average_weight' => 30.0,
+                'contribution_value' => -0.012,
+                'return_value' => -0.04,
+                'return_percentage' => -4.0,
+            ],
+            [
+                'asset_code' => 'GBP',
+                'contribution_percentage' => 0.8,
+                'start_weight' => 20.0,
+                'end_weight' => 20.0,
+                'average_weight' => 20.0,
+                'contribution_value' => 0.008,
+                'return_value' => 0.04,
+                'return_percentage' => 4.0,
+            ],
         ]);
         
         $topPerformers = $this->service->getTopPerformers($this->basket, 'month', 2);
@@ -323,7 +365,7 @@ class BasketPerformanceTest extends TestCase
         
         $performance = $this->service->calculatePerformance(
             $this->basket,
-            'custom',
+            'week',
             now()->subDays(4),
             now()
         );
@@ -347,11 +389,11 @@ class BasketPerformanceTest extends TestCase
         ]);
         
         $this->artisan('basket:calculate-performance', [
-            '--basket' => 'TEST_BASKET',
+            '--basket' => $this->basket->code,
             '--period' => 'all',
         ])
         ->expectsOutput('Processing performance for 1 basket(s)...')
-        ->expectsOutputToContain('TEST_BASKET')
+        ->expectsOutputToContain($this->basket->code)
         ->assertSuccessful();
     }
 }

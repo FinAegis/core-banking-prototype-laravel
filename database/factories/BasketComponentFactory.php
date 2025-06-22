@@ -31,7 +31,6 @@ class BasketComponentFactory extends Factory
                 return $attributes['weight'] + $this->faker->randomFloat(2, 1, 5);
             },
             'is_active' => true,
-            'metadata' => [],
         ];
     }
 
