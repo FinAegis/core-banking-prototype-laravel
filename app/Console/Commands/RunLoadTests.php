@@ -148,14 +148,10 @@ class RunLoadTests extends Command
         $bar->start();
         
         for ($i = 0; $i < $iterations; $i++) {
-            // Simulate account creation
-            Artisan::call('tinker', [
-                '--execute' => '
-                    $user = \App\Models\User::factory()->create();
-                    $account = \App\Models\Account::factory()->forUser($user)->create();
-                    $account->addBalance("USD", 100000);
-                ',
-            ], $this->output);
+            // Create user and account directly
+            $user = \App\Models\User::factory()->create();
+            $account = \App\Models\Account::factory()->forUser($user)->create();
+            $account->addBalance('USD', 100000);
             
             $bar->advance();
         }
@@ -184,16 +180,17 @@ class RunLoadTests extends Command
             $to = $accounts[array_rand($accounts)];
             
             if ($from->uuid !== $to->uuid) {
-                Artisan::call('tinker', [
-                    '--execute' => "
-                        \$workflow = app(\App\Domain\Payment\Workflows\TransferWorkflow::class);
-                        \$workflow->execute(
-                            new \App\Domain\Account\ValueObjects\AccountUuid('{$from->uuid}'),
-                            new \App\Domain\Account\ValueObjects\AccountUuid('{$to->uuid}'),
-                            new \App\Domain\Account\ValueObjects\Money(1000)
-                        );
-                    ",
-                ], $this->output);
+                try {
+                    $workflow = app(\App\Domain\Payment\Workflows\TransferWorkflow::class);
+                    $workflow->execute(
+                        new \App\Domain\Account\ValueObjects\AccountUuid($from->uuid),
+                        new \App\Domain\Account\ValueObjects\AccountUuid($to->uuid),
+                        new \App\Domain\Account\ValueObjects\Money(1000)
+                    );
+                } catch (\Exception $e) {
+                    // Log but continue testing
+                    $this->warn("Transfer failed: " . $e->getMessage());
+                }
             }
             
             $bar->advance();
