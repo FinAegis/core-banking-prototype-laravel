@@ -49,14 +49,14 @@ class WebhookController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $webhooks = Webhook::where('user_id', $request->user()->id)
-            ->orderBy('created_at', 'desc')
+        // For now, return all webhooks until user association is implemented
+        $webhooks = Webhook::orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
             'data' => $webhooks->map(function ($webhook) {
                 return [
-                    'id' => $webhook->id,
+                    'id' => $webhook->uuid,
                     'url' => $webhook->url,
                     'events' => $webhook->events,
                     'is_active' => $webhook->is_active,
@@ -115,8 +115,8 @@ class WebhookController extends Controller
         $secret = 'whsec_' . Str::random(32);
 
         $webhook = Webhook::create([
-            'id' => Str::uuid(),
-            'user_id' => $request->user()->id,
+            'uuid' => Str::uuid(),
+            'name' => $validated['description'] ?? 'Webhook',
             'url' => $validated['url'],
             'events' => $validated['events'],
             'secret' => $secret,
@@ -126,7 +126,7 @@ class WebhookController extends Controller
 
         return response()->json([
             'data' => [
-                'id' => $webhook->id,
+                'id' => $webhook->uuid,
                 'url' => $webhook->url,
                 'events' => $webhook->events,
                 'secret' => $secret, // Only shown once at creation
@@ -175,8 +175,7 @@ class WebhookController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $webhook = Webhook::where('user_id', $request->user()->id)
-            ->findOrFail($id);
+        $webhook = Webhook::findOrFail($id);
 
         $statistics = [
             'total_deliveries' => $webhook->deliveries()->count(),
@@ -187,7 +186,7 @@ class WebhookController extends Controller
 
         return response()->json([
             'data' => [
-                'id' => $webhook->id,
+                'id' => $webhook->uuid,
                 'url' => $webhook->url,
                 'events' => $webhook->events,
                 'is_active' => $webhook->is_active,
@@ -230,8 +229,7 @@ class WebhookController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $webhook = Webhook::where('user_id', $request->user()->id)
-            ->findOrFail($id);
+        $webhook = Webhook::findOrFail($id);
 
         $validated = $request->validate([
             'url' => 'sometimes|url|https',
@@ -245,7 +243,7 @@ class WebhookController extends Controller
 
         return response()->json([
             'data' => [
-                'id' => $webhook->id,
+                'id' => $webhook->uuid,
                 'url' => $webhook->url,
                 'events' => $webhook->events,
                 'is_active' => $webhook->is_active,
@@ -277,8 +275,7 @@ class WebhookController extends Controller
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
-        $webhook = Webhook::where('user_id', $request->user()->id)
-            ->findOrFail($id);
+        $webhook = Webhook::findOrFail($id);
 
         $webhook->delete();
 
@@ -315,8 +312,7 @@ class WebhookController extends Controller
      */
     public function deliveries(Request $request, string $id): JsonResponse
     {
-        $webhook = Webhook::where('user_id', $request->user()->id)
-            ->findOrFail($id);
+        $webhook = Webhook::findOrFail($id);
 
         $query = $webhook->deliveries()
             ->orderBy('created_at', 'desc');

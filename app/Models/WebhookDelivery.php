@@ -11,13 +11,13 @@ class WebhookDelivery extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'uuid';
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id',
-        'webhook_id',
+        'uuid',
+        'webhook_uuid',
         'event_type',
         'payload',
         'attempt_number',
@@ -54,7 +54,7 @@ class WebhookDelivery extends Model
      */
     public function webhook(): BelongsTo
     {
-        return $this->belongsTo(Webhook::class, 'webhook_id', 'id');
+        return $this->belongsTo(Webhook::class, 'webhook_uuid', 'uuid');
     }
 
     /**
@@ -130,7 +130,7 @@ class WebhookDelivery extends Model
     public function createRetry(): self
     {
         return self::create([
-            'webhook_id' => $this->webhook_id,
+            'webhook_uuid' => $this->webhook_uuid,
             'event_type' => $this->event_type,
             'payload' => $this->payload,
             'attempt_number' => $this->attempt_number + 1,
