@@ -27,7 +27,7 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'is_business_customer' => ['required', 'boolean'],
+            'is_business_customer' => ['boolean'],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ])->validate();
@@ -40,7 +40,7 @@ class CreateNewUser implements CreatesNewUsers
 
         $this->createTeam($user);
 
-        if ($input['is_business_customer']) {
+        if (isset($input['is_business_customer']) && $input['is_business_customer']) {
             $user->assignRole(UserRoles::BUSINESS);
         } else {
             $user->assignRole(UserRoles::PRIVATE);

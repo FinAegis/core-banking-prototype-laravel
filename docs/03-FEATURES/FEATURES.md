@@ -1,14 +1,17 @@
 # FinAegis Platform Features
 
-**Version:** 3.0  
+**Version:** 3.1  
 **Last Updated:** 2025-06-22  
-**Documentation Status:** Complete
+**Documentation Status:** Complete with Authentication Features
 
 This document provides a comprehensive overview of all features implemented in the FinAegis Core Banking Platform.
 
 ## Table of Contents
 
 - [Core Banking Features](#core-banking-features)
+  - [User Management & Authentication](#user-management--authentication)
+  - [Account Management](#account-management)
+  - [Transaction Processing](#transaction-processing)
 - [Multi-Asset Support](#multi-asset-support)
 - [Exchange Rate Management](#exchange-rate-management)
 - [Global Currency Unit (GCU)](#global-currency-unit-gcu)
@@ -16,10 +19,13 @@ This document provides a comprehensive overview of all features implemented in t
 - [Governance System](#governance-system)
 - [Admin Dashboard](#admin-dashboard)
 - [API Endpoints](#api-endpoints)
+  - [Authentication APIs](#authentication-apis)
 - [Transaction Processing](#transaction-processing)
 - [Performance Testing](#performance-testing)
 - [Caching & Performance](#caching--performance)
 - [Security Features](#security-features)
+  - [Authentication & Authorization](#authentication--authorization)
+  - [Access Control](#access-control)
 - [Compliance Features](#compliance-features)
 - [Export & Reporting](#export--reporting)
 - [Webhooks & Events](#webhooks--events)
@@ -27,6 +33,18 @@ This document provides a comprehensive overview of all features implemented in t
 ---
 
 ## Core Banking Features
+
+### User Management & Authentication
+- **User Registration** with email verification and secure password hashing
+- **User Login** with JWT/Sanctum token authentication
+- **Two-Factor Authentication (2FA)** support for enhanced security
+- **Password Reset** functionality with secure token-based recovery
+- **Session Management** with automatic expiration and refresh
+- **Role-Based Access Control (RBAC)** for granular permissions
+- **User Profile Management** with customizable preferences
+- **API Key Management** for programmatic access
+- **OAuth2 Integration** for third-party authentication
+- **Activity Logging** for user actions and audit trails
 
 ### Account Management
 - **Multi-user account support** with secure user authentication
@@ -279,6 +297,23 @@ This document provides a comprehensive overview of all features implemented in t
 
 ## API Endpoints
 
+### Authentication APIs
+```
+POST   /api/auth/register               # Register new user
+POST   /api/auth/login                  # User login
+POST   /api/auth/logout                 # User logout
+POST   /api/auth/refresh                # Refresh access token
+POST   /api/auth/forgot-password        # Request password reset
+POST   /api/auth/reset-password         # Reset password with token
+GET    /api/auth/verify-email/{token}   # Verify email address
+POST   /api/auth/resend-verification    # Resend verification email
+GET    /api/auth/user                   # Get current user profile
+PUT    /api/auth/user                   # Update user profile
+POST   /api/auth/2fa/enable             # Enable two-factor auth
+POST   /api/auth/2fa/disable            # Disable two-factor auth
+POST   /api/auth/2fa/verify             # Verify 2FA code
+```
+
 ### Account APIs
 ```
 GET    /api/accounts                    # List accounts
@@ -445,17 +480,26 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 
 ## Security Features
 
-### Authentication
-- **Laravel Sanctum** for API authentication
+### Authentication & Authorization
+- **Laravel Sanctum** for API authentication with personal access tokens
 - **JWT token** support for stateless authentication
-- **Token expiration** with automatic refresh
-- **Role-based access** control
+- **Token expiration** with automatic refresh and revocation
+- **Multi-device session** management with device tracking
+- **IP whitelisting** for enhanced security
+- **API rate limiting** per user and IP address
+- **Remember me** functionality with secure cookies
+- **Social login** integration (Google, Facebook, GitHub)
+- **Single Sign-On (SSO)** support for enterprise
 
-### Authorization
-- **Permission-based** access control
-- **Resource-level** authorization
-- **Admin-only** operations protection
-- **User data** isolation
+### Access Control
+- **Role-Based Access Control (RBAC)** with hierarchical roles
+- **Permission-based** access control with granular permissions
+- **Resource-level** authorization for entity-specific access
+- **Admin-only** operations protection with middleware guards
+- **User data** isolation with scope-based filtering
+- **Dynamic permissions** assignable at runtime
+- **Permission inheritance** through role hierarchy
+- **Audit trails** for permission changes
 
 ### Cryptographic Security
 - **SHA3-512 hashing** for transaction integrity
@@ -590,6 +634,7 @@ POST   /api/custodians/{id}/reconcile   # Trigger reconciliation
 
 | Feature Category | Status | Coverage | Documentation |
 |-----------------|--------|----------|---------------|
+| Authentication & Authorization | ✅ Complete | 100% | Complete |
 | Core Banking | ✅ Complete | 100% | Complete |
 | Multi-Asset | ✅ Complete | 100% | Complete |
 | Exchange Rates | ✅ Complete | 100% | Complete |
@@ -644,22 +689,52 @@ php artisan serve
 php artisan queue:work
 ```
 
-### API Usage
+### API Authentication Examples
 ```bash
-# Get access token
+# Register new user
+curl -X POST /api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+  }'
+
+# Login to get access token
 curl -X POST /api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@example.com", "password": "password"}'
+  -d '{"email": "john@example.com", "password": "password123"}'
 
-# Create account
+# Response includes token:
+# {
+#   "access_token": "1|aBcDeFgHiJkLmNoPqRsTuVwXyZ...",
+#   "token_type": "Bearer",
+#   "expires_in": 3600
+# }
+
+# Get user profile
+curl -X GET /api/auth/user \
+  -H "Authorization: Bearer TOKEN"
+
+# Create account (authenticated)
 curl -X POST /api/accounts \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"user_uuid": "UUID", "name": "My Account", "initial_balance": 10000}'
+  -d '{"name": "My Savings Account", "initial_balance": 10000}'
 
-# Check balance
+# Check account balance
 curl -X GET /api/accounts/UUID/balance \
   -H "Authorization: Bearer TOKEN"
+
+# Logout
+curl -X POST /api/auth/logout \
+  -H "Authorization: Bearer TOKEN"
+
+# Reset password
+curl -X POST /api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com"}'
 ```
 
 ---
@@ -674,6 +749,6 @@ curl -X GET /api/accounts/UUID/balance \
 
 ---
 
-**Last Updated**: 2025-06-16  
-**Document Version**: 2.0  
-**Platform Version**: 2.0
+**Last Updated**: 2025-06-22  
+**Document Version**: 3.1  
+**Platform Version**: 6.1.0

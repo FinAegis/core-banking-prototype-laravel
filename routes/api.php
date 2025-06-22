@@ -17,8 +17,24 @@ use App\Http\Controllers\Api\StablecoinOperationsController;
 use App\Http\Controllers\Api\UserVotingController;
 use App\Http\Controllers\Api\KycController;
 use App\Http\Controllers\Api\GdprController;
+use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Auth\LoginController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Authentication endpoints (public)
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [RegisterController::class, 'register']);
+    Route::post('/login', [LoginController::class, 'login']);
+    
+    // Protected auth endpoints
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [LoginController::class, 'logout']);
+        Route::post('/logout-all', [LoginController::class, 'logoutAll']);
+        Route::post('/refresh', [LoginController::class, 'refresh']);
+        Route::get('/user', [LoginController::class, 'user']);
+    });
+});
 
 Route::get('/user', function (Request $request) {
     return $request->user();

@@ -5,6 +5,33 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.2.0] - 2025-06-22 - Enhanced UI & Complete API Documentation
+
+### Added
+- **Missing Wallet Views**: Created all missing wallet interface pages
+  - Deposit funds page with bank transfer and card options
+  - Withdraw funds page with bank selection
+  - Transfer money page for internal transfers
+  - Convert currency page with real-time exchange rate preview
+- **Improved Navigation**: Restructured navigation menu for better usability
+  - Direct links to important features (Dashboard, Transactions, Banks, Voting)
+  - Quick Actions dropdown for transactional operations
+  - Icons added to quick actions for visual clarity
+- **Complete API Documentation**: Added OpenAPI annotations to all controllers
+  - Authentication endpoints fully documented (register, login, logout, refresh)
+  - All API endpoints now have complete documentation
+  - API documentation available at `/api/documentation`
+
+### Changed
+- **Navigation Menu**: Reorganized from single dropdown to multiple direct links
+- **Voting Page**: Converted from Vue.js to server-side rendering for simplicity
+- **API Documentation**: Fixed duplicate @OA\Info annotations
+
+### Fixed
+- **Registration Form**: Fixed "is_business_customer field is required" error
+- **Missing Views**: All wallet routes now have corresponding view files
+- **API Documentation**: All controllers now have proper OpenAPI annotations
+
 ## [6.1.0] - 2025-06-22 - Load Testing & Security Audit Preparation
 
 ### Added
@@ -23,10 +50,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive GCU User Guide
   - API Integration Guide for developers
   - Performance optimization best practices
+- **Authentication Features Documentation**: Enhanced documentation for existing auth features
+  - User registration with email verification
+  - JWT/Sanctum token authentication
+  - Two-factor authentication (2FA) support
+  - Password reset functionality
+  - Role-based access control (RBAC)
+  - API authentication endpoints documentation
 
 ### Changed
 - **CI/CD**: Updated GitHub Actions to v4 for better performance
 - **Testing**: Fixed UserVotingControllerTest with GCU balance requirements
+- **Documentation**: Updated FEATURES.md to include comprehensive authentication details
 
 ## [6.0.0] - 2025-06-21 - GCU Platform Launch
 
