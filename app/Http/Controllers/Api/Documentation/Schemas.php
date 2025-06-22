@@ -215,6 +215,26 @@ namespace App\Http\Controllers\Api\Documentation;
  * )
  * 
  * @OA\Schema(
+ *     schema="ValidationError",
+ *     type="object",
+ *     title="Validation Error Response",
+ *     required={"message", "errors"},
+ *     @OA\Property(property="message", type="string", example="The given data was invalid."),
+ *     @OA\Property(
+ *         property="errors",
+ *         type="object",
+ *         additionalProperties={
+ *             "type":"array",
+ *             "items":{"type":"string"}
+ *         },
+ *         example={
+ *             "email": {"The email field is required."},
+ *             "amount": {"The amount must be greater than 0."}
+ *         }
+ *     )
+ * )
+ * 
+ * @OA\Schema(
  *     schema="BasketAsset",
  *     type="object",
  *     title="Basket Asset",

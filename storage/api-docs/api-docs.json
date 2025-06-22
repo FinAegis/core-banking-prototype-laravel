@@ -20,6 +20,281 @@
         }
     ],
     "paths": {
+        "/api/accounts/{uuid}/balances": {
+            "get": {
+                "tags": [
+                    "Account Balances"
+                ],
+                "summary": "Get account balances",
+                "description": "Retrieve all asset balances for a specific account",
+                "operationId": "getAccountBalances",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "The account UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                        }
+                    },
+                    {
+                        "name": "asset",
+                        "in": "query",
+                        "description": "Filter by specific asset code",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD"
+                        }
+                    },
+                    {
+                        "name": "positive",
+                        "in": "query",
+                        "description": "Only show positive balances",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "account_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "balances": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "asset_code": {
+                                                                "type": "string"
+                                                            },
+                                                            "balance": {
+                                                                "type": "integer"
+                                                            },
+                                                            "formatted": {
+                                                                "type": "string"
+                                                            },
+                                                            "asset": {
+                                                                "properties": {
+                                                                    "code": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "type": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "symbol": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "precision": {
+                                                                        "type": "integer"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "summary": {
+                                                    "properties": {
+                                                        "total_assets": {
+                                                            "type": "integer"
+                                                        },
+                                                        "total_usd_equivalent": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Account not found"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "The specified account UUID was not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/balances": {
+            "get": {
+                "tags": [
+                    "Account Balances"
+                ],
+                "summary": "List all account balances",
+                "description": "Get balances across all accounts with filtering and aggregation options",
+                "operationId": "listAllBalances",
+                "parameters": [
+                    {
+                        "name": "asset",
+                        "in": "query",
+                        "description": "Filter by specific asset code",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD"
+                        }
+                    },
+                    {
+                        "name": "min_balance",
+                        "in": "query",
+                        "description": "Minimum balance filter (in smallest unit)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1000
+                        }
+                    },
+                    {
+                        "name": "user_uuid",
+                        "in": "query",
+                        "description": "Filter by account owner",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results per page (max 100)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "example": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "account_uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "asset_code": {
+                                                        "type": "string"
+                                                    },
+                                                    "balance": {
+                                                        "type": "integer"
+                                                    },
+                                                    "formatted": {
+                                                        "type": "string"
+                                                    },
+                                                    "account": {
+                                                        "properties": {
+                                                            "uuid": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "user_uuid": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "total_accounts": {
+                                                    "type": "integer"
+                                                },
+                                                "total_balances": {
+                                                    "type": "integer"
+                                                },
+                                                "asset_totals": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string",
+                                                        "property": null
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/accounts": {
             "post": {
                 "tags": [
@@ -375,6 +650,132 @@
                 ]
             }
         },
+        "/api/assets": {
+            "get": {
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "List all supported assets",
+                "description": "Get a list of all assets supported by the platform, including fiat currencies, cryptocurrencies, and commodities",
+                "operationId": "listAssets",
+                "parameters": [
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by asset type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "fiat",
+                                "crypto",
+                                "commodity"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by code or name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "code": {
+                                                        "type": "string",
+                                                        "example": "USD"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "US Dollar"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "fiat",
+                                                            "crypto",
+                                                            "commodity"
+                                                        ]
+                                                    },
+                                                    "symbol": {
+                                                        "type": "string",
+                                                        "example": "$"
+                                                    },
+                                                    "precision": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "is_active": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "metadata": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "active": {
+                                                    "type": "integer"
+                                                },
+                                                "types": {
+                                                    "properties": {
+                                                        "fiat": {
+                                                            "type": "integer"
+                                                        },
+                                                        "crypto": {
+                                                            "type": "integer"
+                                                        },
+                                                        "commodity": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/accounts/{uuid}/balance": {
             "get": {
                 "tags": [
@@ -534,6 +935,971 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v2/accounts/{uuid}/baskets/decompose": {
+            "post": {
+                "tags": [
+                    "Basket Operations"
+                ],
+                "summary": "Decompose basket holdings into component assets",
+                "operationId": "decomposeBasket",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Account UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "basket_code",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "basket_code": {
+                                        "type": "string",
+                                        "example": "STABLE_BASKET"
+                                    },
+                                    "amount": {
+                                        "description": "Amount in smallest unit",
+                                        "type": "integer",
+                                        "example": 10000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Basket decomposed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "basket_code": {
+                                            "type": "string"
+                                        },
+                                        "basket_amount": {
+                                            "type": "integer"
+                                        },
+                                        "components": {
+                                            "type": "object"
+                                        },
+                                        "decomposed_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or insufficient balance"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v2/accounts/{uuid}/baskets/compose": {
+            "post": {
+                "tags": [
+                    "Basket Operations"
+                ],
+                "summary": "Compose component assets into a basket",
+                "operationId": "composeBasket",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Account UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "basket_code",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "basket_code": {
+                                        "type": "string",
+                                        "example": "STABLE_BASKET"
+                                    },
+                                    "amount": {
+                                        "description": "Amount of basket to create",
+                                        "type": "integer",
+                                        "example": 10000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Basket composed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "basket_code": {
+                                            "type": "string"
+                                        },
+                                        "basket_amount": {
+                                            "type": "integer"
+                                        },
+                                        "components_used": {
+                                            "type": "object"
+                                        },
+                                        "composed_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or insufficient component balances"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v2/accounts/{uuid}/baskets": {
+            "get": {
+                "tags": [
+                    "Basket Operations"
+                ],
+                "summary": "Get basket holdings for an account",
+                "operationId": "getAccountBaskets",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Account UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Account basket holdings",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "account_uuid": {
+                                            "type": "string"
+                                        },
+                                        "basket_holdings": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "basket_code": {
+                                                        "type": "string"
+                                                    },
+                                                    "basket_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "balance": {
+                                                        "type": "integer"
+                                                    },
+                                                    "unit_value": {
+                                                        "type": "number"
+                                                    },
+                                                    "total_value": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total_value": {
+                                            "type": "number"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v2/baskets": {
+            "get": {
+                "tags": [
+                    "Baskets"
+                ],
+                "summary": "List all basket assets",
+                "operationId": "listBaskets",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by basket type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "fixed",
+                                "dynamic"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of basket assets",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BasketAsset"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Baskets"
+                ],
+                "summary": "Create a new basket",
+                "operationId": "createBasket",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code",
+                                    "name",
+                                    "components"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "STABLE_BASKET"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Stable Currency Basket"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "default": "fixed",
+                                        "enum": [
+                                            "fixed",
+                                            "dynamic"
+                                        ]
+                                    },
+                                    "rebalance_frequency": {
+                                        "type": "string",
+                                        "default": "never",
+                                        "enum": [
+                                            "daily",
+                                            "weekly",
+                                            "monthly",
+                                            "quarterly",
+                                            "never"
+                                        ]
+                                    },
+                                    "components": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "asset_code",
+                                                "weight"
+                                            ],
+                                            "properties": {
+                                                "asset_code": {
+                                                    "type": "string",
+                                                    "example": "USD"
+                                                },
+                                                "weight": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 40
+                                                },
+                                                "min_weight": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 35
+                                                },
+                                                "max_weight": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 45
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Basket created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BasketAsset"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v2/baskets/{code}": {
+            "get": {
+                "tags": [
+                    "Baskets"
+                ],
+                "summary": "Get basket details",
+                "operationId": "getBasket",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket code",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Basket details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BasketAsset"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Basket not found"
+                    }
+                }
+            }
+        },
+        "/api/v2/baskets/{code}/value": {
+            "get": {
+                "tags": [
+                    "Baskets"
+                ],
+                "summary": "Get current basket value",
+                "operationId": "getBasketValue",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket code",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current basket value",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "basket_code": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "number"
+                                        },
+                                        "calculated_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "component_values": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/baskets/{code}/rebalance": {
+            "post": {
+                "tags": [
+                    "Baskets"
+                ],
+                "summary": "Trigger basket rebalancing",
+                "operationId": "rebalanceBasket",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket code",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "simulate",
+                        "in": "query",
+                        "description": "Simulate rebalancing without executing",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rebalancing result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "basket": {
+                                            "type": "string"
+                                        },
+                                        "adjustments": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v2/baskets/{code}/history": {
+            "get": {
+                "tags": [
+                    "Baskets"
+                ],
+                "summary": "Get basket value history",
+                "operationId": "getBasketHistory",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket code",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "description": "Number of days of history",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Basket value history"
+                    }
+                }
+            }
+        },
+        "/api/v2/baskets/{code}/performance": {
+            "get": {
+                "tags": [
+                    "Baskets"
+                ],
+                "summary": "Get basket performance metrics",
+                "operationId": "getBasketPerformance",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket code",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Performance period",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "30d",
+                            "enum": [
+                                "1d",
+                                "7d",
+                                "30d",
+                                "90d",
+                                "1y"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Basket performance metrics"
+                    }
+                }
+            }
+        },
+        "/api/exchange-rates/{from}/{to}": {
+            "get": {
+                "tags": [
+                    "Exchange Rates"
+                ],
+                "summary": "Get current exchange rate",
+                "description": "Retrieve the current exchange rate between two assets",
+                "operationId": "getExchangeRate",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "path",
+                        "description": "The source asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "path",
+                        "description": "The target asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "EUR"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "from_asset": {
+                                                    "type": "string"
+                                                },
+                                                "to_asset": {
+                                                    "type": "string"
+                                                },
+                                                "rate": {
+                                                    "type": "string"
+                                                },
+                                                "inverse_rate": {
+                                                    "type": "string"
+                                                },
+                                                "source": {
+                                                    "type": "string"
+                                                },
+                                                "valid_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "age_minutes": {
+                                                    "type": "integer"
+                                                },
+                                                "metadata": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Exchange rate not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rates/{from}/{to}/convert": {
+            "get": {
+                "tags": [
+                    "Exchange Rates"
+                ],
+                "summary": "Convert amount between assets",
+                "description": "Convert an amount from one asset to another using current exchange rates",
+                "operationId": "convertCurrency",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "path",
+                        "description": "The source asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "path",
+                        "description": "The target asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "EUR"
+                        }
+                    },
+                    {
+                        "name": "amount",
+                        "in": "query",
+                        "description": "The amount to convert (in smallest unit)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10000
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "from_asset": {
+                                                    "type": "string"
+                                                },
+                                                "to_asset": {
+                                                    "type": "string"
+                                                },
+                                                "from_amount": {
+                                                    "type": "integer"
+                                                },
+                                                "to_amount": {
+                                                    "type": "integer"
+                                                },
+                                                "from_formatted": {
+                                                    "type": "string"
+                                                },
+                                                "to_formatted": {
+                                                    "type": "string"
+                                                },
+                                                "rate": {
+                                                    "type": "string"
+                                                },
+                                                "rate_age_minutes": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Conversion not available"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rates": {
+            "get": {
+                "tags": [
+                    "Exchange Rates"
+                ],
+                "summary": "List exchange rates",
+                "description": "Get a list of available exchange rates with filtering options",
+                "operationId": "listExchangeRates",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "Filter by source asset code",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "description": "Filter by target asset code",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "EUR"
+                        }
+                    },
+                    {
+                        "name": "source",
+                        "in": "query",
+                        "description": "Filter by rate source",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "manual",
+                                "api",
+                                "oracle",
+                                "market"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "valid",
+                        "in": "query",
+                        "description": "Filter by validity (not expired)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results per page (max 100)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "from_asset": {
+                                                        "type": "string"
+                                                    },
+                                                    "to_asset": {
+                                                        "type": "string"
+                                                    },
+                                                    "rate": {
+                                                        "type": "string"
+                                                    },
+                                                    "inverse_rate": {
+                                                        "type": "string"
+                                                    },
+                                                    "source": {
+                                                        "type": "string"
+                                                    },
+                                                    "valid_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "expires_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "is_active": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "age_minutes": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "valid": {
+                                                    "type": "integer"
+                                                },
+                                                "stale": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1256,6 +2622,101 @@
                 ]
             }
         },
+        "/api/accounts/{uuid}/transactions": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Get transaction history for an account",
+                "description": "Retrieves paginated transaction history from event store",
+                "operationId": "getAccountTransactions",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Account UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by transaction type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "credit",
+                                "debit"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "asset_code",
+                        "in": "query",
+                        "description": "Filter by asset code",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction history retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Transaction"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/transfers": {
             "post": {
                 "tags": [
@@ -1353,6 +2814,185 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/voting/polls": {
+            "get": {
+                "tags": [
+                    "User Voting"
+                ],
+                "summary": "Get polls available for voting",
+                "description": "Get all active polls with user's voting context",
+                "operationId": "5450e25994657f4d0b029671600f0874",
+                "responses": {
+                    "200": {
+                        "description": "List of voting polls",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserVotingPoll"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/voting/polls/upcoming": {
+            "get": {
+                "tags": [
+                    "User Voting"
+                ],
+                "summary": "Get upcoming polls",
+                "description": "Get polls that will become active soon",
+                "operationId": "49ddf75a6932bd0c66c0db0e2a21862e",
+                "responses": {
+                    "200": {
+                        "description": "List of upcoming polls"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/voting/polls/history": {
+            "get": {
+                "tags": [
+                    "User Voting"
+                ],
+                "summary": "Get user's voting history",
+                "description": "Get all polls the user has participated in",
+                "operationId": "f48aa878738f35d16876ce73c69e5139",
+                "responses": {
+                    "200": {
+                        "description": "User's voting history"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/voting/polls/{uuid}/vote": {
+            "post": {
+                "tags": [
+                    "User Voting"
+                ],
+                "summary": "Submit vote for GCU basket composition",
+                "description": "Submit weighted allocation vote for basket composition",
+                "operationId": "a4defe7c42a9273987d21053b55d078f",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "allocations"
+                                ],
+                                "properties": {
+                                    "allocations": {
+                                        "description": "Currency allocations (must sum to 100)",
+                                        "type": "object",
+                                        "example": {
+                                            "USD": 40,
+                                            "EUR": 30,
+                                            "GBP": 15,
+                                            "CHF": 10,
+                                            "JPY": 3,
+                                            "XAU": 2
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Vote submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "vote_id": {
+                                            "type": "string"
+                                        },
+                                        "voting_power_used": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid vote data"
+                    },
+                    "403": {
+                        "description": "Cannot vote on this poll"
+                    },
+                    "404": {
+                        "description": "Poll not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/voting/dashboard": {
+            "get": {
+                "tags": [
+                    "User Voting"
+                ],
+                "summary": "Get voting dashboard data",
+                "description": "Get comprehensive voting dashboard information",
+                "operationId": "b3271ffb72f43753d608102d2ed56b57",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard data"
                     }
                 },
                 "security": [
@@ -2238,6 +3878,364 @@
                     }
                 },
                 "type": "object"
+            },
+            "ValidationError": {
+                "title": "Validation Error Response",
+                "required": [
+                    "message",
+                    "errors"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid."
+                    },
+                    "errors": {
+                        "type": "object",
+                        "example": {
+                            "email": [
+                                "The email field is required."
+                            ],
+                            "amount": [
+                                "The amount must be greater than 0."
+                            ]
+                        },
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "BasketAsset": {
+                "title": "Basket Asset",
+                "required": [
+                    "code",
+                    "name",
+                    "type",
+                    "components"
+                ],
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "STABLE_BASKET"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Stable Currency Basket"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "A diversified basket of stable fiat currencies"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "fixed",
+                            "dynamic"
+                        ],
+                        "example": "fixed"
+                    },
+                    "rebalance_frequency": {
+                        "type": "string",
+                        "enum": [
+                            "daily",
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "never"
+                        ],
+                        "example": "never"
+                    },
+                    "last_rebalanced_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-01T00:00:00Z"
+                    },
+                    "components": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BasketComponent"
+                        }
+                    },
+                    "latest_value": {
+                        "properties": {
+                            "value": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 1.0975
+                            },
+                            "calculated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "BasketComponent": {
+                "title": "Basket Component",
+                "required": [
+                    "asset_code",
+                    "weight"
+                ],
+                "properties": {
+                    "asset_code": {
+                        "type": "string",
+                        "example": "USD"
+                    },
+                    "asset_name": {
+                        "type": "string",
+                        "example": "US Dollar"
+                    },
+                    "weight": {
+                        "description": "Weight percentage (0-100)",
+                        "type": "number",
+                        "format": "float",
+                        "example": 40
+                    },
+                    "min_weight": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 35,
+                        "nullable": true
+                    },
+                    "max_weight": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 45,
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "type": "object"
+            },
+            "BasketValue": {
+                "title": "Basket Value",
+                "required": [
+                    "basket_code",
+                    "value",
+                    "calculated_at"
+                ],
+                "properties": {
+                    "basket_code": {
+                        "type": "string",
+                        "example": "STABLE_BASKET"
+                    },
+                    "value": {
+                        "description": "Current value in base currency (USD)",
+                        "type": "number",
+                        "format": "float",
+                        "example": 1.0975
+                    },
+                    "calculated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-01T12:00:00Z"
+                    },
+                    "component_values": {
+                        "description": "Breakdown of component values",
+                        "type": "object",
+                        "example": {
+                            "USD": {
+                                "value": 1,
+                                "weight": 40,
+                                "weighted_value": 0.4
+                            },
+                            "EUR": {
+                                "value": 1.1,
+                                "weight": 35,
+                                "weighted_value": 0.385
+                            },
+                            "GBP": {
+                                "value": 1.25,
+                                "weight": 25,
+                                "weighted_value": 0.3125
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "UserVotingPoll": {
+                "title": "User Voting Poll",
+                "required": [
+                    "uuid",
+                    "title",
+                    "type",
+                    "status",
+                    "options",
+                    "start_date",
+                    "end_date",
+                    "user_context"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "990e8400-e29b-41d4-a716-446655440000"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Monthly GCU Basket Allocation for June 2025"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Vote on the currency allocation for the Global Currency Unit basket",
+                        "nullable": true
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "single_choice",
+                            "multiple_choice",
+                            "weighted_choice",
+                            "yes_no",
+                            "ranked_choice"
+                        ],
+                        "example": "weighted_choice"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "active",
+                            "closed",
+                            "cancelled"
+                        ],
+                        "example": "active"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "example": "USD"
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "example": "US Dollar"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-06-01T00:00:00Z"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-06-08T00:00:00Z"
+                    },
+                    "required_participation": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 25,
+                        "nullable": true
+                    },
+                    "current_participation": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 15.5
+                    },
+                    "user_context": {
+                        "properties": {
+                            "has_voted": {
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "voting_power": {
+                                "type": "integer",
+                                "example": 1000
+                            },
+                            "can_vote": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "vote": {
+                                "properties": {
+                                    "selected_options": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "voted_at": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "metadata": {
+                        "properties": {
+                            "is_gcu_poll": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "voting_month": {
+                                "type": "string",
+                                "example": "2025-06",
+                                "nullable": true
+                            },
+                            "template": {
+                                "type": "string",
+                                "example": "monthly_gcu_allocation",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "results_visible": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "time_remaining": {
+                        "properties": {
+                            "days": {
+                                "type": "integer",
+                                "example": 6
+                            },
+                            "hours": {
+                                "type": "integer",
+                                "example": 12
+                            },
+                            "human_readable": {
+                                "type": "string",
+                                "example": "6 days from now"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -2249,6 +4247,22 @@
         }
     },
     "tags": [
+        {
+            "name": "Account Balances",
+            "description": "APIs for managing multi-asset account balances"
+        },
+        {
+            "name": "Assets",
+            "description": "Asset management endpoints"
+        },
+        {
+            "name": "Basket Operations",
+            "description": "Basket operations on accounts"
+        },
+        {
+            "name": "Baskets",
+            "description": "Basket asset management endpoints"
+        },
         {
             "name": "Accounts",
             "description": "Account management operations"
@@ -2266,8 +4280,16 @@
             "description": "Balance inquiry and account statistics"
         },
         {
+            "name": "Exchange Rates",
+            "description": "APIs for managing exchange rates between different assets"
+        },
+        {
             "name": "Governance - Polls",
             "description": "Poll management and voting operations"
+        },
+        {
+            "name": "User Voting",
+            "description": "User-friendly voting interface for GCU governance"
         },
         {
             "name": "Governance - Votes",

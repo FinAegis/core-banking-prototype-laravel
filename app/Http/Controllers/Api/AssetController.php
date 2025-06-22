@@ -10,55 +10,69 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * @group Asset Management
- * 
- * APIs for managing assets in the multi-asset platform
+ * @OA\Tag(
+ *     name="Assets",
+ *     description="Asset management endpoints"
+ * )
  */
 class AssetController extends Controller
 {
     /**
-     * List all supported assets
-     * 
-     * Get a list of all assets supported by the platform, including fiat currencies,
-     * cryptocurrencies, and commodities.
-     * 
-     * @response 200 {
-     *   "data": [
-     *     {
-     *       "code": "USD",
-     *       "name": "US Dollar",
-     *       "type": "fiat",
-     *       "symbol": "$",
-     *       "precision": 2,
-     *       "is_active": true,
-     *       "metadata": {
-     *         "category": "currency",
-     *         "regulated": true
-     *       }
-     *     },
-     *     {
-     *       "code": "BTC",
-     *       "name": "Bitcoin",
-     *       "type": "crypto",
-     *       "symbol": "₿",
-     *       "precision": 8,
-     *       "is_active": true,
-     *       "metadata": {
-     *         "category": "digital_currency",
-     *         "blockchain_based": true
-     *       }
-     *     }
-     *   ],
-     *   "meta": {
-     *     "total": 2,
-     *     "active": 2,
-     *     "types": {
-     *       "fiat": 1,
-     *       "crypto": 1,
-     *       "commodity": 0
-     *     }
-     *   }
-     * }
+     * @OA\Get(
+     *     path="/api/assets",
+     *     operationId="listAssets",
+     *     tags={"Assets"},
+     *     summary="List all supported assets",
+     *     description="Get a list of all assets supported by the platform, including fiat currencies, cryptocurrencies, and commodities",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="active",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by active status",
+     *         @OA\Schema(type="boolean")
+     *     ),
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by asset type",
+     *         @OA\Schema(type="string", enum={"fiat", "crypto", "commodity"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         required=false,
+     *         description="Search by code or name",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="code", type="string", example="USD"),
+     *                     @OA\Property(property="name", type="string", example="US Dollar"),
+     *                     @OA\Property(property="type", type="string", enum={"fiat", "crypto", "commodity"}),
+     *                     @OA\Property(property="symbol", type="string", example="$"),
+     *                     @OA\Property(property="precision", type="integer", example=2),
+     *                     @OA\Property(property="is_active", type="boolean"),
+     *                     @OA\Property(property="metadata", type="object")
+     *                 )
+     *             ),
+     *             @OA\Property(property="meta", type="object",
+     *                 @OA\Property(property="total", type="integer"),
+     *                 @OA\Property(property="active", type="integer"),
+     *                 @OA\Property(property="types", type="object",
+     *                     @OA\Property(property="fiat", type="integer"),
+     *                     @OA\Property(property="crypto", type="integer"),
+     *                     @OA\Property(property="commodity", type="integer")
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function index(Request $request): JsonResponse
     {
