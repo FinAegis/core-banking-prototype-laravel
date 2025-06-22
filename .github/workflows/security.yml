@@ -14,7 +14,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          # Use the .gitleaks.toml config file
+          config_path: .gitleaks.toml
+          
+          # Optional: only scan the diff, not the entire history
+          # This can help avoid false positives from old commits
+          # no_git: true
+          
+          # Optional: set the exit code to 0 to allow the workflow to pass
+          # even if secrets are detected (use with caution)
+          # exit_code: 0

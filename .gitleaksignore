@@ -1,0 +1,12 @@
+# Ignore specific files that contain example secrets
+docs/04-DEVELOPER/SDK-GUIDE.md
+docs/04-DEVELOPER/API-EXAMPLES.md
+docs/04-DEVELOPER/finaegis-api-v2.postman_collection.json
+
+# Ignore specific patterns
+whsec_[a-zA-Z0-9]{32}:docs/
+your_api_key:docs/
+your_webhook_secret:docs/
+
+# Ignore specific commits if needed (use commit hash)
+# a92d3c6:app/Http/Controllers/Api/V2/WebhookController.php

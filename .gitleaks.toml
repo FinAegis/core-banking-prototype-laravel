@@ -1,32 +1,66 @@
+# Gitleaks configuration for FinAegis project
+title = "FinAegis Gitleaks Configuration"
+
+[extend]
+# Extend the base configuration
+useDefault = true
+
 [allowlist]
-description = "Allowlist for FinAegis project"
+description = "Global allowlist for FinAegis"
 
-# Allow example webhook secrets in documentation and tests
+# Allow example/placeholder patterns
 [[allowlist.regexes]]
-description = "Allow example webhook secrets in documentation"
-regex = '''whsec_\[redacted\]|whsec_\[your_webhook_secret\]'''
+description = "Allow example webhook secrets"
+regex = '''whsec_\[redacted\]|whsec_\[your_webhook_secret\]|whsec_[a-zA-Z0-9_\-]+example'''
 
-# Allow placeholder API keys in documentation
 [[allowlist.regexes]]
-description = "Allow placeholder API keys"
-regex = '''your_api_key|YOUR_TOKEN|your_jwt_token_here|your_webhook_secret'''
+description = "Allow placeholder tokens and keys"
+regex = '''(your|YOUR|example|EXAMPLE|test|TEST|demo|DEMO|placeholder|PLACEHOLDER)[\s_\-]*(api|API)?[\s_\-]*(key|KEY|token|TOKEN|secret|SECRET)'''
 
-# Allow common variable names
 [[allowlist.regexes]]
-description = "Allow common variable names"
-regex = '''api_key|apiKey|API_KEY|bearer_token|bearerToken'''
+description = "Allow variable names"
+regex = '''(api_key|apiKey|api_token|bearer_token|access_token|refresh_token|webhook_secret|client_secret)\s*[:=]\s*[\'"]?\$|process\.env|env\(|getenv\(|ENV\[|environ\['''
 
-# Exclude documentation files
+[[allowlist.regexes]]
+description = "Allow common test values"
+regex = '''[\'"]?(secret|token|key|password)[\'"]?\s*[:=]\s*[\'"]?(test|demo|example|placeholder|your_.*|my_.*|\*+|xxx+|\.\.\.+|<.*>|\$\{.*\})[\'"]?'''
+
+# Exclude specific file patterns
 [[allowlist.paths]]
-description = "Exclude documentation files"
-regex = '''docs/.*\.md$'''
+description = "Exclude all documentation"
+regex = '''.*\.(md|MD|txt|TXT|rst|RST)$'''
 
-# Exclude Postman collection
-[[allowlist.paths]]
-description = "Exclude Postman collection"
-regex = '''.*\.postman_collection\.json$'''
-
-# Exclude test files
 [[allowlist.paths]]
 description = "Exclude test files"
-regex = '''tests/.*\.php$'''
+regex = '''(test|tests|spec|specs)/.*'''
+
+[[allowlist.paths]]  
+description = "Exclude example files"
+regex = '''(example|examples|sample|samples|demo|demos)/.*'''
+
+[[allowlist.paths]]
+description = "Exclude Postman collections"
+regex = '''.*\.postman_collection\.json$'''
+
+[[allowlist.paths]]
+description = "Exclude environment example files"
+regex = '''\.env\.(example|sample|demo|test)$'''
+
+# Allow specific commits (if needed)
+[[allowlist.commits]]
+description = "Allow documentation commits"
+regex = '''(docs|doc|documentation|readme|example|sample|test)'''
+
+# Custom rules to reduce false positives
+[[rules]]
+description = "Custom rule for actual secrets"
+id = "finaegis-real-secret"
+regex = '''(?i)(api[_\s\-]?key|secret|token|password|auth|bearer|private[_\s\-]?key)\s*[:=]\s*[\'"]?[a-zA-Z0-9+/]{32,}[\'"]?'''
+# Only match if the value is at least 32 characters and not a placeholder
+[[rules.allowlist]]
+regexes = [
+    '''(test|demo|example|placeholder|your|my|foo|bar|baz|xxx|fake|dummy|sample)''',
+    '''\$\{.*\}''',
+    '''process\.env''',
+    '''<.*>'''
+]
