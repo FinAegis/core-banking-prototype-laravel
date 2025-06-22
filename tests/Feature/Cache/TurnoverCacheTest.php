@@ -17,6 +17,7 @@ it('caches latest turnover', function () {
         'account_uuid' => $account->uuid,
         'debit' => 1000,
         'credit' => 2000,
+        'created_at' => now()->subMinute(), // Ensure older timestamp
     ]);
     
     $cacheService = app(TurnoverCacheService::class);
@@ -32,6 +33,7 @@ it('caches latest turnover', function () {
         'account_uuid' => $account->uuid,
         'debit' => 3000,
         'credit' => 4000,
+        'created_at' => now(), // Ensure newer timestamp
     ]);
     
     // Should still return the old cached turnover (not the new one)
