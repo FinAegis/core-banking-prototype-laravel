@@ -27,18 +27,25 @@ it('caches latest turnover', function () {
     expect($cachedTurnover)->toBeInstanceOf(Turnover::class);
     expect($cachedTurnover->id)->toBe($turnover->id);
     
-    // Ensure the turnover is properly cached before deletion
-    $cacheKey = 'turnover:' . $account->uuid . ':latest';
-    Cache::put($cacheKey, $cachedTurnover, 7200);
+    // Create a new turnover to verify cache is being used
+    $newTurnover = Turnover::factory()->create([
+        'account_uuid' => $account->uuid,
+        'debit' => 3000,
+        'credit' => 4000,
+    ]);
     
-    // Delete from database
-    $turnover->delete();
-    
-    // Should still return from cache
+    // Should still return the old cached turnover (not the new one)
     $cachedTurnover2 = $cacheService->getLatest((string) $account->uuid);
     
     expect($cachedTurnover2)->toBeInstanceOf(Turnover::class);
-    expect($cachedTurnover2->id)->toBe($turnover->id);
+    expect($cachedTurnover2->id)->toBe($turnover->id); // Still the old one, not the new one
+    
+    // After cache invalidation, should return the new turnover
+    $cacheService->forget((string) $account->uuid);
+    $latestTurnover = $cacheService->getLatest((string) $account->uuid);
+    
+    expect($latestTurnover)->toBeInstanceOf(Turnover::class);
+    expect($latestTurnover->id)->toBe($newTurnover->id); // Now returns the new one
 });
 
 it('caches turnover statistics', function () {
