@@ -5,6 +5,57 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.0] - 2025-06-22 - Load Testing & Security Audit Preparation
+
+### Added
+- **Load Testing Framework**: Comprehensive performance testing suite
+  - RunLoadTests command for isolated performance testing
+  - Performance benchmarking and comparison tools
+  - GitHub Action for automated performance regression testing
+  - Detailed performance optimization documentation
+- **Security Audit Preparation**: Enterprise-grade security enhancements
+  - Comprehensive security audit checklist
+  - Security testing suite covering OWASP Top 10
+  - Security headers middleware for enhanced protection
+  - Incident response and monitoring documentation
+- **User Documentation**: Complete user and developer guides
+  - Getting Started guide for new users
+  - Comprehensive GCU User Guide
+  - API Integration Guide for developers
+  - Performance optimization best practices
+
+### Changed
+- **CI/CD**: Updated GitHub Actions to v4 for better performance
+- **Testing**: Fixed UserVotingControllerTest with GCU balance requirements
+
+## [6.0.0] - 2025-06-21 - GCU Platform Launch
+
+### Added
+- **GCU User Interface**: Complete user experience for Global Currency Unit
+  - GCU wallet dashboard with real-time balance display
+  - Interactive bank allocation interface with visual sliders
+  - Democratic voting dashboard for monthly basket composition
+  - Enhanced transaction history with multi-asset support
+- **Public API v2**: External developer API with webhook support
+  - PublicApiController with API info and status endpoints
+  - WebhookController for real-time event notifications
+  - GCUController with GCU-specific endpoints
+  - Comprehensive SDK documentation and examples
+- **Webhook System**: Enterprise-grade webhook delivery
+  - Full webhook CRUD operations
+  - Delivery tracking with retry logic
+  - Signature verification for security
+  - Event-driven architecture integration
+- **Third-party Integrations**: Developer tools and resources
+  - Postman collection for API testing
+  - SDK guides for multiple programming languages
+  - API integration examples
+  - Production best practices documentation
+
+### Changed
+- **Transaction UI**: Enhanced with real-time filtering and summary cards
+- **API Architecture**: Expanded to support external integrations
+
 ## [5.2.0] - 2025-06-21 - Transaction Processing & Resilience
 
 ### Added
