@@ -204,3 +204,8 @@ Route::prefix('webhooks/custodian')->group(function () {
 
 // Include BIAN-compliant routes
 require __DIR__.'/api-bian.php';
+
+// Include V2 public API routes
+Route::prefix('v2')->group(function () {
+    require __DIR__.'/api-v2.php';
+});

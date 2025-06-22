@@ -11,9 +11,13 @@ class Webhook extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $primaryKey = 'uuid';
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
+        'id',
+        'user_id',
         'name',
         'description',
         'url',
@@ -64,7 +68,7 @@ class Webhook extends Model
      */
     public function deliveries(): HasMany
     {
-        return $this->hasMany(WebhookDelivery::class, 'webhook_uuid', 'uuid');
+        return $this->hasMany(WebhookDelivery::class, 'webhook_id', 'id');
     }
 
     /**

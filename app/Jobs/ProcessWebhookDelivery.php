@@ -31,7 +31,7 @@ class ProcessWebhookDelivery implements ShouldQueue
         $webhook = $this->delivery->webhook;
 
         if (!$webhook->is_active) {
-            Log::warning("Skipping delivery for inactive webhook: {$webhook->uuid}");
+            Log::warning("Skipping delivery for inactive webhook: {$webhook->id}");
             return;
         }
 
@@ -44,9 +44,9 @@ class ProcessWebhookDelivery implements ShouldQueue
             $headers = $webhook->headers ?? [];
             $headers['Content-Type'] = 'application/json';
             $headers['User-Agent'] = 'FinAegis-Webhook/1.0';
-            $headers['X-Webhook-ID'] = $webhook->uuid;
+            $headers['X-Webhook-ID'] = $webhook->id;
             $headers['X-Webhook-Event'] = $this->delivery->event_type;
-            $headers['X-Webhook-Delivery'] = $this->delivery->uuid;
+            $headers['X-Webhook-Delivery'] = $this->delivery->id;
 
             // Add signature if secret is configured
             if ($webhook->secret) {
@@ -72,8 +72,8 @@ class ProcessWebhookDelivery implements ShouldQueue
                 );
 
                 Log::info("Webhook delivered successfully", [
-                    'webhook_uuid' => $webhook->uuid,
-                    'delivery_uuid' => $this->delivery->uuid,
+                    'webhook_id' => $webhook->id,
+                    'delivery_id' => $this->delivery->id,
                     'status_code' => $response->status(),
                     'duration_ms' => $duration,
                 ]);
@@ -95,8 +95,8 @@ class ProcessWebhookDelivery implements ShouldQueue
             );
 
             Log::error("Webhook delivery failed", [
-                'webhook_uuid' => $webhook->uuid,
-                'delivery_uuid' => $this->delivery->uuid,
+                'webhook_id' => $webhook->id,
+                'delivery_id' => $this->delivery->id,
                 'error' => $errorMessage,
                 'attempt' => $this->delivery->attempt_number,
             ]);
@@ -130,7 +130,7 @@ class ProcessWebhookDelivery implements ShouldQueue
     public function failed(\Throwable $exception): void
     {
         Log::error("Webhook delivery job failed permanently", [
-            'delivery_uuid' => $this->delivery->uuid,
+            'delivery_id' => $this->delivery->id,
             'error' => $exception->getMessage(),
         ]);
     }

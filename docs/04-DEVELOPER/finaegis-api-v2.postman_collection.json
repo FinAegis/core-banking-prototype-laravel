@@ -1,0 +1,521 @@
+{
+  "info": {
+    "name": "FinAegis API v2",
+    "description": "Complete API collection for FinAegis GCU Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.finaegis.com/v2",
+      "type": "string"
+    },
+    {
+      "key": "bearerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accountUuid",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public Endpoints",
+      "item": [
+        {
+          "name": "Get API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Get API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GCU",
+      "item": [
+        {
+          "name": "Get GCU Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gcu",
+              "host": ["{{baseUrl}}"],
+              "path": ["gcu"]
+            }
+          }
+        },
+        {
+          "name": "Get GCU Value History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gcu/value-history?period=30d&interval=daily",
+              "host": ["{{baseUrl}}"],
+              "path": ["gcu", "value-history"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d",
+                  "description": "24h, 7d, 30d, 90d, 1y, all"
+                },
+                {
+                  "key": "interval",
+                  "value": "daily",
+                  "description": "hourly, daily, weekly, monthly"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Active Polls",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gcu/governance/active-polls",
+              "host": ["{{baseUrl}}"],
+              "path": ["gcu", "governance", "active-polls"]
+            }
+          }
+        },
+        {
+          "name": "Get Supported Banks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/gcu/supported-banks",
+              "host": ["{{baseUrl}}"],
+              "path": ["gcu", "supported-banks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "List Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts"]
+            }
+          }
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My GCU Account\",\n  \"type\": \"savings\",\n  \"metadata\": {\n    \"purpose\": \"international_transfers\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts"]
+            }
+          }
+        },
+        {
+          "name": "Get Account",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Account Balances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountUuid}}/balances",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountUuid}}", "balances"]
+            }
+          }
+        },
+        {
+          "name": "Deposit to Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100000,\n  \"asset_code\": \"GCU\",\n  \"reference\": \"Initial deposit\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountUuid}}/deposit",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountUuid}}", "deposit"]
+            }
+          }
+        },
+        {
+          "name": "Withdraw from Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"asset_code\": \"GCU\",\n  \"reference\": \"Withdrawal\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountUuid}}/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountUuid}}", "withdraw"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transfers",
+      "item": [
+        {
+          "name": "Create Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_account\": \"{{fromAccountUuid}}\",\n  \"to_account\": \"{{toAccountUuid}}\",\n  \"amount\": 10000,\n  \"asset_code\": \"GCU\",\n  \"reference\": \"Payment for services\",\n  \"metadata\": {\n    \"invoice_number\": \"INV-2025-001\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["transfers"]
+            }
+          }
+        },
+        {
+          "name": "Get Transfer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transfers/{{transferUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["transfers", "{{transferUuid}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "List Webhook Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "events"]
+            }
+          }
+        },
+        {
+          "name": "List Webhooks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks"]
+            }
+          }
+        },
+        {
+          "name": "Create Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://your-app.com/webhooks/finaegis\",\n  \"events\": [\n    \"account.created\",\n    \"transaction.completed\",\n    \"transfer.completed\"\n  ],\n  \"description\": \"Production webhook for transactions\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks"]
+            }
+          }
+        },
+        {
+          "name": "Get Webhook",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/{{webhookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "{{webhookId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Webhook",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"events\": [\n    \"account.created\",\n    \"transaction.completed\",\n    \"transfer.completed\",\n    \"basket.rebalanced\"\n  ],\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/{{webhookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "{{webhookId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Webhook",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/{{webhookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "{{webhookId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Webhook Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/{{webhookId}}/deliveries?status=failed",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "{{webhookId}}", "deliveries"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "failed",
+                  "description": "pending, success, failed"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "item": [
+        {
+          "name": "List Assets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets"]
+            }
+          }
+        },
+        {
+          "name": "Get Asset",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/GCU",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets", "GCU"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exchange Rates",
+      "item": [
+        {
+          "name": "List Exchange Rates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exchange-rates",
+              "host": ["{{baseUrl}}"],
+              "path": ["exchange-rates"]
+            }
+          }
+        },
+        {
+          "name": "Get Exchange Rate",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exchange-rates/EUR/GCU",
+              "host": ["{{baseUrl}}"],
+              "path": ["exchange-rates", "EUR", "GCU"]
+            }
+          }
+        },
+        {
+          "name": "Convert Currency",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exchange-rates/EUR/GCU/convert?amount=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["exchange-rates", "EUR", "GCU", "convert"],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Baskets",
+      "item": [
+        {
+          "name": "List Baskets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/baskets",
+              "host": ["{{baseUrl}}"],
+              "path": ["baskets"]
+            }
+          }
+        },
+        {
+          "name": "Get Basket",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/baskets/GCU",
+              "host": ["{{baseUrl}}"],
+              "path": ["baskets", "GCU"]
+            }
+          }
+        },
+        {
+          "name": "Get Basket Value",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/baskets/GCU/value",
+              "host": ["{{baseUrl}}"],
+              "path": ["baskets", "GCU", "value"]
+            }
+          }
+        },
+        {
+          "name": "Get Basket History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/baskets/GCU/history?period=30d",
+              "host": ["{{baseUrl}}"],
+              "path": ["baskets", "GCU", "history"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
