@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('webhooks', function (Blueprint $table) {
             // Add user_id column if it doesn't exist
             if (!Schema::hasColumn('webhooks', 'user_id')) {
-                $table->unsignedBigInteger('user_id')->nullable()->after('id');
+                $table->unsignedBigInteger('user_id')->nullable()->after('uuid');
                 $table->index('user_id');
             }
         });
