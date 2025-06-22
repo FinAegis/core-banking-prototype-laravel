@@ -376,13 +376,15 @@ class GCUController extends Controller
 
         $lastRebalanced = $basket->last_rebalanced_at ?? now();
         
-        return match ($basket->rebalance_frequency) {
+        $nextRebalance = match ($basket->rebalance_frequency) {
             'daily' => $lastRebalanced->copy()->addDay(),
             'weekly' => $lastRebalanced->copy()->addWeek(),
             'monthly' => $lastRebalanced->copy()->addMonth(),
             'quarterly' => $lastRebalanced->copy()->addQuarter(),
             default => $lastRebalanced->copy()->addMonth(),
-        }->toIso8601String();
+        };
+        
+        return $nextRebalance->toIso8601String();
     }
 
     private function getPeriodStartDate(string $period): \Carbon\Carbon
