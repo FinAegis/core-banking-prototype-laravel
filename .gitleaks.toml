@@ -1,0 +1,32 @@
+[allowlist]
+description = "Allowlist for FinAegis project"
+
+# Allow example webhook secrets in documentation and tests
+[[allowlist.regexes]]
+description = "Allow example webhook secrets in documentation"
+regex = '''whsec_\[redacted\]|whsec_\[your_webhook_secret\]'''
+
+# Allow placeholder API keys in documentation
+[[allowlist.regexes]]
+description = "Allow placeholder API keys"
+regex = '''your_api_key|YOUR_TOKEN|your_jwt_token_here|your_webhook_secret'''
+
+# Allow common variable names
+[[allowlist.regexes]]
+description = "Allow common variable names"
+regex = '''api_key|apiKey|API_KEY|bearer_token|bearerToken'''
+
+# Exclude documentation files
+[[allowlist.paths]]
+description = "Exclude documentation files"
+regex = '''docs/.*\.md$'''
+
+# Exclude Postman collection
+[[allowlist.paths]]
+description = "Exclude Postman collection"
+regex = '''.*\.postman_collection\.json$'''
+
+# Exclude test files
+[[allowlist.paths]]
+description = "Exclude test files"
+regex = '''tests/.*\.php$'''
