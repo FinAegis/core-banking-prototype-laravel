@@ -30,12 +30,20 @@ class BasketPerformanceTest extends TestCase
         $this->service = app(BasketPerformanceService::class);
         
         // Create a test basket with a unique code to avoid conflicts
-        $uniqueCode = 'TEST_BASKET_' . uniqid();
-        $this->basket = BasketAsset::factory()->create([
+        // Use process ID and timestamp for better uniqueness in parallel tests
+        $uniqueCode = 'T' . substr(md5(uniqid(mt_rand(), true)), 0, 9);
+        
+        // Create basket without using factory's configure method to avoid auto-components
+        $this->basket = new BasketAsset([
             'code' => $uniqueCode,
             'name' => 'Test Basket',
             'type' => 'fixed',
+            'rebalance_frequency' => 'never',
+            'is_active' => true,
+            'description' => 'Test basket for performance testing',
+            'metadata' => ['test' => true],
         ]);
+        $this->basket->save();
         
         // Add components only if they don't exist
         if ($this->basket->components()->count() === 0) {
