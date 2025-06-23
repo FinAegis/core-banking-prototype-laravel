@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public Pages
 Route::get('/', function () {
-    return view('landing');
+    return view('welcome');
 })->name('home');
 
 Route::get('/about', function () {
