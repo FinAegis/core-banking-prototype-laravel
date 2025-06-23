@@ -2,6 +2,7 @@
 
 use App\Domain\Governance\Models\Poll;
 use App\Models\User;
+use App\Models\AccountBalance;
 use App\Domain\Governance\Models\Vote;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
@@ -219,7 +220,11 @@ it('calculates voting power correctly for asset weighted voting', function () {
     ]);
     
     // Add USD balance to the account
-    $account->addBalance('USD', 500000); // $5000
+    AccountBalance::create([
+        'account_uuid' => $account->uuid,
+        'asset_code' => 'USD',
+        'balance' => 500000,
+    ]); // $5000
 
     $poll = Poll::factory()->active()->create([
         'type' => 'single_choice',
@@ -251,7 +256,11 @@ it('calculates higher voting power for larger balances', function () {
     ]);
     
     // Add USD balance to the account
-    $account->addBalance('USD', 1000000); // $10000
+    AccountBalance::create([
+        'account_uuid' => $account->uuid,
+        'asset_code' => 'USD',
+        'balance' => 1000000,
+    ]); // $10000
 
     $poll = Poll::factory()->active()->create([
         'type' => 'single_choice',

@@ -6,6 +6,7 @@ use App\Domain\Governance\Enums\PollStatus;
 use App\Domain\Governance\Enums\PollType;
 use App\Models\User;
 use App\Models\Account;
+use App\Models\AccountBalance;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
@@ -27,10 +28,14 @@ beforeEach(function () {
     );
     
     $this->user = User::factory()->create();
-    $this->account = Account::factory()->forUser($this->user)->create();
+    $this->account = Account::factory()->zeroBalance()->forUser($this->user)->create();
     
     // Give user some GCU balance for voting power
-    $this->account->addBalance('GCU', 100000); // 1000 GCU = 1000 voting power
+    AccountBalance::create([
+        'account_uuid' => $this->account->uuid,
+        'asset_code' => 'GCU',
+        'balance' => 100000,
+    ]); // 1000 GCU = 1000 voting power
 });
 
 it('can get active polls with user context', function () {
@@ -209,6 +214,7 @@ it('prevents double voting', function () {
     $poll = Poll::factory()->create([
         'status' => PollStatus::ACTIVE,
         'metadata' => ['template' => 'monthly_basket'],
+        'voting_power_strategy' => \App\Domain\Governance\Strategies\AssetWeightedVotingStrategy::class,
     ]);
     
     // Create existing vote
@@ -229,7 +235,9 @@ it('requires voting power to vote', function () {
     Sanctum::actingAs($this->user);
     
     // Remove GCU balance
-    $this->account->subtractBalance('GCU', 100000);
+    AccountBalance::where('account_uuid', $this->account->uuid)
+        ->where('asset_code', 'GCU')
+        ->delete();
     
     $poll = Poll::factory()->create([
         'status' => PollStatus::ACTIVE,
@@ -307,12 +315,12 @@ it('only accepts basket voting through basket endpoint', function () {
 it('includes metadata in vote record', function () {
     Sanctum::actingAs($this->user);
     
-    // Give user GCU balance to enable voting
-    $this->account->addBalance('GCU', 10000); // 100 GCU
+    // User already has GCU balance from beforeEach
     
     $poll = Poll::factory()->create([
         'status' => PollStatus::ACTIVE,
         'metadata' => ['template' => 'monthly_basket'],
+        'voting_power_strategy' => \App\Domain\Governance\Strategies\AssetWeightedVotingStrategy::class,
     ]);
     
     $response = $this->postJson("/api/voting/polls/{$poll->uuid}/vote", [
