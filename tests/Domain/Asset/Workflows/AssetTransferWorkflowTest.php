@@ -30,7 +30,7 @@ it('has execute method with correct signature', function () {
     $method = $reflection->getMethod('execute');
     
     expect($method->isPublic())->toBeTrue();
-    expect($method->getNumberOfParameters())->toBe(6); // 5 required + 1 optional
+    expect($method->getNumberOfParameters())->toBe(5); // 4 required + 1 optional
     expect($method->getReturnType()->getName())->toBe('Generator');
 });
 

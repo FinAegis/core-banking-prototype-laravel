@@ -35,13 +35,13 @@ it('has correct parameter types', function () {
     
     expect($parameters[0]->getName())->toBe('accountUuid');
     expect($parameters[1]->getName())->toBe('assetCode');
-    expect($parameters[2]->getName())->toBe('money');
+    expect($parameters[2]->getName())->toBe('amount');
     expect($parameters[3]->getName())->toBe('description');
     
     // Check parameter types
     expect($parameters[0]->getType()->getName())->toBe('App\Domain\Account\DataObjects\AccountUuid');
     expect($parameters[1]->getType()->getName())->toBe('string');
-    expect($parameters[2]->getType()->getName())->toBe('App\Domain\Account\DataObjects\Money');
+    expect($parameters[2]->getType()->getName())->toBe('int');
     expect($parameters[3]->getType()?->getName())->toBe('string');
     expect($parameters[3]->allowsNull())->toBeTrue();
 });
