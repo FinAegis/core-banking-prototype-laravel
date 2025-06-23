@@ -11,10 +11,6 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
-Route::get('/landing', function () {
-    return view('landing');
-})->name('landing');
-
 Route::get('/features', function () {
     return view('features.index');
 })->name('features');
