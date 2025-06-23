@@ -2,26 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Account\Aggregates\LedgerAggregate;
-use App\Domain\Account\Aggregates\AssetTransactionAggregate;
+use App\Domain\Wallet\Services\WalletService;
 use App\Models\Account;
-use App\Models\AccountBalance;
-use App\Domain\Account\Workflows\DepositAccountWorkflow;
-use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
-use App\Domain\Payment\Workflows\TransferWorkflow;
 use App\Domain\Asset\Models\Asset;
-use App\Domain\Asset\Workflows\AssetDepositWorkflow;
-use App\Domain\Asset\Workflows\AssetWithdrawWorkflow;
-use App\Domain\Asset\Aggregates\AssetTransferAggregate;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Account\DataObjects\AccountUuid;
-use App\Domain\Account\DataObjects\Money;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Workflow\WorkflowStub;
 
 class WalletController extends Controller
 {
+    public function __construct(
+        private WalletService $walletService
+    ) {
+    }
     /**
      * Show the deposit form
      */
@@ -55,12 +49,8 @@ class WalletController extends Controller
         $assetCode = $validated['asset_code'];
 
         try {
-            // Use event sourcing with AssetTransactionAggregate for proper audit trail
             $accountUuid = AccountUuid::fromString($account->uuid);
-            
-            $aggregate = AssetTransactionAggregate::retrieve($accountUuid);
-            $aggregate->credit($assetCode, $amount);
-            $aggregate->persist();
+            $this->walletService->deposit($accountUuid, $assetCode, $amount);
 
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Deposit failed: ' . $e->getMessage()]);
@@ -102,12 +92,8 @@ class WalletController extends Controller
         $assetCode = $validated['asset_code'];
 
         try {
-            // Use event sourcing with AssetTransactionAggregate for proper audit trail
             $accountUuid = AccountUuid::fromString($account->uuid);
-            
-            $aggregate = AssetTransactionAggregate::retrieve($accountUuid);
-            $aggregate->debit($assetCode, $amount);
-            $aggregate->persist();
+            $this->walletService->withdraw($accountUuid, $assetCode, $amount);
 
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Withdrawal failed: ' . $e->getMessage()]);
@@ -152,19 +138,11 @@ class WalletController extends Controller
         $assetCode = $validated['asset_code'];
 
         try {
-            // Use event sourcing for atomic transfer operation
             $fromAccountUuid = AccountUuid::fromString($fromAccount->uuid);
             $toAccountUuid = AccountUuid::fromString($toAccount->uuid);
+            $reference = $validated['reference'] ?? null;
             
-            // Debit from source account
-            $fromAggregate = AssetTransactionAggregate::retrieve($fromAccountUuid);
-            $fromAggregate->debit($assetCode, $amount);
-            $fromAggregate->persist();
-            
-            // Credit to destination account  
-            $toAggregate = AssetTransactionAggregate::retrieve($toAccountUuid);
-            $toAggregate->credit($assetCode, $amount);
-            $toAggregate->persist();
+            $this->walletService->transfer($fromAccountUuid, $toAccountUuid, $assetCode, $amount, $reference);
 
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Transfer failed: ' . $e->getMessage()]);
@@ -216,30 +194,10 @@ class WalletController extends Controller
         }
 
         try {
-            // Use Asset domain aggregate for proper cross-asset transfer with exchange rate handling
             $accountUuid = AccountUuid::fromString($account->uuid);
-            $fromMoney = new Money($amount, $fromAsset);
             $convertedAmount = (int) round($amount * $rate);
-            $toMoney = new Money($convertedAmount, $toAsset);
             
-            // Generate unique transfer ID for the conversion
-            $transferId = uniqid('conv_', true);
-            
-            $assetTransferAggregate = AssetTransferAggregate::retrieve($transferId);
-            $assetTransferAggregate->initiate(
-                $accountUuid, // from account
-                $accountUuid, // to account (same account for conversion)
-                $fromAsset,
-                $toAsset,
-                $fromMoney,
-                $toMoney,
-                $rate,
-                'Wallet currency conversion'
-            );
-            
-            // Complete the transfer immediately for wallet conversions
-            $assetTransferAggregate->complete($transferId);
-            $assetTransferAggregate->persist();
+            $this->walletService->convert($accountUuid, $fromAsset, $toAsset, $amount);
 
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Conversion failed: ' . $e->getMessage()]);
