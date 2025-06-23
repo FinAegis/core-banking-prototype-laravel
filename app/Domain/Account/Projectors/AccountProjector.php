@@ -12,8 +12,8 @@ use App\Domain\Account\Events\AccountCreated;
 use App\Domain\Account\Events\AccountDeleted;
 use App\Domain\Account\Events\AccountFrozen;
 use App\Domain\Account\Events\AccountUnfrozen;
-use App\Domain\Account\Events\MoneyAdded;
-use App\Domain\Account\Events\MoneySubtracted;
+use App\Domain\Account\Events\AssetBalanceAdded;
+use App\Domain\Account\Events\AssetBalanceSubtracted;
 use App\Domain\Account\Services\Cache\CacheManager;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
@@ -31,11 +31,11 @@ class AccountProjector extends Projector implements ShouldQueue
     }
 
     /**
-     * @param MoneyAdded $event
+     * @param AssetBalanceAdded $event
      *
      * @return void
      */
-    public function onMoneyAdded(MoneyAdded $event): void
+    public function onAssetBalanceAdded(AssetBalanceAdded $event): void
     {
         app( CreditAccount::class )($event);
         
@@ -46,11 +46,11 @@ class AccountProjector extends Projector implements ShouldQueue
     }
 
     /**
-     * @param MoneySubtracted $event
+     * @param AssetBalanceSubtracted $event
      *
      * @return void
      */
-    public function onMoneySubtracted(MoneySubtracted $event): void
+    public function onAssetBalanceSubtracted(AssetBalanceSubtracted $event): void
     {
         app( DebitAccount::class )($event);
         

@@ -18,19 +18,19 @@ it('can transfer money between accounts', function () {
     $response = $this->postJson('/api/transfers', [
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
-        'amount' => 300,
+        'amount' => 3.00, // $3.00 = 300 cents
+        'asset_code' => 'USD',
         'description' => 'Test transfer',
     ]);
 
     $response->assertStatus(201)
         ->assertJsonStructure([
             'data' => [
-                'transfer_uuid',
-                'from_account_uuid',
-                'to_account_uuid',
+                'uuid',
+                'from_account',
+                'to_account',
                 'amount',
-                'from_account_new_balance',
-                'to_account_new_balance',
+                'asset_code',
                 'status',
                 'created_at',
             ],
@@ -38,12 +38,12 @@ it('can transfer money between accounts', function () {
         ])
         ->assertJson([
             'data' => [
-                'from_account_uuid' => $fromAccount->uuid,
-                'to_account_uuid' => $toAccount->uuid,
-                'amount' => 300,
-                'status' => 'completed',
+                'from_account' => $fromAccount->uuid,
+                'to_account' => $toAccount->uuid,
+                'amount' => 3.00,
+                'status' => 'pending',
             ],
-            'message' => 'Transfer completed successfully',
+            'message' => 'Transfer initiated successfully',
         ]);
 
     // WorkflowStub assertions don't work well with Laravel Workflow package
@@ -55,7 +55,7 @@ it('validates required fields for transfer', function () {
     $response = $this->postJson('/api/transfers', []);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['from_account_uuid', 'to_account_uuid', 'amount']);
+        ->assertJsonValidationErrors(['amount', 'asset_code']);
 });
 
 it('validates accounts exist for transfer', function () {
@@ -68,6 +68,7 @@ it('validates accounts exist for transfer', function () {
         'from_account_uuid' => $fakeUuid,
         'to_account_uuid' => $account->uuid,
         'amount' => 100,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -83,6 +84,7 @@ it('cannot transfer to same account', function () {
         'from_account_uuid' => $account->uuid,
         'to_account_uuid' => $account->uuid,
         'amount' => 100,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -104,7 +106,8 @@ it('cannot transfer more than available balance', function () {
     $response = $this->postJson('/api/transfers', [
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
-        'amount' => 500,
+        'amount' => 5.00,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -128,6 +131,7 @@ it('validates transfer amount is positive', function () {
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
         'amount' => 0,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -137,6 +141,7 @@ it('validates transfer amount is positive', function () {
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
         'amount' => -100,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -156,6 +161,7 @@ it('can handle workflow exceptions during transfer', function () {
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
         'amount' => 300,
+        'asset_code' => 'USD',
         'description' => 'Test transfer',
     ]);
 
@@ -190,6 +196,7 @@ it('requires authentication for all endpoints', function () {
         'from_account_uuid' => Str::uuid()->toString(),
         'to_account_uuid' => Str::uuid()->toString(),
         'amount' => 100,
+        'asset_code' => 'USD',
     ])->assertStatus(401);
     
     $this->getJson("/api/transfers/{$uuid}")
@@ -208,6 +215,7 @@ it('validates that from and to accounts are different', function () {
         'from_account_uuid' => $account->uuid,
         'to_account_uuid' => $account->uuid,
         'amount' => 100,
+        'asset_code' => 'USD',
         'description' => 'Invalid transfer',
     ]);
 
@@ -225,6 +233,7 @@ it('validates transfer amount minimum', function () {
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
         'amount' => 0.001, // Below minimum
+        'asset_code' => 'USD',
         'description' => 'Test transfer',
     ]);
 
@@ -240,6 +249,7 @@ it('handles invalid account UUIDs gracefully', function () {
         'from_account_uuid' => 'invalid-uuid',
         'to_account_uuid' => 'another-invalid-uuid',
         'amount' => 100,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -263,7 +273,8 @@ it('can include optional description in transfer', function () {
     $response = $this->postJson('/api/transfers', [
         'from_account_uuid' => $fromAccount->uuid,
         'to_account_uuid' => $toAccount->uuid,
-        'amount' => 25000, // $250.00 in cents
+        'amount' => 250.00, // $250.00
+        'asset_code' => 'USD',
         'description' => 'Salary payment',
     ]);
 

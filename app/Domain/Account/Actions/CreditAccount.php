@@ -2,17 +2,17 @@
 
 namespace App\Domain\Account\Actions;
 
-use App\Domain\Account\Events\MoneyAdded;
+use App\Domain\Account\Events\AssetBalanceAdded;
 use App\Models\Account;
 
 class CreditAccount extends AccountAction
 {
     /**
-     * @param \App\Domain\Account\Events\MoneyAdded $event
+     * @param \App\Domain\Account\Events\AssetBalanceAdded $event
      *
      * @return \App\Models\Account
      */
-    public function __invoke(MoneyAdded $event): Account
+    public function __invoke(AssetBalanceAdded $event): Account
     {
         $account = $this->accountRepository->findByUuid(
             $event->aggregateRootUuid()
@@ -22,7 +22,7 @@ class CreditAccount extends AccountAction
         $balance = \App\Models\AccountBalance::firstOrCreate(
             [
                 'account_uuid' => $account->uuid,
-                'asset_code' => $event->money->assetCode,
+                'asset_code' => $event->assetCode,
             ],
             [
                 'balance' => 0,
@@ -30,7 +30,7 @@ class CreditAccount extends AccountAction
         );
         
         // Add to balance amount (in smallest unit)
-        $balance->balance += $event->money->amount;
+        $balance->balance += $event->amount;
         $balance->save();
         
         return $account->fresh();
