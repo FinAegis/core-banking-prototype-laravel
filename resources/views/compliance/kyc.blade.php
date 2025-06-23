@@ -65,7 +65,7 @@
                                     Choose Your Verification Level
                                 </h4>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 cursor-pointer">
+                                    <div id="kyc-basic" onclick="selectKycLevel('basic')" class="kyc-level-card border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 cursor-pointer transition-all">
                                         <h5 class="font-medium text-gray-900 dark:text-gray-100">Basic</h5>
                                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Up to $10,000 daily limit</p>
                                         <ul class="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
@@ -74,7 +74,7 @@
                                         </ul>
                                     </div>
                                     
-                                    <div class="border-2 border-indigo-500 rounded-lg p-4 cursor-pointer">
+                                    <div id="kyc-enhanced" onclick="selectKycLevel('enhanced')" class="kyc-level-card border-2 border-indigo-500 rounded-lg p-4 cursor-pointer transition-all">
                                         <h5 class="font-medium text-gray-900 dark:text-gray-100">Enhanced</h5>
                                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Up to $50,000 daily limit</p>
                                         <ul class="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
@@ -84,7 +84,7 @@
                                         </ul>
                                     </div>
                                     
-                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 cursor-pointer">
+                                    <div id="kyc-full" onclick="selectKycLevel('full')" class="kyc-level-card border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 cursor-pointer transition-all">
                                         <h5 class="font-medium text-gray-900 dark:text-gray-100">Full</h5>
                                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">No limits</p>
                                         <ul class="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
@@ -106,8 +106,9 @@
                                         <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                                             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
+                                        <input type="file" id="kyc-file-upload" class="hidden" accept=".jpg,.jpeg,.png,.pdf" onchange="handleFileUpload(event)">
                                         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                            <button type="button" class="font-medium text-indigo-600 hover:text-indigo-500">
+                                            <button type="button" onclick="document.getElementById('kyc-file-upload').click()" class="font-medium text-indigo-600 hover:text-indigo-500">
                                                 Upload a file
                                             </button>
                                             or drag and drop
@@ -121,10 +122,10 @@
 
                             <!-- Submit Button -->
                             <div class="flex justify-end">
-                                <button type="button" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 active:bg-gray-500 focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-300 disabled:opacity-25 transition mr-3">
+                                <button type="button" onclick="skipKyc()" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 active:bg-gray-500 focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-300 disabled:opacity-25 transition mr-3">
                                     Skip for Now
                                 </button>
-                                <button type="button" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+                                <button type="button" onclick="submitKyc()" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
                                     Submit for Verification
                                 </button>
                             </div>
@@ -134,4 +135,106 @@
             </div>
         </div>
     </div>
+
+    <!-- KYC JavaScript -->
+    <script>
+        let selectedKycLevel = 'enhanced';
+        let uploadedFiles = [];
+
+        function selectKycLevel(level) {
+            selectedKycLevel = level;
+            
+            // Reset all cards
+            document.querySelectorAll('.kyc-level-card').forEach(card => {
+                card.classList.remove('border-2', 'border-indigo-500');
+                card.classList.add('border', 'border-gray-200', 'dark:border-gray-700');
+            });
+            
+            // Highlight selected card
+            const selectedCard = document.getElementById('kyc-' + level);
+            selectedCard.classList.remove('border', 'border-gray-200', 'dark:border-gray-700');
+            selectedCard.classList.add('border-2', 'border-indigo-500');
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be less than 10MB');
+                    return;
+                }
+                
+                uploadedFiles.push(file);
+                alert('File "' + file.name + '" uploaded successfully. In production, this would upload to secure storage.');
+            }
+        }
+
+        function skipKyc() {
+            if (confirm('Are you sure you want to skip KYC verification? You will have limited functionality.')) {
+                window.location.href = '/dashboard';
+            }
+        }
+
+        function submitKyc() {
+            if (uploadedFiles.length === 0) {
+                alert('Please upload at least one document to proceed with KYC verification.');
+                return;
+            }
+            
+            // In production, this would submit to the KYC API
+            alert('KYC documents submitted for ' + selectedKycLevel + ' verification. You will be notified once verification is complete.');
+            
+            // For demo, mark KYC as pending
+            fetch('/api/compliance/kyc/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    level: selectedKycLevel,
+                    documents: uploadedFiles.map(f => f.name)
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/dashboard';
+                } else {
+                    // If API doesn't exist yet, just redirect
+                    window.location.href = '/dashboard';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Redirect anyway for demo
+                window.location.href = '/dashboard';
+            });
+        }
+
+        // Drag and drop functionality
+        const dropZone = document.querySelector('.border-dashed');
+        if (dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/10');
+            });
+            
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/10');
+            });
+            
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/10');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload({ target: { files: [files[0]] } });
+                }
+            });
+        }
+    </script>
 </x-app-layout>

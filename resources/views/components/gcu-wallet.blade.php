@@ -236,7 +236,7 @@
                                     </svg>
                                     <p class="text-base font-medium mb-1">No assets yet</p>
                                     <p class="text-sm">
-                                        @if(!auth()->user()->accounts->first())
+                                        @if(auth()->user()->accounts->count() == 0)
                                             Create an account to get started
                                         @else
                                             Deposit funds to see your balances here
