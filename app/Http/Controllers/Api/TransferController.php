@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Payment\Workflows\TransferWorkflow;
+use App\Domain\Asset\Workflows\AssetTransferWorkflow;
+use App\Domain\Asset\Models\Asset;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Transfer;
@@ -59,14 +61,32 @@ class TransferController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'from_account_uuid' => 'required|uuid|exists:accounts,uuid',
-            'to_account_uuid' => 'required|uuid|exists:accounts,uuid|different:from_account_uuid',
-            'amount' => 'required|integer|min:1',
+            'from_account_uuid' => 'sometimes|uuid|exists:accounts,uuid',
+            'to_account_uuid' => 'sometimes|uuid|exists:accounts,uuid|different:from_account_uuid',
+            'from_account' => 'sometimes|uuid|exists:accounts,uuid',
+            'to_account' => 'sometimes|uuid|exists:accounts,uuid|different:from_account',
+            'amount' => 'required|numeric|min:0.01',
+            'asset_code' => 'required|string|exists:assets,code',
+            'reference' => 'sometimes|string|max:255',
             'description' => 'sometimes|string|max:255',
         ]);
 
-        $fromAccount = Account::where('uuid', $validated['from_account_uuid'])->first();
-        $toAccount = Account::where('uuid', $validated['to_account_uuid'])->first();
+        // Support both field name formats for backward compatibility
+        $fromAccountUuid = $validated['from_account_uuid'] ?? $validated['from_account'];
+        $toAccountUuid = $validated['to_account_uuid'] ?? $validated['to_account'];
+
+        if (!$fromAccountUuid || !$toAccountUuid) {
+            return response()->json([
+                'message' => 'Both from and to account UUIDs are required',
+                'errors' => [
+                    'from_account_uuid' => $fromAccountUuid ? [] : ['The from account uuid field is required.'],
+                    'to_account_uuid' => $toAccountUuid ? [] : ['The to account uuid field is required.'],
+                ],
+            ], 422);
+        }
+
+        $fromAccount = Account::where('uuid', $fromAccountUuid)->first();
+        $toAccount = Account::where('uuid', $toAccountUuid)->first();
 
         if ($fromAccount && $fromAccount->frozen) {
             return response()->json([
@@ -82,25 +102,36 @@ class TransferController extends Controller
             ], 422);
         }
 
-        // For backward compatibility, use USD balance
-        $fromBalance = $fromAccount->getBalance('USD');
+        $asset = Asset::where('code', $validated['asset_code'])->firstOrFail();
+        $amountInMinorUnits = (int) round($validated['amount'] * (10 ** $asset->precision));
+
+        // Check sufficient balance
+        $fromBalance = $fromAccount->getBalance($validated['asset_code']);
         
-        if ($fromBalance < $validated['amount']) {
+        if ($fromBalance < $amountInMinorUnits) {
             return response()->json([
                 'message' => 'Insufficient funds',
                 'error' => 'INSUFFICIENT_FUNDS',
                 'current_balance' => $fromBalance,
-                'requested_amount' => $validated['amount'],
+                'requested_amount' => $amountInMinorUnits,
             ], 422);
         }
 
-        $fromUuid = new AccountUuid($validated['from_account_uuid']);
-        $toUuid = new AccountUuid($validated['to_account_uuid']);
-        $money = new Money($validated['amount']);
+        $fromUuid = new AccountUuid($fromAccountUuid);
+        $toUuid = new AccountUuid($toAccountUuid);
 
         try {
-            $workflow = WorkflowStub::make(TransferWorkflow::class);
-            $workflow->start($fromUuid, $toUuid, $money);
+            // Determine which workflow to use based on asset type
+            if ($validated['asset_code'] === 'USD') {
+                // Legacy workflow for USD
+                $money = new Money($amountInMinorUnits);
+                $workflow = WorkflowStub::make(TransferWorkflow::class);
+                $workflow->start($fromUuid, $toUuid, $money);
+            } else {
+                // Multi-asset workflow for other assets
+                $workflow = WorkflowStub::make(AssetTransferWorkflow::class);
+                $workflow->start($fromUuid, $toUuid, $validated['asset_code'], $amountInMinorUnits);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Transfer failed',
@@ -108,25 +139,22 @@ class TransferController extends Controller
             ], 422);
         }
 
-        $fromAccount->refresh();
-        $toAccount->refresh();
-
         // Since we're using event sourcing, we don't have a traditional transfer record
         // Just use the provided data for the response
         $transferUuid = Str::uuid()->toString();
 
         return response()->json([
             'data' => [
-                'transfer_uuid' => $transferUuid,
-                'from_account_uuid' => $validated['from_account_uuid'],
-                'to_account_uuid' => $validated['to_account_uuid'],
+                'uuid' => $transferUuid,
+                'status' => 'pending',
+                'from_account' => $fromAccountUuid,
+                'to_account' => $toAccountUuid,
                 'amount' => $validated['amount'],
-                'from_account_new_balance' => $fromAccount->getBalance('USD'),
-                'to_account_new_balance' => $toAccount->getBalance('USD'),
-                'status' => 'completed',
-                'created_at' => now(),
+                'asset_code' => $validated['asset_code'],
+                'reference' => $validated['reference'] ?? $validated['description'] ?? null,
+                'created_at' => now()->toISOString(),
             ],
-            'message' => 'Transfer completed successfully',
+            'message' => 'Transfer initiated successfully',
         ], 201);
     }
 

@@ -8,6 +8,9 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Workflows\DepositAccountWorkflow;
 use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
+use App\Domain\Asset\Workflows\AssetDepositWorkflow;
+use App\Domain\Asset\Workflows\AssetWithdrawWorkflow;
+use App\Domain\Asset\Models\Asset;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Transaction;
@@ -68,11 +71,20 @@ class TransactionController extends Controller
     public function deposit(Request $request, string $uuid): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => 'required|integer|min:1',
+            'amount' => 'required|numeric|min:0.01',
+            'asset_code' => 'required|string|exists:assets,code',
             'description' => 'sometimes|string|max:255',
         ]);
 
         $account = Account::where('uuid', $uuid)->firstOrFail();
+
+        // Check if user owns this account
+        if ($account->user_uuid !== auth()->user()->uuid) {
+            return response()->json([
+                'message' => 'Access denied to this account',
+                'error' => 'FORBIDDEN',
+            ], 403);
+        }
 
         if ($account->frozen) {
             return response()->json([
@@ -81,22 +93,25 @@ class TransactionController extends Controller
             ], 422);
         }
 
+        $asset = Asset::where('code', $validated['asset_code'])->firstOrFail();
+        $amountInMinorUnits = (int) round($validated['amount'] * (10 ** $asset->precision));
+
         $accountUuid = new AccountUuid($uuid);
-        $money = new Money($validated['amount']);
 
-        $workflow = WorkflowStub::make(DepositAccountWorkflow::class);
-        $workflow->start($accountUuid, $money);
-
-        $updatedAccount = Account::where('uuid', $uuid)->first();
+        // Determine which workflow to use based on asset type
+        if ($validated['asset_code'] === 'USD') {
+            // Legacy workflow for USD
+            $money = new Money($amountInMinorUnits);
+            $workflow = WorkflowStub::make(DepositAccountWorkflow::class);
+            $workflow->start($accountUuid, $money);
+        } else {
+            // Multi-asset workflow for other assets
+            $workflow = WorkflowStub::make(AssetDepositWorkflow::class);
+            $workflow->start($accountUuid, $validated['asset_code'], $amountInMinorUnits);
+        }
 
         return response()->json([
-            'data' => [
-                'account_uuid' => $updatedAccount->uuid,
-                'new_balance' => $updatedAccount->getBalance('USD'),
-                'amount_deposited' => $validated['amount'],
-                'transaction_type' => 'deposit',
-            ],
-            'message' => 'Deposit completed successfully',
+            'message' => 'Deposit initiated successfully',
         ]);
     }
 
@@ -151,37 +166,57 @@ class TransactionController extends Controller
     public function withdraw(Request $request, string $uuid): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => 'required|integer|min:1',
+            'amount' => 'required|numeric|min:0.01',
+            'asset_code' => 'required|string|exists:assets,code',
             'description' => 'sometimes|string|max:255',
         ]);
 
         $account = Account::where('uuid', $uuid)->firstOrFail();
 
+        // Check if user owns this account
+        if ($account->user_uuid !== auth()->user()->uuid) {
+            return response()->json([
+                'message' => 'Access denied to this account',
+                'error' => 'FORBIDDEN',
+            ], 403);
+        }
+
         if ($account->frozen) {
             return response()->json([
-                'message' => 'Cannot deposit to frozen account',
+                'message' => 'Cannot withdraw from frozen account',
                 'error' => 'ACCOUNT_FROZEN',
             ], 422);
         }
 
-        // For backward compatibility, use USD balance
-        $usdBalance = $account->getBalance('USD');
+        $asset = Asset::where('code', $validated['asset_code'])->firstOrFail();
+        $amountInMinorUnits = (int) round($validated['amount'] * (10 ** $asset->precision));
+
+        // Check sufficient balance
+        $balance = $account->getBalance($validated['asset_code']);
         
-        if ($usdBalance < $validated['amount']) {
+        if ($balance < $amountInMinorUnits) {
             return response()->json([
-                'message' => 'Insufficient funds',
-                'error' => 'INSUFFICIENT_FUNDS',
-                'current_balance' => $usdBalance,
-                'requested_amount' => $validated['amount'],
+                'message' => 'Insufficient balance',
+                'errors' => [
+                    'amount' => ['Insufficient balance'],
+                ],
             ], 422);
         }
 
         $accountUuid = new AccountUuid($uuid);
-        $money = new Money($validated['amount']);
 
         try {
-            $workflow = WorkflowStub::make(WithdrawAccountWorkflow::class);
-            $workflow->start($accountUuid, $money);
+            // Determine which workflow to use based on asset type
+            if ($validated['asset_code'] === 'USD') {
+                // Legacy workflow for USD
+                $money = new Money($amountInMinorUnits);
+                $workflow = WorkflowStub::make(WithdrawAccountWorkflow::class);
+                $workflow->start($accountUuid, $money);
+            } else {
+                // Multi-asset workflow for other assets
+                $workflow = WorkflowStub::make(AssetWithdrawWorkflow::class);
+                $workflow->start($accountUuid, $validated['asset_code'], $amountInMinorUnits);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Withdrawal failed',
@@ -189,16 +224,8 @@ class TransactionController extends Controller
             ], 422);
         }
 
-        $updatedAccount = Account::where('uuid', $uuid)->first();
-
         return response()->json([
-            'data' => [
-                'account_uuid' => $updatedAccount->uuid,
-                'new_balance' => $updatedAccount->getBalance('USD'),
-                'amount_withdrawn' => $validated['amount'],
-                'transaction_type' => 'withdrawal',
-            ],
-            'message' => 'Withdrawal completed successfully',
+            'message' => 'Withdrawal initiated successfully',
         ]);
     }
 

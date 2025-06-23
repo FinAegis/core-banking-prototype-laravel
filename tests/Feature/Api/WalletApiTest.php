@@ -228,11 +228,11 @@ class WalletApiTest extends TestCase
         $response->assertJsonStructure([
             'data' => [
                 '*' => [
-                    'from',
-                    'to',
+                    'from_asset',
+                    'to_asset',
                     'rate',
-                    'provider',
-                    'updated_at',
+                    'source',
+                    'valid_at',
                 ],
             ],
         ]);
@@ -247,9 +247,9 @@ class WalletApiTest extends TestCase
         $response->assertJson([
             'data' => [
                 [
-                    'from_asset_code' => 'USD',
-                    'to_asset_code' => 'EUR',
-                    'rate' => 0.92,
+                    'from_asset' => 'USD',
+                    'to_asset' => 'EUR',
+                    'rate' => '0.9200000000',
                 ],
             ],
         ]);

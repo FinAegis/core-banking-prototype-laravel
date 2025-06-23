@@ -18,14 +18,14 @@ class AssetDepositWorkflow extends Workflow
     public function execute(
         AccountUuid $accountUuid,
         string $assetCode,
-        Money $money,
+        int $amount,
         ?string $description = null
     ): \Generator {
         return yield ActivityStub::make(
             DepositAssetActivity::class,
             $accountUuid,
             $assetCode,
-            $money,
+            $amount,
             $description
         );
     }

@@ -67,6 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/accounts/{uuid}/balances', [AccountBalanceController::class, 'show']);
     Route::get('/balances', [AccountBalanceController::class, 'index']);
     
+    // Currency conversion endpoint
+    Route::post('/exchange/convert', [ExchangeRateController::class, 'convertCurrency']);
+    
     // Custodian integration endpoints
     Route::prefix('custodians')->group(function () {
         Route::get('/', [CustodianController::class, 'index']);
@@ -107,12 +110,15 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Public asset and exchange rate endpoints (no auth required for read-only access)
+Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
+Route::get('/exchange-rates/{from}/{to}', [ExchangeRateController::class, 'show']);
+
 Route::prefix('v1')->group(function () {
     // Asset management endpoints
     Route::get('/assets', [AssetController::class, 'index']);
     Route::get('/assets/{code}', [AssetController::class, 'show']);
     
-    // Exchange rate endpoints
+    // Exchange rate endpoints (legacy v1 support)
     Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
     Route::get('/exchange-rates/{from}/{to}', [ExchangeRateController::class, 'show']);
     Route::get('/exchange-rates/{from}/{to}/convert', [ExchangeRateController::class, 'convert']);

@@ -18,14 +18,14 @@ class AssetWithdrawWorkflow extends Workflow
     public function execute(
         AccountUuid $accountUuid,
         string $assetCode,
-        Money $money,
+        int $amount,
         ?string $description = null
     ): \Generator {
         return yield ActivityStub::make(
             WithdrawAssetActivity::class,
             $accountUuid,
             $assetCode,
-            $money,
+            $amount,
             $description
         );
     }

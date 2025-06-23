@@ -342,6 +342,90 @@ class ExchangeRateController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Convert currency for an account
+     */
+    public function convertCurrency(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'account_uuid' => 'required|string|exists:accounts,uuid',
+            'from_currency' => 'required|string|exists:assets,code',
+            'to_currency' => 'required|string|exists:assets,code',
+            'amount' => 'required|numeric|min:0.01',
+        ]);
+
+        // Get exchange rate
+        $exchangeRate = ExchangeRate::where('from_asset_code', $validated['from_currency'])
+            ->where('to_asset_code', $validated['to_currency'])
+            ->valid()
+            ->first();
+
+        if (!$exchangeRate) {
+            return response()->json([
+                'message' => "Exchange rate not available for {$validated['from_currency']} to {$validated['to_currency']}",
+            ], 422);
+        }
+
+        $account = \App\Models\Account::where('uuid', $validated['account_uuid'])->firstOrFail();
+        $fromAsset = \App\Domain\Asset\Models\Asset::where('code', $validated['from_currency'])->firstOrFail();
+        $toAsset = \App\Domain\Asset\Models\Asset::where('code', $validated['to_currency'])->firstOrFail();
+
+        $fromAmountInMinorUnits = (int) round($validated['amount'] * (10 ** $fromAsset->precision));
+        $toAmountInMinorUnits = (int) round($fromAmountInMinorUnits * $exchangeRate->rate);
+
+        // Check sufficient balance
+        $balance = $account->getBalance($validated['from_currency']);
+        if ($balance < $fromAmountInMinorUnits) {
+            return response()->json([
+                'message' => 'Insufficient balance',
+                'errors' => [
+                    'amount' => ['Insufficient balance'],
+                ],
+            ], 422);
+        }
+
+        try {
+            // For USD, use legacy workflows
+            if ($validated['from_currency'] === 'USD') {
+                $accountUuid = new \App\Domain\Account\DataObjects\AccountUuid($validated['account_uuid']);
+                $money = new \App\Domain\Account\DataObjects\Money($fromAmountInMinorUnits);
+                
+                // Withdraw USD using legacy workflow
+                $withdrawWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Account\Workflows\WithdrawAccountWorkflow::class);
+                $withdrawWorkflow->start($accountUuid, $money);
+                
+                // Deposit target asset using asset workflow
+                $depositWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Asset\Workflows\AssetDepositWorkflow::class);
+                $depositWorkflow->start($accountUuid, $validated['to_currency'], $toAmountInMinorUnits);
+            } else {
+                // Use asset workflows for both sides
+                $accountUuid = new \App\Domain\Account\DataObjects\AccountUuid($validated['account_uuid']);
+                
+                $withdrawWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Asset\Workflows\AssetWithdrawWorkflow::class);
+                $withdrawWorkflow->start($accountUuid, $validated['from_currency'], $fromAmountInMinorUnits);
+                
+                $depositWorkflow = \Workflow\WorkflowStub::make(\App\Domain\Asset\Workflows\AssetDepositWorkflow::class);
+                $depositWorkflow->start($accountUuid, $validated['to_currency'], $toAmountInMinorUnits);
+            }
+
+            return response()->json([
+                'message' => 'Currency conversion initiated successfully',
+                'data' => [
+                    'from_amount' => $validated['amount'],
+                    'to_amount' => $toAmountInMinorUnits / (10 ** $toAsset->precision),
+                    'from_currency' => $validated['from_currency'],
+                    'to_currency' => $validated['to_currency'],
+                    'exchange_rate' => $exchangeRate->rate,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Currency conversion failed',
+                'error' => 'CONVERSION_FAILED',
+            ], 422);
+        }
+    }
     
     private function formatAmount(int $amount, ?\App\Domain\Asset\Models\Asset $asset): string
     {

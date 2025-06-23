@@ -23,9 +23,8 @@ class AssetTransferWorkflow extends Workflow
     public function execute(
         AccountUuid $fromAccountUuid,
         AccountUuid $toAccountUuid,
-        string $fromAssetCode,
-        string $toAssetCode,
-        Money $fromAmount,
+        string $assetCode,
+        int $amount,
         ?string $description = null
     ): \Generator {
         try {
