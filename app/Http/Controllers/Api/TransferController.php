@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Payment\Workflows\TransferWorkflow;
-use App\Domain\Asset\Workflows\AssetTransferWorkflow;
+use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
 use App\Domain\Asset\Models\Asset;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
@@ -121,17 +121,9 @@ class TransferController extends Controller
         $toUuid = new AccountUuid($toAccountUuid);
 
         try {
-            // Determine which workflow to use based on asset type
-            if ($validated['asset_code'] === 'USD') {
-                // Legacy workflow for USD
-                $money = new Money($amountInMinorUnits);
-                $workflow = WorkflowStub::make(TransferWorkflow::class);
-                $workflow->start($fromUuid, $toUuid, $money);
-            } else {
-                // Multi-asset workflow for other assets
-                $workflow = WorkflowStub::make(AssetTransferWorkflow::class);
-                $workflow->start($fromUuid, $toUuid, $validated['asset_code'], $amountInMinorUnits);
-            }
+            // Use our wallet transfer workflow for all assets
+            $workflow = WorkflowStub::make(WalletTransferWorkflow::class);
+            $workflow->start($fromUuid, $toUuid, $validated['asset_code'], $amountInMinorUnits);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Transfer failed',
