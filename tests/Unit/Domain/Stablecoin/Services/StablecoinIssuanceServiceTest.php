@@ -7,6 +7,7 @@ namespace Tests\Unit\Domain\Stablecoin\Services;
 use App\Domain\Stablecoin\Services\StablecoinIssuanceService;
 use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Asset\Services\ExchangeRateService;
+use App\Domain\Wallet\Services\WalletService;
 use App\Models\Account;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
@@ -22,6 +23,7 @@ class StablecoinIssuanceServiceTest extends TestCase
     protected StablecoinIssuanceService $service;
     protected $exchangeRateService;
     protected $collateralService;
+    protected $walletService;
     protected Account $account;
     protected Stablecoin $stablecoin;
     protected Asset $usdAsset;
@@ -34,9 +36,11 @@ class StablecoinIssuanceServiceTest extends TestCase
         
         $this->exchangeRateService = Mockery::mock(ExchangeRateService::class);
         $this->collateralService = Mockery::mock(CollateralService::class);
+        $this->walletService = Mockery::mock(WalletService::class);
         $this->service = new StablecoinIssuanceService(
             $this->exchangeRateService,
-            $this->collateralService
+            $this->collateralService,
+            $this->walletService
         );
         
         // Create assets
@@ -62,8 +66,16 @@ class StablecoinIssuanceServiceTest extends TestCase
         
         // Create account with balances
         $this->account = Account::factory()->create();
-        $this->account->addBalance('USD', 1000000); // $10,000
-        $this->account->addBalance('EUR', 500000); // €5,000
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'USD',
+            'balance' => 1000000, // $10,000
+        ]);
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'EUR',
+            'balance' => 500000, // €5,000
+        ]);
         
         // Create stablecoin
         $this->stablecoin = Stablecoin::create([
@@ -244,7 +256,11 @@ class StablecoinIssuanceServiceTest extends TestCase
         ]);
         
         // Give account FUSD to burn
-        $this->account->addBalance('FUSD', 100000);
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'FUSD',
+            'balance' => 100000,
+        ]);
         
         // Set up stablecoin stats
         $this->stablecoin->total_supply = 100000;
@@ -292,7 +308,11 @@ class StablecoinIssuanceServiceTest extends TestCase
             'status' => 'active',
         ]);
         
-        $this->account->addBalance('FUSD', 100000);
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'FUSD',
+            'balance' => 100000,
+        ]);
         $this->stablecoin->total_supply = 100000;
         $this->stablecoin->total_collateral_value = 150000;
         $this->stablecoin->save();
@@ -370,7 +390,11 @@ class StablecoinIssuanceServiceTest extends TestCase
             'status' => 'active',
         ]);
         
-        $this->account->addBalance('FUSD', 100000);
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'FUSD',
+            'balance' => 100000,
+        ]);
         
         $this->collateralService
             ->shouldReceive('convertToPegAsset')

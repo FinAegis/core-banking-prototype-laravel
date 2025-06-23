@@ -29,7 +29,7 @@ class BasketAccountControllerTest extends TestCase
         parent::setUp();
         
         $this->user = User::factory()->create();
-        $this->account = Account::factory()->forUser($this->user)->create();
+        $this->account = Account::factory()->forUser($this->user)->zeroBalance()->create();
         
         // Create test assets
         Asset::firstOrCreate(
@@ -128,7 +128,11 @@ class BasketAccountControllerTest extends TestCase
         Sanctum::actingAs($this->user);
         
         // Give account basket balance
-        $this->account->addBalance('TEST_BASKET', 10000); // 1 basket unit
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'TEST_BASKET',
+            'balance' => 10000, // 1 basket unit
+        ]);
         
         $response = $this->postJson("/api/v2/accounts/{$this->account->uuid}/baskets/decompose", [
             'basket_code' => 'TEST_BASKET',
@@ -173,7 +177,11 @@ class BasketAccountControllerTest extends TestCase
         Sanctum::actingAs($this->user);
         
         // Give account less basket balance than requested
-        $this->account->addBalance('TEST_BASKET', 5000);
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'TEST_BASKET',
+            'balance' => 5000,
+        ]);
         
         $response = $this->postJson("/api/v2/accounts/{$this->account->uuid}/baskets/decompose", [
             'basket_code' => 'TEST_BASKET',
@@ -210,9 +218,21 @@ class BasketAccountControllerTest extends TestCase
         
         // Give account component balances
         // For 1 basket unit (10000), we need components based on weights
-        $this->account->addBalance('USD', 4000); // 40% of 10000
-        $this->account->addBalance('EUR', 3500); // 35% of 10000
-        $this->account->addBalance('GBP', 2500); // 25% of 10000
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'USD',
+            'balance' => 4000,
+        ]); // 40% of 10000
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'EUR',
+            'balance' => 3500,
+        ]); // 35% of 10000
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'GBP',
+            'balance' => 2500,
+        ]); // 25% of 10000
         
         $response = $this->postJson("/api/v2/accounts/{$this->account->uuid}/baskets/compose", [
             'basket_code' => 'TEST_BASKET',
@@ -257,9 +277,21 @@ class BasketAccountControllerTest extends TestCase
         Sanctum::actingAs($this->user);
         
         // Give account insufficient component balances
-        $this->account->addBalance('USD', 2000); // Only half needed
-        $this->account->addBalance('EUR', 1750); // Only half needed
-        $this->account->addBalance('GBP', 1250); // Only half needed
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'USD',
+            'balance' => 2000,
+        ]); // Only half needed
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'EUR',
+            'balance' => 1750,
+        ]); // Only half needed
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'GBP',
+            'balance' => 1250,
+        ]); // Only half needed
         
         $response = $this->postJson("/api/v2/accounts/{$this->account->uuid}/baskets/compose", [
             'basket_code' => 'TEST_BASKET',
@@ -276,7 +308,11 @@ class BasketAccountControllerTest extends TestCase
         Sanctum::actingAs($this->user);
         
         // Give account basket balances
-        $this->account->addBalance('TEST_BASKET', 20000); // 2 basket units
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'TEST_BASKET',
+            'balance' => 20000,
+        ]); // 2 basket units
         
         // Create another basket
         $basket2 = BasketAsset::create([
@@ -311,7 +347,11 @@ class BasketAccountControllerTest extends TestCase
             'calculated_at' => now(),
         ]);
         
-        $this->account->addBalance('ANOTHER_BASKET', 10000); // 1 basket unit
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'ANOTHER_BASKET',
+            'balance' => 10000,
+        ]); // 1 basket unit
         
         $response = $this->getJson("/api/v2/accounts/{$this->account->uuid}/baskets");
         
@@ -450,7 +490,11 @@ class BasketAccountControllerTest extends TestCase
         $this->basket->update(['is_active' => false]);
         
         // Give account basket balance
-        $this->account->addBalance('TEST_BASKET', 10000);
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'TEST_BASKET',
+            'balance' => 10000,
+        ]);
         
         $response = $this->postJson("/api/v2/accounts/{$this->account->uuid}/baskets/decompose", [
             'basket_code' => 'TEST_BASKET',
@@ -470,7 +514,11 @@ class BasketAccountControllerTest extends TestCase
         $this->basket->components()->where('asset_code', 'EUR')->update(['is_active' => false]);
         
         // Give account basket balance
-        $this->account->addBalance('TEST_BASKET', 10000);
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'TEST_BASKET',
+            'balance' => 10000,
+        ]);
         
         $response = $this->postJson("/api/v2/accounts/{$this->account->uuid}/baskets/decompose", [
             'basket_code' => 'TEST_BASKET',

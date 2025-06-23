@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Stablecoin\Services;
 
 use App\Domain\Asset\Services\ExchangeRateService;
+use App\Domain\Wallet\Services\WalletService;
+use App\Domain\Account\DataObjects\AccountUuid;
 use App\Models\Account;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
@@ -16,7 +18,8 @@ class LiquidationService
 {
     public function __construct(
         private readonly ExchangeRateService $exchangeRateService,
-        private readonly CollateralService $collateralService
+        private readonly CollateralService $collateralService,
+        private readonly WalletService $walletService
     ) {}
 
     /**
@@ -44,12 +47,14 @@ class LiquidationService
             
             // If there's a liquidator, they get the reward
             if ($liquidator && $liquidatorReward > 0) {
-                $liquidator->addBalance($position->collateral_asset_code, $liquidatorReward);
+                $liquidatorUuid = AccountUuid::fromString($liquidator->uuid);
+                $this->walletService->deposit($liquidatorUuid, $position->collateral_asset_code, $liquidatorReward);
             }
             
             // Return remaining collateral to position owner (if any)
             if ($returnedCollateral > 0) {
-                $position->account->addBalance($position->collateral_asset_code, $returnedCollateral);
+                $positionAccountUuid = AccountUuid::fromString($position->account->uuid);
+                $this->walletService->deposit($positionAccountUuid, $position->collateral_asset_code, $returnedCollateral);
             }
             
             // Burn the debt from total supply

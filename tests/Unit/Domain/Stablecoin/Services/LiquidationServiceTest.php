@@ -7,6 +7,7 @@ namespace Tests\Unit\Domain\Stablecoin\Services;
 use App\Domain\Stablecoin\Services\LiquidationService;
 use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Asset\Services\ExchangeRateService;
+use App\Domain\Wallet\Services\WalletService;
 use App\Models\Account;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
@@ -23,6 +24,7 @@ class LiquidationServiceTest extends TestCase
     protected LiquidationService $service;
     protected $exchangeRateService;
     protected $collateralService;
+    protected $walletService;
     protected Account $account;
     protected Account $liquidatorAccount;
     protected Stablecoin $stablecoin;
@@ -34,9 +36,11 @@ class LiquidationServiceTest extends TestCase
         
         $this->exchangeRateService = Mockery::mock(ExchangeRateService::class);
         $this->collateralService = Mockery::mock(CollateralService::class);
+        $this->walletService = Mockery::mock(WalletService::class);
         $this->service = new LiquidationService(
             $this->exchangeRateService,
-            $this->collateralService
+            $this->collateralService,
+            $this->walletService
         );
         
         // Create assets
@@ -89,7 +93,11 @@ class LiquidationServiceTest extends TestCase
         ]);
         
         // Add FUSD balance to liquidator account
-        $this->liquidatorAccount->addBalance('FUSD', 1000000); // $10,000 FUSD for liquidation
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $this->liquidatorAccount->uuid,
+            'asset_code' => 'FUSD',
+            'balance' => 1000000, // $10,000 FUSD for liquidation
+        ]);
     }
 
     protected function tearDown(): void
@@ -237,7 +245,11 @@ class LiquidationServiceTest extends TestCase
         ]);
         
         $poorLiquidator = Account::factory()->create();
-        $poorLiquidator->addBalance('FUSD', 50000); // Only $500 FUSD
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $poorLiquidator->uuid,
+            'asset_code' => 'FUSD',
+            'balance' => 50000, // Only $500 FUSD
+        ]);
         
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Insufficient FUSD balance for liquidation');
@@ -359,7 +371,11 @@ class LiquidationServiceTest extends TestCase
             
         // Create system liquidator account
         $systemAccount = Account::factory()->create(['uuid' => 'system-liquidator']);
-        $systemAccount->addBalance('FUSD', 1000000);
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $systemAccount->uuid,
+            'asset_code' => 'FUSD',
+            'balance' => 1000000,
+        ]);
         
         $results = $this->service->processAutoLiquidations('FUSD');
         

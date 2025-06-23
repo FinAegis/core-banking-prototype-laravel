@@ -6,6 +6,8 @@ namespace App\Domain\Stablecoin\Services;
 
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Asset\Services\ExchangeRateService;
+use App\Domain\Wallet\Services\WalletService;
+use App\Domain\Account\DataObjects\AccountUuid;
 use App\Models\Account;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
@@ -16,7 +18,8 @@ class StablecoinIssuanceService
 {
     public function __construct(
         private readonly ExchangeRateService $exchangeRateService,
-        private readonly CollateralService $collateralService
+        private readonly CollateralService $collateralService,
+        private readonly WalletService $walletService
     ) {}
 
     /**
@@ -50,7 +53,8 @@ class StablecoinIssuanceService
 
         return DB::transaction(function () use ($account, $stablecoin, $collateralAssetCode, $collateralAmount, $mintAmount) {
             // Lock collateral from account
-            $account->subtractBalance($collateralAssetCode, $collateralAmount);
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            $this->walletService->withdraw($accountUuid, $collateralAssetCode, $collateralAmount);
 
             // Find or create collateral position
             $position = StablecoinCollateralPosition::firstOrCreate([
@@ -76,7 +80,7 @@ class StablecoinIssuanceService
             $netMintAmount = $mintAmount - $fee;
 
             // Add stablecoin to account balance
-            $account->addBalance($stablecoin->code, $netMintAmount);
+            $this->walletService->deposit($accountUuid, $stablecoin->code, $netMintAmount);
 
             // Update stablecoin global statistics
             $collateralValueInPegAsset = $this->collateralService->convertToPegAsset(
@@ -140,7 +144,8 @@ class StablecoinIssuanceService
             $totalBurnAmount = $burnAmount + $fee;
 
             // Burn stablecoins from account
-            $account->subtractBalance($stablecoin->code, $totalBurnAmount);
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            $this->walletService->withdraw($accountUuid, $stablecoin->code, $totalBurnAmount);
 
             // Calculate proportional collateral release if not specified
             if ($collateralReleaseAmount === null) {
@@ -171,14 +176,14 @@ class StablecoinIssuanceService
             $position->last_interaction_at = now();
 
             // Release collateral back to account
-            $account->addBalance($position->collateral_asset_code, $collateralReleaseAmount);
+            $this->walletService->deposit($accountUuid, $position->collateral_asset_code, $collateralReleaseAmount);
 
             // Close position if fully repaid
             if ($position->debt_amount == 0) {
                 $position->status = 'closed';
                 // Release any remaining collateral
                 if ($position->collateral_amount > 0) {
-                    $account->addBalance($position->collateral_asset_code, $position->collateral_amount);
+                    $this->walletService->deposit($accountUuid, $position->collateral_asset_code, $position->collateral_amount);
                     $position->collateral_amount = 0;
                 }
             }
@@ -233,7 +238,8 @@ class StablecoinIssuanceService
 
         return DB::transaction(function () use ($account, $position, $collateralAmount) {
             // Transfer collateral from account
-            $account->subtractBalance($position->collateral_asset_code, $collateralAmount);
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            $this->walletService->withdraw($accountUuid, $position->collateral_asset_code, $collateralAmount);
 
             // Update position
             $position->collateral_amount += $collateralAmount;

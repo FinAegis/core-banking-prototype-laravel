@@ -151,7 +151,12 @@ class RunLoadTests extends Command
             // Create user and account directly
             $user = \App\Models\User::factory()->create();
             $account = \App\Models\Account::factory()->forUser($user)->create();
-            $account->addBalance('USD', 100000);
+            // Create initial balance for testing
+            \App\Models\AccountBalance::create([
+                'account_uuid' => $account->uuid,
+                'asset_code' => 'USD',
+                'balance' => 100000,
+            ]);
             
             $bar->advance();
         }
@@ -168,7 +173,12 @@ class RunLoadTests extends Command
         for ($i = 0; $i < $concurrent; $i++) {
             $user = \App\Models\User::factory()->create();
             $account = \App\Models\Account::factory()->forUser($user)->create();
-            $account->addBalance('USD', 10000000); // $100,000
+            // Create initial balance for testing
+            \App\Models\AccountBalance::create([
+                'account_uuid' => $account->uuid,
+                'asset_code' => 'USD',
+                'balance' => 10000000, // $100,000
+            ]);
             $accounts[] = $account;
         }
         

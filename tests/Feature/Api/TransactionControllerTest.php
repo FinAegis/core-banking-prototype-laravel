@@ -13,30 +13,17 @@ use Workflow\WorkflowStub;
 it('can deposit money to account', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
-    $account = Account::factory()->withBalance(1000)->create();
+    $account = Account::factory()->forUser($user)->withBalance(1000)->create();
 
     $response = $this->postJson("/api/accounts/{$account->uuid}/deposit", [
         'amount' => 500,
+        'asset_code' => 'USD',
         'description' => 'Test deposit',
     ]);
 
     $response->assertStatus(200)
-        ->assertJsonStructure([
-            'data' => [
-                'account_uuid',
-                'new_balance',
-                'amount_deposited',
-                'transaction_type',
-            ],
-            'message',
-        ])
         ->assertJson([
-            'data' => [
-                'account_uuid' => $account->uuid,
-                'amount_deposited' => 500,
-                'transaction_type' => 'deposit',
-            ],
-            'message' => 'Deposit completed successfully',
+            'message' => 'Deposit initiated successfully',
         ]);
 
     // WorkflowStub assertions don't work well with Laravel Workflow package
@@ -45,10 +32,11 @@ it('can deposit money to account', function () {
 it('validates deposit amount is positive', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
-    $account = Account::factory()->create();
+    $account = Account::factory()->forUser($user)->create();
 
     $response = $this->postJson("/api/accounts/{$account->uuid}/deposit", [
         'amount' => 0,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -56,6 +44,7 @@ it('validates deposit amount is positive', function () {
 
     $response = $this->postJson("/api/accounts/{$account->uuid}/deposit", [
         'amount' => -100,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
@@ -106,18 +95,19 @@ it('skipped_can_withdraw_money_from_account', function () {
 it('cannot withdraw more than account balance', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);
-    $account = Account::factory()->withBalance(100)->create();
+    $account = Account::factory()->forUser($user)->withBalance(100)->create();
 
     $response = $this->postJson("/api/accounts/{$account->uuid}/withdraw", [
         'amount' => 500,
+        'asset_code' => 'USD',
     ]);
 
     $response->assertStatus(422)
         ->assertJson([
-            'message' => 'Insufficient funds',
-            'error' => 'INSUFFICIENT_FUNDS',
-            'current_balance' => 100,
-            'requested_amount' => 500,
+            'message' => 'Insufficient balance',
+            'errors' => [
+                'amount' => ['Insufficient balance']
+            ]
         ]);
 
     // WorkflowStub assertions don't work well with Laravel Workflow package

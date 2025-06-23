@@ -52,7 +52,12 @@ class AccountProjectorTest extends TestCase
         $this->assertEquals(0, $this->account->balance);
         $this->resetHash();
 
-        $this->account->addMoney(new Money(20));
+        // Create initial balance directly for testing
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'USD',
+            'balance' => 20,
+        ]);
 
         TransactionAggregate::retrieve($this->account->uuid)
             ->applyMoneyAdded( new MoneyAdded(

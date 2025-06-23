@@ -17,7 +17,22 @@ class CreditAccount extends AccountAction
         $account = $this->accountRepository->findByUuid(
             $event->aggregateRootUuid()
         );
-        $account->addMoney($event->money);
-        return $account;
+        
+        // Update or create asset balance using event data
+        $balance = \App\Models\AccountBalance::firstOrCreate(
+            [
+                'account_uuid' => $account->uuid,
+                'asset_code' => $event->money->assetCode,
+            ],
+            [
+                'balance' => 0,
+            ]
+        );
+        
+        // Add to balance amount (in smallest unit)
+        $balance->balance += $event->money->amount;
+        $balance->save();
+        
+        return $account->fresh();
     }
 }

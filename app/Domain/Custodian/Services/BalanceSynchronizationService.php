@@ -9,6 +9,8 @@ use App\Models\CustodianAccount;
 use App\Domain\Custodian\Events\AccountBalanceUpdated;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Custodian\ValueObjects\AccountInfo;
+use App\Domain\Wallet\Services\WalletService;
+use App\Domain\Account\DataObjects\AccountUuid;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,11 +19,13 @@ use Carbon\Carbon;
 class BalanceSynchronizationService
 {
     private CustodianRegistry $custodianRegistry;
+    private WalletService $walletService;
     private array $syncResults = [];
 
-    public function __construct(CustodianRegistry $custodianRegistry)
+    public function __construct(CustodianRegistry $custodianRegistry, WalletService $walletService)
     {
         $this->custodianRegistry = $custodianRegistry;
+        $this->walletService = $walletService;
     }
 
     /**
@@ -170,11 +174,12 @@ class BalanceSynchronizationService
                     // Calculate the difference
                     $difference = $amountInCents - $currentBalance;
                     
-                    // Update the balance
+                    // Update the balance using WalletService
+                    $accountUuid = AccountUuid::fromString($account->uuid);
                     if ($difference > 0) {
-                        $account->addBalance($assetCode, $difference);
+                        $this->walletService->deposit($accountUuid, $assetCode, $difference);
                     } else {
-                        $account->subtractBalance($assetCode, abs($difference));
+                        $this->walletService->withdraw($accountUuid, $assetCode, abs($difference));
                     }
                     
                     // Fire balance updated event
