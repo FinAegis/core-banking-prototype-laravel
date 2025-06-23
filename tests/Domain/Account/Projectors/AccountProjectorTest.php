@@ -52,7 +52,7 @@ class AccountProjectorTest extends TestCase
         $this->assertEquals(0, $this->account->balance);
         $this->resetHash();
 
-        $this->account->addMoney(20);
+        $this->account->addMoney(new Money(20));
 
         TransactionAggregate::retrieve($this->account->uuid)
             ->applyMoneyAdded( new MoneyAdded(

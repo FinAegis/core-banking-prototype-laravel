@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Domain\Asset\Models\Asset;
 use App\Models\AccountBalance;
+use App\Domain\Account\DataObjects\Money;
 
 class Account extends Model
 {

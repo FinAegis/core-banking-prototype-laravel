@@ -14,10 +14,10 @@ class CreditAccount extends AccountAction
      */
     public function __invoke(MoneyAdded $event): Account
     {
-        return $this->accountRepository->findByUuid(
+        $account = $this->accountRepository->findByUuid(
             $event->aggregateRootUuid()
-        )->addMoney(
-            $event->money->getAmount()
         );
+        $account->addMoney($event->money);
+        return $account;
     }
 }

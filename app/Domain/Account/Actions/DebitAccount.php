@@ -14,10 +14,10 @@ class DebitAccount extends AccountAction
      */
     public function __invoke(MoneySubtracted $event): Account
     {
-        return $this->accountRepository->findByUuid(
+        $account = $this->accountRepository->findByUuid(
             $event->aggregateRootUuid()
-        )->subtractMoney(
-            $event->money->getAmount()
         );
+        $account->subtractMoney($event->money);
+        return $account;
     }
 }
