@@ -111,18 +111,18 @@ Route::middleware([
             return view('wallet.transactions');
         })->name('transactions');
         
-        // Wallet operation routes
-        Route::get('/deposit', [App\Http\Controllers\WalletController::class, 'deposit'])->name('deposit');
-        Route::post('/deposit', [App\Http\Controllers\WalletController::class, 'storeDeposit'])->name('deposit.store');
+        // Wallet transaction routes
+        Route::get('/deposit', [App\Http\Controllers\WalletController::class, 'showDeposit'])->name('deposit');
+        Route::post('/deposit', [App\Http\Controllers\WalletController::class, 'deposit'])->name('deposit.store');
         
-        Route::get('/withdraw', [App\Http\Controllers\WalletController::class, 'withdraw'])->name('withdraw');
-        Route::post('/withdraw', [App\Http\Controllers\WalletController::class, 'storeWithdraw'])->name('withdraw.store');
+        Route::get('/withdraw', [App\Http\Controllers\WalletController::class, 'showWithdraw'])->name('withdraw');
+        Route::post('/withdraw', [App\Http\Controllers\WalletController::class, 'withdraw'])->name('withdraw.store');
         
-        Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'transfer'])->name('transfer');
-        Route::post('/transfer', [App\Http\Controllers\WalletController::class, 'storeTransfer'])->name('transfer.store');
+        Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'showTransfer'])->name('transfer');
+        Route::post('/transfer', [App\Http\Controllers\WalletController::class, 'transfer'])->name('transfer.store');
         
-        Route::get('/convert', [App\Http\Controllers\WalletController::class, 'convert'])->name('convert');
-        Route::post('/convert', [App\Http\Controllers\WalletController::class, 'storeConvert'])->name('convert.store');
+        Route::get('/convert', [App\Http\Controllers\WalletController::class, 'showConvert'])->name('convert');
+        Route::post('/convert', [App\Http\Controllers\WalletController::class, 'convert'])->name('convert.store');
     });
 });
 
