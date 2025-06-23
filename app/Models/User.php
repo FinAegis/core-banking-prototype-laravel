@@ -60,6 +60,8 @@ class User extends Authenticatable implements FilamentUser
         'terms_accepted_at',
         'marketing_consent_at',
         'data_retention_consent',
+        'has_completed_onboarding',
+        'onboarding_completed_at',
     ];
 
     /**
@@ -102,6 +104,8 @@ class User extends Authenticatable implements FilamentUser
             'terms_accepted_at' => 'datetime',
             'marketing_consent_at' => 'datetime',
             'data_retention_consent' => 'boolean',
+            'has_completed_onboarding' => 'boolean',
+            'onboarding_completed_at' => 'datetime',
         ];
     }
 
@@ -170,5 +174,24 @@ class User extends Authenticatable implements FilamentUser
     {
         return in_array($this->kyc_status, ['not_started', 'rejected', 'expired']) ||
                ($this->kyc_status === 'approved' && $this->kyc_expires_at && $this->kyc_expires_at->isPast());
+    }
+
+    /**
+     * Check if user has completed onboarding
+     */
+    public function hasCompletedOnboarding(): bool
+    {
+        return $this->has_completed_onboarding === true;
+    }
+
+    /**
+     * Mark onboarding as completed
+     */
+    public function completeOnboarding(): void
+    {
+        $this->update([
+            'has_completed_onboarding' => true,
+            'onboarding_completed_at' => now(),
+        ]);
     }
 }

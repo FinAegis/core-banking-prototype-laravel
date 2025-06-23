@@ -88,6 +88,15 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
     
+    // Onboarding routes
+    Route::post('/onboarding/complete', [App\Http\Controllers\OnboardingController::class, 'complete'])->name('onboarding.complete');
+    Route::post('/onboarding/skip', [App\Http\Controllers\OnboardingController::class, 'skip'])->name('onboarding.skip');
+    
+    // KYC route
+    Route::get('/compliance/kyc', function () {
+        return view('compliance.kyc');
+    })->name('compliance.kyc');
+    
     // GCU Wallet Routes
     Route::prefix('wallet')->name('wallet.')->group(function () {
         Route::get('/bank-allocation', function () {

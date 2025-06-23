@@ -28,12 +28,28 @@
                     <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Ǥ</span>
                 </div>
                 <div class="text-2xl font-bold text-gray-900 dark:text-white" x-data="{ balance: 0 }" x-init="
-                    fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid ?? '' }}/balances?asset=GCU')
+                    @if(auth()->user()->accounts->first())
+                    fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances?asset=GCU', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        credentials: 'same-origin'
+                    })
                         .then(response => response.json())
                         .then(data => {
-                            const gcuBalance = data.data.balances.find(b => b.asset_code === 'GCU');
-                            balance = gcuBalance ? (gcuBalance.balance / 100).toFixed(2) : '0.00';
+                            if (data.data && data.data.balances) {
+                                const gcuBalance = data.data.balances.find(b => b.asset_code === 'GCU');
+                                balance = gcuBalance ? (gcuBalance.balance / 100).toFixed(2) : '0.00';
+                            }
                         })
+                        .catch(error => {
+                            console.error('Error fetching GCU balance:', error);
+                            balance = '0.00';
+                        })
+                    @else
+                        balance = '0.00';
+                    @endif
                 " x-text="balance">
                     0.00
                 </div>
@@ -49,11 +65,27 @@
                     </svg>
                 </div>
                 <div class="text-2xl font-bold text-gray-900 dark:text-white" x-data="{ total: 0 }" x-init="
-                    fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid ?? '' }}/balances')
+                    @if(auth()->user()->accounts->first())
+                    fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        credentials: 'same-origin'
+                    })
                         .then(response => response.json())
                         .then(data => {
-                            total = data.data.summary.total_usd_equivalent;
+                            if (data.data && data.data.summary) {
+                                total = data.data.summary.total_usd_equivalent || '0.00';
+                            }
                         })
+                        .catch(error => {
+                            console.error('Error fetching total balance:', error);
+                            total = '0.00';
+                        })
+                    @else
+                        total = '0.00';
+                    @endif
                 " x-text="'$' + total">
                     $0.00
                 </div>
@@ -70,12 +102,28 @@
                 </div>
                 <div class="text-2xl font-bold text-gray-900 dark:text-white" x-data="{ power: 0 }" x-init="
                     // Voting power equals GCU balance
-                    fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid ?? '' }}/balances?asset=GCU')
+                    @if(auth()->user()->accounts->first())
+                    fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances?asset=GCU', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        credentials: 'same-origin'
+                    })
                         .then(response => response.json())
                         .then(data => {
-                            const gcuBalance = data.data.balances.find(b => b.asset_code === 'GCU');
-                            power = gcuBalance ? Math.floor(gcuBalance.balance / 100) : 0;
+                            if (data.data && data.data.balances) {
+                                const gcuBalance = data.data.balances.find(b => b.asset_code === 'GCU');
+                                power = gcuBalance ? Math.floor(gcuBalance.balance / 100) : 0;
+                            }
                         })
+                        .catch(error => {
+                            console.error('Error fetching voting power:', error);
+                            power = 0;
+                        })
+                    @else
+                        power = 0;
+                    @endif
                 " x-text="power">
                     0
                 </div>
@@ -133,11 +181,27 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600" x-data="{ balances: [] }" x-init="
-                        fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid ?? '' }}/balances')
+                        @if(auth()->user()->accounts->first())
+                        fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            credentials: 'same-origin'
+                        })
                             .then(response => response.json())
                             .then(data => {
-                                balances = data.data.balances.filter(b => b.balance > 0);
+                                if (data.data && data.data.balances) {
+                                    balances = data.data.balances.filter(b => b.balance > 0);
+                                }
                             })
+                            .catch(error => {
+                                console.error('Error fetching balances:', error);
+                                balances = [];
+                            })
+                        @else
+                            balances = [];
+                        @endif
                     ">
                         <template x-for="balance in balances" :key="balance.asset_code">
                             <tr>
@@ -163,6 +227,24 @@
                                 </td>
                             </tr>
                         </template>
+                        <!-- Show message when no balances -->
+                        <tr x-show="balances.length === 0">
+                            <td colspan="4" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <p class="text-base font-medium mb-1">No assets yet</p>
+                                    <p class="text-sm">
+                                        @if(!auth()->user()->accounts->first())
+                                            Create an account to get started
+                                        @else
+                                            Deposit funds to see your balances here
+                                        @endif
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

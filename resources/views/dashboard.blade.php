@@ -19,8 +19,8 @@
     </x-slot>
 
     <!-- First Time User Welcome Modal -->
-    @if(!Auth::user()->hasCompletedOnboarding ?? true)
-    <div id="welcome-modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    @if(!Auth::user()->has_completed_onboarding)
+    <div id="welcome-modal" class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
             
@@ -113,7 +113,7 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Balance</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    ${{ number_format(Auth::user()->accounts->sum(function($account) { return $account->getBalance('USD'); }) / 100, 2) }}
+                                    ${{ number_format(Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { return $account->getBalance('USD'); }) / 100 : 0, 2) }}
                                 </p>
                             </div>
                             <div class="p-3 bg-indigo-100 rounded-full">
@@ -135,7 +135,7 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">GCU Balance</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    Ǥ{{ number_format(Auth::user()->accounts->sum(function($account) { return $account->getBalance('GCU'); }) / 100, 2) }}
+                                    Ǥ{{ number_format(Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { return $account->getBalance('GCU'); }) / 100 : 0, 2) }}
                                 </p>
                             </div>
                             <div class="p-3 bg-purple-100 rounded-full">
@@ -155,7 +155,7 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Voting Power</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ number_format(Auth::user()->accounts->sum(function($account) { return $account->getBalance('GCU'); }) / 100) }}
+                                    {{ number_format(Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { return $account->getBalance('GCU'); }) / 100 : 0) }}
                                 </p>
                             </div>
                             <div class="p-3 bg-green-100 rounded-full">
@@ -177,7 +177,7 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Transactions</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ Auth::user()->accounts->sum(function($account) { return $account->transactions()->count(); }) }}
+                                    {{ Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { return $account->transactions()->count(); }) : 0 }}
                                 </p>
                             </div>
                             <div class="p-3 bg-yellow-100 rounded-full">
@@ -306,25 +306,55 @@
 
     <!-- Interactive Tour Script -->
     <script>
-        // Show welcome modal for first-time users
-        @if(!Auth::user()->hasCompletedOnboarding ?? true)
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('welcome-modal').style.display = 'block';
-        });
-        @endif
-
         function closeWelcomeModal() {
-            document.getElementById('welcome-modal').style.display = 'none';
+            // Skip onboarding
+            fetch('/onboarding/skip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('welcome-modal').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('welcome-modal').style.display = 'none';
+            });
         }
 
         function startOnboarding() {
-            closeWelcomeModal();
-            startTour();
+            // Mark onboarding as started
+            fetch('/onboarding/complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('welcome-modal').style.display = 'none';
+                // Redirect to KYC page
+                window.location.href = '/compliance/kyc';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('welcome-modal').style.display = 'none';
+                startTour();
+            });
         }
 
         function startTour() {
             // This would integrate with a tour library like Intro.js or Shepherd.js
-            alert('Interactive tour coming soon! This will guide you through all the features of FinAegis.');
+            alert('Starting your FinAegis tour! Let\'s explore the platform together.');
+            // In a real implementation, this would start an interactive tour
         }
     </script>
 </x-app-layout>
