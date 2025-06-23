@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Account\Aggregates\LedgerAggregate;
+use App\Domain\Account\Aggregates\AssetTransactionAggregate;
 use App\Models\Account;
 use App\Models\AccountBalance;
 use App\Domain\Account\Workflows\DepositAccountWorkflow;
@@ -11,7 +12,7 @@ use App\Domain\Payment\Workflows\TransferWorkflow;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Workflows\AssetDepositWorkflow;
 use App\Domain\Asset\Workflows\AssetWithdrawWorkflow;
-use App\Domain\Asset\Workflows\AssetTransferWorkflow;
+use App\Domain\Asset\Aggregates\AssetTransferAggregate;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
@@ -53,9 +54,14 @@ class WalletController extends Controller
         $amount = (int) ($validated['amount'] * 100); // Convert to cents
         $assetCode = $validated['asset_code'];
 
-        // For now, directly update balance (can be replaced with workflows later)
         try {
-            $account->addBalance($assetCode, $amount);
+            // Use event sourcing with AssetTransactionAggregate for proper audit trail
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            
+            $aggregate = AssetTransactionAggregate::retrieve($accountUuid);
+            $aggregate->credit($assetCode, $amount);
+            $aggregate->persist();
+
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Deposit failed: ' . $e->getMessage()]);
         }
@@ -95,15 +101,14 @@ class WalletController extends Controller
         $amount = (int) ($validated['amount'] * 100);
         $assetCode = $validated['asset_code'];
 
-        // Check balance
-        $balance = $account->getBalance($assetCode);
-        if ($balance < $amount) {
-            return back()->withErrors(['amount' => 'Insufficient balance']);
-        }
-
-        // For now, directly update balance (can be replaced with workflows later)
         try {
-            $account->subtractBalance($assetCode, $amount);
+            // Use event sourcing with AssetTransactionAggregate for proper audit trail
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            
+            $aggregate = AssetTransactionAggregate::retrieve($accountUuid);
+            $aggregate->debit($assetCode, $amount);
+            $aggregate->persist();
+
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Withdrawal failed: ' . $e->getMessage()]);
         }
@@ -146,19 +151,21 @@ class WalletController extends Controller
         $amount = (int) ($validated['amount'] * 100);
         $assetCode = $validated['asset_code'];
 
-        // Check balance
-        $balance = $fromAccount->getBalance($assetCode);
-        if ($balance < $amount) {
-            return back()->withErrors(['amount' => 'Insufficient balance']);
-        }
-
-        // For now, directly update balances (can be replaced with workflows later)
         try {
-            // Subtract from source account
-            $fromAccount->subtractBalance($assetCode, $amount);
+            // Use event sourcing for atomic transfer operation
+            $fromAccountUuid = AccountUuid::fromString($fromAccount->uuid);
+            $toAccountUuid = AccountUuid::fromString($toAccount->uuid);
             
-            // Add to destination account
-            $toAccount->addBalance($assetCode, $amount);
+            // Debit from source account
+            $fromAggregate = AssetTransactionAggregate::retrieve($fromAccountUuid);
+            $fromAggregate->debit($assetCode, $amount);
+            $fromAggregate->persist();
+            
+            // Credit to destination account  
+            $toAggregate = AssetTransactionAggregate::retrieve($toAccountUuid);
+            $toAggregate->credit($assetCode, $amount);
+            $toAggregate->persist();
+
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Transfer failed: ' . $e->getMessage()]);
         }
@@ -202,27 +209,38 @@ class WalletController extends Controller
         $toAsset = $validated['to_asset'];
         $amount = (int) ($validated['amount'] * 100);
 
-        // Check balance
-        $balance = $account->getBalance($fromAsset);
-        if ($balance < $amount) {
-            return back()->withErrors(['amount' => 'Insufficient balance']);
-        }
-
         // Get exchange rate
         $rate = ExchangeRate::getRate($fromAsset, $toAsset);
         if (!$rate) {
             return back()->withErrors(['to_asset' => 'Exchange rate not available']);
         }
 
-        $convertedAmount = (int) round($amount * $rate);
-
-        // For now, directly update balances (can be replaced with workflows later)
         try {
-            // Subtract from source asset
-            $account->subtractBalance($fromAsset, $amount);
+            // Use Asset domain aggregate for proper cross-asset transfer with exchange rate handling
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            $fromMoney = new Money($amount, $fromAsset);
+            $convertedAmount = (int) round($amount * $rate);
+            $toMoney = new Money($convertedAmount, $toAsset);
             
-            // Add to target asset
-            $account->addBalance($toAsset, $convertedAmount);
+            // Generate unique transfer ID for the conversion
+            $transferId = uniqid('conv_', true);
+            
+            $assetTransferAggregate = AssetTransferAggregate::retrieve($transferId);
+            $assetTransferAggregate->initiate(
+                $accountUuid, // from account
+                $accountUuid, // to account (same account for conversion)
+                $fromAsset,
+                $toAsset,
+                $fromMoney,
+                $toMoney,
+                $rate,
+                'Wallet currency conversion'
+            );
+            
+            // Complete the transfer immediately for wallet conversions
+            $assetTransferAggregate->complete($transferId);
+            $assetTransferAggregate->persist();
+
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => 'Conversion failed: ' . $e->getMessage()]);
         }

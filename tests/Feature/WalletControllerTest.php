@@ -35,16 +35,11 @@ class WalletControllerTest extends TestCase
         Asset::firstOrCreate(['code' => 'BTC'], ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true]);
         Asset::firstOrCreate(['code' => 'GCU'], ['name' => 'Global Currency Unit', 'type' => 'basket', 'precision' => 2, 'is_active' => true]);
         
-        // Create some balances
-        AccountBalance::updateOrCreate(
-            [
-                'account_uuid' => $this->testAccount->uuid,
-                'asset_code' => 'USD',
-            ],
-            [
-                'balance' => 10000, // $100.00
-            ]
-        );
+        // Create some balances using event sourcing
+        $accountUuid = \App\Domain\Account\DataObjects\AccountUuid::fromString($this->testAccount->uuid);
+        $aggregate = \App\Domain\Account\Aggregates\AssetTransactionAggregate::retrieve($accountUuid);
+        $aggregate->credit('USD', 10000); // $100.00
+        $aggregate->persist();
         
         // Create exchange rates for currency conversion
         ExchangeRate::firstOrCreate(
@@ -61,15 +56,8 @@ class WalletControllerTest extends TestCase
             ]
         );
         
-        AccountBalance::updateOrCreate(
-            [
-                'account_uuid' => $this->testAccount->uuid,
-                'asset_code' => 'EUR',
-            ],
-            [
-                'balance' => 5000, // €50.00
-            ]
-        );
+        $aggregate->credit('EUR', 5000); // €50.00
+        $aggregate->persist();
         
         // Create exchange rates
         ExchangeRate::create([
