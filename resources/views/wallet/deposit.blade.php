@@ -57,7 +57,12 @@
                         {{ __('Instant deposit using debit or credit card. Processing time: Immediate.') }}
                     </p>
                     
-                    <form method="POST" action="{{ route('api.accounts.deposit', ['uuid' => auth()->user()->accounts->first()->uuid ?? '']) }}" class="space-y-4">
+                    @if(!auth()->user()->accounts->first())
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
+                            <p class="text-gray-600 dark:text-gray-400">Create an account to get started with deposits</p>
+                        </div>
+                    @else
+                        <form method="POST" action="{{ route('wallet.deposit.store') }}" class="space-y-4">
                         @csrf
                         
                         <div>
@@ -67,7 +72,7 @@
                         
                         <div>
                             <x-label for="currency" value="{{ __('Currency') }}" />
-                            <select id="currency" name="currency" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                            <select id="currency" name="asset_code" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
                                 <option value="USD">USD - US Dollar</option>
                                 <option value="EUR">EUR - Euro</option>
                                 <option value="GBP">GBP - British Pound</option>
@@ -82,6 +87,7 @@
                             {{ __('Continue to Payment') }}
                         </x-button>
                     </form>
+                    @endif
                 </div>
 
                 <!-- Crypto Deposit -->

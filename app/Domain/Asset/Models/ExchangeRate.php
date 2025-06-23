@@ -216,4 +216,42 @@ class ExchangeRate extends Model
     {
         return $query->orderBy('valid_at', 'desc');
     }
+    
+    /**
+     * Get latest exchange rates grouped by asset pairs
+     *
+     * @return object
+     */
+    public static function getLatestRates(): object
+    {
+        $rates = self::valid()->latest()->get()->groupBy(['from_asset_code', 'to_asset_code']);
+        
+        $result = new \stdClass();
+        foreach ($rates as $fromAsset => $toAssets) {
+            $result->$fromAsset = new \stdClass();
+            foreach ($toAssets as $toAsset => $rateRecords) {
+                $result->$fromAsset->$toAsset = $rateRecords->first()->rate;
+            }
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Get exchange rate between two assets
+     *
+     * @param string $fromAsset
+     * @param string $toAsset
+     * @return float|null
+     */
+    public static function getRate(string $fromAsset, string $toAsset): ?float
+    {
+        if ($fromAsset === $toAsset) {
+            return 1.0;
+        }
+        
+        $rate = self::valid()->between($fromAsset, $toAsset)->latest()->first();
+        
+        return $rate ? (float) $rate->rate : null;
+    }
 }

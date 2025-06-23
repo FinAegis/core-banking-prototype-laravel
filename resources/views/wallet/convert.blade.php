@@ -8,7 +8,12 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <form method="POST" action="{{ route('api.exchange.convert') }}" class="space-y-6">
+                @if(!auth()->user()->accounts->first())
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
+                        <p class="text-gray-600 dark:text-gray-400">Create an account to get started with currency conversion</p>
+                    </div>
+                @else
+                    <form method="POST" action="{{ route('wallet.convert.store') }}" class="space-y-6">
                     @csrf
 
                     <div>
@@ -25,7 +30,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <x-label for="from_currency" value="{{ __('From Currency') }}" />
-                            <select id="from_currency" name="from_currency" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                            <select id="from_currency" name="from_asset_code" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
                                 <option value="USD">USD - US Dollar</option>
                                 <option value="EUR">EUR - Euro</option>
                                 <option value="GBP">GBP - British Pound</option>
@@ -37,7 +42,7 @@
 
                         <div>
                             <x-label for="to_currency" value="{{ __('To Currency') }}" />
-                            <select id="to_currency" name="to_currency" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                            <select id="to_currency" name="to_asset_code" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
                                 <option value="EUR">EUR - Euro</option>
                                 <option value="USD">USD - US Dollar</option>
                                 <option value="GBP">GBP - British Pound</option>
@@ -88,6 +93,7 @@
                         </x-button>
                     </div>
                 </form>
+                @endif
             </div>
         </div>
     </div>

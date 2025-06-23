@@ -8,7 +8,12 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <form method="POST" action="{{ route('api.transfers.store') }}" class="space-y-6">
+                @if(!auth()->user()->accounts->first())
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
+                        <p class="text-gray-600 dark:text-gray-400">Create an account to get started with transfers</p>
+                    </div>
+                @else
+                    <form method="POST" action="{{ route('wallet.transfer.store') }}" class="space-y-6">
                     @csrf
 
                     <div>
@@ -72,6 +77,7 @@
                         </x-button>
                     </div>
                 </form>
+                @endif
             </div>
         </div>
     </div>

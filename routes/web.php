@@ -111,22 +111,18 @@ Route::middleware([
             return view('wallet.transactions');
         })->name('transactions');
         
-        // Placeholder routes for quick actions
-        Route::get('/deposit', function () {
-            return view('wallet.deposit');
-        })->name('deposit');
+        // Wallet operation routes
+        Route::get('/deposit', [App\Http\Controllers\WalletController::class, 'deposit'])->name('deposit');
+        Route::post('/deposit', [App\Http\Controllers\WalletController::class, 'storeDeposit'])->name('deposit.store');
         
-        Route::get('/withdraw', function () {
-            return view('wallet.withdraw');
-        })->name('withdraw');
+        Route::get('/withdraw', [App\Http\Controllers\WalletController::class, 'withdraw'])->name('withdraw');
+        Route::post('/withdraw', [App\Http\Controllers\WalletController::class, 'storeWithdraw'])->name('withdraw.store');
         
-        Route::get('/transfer', function () {
-            return view('wallet.transfer');
-        })->name('transfer');
+        Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'transfer'])->name('transfer');
+        Route::post('/transfer', [App\Http\Controllers\WalletController::class, 'storeTransfer'])->name('transfer.store');
         
-        Route::get('/convert', function () {
-            return view('wallet.convert');
-        })->name('convert');
+        Route::get('/convert', [App\Http\Controllers\WalletController::class, 'convert'])->name('convert');
+        Route::post('/convert', [App\Http\Controllers\WalletController::class, 'storeConvert'])->name('convert.store');
     });
 });
 
