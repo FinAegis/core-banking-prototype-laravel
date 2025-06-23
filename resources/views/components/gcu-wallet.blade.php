@@ -20,7 +20,7 @@
     <!-- Balance Overview -->
     <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Balance Overview</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- GCU Balance -->
             <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
                 <div class="flex items-center justify-between mb-2">
@@ -135,7 +135,7 @@
     <!-- Quick Actions -->
     <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <a href="/wallet/deposit" class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow hover:shadow-md transition-shadow text-center">
                 <svg class="w-8 h-8 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>

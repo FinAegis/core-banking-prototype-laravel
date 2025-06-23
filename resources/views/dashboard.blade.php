@@ -245,9 +245,9 @@
                         <x-gcu-wallet />
                     </div>
                 </div>
-                
+
                 <!-- Help & Resources (1 column) -->
-                <div class="space-y-6">
+                <div class="lg:col-span-1 space-y-6">
                     <!-- Getting Started -->
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6">
