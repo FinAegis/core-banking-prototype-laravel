@@ -4,7 +4,7 @@ namespace App\Domain\Wallet\Activities;
 
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
-use App\Domain\Asset\Aggregates\AssetTransactionAggregate;
+use App\Domain\Account\Aggregates\AssetTransactionAggregate;
 use Workflow\Activity;
 
 class DepositAssetActivity extends Activity
@@ -23,11 +23,8 @@ class DepositAssetActivity extends Activity
         int $amount,
         AssetTransactionAggregate $assetTransaction
     ): bool {
-        $money = new Money($amount);
-        
-        $transactionId = uniqid('deposit_', true);
-        $assetTransaction->retrieve($transactionId)
-            ->credit($accountUuid, $assetCode, $money, 'Wallet deposit')
+        $assetTransaction->retrieve((string)$accountUuid)
+            ->credit($assetCode, $amount)
             ->persist();
 
         return true;

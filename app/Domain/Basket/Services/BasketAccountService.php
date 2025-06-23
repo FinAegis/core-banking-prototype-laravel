@@ -11,13 +11,16 @@ use App\Domain\Basket\Events\BasketDecomposed;
 use App\Domain\Account\Events\AssetBalanceAdded;
 use App\Domain\Account\Events\AssetBalanceSubtracted;
 use App\Domain\Account\DataObjects\Hash;
+use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Wallet\Services\WalletService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BasketAccountService
 {
     public function __construct(
-        private readonly BasketValueCalculationService $valueCalculationService
+        private readonly BasketValueCalculationService $valueCalculationService,
+        private readonly WalletService $walletService
     ) {}
 
     /**
@@ -117,37 +120,23 @@ class BasketAccountService
             ->first();
 
         if (!$basketBalance || $basketBalance->balance < $amount) {
-            throw new \Exception("Insufficient basket balance for decomposition");
+            $availableBalance = $basketBalance ? $basketBalance->balance : 0;
+            throw new \Exception("Insufficient basket balance for decomposition. Required: {$amount}, Available: {$availableBalance}");
         }
 
         return DB::transaction(function () use ($account, $basket, $basketCode, $amount, $basketBalance) {
             // Calculate component amounts based on weights
             $componentAmounts = $this->calculateComponentAmounts($basket, $amount);
 
-            // Subtract basket balance
-            $this->subtractBasketBalance($account, $basketCode, $amount);
+            // Use WalletService for proper Service → Workflow → Activity → Aggregate architecture
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            
+            // Subtract basket balance using WalletService
+            $this->walletService->withdraw($accountUuid, $basketCode, $amount);
 
-            // Add component balances
+            // Add component balances using WalletService
             foreach ($componentAmounts as $assetCode => $componentAmount) {
-                $balance = $account->balances()->firstOrCreate(
-                    ['asset_code' => $assetCode],
-                    ['balance' => 0]
-                );
-
-                $balance->credit($componentAmount);
-
-                // Record event for each component
-                event(new AssetBalanceAdded(
-                    assetCode: $assetCode,
-                    amount: $componentAmount,
-                    hash: new Hash(hash('sha3-512', "basket_decompose:{$account->uuid}:{$assetCode}:{$componentAmount}:" . now()->timestamp)),
-                    metadata: [
-                        'type' => 'basket_decomposition',
-                        'basket_code' => $basketCode,
-                        'basket_amount' => $amount,
-                        'account_uuid' => (string) $account->uuid,
-                    ]
-                ));
+                $this->walletService->deposit($accountUuid, $assetCode, $componentAmount);
             }
 
             // Record decomposition event
@@ -213,30 +202,16 @@ class BasketAccountService
                 }
             }
 
-            // Subtract component balances
+            // Use WalletService for proper Service → Workflow → Activity → Aggregate architecture
+            $accountUuid = AccountUuid::fromString($account->uuid);
+            
+            // Subtract component balances using WalletService
             foreach ($requiredAmounts as $assetCode => $requiredAmount) {
-                $balance = $account->balances()
-                    ->where('asset_code', $assetCode)
-                    ->first();
-
-                $balance->debit($requiredAmount);
-
-                // Record event for each component
-                event(new AssetBalanceSubtracted(
-                    assetCode: $assetCode,
-                    amount: $requiredAmount,
-                    hash: new Hash(hash('sha3-512', "basket_compose:{$account->uuid}:{$assetCode}:{$requiredAmount}:" . now()->timestamp)),
-                    metadata: [
-                        'type' => 'basket_composition',
-                        'basket_code' => $basketCode,
-                        'basket_amount' => $amount,
-                        'account_uuid' => (string) $account->uuid,
-                    ]
-                ));
+                $this->walletService->withdraw($accountUuid, $assetCode, $requiredAmount);
             }
 
-            // Add basket balance
-            $this->addBasketBalance($account, $basketCode, $amount);
+            // Add basket balance using WalletService
+            $this->walletService->deposit($accountUuid, $basketCode, $amount);
 
             Log::info("Composed {$amount} of basket {$basketCode} for account {$account->uuid}", [
                 'components_used' => $requiredAmounts,
