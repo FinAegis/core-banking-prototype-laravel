@@ -58,6 +58,7 @@ class AccountBalance extends Model
     
     /**
      * Increment the balance
+     * NOTE: This method should only be used by projectors for event sourcing
      *
      * @param int $amount
      * @return bool
@@ -70,6 +71,7 @@ class AccountBalance extends Model
     
     /**
      * Decrement the balance
+     * NOTE: This method should only be used by projectors for event sourcing
      *
      * @param int $amount
      * @return bool

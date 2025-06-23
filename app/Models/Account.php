@@ -95,43 +95,7 @@ class Account extends Model
         return $balance ? $balance->balance : 0;
     }
     
-    /**
-     * Add balance for a specific asset
-     *
-     * @param string $assetCode
-     * @param int $amount
-     * @return AccountBalance
-     */
-    public function addBalance(string $assetCode, int $amount): AccountBalance
-    {
-        $balance = $this->balances()->firstOrCreate(
-            ['asset_code' => $assetCode],
-            ['balance' => 0]
-        );
-        
-        $balance->credit($amount);
-        return $balance;
-    }
-    
-    /**
-     * Subtract balance for a specific asset
-     *
-     * @param string $assetCode
-     * @param int $amount
-     * @return AccountBalance
-     * @throws \Exception if insufficient balance
-     */
-    public function subtractBalance(string $assetCode, int $amount): AccountBalance
-    {
-        $balance = $this->getBalanceForAsset($assetCode);
-        
-        if (!$balance || !$balance->hasSufficientBalance($amount)) {
-            throw new \Exception("Insufficient {$assetCode} balance");
-        }
-        
-        $balance->debit($amount);
-        return $balance;
-    }
+    // Balance manipulation methods removed - use event sourcing via services instead
     
     /**
      * Check if account has sufficient balance for asset
@@ -172,29 +136,7 @@ class Account extends Model
         return $this->custodianAccounts()->where('is_primary', true)->first();
     }
 
-    /**
-     * Legacy method for backward compatibility
-     * @deprecated Use addBalance('USD', $amount) instead
-     * @param int $amount
-     * @return static
-     */
-    public function addMoney(int $amount): static
-    {
-        $this->addBalance('USD', $amount);
-        return $this;
-    }
-
-    /**
-     * Legacy method for backward compatibility
-     * @deprecated Use subtractBalance('USD', $amount) instead
-     * @param int $amount
-     * @return static
-     */
-    public function subtractMoney(int $amount): static
-    {
-        $this->subtractBalance('USD', $amount);
-        return $this;
-    }
+    // Legacy balance manipulation methods removed - use event sourcing via WalletService instead
     
     /**
      * Get the account UUID as an AccountUuid value object.

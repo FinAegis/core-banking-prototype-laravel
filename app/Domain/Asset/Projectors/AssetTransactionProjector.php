@@ -20,11 +20,11 @@ class AssetTransactionProjector extends Projector
     {
         try {
             // Find the account
-            $account = Account::where('uuid', $event->accountUuid->toString())->first();
+            $account = Account::where('uuid', (string) $event->accountUuid)->first();
             
             if (!$account) {
                 Log::error('Account not found for asset transaction', [
-                    'account_uuid' => $event->accountUuid->toString(),
+                    'account_uuid' => (string) $event->accountUuid,
                     'asset_code' => $event->assetCode,
                 ]);
                 return;
@@ -33,7 +33,7 @@ class AssetTransactionProjector extends Projector
             // Update account balance for the specific asset
             $accountBalance = AccountBalance::firstOrCreate(
                 [
-                    'account_uuid' => $event->accountUuid->toString(),
+                    'account_uuid' => (string) $event->accountUuid,
                     'asset_code' => $event->assetCode,
                 ],
                 [
@@ -47,7 +47,7 @@ class AssetTransactionProjector extends Projector
             } else {
                 if (!$accountBalance->hasSufficientBalance($event->getAmount())) {
                     Log::error('Insufficient balance for asset transaction', [
-                        'account_uuid' => $event->accountUuid->toString(),
+                        'account_uuid' => (string) $event->accountUuid,
                         'asset_code' => $event->assetCode,
                         'requested_amount' => $event->getAmount(),
                         'current_balance' => $accountBalance->balance,
@@ -57,24 +57,11 @@ class AssetTransactionProjector extends Projector
                 $accountBalance->debit($event->getAmount());
             }
             
-            // Create transaction record
-            Transaction::create([
-                'uuid' => (string) \Illuminate\Support\Str::uuid(),
-                'account_uuid' => $event->accountUuid->toString(),
-                'amount' => $event->isCredit() ? $event->getAmount() : -$event->getAmount(),
-                'description' => $event->description ?? "Asset transaction: {$event->type} {$event->assetCode}",
-                'hash' => $event->hash->getHash(),
-                'metadata' => array_merge($event->metadata ?? [], [
-                    'asset_code' => $event->assetCode,
-                    'transaction_type' => $event->type,
-                    'is_asset_transaction' => true,
-                ]),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // Asset transactions are stored as events, balance projections are sufficient
+            // No need to create separate transaction records
             
             Log::info('Asset transaction processed successfully', [
-                'account_uuid' => $event->accountUuid->toString(),
+                'account_uuid' => (string) $event->accountUuid,
                 'asset_code' => $event->assetCode,
                 'type' => $event->type,
                 'amount' => $event->getAmount(),
@@ -83,7 +70,7 @@ class AssetTransactionProjector extends Projector
             
         } catch (\Exception $e) {
             Log::error('Error processing asset transaction', [
-                'account_uuid' => $event->accountUuid->toString(),
+                'account_uuid' => (string) $event->accountUuid,
                 'asset_code' => $event->assetCode,
                 'type' => $event->type,
                 'amount' => $event->getAmount(),
