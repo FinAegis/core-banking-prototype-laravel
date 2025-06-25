@@ -84,6 +84,12 @@ class LoginController extends Controller
             ]);
         }
 
+        // Regenerate session to prevent session fixation attacks
+        // Only applicable when sessions are available (e.g., SPA with Sanctum)
+        if ($request->hasSession() && $request->session()) {
+            $request->session()->regenerate();
+        }
+
         // Revoke all tokens if requested
         if ($request->has('revoke_tokens') && $request->revoke_tokens) {
             $user->tokens()->delete();
