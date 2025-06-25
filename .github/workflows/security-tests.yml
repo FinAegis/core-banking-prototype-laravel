@@ -1,0 +1,138 @@
+name: Security Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+  schedule:
+    # Run security tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  security-tests:
+    name: Security Test Suite
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.3]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: security_test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        extensions: mbstring, dom, fileinfo, mysql, redis, bcmath, sodium
+        coverage: xdebug
+        tools: composer:v2
+
+    - name: Get composer cache directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache composer dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Copy environment file
+      run: cp .env.example .env
+
+    - name: Generate application key
+      run: php artisan key:generate
+
+    - name: Configure environment for security testing
+      run: |
+        sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env
+        sed -i 's/APP_ENV=local/APP_ENV=testing/' .env
+        echo "SESSION_SECURE_COOKIE=true" >> .env
+        echo "SESSION_SAME_SITE=lax" >> .env
+
+    - name: Run database migrations
+      run: php artisan migrate --force
+
+    - name: Run SQL Injection Tests
+      run: ./vendor/bin/pest tests/Security/Penetration/SqlInjectionTest.php --stop-on-failure
+
+    - name: Run XSS Tests
+      run: ./vendor/bin/pest tests/Security/Penetration/XssTest.php --stop-on-failure
+
+    - name: Run CSRF Tests
+      run: ./vendor/bin/pest tests/Security/Penetration/CsrfTest.php --stop-on-failure
+
+    - name: Run Authentication Security Tests
+      run: ./vendor/bin/pest tests/Security/Authentication --stop-on-failure
+
+    - name: Run API Security Tests
+      run: ./vendor/bin/pest tests/Security/API/ApiSecurityTest.php --stop-on-failure
+
+    - name: Run Cryptography Tests
+      run: ./vendor/bin/pest tests/Security/Cryptography/CryptographySecurityTest.php --stop-on-failure
+
+    - name: Run Input Validation Tests
+      run: ./vendor/bin/pest tests/Security/Vulnerabilities/InputValidationTest.php --stop-on-failure
+
+    - name: Generate Security Report
+      if: always()
+      run: |
+        ./vendor/bin/pest tests/Security --parallel --log-junit=security-report.xml || true
+        
+    - name: Upload Security Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-test-results
+        path: security-report.xml
+
+    - name: Security Test Summary
+      if: always()
+      run: |
+        echo "## Security Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f security-report.xml ]; then
+          echo "✅ Security tests completed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Security tests failed to generate report" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Categories" >> $GITHUB_STEP_SUMMARY
+        echo "- SQL Injection Protection" >> $GITHUB_STEP_SUMMARY
+        echo "- XSS Prevention" >> $GITHUB_STEP_SUMMARY
+        echo "- CSRF Protection" >> $GITHUB_STEP_SUMMARY
+        echo "- Authentication Security" >> $GITHUB_STEP_SUMMARY
+        echo "- API Security" >> $GITHUB_STEP_SUMMARY
+        echo "- Cryptography Standards" >> $GITHUB_STEP_SUMMARY
+        echo "- Input Validation" >> $GITHUB_STEP_SUMMARY
+
+    - name: Check for Critical Vulnerabilities
+      if: failure()
+      run: |
+        echo "::error::Critical security vulnerabilities detected! Do not merge until resolved."
+        exit 1
