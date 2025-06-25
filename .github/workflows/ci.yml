@@ -311,7 +311,7 @@ jobs:
         run: |
           mkdir -p security-reports
           echo "# Security Test Report - ${{ matrix.security-suite }}" > security-reports/${{ matrix.security-suite }}.md
-          echo "Status: ${{ env['SECURITY_' + matrix.security-suite + '_FAILED'] == '1' && 'FAILED' || 'PASSED' }}" >> security-reports/${{ matrix.security-suite }}.md
+          echo "Status: ${TESTS_FAILED:-0}" >> security-reports/${{ matrix.security-suite }}.md
           
       - name: Upload Security Test Results
         if: always()
