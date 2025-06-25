@@ -12,6 +12,7 @@ use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\CustodianAccount;
 use App\Models\CustodianTransfer;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class FallbackServiceTest extends TestCase
@@ -62,12 +63,14 @@ class FallbackServiceTest extends TestCase
         $account = \App\Models\Account::factory()->create();
         
         CustodianAccount::create([
-            'id' => \Str::uuid()->toString(),
+            'uuid' => Str::uuid()->toString(),
             'custodian_name' => $custodian,
             'custodian_account_id' => $accountId,
             'account_uuid' => $account->uuid,
             'last_known_balance' => $expectedBalance,
             'last_synced_at' => now(),
+            'status' => 'active',
+            'is_primary' => true,
         ]);
         
         // Act

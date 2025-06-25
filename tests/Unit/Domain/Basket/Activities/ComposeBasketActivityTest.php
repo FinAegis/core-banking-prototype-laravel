@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Basket\Activities;
 
 use App\Domain\Basket\Activities\ComposeBasketActivity;
-use App\Domain\Basket\Services\BasketAccountService;
+use App\Domain\Basket\Activities\ComposeBasketBusinessActivity;
 use App\Models\Account;
 use Tests\TestCase;
 use Mockery;
@@ -14,7 +14,7 @@ class ComposeBasketActivityTest extends TestCase
 {
     public function test_activity_extends_workflow_activity()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $this->assertInstanceOf(\Workflow\Activity::class, $activity);
@@ -22,7 +22,7 @@ class ComposeBasketActivityTest extends TestCase
     
     public function test_execute_method_validates_required_parameters()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $this->expectException(\InvalidArgumentException::class);
@@ -33,7 +33,7 @@ class ComposeBasketActivityTest extends TestCase
     
     public function test_execute_method_has_correct_signature()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $reflection = new \ReflectionClass($activity);
@@ -50,7 +50,7 @@ class ComposeBasketActivityTest extends TestCase
     
     public function test_execute_method_validates_missing_account_uuid()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $this->expectException(\InvalidArgumentException::class);
@@ -63,7 +63,7 @@ class ComposeBasketActivityTest extends TestCase
     
     public function test_execute_method_validates_missing_basket_code()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $this->expectException(\InvalidArgumentException::class);
@@ -76,7 +76,7 @@ class ComposeBasketActivityTest extends TestCase
     
     public function test_execute_method_validates_missing_amount()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $this->expectException(\InvalidArgumentException::class);
