@@ -11,7 +11,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class BasketValueTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected BasketAsset $basket;
 

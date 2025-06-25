@@ -42,6 +42,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_checks_if_basket_needs_rebalancing()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'daily',
             'last_rebalanced_at' => now()->subDays(2),
@@ -57,6 +58,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_throws_exception_for_fixed_basket_rebalancing()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -73,15 +75,15 @@ class BasketRebalancingServiceTest extends TestCase
         $usd = Asset::where('code', 'USD')->first();
         $eur = Asset::where('code', 'EUR')->first();
         
-        // Create dynamic basket
+        // Create dynamic basket with unique code
         $basket = BasketAsset::factory()->create([
-            'code' => 'DYNAMIC_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'daily',
         ]);
         
         // Add components with bounds
-        $component1 = BasketComponent::factory()->create([
+        $component1 = BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 30.0, // Below min_weight
@@ -90,7 +92,7 @@ class BasketRebalancingServiceTest extends TestCase
             'is_active' => true,
         ]);
         
-        $component2 = BasketComponent::factory()->create([
+        $component2 = BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 70.0, // Above max_weight
@@ -154,6 +156,7 @@ class BasketRebalancingServiceTest extends TestCase
     {
         // Create basket with components within bounds
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
         ]);
         
@@ -200,6 +203,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_throws_exception_for_zero_value_basket()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
         ]);
         
@@ -227,6 +231,7 @@ class BasketRebalancingServiceTest extends TestCase
     {
         // Create basket with 3 components
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
         ]);
         
@@ -284,6 +289,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_rebalances_if_needed()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'daily',
             'last_rebalanced_at' => now()->subDays(2),
@@ -324,6 +330,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_returns_null_when_rebalancing_not_needed()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'daily',
             'last_rebalanced_at' => now(),
@@ -339,21 +346,21 @@ class BasketRebalancingServiceTest extends TestCase
     {
         // Create baskets
         $basket1 = BasketAsset::factory()->create([
-            'code' => 'BASKET1',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'daily',
             'last_rebalanced_at' => now()->subDays(2),
         ]);
         
         $basket2 = BasketAsset::factory()->create([
-            'code' => 'BASKET2',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'weekly',
             'last_rebalanced_at' => now()->subWeeks(2),
         ]);
         
         $basket3 = BasketAsset::factory()->create([
-            'code' => 'BASKET3',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'daily',
             'last_rebalanced_at' => now(), // Doesn't need rebalancing
@@ -398,6 +405,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_simulates_rebalancing_without_executing()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
         ]);
         
@@ -441,7 +449,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_handles_rebalancing_failures_gracefully()
     {
         $basket = BasketAsset::factory()->create([
-            'code' => 'ERROR_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
             'rebalance_frequency' => 'daily',
             'last_rebalanced_at' => now()->subDays(2),
@@ -455,7 +463,7 @@ class BasketRebalancingServiceTest extends TestCase
         Log::shouldReceive('error')
             ->once()
             ->with(
-                Mockery::pattern('/Failed to rebalance basket ERROR_BASKET/'),
+                Mockery::pattern('/Failed to rebalance basket TEST_BASKET_/'),
                 Mockery::any()
             );
         
@@ -465,7 +473,7 @@ class BasketRebalancingServiceTest extends TestCase
         $this->assertCount(0, $results['rebalanced']);
         $this->assertCount(0, $results['no_changes']);
         $this->assertCount(1, $results['failed']);
-        $this->assertEquals('ERROR_BASKET', $results['failed'][0]['basket']);
+        $this->assertStringStartsWith('TEST_BASKET_', $results['failed'][0]['basket']);
         $this->assertEquals('Calculation error', $results['failed'][0]['error']);
     }
 
@@ -473,6 +481,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_gets_rebalancing_history_placeholder()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
         ]);
         
@@ -487,6 +496,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_handles_components_without_bounds()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
         ]);
         
@@ -530,6 +540,7 @@ class BasketRebalancingServiceTest extends TestCase
     public function it_normalizes_weights_with_constraints()
     {
         $basket = BasketAsset::factory()->create([
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'dynamic',
         ]);
         

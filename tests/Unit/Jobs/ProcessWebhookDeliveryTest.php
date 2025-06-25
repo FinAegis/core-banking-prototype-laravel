@@ -18,7 +18,6 @@ use Exception;
 
 class ProcessWebhookDeliveryTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected Webhook $webhook;
     protected WebhookDelivery $delivery;

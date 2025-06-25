@@ -10,7 +10,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CustodianWebhookTest extends TestCase
 {
-    use RefreshDatabase;
 
     /** @test */
     public function it_can_create_a_custodian_webhook()

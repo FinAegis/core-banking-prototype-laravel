@@ -40,12 +40,12 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_calculates_basket_value_with_single_component()
     {
         // Create assets
-        $usd = Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar']);
-        $eur = Asset::factory()->create(['code' => 'EUR', 'name' => 'Euro']);
+        $usd = Asset::where('code', 'USD')->first();
+        $eur = Asset::where('code', 'EUR')->first();
         
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'TEST_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -68,7 +68,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         $this->assertInstanceOf(BasketValue::class, $value);
         $this->assertEquals(1.2, $value->value);
-        $this->assertEquals('TEST_BASKET', $value->basket_asset_code);
+        $this->assertEquals($basket->code, $value->basket_asset_code);
         $this->assertArrayHasKey('EUR', $value->component_values);
         $this->assertEquals(1.2, $value->component_values['EUR']['weighted_value']);
     }
@@ -77,13 +77,13 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_calculates_basket_value_with_multiple_components()
     {
         // Create assets
-        Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar']);
-        Asset::factory()->create(['code' => 'EUR', 'name' => 'Euro']);
-        Asset::factory()->create(['code' => 'GBP', 'name' => 'British Pound']);
+        Asset::where('code', 'USD')->first();
+        Asset::where('code', 'EUR')->first();
+        Asset::where('code', 'GBP')->first();
         
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'MULTI_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -129,11 +129,11 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_handles_usd_component_without_exchange_rate()
     {
         // Create assets
-        Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar']);
+        Asset::where('code', 'USD')->first();
         
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'USD_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -157,7 +157,7 @@ class BasketValueCalculationServiceTest extends TestCase
     {
         // Create basket without components
         $basket = BasketAsset::factory()->create([
-            'code' => 'EMPTY_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -173,12 +173,12 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_ignores_inactive_components()
     {
         // Create assets
-        Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar']);
-        Asset::factory()->create(['code' => 'EUR', 'name' => 'Euro']);
+        Asset::where('code', 'USD')->first();
+        Asset::where('code', 'EUR')->first();
         
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'PARTIAL_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -211,13 +211,13 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_handles_missing_exchange_rate_gracefully()
     {
         // Create assets
-        Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar']);
-        Asset::factory()->create(['code' => 'EUR', 'name' => 'Euro']);
+        Asset::where('code', 'USD')->first();
+        Asset::where('code', 'EUR')->first();
         Asset::factory()->create(['code' => 'XYZ', 'name' => 'Unknown Currency']);
         
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'ERROR_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -261,11 +261,11 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_uses_cache_when_enabled()
     {
         // Create assets
-        Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar']);
+        Asset::where('code', 'USD')->first();
         
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'CACHED_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -294,24 +294,24 @@ class BasketValueCalculationServiceTest extends TestCase
     public function it_calculates_all_basket_values()
     {
         // Create assets
-        Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar']);
-        Asset::factory()->create(['code' => 'EUR', 'name' => 'Euro']);
+        Asset::where('code', 'USD')->first();
+        Asset::where('code', 'EUR')->first();
         
         // Create baskets
         $basket1 = BasketAsset::factory()->create([
-            'code' => 'BASKET1',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
             'is_active' => true,
         ]);
         
         $basket2 = BasketAsset::factory()->create([
-            'code' => 'BASKET2',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
             'is_active' => true,
         ]);
         
         $inactiveBasket = BasketAsset::factory()->create([
-            'code' => 'INACTIVE',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
             'is_active' => false,
         ]);
@@ -344,8 +344,8 @@ class BasketValueCalculationServiceTest extends TestCase
         $this->assertCount(0, $results['failed']);
         
         // Check results
-        $basket1Result = collect($results['successful'])->firstWhere('basket', 'BASKET1');
-        $basket2Result = collect($results['successful'])->firstWhere('basket', 'BASKET2');
+        $basket1Result = collect($results['successful'])->firstWhere('basket', $basket1->code);
+        $basket2Result = collect($results['successful'])->firstWhere('basket', $basket2->code);
         
         $this->assertEquals(1.0, $basket1Result['value']);
         $this->assertEquals(1.2, $basket2Result['value']);
@@ -356,7 +356,7 @@ class BasketValueCalculationServiceTest extends TestCase
     {
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'HIST_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -397,7 +397,7 @@ class BasketValueCalculationServiceTest extends TestCase
     {
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'PERF_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -433,7 +433,7 @@ class BasketValueCalculationServiceTest extends TestCase
     {
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'NO_DATA_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -456,7 +456,7 @@ class BasketValueCalculationServiceTest extends TestCase
     {
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'CACHE_TEST',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -479,7 +479,7 @@ class BasketValueCalculationServiceTest extends TestCase
     {
         // Create basket
         $basket = BasketAsset::factory()->create([
-            'code' => 'MISSING_ASSET_BASKET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
@@ -504,12 +504,12 @@ class BasketValueCalculationServiceTest extends TestCase
     {
         // Create basket without corresponding asset
         $basket = BasketAsset::factory()->create([
-            'code' => 'NEW_BASKET_ASSET',
+            'code' => 'TEST_BASKET_' . uniqid(),
             'type' => 'fixed',
         ]);
         
         // Verify asset doesn't exist yet
-        $this->assertNull(Asset::find('NEW_BASKET_ASSET'));
+        $this->assertNull(Asset::find($basket->code));
         
         // Add component
         BasketComponent::factory()->create([
@@ -519,13 +519,13 @@ class BasketValueCalculationServiceTest extends TestCase
             'is_active' => true,
         ]);
         
-        Asset::factory()->create(['code' => 'USD']);
+        Asset::where('code', 'USD')->first();
         
         // Calculate value
         $value = $this->service->calculateValue($basket, false);
         
         // Verify asset was created
-        $asset = Asset::find('NEW_BASKET_ASSET');
+        $asset = Asset::find($basket->code);
         $this->assertNotNull($asset);
         $this->assertEquals('basket', $asset->type);
         $this->assertTrue($asset->is_basket);

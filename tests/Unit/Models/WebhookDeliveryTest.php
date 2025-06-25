@@ -12,7 +12,6 @@ use PHPUnit\Framework\Attributes\Test;
 
 class WebhookDeliveryTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected Webhook $webhook;
 

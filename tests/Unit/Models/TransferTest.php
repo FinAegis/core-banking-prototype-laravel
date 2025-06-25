@@ -12,7 +12,6 @@ use Illuminate\Support\Carbon;
 
 class TransferTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected Account $fromAccount;
     protected Account $toAccount;

@@ -15,7 +15,6 @@ use Tests\TestCase;
 
 class StablecoinControllerTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected StablecoinController $controller;
     protected $stabilityService;

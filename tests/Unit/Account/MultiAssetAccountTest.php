@@ -11,7 +11,6 @@ use PHPUnit\Framework\Attributes\Test;
 
 class MultiAssetAccountTest extends TestCase
 {
-    use RefreshDatabase;
     
     private Account $testAccount;
     

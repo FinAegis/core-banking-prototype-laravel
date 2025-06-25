@@ -13,7 +13,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AccountTest extends TestCase
 {
-    use RefreshDatabase;
     public function test_account_factory_creates_account()
     {
         $user = User::factory()->create();

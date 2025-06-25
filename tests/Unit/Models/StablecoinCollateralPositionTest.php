@@ -13,7 +13,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class StablecoinCollateralPositionTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected Stablecoin $stablecoin;
     protected Account $account;

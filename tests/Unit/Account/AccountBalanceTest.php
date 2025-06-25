@@ -11,7 +11,6 @@ use PHPUnit\Framework\Attributes\Test;
 
 class AccountBalanceTest extends TestCase
 {
-    use RefreshDatabase;
     
     protected function setUp(): void
     {

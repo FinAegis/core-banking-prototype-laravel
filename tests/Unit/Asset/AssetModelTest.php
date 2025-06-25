@@ -10,7 +10,6 @@ use PHPUnit\Framework\Attributes\Test;
 
 class AssetModelTest extends TestCase
 {
-    use RefreshDatabase;
     
     #[Test]
     public function it_can_create_an_asset()

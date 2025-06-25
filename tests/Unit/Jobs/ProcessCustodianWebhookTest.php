@@ -14,7 +14,6 @@ use Exception;
 
 class ProcessCustodianWebhookTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected CustodianWebhook $webhook;
     protected WebhookProcessorService $processorService;

@@ -11,7 +11,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class WebhookTest extends TestCase
 {
-    use RefreshDatabase;
 
     /** @test */
     public function it_can_create_a_webhook()
