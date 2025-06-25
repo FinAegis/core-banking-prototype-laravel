@@ -155,7 +155,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: php, javascript
+          languages: PHP, javascript
           queries: security-and-quality
           
       - name: Setup PHP for Analysis
