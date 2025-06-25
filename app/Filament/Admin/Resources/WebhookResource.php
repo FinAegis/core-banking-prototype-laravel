@@ -192,6 +192,7 @@ class WebhookResource extends Resource
         return [
             'index' => Pages\ListWebhooks::route('/'),
             'create' => Pages\CreateWebhook::route('/create'),
+            'view' => Pages\ViewWebhook::route('/{record}'),
             'edit' => Pages\EditWebhook::route('/{record}/edit'),
         ];
     }
