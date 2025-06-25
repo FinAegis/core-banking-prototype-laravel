@@ -426,16 +426,3 @@ jobs:
             echo "⚠️ **Performance regression detected!** Response time increased by ${DIFF}%" >> performance-impact.md
           fi
           
-      - name: Comment on PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('performance-impact.md', 'utf8');
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: report
-            });
