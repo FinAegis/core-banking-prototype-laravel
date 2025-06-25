@@ -11,6 +11,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @OA\Tag(
+ *     name="Custodian Webhooks",
+ *     description="Endpoints for receiving webhook notifications from custodian banks"
+ * )
+ */
 class CustodianWebhookController extends Controller
 {
     public function __construct(
@@ -19,6 +25,50 @@ class CustodianWebhookController extends Controller
 
     /**
      * Handle incoming webhook from Paysera.
+     * 
+     * @OA\Post(
+     *     path="/api/webhooks/custodian/paysera",
+     *     operationId="payseraWebhook",
+     *     tags={"Custodian Webhooks"},
+     *     summary="Receive Paysera webhook",
+     *     description="Endpoint for receiving webhook notifications from Paysera bank",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Webhook payload from Paysera",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="event", type="string", example="transaction.completed"),
+     *             @OA\Property(property="event_id", type="string", example="evt_123456"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 description="Event-specific data"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=202,
+     *         description="Webhook accepted for processing",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="accepted"),
+     *             @OA\Property(property="duplicate", type="boolean", example=false)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid signature",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Invalid signature")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid payload"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error"
+     *     )
+     * )
      */
     public function paysera(Request $request): JsonResponse
     {
@@ -27,6 +77,42 @@ class CustodianWebhookController extends Controller
 
     /**
      * Handle incoming webhook from Santander.
+     * 
+     * @OA\Post(
+     *     path="/api/webhooks/custodian/santander",
+     *     operationId="santanderWebhook",
+     *     tags={"Custodian Webhooks"},
+     *     summary="Receive Santander webhook",
+     *     description="Endpoint for receiving webhook notifications from Santander bank",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Webhook payload from Santander",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="event_type", type="string", example="payment.received"),
+     *             @OA\Property(property="id", type="string", example="wh_987654"),
+     *             @OA\Property(
+     *                 property="payload",
+     *                 type="object",
+     *                 description="Event-specific payload"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=202,
+     *         description="Webhook accepted for processing",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="accepted")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid signature"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid payload"
+     *     )
+     * )
      */
     public function santander(Request $request): JsonResponse
     {
@@ -35,6 +121,41 @@ class CustodianWebhookController extends Controller
 
     /**
      * Handle incoming webhook from Mock Bank.
+     * 
+     * @OA\Post(
+     *     path="/api/webhooks/custodian/mock",
+     *     operationId="mockBankWebhook",
+     *     tags={"Custodian Webhooks"},
+     *     summary="Receive Mock Bank webhook",
+     *     description="Endpoint for receiving webhook notifications from Mock Bank (for testing)",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Webhook payload from Mock Bank",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="type", type="string", example="balance.updated"),
+     *             @OA\Property(property="id", type="string", example="mock_123"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="account_id", type="string", example="ACC123"),
+     *                 @OA\Property(property="balance", type="integer", example=150000),
+     *                 @OA\Property(property="currency", type="string", example="EUR")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=202,
+     *         description="Webhook accepted for processing"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid signature"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid payload"
+     *     )
+     * )
      */
     public function mock(Request $request): JsonResponse
     {

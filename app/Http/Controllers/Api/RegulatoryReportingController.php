@@ -12,6 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @OA\Tag(
+ *     name="Regulatory Reporting",
+ *     description="Compliance and regulatory report generation and management"
+ * )
+ */
 class RegulatoryReportingController extends Controller
 {
     public function __construct(
@@ -23,6 +29,56 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Generate Currency Transaction Report (CTR)
+     * 
+     * @OA\Post(
+     *     path="/api/regulatory/reports/ctr",
+     *     operationId="generateCTR",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Generate Currency Transaction Report",
+     *     description="Generates a CTR report for transactions exceeding regulatory thresholds (Admin only)",
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"date"},
+     *             @OA\Property(
+     *                 property="date",
+     *                 type="string",
+     *                 format="date",
+     *                 example="2024-01-15",
+     *                 description="Date for which to generate the CTR (must be today or earlier)"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="CTR generated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="type", type="string", example="ctr"),
+     *                 @OA\Property(property="date", type="string", format="date"),
+     *                 @OA\Property(property="filename", type="string"),
+     *                 @OA\Property(property="generated_at", type="string", format="date-time"),
+     *                 @OA\Property(property="download_url", type="string")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Currency Transaction Report generated successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to generate report"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      */
     public function generateCTR(Request $request): JsonResponse
     {
@@ -54,6 +110,52 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Generate Suspicious Activity Report (SAR) candidates
+     * 
+     * @OA\Post(
+     *     path="/api/regulatory/reports/sar",
+     *     operationId="generateSARCandidates",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Generate SAR candidates report",
+     *     description="Generates a report of potential suspicious activities requiring SAR filing (Admin only)",
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"start_date", "end_date"},
+     *             @OA\Property(property="start_date", type="string", format="date", example="2024-01-01"),
+     *             @OA\Property(property="end_date", type="string", format="date", example="2024-01-31")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="SAR candidates report generated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="type", type="string", example="sar_candidates"),
+     *                 @OA\Property(property="period_start", type="string", format="date"),
+     *                 @OA\Property(property="period_end", type="string", format="date"),
+     *                 @OA\Property(property="filename", type="string"),
+     *                 @OA\Property(property="generated_at", type="string", format="date-time"),
+     *                 @OA\Property(property="download_url", type="string")
+     *             ),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to generate report"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      */
     public function generateSARCandidates(Request $request): JsonResponse
     {
@@ -89,6 +191,56 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Generate compliance summary report
+     * 
+     * @OA\Post(
+     *     path="/api/regulatory/reports/compliance-summary",
+     *     operationId="generateComplianceSummary",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Generate monthly compliance summary",
+     *     description="Generates a comprehensive compliance summary report for the specified month (Admin only)",
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"month"},
+     *             @OA\Property(
+     *                 property="month",
+     *                 type="string",
+     *                 pattern="^\d{4}-\d{2}$",
+     *                 example="2024-01",
+     *                 description="Month in YYYY-MM format"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Compliance summary generated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="type", type="string", example="compliance_summary"),
+     *                 @OA\Property(property="month", type="string", example="January 2024"),
+     *                 @OA\Property(property="filename", type="string"),
+     *                 @OA\Property(property="generated_at", type="string", format="date-time"),
+     *                 @OA\Property(property="download_url", type="string")
+     *             ),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to generate report"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      */
     public function generateComplianceSummary(Request $request): JsonResponse
     {
@@ -120,6 +272,42 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Generate KYC compliance report
+     * 
+     * @OA\Post(
+     *     path="/api/regulatory/reports/kyc",
+     *     operationId="generateKycReport",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Generate KYC compliance report",
+     *     description="Generates a Know Your Customer (KYC) compliance status report (Admin only)",
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="KYC report generated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="type", type="string", example="kyc_compliance"),
+     *                 @OA\Property(property="filename", type="string"),
+     *                 @OA\Property(property="generated_at", type="string", format="date-time"),
+     *                 @OA\Property(property="download_url", type="string")
+     *             ),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to generate report"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      */
     public function generateKycReport(): JsonResponse
     {
@@ -145,6 +333,85 @@ class RegulatoryReportingController extends Controller
 
     /**
      * List all available regulatory reports
+     * 
+     * @OA\Get(
+     *     path="/api/regulatory/reports",
+     *     operationId="listRegulatoryReports",
+     *     tags={"Regulatory Reporting"},
+     *     summary="List all regulatory reports",
+     *     description="Retrieves a paginated list of all generated regulatory reports",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by report type",
+     *         @OA\Schema(type="string", enum={"ctr", "sar", "compliance", "kyc"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         required=false,
+     *         description="Number of reports per page",
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, default=20)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Page number",
+     *         @OA\Schema(type="integer", minimum=1, default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reports list retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="reports",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="type", type="string"),
+     *                         @OA\Property(property="filename", type="string"),
+     *                         @OA\Property(property="full_path", type="string"),
+     *                         @OA\Property(property="size", type="integer"),
+     *                         @OA\Property(property="created_at", type="string", format="date-time"),
+     *                         @OA\Property(property="download_url", type="string")
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="pagination",
+     *                     type="object",
+     *                     @OA\Property(property="total", type="integer"),
+     *                     @OA\Property(property="per_page", type="integer"),
+     *                     @OA\Property(property="current_page", type="integer"),
+     *                     @OA\Property(property="last_page", type="integer"),
+     *                     @OA\Property(property="has_more", type="boolean")
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="meta",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="available_types",
+     *                     type="array",
+     *                     @OA\Items(type="string")
+     *                 ),
+     *                 @OA\Property(property="total_reports", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to list reports"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function listReports(Request $request): JsonResponse
     {
@@ -218,6 +485,53 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Get specific report content
+     * 
+     * @OA\Get(
+     *     path="/api/regulatory/reports/{filename}",
+     *     operationId="getRegulatoryReport",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Get specific report content",
+     *     description="Retrieves the full content of a specific regulatory report",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="filename",
+     *         in="path",
+     *         required=true,
+     *         description="Report filename",
+     *         @OA\Schema(type="string", example="ctr-2024-01-15.json")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Report retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="filename", type="string"),
+     *                 @OA\Property(property="file_path", type="string"),
+     *                 @OA\Property(property="size", type="integer"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="content", type="object", description="Full report content")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid filename format"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Report not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to retrieve report"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function getReport(Request $request, string $filename): JsonResponse
     {
@@ -280,6 +594,52 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Download report file
+     * 
+     * @OA\Get(
+     *     path="/api/regulatory/reports/{filename}/download",
+     *     operationId="downloadRegulatoryReport",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Download regulatory report file",
+     *     description="Downloads a regulatory report file as JSON attachment",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="filename",
+     *         in="path",
+     *         required=true,
+     *         description="Report filename to download",
+     *         @OA\Schema(type="string", example="ctr-2024-01-15.json")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="File download successful",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(type="string", format="binary")
+     *         ),
+     *         @OA\Header(
+     *             header="Content-Type",
+     *             description="Content type of the file",
+     *             @OA\Schema(type="string", example="application/json")
+     *         ),
+     *         @OA\Header(
+     *             header="Content-Disposition",
+     *             description="Attachment header with filename",
+     *             @OA\Schema(type="string", example="attachment; filename=\"ctr-2024-01-15.json\"")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid filename format"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Report not found"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function downloadReport(string $filename)
     {
@@ -328,6 +688,55 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Delete a regulatory report
+     * 
+     * @OA\Delete(
+     *     path="/api/regulatory/reports/{filename}",
+     *     operationId="deleteRegulatoryReport",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Delete a regulatory report",
+     *     description="Permanently deletes a regulatory report file (Admin only)",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="filename",
+     *         in="path",
+     *         required=true,
+     *         description="Report filename to delete",
+     *         @OA\Schema(type="string", example="ctr-2024-01-15.json")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Report deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="filename", type="string"),
+     *                 @OA\Property(property="deleted_at", type="string", format="date-time")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Report deleted successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid filename format"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Report not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to delete report"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      */
     public function deleteReport(string $filename): JsonResponse
     {
@@ -381,6 +790,57 @@ class RegulatoryReportingController extends Controller
 
     /**
      * Get regulatory metrics summary
+     * 
+     * @OA\Get(
+     *     path="/api/regulatory/metrics",
+     *     operationId="getRegulatoryMetrics",
+     *     tags={"Regulatory Reporting"},
+     *     summary="Get regulatory compliance metrics",
+     *     description="Retrieves comprehensive regulatory compliance metrics and KPIs (Admin only)",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="period",
+     *         in="query",
+     *         required=false,
+     *         description="Time period for metrics",
+     *         @OA\Schema(type="string", enum={"week", "month", "quarter", "year"}, default="month")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Metrics retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="period", type="string"),
+     *                 @OA\Property(property="period_start", type="string", format="date"),
+     *                 @OA\Property(property="period_end", type="string", format="date"),
+     *                 @OA\Property(
+     *                     property="metrics",
+     *                     type="object",
+     *                     @OA\Property(property="kyc", type="object", description="KYC compliance metrics"),
+     *                     @OA\Property(property="transactions", type="object", description="Transaction monitoring metrics"),
+     *                     @OA\Property(property="users", type="object", description="User compliance metrics"),
+     *                     @OA\Property(property="risk", type="object", description="Risk assessment metrics"),
+     *                     @OA\Property(property="gdpr", type="object", description="GDPR compliance metrics")
+     *                 ),
+     *                 @OA\Property(property="generated_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to retrieve metrics"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin access required"
+     *     )
+     * )
      */
     public function getMetrics(Request $request): JsonResponse
     {

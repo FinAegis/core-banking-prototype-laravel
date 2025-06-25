@@ -60,10 +60,14 @@ it('can handle transfer to same account', function () {
 });
 
 it('handles large amount transfers', function () {
+    // Create account with sufficient balance for large transfer
+    $richAccount = Account::factory()->withBalance(1000000000)->create();
+    $fromAccount = new AccountUuid($richAccount->uuid);
+    
     $largeMoney = new Money(999999999);
     
     $workflow = WorkflowStub::make(TransferWorkflow::class);
-    $workflow->start($this->fromAccount, $this->toAccount, $largeMoney);
+    $workflow->start($fromAccount, $this->toAccount, $largeMoney);
 
     expect(true)->toBeTrue();
 });

@@ -1,10 +1,10 @@
 # FinAegis Platform Architecture
 
-**Version:** 2.0  
-**Last Updated:** 2025-06-16  
-**Status:** Complete Implementation
+**Version:** 3.0  
+**Last Updated:** 2025-06-25  
+**Status:** Extended for Unified Platform (GCU + Litas)
 
-This document provides a comprehensive overview of the FinAegis Core Banking Platform architecture, design patterns, and implementation details.
+This document provides a comprehensive overview of the FinAegis Core Banking Platform architecture, design patterns, and implementation details. The platform now supports both the Global Currency Unit (GCU) and Litas crypto-fiat exchange platforms.
 
 ## Table of Contents
 
@@ -42,10 +42,16 @@ This document provides a comprehensive overview of the FinAegis Core Banking Pla
 │  Account   │  Payment   │  Asset   │  Governance  │  Custodian      │
 │  Domain    │  Domain    │ Domain   │   Domain     │   Domain        │
 ├─────────────────────────────────────────────────────────────────────┤
+│  Exchange  │  Crypto    │ Lending  │  Stablecoin │  Trading        │
+│  Domain    │  Domain    │ Domain   │   Domain     │   Domain        │
+├─────────────────────────────────────────────────────────────────────┤
 │                        Infrastructure Layer                         │
 ├─────────────────────────────────────────────────────────────────────┤
 │  Database  │  Redis   │  Queue   │  Storage   │  External APIs      │
 │  (MySQL)   │ (Cache)  │ System   │ (Files)    │ (Custodians)        │
+├─────────────────────────────────────────────────────────────────────┤
+│ Blockchain │  Crypto  │  Market  │  Credit    │  Compliance         │
+│   Nodes    │ Exchanges│  Data    │  Scoring   │  Services           │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -994,6 +1000,103 @@ The FinAegis platform represents a modern, scalable approach to core banking sys
 
 ---
 
-**Architecture Version**: 2.0  
-**Implementation Status**: Complete  
-**Last Updated**: 2025-06-16
+## Unified Platform Architecture
+
+### Overview
+FinAegis serves as a unified platform supporting multiple financial products:
+- **Global Currency Unit (GCU)**: User-controlled currency with democratic governance
+- **Litas Platform**: Crypto-fiat exchange and P2P lending marketplace
+
+### Shared Components
+
+#### Exchange Engine
+```php
+interface ExchangeEngine {
+    // Supports both currency and crypto exchanges
+    public function execute(Order $order): Trade;
+    public function getOrderBook(AssetPair $pair): OrderBook;
+    public function addLiquidity(LiquidityPool $pool): void;
+}
+```
+
+#### Multi-Asset Ledger
+- Supports fiat currencies (USD, EUR, GBP)
+- Supports cryptocurrencies (BTC, ETH)
+- Supports tokens (GCU, Stable LITAS, Crypto LITAS)
+- Unified balance management across all asset types
+
+#### Stablecoin Framework
+```php
+interface StablecoinManager {
+    public function mint(Money $fiatAmount, string $token): TokenAmount;
+    public function burn(TokenAmount $tokens): Money;
+    public function getReserves(string $token): ReserveStatus;
+}
+```
+
+### Product-Specific Domains
+
+#### GCU-Specific
+- Currency basket management
+- Bank allocation (multi-bank distribution)
+- Monthly voting on composition
+- Basket rebalancing algorithms
+
+#### Litas-Specific
+- Crypto wallet infrastructure
+- Blockchain integration layer
+- P2P lending marketplace
+- Loan tokenization (Crypto LITAS)
+
+### Configuration-Driven Architecture
+
+```php
+// config/platform.php
+return [
+    'features' => [
+        'gcu' => [
+            'basket_management' => true,
+            'bank_allocation' => true,
+            'currency_voting' => true,
+        ],
+        'litas' => [
+            'crypto_wallets' => true,
+            'p2p_lending' => true,
+            'token_trading' => true,
+        ],
+    ],
+];
+```
+
+### Integration Points
+
+#### Blockchain Layer
+- **Bitcoin Integration**: Full node or API-based
+- **Ethereum Integration**: Web3 provider connection
+- **Smart Contracts**: Token contracts for Stable/Crypto LITAS
+- **Transaction Monitoring**: Block confirmation tracking
+
+#### External Services
+- **Crypto Exchanges**: Binance, Kraken API integration
+- **Credit Scoring**: Third-party risk assessment
+- **KYC Providers**: Identity verification services
+- **Market Data**: Real-time price feeds
+
+### Security Architecture Extensions
+
+#### Crypto Security
+- **HD Wallets**: Hierarchical deterministic key generation
+- **Multi-Signature**: M-of-N signature requirements
+- **Cold Storage**: Offline key management
+- **HSM Integration**: Hardware security modules
+
+#### Compliance Extensions
+- **VASP Registration**: Virtual Asset Service Provider
+- **MiCA Compliance**: Markets in Crypto-Assets
+- **ECSP License**: European Crowdfunding Service Provider
+
+---
+
+**Architecture Version**: 3.0  
+**Implementation Status**: Core Complete, Extensions Planned  
+**Last Updated**: 2025-06-25

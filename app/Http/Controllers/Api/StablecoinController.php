@@ -13,9 +13,10 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
- * @group Stablecoin Management
- *
- * APIs for managing stablecoins and their configurations.
+ * @OA\Tag(
+ *     name="Stablecoins",
+ *     description="Stablecoin management and operations"
+ * )
  */
 class StablecoinController extends Controller
 {
@@ -25,33 +26,48 @@ class StablecoinController extends Controller
     ) {}
 
     /**
-     * List all stablecoins
-     *
-     * @response 200 {
-     *   "data": [
-     *     {
-     *       "code": "FUSD",
-     *       "name": "FinAegis USD",
-     *       "symbol": "FUSD",
-     *       "peg_asset_code": "USD",
-     *       "peg_ratio": "1.00000000",
-     *       "target_price": "1.00000000",
-     *       "stability_mechanism": "collateralized",
-     *       "collateral_ratio": "1.5000",
-     *       "min_collateral_ratio": "1.2000",
-     *       "liquidation_penalty": "0.1000",
-     *       "total_supply": 1000000,
-     *       "max_supply": 10000000,
-     *       "total_collateral_value": 1500000,
-     *       "mint_fee": "0.005000",
-     *       "burn_fee": "0.003000",
-     *       "precision": 2,
-     *       "is_active": true,
-     *       "minting_enabled": true,
-     *       "burning_enabled": true
-     *     }
-     *   ]
-     * }
+     * @OA\Get(
+     *     path="/api/v2/stablecoins",
+     *     operationId="listStablecoins",
+     *     tags={"Stablecoins"},
+     *     summary="List all stablecoins",
+     *     description="Retrieve a list of all configured stablecoins with optional filtering",
+     *     @OA\Parameter(
+     *         name="active_only",
+     *         in="query",
+     *         description="Filter to show only active stablecoins",
+     *         required=false,
+     *         @OA\Schema(type="boolean")
+     *     ),
+     *     @OA\Parameter(
+     *         name="minting_enabled",
+     *         in="query",
+     *         description="Filter to show only stablecoins with minting enabled",
+     *         required=false,
+     *         @OA\Schema(type="boolean")
+     *     ),
+     *     @OA\Parameter(
+     *         name="burning_enabled",
+     *         in="query",
+     *         description="Filter to show only stablecoins with burning enabled",
+     *         required=false,
+     *         @OA\Schema(type="boolean")
+     *     ),
+     *     @OA\Parameter(
+     *         name="stability_mechanism",
+     *         in="query",
+     *         description="Filter by stability mechanism type",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"collateralized", "algorithmic", "hybrid"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Stablecoin"))
+     *         )
+     *     )
+     * )
      */
     public function index(Request $request): JsonResponse
     {
@@ -81,28 +97,32 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Get stablecoin details
-     *
-     * @urlParam code string required The stablecoin code. Example: FUSD
-     *
-     * @response 200 {
-     *   "data": {
-     *     "code": "FUSD",
-     *     "name": "FinAegis USD",
-     *     "symbol": "FUSD",
-     *     "peg_asset_code": "USD",
-     *     "stability_mechanism": "collateralized",
-     *     "collateral_ratio": "1.5000",
-     *     "min_collateral_ratio": "1.2000",
-     *     "total_supply": 1000000,
-     *     "max_supply": 10000000,
-     *     "total_collateral_value": 1500000,
-     *     "global_collateralization_ratio": 1.5,
-     *     "is_adequately_collateralized": true,
-     *     "active_positions_count": 25,
-     *     "at_risk_positions_count": 2
-     *   }
-     * }
+     * @OA\Get(
+     *     path="/api/v2/stablecoins/{code}",
+     *     operationId="getStablecoin",
+     *     tags={"Stablecoins"},
+     *     summary="Get stablecoin details",
+     *     description="Retrieve detailed information about a specific stablecoin including collateralization metrics",
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="The stablecoin code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", ref="#/components/schemas/Stablecoin")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stablecoin not found",
+     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *     )
+     * )
      */
     public function show(string $code): JsonResponse
     {
@@ -125,36 +145,30 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Create a new stablecoin
-     *
-     * @bodyParam code string required Unique stablecoin code. Example: FEUR
-     * @bodyParam name string required Stablecoin name. Example: FinAegis Euro
-     * @bodyParam symbol string required Trading symbol. Example: FEUR
-     * @bodyParam peg_asset_code string required Asset to peg to. Example: EUR
-     * @bodyParam peg_ratio number required Peg ratio (usually 1.0). Example: 1.0
-     * @bodyParam target_price number required Target price. Example: 1.0
-     * @bodyParam stability_mechanism string required Stability mechanism (collateralized, algorithmic, hybrid). Example: collateralized
-     * @bodyParam collateral_ratio number required Required collateral ratio. Example: 1.5
-     * @bodyParam min_collateral_ratio number required Minimum ratio before liquidation. Example: 1.2
-     * @bodyParam liquidation_penalty number required Liquidation penalty (0-1). Example: 0.1
-     * @bodyParam max_supply integer optional Maximum supply limit. Example: 10000000
-     * @bodyParam mint_fee number required Minting fee (0-1). Example: 0.005
-     * @bodyParam burn_fee number required Burning fee (0-1). Example: 0.003
-     * @bodyParam precision integer required Decimal precision. Example: 2
-     * @bodyParam metadata object optional Additional metadata
-     *
-     * @response 201 {
-     *   "data": {
-     *     "code": "FEUR",
-     *     "name": "FinAegis Euro",
-     *     "symbol": "FEUR",
-     *     "peg_asset_code": "EUR",
-     *     "stability_mechanism": "collateralized",
-     *     "is_active": true,
-     *     "minting_enabled": true,
-     *     "burning_enabled": true
-     *   }
-     * }
+     * @OA\Post(
+     *     path="/api/v2/stablecoins",
+     *     operationId="createStablecoin",
+     *     tags={"Stablecoins"},
+     *     summary="Create a new stablecoin",
+     *     description="Create a new stablecoin configuration",
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/CreateStablecoinRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Stablecoin created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", ref="#/components/schemas/Stablecoin")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
     public function store(Request $request): JsonResponse
     {
@@ -190,30 +204,52 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Update stablecoin configuration
-     *
-     * @urlParam code string required The stablecoin code. Example: FUSD
-     *
-     * @bodyParam name string optional Stablecoin name
-     * @bodyParam collateral_ratio number optional Required collateral ratio
-     * @bodyParam min_collateral_ratio number optional Minimum ratio before liquidation
-     * @bodyParam liquidation_penalty number optional Liquidation penalty (0-1)
-     * @bodyParam max_supply integer optional Maximum supply limit
-     * @bodyParam mint_fee number optional Minting fee (0-1)
-     * @bodyParam burn_fee number optional Burning fee (0-1)
-     * @bodyParam is_active boolean optional Whether stablecoin is active
-     * @bodyParam minting_enabled boolean optional Whether minting is enabled
-     * @bodyParam burning_enabled boolean optional Whether burning is enabled
-     * @bodyParam metadata object optional Additional metadata
-     *
-     * @response 200 {
-     *   "data": {
-     *     "code": "FUSD",
-     *     "name": "FinAegis USD Updated",
-     *     "collateral_ratio": "1.6000",
-     *     "mint_fee": "0.004000"
-     *   }
-     * }
+     * @OA\Put(
+     *     path="/api/v2/stablecoins/{code}",
+     *     operationId="updateStablecoin",
+     *     tags={"Stablecoins"},
+     *     summary="Update stablecoin configuration",
+     *     description="Update an existing stablecoin's configuration parameters",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="The stablecoin code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="FinAegis USD Updated"),
+     *             @OA\Property(property="collateral_ratio", type="number", example=1.6),
+     *             @OA\Property(property="min_collateral_ratio", type="number", example=1.3),
+     *             @OA\Property(property="liquidation_penalty", type="number", example=0.1),
+     *             @OA\Property(property="max_supply", type="integer", example=10000000),
+     *             @OA\Property(property="mint_fee", type="number", example=0.004),
+     *             @OA\Property(property="burn_fee", type="number", example=0.003),
+     *             @OA\Property(property="is_active", type="boolean", example=true),
+     *             @OA\Property(property="minting_enabled", type="boolean", example=true),
+     *             @OA\Property(property="burning_enabled", type="boolean", example=true),
+     *             @OA\Property(property="metadata", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Stablecoin updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", ref="#/components/schemas/Stablecoin")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stablecoin not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
      */
     public function update(Request $request, string $code): JsonResponse
     {
@@ -253,32 +289,42 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Get stablecoin metrics and statistics
-     *
-     * @urlParam code string required The stablecoin code. Example: FUSD
-     *
-     * @response 200 {
-     *   "data": {
-     *     "stablecoin_code": "FUSD",
-     *     "total_supply": 1000000,
-     *     "total_collateral_value": 1500000,
-     *     "global_ratio": 1.5,
-     *     "target_ratio": 1.5,
-     *     "min_ratio": 1.2,
-     *     "active_positions": 25,
-     *     "at_risk_positions": 2,
-     *     "is_healthy": true,
-     *     "collateral_distribution": [
-     *       {
-     *         "asset_code": "USD",
-     *         "total_amount": 800000,
-     *         "total_value": 800000,
-     *         "position_count": 15,
-     *         "percentage": 53.33
-     *       }
-     *     ]
-     *   }
-     * }
+     * @OA\Get(
+     *     path="/api/v2/stablecoins/{code}/metrics",
+     *     operationId="getStablecoinMetrics",
+     *     tags={"Stablecoins"},
+     *     summary="Get stablecoin metrics and statistics",
+     *     description="Retrieve detailed metrics and statistics for a specific stablecoin",
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="The stablecoin code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="stablecoin_code", type="string", example="FUSD"),
+     *                 @OA\Property(property="total_supply", type="integer", example=1000000),
+     *                 @OA\Property(property="total_collateral_value", type="integer", example=1500000),
+     *                 @OA\Property(property="global_ratio", type="number", example=1.5),
+     *                 @OA\Property(property="target_ratio", type="number", example=1.5),
+     *                 @OA\Property(property="min_ratio", type="number", example=1.2),
+     *                 @OA\Property(property="active_positions", type="integer", example=25),
+     *                 @OA\Property(property="at_risk_positions", type="integer", example=2),
+     *                 @OA\Property(property="is_healthy", type="boolean", example=true),
+     *                 @OA\Property(property="collateral_distribution", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stablecoin not found or no metrics available"
+     *     )
+     * )
      */
     public function metrics(string $code): JsonResponse
     {
@@ -297,24 +343,28 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Get system-wide stablecoin metrics
-     *
-     * @response 200 {
-     *   "data": {
-     *     "FUSD": {
-     *       "stablecoin_code": "FUSD",
-     *       "total_supply": 1000000,
-     *       "global_ratio": 1.5,
-     *       "is_healthy": true
-     *     },
-     *     "FEUR": {
-     *       "stablecoin_code": "FEUR",
-     *       "total_supply": 500000,
-     *       "global_ratio": 1.3,
-     *       "is_healthy": true
-     *     }
-     *   }
-     * }
+     * @OA\Get(
+     *     path="/api/v2/stablecoins/metrics",
+     *     operationId="getSystemStablecoinMetrics",
+     *     tags={"Stablecoins"},
+     *     summary="Get system-wide stablecoin metrics",
+     *     description="Retrieve metrics for all stablecoins in the system",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object", additionalProperties={
+     *                 "type": "object",
+     *                 "properties": {
+     *                     "stablecoin_code": {"type": "string"},
+     *                     "total_supply": {"type": "integer"},
+     *                     "global_ratio": {"type": "number"},
+     *                     "is_healthy": {"type": "boolean"}
+     *                 }
+     *             })
+     *         )
+     *     )
+     * )
      */
     public function systemMetrics(): JsonResponse
     {
@@ -326,24 +376,38 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Execute stability mechanisms for a stablecoin
-     *
-     * @urlParam code string required The stablecoin code. Example: FUSD
-     *
-     * @response 200 {
-     *   "data": {
-     *     "success": true,
-     *     "mechanism": "collateralized",
-     *     "global_ratio": 1.5,
-     *     "target_ratio": 1.5,
-     *     "actions_taken": [
-     *       {
-     *         "type": "risk_monitoring",
-     *         "positions_at_risk": 2
-     *       }
-     *     ]
-     *   }
-     * }
+     * @OA\Post(
+     *     path="/api/v2/stablecoins/{code}/stability",
+     *     operationId="executeStabilityMechanism",
+     *     tags={"Stablecoins"},
+     *     summary="Execute stability mechanisms for a stablecoin",
+     *     description="Trigger stability mechanism execution for a specific stablecoin",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="The stablecoin code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=true),
+     *                 @OA\Property(property="mechanism", type="string", example="collateralized"),
+     *                 @OA\Property(property="global_ratio", type="number", example=1.5),
+     *                 @OA\Property(property="target_ratio", type="number", example=1.5),
+     *                 @OA\Property(property="actions_taken", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stablecoin not found"
+     *     )
+     * )
      */
     public function executeStabilityMechanism(string $code): JsonResponse
     {
@@ -356,23 +420,24 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Check system health across all stablecoins
-     *
-     * @response 200 {
-     *   "data": {
-     *     "overall_status": "healthy",
-     *     "stablecoin_status": [
-     *       {
-     *         "code": "FUSD",
-     *         "is_healthy": true,
-     *         "global_ratio": 1.5,
-     *         "at_risk_positions": 2,
-     *         "status": "healthy"
-     *       }
-     *     ],
-     *     "emergency_actions": []
-     *   }
-     * }
+     * @OA\Get(
+     *     path="/api/v2/stablecoins/health",
+     *     operationId="getStablecoinSystemHealth",
+     *     tags={"Stablecoins"},
+     *     summary="Check system health across all stablecoins",
+     *     description="Retrieve system-wide health status for all stablecoins",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="overall_status", type="string", example="healthy"),
+     *                 @OA\Property(property="stablecoin_status", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="emergency_actions", type="array", @OA\Items(type="string"))
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function systemHealth(): JsonResponse
     {
@@ -384,28 +449,37 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Get collateral distribution for a stablecoin
-     *
-     * @urlParam code string required The stablecoin code. Example: FUSD
-     *
-     * @response 200 {
-     *   "data": [
-     *     {
-     *       "asset_code": "USD",
-     *       "total_amount": 800000,
-     *       "total_value": 800000,
-     *       "position_count": 15,
-     *       "percentage": 53.33
-     *     },
-     *     {
-     *       "asset_code": "EUR",
-     *       "total_amount": 400000,
-     *       "total_value": 440000,
-     *       "position_count": 10,
-     *       "percentage": 29.33
-     *     }
-     *   ]
-     * }
+     * @OA\Get(
+     *     path="/api/v2/stablecoins/{code}/collateral",
+     *     operationId="getStablecoinCollateralDistribution",
+     *     tags={"Stablecoins"},
+     *     summary="Get collateral distribution for a stablecoin",
+     *     description="Retrieve the distribution of collateral assets backing a stablecoin",
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="The stablecoin code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(
+     *                 @OA\Property(property="asset_code", type="string", example="USD"),
+     *                 @OA\Property(property="total_amount", type="integer", example=800000),
+     *                 @OA\Property(property="total_value", type="integer", example=800000),
+     *                 @OA\Property(property="position_count", type="integer", example=15),
+     *                 @OA\Property(property="percentage", type="number", example=53.33)
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stablecoin not found"
+     *     )
+     * )
      */
     public function collateralDistribution(string $code): JsonResponse
     {
@@ -418,19 +492,33 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Deactivate a stablecoin
-     *
-     * @urlParam code string required The stablecoin code. Example: FUSD
-     *
-     * @response 200 {
-     *   "message": "Stablecoin deactivated successfully",
-     *   "data": {
-     *     "code": "FUSD",
-     *     "is_active": false,
-     *     "minting_enabled": false,
-     *     "burning_enabled": false
-     *   }
-     * }
+     * @OA\Post(
+     *     path="/api/v2/stablecoins/{code}/deactivate",
+     *     operationId="deactivateStablecoin",
+     *     tags={"Stablecoins"},
+     *     summary="Deactivate a stablecoin",
+     *     description="Deactivate a stablecoin, disabling minting and burning",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="The stablecoin code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Stablecoin deactivated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Stablecoin deactivated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Stablecoin")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stablecoin not found"
+     *     )
+     * )
      */
     public function deactivate(string $code): JsonResponse
     {
@@ -449,19 +537,33 @@ class StablecoinController extends Controller
     }
 
     /**
-     * Reactivate a stablecoin
-     *
-     * @urlParam code string required The stablecoin code. Example: FUSD
-     *
-     * @response 200 {
-     *   "message": "Stablecoin reactivated successfully",
-     *   "data": {
-     *     "code": "FUSD",
-     *     "is_active": true,
-     *     "minting_enabled": true,
-     *     "burning_enabled": true
-     *   }
-     * }
+     * @OA\Post(
+     *     path="/api/v2/stablecoins/{code}/reactivate",
+     *     operationId="reactivateStablecoin",
+     *     tags={"Stablecoins"},
+     *     summary="Reactivate a stablecoin",
+     *     description="Reactivate a previously deactivated stablecoin",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="The stablecoin code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Stablecoin reactivated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Stablecoin reactivated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Stablecoin")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stablecoin not found"
+     *     )
+     * )
      */
     public function reactivate(string $code): JsonResponse
     {

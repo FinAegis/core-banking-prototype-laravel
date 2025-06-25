@@ -7,6 +7,7 @@ Welcome to the FinAegis Core Banking Platform documentation. This guide will hel
 ### [01-VISION](01-VISION/)
 Strategic and business documentation
 - **[GCU_VISION.md](01-VISION/GCU_VISION.md)** - Global Currency Unit concept and vision
+- **[UNIFIED_PLATFORM_VISION.md](01-VISION/UNIFIED_PLATFORM_VISION.md)** - FinAegis as unified platform for GCU and Litas
 - **[ROADMAP.md](01-VISION/ROADMAP.md)** - Development phases and current status
 - **[REGULATORY_STRATEGY.md](01-VISION/REGULATORY_STRATEGY.md)** - Compliance and regulatory approach
 
@@ -28,17 +29,17 @@ API documentation and integration guides
 - **[API_VOTING_ENDPOINTS.md](04-API/API_VOTING_ENDPOINTS.md)** - Governance API
 - **[WEBHOOK_INTEGRATION.md](04-API/WEBHOOK_INTEGRATION.md)** - Webhook system
 
-### [04-DEVELOPER](04-DEVELOPER/)
+### [09-DEVELOPER](09-DEVELOPER/)
 Developer resources and tools
-- **[API-INTEGRATION-GUIDE.md](04-DEVELOPER/API-INTEGRATION-GUIDE.md)** - API integration guide
-- **[SDK-GUIDE.md](04-DEVELOPER/SDK-GUIDE.md)** - SDK documentation
-- **[API-EXAMPLES.md](04-DEVELOPER/API-EXAMPLES.md)** - API usage examples
-- **[finaegis-api-v2.postman_collection.json](04-DEVELOPER/finaegis-api-v2.postman_collection.json)** - Postman collection
+- **[API-INTEGRATION-GUIDE.md](09-DEVELOPER/API-INTEGRATION-GUIDE.md)** - API integration guide
+- **[SDK-GUIDE.md](09-DEVELOPER/SDK-GUIDE.md)** - SDK documentation
+- **[API-EXAMPLES.md](09-DEVELOPER/API-EXAMPLES.md)** - API usage examples
+- **[finaegis-api-v2.postman_collection.json](09-DEVELOPER/finaegis-api-v2.postman_collection.json)** - Postman collection
 
-### [05-OPERATIONS](05-OPERATIONS/)
+### [10-OPERATIONS](10-OPERATIONS/)
 Operations and performance guides
-- **[PERFORMANCE-OPTIMIZATION.md](05-OPERATIONS/PERFORMANCE-OPTIMIZATION.md)** - Performance guide
-- **[SECURITY-AUDIT-PREPARATION.md](05-OPERATIONS/SECURITY-AUDIT-PREPARATION.md)** - Security guide
+- **[PERFORMANCE-OPTIMIZATION.md](10-OPERATIONS/PERFORMANCE-OPTIMIZATION.md)** - Performance guide
+- **[SECURITY-AUDIT-PREPARATION.md](10-OPERATIONS/SECURITY-AUDIT-PREPARATION.md)** - Security guide
 
 ### [05-TECHNICAL](05-TECHNICAL/)
 Technical specifications and implementation details
@@ -54,10 +55,10 @@ Development guides and tools
 - **[BEHAT.md](06-DEVELOPMENT/BEHAT.md)** - BDD testing guide
 - **[DEMO.md](06-DEVELOPMENT/DEMO.md)** - Demo environment setup
 
-### [06-USER-GUIDES](06-USER-GUIDES/)
+### [11-USER-GUIDES](11-USER-GUIDES/)
 End-user documentation
-- **[GETTING-STARTED.md](06-USER-GUIDES/GETTING-STARTED.md)** - User onboarding guide
-- **[GCU-USER-GUIDE.md](06-USER-GUIDES/GCU-USER-GUIDE.md)** - GCU platform guide
+- **[GETTING-STARTED.md](11-USER-GUIDES/GETTING-STARTED.md)** - User onboarding guide
+- **[GCU-USER-GUIDE.md](11-USER-GUIDES/GCU-USER-GUIDE.md)** - GCU platform guide
 
 ### [07-IMPLEMENTATION](07-IMPLEMENTATION/)
 Implementation details and phase documentation
@@ -65,6 +66,7 @@ Implementation details and phase documentation
 - **[IMPLEMENTATION_SUMMARY.md](07-IMPLEMENTATION/IMPLEMENTATION_SUMMARY.md)** - Implementation summary
 - **[PHASE_4.2_ENHANCED_GOVERNANCE.md](07-IMPLEMENTATION/PHASE_4.2_ENHANCED_GOVERNANCE.md)** - Governance implementation
 - **[PHASE_5.2_TRANSACTION_PROCESSING.md](07-IMPLEMENTATION/PHASE_5.2_TRANSACTION_PROCESSING.md)** - Transaction processing
+- **[LITAS_INTEGRATION_ANALYSIS.md](07-IMPLEMENTATION/LITAS_INTEGRATION_ANALYSIS.md)** - Litas platform integration analysis
 
 ### [08-OPERATIONS](08-OPERATIONS/)
 Operational procedures

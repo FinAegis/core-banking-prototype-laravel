@@ -660,9 +660,9 @@
                 "operationId": "listAssets",
                 "parameters": [
                     {
-                        "name": "active",
+                        "name": "include_inactive",
                         "in": "query",
-                        "description": "Filter by active status",
+                        "description": "Include inactive assets in the response (default: false)",
                         "required": false,
                         "schema": {
                             "type": "boolean"
@@ -1376,6 +1376,586 @@
                 ]
             }
         },
+        "/api/bank-allocations": {
+            "get": {
+                "tags": [
+                    "Bank Allocation"
+                ],
+                "summary": "Get user bank allocations",
+                "description": "Get current user's bank allocation preferences and distribution",
+                "operationId": "7f09bf2f0a59c4cb05e0667327992a28",
+                "responses": {
+                    "200": {
+                        "description": "Bank allocations retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "allocations": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "bank_code": {
+                                                                "type": "string",
+                                                                "example": "PAYSERA"
+                                                            },
+                                                            "bank_name": {
+                                                                "type": "string",
+                                                                "example": "Paysera Bank"
+                                                            },
+                                                            "allocation_percentage": {
+                                                                "type": "number",
+                                                                "example": 40
+                                                            },
+                                                            "is_primary": {
+                                                                "type": "boolean",
+                                                                "example": true
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "example": "active"
+                                                            },
+                                                            "metadata": {
+                                                                "properties": {
+                                                                    "country": {
+                                                                        "type": "string",
+                                                                        "example": "Lithuania"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string",
+                                                                        "example": "EUR"
+                                                                    },
+                                                                    "insurance_limit": {
+                                                                        "type": "integer",
+                                                                        "example": 100000
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "summary": {
+                                                    "properties": {
+                                                        "total_percentage": {
+                                                            "type": "number",
+                                                            "example": 100
+                                                        },
+                                                        "bank_count": {
+                                                            "type": "integer",
+                                                            "example": 3
+                                                        },
+                                                        "primary_bank": {
+                                                            "type": "string",
+                                                            "example": "PAYSERA"
+                                                        },
+                                                        "is_diversified": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "total_insurance_coverage": {
+                                                            "type": "integer",
+                                                            "example": 300000
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Bank Allocation"
+                ],
+                "summary": "Update bank allocations",
+                "description": "Update user's bank allocation preferences",
+                "operationId": "e93918e4734a1760318359445b6e70ed",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "allocations"
+                                ],
+                                "properties": {
+                                    "allocations": {
+                                        "type": "object",
+                                        "example": {
+                                            "PAYSERA": 40,
+                                            "DEUTSCHE_BANK": 30,
+                                            "SANTANDER": 30
+                                        }
+                                    },
+                                    "primary_bank": {
+                                        "type": "string",
+                                        "example": "PAYSERA"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bank allocations updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bank allocations updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "allocations": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "bank_code": {
+                                                                "type": "string",
+                                                                "example": "PAYSERA"
+                                                            },
+                                                            "allocation_percentage": {
+                                                                "type": "number",
+                                                                "example": 40
+                                                            },
+                                                            "is_primary": {
+                                                                "type": "boolean",
+                                                                "example": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error - allocations must sum to 100%"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/bank-allocations/banks": {
+            "post": {
+                "tags": [
+                    "Bank Allocation"
+                ],
+                "summary": "Add bank to allocation",
+                "description": "Add a new bank to user's allocation preferences",
+                "operationId": "d416fa793400804341373a14153ec81b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "bank_code",
+                                    "percentage"
+                                ],
+                                "properties": {
+                                    "bank_code": {
+                                        "type": "string",
+                                        "example": "REVOLUT"
+                                    },
+                                    "percentage": {
+                                        "type": "number",
+                                        "maximum": 100,
+                                        "minimum": 0.01,
+                                        "example": 15
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Bank added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bank added to allocation successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "bank_code": {
+                                                    "type": "string",
+                                                    "example": "REVOLUT"
+                                                },
+                                                "bank_name": {
+                                                    "type": "string",
+                                                    "example": "Revolut Bank"
+                                                },
+                                                "allocation_percentage": {
+                                                    "type": "number",
+                                                    "example": 15
+                                                },
+                                                "is_primary": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or bank already exists"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/bank-allocations/banks/{bankCode}": {
+            "delete": {
+                "tags": [
+                    "Bank Allocation"
+                ],
+                "summary": "Remove bank from allocation",
+                "description": "Remove a bank from user's allocation preferences",
+                "operationId": "7c5865675340447c9aec500aa8438147",
+                "parameters": [
+                    {
+                        "name": "bankCode",
+                        "in": "path",
+                        "description": "Bank code to remove",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank removed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bank removed from allocation successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "bank_code": {
+                                                    "type": "string",
+                                                    "example": "REVOLUT"
+                                                },
+                                                "removed_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Cannot remove primary bank or bank not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/bank-allocations/primary/{bankCode}": {
+            "put": {
+                "tags": [
+                    "Bank Allocation"
+                ],
+                "summary": "Set primary bank",
+                "description": "Set a bank as the primary bank for the user",
+                "operationId": "93afd9d4dbf1c8f12b368b9af6b51605",
+                "parameters": [
+                    {
+                        "name": "bankCode",
+                        "in": "path",
+                        "description": "Bank code to set as primary",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Primary bank updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Primary bank updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "bank_code": {
+                                                    "type": "string",
+                                                    "example": "PAYSERA"
+                                                },
+                                                "bank_name": {
+                                                    "type": "string",
+                                                    "example": "Paysera Bank"
+                                                },
+                                                "is_primary": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Bank not found in user's allocation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/bank-allocations/available-banks": {
+            "get": {
+                "tags": [
+                    "Bank Allocation"
+                ],
+                "summary": "Get available banks",
+                "description": "Get list of all available banks for allocation",
+                "operationId": "9f74056b37dd0b5cfa42d9a6d33cf170",
+                "responses": {
+                    "200": {
+                        "description": "Available banks retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "bank_code": {
+                                                        "type": "string",
+                                                        "example": "PAYSERA"
+                                                    },
+                                                    "bank_name": {
+                                                        "type": "string",
+                                                        "example": "Paysera Bank"
+                                                    },
+                                                    "country": {
+                                                        "type": "string",
+                                                        "example": "Lithuania"
+                                                    },
+                                                    "currency": {
+                                                        "type": "string",
+                                                        "example": "EUR"
+                                                    },
+                                                    "insurance_limit": {
+                                                        "type": "integer",
+                                                        "example": 100000
+                                                    },
+                                                    "supported_features": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/bank-allocations/distribution-preview": {
+            "post": {
+                "tags": [
+                    "Bank Allocation"
+                ],
+                "summary": "Preview fund distribution",
+                "description": "Preview how funds would be distributed across banks for a given amount",
+                "operationId": "10b4b115c399fe37eb6460468c0ddc28",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "asset_code"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "minimum": 0.01,
+                                        "example": 1000
+                                    },
+                                    "asset_code": {
+                                        "type": "string",
+                                        "example": "USD"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Distribution preview generated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "total_amount": {
+                                                    "type": "number",
+                                                    "example": 1000
+                                                },
+                                                "asset_code": {
+                                                    "type": "string",
+                                                    "example": "USD"
+                                                },
+                                                "distribution": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "bank_code": {
+                                                                "type": "string",
+                                                                "example": "PAYSERA"
+                                                            },
+                                                            "bank_name": {
+                                                                "type": "string",
+                                                                "example": "Paysera Bank"
+                                                            },
+                                                            "allocation_percentage": {
+                                                                "type": "number",
+                                                                "example": 40
+                                                            },
+                                                            "amount": {
+                                                                "type": "number",
+                                                                "example": 400
+                                                            },
+                                                            "is_primary": {
+                                                                "type": "boolean",
+                                                                "example": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "summary": {
+                                                    "properties": {
+                                                        "bank_count": {
+                                                            "type": "integer",
+                                                            "example": 3
+                                                        },
+                                                        "is_diversified": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "total_insurance_coverage": {
+                                                            "type": "integer",
+                                                            "example": 300000
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v2/accounts/{uuid}/baskets/decompose": {
             "post": {
                 "tags": [
@@ -1947,7 +2527,7 @@
                     "Baskets"
                 ],
                 "summary": "Get basket performance metrics",
-                "operationId": "getBasketPerformance",
+                "operationId": "getBasketPerformanceMetrics",
                 "parameters": [
                     {
                         "name": "code",
@@ -1981,6 +2561,998 @@
                         "description": "Basket performance metrics"
                     }
                 }
+            }
+        },
+        "/api/baskets/{code}/performance": {
+            "get": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Get performance metrics for a basket",
+                "operationId": "getBasketPerformance",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Performance period",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "month",
+                            "enum": [
+                                "hour",
+                                "day",
+                                "week",
+                                "month",
+                                "quarter",
+                                "year",
+                                "all_time"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Performance data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "basket_code": {
+                                                    "type": "string"
+                                                },
+                                                "period_type": {
+                                                    "type": "string"
+                                                },
+                                                "return_percentage": {
+                                                    "type": "number"
+                                                },
+                                                "volatility": {
+                                                    "type": "number"
+                                                },
+                                                "sharpe_ratio": {
+                                                    "type": "number"
+                                                },
+                                                "max_drawdown": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/baskets/{code}/performance/history": {
+            "get": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Get historical performance data for a basket",
+                "operationId": "getBasketPerformanceHistory",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    },
+                    {
+                        "name": "period_type",
+                        "in": "query",
+                        "description": "Filter by period type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "hour",
+                                "day",
+                                "week",
+                                "month",
+                                "quarter",
+                                "year"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of records to return",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historical performance data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/BasketPerformance"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/baskets/{code}/performance/summary": {
+            "get": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Get performance summary across multiple periods",
+                "operationId": "getBasketPerformanceSummary",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Performance summary",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "basket_code": {
+                                                    "type": "string"
+                                                },
+                                                "basket_name": {
+                                                    "type": "string"
+                                                },
+                                                "current_value": {
+                                                    "type": "number"
+                                                },
+                                                "performances": {
+                                                    "properties": {
+                                                        "day": {
+                                                            "type": "object"
+                                                        },
+                                                        "week": {
+                                                            "type": "object"
+                                                        },
+                                                        "month": {
+                                                            "type": "object"
+                                                        },
+                                                        "year": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/baskets/{code}/performance/components": {
+            "get": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Get component-level performance breakdown",
+                "operationId": "getBasketComponentPerformance",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Performance period",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "month",
+                            "enum": [
+                                "hour",
+                                "day",
+                                "week",
+                                "month",
+                                "quarter",
+                                "year"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Component performance data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ComponentPerformance"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/baskets/{code}/performance/top-performers": {
+            "get": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Get top performing components",
+                "operationId": "getBasketTopPerformers",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Performance period",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "month"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of components to return",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 5
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Top performing components"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/baskets/{code}/performance/worst-performers": {
+            "get": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Get worst performing components",
+                "operationId": "getBasketWorstPerformers",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Performance period",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "month"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of components to return",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 5
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Worst performing components"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/baskets/{code}/performance/calculate": {
+            "post": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Trigger performance calculation for a basket",
+                "operationId": "calculateBasketPerformance",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "period": {
+                                        "type": "string",
+                                        "enum": [
+                                            "all",
+                                            "hour",
+                                            "day",
+                                            "week",
+                                            "month",
+                                            "quarter",
+                                            "year"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Calculation triggered",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "calculated_periods": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/baskets/{code}/performance/compare": {
+            "get": {
+                "tags": [
+                    "Basket Performance"
+                ],
+                "summary": "Compare basket performance against benchmarks",
+                "operationId": "compareBasketPerformance",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Basket asset code",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "GCU"
+                        }
+                    },
+                    {
+                        "name": "benchmarks",
+                        "in": "query",
+                        "description": "Comma-separated list of benchmark basket codes",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "USD_STABLE,EUR_STABLE"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Performance comparison data"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/batch-operations/execute": {
+            "post": {
+                "tags": [
+                    "Batch Processing"
+                ],
+                "summary": "Execute batch operations",
+                "description": "Execute end-of-day batch processing operations with compensation support",
+                "operationId": "ce4b5fc9c19748de39663efc9591ccf2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "operations"
+                                ],
+                                "properties": {
+                                    "operations": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "account_interest",
+                                                        "fee_collection",
+                                                        "balance_reconciliation",
+                                                        "report_generation"
+                                                    ],
+                                                    "example": "account_interest"
+                                                },
+                                                "parameters": {
+                                                    "type": "object",
+                                                    "example": {
+                                                        "rate": 0.05,
+                                                        "date": "2023-12-31"
+                                                    }
+                                                },
+                                                "priority": {
+                                                    "type": "integer",
+                                                    "maximum": 10,
+                                                    "minimum": 1,
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "batch_name": {
+                                        "type": "string",
+                                        "example": "EOD_2023_12_31"
+                                    },
+                                    "schedule_time": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "nullable": true
+                                    },
+                                    "retry_attempts": {
+                                        "type": "integer",
+                                        "default": 3,
+                                        "maximum": 5,
+                                        "minimum": 0
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Batch processing initiated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Batch processing initiated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "batch_id": {
+                                                    "type": "string",
+                                                    "example": "batch_550e8400_e29b_41d4"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "initiated"
+                                                },
+                                                "operations_count": {
+                                                    "type": "integer",
+                                                    "example": 4
+                                                },
+                                                "estimated_duration": {
+                                                    "type": "string",
+                                                    "example": "15-30 minutes"
+                                                },
+                                                "started_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "started_by": {
+                                                    "type": "string",
+                                                    "example": "admin@finaegis.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid batch operation request"
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin access required"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/batch-operations/{batchId}/status": {
+            "get": {
+                "tags": [
+                    "Batch Processing"
+                ],
+                "summary": "Get batch operation status",
+                "description": "Get the current status and progress of a batch operation",
+                "operationId": "a6bb9a2725777f338f91c9c3acda4f15",
+                "parameters": [
+                    {
+                        "name": "batchId",
+                        "in": "path",
+                        "description": "Batch ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Batch status retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "batch_id": {
+                                                    "type": "string",
+                                                    "example": "batch_550e8400_e29b_41d4"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "initiated",
+                                                        "running",
+                                                        "completed",
+                                                        "failed",
+                                                        "compensating"
+                                                    ],
+                                                    "example": "running"
+                                                },
+                                                "progress": {
+                                                    "type": "integer",
+                                                    "maximum": 100,
+                                                    "minimum": 0,
+                                                    "example": 65
+                                                },
+                                                "operations_total": {
+                                                    "type": "integer",
+                                                    "example": 4
+                                                },
+                                                "operations_completed": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "operations_failed": {
+                                                    "type": "integer",
+                                                    "example": 0
+                                                },
+                                                "current_operation": {
+                                                    "type": "string",
+                                                    "example": "balance_reconciliation"
+                                                },
+                                                "started_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "estimated_completion": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "error_message": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "operations": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "example": "account_interest"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "example": "completed"
+                                                            },
+                                                            "started_at": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            },
+                                                            "completed_at": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            },
+                                                            "records_processed": {
+                                                                "type": "integer",
+                                                                "example": 1250
+                                                            },
+                                                            "error_message": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Batch operation not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/batch-operations": {
+            "get": {
+                "tags": [
+                    "Batch Processing"
+                ],
+                "summary": "Get batch operations history",
+                "description": "Get list of recent batch operations with filtering options",
+                "operationId": "b5717821f529c8ecfd2dba3f8dc35906",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "initiated",
+                                "running",
+                                "completed",
+                                "failed",
+                                "scheduled"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "description": "Filter from date",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "description": "Filter to date",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results to return",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Batch operations history retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "batch_id": {
+                                                        "type": "string",
+                                                        "example": "batch_550e8400_e29b_41d4"
+                                                    },
+                                                    "batch_name": {
+                                                        "type": "string",
+                                                        "example": "EOD_2023_12_31"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "completed"
+                                                    },
+                                                    "operations_count": {
+                                                        "type": "integer",
+                                                        "example": 4
+                                                    },
+                                                    "started_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "completed_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "duration_minutes": {
+                                                        "type": "integer",
+                                                        "example": 23
+                                                    },
+                                                    "started_by": {
+                                                        "type": "string",
+                                                        "example": "admin@finaegis.com"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "pagination": {
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 87
+                                                },
+                                                "limit": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "offset": {
+                                                    "type": "integer",
+                                                    "example": 0
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/batch-operations/{batchId}/cancel": {
+            "post": {
+                "tags": [
+                    "Batch Processing"
+                ],
+                "summary": "Cancel batch operation",
+                "description": "Cancel a running or scheduled batch operation with compensation",
+                "operationId": "5bdfee16fc012e06ac04d5899b41a4e5",
+                "parameters": [
+                    {
+                        "name": "batchId",
+                        "in": "path",
+                        "description": "Batch ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "reason"
+                                ],
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Emergency maintenance required"
+                                    },
+                                    "compensate": {
+                                        "description": "Whether to run compensation for completed operations",
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Batch operation cancelled successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Batch operation cancelled successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "batch_id": {
+                                                    "type": "string",
+                                                    "example": "batch_550e8400_e29b_41d4"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "cancelled"
+                                                },
+                                                "cancelled_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "cancelled_by": {
+                                                    "type": "string",
+                                                    "example": "admin@finaegis.com"
+                                                },
+                                                "compensation_required": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/exchange-rates/{from}/{to}": {
@@ -3142,6 +4714,343 @@
                 "security": [
                     {
                         "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/accounts/{uuid}/transactions/reverse": {
+            "post": {
+                "tags": [
+                    "Transaction Reversal"
+                ],
+                "summary": "Reverse a transaction",
+                "description": "Reverse a completed transaction with audit trail for error recovery",
+                "operationId": "71d326429bda82ab4a00b5855abf0557",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Account UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "asset_code",
+                                    "transaction_type",
+                                    "reversal_reason"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0.01,
+                                        "example": 100.5
+                                    },
+                                    "asset_code": {
+                                        "type": "string",
+                                        "example": "USD"
+                                    },
+                                    "transaction_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "debit",
+                                            "credit"
+                                        ],
+                                        "example": "debit"
+                                    },
+                                    "reversal_reason": {
+                                        "type": "string",
+                                        "example": "Unauthorized transaction"
+                                    },
+                                    "original_transaction_id": {
+                                        "type": "string",
+                                        "example": "txn_123456789"
+                                    },
+                                    "authorized_by": {
+                                        "type": "string",
+                                        "example": "manager@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction reversal initiated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Transaction reversal initiated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "reversal_id": {
+                                                    "type": "string",
+                                                    "example": "rev_987654321"
+                                                },
+                                                "account_uuid": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "example": 100.5
+                                                },
+                                                "asset_code": {
+                                                    "type": "string",
+                                                    "example": "USD"
+                                                },
+                                                "transaction_type": {
+                                                    "type": "string",
+                                                    "example": "debit"
+                                                },
+                                                "reversal_reason": {
+                                                    "type": "string",
+                                                    "example": "Unauthorized transaction"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "initiated"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Account does not belong to user"
+                    },
+                    "404": {
+                        "description": "Account not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/accounts/{uuid}/transactions/reversals": {
+            "get": {
+                "tags": [
+                    "Transaction Reversal"
+                ],
+                "summary": "Get transaction reversal history",
+                "description": "Get list of transaction reversals for an account",
+                "operationId": "34b8098ea2d0d3aac1624f1ca69adcca",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Account UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results to return",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Number of results to skip",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "minimum": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reversal history retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "reversal_id": {
+                                                        "type": "string",
+                                                        "example": "rev_987654321"
+                                                    },
+                                                    "amount": {
+                                                        "type": "number",
+                                                        "example": 100.5
+                                                    },
+                                                    "asset_code": {
+                                                        "type": "string",
+                                                        "example": "USD"
+                                                    },
+                                                    "transaction_type": {
+                                                        "type": "string",
+                                                        "example": "debit"
+                                                    },
+                                                    "reversal_reason": {
+                                                        "type": "string",
+                                                        "example": "Unauthorized transaction"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "completed"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "completed_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "pagination": {
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 45
+                                                },
+                                                "limit": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "offset": {
+                                                    "type": "integer",
+                                                    "example": 0
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions/reversals/{reversalId}/status": {
+            "get": {
+                "tags": [
+                    "Transaction Reversal"
+                ],
+                "summary": "Get reversal status",
+                "description": "Check the status of a specific transaction reversal",
+                "operationId": "9a10109e3fecda40f50c8318670c73eb",
+                "parameters": [
+                    {
+                        "name": "reversalId",
+                        "in": "path",
+                        "description": "Reversal ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reversal status retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "reversal_id": {
+                                                    "type": "string",
+                                                    "example": "rev_987654321"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "completed"
+                                                },
+                                                "progress": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                },
+                                                "steps_completed": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "validation"
+                                                    }
+                                                },
+                                                "error_message": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Reversal not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
@@ -5607,6 +7516,138 @@
                     }
                 },
                 "type": "object"
+            },
+            "BasketPerformance": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "basket_code": {
+                        "type": "string"
+                    },
+                    "period_type": {
+                        "type": "string",
+                        "enum": [
+                            "hour",
+                            "day",
+                            "week",
+                            "month",
+                            "quarter",
+                            "year",
+                            "all_time"
+                        ]
+                    },
+                    "period_start": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "period_end": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "start_value": {
+                        "type": "number"
+                    },
+                    "end_value": {
+                        "type": "number"
+                    },
+                    "high_value": {
+                        "type": "number"
+                    },
+                    "low_value": {
+                        "type": "number"
+                    },
+                    "average_value": {
+                        "type": "number"
+                    },
+                    "return_value": {
+                        "type": "number"
+                    },
+                    "return_percentage": {
+                        "type": "number"
+                    },
+                    "formatted_return": {
+                        "type": "string"
+                    },
+                    "volatility": {
+                        "type": "number"
+                    },
+                    "sharpe_ratio": {
+                        "type": "number"
+                    },
+                    "max_drawdown": {
+                        "type": "number"
+                    },
+                    "performance_rating": {
+                        "type": "string"
+                    },
+                    "risk_rating": {
+                        "type": "string"
+                    },
+                    "annualized_return": {
+                        "type": "number"
+                    },
+                    "value_count": {
+                        "type": "integer"
+                    },
+                    "components": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentPerformance"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ComponentPerformance": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "basket_performance_id": {
+                        "type": "integer"
+                    },
+                    "asset_code": {
+                        "type": "string"
+                    },
+                    "asset_name": {
+                        "type": "string"
+                    },
+                    "start_weight": {
+                        "type": "number"
+                    },
+                    "end_weight": {
+                        "type": "number"
+                    },
+                    "average_weight": {
+                        "type": "number"
+                    },
+                    "weight_change": {
+                        "type": "number"
+                    },
+                    "contribution_value": {
+                        "type": "number"
+                    },
+                    "contribution_percentage": {
+                        "type": "number"
+                    },
+                    "formatted_contribution": {
+                        "type": "string"
+                    },
+                    "return_value": {
+                        "type": "number"
+                    },
+                    "return_percentage": {
+                        "type": "number"
+                    },
+                    "formatted_return": {
+                        "type": "string"
+                    },
+                    "is_positive_contributor": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -5631,12 +7672,24 @@
             "description": "API endpoints for authentication"
         },
         {
+            "name": "Bank Allocation",
+            "description": "User bank allocation preferences and fund distribution management"
+        },
+        {
             "name": "Basket Operations",
             "description": "Basket operations on accounts"
         },
         {
             "name": "Baskets",
             "description": "Basket asset management endpoints"
+        },
+        {
+            "name": "Basket Performance",
+            "description": "Basket asset performance tracking and analytics"
+        },
+        {
+            "name": "Batch Processing",
+            "description": "End-of-day batch operations and bulk financial processing"
         },
         {
             "name": "Accounts",
@@ -5661,6 +7714,10 @@
         {
             "name": "Governance - Polls",
             "description": "Poll management and voting operations"
+        },
+        {
+            "name": "Transaction Reversal",
+            "description": "Critical transaction reversal operations for error recovery"
         },
         {
             "name": "User Voting",

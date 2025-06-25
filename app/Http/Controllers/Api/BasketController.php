@@ -404,7 +404,7 @@ class BasketController extends Controller
     /**
      * @OA\Get(
      *     path="/api/v2/baskets/{code}/performance",
-     *     operationId="getBasketPerformance",
+     *     operationId="getBasketPerformanceMetrics",
      *     tags={"Baskets"},
      *     summary="Get basket performance metrics",
      *     @OA\Parameter(
