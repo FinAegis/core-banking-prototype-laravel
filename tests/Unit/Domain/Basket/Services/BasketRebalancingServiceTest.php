@@ -160,7 +160,7 @@ class BasketRebalancingServiceTest extends TestCase
             'type' => 'dynamic',
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 50.0,
@@ -169,7 +169,7 @@ class BasketRebalancingServiceTest extends TestCase
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 50.0,
@@ -239,7 +239,7 @@ class BasketRebalancingServiceTest extends TestCase
         Asset::where('code', 'EUR')->first();
         Asset::where('code', 'GBP')->first();
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 25.0,
@@ -247,14 +247,14 @@ class BasketRebalancingServiceTest extends TestCase
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 35.0,
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'GBP',
             'weight' => 35.0,
@@ -295,7 +295,7 @@ class BasketRebalancingServiceTest extends TestCase
             'last_rebalanced_at' => now()->subDays(2),
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 100.0,
@@ -370,7 +370,7 @@ class BasketRebalancingServiceTest extends TestCase
         Asset::where('code', 'USD')->first();
         
         foreach ([$basket1, $basket2] as $basket) {
-            BasketComponent::factory()->create([
+            BasketComponent::create([
                 'basket_asset_id' => $basket->id,
                 'asset_code' => 'USD',
                 'weight' => 100.0,
@@ -411,7 +411,7 @@ class BasketRebalancingServiceTest extends TestCase
         
         Asset::where('code', 'USD')->first();
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 80.0,
@@ -504,14 +504,14 @@ class BasketRebalancingServiceTest extends TestCase
         Asset::where('code', 'EUR')->first();
         
         // Components without min/max weights
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 60.0,
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 40.0,
@@ -549,7 +549,7 @@ class BasketRebalancingServiceTest extends TestCase
         Asset::where('code', 'GBP')->first();
         
         // Create components that don't sum to 100%
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 20.0,
@@ -558,7 +558,7 @@ class BasketRebalancingServiceTest extends TestCase
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 25.0,
@@ -567,7 +567,7 @@ class BasketRebalancingServiceTest extends TestCase
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_id' => $basket->id,
             'asset_code' => 'GBP',
             'weight' => 30.0,

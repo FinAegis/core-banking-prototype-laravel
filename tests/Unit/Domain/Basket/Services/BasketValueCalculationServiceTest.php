@@ -50,7 +50,7 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add component
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'EUR',
             'weight' => 100.0,
@@ -88,14 +88,14 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add components
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'EUR',
             'weight' => 60.0,
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'GBP',
             'weight' => 40.0,
@@ -138,7 +138,7 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add USD component
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'USD',
             'weight' => 100.0,
@@ -183,7 +183,7 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add active component
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'USD',
             'weight' => 50.0,
@@ -191,7 +191,7 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add inactive component
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'EUR',
             'weight' => 50.0,
@@ -222,14 +222,14 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add components
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'EUR',
             'weight' => 50.0,
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'XYZ',
             'weight' => 50.0,
@@ -270,7 +270,7 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add component
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'USD',
             'weight' => 100.0,
@@ -317,14 +317,14 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add components
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket1->code,
             'asset_code' => 'USD',
             'weight' => 100.0,
             'is_active' => true,
         ]);
         
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket2->code,
             'asset_code' => 'EUR',
             'weight' => 100.0,
@@ -484,7 +484,7 @@ class BasketValueCalculationServiceTest extends TestCase
         ]);
         
         // Add component without creating asset
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'MISSING',
             'weight' => 100.0,
@@ -512,7 +512,7 @@ class BasketValueCalculationServiceTest extends TestCase
         $this->assertNull(Asset::find($basket->code));
         
         // Add component
-        BasketComponent::factory()->create([
+        BasketComponent::create([
             'basket_asset_code' => $basket->code,
             'asset_code' => 'USD',
             'weight' => 100.0,
