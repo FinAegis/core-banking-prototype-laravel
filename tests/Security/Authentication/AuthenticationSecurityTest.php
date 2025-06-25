@@ -186,7 +186,7 @@ class AuthenticationSecurityTest extends TestCase
             ]);
 
             if ($response->status() === 200) {
-                $tokens[] = $response->json('token');
+                $tokens[] = $response->json('access_token');
             }
         }
 
@@ -208,14 +208,20 @@ class AuthenticationSecurityTest extends TestCase
     {
         $user = User::factory()->create();
         
-        // Create token with short expiration
-        $token = $user->createToken('test-token', ['*'], now()->addMinutes(1))->plainTextToken;
+        // Create token and manually set expires_at
+        $tokenResult = $user->createToken('test-token');
+        $token = $tokenResult->plainTextToken;
+        
+        // Manually update the token's expiration time
+        $tokenResult->accessToken->update([
+            'expires_at' => now()->addMinutes(1)
+        ]);
 
         // Token should work immediately
         $response = $this->withToken($token)->getJson('/api/v2/auth/user');
         $this->assertEquals(200, $response->status());
 
-        // Simulate time passing
+        // Simulate time passing beyond expiration
         $this->travel(2)->minutes();
 
         // Token should be expired

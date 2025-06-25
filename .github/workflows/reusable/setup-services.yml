@@ -1,0 +1,81 @@
+name: Setup External Services
+
+on:
+  workflow_call:
+    inputs:
+      mysql:
+        description: 'Setup MySQL service'
+        required: false
+        type: boolean
+        default: true
+      redis:
+        description: 'Setup Redis service'
+        required: false
+        type: boolean
+        default: true
+      mysql-version:
+        description: 'MySQL version'
+        required: false
+        type: string
+        default: '8.0'
+      redis-version:
+        description: 'Redis version'
+        required: false
+        type: string
+        default: '7'
+      mysql-database:
+        description: 'MySQL database name'
+        required: false
+        type: string
+        default: 'testing'
+
+jobs:
+  services:
+    name: External Services Setup
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:${{ inputs.mysql-version }}
+        if: ${{ inputs.mysql }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ${{ inputs.mysql-database }}
+          MYSQL_USER: dbuser
+          MYSQL_PASSWORD: dbpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --character-set-server=utf8mb4
+          --collation-server=utf8mb4_unicode_ci
+          
+      redis:
+        image: redis:${{ inputs.redis-version }}-alpine
+        if: ${{ inputs.redis }}
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Verify MySQL Connection
+        if: inputs.mysql
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+          mysql --host=127.0.0.1 --port=3306 --user=root --password=root -e "SHOW DATABASES;"
+          mysql --host=127.0.0.1 --port=3306 --user=root --password=root -e "SELECT VERSION();"
+          
+      - name: Verify Redis Connection
+        if: inputs.redis
+        run: |
+          sudo apt-get install -y redis-tools
+          redis-cli -h 127.0.0.1 -p 6379 ping
+          redis-cli -h 127.0.0.1 -p 6379 info server

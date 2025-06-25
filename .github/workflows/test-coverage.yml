@@ -1,0 +1,215 @@
+name: Test Coverage Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpunit.xml'
+      - '.github/workflows/test-coverage.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpunit.xml'
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: test-coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage-analysis:
+    name: Code Coverage Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    outputs:
+      coverage-percentage: ${{ steps.coverage.outputs.percentage }}
+      coverage-report: ${{ steps.coverage.outputs.report-url }}
+      
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --character-set-server=utf8mb4
+          --collation-server=utf8mb4_unicode_ci
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better coverage tracking
+          
+      - name: Setup PHP with Coverage
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, xdebug
+          tools: composer:v2, phpunit/phpunit:^11
+          coverage: xdebug
+          ini-values: |
+            memory_limit=512M
+            max_execution_time=360
+            xdebug.mode=coverage
+            
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+            
+      - name: Install Dependencies
+        env:
+          COMPOSER_PROCESS_TIMEOUT: 0
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          composer dump-autoload
+          
+      - name: Prepare Test Environment
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan migrate --force
+          
+      - name: Run Tests with Coverage
+        run: |
+          XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
+          
+      - name: Generate Coverage Report
+        id: coverage
+        run: |
+          COVERAGE=$(grep -Po '(?<=Total Coverage: )\d+.\d+' coverage-html/index.html || echo "0")
+          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "report-url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          
+          # Create coverage badge
+          if (( $(echo "$COVERAGE > 80" | bc -l) )); then
+            COLOR="brightgreen"
+          elif (( $(echo "$COVERAGE > 60" | bc -l) )); then
+            COLOR="yellow"
+          else
+            COLOR="red"
+          fi
+          
+          echo "badge-color=$COLOR" >> $GITHUB_OUTPUT
+          
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage-html/
+            coverage.xml
+            coverage.clover
+          retention-days: 30
+          
+      - name: Comment Coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const coverage = '${{ steps.coverage.outputs.percentage }}';
+            const color = '${{ steps.coverage.outputs.badge-color }}';
+            
+            const comment = `## 📊 Test Coverage Report
+            
+            **Total Coverage:** ${coverage}%
+            
+            ![Coverage Badge](https://img.shields.io/badge/coverage-${coverage}%25-${color})
+            
+            [View Detailed Report](${{ steps.coverage.outputs.report-url }})
+            
+            ---
+            _Coverage report generated by [Test Coverage Analysis](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+  coverage-trend:
+    name: Coverage Trend Analysis
+    needs: [coverage-analysis]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Download Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+          
+      - name: Store Coverage Metrics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = '${{ needs.coverage-analysis.outputs.coverage-percentage }}';
+            
+            // Store in repository metrics (would typically use a service like DataDog, New Relic, etc.)
+            console.log(`Storing coverage metric: ${coverage}% for commit ${context.sha}`);
+            
+      - name: Check Coverage Regression
+        run: |
+          # In a real implementation, this would compare against historical data
+          echo "Checking for coverage regression..."
+          CURRENT_COVERAGE=${{ needs.coverage-analysis.outputs.coverage-percentage }}
+          THRESHOLD=30
+          
+          if (( $(echo "$CURRENT_COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️ Coverage below threshold: $CURRENT_COVERAGE% < $THRESHOLD%"
+            exit 1
+          fi
