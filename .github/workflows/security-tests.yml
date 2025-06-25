@@ -74,6 +74,14 @@ jobs:
         sed -i 's/APP_ENV=local/APP_ENV=testing/' .env
         echo "SESSION_SECURE_COOKIE=true" >> .env
         echo "SESSION_SAME_SITE=lax" >> .env
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=127.0.0.1" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=security_test_db" >> .env
+        echo "DB_USERNAME=root" >> .env
+        echo "DB_PASSWORD=password" >> .env
+        echo "REDIS_HOST=127.0.0.1" >> .env
+        echo "REDIS_PORT=6379" >> .env
 
     - name: Run database migrations
       run: php artisan migrate --force
