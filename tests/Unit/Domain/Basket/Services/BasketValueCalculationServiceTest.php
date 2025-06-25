@@ -51,7 +51,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add component
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 100.0,
             'is_active' => true,
@@ -89,14 +89,14 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add components
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 60.0,
             'is_active' => true,
         ]);
         
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'GBP',
             'weight' => 40.0,
             'is_active' => true,
@@ -139,7 +139,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add USD component
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 100.0,
             'is_active' => true,
@@ -184,7 +184,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add active component
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 50.0,
             'is_active' => true,
@@ -192,7 +192,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add inactive component
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 50.0,
             'is_active' => false,
@@ -223,14 +223,14 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add components
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'EUR',
             'weight' => 50.0,
             'is_active' => true,
         ]);
         
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'XYZ',
             'weight' => 50.0,
             'is_active' => true,
@@ -271,7 +271,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add component
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 100.0,
             'is_active' => true,
@@ -362,19 +362,19 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Create historical values
         $value1 = BasketValue::factory()->create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'value' => 1.0,
             'calculated_at' => now()->subDays(5),
         ]);
         
         $value2 = BasketValue::factory()->create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'value' => 1.1,
             'calculated_at' => now()->subDays(3),
         ]);
         
         $value3 = BasketValue::factory()->create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'value' => 1.2,
             'calculated_at' => now()->subDay(),
         ]);
@@ -403,13 +403,13 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Create values
         BasketValue::factory()->create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'value' => 100.0,
             'calculated_at' => now()->subDays(30),
         ]);
         
         BasketValue::factory()->create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'value' => 110.0,
             'calculated_at' => now(),
         ]);
@@ -485,7 +485,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add component without creating asset
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'MISSING',
             'weight' => 100.0,
             'is_active' => true,
@@ -513,7 +513,7 @@ class BasketValueCalculationServiceTest extends TestCase
         
         // Add component
         BasketComponent::create([
-            'basket_asset_code' => $basket->code,
+            'basket_asset_id' => $basket->id,
             'asset_code' => 'USD',
             'weight' => 100.0,
             'is_active' => true,
