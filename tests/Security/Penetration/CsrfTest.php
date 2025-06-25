@@ -113,9 +113,10 @@ class CsrfTest extends TestCase
 
         $cookies = $response->headers->get('set-cookie');
         if ($cookies) {
-            $this->assertStringContainsString('SameSite', $cookies);
+            // Check for samesite attribute (case-insensitive)
+            $this->assertMatchesRegularExpression('/samesite/i', $cookies);
             // Should be Lax or Strict, not None
-            $this->assertMatchesRegularExpression('/SameSite=(Lax|Strict)/i', $cookies);
+            $this->assertMatchesRegularExpression('/samesite=(lax|strict)/i', $cookies);
         }
     }
 
