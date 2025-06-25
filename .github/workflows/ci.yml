@@ -208,11 +208,11 @@ jobs:
       - name: Run ${{ matrix.test-type }} Tests
         run: |
           if [ "${{ matrix.test-type }}" == "unit" ]; then
-            ./vendor/bin/pest --testsuite=Unit --parallel --coverage --min=80
+            ./vendor/bin/pest tests/Unit --parallel --coverage --min=80
           elif [ "${{ matrix.test-type }}" == "feature" ]; then
-            ./vendor/bin/pest --testsuite=Feature --parallel --coverage --min=70
+            ./vendor/bin/pest tests/Feature --parallel --coverage --min=70
           else
-            ./vendor/bin/pest --testsuite=Integration --coverage --min=60
+            ./vendor/bin/pest tests/Domain --coverage --min=60
           fi
           
       - name: Upload Test Coverage

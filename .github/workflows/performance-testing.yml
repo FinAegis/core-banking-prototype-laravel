@@ -73,7 +73,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-          --performance-schema=ON
           
       redis:
         image: redis:7-alpine
