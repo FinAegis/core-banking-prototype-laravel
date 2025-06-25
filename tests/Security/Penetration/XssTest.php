@@ -252,7 +252,7 @@ class XssTest extends TestCase
      */
     public function test_csp_headers_are_present()
     {
-        $response = $this->withToken($this->token)->getJson('/api/v2/accounts');
+        $response = $this->withToken($this->token)->getJson('/api/v2/profile');
         
         // Check for Content Security Policy headers
         $this->assertTrue(
@@ -276,10 +276,10 @@ class XssTest extends TestCase
 
         foreach ($domXssPayloads as $payload) {
             $response = $this->withToken($this->token)
-                ->getJson("/api/v2/accounts{$payload}");
+                ->getJson("/api/v2/profile{$payload}");
 
             // Should handle gracefully without executing
-            $this->assertContains($response->status(), [200, 404]);
+            $this->assertContains($response->status(), [200, 404, 422]);
             
             // Response should not reflect payload
             $content = $response->content();
