@@ -130,6 +130,8 @@ jobs:
           sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
           sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
           sed -i 's/DB_DATABASE=.*/DB_DATABASE=performance/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
           sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=redis/' .env
           sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=redis/' .env
           sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/' .env
