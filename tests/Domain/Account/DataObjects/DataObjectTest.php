@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests\Domain\Account\DataObjects;
+
 use App\Domain\Account\DataObjects\DataObject;
 
 // Create a concrete implementation for testing

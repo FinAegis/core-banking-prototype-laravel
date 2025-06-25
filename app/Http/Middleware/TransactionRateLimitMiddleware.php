@@ -62,8 +62,13 @@ class TransactionRateLimitMiddleware
      */
     public function handle(Request $request, Closure $next, string $transactionType = 'transfer'): SymfonyResponse
     {
-        // Skip rate limiting if disabled or in testing environment
-        if (!config('rate_limiting.enabled', true) || app()->environment('testing')) {
+        // Skip rate limiting if disabled
+        if (!config('rate_limiting.enabled', true)) {
+            return $next($request);
+        }
+        
+        // Skip rate limiting in testing environment unless explicitly enabled
+        if (app()->environment('testing') && !config('rate_limiting.force_in_tests', false)) {
             return $next($request);
         }
         

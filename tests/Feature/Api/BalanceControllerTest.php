@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Tests\Feature\Api;
+
 use App\Models\User;
 use App\Models\Account;
 use App\Models\Turnover;

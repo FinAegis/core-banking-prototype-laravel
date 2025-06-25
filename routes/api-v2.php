@@ -94,7 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Transfers
     Route::prefix('transfers')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\TransferController::class, 'store']);
+        Route::post('/', [\App\Http\Controllers\Api\TransferController::class, 'store'])->middleware('transaction.rate_limit:transfer');
         Route::get('/{uuid}', [\App\Http\Controllers\Api\TransferController::class, 'show']);
     });
 

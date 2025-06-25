@@ -243,6 +243,10 @@ class CsrfTest extends TestCase
      */
     public function test_rate_limiting_prevents_csrf_abuse()
     {
+        // Enable rate limiting for this test
+        config(['rate_limiting.enabled' => true]);
+        config(['rate_limiting.force_in_tests' => true]);
+        
         // Even with valid token, rapid requests should be rate limited
         $responses = [];
         
