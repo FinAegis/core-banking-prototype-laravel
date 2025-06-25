@@ -24,6 +24,10 @@ class AuthenticationSecurityTest extends TestCase
      */
     public function test_login_is_protected_against_brute_force()
     {
+        // Enable rate limiting for this test
+        config(['rate_limiting.enabled' => true]);
+        config(['rate_limiting.force_in_tests' => true]);
+        
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('correct-password')
