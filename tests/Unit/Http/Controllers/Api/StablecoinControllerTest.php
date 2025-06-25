@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Api;
 
+use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Stablecoin\Services\StabilityMechanismService;
 use App\Http\Controllers\Api\StablecoinController;
 use App\Models\Stablecoin;
@@ -17,14 +18,16 @@ class StablecoinControllerTest extends TestCase
 {
 
     protected StablecoinController $controller;
+    protected $collateralService;
     protected $stabilityService;
 
     protected function setUp(): void
     {
         parent::setUp();
         
+        $this->collateralService = Mockery::mock(CollateralService::class);
         $this->stabilityService = Mockery::mock(StabilityMechanismService::class);
-        $this->controller = new StablecoinController($this->stabilityService);
+        $this->controller = new StablecoinController($this->collateralService, $this->stabilityService);
         
         // Create assets
         Asset::firstOrCreate(
@@ -104,7 +107,7 @@ class StablecoinControllerTest extends TestCase
     public function it_can_filter_by_stability_mechanism()
     {
         Stablecoin::create([
-            'code' => 'FUSD',
+            'code' => 'FUSD_FILTER',
             'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
             'peg_asset_code' => 'USD',
@@ -148,7 +151,7 @@ class StablecoinControllerTest extends TestCase
         ]);
         
         $request = Request::create('/api/v2/stablecoins', 'GET', [
-            'mechanism' => 'collateralized'
+            'stability_mechanism' => 'collateralized'
         ]);
         
         $response = $this->controller->index($request);
@@ -156,7 +159,7 @@ class StablecoinControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
         $this->assertCount(1, $data['data']);
-        $this->assertEquals('FUSD', $data['data'][0]['code']);
+        $this->assertEquals('FUSD_FILTER', $data['data'][0]['code']);
     }
 
     /** @test */
