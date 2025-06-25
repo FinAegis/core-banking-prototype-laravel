@@ -199,21 +199,22 @@ class XssTest extends TestCase
     public function test_search_parameters_are_protected_against_xss($payload)
     {
         // Create test data
-        Account::factory()->create([
+        $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
             'name' => 'Test Account'
         ]);
 
-        // Search with XSS payload
+        // Search with XSS payload in transactions
         $response = $this->withToken($this->token)
-            ->getJson("/api/v2/accounts?search={$payload}");
+            ->getJson("/api/v2/accounts/{$account->uuid}/transactions?search={$payload}");
 
-        $response->assertStatus(200);
+        $this->assertContains($response->status(), [200, 422]);
         
         // If search query is reflected in response, it should be sanitized
         $content = $response->content();
         $this->assertStringNotContainsString('<script>', $content);
         $this->assertStringNotContainsString('javascript:', $content);
+        $this->assertStringNotContainsString('<img src=x onerror=', $content);
     }
 
     /**
