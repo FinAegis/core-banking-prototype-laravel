@@ -152,11 +152,24 @@ class BasketAssetFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function (BasketAsset $basket) {
-            // Only create components for specific basket types
+            // Disabled automatic component creation to avoid conflicts in tests
+            // Tests should explicitly create the components they need
+            
+            // Only create components for specific basket types if needed
             if (in_array($basket->code, ['STABLE_BASKET', 'CRYPTO_INDEX'])) {
+                // These specific baskets can have predefined components
+                // but we'll skip for now to avoid test conflicts
                 return;
             }
-
+        });
+    }
+    
+    /**
+     * Create a basket with components.
+     */
+    public function withComponents(): static
+    {
+        return $this->afterCreating(function (BasketAsset $basket) {
             // Create random components that sum to 100%
             $remainingWeight = 100.0;
             $numComponents = fake()->numberBetween(2, 5);
