@@ -3,27 +3,35 @@
 use App\Filament\Exports\TransactionExporter;
 use App\Models\Transaction;
 use Filament\Actions\Exports\Models\Export;
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(TestCase::class, RefreshDatabase::class);
 
 it('can define export columns for transactions', function () {
     $columns = TransactionExporter::getColumns();
     
-    expect($columns)->toHaveCount(8)
-        ->and($columns[0]->getName())->toBe('uuid')
-        ->and($columns[0]->getLabel())->toBe('Transaction ID')
+    expect($columns)->toHaveCount(10)
+        ->and($columns[0]->getName())->toBe('processed_at')
+        ->and($columns[0]->getLabel())->toBe('Date')
         ->and($columns[1]->getName())->toBe('account.name')
-        ->and($columns[1]->getLabel())->toBe('Account Name')
+        ->and($columns[1]->getLabel())->toBe('Account')
         ->and($columns[2]->getName())->toBe('type')
         ->and($columns[2]->getLabel())->toBe('Type')
         ->and($columns[3]->getName())->toBe('amount')
-        ->and($columns[3]->getLabel())->toBe('Amount (USD)')
-        ->and($columns[4]->getName())->toBe('balance_after')
-        ->and($columns[4]->getLabel())->toBe('Balance After (USD)')
-        ->and($columns[5]->getName())->toBe('reference')
-        ->and($columns[5]->getLabel())->toBe('Reference')
-        ->and($columns[6]->getName())->toBe('hash')
-        ->and($columns[6]->getLabel())->toBe('Security Hash')
-        ->and($columns[7]->getName())->toBe('created_at')
-        ->and($columns[7]->getLabel())->toBe('Transaction Date');
+        ->and($columns[3]->getLabel())->toBe('Amount')
+        ->and($columns[4]->getName())->toBe('asset_code')
+        ->and($columns[4]->getLabel())->toBe('Currency')
+        ->and($columns[5]->getName())->toBe('description')
+        ->and($columns[5]->getLabel())->toBe('Description')
+        ->and($columns[6]->getName())->toBe('status')
+        ->and($columns[6]->getLabel())->toBe('Status')
+        ->and($columns[7]->getName())->toBe('initiator.name')
+        ->and($columns[7]->getLabel())->toBe('Initiated By')
+        ->and($columns[8]->getName())->toBe('uuid')
+        ->and($columns[8]->getLabel())->toBe('Transaction ID')
+        ->and($columns[9]->getName())->toBe('hash')
+        ->and($columns[9]->getLabel())->toBe('Hash');
 });
 
 it('formats transaction type correctly', function () {
@@ -37,12 +45,12 @@ it('formats transaction type correctly', function () {
     $formatState = $property->getValue($typeColumn);
     
     expect($formatState('deposit'))->toBe('Deposit')
-        ->and($formatState('withdrawal'))->toBe('Withdrawal')
+        ->and($formatState('withdrawal'))->toBe('Withdrawal')  
         ->and($formatState('transfer_in'))->toBe('Transfer In')
         ->and($formatState('transfer_out'))->toBe('Transfer Out');
 });
 
-it('formats amount correctly with dollar sign', function () {
+it('formats amount correctly with sign', function () {
     $columns = TransactionExporter::getColumns();
     $amountColumn = $columns[3];
     
@@ -52,23 +60,32 @@ it('formats amount correctly with dollar sign', function () {
     $property->setAccessible(true);
     $formatState = $property->getValue($amountColumn);
     
-    expect($formatState(10050))->toBe('$100.50')
-        ->and($formatState(0))->toBe('$0.00')
-        ->and($formatState(999))->toBe('$9.99');
+    // Create mock records for testing
+    $creditRecord = new class {
+        public function getDirection() { return 'credit'; }
+    };
+    $debitRecord = new class {
+        public function getDirection() { return 'debit'; }
+    };
+    
+    expect($formatState(10050, $creditRecord))->toBe('+100.50')
+        ->and($formatState(10050, $debitRecord))->toBe('-100.50')
+        ->and($formatState(0, $creditRecord))->toBe('+0.00');
 });
 
-it('formats balance after correctly with dollar sign', function () {
+it('formats status correctly', function () {
     $columns = TransactionExporter::getColumns();
-    $balanceColumn = $columns[4];
+    $statusColumn = $columns[6];
     
     // Test the format state using method
-    $reflection = new ReflectionClass($balanceColumn);
+    $reflection = new ReflectionClass($statusColumn);
     $property = $reflection->getProperty('formatStateUsing');
     $property->setAccessible(true);
-    $formatState = $property->getValue($balanceColumn);
+    $formatState = $property->getValue($statusColumn);
     
-    expect($formatState(50000))->toBe('$500.00')
-        ->and($formatState(0))->toBe('$0.00');
+    expect($formatState('completed'))->toBe('Completed')
+        ->and($formatState('pending'))->toBe('Pending')
+        ->and($formatState('failed'))->toBe('Failed');
 });
 
 it('generates correct completion notification body', function () {

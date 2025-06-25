@@ -1,6 +1,10 @@
 <?php
 
 use App\Models\User;
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(TestCase::class, RefreshDatabase::class);
 
 it('can get route key name', function () {
     $user = new User();

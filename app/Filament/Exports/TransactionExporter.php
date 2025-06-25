@@ -2,14 +2,14 @@
 
 namespace App\Filament\Exports;
 
-use App\Models\TransactionReadModel;
+use App\Models\Transaction;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 
 class TransactionExporter extends Exporter
 {
-    protected static ?string $model = TransactionReadModel::class;
+    protected static ?string $model = Transaction::class;
 
     public static function getColumns(): array
     {
@@ -21,10 +21,10 @@ class TransactionExporter extends Exporter
             ExportColumn::make('type')
                 ->label('Type')
                 ->formatStateUsing(fn (string $state): string => match ($state) {
-                    TransactionReadModel::TYPE_DEPOSIT => 'Deposit',
-                    TransactionReadModel::TYPE_WITHDRAWAL => 'Withdrawal',
-                    TransactionReadModel::TYPE_TRANSFER_IN => 'Transfer In',
-                    TransactionReadModel::TYPE_TRANSFER_OUT => 'Transfer Out',
+                    'deposit' => 'Deposit',
+                    'withdrawal' => 'Withdrawal',
+                    'transfer_in' => 'Transfer In',
+                    'transfer_out' => 'Transfer Out',
                     default => $state,
                 }),
             ExportColumn::make('amount')

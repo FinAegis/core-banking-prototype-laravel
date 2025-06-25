@@ -287,6 +287,6 @@ class StablecoinCollateralPositionTest extends TestCase
 
         $this->assertEquals(2, StablecoinCollateralPosition::active()->count());
         $this->assertEquals(1, StablecoinCollateralPosition::atRisk()->count());
-        $this->assertEquals(1, StablecoinCollateralPosition::shouldAutoLiquidate()->count());
+        $this->assertEquals(1, StablecoinCollateralPosition::autoLiquidatable()->count());
     }
 }
