@@ -419,7 +419,7 @@ class InputValidationTest extends TestCase
     /**
      * Common dangerous inputs for testing
      */
-    public function dangerousInputs(): array
+    public static function dangerousInputs(): array
     {
         return [
             'SQL injection basic' => ["' OR '1'='1", 'name'],

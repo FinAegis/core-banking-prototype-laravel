@@ -229,7 +229,7 @@ class SqlInjectionTest extends TestCase
     /**
      * Common SQL injection payloads
      */
-    public function sqlInjectionPayloads(): array
+    public static function sqlInjectionPayloads(): array
     {
         return [
             'Basic injection' => ["' OR '1'='1"],

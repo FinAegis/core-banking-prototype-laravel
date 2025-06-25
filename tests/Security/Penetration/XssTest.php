@@ -289,7 +289,7 @@ class XssTest extends TestCase
     /**
      * Common XSS payloads for testing
      */
-    public function xssPayloads(): array
+    public static function xssPayloads(): array
     {
         return [
             'Basic script tag' => ['<script>alert("XSS")</script>'],
