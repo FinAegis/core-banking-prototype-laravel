@@ -22,7 +22,7 @@ class RoleFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->randomElement(array_column(UserRoles::cases(), 'value')),
+            'name' => fake()->randomElement(array_column(UserRoles::cases(), 'value')),
             'guard_name' => 'web',
         ];
     }

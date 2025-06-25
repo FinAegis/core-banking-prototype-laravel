@@ -16,14 +16,14 @@ class CustodianAccountFactory extends Factory
         return [
             'uuid' => (string) Str::uuid(),
             'account_uuid' => Account::factory(),
-            'custodian_name' => $this->faker->randomElement(['mock', 'paysera', 'santander']),
-            'custodian_account_id' => $this->faker->uuid(),
-            'custodian_account_name' => $this->faker->company() . ' Account',
-            'status' => $this->faker->randomElement(['active', 'suspended', 'closed', 'pending']),
+            'custodian_name' => fake()->randomElement(['mock', 'paysera', 'santander']),
+            'custodian_account_id' => fake()->uuid(),
+            'custodian_account_name' => fake()->company() . ' Account',
+            'status' => fake()->randomElement(['active', 'suspended', 'closed', 'pending']),
             'is_primary' => false,
             'metadata' => [
-                'iban' => $this->faker->iban(),
-                'bic' => strtoupper($this->faker->lexify('????????')),
+                'iban' => fake()->iban(),
+                'bic' => strtoupper(fake()->lexify('????????')),
                 'created_via' => 'factory',
             ],
         ];
@@ -90,7 +90,7 @@ class CustodianAccountFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'custodian_name' => 'mock',
-            'custodian_account_id' => 'mock-account-' . $this->faker->numberBetween(1, 99),
+            'custodian_account_id' => 'mock-account-' . fake()->numberBetween(1, 99),
         ]);
     }
 

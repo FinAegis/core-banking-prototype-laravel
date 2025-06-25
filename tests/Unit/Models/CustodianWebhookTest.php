@@ -39,6 +39,7 @@ class CustodianWebhookTest extends TestCase
             'uuid' => 'pending-1',
             'custodian_name' => 'paysera',
             'event_type' => 'test',
+            'payload' => ['test' => 'data'],
             'status' => 'pending',
         ]);
 
@@ -46,6 +47,7 @@ class CustodianWebhookTest extends TestCase
             'uuid' => 'processed-1',
             'custodian_name' => 'paysera',
             'event_type' => 'test',
+            'payload' => ['test' => 'data'],
             'status' => 'processed',
         ]);
 
@@ -62,6 +64,7 @@ class CustodianWebhookTest extends TestCase
             'uuid' => 'failed-1',
             'custodian_name' => 'santander',
             'event_type' => 'test',
+            'payload' => ['test' => 'data'],
             'status' => 'failed',
         ]);
 
@@ -69,6 +72,7 @@ class CustodianWebhookTest extends TestCase
             'uuid' => 'processed-2',
             'custodian_name' => 'santander',
             'event_type' => 'test',
+            'payload' => ['test' => 'data'],
             'status' => 'processed',
         ]);
 
@@ -85,6 +89,7 @@ class CustodianWebhookTest extends TestCase
             'uuid' => 'paysera-1',
             'custodian_name' => 'paysera',
             'event_type' => 'test',
+            'payload' => ['test' => 'data'],
             'status' => 'pending',
         ]);
 
@@ -92,6 +97,7 @@ class CustodianWebhookTest extends TestCase
             'uuid' => 'santander-1',
             'custodian_name' => 'santander',
             'event_type' => 'test',
+            'payload' => ['test' => 'data'],
             'status' => 'pending',
         ]);
 
@@ -114,7 +120,7 @@ class CustodianWebhookTest extends TestCase
             'processed_at' => '2025-06-18 12:00:00',
         ]);
 
-        $fresh = CustodianWebhook::find($webhook->uuid);
+        $fresh = CustodianWebhook::where('uuid', $webhook->uuid)->first();
 
         $this->assertIsArray($fresh->headers);
         $this->assertIsArray($fresh->payload);
@@ -132,14 +138,16 @@ class CustodianWebhookTest extends TestCase
             'uuid' => 'primary-key-test',
             'custodian_name' => 'mock',
             'event_type' => 'test',
+            'payload' => ['test' => 'data'],
             'status' => 'pending',
         ]);
 
-        $found = CustodianWebhook::find('primary-key-test');
+        $found = CustodianWebhook::where('uuid', 'primary-key-test')->first();
 
         $this->assertNotNull($found);
         $this->assertEquals('primary-key-test', $found->uuid);
-        $this->assertEquals('uuid', $webhook->getKeyName());
+        // CustodianWebhook uses 'id' as primary key, but has a unique uuid column
+        $this->assertEquals('id', $webhook->getKeyName());
     }
 
     /** @test */
@@ -150,6 +158,7 @@ class CustodianWebhookTest extends TestCase
             'custodian_name' => 'mock',
             'event_type' => 'test',
             'event_id' => null,
+            'payload' => ['test' => 'data'],
             'status' => 'pending',
         ]);
 

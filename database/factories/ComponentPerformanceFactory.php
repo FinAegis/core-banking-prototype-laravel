@@ -20,22 +20,22 @@ class ComponentPerformanceFactory extends Factory
      */
     public function definition(): array
     {
-        $startWeight = $this->faker->randomFloat(2, 5, 40);
-        $endWeight = $this->faker->randomFloat(2, max(0, $startWeight - 5), min(100, $startWeight + 5));
+        $startWeight = fake()->randomFloat(2, 5, 40);
+        $endWeight = fake()->randomFloat(2, max(0, $startWeight - 5), min(100, $startWeight + 5));
         $averageWeight = ($startWeight + $endWeight) / 2;
         
-        $contributionPercentage = $this->faker->randomFloat(4, -5, 5);
-        $returnPercentage = $this->faker->randomFloat(4, -10, 10);
+        $contributionPercentage = fake()->randomFloat(4, -5, 5);
+        $returnPercentage = fake()->randomFloat(4, -10, 10);
         
         return [
             'basket_performance_id' => BasketPerformance::factory(),
-            'asset_code' => $this->faker->randomElement(['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'BTC', 'ETH', 'XAU']),
+            'asset_code' => fake()->randomElement(['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'BTC', 'ETH', 'XAU']),
             'start_weight' => $startWeight,
             'end_weight' => $endWeight,
             'average_weight' => $averageWeight,
-            'contribution_value' => $this->faker->randomFloat(4, -0.1, 0.1),
+            'contribution_value' => fake()->randomFloat(4, -0.1, 0.1),
             'contribution_percentage' => $contributionPercentage,
-            'return_value' => $this->faker->randomFloat(4, -0.2, 0.2),
+            'return_value' => fake()->randomFloat(4, -0.2, 0.2),
             'return_percentage' => $returnPercentage,
         ];
     }
@@ -47,10 +47,10 @@ class ComponentPerformanceFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'contribution_percentage' => $this->faker->randomFloat(4, 0.1, 5),
-                'return_percentage' => $this->faker->randomFloat(4, 0.5, 10),
-                'contribution_value' => $this->faker->randomFloat(4, 0.01, 0.1),
-                'return_value' => $this->faker->randomFloat(4, 0.01, 0.2),
+                'contribution_percentage' => fake()->randomFloat(4, 0.1, 5),
+                'return_percentage' => fake()->randomFloat(4, 0.5, 10),
+                'contribution_value' => fake()->randomFloat(4, 0.01, 0.1),
+                'return_value' => fake()->randomFloat(4, 0.01, 0.2),
             ];
         });
     }
@@ -62,10 +62,10 @@ class ComponentPerformanceFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'contribution_percentage' => $this->faker->randomFloat(4, -5, -0.1),
-                'return_percentage' => $this->faker->randomFloat(4, -10, -0.5),
-                'contribution_value' => $this->faker->randomFloat(4, -0.1, -0.01),
-                'return_value' => $this->faker->randomFloat(4, -0.2, -0.01),
+                'contribution_percentage' => fake()->randomFloat(4, -5, -0.1),
+                'return_percentage' => fake()->randomFloat(4, -10, -0.5),
+                'contribution_value' => fake()->randomFloat(4, -0.1, -0.01),
+                'return_value' => fake()->randomFloat(4, -0.2, -0.01),
             ];
         });
     }
@@ -76,7 +76,7 @@ class ComponentPerformanceFactory extends Factory
     public function stableWeight(): static
     {
         return $this->state(function (array $attributes) {
-            $weight = $this->faker->randomFloat(2, 5, 40);
+            $weight = fake()->randomFloat(2, 5, 40);
             
             return [
                 'start_weight' => $weight,

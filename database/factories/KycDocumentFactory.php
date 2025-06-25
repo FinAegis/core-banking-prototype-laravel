@@ -25,16 +25,16 @@ class KycDocumentFactory extends Factory
         
         return [
             'user_uuid' => User::factory(),
-            'document_type' => $this->faker->randomElement($documentTypes),
-            'status' => $this->faker->randomElement($statuses),
-            'file_path' => 'kyc/' . $this->faker->uuid . '/' . $this->faker->word . '.' . $this->faker->randomElement(['pdf', 'jpg', 'png']),
-            'file_hash' => $this->faker->sha256,
+            'document_type' => fake()->randomElement($documentTypes),
+            'status' => fake()->randomElement($statuses),
+            'file_path' => 'kyc/' . fake()->uuid . '/' . fake()->word . '.' . fake()->randomElement(['pdf', 'jpg', 'png']),
+            'file_hash' => fake()->sha256,
             'metadata' => [
-                'original_name' => $this->faker->word . '.' . $this->faker->fileExtension,
-                'mime_type' => $this->faker->mimeType,
-                'size' => $this->faker->numberBetween(100000, 5000000),
+                'original_name' => fake()->word . '.' . fake()->fileExtension,
+                'mime_type' => fake()->mimeType,
+                'size' => fake()->numberBetween(100000, 5000000),
             ],
-            'uploaded_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'uploaded_at' => fake()->dateTimeBetween('-1 month', 'now'),
         ];
     }
 
@@ -58,10 +58,10 @@ class KycDocumentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'verified',
-            'verified_at' => $this->faker->dateTimeBetween('-1 week', 'now'),
-            'verified_by' => 'admin-' . $this->faker->uuid,
+            'verified_at' => fake()->dateTimeBetween('-1 week', 'now'),
+            'verified_by' => 'admin-' . fake()->uuid,
             'rejection_reason' => null,
-            'expires_at' => $this->faker->optional()->dateTimeBetween('now', '+2 years'),
+            'expires_at' => fake()->optional()->dateTimeBetween('now', '+2 years'),
         ]);
     }
 
@@ -72,9 +72,9 @@ class KycDocumentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'rejected',
-            'verified_at' => $this->faker->dateTimeBetween('-1 week', 'now'),
-            'verified_by' => 'admin-' . $this->faker->uuid,
-            'rejection_reason' => $this->faker->randomElement([
+            'verified_at' => fake()->dateTimeBetween('-1 week', 'now'),
+            'verified_by' => 'admin-' . fake()->uuid,
+            'rejection_reason' => fake()->randomElement([
                 'Document is blurry or unreadable',
                 'Document appears to be altered',
                 'Document has expired',

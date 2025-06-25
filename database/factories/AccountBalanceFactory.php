@@ -32,7 +32,7 @@ class AccountBalanceFactory extends Factory
         return [
             'account_uuid' => Account::factory(),
             'asset_code' => $asset->code,
-            'balance' => $this->faker->numberBetween(0, 1000000), // 0 to 10,000 in decimal
+            'balance' => fake()->numberBetween(0, 1000000), // 0 to 10,000 in decimal
         ];
     }
     

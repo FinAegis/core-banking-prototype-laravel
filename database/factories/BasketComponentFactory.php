@@ -22,13 +22,13 @@ class BasketComponentFactory extends Factory
     {
         return [
             'basket_asset_id' => BasketAsset::factory(),
-            'asset_code' => $this->faker->randomElement(['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'BTC', 'ETH', 'XAU']),
-            'weight' => $this->faker->randomFloat(2, 5, 30),
+            'asset_code' => fake()->randomElement(['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'BTC', 'ETH', 'XAU']),
+            'weight' => fake()->randomFloat(2, 5, 30),
             'min_weight' => function (array $attributes) {
-                return $attributes['weight'] - $this->faker->randomFloat(2, 1, 5);
+                return $attributes['weight'] - fake()->randomFloat(2, 1, 5);
             },
             'max_weight' => function (array $attributes) {
-                return $attributes['weight'] + $this->faker->randomFloat(2, 1, 5);
+                return $attributes['weight'] + fake()->randomFloat(2, 1, 5);
             },
             'is_active' => true,
         ];

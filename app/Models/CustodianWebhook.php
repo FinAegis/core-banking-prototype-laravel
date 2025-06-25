@@ -89,6 +89,22 @@ class CustodianWebhook extends Model
     }
 
     /**
+     * Scope a query to only include failed webhooks.
+     */
+    public function scopeFailed($query)
+    {
+        return $query->where('status', 'failed');
+    }
+
+    /**
+     * Scope a query to only include webhooks for a specific custodian.
+     */
+    public function scopeByCustodian($query, string $custodianName)
+    {
+        return $query->where('custodian_name', $custodianName);
+    }
+
+    /**
      * Mark the webhook as processing.
      */
     public function markAsProcessing(): void

@@ -20,17 +20,17 @@ class BasketAssetFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => strtoupper($this->faker->unique()->lexify('BASKET_???')),
-            'name' => $this->faker->words(3, true) . ' Basket',
-            'description' => $this->faker->sentence(),
-            'type' => $this->faker->randomElement(['fixed', 'dynamic']),
-            'rebalance_frequency' => $this->faker->randomElement(['daily', 'weekly', 'monthly', 'quarterly', 'never']),
-            'last_rebalanced_at' => $this->faker->optional(0.3)->dateTimeBetween('-30 days', 'now'),
-            'is_active' => $this->faker->boolean(90), // 90% chance of being active
+            'code' => strtoupper(fake()->unique()->lexify('BASKET_???')),
+            'name' => fake()->words(3, true) . ' Basket',
+            'description' => fake()->sentence(),
+            'type' => fake()->randomElement(['fixed', 'dynamic']),
+            'rebalance_frequency' => fake()->randomElement(['daily', 'weekly', 'monthly', 'quarterly', 'never']),
+            'last_rebalanced_at' => fake()->optional(0.3)->dateTimeBetween('-30 days', 'now'),
+            'is_active' => fake()->boolean(90), // 90% chance of being active
             'created_by' => null,
             'metadata' => [
-                'risk_level' => $this->faker->randomElement(['low', 'medium', 'high']),
-                'category' => $this->faker->randomElement(['conservative', 'balanced', 'aggressive']),
+                'risk_level' => fake()->randomElement(['low', 'medium', 'high']),
+                'category' => fake()->randomElement(['conservative', 'balanced', 'aggressive']),
             ],
         ];
     }
@@ -159,9 +159,9 @@ class BasketAssetFactory extends Factory
 
             // Create random components that sum to 100%
             $remainingWeight = 100.0;
-            $numComponents = $this->faker->numberBetween(2, 5);
+            $numComponents = fake()->numberBetween(2, 5);
             $assets = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'XAU'];
-            $selectedAssets = $this->faker->randomElements($assets, $numComponents);
+            $selectedAssets = fake()->randomElements($assets, $numComponents);
 
             foreach ($selectedAssets as $index => $assetCode) {
                 if ($index === count($selectedAssets) - 1) {
@@ -170,7 +170,7 @@ class BasketAssetFactory extends Factory
                 } else {
                     // Random weight between 10% and remaining weight
                     $maxWeight = min($remainingWeight - (10 * (count($selectedAssets) - $index - 1)), 50);
-                    $weight = $this->faker->randomFloat(2, 10, $maxWeight);
+                    $weight = fake()->randomFloat(2, 10, $maxWeight);
                     $remainingWeight -= $weight;
                 }
 
