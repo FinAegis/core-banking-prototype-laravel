@@ -11,13 +11,11 @@ use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
 
 class CollateralServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected CollateralService $service;
     protected $exchangeRateService;

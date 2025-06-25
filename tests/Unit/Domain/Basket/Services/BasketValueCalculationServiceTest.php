@@ -6,12 +6,11 @@ namespace Tests\Unit\Domain\Basket\Services;
 
 use App\Domain\Basket\Services\BasketValueCalculationService;
 use App\Domain\Asset\Services\ExchangeRateService;
-use App\Models\Asset;
+use App\Domain\Asset\Models\Asset;
 use App\Models\BasketAsset;
 use App\Models\BasketComponent;
 use App\Models\BasketValue;
 use App\Models\ExchangeRate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Mockery;
@@ -19,7 +18,6 @@ use Tests\TestCase;
 
 class BasketValueCalculationServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     private BasketValueCalculationService $service;
     private ExchangeRateService $exchangeRateService;

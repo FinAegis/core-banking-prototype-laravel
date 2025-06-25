@@ -76,7 +76,7 @@ class ProcessWebhookDeliveryTest extends TestCase
 
         $this->delivery->refresh();
         $this->assertEquals('delivered', $this->delivery->status);
-        $this->assertEquals(200, $this->delivery->response_status_code);
+        $this->assertEquals(200, $this->delivery->response_status);
         $this->assertNotNull($this->delivery->delivered_at);
     }
 
@@ -149,7 +149,7 @@ class ProcessWebhookDeliveryTest extends TestCase
 
         $this->delivery->refresh();
         $this->assertEquals('failed', $this->delivery->status);
-        $this->assertEquals(400, $this->delivery->response_status_code);
+        $this->assertEquals(400, $this->delivery->response_status);
     }
 
     public function test_job_handles_network_timeout()

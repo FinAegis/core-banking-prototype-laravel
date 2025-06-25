@@ -11,13 +11,11 @@ use App\Domain\Custodian\Services\FallbackService;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\CustodianAccount;
 use App\Models\CustodianTransfer;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class FallbackServiceTest extends TestCase
 {
-    use RefreshDatabase;
     
     private FallbackService $fallbackService;
     

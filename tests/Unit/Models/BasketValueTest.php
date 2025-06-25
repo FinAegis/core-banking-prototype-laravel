@@ -137,7 +137,7 @@ class BasketValueTest extends TestCase
         $this->assertEquals(1.0, $performance['previous_value']);
         $this->assertEquals(1.1, $performance['current_value']);
         $this->assertEqualsWithDelta(0.1, $performance['change'], 0.0000001);
-        $this->assertEquals(10.0, $performance['percentage_change']);
+        $this->assertEqualsWithDelta(10.0, $performance['percentage_change'], 0.0000001);
     }
 
     /** @test */

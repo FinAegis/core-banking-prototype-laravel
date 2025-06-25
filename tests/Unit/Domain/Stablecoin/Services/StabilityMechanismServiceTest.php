@@ -12,14 +12,12 @@ use App\Models\StablecoinCollateralPosition;
 use App\Models\Account;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
 class StabilityMechanismServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected StabilityMechanismService $service;
     protected $exchangeRateService;
