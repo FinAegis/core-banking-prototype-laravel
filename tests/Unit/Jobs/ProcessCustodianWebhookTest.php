@@ -34,7 +34,10 @@ class ProcessCustodianWebhookTest extends TestCase
         $this->processorService
             ->shouldReceive('process')
             ->once()
-            ->with($this->webhook);
+            ->with(\Mockery::on(function ($webhook) {
+                return $webhook instanceof CustodianWebhook && 
+                       $webhook->uuid === $this->webhook->uuid;
+            }));
 
         $job = new ProcessCustodianWebhook($this->webhook->uuid);
         $job->handle($this->processorService);
@@ -50,7 +53,10 @@ class ProcessCustodianWebhookTest extends TestCase
         $this->processorService
             ->shouldReceive('process')
             ->once()
-            ->with($this->webhook);
+            ->with(\Mockery::on(function ($webhook) {
+                return $webhook instanceof CustodianWebhook && 
+                       $webhook->uuid === $this->webhook->uuid;
+            }));
 
         $job = new ProcessCustodianWebhook($this->webhook->uuid);
         $job->handle($this->processorService);
@@ -156,7 +162,10 @@ class ProcessCustodianWebhookTest extends TestCase
         $this->processorService
             ->shouldReceive('process')
             ->once()
-            ->with($this->webhook);
+            ->with(\Mockery::on(function ($webhook) {
+                return $webhook instanceof CustodianWebhook && 
+                       $webhook->uuid === $this->webhook->uuid;
+            }));
 
         Log::shouldReceive('info')
             ->once()

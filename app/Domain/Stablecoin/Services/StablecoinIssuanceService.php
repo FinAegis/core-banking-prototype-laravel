@@ -53,7 +53,7 @@ class StablecoinIssuanceService
 
         return DB::transaction(function () use ($account, $stablecoin, $collateralAssetCode, $collateralAmount, $mintAmount) {
             // Lock collateral from account
-            $accountUuid = AccountUuid::fromString($account->uuid);
+            $accountUuid = AccountUuid::fromString((string) $account->uuid);
             $this->walletService->withdraw($accountUuid, $collateralAssetCode, $collateralAmount);
 
             // Find or create collateral position
@@ -144,7 +144,7 @@ class StablecoinIssuanceService
             $totalBurnAmount = $burnAmount + $fee;
 
             // Burn stablecoins from account
-            $accountUuid = AccountUuid::fromString($account->uuid);
+            $accountUuid = AccountUuid::fromString((string) $account->uuid);
             $this->walletService->withdraw($accountUuid, $stablecoin->code, $totalBurnAmount);
 
             // Calculate proportional collateral release if not specified
@@ -238,7 +238,7 @@ class StablecoinIssuanceService
 
         return DB::transaction(function () use ($account, $position, $collateralAmount) {
             // Transfer collateral from account
-            $accountUuid = AccountUuid::fromString($account->uuid);
+            $accountUuid = AccountUuid::fromString((string) $account->uuid);
             $this->walletService->withdraw($accountUuid, $position->collateral_asset_code, $collateralAmount);
 
             // Update position

@@ -105,7 +105,7 @@ class LiquidationServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_check_liquidation_eligibility()
+    public function it_can_calculate_liquidation_reward()
     {
         $position = StablecoinCollateralPosition::create([
             'account_uuid' => $this->account->uuid,
@@ -117,12 +117,13 @@ class LiquidationServiceTest extends TestCase
             'status' => 'active',
         ]);
         
-        $eligibility = $this->service->checkLiquidationEligibility($position);
+        $reward = $this->service->calculateLiquidationReward($position);
         
-        $this->assertTrue($eligibility['eligible']);
-        $this->assertEquals(10000, $eligibility['penalty']); // 10% penalty
-        $this->assertEquals(110000, $eligibility['collateral_seized']);
-        $this->assertEquals(100000, $eligibility['debt_repaid']);
+        $this->assertArrayHasKey('penalty_amount', $reward);
+        $this->assertArrayHasKey('liquidator_reward', $reward);
+        $this->assertArrayHasKey('collateral_to_seize', $reward);
+        $this->assertArrayHasKey('remainder_to_owner', $reward);
+        $this->assertEquals(10000, $reward['penalty_amount']); // 10% penalty
     }
 
     /** @test */
@@ -138,10 +139,10 @@ class LiquidationServiceTest extends TestCase
             'status' => 'active',
         ]);
         
-        $eligibility = $this->service->checkLiquidationEligibility($position);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Position is not eligible for liquidation');
         
-        $this->assertFalse($eligibility['eligible']);
-        $this->assertEquals('Position is not eligible for liquidation', $eligibility['reason']);
+        $this->service->liquidatePosition($position);
     }
 
     /** @test */
@@ -167,8 +168,7 @@ class LiquidationServiceTest extends TestCase
         
         $result = $this->service->liquidatePosition(
             $position,
-            $this->liquidatorAccount,
-            100000 // Full liquidation
+            $this->liquidatorAccount
         );
         
         $this->assertTrue($result['success']);

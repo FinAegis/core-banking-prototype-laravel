@@ -29,8 +29,7 @@ class StablecoinIssuanceServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        // Call grandparent setUp to avoid TestCase creating unnecessary data
-        \Illuminate\Foundation\Testing\TestCase::setUp();
+        parent::setUp();
         
         $this->exchangeRateService = Mockery::mock(ExchangeRateService::class);
         $this->collateralService = Mockery::mock(CollateralService::class);
