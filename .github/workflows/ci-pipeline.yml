@@ -33,22 +33,21 @@ jobs:
     uses: ./.github/workflows/01-code-quality.yml
     with:
       php-version: ${{ env.PHP_VERSION }}
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    secrets: inherit
 
   security-scan:
     name: Security Scan
     uses: ./.github/workflows/02-security-scan.yml
     with:
       php-version: ${{ env.PHP_VERSION }}
-    secrets:
-      GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+    secrets: inherit
 
   build-assets:
     name: Build Assets
     uses: ./.github/workflows/06-build.yml
     with:
       node-version: ${{ env.NODE_VERSION }}
+    secrets: inherit
 
   # Phase 2: Test Suites (After Code Quality)
   test-suite:
@@ -58,8 +57,7 @@ jobs:
     with:
       php-version: ${{ env.PHP_VERSION }}
       node-version: ${{ env.NODE_VERSION }}
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    secrets: inherit
 
   # Phase 3: Security Tests (After Security Scan)
   security-tests:
@@ -68,6 +66,7 @@ jobs:
     uses: ./.github/workflows/04-security-tests.yml
     with:
       php-version: ${{ env.PHP_VERSION }}
+    secrets: inherit
 
   # Phase 4: Performance Tests (After Test Suite)
   performance-tests:
@@ -76,6 +75,7 @@ jobs:
     uses: ./.github/workflows/05-performance.yml
     with:
       php-version: ${{ env.PHP_VERSION }}
+    secrets: inherit
 
   # Final Phase: Status Check (No commenting)
   final-status:
