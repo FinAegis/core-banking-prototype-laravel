@@ -104,17 +104,22 @@ jobs:
           
       - name: Prepare Test Environment
         run: |
-          cp .env.testing .env
+          cp .env.ci .env
           php artisan key:generate
           php artisan config:clear
           php artisan cache:clear
           php artisan migrate --force
           
+          # Create dummy Vite manifest for tests
+          mkdir -p public/build
+          echo '{}' > public/build/manifest.json
+          
       - name: Run Tests with Coverage
         run: |
           # Run tests with coverage using CI configuration
           # Run Unit, Feature, and Integration tests (exclude Security tests for coverage)
-          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --testsuite=Unit,Feature,Integration --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30 --parallel
+          # Note: Parallel execution disabled for coverage to avoid deadlocks with xdebug
+          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --testsuite=Unit,Feature,Integration --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
           
       - name: Generate Coverage Report
         id: coverage
