@@ -113,8 +113,8 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           # Run tests with coverage using CI configuration
-          # Only run Unit and Feature tests for coverage (exclude slow tests like Security)
-          XDEBUG_MODE=coverage ./vendor/bin/pest tests/Unit tests/Feature --configuration=phpunit.ci.xml --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30 --parallel
+          # Run Unit, Feature, and Integration tests (exclude Security tests for coverage)
+          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --testsuite=Unit,Feature,Integration --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30 --parallel
           
       - name: Generate Coverage Report
         id: coverage
