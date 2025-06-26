@@ -110,10 +110,14 @@ jobs:
           
       - name: Run Unit Tests
         run: |
-          # Run non-security tests in parallel
-          ./vendor/bin/pest tests/Unit --parallel --coverage --min=80 --exclude-group=security
-          # Run security tests without parallel execution
-          ./vendor/bin/pest tests/Security --no-parallel || true
+          # Run unit tests in parallel (excluding security directory)
+          ./vendor/bin/pest tests/Unit --parallel --coverage --min=80
+          
+      - name: Run Security Tests
+        if: always()
+        run: |
+          # Run security tests separately without parallel execution
+          ./vendor/bin/pest tests/Security || true
           
       - name: Upload Test Coverage
         uses: codecov/codecov-action@v4

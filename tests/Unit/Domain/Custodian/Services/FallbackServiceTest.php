@@ -330,8 +330,8 @@ class FallbackServiceTest extends TestCase
         // Act
         $receipt = $mockedService->queueTransferForRetry(
             $custodian,
-            $fromAccountModel->uuid,
-            $toAccountModel->uuid,
+            (string) $fromAccountModel->uuid,
+            (string) $toAccountModel->uuid,
             $amount,
             $assetCode,
             $reference,
