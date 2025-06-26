@@ -1,262 +1,235 @@
 # GitHub Actions Workflows
 
-This directory contains the CI/CD workflows for the Core Banking Prototype. The workflows follow professional DevOps best practices with comprehensive testing, security scanning, and deployment automation.
+This directory contains the CI/CD pipelines for the Core Banking Prototype. The workflows follow modern DevOps best practices with comprehensive testing, security scanning, and modular pipeline architecture.
 
-## 🎯 Workflow Overview
+## 🏗️ Pipeline Architecture
 
-### Core Workflows
+### Core Pipeline Structure
 
-#### 1. **Continuous Integration** (`ci.yml`)
-The main CI workflow that orchestrates all testing and validation:
-- **Triggers**: Push/PR to main/develop branches
-- **Jobs**:
-  - Code Quality Checks (linting, static analysis)
-  - Security Scanning
-  - Test Suite (Unit, Feature, Integration)
-  - Security Test Suite
-  - Performance Testing
-  - Frontend Asset Building
-  - Integration Report Generation
+The CI/CD system is organized into modular, reusable pipelines:
 
-#### 2. **Security Scanning** (`security-scanning.yml`)
-Comprehensive security analysis:
-- **Triggers**: Push/PR, daily schedule, manual
-- **Scans**:
-  - Secret Detection (Gitleaks)
-  - Dependency Vulnerabilities (Composer, NPM)
-  - SAST (CodeQL, Psalm, PHPStan, Semgrep)
-  - Container Security (Trivy)
+#### 1. **Main CI Pipeline** (`ci-pipeline.yml`)
+Orchestrates all testing and validation phases:
+- **Triggers**: Push/PR to main/develop branches, manual dispatch
+- **Phases**:
+  - Phase 1: Code Quality & Security (Parallel)
+  - Phase 2: Test Suite (After Code Quality)
+  - Phase 3: Security Tests (After Security Scan)
+  - Phase 4: Performance Tests (After Test Suite)
+  - Final: Status Check (No automatic commenting)
 
-#### 3. **Test Coverage Analysis** (`test-coverage.yml`)
-Tracks and reports code coverage:
-- **Triggers**: Push/PR with PHP changes, weekly schedule
-- **Features**:
-  - Coverage percentage tracking
-  - Codecov integration
-  - PR comments with coverage reports
-  - Coverage trend analysis
+#### 2. **Modular Pipeline Components**
 
-#### 4. **Performance Testing** (`performance-testing.yml`)
-Ensures application performance:
-- **Triggers**: Push/PR with code changes, daily schedule
-- **Tests**:
-  - Application benchmarks with Apache Bench
-  - Load testing with k6
-  - Performance regression checks
-  - Memory usage analysis
+**Code Quality Pipeline** (`01-code-quality.yml`):
+- Code standards checking (PSR12, PHP-CS-Fixer)
+- Static analysis (PHPStan)
+- Dependency security audit
 
-#### 5. **Deploy to Production** (`deploy.yml`)
-Automated deployment pipeline:
-- **Triggers**: Push to main, version tags, manual
-- **Stages**:
-  - Pre-deployment validation
-  - Build artifacts
-  - Deploy to staging
-  - Deploy to production
-  - Post-deployment tasks
+**Security Scan Pipeline** (`02-security-scan.yml`):
+- Secret scanning (Gitleaks)
+- Vulnerability analysis
+- Security audit reports
 
-#### 6. **Database Operations** (`database-operations.yml`)
-Database management tasks:
-- **Triggers**: Manual only
-- **Operations**:
-  - Backup/Restore
-  - Migrations
-  - Rollback
-  - Seeding
-  - Database refresh
+**Test Suite Pipeline** (`03-test-suite.yml`):
+- Unit tests (parallel execution)
+- Feature tests (parallel execution)
+- Integration tests
+- Coverage reporting to Codecov
 
-### Reusable Workflows
+**Security Test Pipeline** (`04-security-tests.yml`):
+- Penetration testing
+- Authentication security tests
+- API security validation
 
-Located in `.github/workflows/reusable/`:
+**Performance Pipeline** (`05-performance.yml`):
+- Performance tests with JIT compilation
+- Load testing with k6
+- Performance analysis
 
-1. **setup-php.yml**: Standardized PHP environment setup
-2. **setup-laravel.yml**: Laravel application preparation
-3. **setup-services.yml**: External services configuration
+**Build Pipeline** (`06-build.yml`):
+- Frontend asset compilation
+- Production build optimization
+- Asset artifact management
 
+### Legacy Workflows
+
+The following workflows are maintained for specific purposes:
+- `claude.yml` - Claude Code integration
+- `performance.yml` - Scheduled performance monitoring
+- `security.yml` - Scheduled security scans
 
 ## 🚀 Usage
 
 ### Running Tests Locally
 
 ```bash
-# Run all tests
+# Run all tests in parallel
 ./vendor/bin/pest --parallel
 
-# Run specific test suite
-./vendor/bin/pest tests/Unit
-./vendor/bin/pest tests/Feature
-./vendor/bin/pest tests/Security
+# Run specific test suites
+./vendor/bin/pest tests/Unit --parallel
+./vendor/bin/pest tests/Feature --parallel
+./vendor/bin/pest tests/Security --stop-on-failure
 
 # Run with coverage
 ./vendor/bin/pest --coverage --min=80
 ```
 
-### Manual Workflow Triggers
+### Manual Pipeline Triggers
 
-#### Deploy to Production
+#### Full CI Pipeline
 ```bash
-gh workflow run deploy.yml \
-  -f environment=production \
-  -f skip-tests=false
+gh workflow run ci-pipeline.yml -f debug_enabled=true
 ```
 
-#### Database Operations
+#### Individual Pipeline Components
 ```bash
-# Create backup
-gh workflow run database-operations.yml \
-  -f operation=backup \
-  -f environment=staging
+# Run only security tests
+gh workflow run 04-security-tests.yml
 
-# Run migrations
-gh workflow run database-operations.yml \
-  -f operation=migrate \
-  -f environment=production \
-  -f confirm-production=CONFIRM
-```
-
-#### Performance Testing
-```bash
-gh workflow run performance-testing.yml \
-  -f test-duration=600 \
-  -f concurrent-users=200 \
-  -f benchmark-iterations=2000
+# Run performance tests
+gh workflow run 05-performance.yml
 ```
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-Key environment variables used across workflows:
-
 ```yaml
+# Global settings
 PHP_VERSION: '8.3'
 NODE_VERSION: '20'
 COMPOSER_PROCESS_TIMEOUT: 0
-PERFORMANCE_THRESHOLD_API: 200  # ms
-MEMORY_THRESHOLD: 128  # MB
+COMPOSER_NO_INTERACTION: 1
+COMPOSER_NO_AUDIT: 1
 ```
 
-### Secrets Required
+### Required Secrets
 
-- `CODECOV_TOKEN`: For coverage reporting
+- `CODECOV_TOKEN`: Coverage reporting (optional)
+- `GITLEAKS_LICENSE`: Secret scanning (optional)
 - `GITHUB_TOKEN`: Automatically provided
-- Environment-specific deployment credentials
 
-### Cache Strategy
+### Pipeline Features
 
-All workflows implement intelligent caching:
-- Composer dependencies
-- NPM packages
-- Built assets
-- Test results
-
-## 📊 Workflow Features
-
-### Concurrency Control
-Prevents multiple runs of the same workflow:
-```yaml
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-```
-
-### Matrix Testing
-Parallel execution for faster results:
+#### Parallel Execution
+Each pipeline component runs jobs in parallel where possible:
 ```yaml
 strategy:
   matrix:
     test-type: [unit, feature, integration]
-    php: [8.2, 8.3]
 ```
 
-### Conditional Execution
-Smart job dependencies and conditions:
+#### Intelligent Caching
+All pipelines implement comprehensive caching:
+- Composer dependencies
+- NPM packages
+- Built assets
+- Test databases
+
+#### Conditional Execution
+Pipelines include smart dependency management:
 ```yaml
-if: |
-  github.event_name == 'push' || 
-  github.event.inputs.full-test == 'true'
+needs: [code-quality]  # Only run after code quality passes
+if: always()           # Run regardless of previous job status
 ```
 
-### Artifact Management
-Test results and reports are preserved:
-```yaml
-uses: actions/upload-artifact@v4
-with:
-  retention-days: 30
-```
+## 🛡️ Security Features
 
-## 🛡️ Security Best Practices
+### No Automatic Commenting
+The new pipeline architecture removes automatic PR commenting to reduce noise while maintaining comprehensive testing.
 
+### Security-First Design
 1. **Minimal Permissions**: Each workflow requests only necessary permissions
-2. **Secret Scanning**: Automatic detection of exposed credentials
-3. **Dependency Auditing**: Regular vulnerability checks
-4. **SAST Integration**: Multiple static analysis tools
-5. **Production Guards**: Confirmation required for production operations
+2. **Secret Scanning**: Gitleaks integration for credential detection
+3. **Dependency Auditing**: Composer and NPM vulnerability checks
+4. **Isolated Environments**: Separate databases for different test types
 
-## 📈 Performance Optimization
+## 📊 Pipeline Benefits
 
-1. **Parallel Jobs**: Test suites run concurrently
-2. **Intelligent Caching**: Dependencies cached across runs
-3. **Conditional Steps**: Skip unnecessary operations
-4. **Optimized Builds**: Production builds exclude dev dependencies
-5. **JIT Compilation**: PHP JIT enabled for performance tests
+### Improved Performance
+- Modular design allows for faster feedback
+- Parallel execution reduces total runtime
+- Smart caching minimizes redundant operations
 
-## 🔍 Monitoring & Reporting
+### Enhanced Reliability
+- Isolated pipeline components reduce failure propagation
+- Better error isolation and debugging
+- Consistent environments across all stages
 
-### PR Comments
-Automated comments provide:
-- Test coverage reports
-- Security scan summaries
-- Performance impact analysis
-- Build status updates
+### Better Maintainability
+- Reusable pipeline components
+- Clear separation of concerns
+- Easier to update individual stages
 
-### Artifacts
-Download test results, coverage reports, and logs from the Actions tab.
+## 🔍 Monitoring & Debugging
 
-### Notifications
-Failed production deployments create GitHub issues automatically.
+### Pipeline Status
+Check pipeline status in the Actions tab:
+- Individual pipeline results
+- Detailed job logs
+- Artifact downloads
 
-## 🚨 Troubleshooting
+### Debug Mode
+Enable verbose logging:
+```bash
+gh workflow run ci-pipeline.yml -f debug_enabled=true
+```
 
-### Common Issues
+### Troubleshooting Common Issues
 
-1. **Cache Problems**
+1. **Cache Issues**
    ```bash
-   # Clear workflow caches
    gh cache delete --all
    ```
 
-2. **Flaky Tests**
-   - Check for race conditions
-   - Ensure proper test isolation
-   - Review service health checks
+2. **Test Failures**
+   - Check individual pipeline logs
+   - Review database setup
+   - Validate service health checks
 
-3. **Deployment Failures**
-   - Verify environment secrets
-   - Check service connectivity
-   - Review deployment logs
+3. **Performance Issues**
+   - Monitor JIT compilation logs
+   - Check memory usage patterns
+   - Review load test results
 
-### Debug Mode
+## 📈 Performance Optimization
 
-Enable debug logging:
-```bash
-gh workflow run ci.yml -f debug_enabled=true
+### JIT Compilation
+Performance tests use PHP JIT for maximum speed:
+```yaml
+ini-values: |
+  opcache.enable=1
+  opcache.enable_cli=1
+  opcache.jit=tracing
+  opcache.jit_buffer_size=256M
 ```
+
+### Resource Management
+- Optimized container resources
+- Efficient database seeding
+- Minimal dependency installation for specific jobs
 
 ## 📝 Contributing
 
-When adding new workflows:
+When adding new pipeline components:
 
-1. Follow naming conventions (kebab-case)
-2. Include comprehensive documentation
+1. Follow the modular pipeline pattern
+2. Use the `workflow_call` trigger for reusability
 3. Implement proper error handling
-4. Add concurrency controls
-5. Use reusable workflows where possible
-6. Include security scanning
-7. Add performance benchmarks
+4. Add comprehensive caching
+5. Include security considerations
+6. Document inputs and secrets
+
+### Pipeline Naming Convention
+- `01-code-quality.yml` - Phase 1 pipelines
+- `02-security-scan.yml` - Phase 2 pipelines  
+- `03-test-suite.yml` - Phase 3 pipelines
+- `ci-pipeline.yml` - Main orchestrator
 
 ## 📚 References
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Laravel CI/CD Best Practices](https://laravel.com/docs/deployment)
-- [Security Hardening for Actions](https://docs.github.com/en/actions/security-guides)
+- [Reusable Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
+- [Laravel Testing Best Practices](https://laravel.com/docs/testing)
+- [Security Hardening Guide](https://docs.github.com/en/actions/security-guides)
