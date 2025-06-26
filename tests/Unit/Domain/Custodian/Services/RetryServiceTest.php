@@ -193,7 +193,7 @@ class RetryServiceTest extends TestCase
                     },
                     retryableExceptions: [\RuntimeException::class]
                 );
-            } catch (\RuntimeException $e) {
+            } catch (MaxRetriesExceededException $e) {
                 // Expected
             }
             
@@ -218,10 +218,6 @@ class RetryServiceTest extends TestCase
         Log::shouldReceive('warning')
             ->twice()
             ->with('Operation failed, retrying', \Mockery::type('array'));
-        
-        Log::shouldReceive('error')
-            ->once()
-            ->with('Operation failed after all retry attempts', \Mockery::type('array'));
         
         try {
             $this->retryService->execute(

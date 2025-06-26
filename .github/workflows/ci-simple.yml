@@ -100,7 +100,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Unit Tests
-        run: ./vendor/bin/pest tests/Unit --parallel || true
+        run: ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --parallel || true
 
   feature-tests:
     name: Feature Tests
@@ -164,7 +164,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Feature Tests
-        run: ./vendor/bin/pest tests/Feature --parallel || true
+        run: ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --parallel || true
 
   behat-tests:
     name: Behat Tests
