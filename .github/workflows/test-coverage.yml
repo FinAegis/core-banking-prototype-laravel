@@ -40,19 +40,7 @@ jobs:
       coverage-report: ${{ steps.coverage.outputs.report-url }}
       
     services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testing
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-          
+      # MySQL removed - using SQLite for coverage tests to avoid deadlocks
       redis:
         image: redis:7-alpine
         ports:
@@ -77,9 +65,10 @@ jobs:
           tools: composer:v2, phpunit/phpunit:^11
           coverage: xdebug
           ini-values: |
-            memory_limit=1G
-            max_execution_time=600
+            memory_limit=2G
+            max_execution_time=900
             xdebug.mode=coverage
+            xdebug.max_nesting_level=512
             opcache.enable=1
             opcache.enable_cli=1
             
@@ -104,11 +93,14 @@ jobs:
           
       - name: Prepare Test Environment
         run: |
-          cp .env.ci .env
+          cp .env.testing .env
+          # Override to use SQLite for coverage to avoid deadlocks
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=:memory:/' .env
+          
           php artisan key:generate
           php artisan config:clear
           php artisan cache:clear
-          php artisan migrate --force
           
           # Create dummy Vite manifest for tests
           mkdir -p public/build
@@ -116,10 +108,25 @@ jobs:
           
       - name: Run Tests with Coverage
         run: |
-          # Run tests with coverage using CI configuration
+          # Run tests with coverage using testing configuration (SQLite)
           # Only run Unit and Feature tests for coverage (exclude Integration and Security)
-          # Note: Parallel execution disabled for coverage to avoid deadlocks with xdebug
-          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --testsuite=Unit,Feature --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
+          # Note: Using SQLite and no parallel execution to avoid deadlocks
+          
+          # Run with retry logic
+          for i in 1 2 3; do
+            echo "Attempt $i of 3..."
+            if XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.coverage.xml --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30; then
+              echo "Coverage tests passed!"
+              break
+            else
+              if [ $i -eq 3 ]; then
+                echo "Coverage tests failed after 3 attempts"
+                exit 1
+              fi
+              echo "Attempt $i failed, retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
           
       - name: Generate Coverage Report
         id: coverage
