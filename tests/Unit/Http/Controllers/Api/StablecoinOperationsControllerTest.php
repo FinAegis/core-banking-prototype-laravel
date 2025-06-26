@@ -16,9 +16,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Mockery;
 use Tests\TestCase;
+use Illuminate\Support\Facades\DB;
 
 class StablecoinOperationsControllerTest extends TestCase
 {
+    protected function shouldCreateDefaultAccountsInSetup(): bool
+    {
+        return false;
+    }
 
     protected StablecoinOperationsController $controller;
     protected $issuanceService;

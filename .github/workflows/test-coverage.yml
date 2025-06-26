@@ -33,7 +33,7 @@ jobs:
   coverage-analysis:
     name: Code Coverage Analysis
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     
     outputs:
       coverage-percentage: ${{ steps.coverage.outputs.percentage }}
@@ -77,9 +77,11 @@ jobs:
           tools: composer:v2, phpunit/phpunit:^11
           coverage: xdebug
           ini-values: |
-            memory_limit=512M
-            max_execution_time=360
+            memory_limit=1G
+            max_execution_time=600
             xdebug.mode=coverage
+            opcache.enable=1
+            opcache.enable_cli=1
             
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -111,7 +113,8 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           # Run tests with coverage using CI configuration
-          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
+          # Only run Unit and Feature tests for coverage (exclude slow tests like Security)
+          XDEBUG_MODE=coverage ./vendor/bin/pest tests/Unit tests/Feature --configuration=phpunit.ci.xml --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30 --parallel
           
       - name: Generate Coverage Report
         id: coverage

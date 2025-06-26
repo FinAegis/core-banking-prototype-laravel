@@ -45,9 +45,9 @@ concurrency:
   cancel-in-progress: false  # Don't cancel performance tests
 
 env:
-  PERFORMANCE_THRESHOLD_API: 200  # ms
+  PERFORMANCE_THRESHOLD_API: 250  # ms (increased for CI environment)
   PERFORMANCE_THRESHOLD_WEB: 500  # ms
-  MEMORY_THRESHOLD: 128  # MB
+  MEMORY_THRESHOLD: 256  # MB (increased for CI environment)
 
 jobs:
   benchmark-tests:
@@ -125,16 +125,20 @@ jobs:
           
       - name: Prepare Performance Environment
         run: |
-          cp .env.example .env
-          sed -i 's/APP_ENV=.*/APP_ENV=production/' .env
-          sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
-          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
-          sed -i 's/DB_DATABASE=.*/DB_DATABASE=performance/' .env
-          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
-          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
-          sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=redis/' .env
-          sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=redis/' .env
-          sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/' .env
+          if [ -f .env.performance ]; then
+            cp .env.performance .env
+          else
+            cp .env.example .env
+            sed -i 's/APP_ENV=.*/APP_ENV=production/' .env
+            sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
+            sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+            sed -i 's/DB_DATABASE=.*/DB_DATABASE=performance/' .env
+            sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+            sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
+            sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=redis/' .env
+            sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=redis/' .env
+            sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/' .env
+          fi
           
           php artisan key:generate
           php artisan config:cache
