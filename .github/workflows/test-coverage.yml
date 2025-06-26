@@ -110,7 +110,8 @@ jobs:
           
       - name: Run Tests with Coverage
         run: |
-          XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
+          # Run tests with coverage using CI configuration
+          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
           
       - name: Generate Coverage Report
         id: coverage
