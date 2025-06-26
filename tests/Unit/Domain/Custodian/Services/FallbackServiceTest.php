@@ -106,14 +106,14 @@ class FallbackServiceTest extends TestCase
         $cacheKey = "custodian:fallback:{$custodian}:{$accountId}:{$assetCode}:balance";
         $this->assertEquals(30000, Cache::get($cacheKey));
         
-        // Assert - Database
-        $account = CustodianAccount::where('custodian_account_id', $accountId)
+        // Assert - Database (Check that it was created or updated)
+        $custodianAccount = CustodianAccount::where('custodian_account_id', $accountId)
             ->where('custodian_name', $custodian)
             ->first();
             
-        $this->assertNotNull($account);
-        $this->assertEquals(30000, $account->last_known_balance);
-        $this->assertNotNull($account->last_synced_at);
+        $this->assertNotNull($custodianAccount);
+        $this->assertEquals(30000, $custodianAccount->last_known_balance);
+        $this->assertNotNull($custodianAccount->last_synced_at);
     }
     
     public function test_get_fallback_account_info_from_cache(): void

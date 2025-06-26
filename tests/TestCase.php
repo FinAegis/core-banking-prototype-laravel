@@ -116,14 +116,12 @@ abstract class TestCase extends BaseTestCase
             return;
         }
         
-        // Use a database transaction to ensure atomic operation
-        \DB::transaction(function () {
-            collect(UserRoles::cases())->each(function ($role) {
-                Role::firstOrCreate(
-                    ['name' => $role->value],
-                    ['guard_name' => 'web']
-                );
-            });
+        // Create roles without transaction to avoid nesting issues
+        collect(UserRoles::cases())->each(function ($role) {
+            Role::firstOrCreate(
+                ['name' => $role->value],
+                ['guard_name' => 'web']
+            );
         });
     }
 

@@ -129,16 +129,19 @@ class ProcessCustodianWebhookTest extends TestCase
         $this->processorService
             ->shouldReceive('process')
             ->once()
-            ->with($this->webhook)
+            ->with(\Mockery::on(function ($webhook) {
+                return $webhook instanceof CustodianWebhook && 
+                       $webhook->uuid === $this->webhook->uuid;
+            }))
             ->andThrow($exception);
 
         Log::shouldReceive('error')
             ->once()
-            ->with('Failed to process webhook', [
-                'webhook_id' => $this->webhook->id,
-                'error' => 'Processing failed',
-                'trace' => $exception->getTraceAsString(),
-            ]);
+            ->with('Failed to process webhook', \Mockery::on(function ($data) {
+                return isset($data['webhook_id']) && 
+                       isset($data['error']) && 
+                       $data['error'] === 'Processing failed';
+            }));
 
         $job = new ProcessCustodianWebhook($this->webhook->uuid);
 

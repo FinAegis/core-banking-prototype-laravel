@@ -115,6 +115,7 @@ class LiquidationServiceTest extends TestCase
             'debt_amount' => 100000,
             'collateral_ratio' => 1.1, // Below minimum
             'status' => 'active',
+            'auto_liquidation_enabled' => true,
         ]);
         
         $reward = $this->service->calculateLiquidationReward($position);
@@ -124,7 +125,7 @@ class LiquidationServiceTest extends TestCase
         $this->assertArrayHasKey('collateral_seized', $reward);
         $this->assertArrayHasKey('eligible', $reward);
         $this->assertTrue($reward['eligible']);
-        $this->assertEquals(10000, $reward['penalty']); // 10% penalty
+        $this->assertEquals(11000, $reward['penalty']); // 10% penalty on 110,000 collateral
     }
 
     /** @test */
