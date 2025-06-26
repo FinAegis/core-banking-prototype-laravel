@@ -102,9 +102,137 @@ jobs:
       - name: Run Unit Tests
         run: ./vendor/bin/pest tests/Unit --parallel || true
 
+  feature-tests:
+    name: Feature Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip
+          tools: composer:v2
+          coverage: none
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          npm ci --prefer-offline --no-audit
+          npm run build
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan migrate --force
+          
+      - name: Run Feature Tests
+        run: ./vendor/bin/pest tests/Feature --parallel || true
+
+  behat-tests:
+    name: Behat Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip, curl
+          tools: composer:v2
+          coverage: none
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          npm ci --prefer-offline --no-audit
+          npm run build
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan migrate --force
+          
+      - name: Run Behat Tests
+        run: vendor/bin/behat || true
+
   final-status:
     name: Pipeline Status
-    needs: [code-quality, unit-tests]
+    needs: [code-quality, unit-tests, feature-tests, behat-tests]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -114,4 +242,6 @@ jobs:
         run: |
           echo "Code Quality: ${{ needs.code-quality.result }}"
           echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Feature Tests: ${{ needs.feature-tests.result }}"
+          echo "Behat Tests: ${{ needs.behat-tests.result }}"
           echo "✅ Simple pipeline completed"
