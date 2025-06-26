@@ -71,18 +71,17 @@ class FallbackService
         $cacheKey = $this->getBalanceCacheKey($custodian, $accountId, $assetCode);
         Cache::put($cacheKey, $balance->getAmount(), self::BALANCE_CACHE_TTL);
         
-        // Also update database
-        CustodianAccount::updateOrCreate(
-            [
-                'custodian_account_id' => $accountId,
-                'custodian_name' => $custodian,
-            ],
-            [
-                'account_uuid' => \Str::uuid()->toString(), // Default UUID if not exists
+        // Also update database if custodian account exists
+        $custodianAccount = CustodianAccount::where('custodian_account_id', $accountId)
+            ->where('custodian_name', $custodian)
+            ->first();
+            
+        if ($custodianAccount) {
+            $custodianAccount->update([
                 'last_known_balance' => $balance->getAmount(),
                 'last_synced_at' => now(),
-            ]
-        );
+            ]);
+        }
     }
     
     /**

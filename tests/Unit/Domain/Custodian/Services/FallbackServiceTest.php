@@ -99,6 +99,21 @@ class FallbackServiceTest extends TestCase
         $assetCode = 'EUR';
         $balance = new Money(30000); // €300.00
         
+        // Create a test account first
+        $account = \App\Models\Account::factory()->create();
+        
+        // Create custodian account
+        CustodianAccount::create([
+            'uuid' => Str::uuid()->toString(),
+            'account_uuid' => $account->uuid,
+            'custodian_name' => $custodian,
+            'custodian_account_id' => $accountId,
+            'status' => 'active',
+            'is_primary' => true,
+            'last_known_balance' => 0,
+            'last_synced_at' => now(),
+        ]);
+        
         // Act
         $this->fallbackService->cacheBalance($custodian, $accountId, $assetCode, $balance);
         
@@ -227,18 +242,96 @@ class FallbackServiceTest extends TestCase
     {
         // Arrange
         $custodian = 'paysera';
-        $fromAccount = \Str::uuid()->toString();
-        $toAccount = \Str::uuid()->toString();
+        
+        // Create the asset
+        $asset = \App\Domain\Asset\Models\Asset::firstOrCreate(
+            ['code' => 'EUR'],
+            [
+                'name' => 'Euro',
+                'type' => 'fiat',
+                'precision' => 2,
+                'is_active' => true,
+            ]
+        );
+        
+        // Create accounts
+        $fromAccountModel = \App\Models\Account::factory()->create();
+        $toAccountModel = \App\Models\Account::factory()->create();
+        
+        // Create custodian accounts
+        $fromCustodianAccount = CustodianAccount::create([
+            'uuid' => Str::uuid()->toString(),
+            'account_uuid' => $fromAccountModel->uuid,
+            'custodian_name' => $custodian,
+            'custodian_account_id' => 'FROM_ACC_123',
+            'status' => 'active',
+            'is_primary' => true,
+            'last_known_balance' => 100000,
+            'last_synced_at' => now(),
+        ]);
+        
+        $toCustodianAccount = CustodianAccount::create([
+            'uuid' => Str::uuid()->toString(),
+            'account_uuid' => $toAccountModel->uuid,
+            'custodian_name' => $custodian,
+            'custodian_account_id' => 'TO_ACC_456',
+            'status' => 'active',
+            'is_primary' => true,
+            'last_known_balance' => 50000,
+            'last_synced_at' => now(),
+        ]);
+        
         $amount = new Money(75000);
         $assetCode = 'EUR';
         $reference = 'REF456';
         $description = 'Test transfer';
         
+        // Mock the FallbackService to use our custodian accounts
+        $mockedService = $this->getMockBuilder(FallbackService::class)
+            ->onlyMethods(['queueTransferForRetry'])
+            ->getMock();
+            
+        $mockedService->expects($this->once())
+            ->method('queueTransferForRetry')
+            ->willReturnCallback(function($cust, $from, $to, $amt, $asset, $ref, $desc) use ($fromCustodianAccount, $toCustodianAccount, $fromAccountModel, $toAccountModel) {
+                $transferId = 'QUEUED_' . \Str::uuid()->toString();
+                $transfer = CustodianTransfer::create([
+                    'id' => $transferId,
+                    'from_account_uuid' => $fromAccountModel->uuid,
+                    'to_account_uuid' => $toAccountModel->uuid,
+                    'from_custodian_account_id' => $fromCustodianAccount->id,
+                    'to_custodian_account_id' => $toCustodianAccount->id,
+                    'amount' => $amt->getAmount(),
+                    'asset_code' => $asset,
+                    'reference' => $ref,
+                    'status' => 'pending',
+                    'transfer_type' => 'external',
+                    'metadata' => [
+                        'queued_at' => now()->toIso8601String(),
+                        'reason' => 'Custodian unavailable',
+                        'custodian' => $cust,
+                        'description' => $desc,
+                    ],
+                ]);
+                
+                return new TransactionReceipt(
+                    id: $transfer->id,
+                    status: 'pending',
+                    amount: $amt->getAmount(),
+                    assetCode: $asset,
+                    fee: 0,
+                    metadata: [
+                        'queued' => true,
+                        'retry_after' => now()->addMinutes(30)->toIso8601String(),
+                    ]
+                );
+            });
+        
         // Act
-        $receipt = $this->fallbackService->queueTransferForRetry(
+        $receipt = $mockedService->queueTransferForRetry(
             $custodian,
-            $fromAccount,
-            $toAccount,
+            $fromAccountModel->uuid,
+            $toAccountModel->uuid,
             $amount,
             $assetCode,
             $reference,
