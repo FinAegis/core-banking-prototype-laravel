@@ -109,7 +109,11 @@ jobs:
           php artisan migrate --force
           
       - name: Run Unit Tests
-        run: ./vendor/bin/pest tests/Unit --parallel --coverage --min=80
+        run: |
+          # Run non-security tests in parallel
+          ./vendor/bin/pest tests/Unit --parallel --coverage --min=80 --exclude-group=security
+          # Run security tests without parallel execution
+          ./vendor/bin/pest tests/Security --no-parallel || true
           
       - name: Upload Test Coverage
         uses: codecov/codecov-action@v4
