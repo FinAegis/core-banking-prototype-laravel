@@ -208,11 +208,12 @@ class ProcessCustodianWebhookTest extends TestCase
         $this->processorService
             ->shouldReceive('process')
             ->once()
-            ->with($this->webhook)
-            ->andReturnUsing(function ($webhook) {
+            ->with(\Mockery::on(function ($webhook) {
                 // Verify webhook was marked as processing during execution
                 $this->assertEquals('processing', $webhook->status);
-            });
+                return $webhook instanceof CustodianWebhook && 
+                       $webhook->uuid === $this->webhook->uuid;
+            }));
 
         $job = new ProcessCustodianWebhook($this->webhook->uuid);
         $job->handle($this->processorService);

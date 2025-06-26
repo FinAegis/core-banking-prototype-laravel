@@ -159,9 +159,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->andReturn('test-signature');
 
         Http::fake([
-            $this->webhook->url => function () {
-                throw new RequestException(Http::response('', 0));
-            },
+            $this->webhook->url => Http::timeout(),
         ]);
 
         Log::shouldReceive('error')

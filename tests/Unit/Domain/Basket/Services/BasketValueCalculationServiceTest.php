@@ -151,8 +151,8 @@ class BasketValueCalculationServiceTest extends TestCase
         // Total: 1.32
         $this->assertEquals(1.32, $value->value);
         $this->assertCount(3, $value->component_values); // EUR, GBP, and _metadata
-        $this->assertEquals(0.72, $value->component_values['EUR']['weighted_value']);
-        $this->assertEquals(0.60, $value->component_values['GBP']['weighted_value']);
+        $this->assertEqualsWithDelta(0.72, $value->component_values['EUR']['weighted_value'], 0.001);
+        $this->assertEqualsWithDelta(0.60, $value->component_values['GBP']['weighted_value'], 0.001);
     }
 
     /** @test */

@@ -20,6 +20,9 @@ it('registers WaterlineServiceProvider in non-testing environment', function () 
     // Expect the WaterlineServiceProvider to be registered
     $this->app->shouldReceive('register')->once()->with(WaterlineServiceProvider::class);
     
+    // Expect strategy bindings
+    $this->app->shouldReceive('bind')->times(3);
+    
     $this->provider->register();
 });
 
@@ -29,6 +32,9 @@ it('does not register WaterlineServiceProvider in testing environment', function
     
     // Should not call register for WaterlineServiceProvider
     $this->app->shouldNotReceive('register');
+    
+    // Expect strategy bindings in testing environment too
+    $this->app->shouldReceive('bind')->times(3);
     
     $this->provider->register();
 });

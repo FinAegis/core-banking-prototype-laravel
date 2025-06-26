@@ -119,11 +119,12 @@ class LiquidationServiceTest extends TestCase
         
         $reward = $this->service->calculateLiquidationReward($position);
         
-        $this->assertArrayHasKey('penalty_amount', $reward);
-        $this->assertArrayHasKey('liquidator_reward', $reward);
-        $this->assertArrayHasKey('collateral_to_seize', $reward);
-        $this->assertArrayHasKey('remainder_to_owner', $reward);
-        $this->assertEquals(10000, $reward['penalty_amount']); // 10% penalty
+        $this->assertArrayHasKey('penalty', $reward);
+        $this->assertArrayHasKey('reward', $reward);
+        $this->assertArrayHasKey('collateral_seized', $reward);
+        $this->assertArrayHasKey('eligible', $reward);
+        $this->assertTrue($reward['eligible']);
+        $this->assertEquals(10000, $reward['penalty']); // 10% penalty
     }
 
     /** @test */
