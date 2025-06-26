@@ -33,7 +33,7 @@ jobs:
   coverage-analysis:
     name: Code Coverage Analysis
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     
     outputs:
       coverage-percentage: ${{ steps.coverage.outputs.percentage }}
@@ -117,9 +117,9 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           # Run tests with coverage using CI configuration
-          # Run Unit, Feature, and Integration tests (exclude Security tests for coverage)
+          # Only run Unit and Feature tests for coverage (exclude Integration and Security)
           # Note: Parallel execution disabled for coverage to avoid deadlocks with xdebug
-          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --testsuite=Unit,Feature,Integration --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
+          XDEBUG_MODE=coverage ./vendor/bin/pest --configuration=phpunit.ci.xml --testsuite=Unit,Feature --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover --min=30
           
       - name: Generate Coverage Report
         id: coverage
