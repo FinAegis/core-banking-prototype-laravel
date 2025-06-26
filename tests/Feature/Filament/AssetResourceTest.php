@@ -6,6 +6,10 @@ use App\Domain\Asset\Models\Asset;
 use App\Filament\Admin\Resources\AssetResource;
 use App\Models\User;
 
+beforeEach(function () {
+    $this->setUpFilamentWithAuth();
+});
+
 describe('Asset Resource Configuration', function () {
     it('has correct model', function () {
         expect(AssetResource::getModel())->toBe(Asset::class);

@@ -5,6 +5,10 @@ declare(strict_types=1);
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Filament\Admin\Resources\ExchangeRateResource;
 
+beforeEach(function () {
+    $this->setUpFilamentWithAuth();
+});
+
 describe('Exchange Rate Resource Configuration', function () {
     it('has correct model', function () {
         expect(ExchangeRateResource::getModel())->toBe(ExchangeRate::class);

@@ -7,6 +7,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    $this->setUpFilamentWithAuth();
+});
+
 test('primary basket widget displays basket data when configured', function () {
     // Create or get assets
     $assetCodes = ['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'XAU'];

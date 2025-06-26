@@ -135,6 +135,16 @@ class Asset extends Model
     }
     
     /**
+     * Get the symbol attribute (accessor)
+     *
+     * @return string|null
+     */
+    public function getSymbolAttribute(): ?string
+    {
+        return $this->getSymbol();
+    }
+    
+    /**
      * Format an amount according to the asset's precision
      *
      * @param int $amount Amount in smallest unit

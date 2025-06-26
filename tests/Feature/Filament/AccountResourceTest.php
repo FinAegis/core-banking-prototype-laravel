@@ -7,23 +7,15 @@ use App\Filament\Admin\Resources\AccountResource;
 use App\Models\Account;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
-use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Livewire\livewire;
-use Filament\Facades\Filament;
 
-// Skip all Filament tests for now as they require additional setup
+beforeEach(function () {
+    $this->setUpFilamentWithAuth();
+});
+
 describe('Filament Admin Dashboard', function () {
-    beforeEach(function () {
-        $this->user = User::factory()->create();
-        actingAs($this->user);
-        
-        // Skip if Filament panel is not properly configured
-        if (!app(\Filament\FilamentManager::class)->getCurrentPanel()) {
-            $this->markTestSkipped('Filament panel not configured for testing');
-        }
-    });
 
     it('can render account index page', function () {
         get('/admin/accounts')

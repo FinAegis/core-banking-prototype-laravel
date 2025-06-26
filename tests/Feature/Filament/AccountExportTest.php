@@ -3,25 +3,14 @@
 use App\Filament\Admin\Resources\AccountResource;
 use App\Filament\Exports\AccountExporter;
 use App\Models\Account;
-use App\Models\User;
-use Filament\Actions\Testing\Fixtures\TestAction;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
-// Skip Filament integration tests that require panel setup
+beforeEach(function () {
+    $this->setUpFilamentWithAuth();
+});
+
 describe('Account Export Tests', function () {
-    beforeEach(function () {
-        // Create admin user
-        $this->user = User::factory()->create();
-        
-        // Ensure Filament is properly set up for testing
-        $this->actingAs($this->user, 'web');
-        
-        // Skip if Filament panel is not properly configured
-        if (!app(\Filament\FilamentManager::class)->getCurrentPanel()) {
-            $this->markTestSkipped('Filament panel not configured for testing');
-        }
-    });
 
 it('can export accounts', function () {
     Queue::fake();
@@ -139,4 +128,4 @@ it('includes failed rows in completion message', function () {
     expect($message)->toContain('10 rows failed');
 });
 
-})->skip('Filament tests require additional panel setup');
+});

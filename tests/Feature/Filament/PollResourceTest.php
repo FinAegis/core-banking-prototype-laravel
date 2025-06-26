@@ -14,13 +14,7 @@ use App\Models\User;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    $this->actingAs($this->user);
-    
-    // Skip if Filament panel is not properly configured
-    if (!app(\Filament\FilamentManager::class)->getCurrentPanel()) {
-        $this->markTestSkipped('Filament panel not configured for testing');
-    }
+    $this->setUpFilamentWithAuth();
 });
 
 describe('Poll Resource', function () {

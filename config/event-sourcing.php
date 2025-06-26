@@ -117,6 +117,14 @@ return [
         'basket_decomposed'             => App\Domain\Basket\Events\BasketDecomposed::class,
         'basket_composed'               => App\Domain\Basket\Events\BasketComposed::class,
         'basket_rebalanced'             => App\Domain\Basket\Events\BasketRebalanced::class,
+        'stablecoin_minted'             => App\Domain\Stablecoin\Events\StablecoinMinted::class,
+        'stablecoin_burned'             => App\Domain\Stablecoin\Events\StablecoinBurned::class,
+        'collateral_locked'             => App\Domain\Stablecoin\Events\CollateralLocked::class,
+        'collateral_released'           => App\Domain\Stablecoin\Events\CollateralReleased::class,
+        'collateral_position_created'   => App\Domain\Stablecoin\Events\CollateralPositionCreated::class,
+        'collateral_position_updated'   => App\Domain\Stablecoin\Events\CollateralPositionUpdated::class,
+        'collateral_position_closed'    => App\Domain\Stablecoin\Events\CollateralPositionClosed::class,
+        'collateral_position_liquidated'=> App\Domain\Stablecoin\Events\CollateralPositionLiquidated::class,
     ],
 
     /*

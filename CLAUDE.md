@@ -18,6 +18,10 @@ This includes:
 
 Please refer to the main documentation for all development guidance.
 
+## 📋 Local TODO List (Optional)
+
+If a `TODO.md` file exists in the project root, read it at the start of each session for current task tracking and context. This is a local file (gitignored) used for session continuity.
+
 ---
 
 ### Quick Command Reference

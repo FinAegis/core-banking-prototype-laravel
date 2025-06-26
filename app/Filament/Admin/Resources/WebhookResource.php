@@ -91,6 +91,7 @@ class WebhookResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('url')
+                    ->searchable()
                     ->limit(50)
                     ->tooltip(fn ($record) => $record->url),
                 Tables\Columns\TagsColumn::make('events')
@@ -193,6 +194,7 @@ class WebhookResource extends Resource
             'index' => Pages\ListWebhooks::route('/'),
             'create' => Pages\CreateWebhook::route('/create'),
             'edit' => Pages\EditWebhook::route('/{record}/edit'),
+            'view' => Pages\ViewWebhook::route('/{record}'),
         ];
     }
 
