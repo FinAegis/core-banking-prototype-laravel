@@ -7,16 +7,7 @@
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
-        </testsuite>
-        <testsuite name="Feature">
-            <directory>tests/Feature</directory>
-        </testsuite>
-        <testsuite name="Integration">
-            <directory>tests/Domain</directory>
-            <directory>tests/Console</directory>
-        </testsuite>
-        <testsuite name="Security">
-            <directory>tests/Security</directory>
+            <exclude>tests/Security</exclude>
         </testsuite>
     </testsuites>
     <source>

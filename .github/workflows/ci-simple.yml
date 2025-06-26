@@ -100,7 +100,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Unit Tests
-        run: ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --parallel || true
+        run: ./vendor/bin/pest --configuration=phpunit.unit.xml --parallel || true
 
   feature-tests:
     name: Feature Tests

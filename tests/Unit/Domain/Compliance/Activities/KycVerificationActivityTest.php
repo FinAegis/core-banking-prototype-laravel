@@ -6,6 +6,7 @@ namespace Tests\Unit\Domain\Compliance\Activities;
 
 use App\Domain\Compliance\Activities\KycVerificationActivity;
 use App\Domain\Compliance\Services\KycService;
+use App\Models\User;
 use Tests\TestCase;
 use Mockery;
 
