@@ -31,6 +31,7 @@ it('can render user creation page', function () {
 
 it('can create user', function () {
     $userData = [
+        'uuid' => fake()->uuid(),
         'name' => 'John Doe',
         'email' => 'john@example.com',
         'password' => 'password123',
@@ -64,6 +65,7 @@ it('validates unique email when creating user', function () {
 
     livewire(UserResource\Pages\CreateUser::class)
         ->fillForm([
+            'uuid' => fake()->uuid(),
             'name' => 'John Doe',
             'email' => $existingUser->email,
             'password' => 'password123',
