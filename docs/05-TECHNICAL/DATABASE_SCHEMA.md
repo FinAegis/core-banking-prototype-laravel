@@ -1,7 +1,7 @@
 # Database Schema Documentation
 
-**Version:** 1.2  
-**Last Updated:** 2025-06-16  
+**Version:** 1.3  
+**Last Updated:** 2025-06-27  
 **Laravel Version:** 11.x  
 **Database:** MySQL 8.0+
 
@@ -363,6 +363,41 @@ CREATE TABLE `webhook_deliveries` (
 - 'success': Successfully delivered
 - 'failed': All retry attempts exhausted
 - 'retrying': Waiting for next retry
+
+## Platform Configuration
+
+### settings
+Platform-wide configuration settings with encryption support.
+
+```sql
+CREATE TABLE `settings` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'string',
+  `is_encrypted` tinyint(1) NOT NULL DEFAULT '0',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `settings_key_unique` (`key`),
+  KEY `settings_type_index` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+**Fields:**
+- `key`: Unique setting identifier (e.g., 'platform.name', 'features.lending.enabled')
+- `value`: Setting value (encrypted if sensitive)
+- `type`: Data type (string, boolean, integer, json, array)
+- `is_encrypted`: Whether the value is encrypted
+- `description`: Human-readable description of the setting
+
+**Usage:**
+- Platform configuration (name, URL, timezone)
+- Feature toggles for sub-products
+- API rate limits and thresholds
+- Email templates and notifications
+- Third-party service credentials (encrypted)
 
 ## Laravel Framework Tables
 

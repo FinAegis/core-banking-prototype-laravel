@@ -4,7 +4,7 @@
 **Last Updated:** 2025-06-25  
 **Documentation Status:** Updated with Phase 6.3 and Unified Platform Vision
 
-This document provides a comprehensive overview of all features implemented in the FinAegis Core Banking Platform, including support for both GCU and Litas platforms.
+This document provides a comprehensive overview of all features implemented in the FinAegis Core Banking Platform, including the flagship Global Currency Unit (GCU) and all sub-products.
 
 ## Table of Contents
 
@@ -834,7 +834,7 @@ curl -X POST /api/auth/forgot-password \
 
 ### Stablecoin Infrastructure
 - **Multi-Token Framework**: Support for multiple stablecoins
-- **Stable LITAS**: EUR-pegged stablecoin for Litas platform
+- **EUR Stablecoin (EURS)**: EUR-pegged stablecoin for FinAegis platform
 - **Minting/Burning Engine**: Automated token supply management
 - **Reserve Management**: Fiat backing verification and auditing
 - **Redemption System**: Convert stablecoins back to fiat
@@ -842,7 +842,7 @@ curl -X POST /api/auth/forgot-password \
 ### P2P Lending Platform
 - **SME Loan Marketplace**: Connect crypto investors with businesses
 - **Loan Origination**: Application, scoring, and approval workflows
-- **Tokenized Loans**: Crypto LITAS representing loan stakes
+- **Tokenized Loans**: Digital tokens representing loan stakes
 - **Repayment Processing**: Automated collection and distribution
 - **Secondary Market**: Trade tokenized loan positions
 
@@ -853,9 +853,9 @@ curl -X POST /api/auth/forgot-password \
 - **Transaction Monitoring**: On-chain confirmation tracking
 
 ### Platform Synergies
-- **Shared Core**: Single codebase for GCU and Litas
+- **Shared Core**: Single codebase for all FinAegis products
 - **Unified Accounts**: One KYC, access to both products
-- **Cross-Product Features**: Move funds between GCU and Litas
+- **Cross-Product Features**: Move funds seamlessly between all sub-products
 - **Common Infrastructure**: Banking, compliance, exchange engines
 
 ---
