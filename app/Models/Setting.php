@@ -32,6 +32,11 @@ class Setting extends Model
         'is_public' => 'boolean',
         'is_encrypted' => 'boolean',
     ];
+    
+    /**
+     * Temporary property to store old value for audit logging
+     */
+    public $oldValue;
 
     protected static function booted(): void
     {
