@@ -55,6 +55,11 @@
         </style>
     </head>
     <body class="antialiased">
+        <x-alpha-banner />
+        
+        <!-- Spacer for fixed banner -->
+        <div class="h-12"></div>
+        
         <x-main-navigation />
 
         <!-- Hero Section -->
@@ -95,10 +100,10 @@
                     </div>
                     
                     <div class="flex justify-center lg:justify-end">
-                        <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 text-center">
-                            <div class="gcu-symbol mb-6">Ǥ</div>
-                            <h3 class="text-2xl font-semibold mb-2">The GCU Symbol</h3>
-                            <p class="text-purple-100">Representing global unity and democratic finance</p>
+                        <div class="bg-white rounded-2xl p-8 text-center shadow-xl">
+                            <div class="text-8xl font-bold text-indigo-600 mb-6">Ǥ</div>
+                            <h3 class="text-2xl font-semibold mb-2 text-gray-900">The GCU Symbol</h3>
+                            <p class="text-gray-600">Representing global unity and democratic finance</p>
                         </div>
                     </div>
                 </div>
@@ -122,95 +127,43 @@
                 
                 <div class="bg-gray-50 rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
                     <div class="space-y-6">
-                        <!-- USD -->
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🇺🇸</span>
-                                    <span class="font-semibold text-gray-900">US Dollar (USD)</span>
-                                </div>
-                                <span class="text-2xl font-bold text-gray-900">35%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="currency-bar bg-blue-600 h-3 rounded-full" style="width: 35%"></div>
-                            </div>
-                        </div>
+                        @php
+                            $composition = config('platform.gcu.composition');
+                            $colors = ['USD' => 'blue', 'EUR' => 'indigo', 'GBP' => 'purple', 'CHF' => 'red', 'JPY' => 'pink', 'XAU' => 'yellow'];
+                            $flags = ['USD' => '🇺🇸', 'EUR' => '🇪🇺', 'GBP' => '🇬🇧', 'CHF' => '🇨🇭', 'JPY' => '🇯🇵', 'XAU' => '🏆'];
+                            $names = ['USD' => 'US Dollar', 'EUR' => 'Euro', 'GBP' => 'British Pound', 'CHF' => 'Swiss Franc', 'JPY' => 'Japanese Yen', 'XAU' => 'Gold'];
+                        @endphp
                         
-                        <!-- EUR -->
+                        @foreach($composition as $currency => $percentage)
                         <div>
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🇪🇺</span>
-                                    <span class="font-semibold text-gray-900">Euro (EUR)</span>
+                                    <span class="text-2xl mr-3">{{ $flags[$currency] }}</span>
+                                    <span class="font-semibold text-gray-900">{{ $names[$currency] }} ({{ $currency }})</span>
                                 </div>
-                                <span class="text-2xl font-bold text-gray-900">30%</span>
+                                <span class="text-2xl font-bold text-gray-900">{{ $percentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="currency-bar bg-indigo-600 h-3 rounded-full" style="width: 30%"></div>
+                                <div class="currency-bar bg-{{ $colors[$currency] }}-600 h-3 rounded-full" style="width: {{ $percentage }}%"></div>
                             </div>
                         </div>
-                        
-                        <!-- GBP -->
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🇬🇧</span>
-                                    <span class="font-semibold text-gray-900">British Pound (GBP)</span>
-                                </div>
-                                <span class="text-2xl font-bold text-gray-900">20%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="currency-bar bg-purple-600 h-3 rounded-full" style="width: 20%"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- CHF -->
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🇨🇭</span>
-                                    <span class="font-semibold text-gray-900">Swiss Franc (CHF)</span>
-                                </div>
-                                <span class="text-2xl font-bold text-gray-900">10%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="currency-bar bg-red-600 h-3 rounded-full" style="width: 10%"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- JPY -->
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🇯🇵</span>
-                                    <span class="font-semibold text-gray-900">Japanese Yen (JPY)</span>
-                                </div>
-                                <span class="text-2xl font-bold text-gray-900">3%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="currency-bar bg-pink-600 h-3 rounded-full" style="width: 3%"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- XAU -->
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-3">🏆</span>
-                                    <span class="font-semibold text-gray-900">Gold (XAU)</span>
-                                </div>
-                                <span class="text-2xl font-bold text-gray-900">2%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="currency-bar bg-yellow-600 h-3 rounded-full" style="width: 2%"></div>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                     
                     <div class="mt-8 pt-8 border-t border-gray-200">
-                        <p class="text-center text-gray-600">
-                            Next voting round begins in <span class="font-semibold text-indigo-600">12 days</span>
-                        </p>
+                        @if(config('platform.gcu.voting_enabled'))
+                            @php
+                                $nextVoting = \Carbon\Carbon::parse(config('platform.gcu.next_voting_date'));
+                                $daysUntil = now()->diffInDays($nextVoting);
+                            @endphp
+                            <p class="text-center text-gray-600">
+                                Next voting round begins in <span class="font-semibold text-indigo-600">{{ $daysUntil }} days</span>
+                            </p>
+                        @else
+                            <p class="text-center text-gray-600">
+                                <span class="font-semibold text-amber-600">Democratic voting coming soon</span>
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>

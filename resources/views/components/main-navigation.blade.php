@@ -1,5 +1,5 @@
 <!-- Navigation -->
-<nav class="fixed w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
+<nav class="bg-white/95 backdrop-blur-sm border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
@@ -12,7 +12,6 @@
                 <a href="/" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('/') ? 'text-gray-900' : '' }}">Home</a>
                 <a href="/platform" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('platform*') ? 'text-gray-900' : '' }}">Platform</a>
                 <a href="/gcu" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('gcu*') ? 'text-gray-900' : '' }}">GCU</a>
-                <a href="/features" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('features*') ? 'text-gray-900' : '' }}">Features</a>
                 <a href="/developers" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('developers*') ? 'text-gray-900' : '' }}">Developers</a>
                 <a href="/pricing" class="text-gray-600 hover:text-gray-900 font-medium {{ request()->is('pricing') ? 'text-gray-900' : '' }}">Pricing</a>
             </div>

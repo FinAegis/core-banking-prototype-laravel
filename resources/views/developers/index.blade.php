@@ -1,287 +1,390 @@
-<x-guest-layout>
-    <div class="bg-white">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-gray-900 to-gray-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="FinAegis Developer Documentation - Build financial applications with our open source banking platform API.">
+        <meta name="keywords" content="FinAegis API, developer docs, banking API, financial API, open source banking">
+        
+        <title>Developer Documentation - FinAegis</title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+
+        <!-- Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <style>
+            .gradient-bg {
+                background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            }
+            .code-block {
+                background: #1f2937;
+                border-radius: 8px;
+                overflow-x: auto;
+            }
+            .doc-card {
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
+            }
+            .doc-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+                border-color: #667eea;
+            }
+        </style>
+    </head>
+    <body class="antialiased bg-gray-50">
+        <x-alpha-banner />
+        
+        <!-- Spacer for fixed banner -->
+        <div class="h-12"></div>
+        
+        <x-main-navigation />
+
+        <!-- Hero Section -->
+        <section class="pt-16 pb-20 gradient-bg text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
-                    <h1 class="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
-                        Developer Resources
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                        Developer Documentation
                     </h1>
-                    <p class="mt-6 text-xl text-gray-300 max-w-3xl mx-auto">
-                        Build powerful financial applications with the FinAegis API. Everything you need to integrate multi-asset banking into your applications.
+                    <p class="text-xl md:text-2xl mb-8 text-gray-300 max-w-4xl mx-auto">
+                        Build on FinAegis platform. Open source, API-first, and designed for developers.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="#quickstart" class="bg-white text-gray-900 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
+                            Quick Start
+                        </a>
+                        <a href="{{ route('developers.show', 'api-docs') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition">
+                            API Reference
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Status Alert -->
+        <section class="py-6 bg-amber-50 border-b border-amber-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-center text-amber-800">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium">Alpha Version:</span>
+                    <span class="ml-2">Limited API endpoints available. Full API coming soon.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section id="quickstart" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-bold text-gray-900 mb-4">Quick Start Guide</h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        Get up and running with FinAegis in three simple steps
                     </p>
                 </div>
-            </div>
-        </div>
 
-        <!-- Quick Start -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900">Get Started in Minutes</h2>
-                <p class="mt-4 text-xl text-gray-600">Follow our quick start guide to begin integrating</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l4.293-4.293A6 6 0 0119 9z"/>
-                        </svg>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Step 1 -->
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
+                        <h3 class="text-xl font-semibold mb-3">Clone Repository</h3>
+                        <p class="text-gray-600 mb-4">Get the source code from GitHub</p>
+                        <div class="code-block p-4 text-sm">
+                            <code class="text-green-400">git clone https://github.com/FinAegis/core-banking-prototype-laravel.git</code>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">1. Get API Keys</h3>
-                    <p class="text-gray-600 mb-6">Register for a developer account and get your API credentials</p>
-                    <a href="{{ route('register') }}" class="text-blue-600 hover:text-blue-800 font-medium">Sign Up →</a>
-                </div>
-
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                        </svg>
+                    
+                    <!-- Step 2 -->
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
+                        <h3 class="text-xl font-semibold mb-3">Install & Configure</h3>
+                        <p class="text-gray-600 mb-4">Set up your development environment</p>
+                        <div class="code-block p-4 text-sm text-left">
+                            <code class="text-green-400">composer install<br>cp .env.example .env<br>php artisan key:generate</code>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">2. Explore API</h3>
-                    <p class="text-gray-600 mb-6">Browse our comprehensive API documentation and examples</p>
-                    <a href="{{ route('developers.show', 'api-docs') }}" class="text-blue-600 hover:text-blue-800 font-medium">View Docs →</a>
-                </div>
-
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
+                    
+                    <!-- Step 3 -->
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
+                        <h3 class="text-xl font-semibold mb-3">Start Building</h3>
+                        <p class="text-gray-600 mb-4">Create your first API request</p>
+                        <div class="code-block p-4 text-sm">
+                            <code class="text-green-400">php artisan serve</code>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">3. Start Building</h3>
-                    <p class="text-gray-600 mb-6">Use our SDKs and code examples to integrate quickly</p>
-                    <a href="{{ route('developers.show', 'sdks') }}" class="text-blue-600 hover:text-blue-800 font-medium">Get SDKs →</a>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Developer Resources -->
-        <div class="bg-gray-50 py-16">
+        <!-- Documentation Grid -->
+        <section class="py-20 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900">Developer Tools & Resources</h2>
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-bold text-gray-900 mb-4">Documentation</h2>
+                    <p class="text-xl text-gray-600">Everything you need to build with FinAegis</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- API Documentation -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    <!-- API Reference -->
+                    <a href="{{ route('developers.show', 'api-docs') }}" class="doc-card bg-white rounded-xl p-8 shadow-lg">
+                        <div class="w-14 h-14 bg-indigo-100 rounded-lg flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">API Documentation</h3>
-                        <p class="text-gray-600 mb-4">Complete reference for all API endpoints, parameters, and responses</p>
-                        <a href="{{ route('developers.show', 'api-docs') }}" class="text-blue-600 hover:text-blue-800 font-medium">View Documentation →</a>
-                    </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">API Reference</h3>
+                        <p class="text-gray-600 mb-4">Complete API documentation with {{ config('platform.statistics.api_endpoints') }} endpoints</p>
+                        <span class="text-indigo-600 font-semibold">Browse API →</span>
+                    </a>
 
                     <!-- SDKs -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    <a href="{{ route('developers.show', 'sdks') }}" class="doc-card bg-white rounded-xl p-8 shadow-lg relative">
+                        <div class="absolute top-4 right-4 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold">Coming Soon</div>
+                        <div class="w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Official SDKs</h3>
-                        <p class="text-gray-600 mb-4">Ready-to-use libraries for popular programming languages</p>
-                        <a href="{{ route('developers.show', 'sdks') }}" class="text-blue-600 hover:text-blue-800 font-medium">Download SDKs →</a>
-                    </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">SDKs & Libraries</h3>
+                        <p class="text-gray-600 mb-4">Client libraries for popular languages (planned)</p>
+                        <span class="text-purple-600 font-semibold">View SDKs →</span>
+                    </a>
 
-                    <!-- Code Examples -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    <!-- Examples -->
+                    <a href="{{ route('developers.show', 'examples') }}" class="doc-card bg-white rounded-xl p-8 shadow-lg">
+                        <div class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Code Examples</h3>
-                        <p class="text-gray-600 mb-4">Working examples and integration patterns for common use cases</p>
-                        <a href="{{ route('developers.show', 'examples') }}" class="text-blue-600 hover:text-blue-800 font-medium">Browse Examples →</a>
-                    </div>
-
-                    <!-- Postman Collection -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Postman Collection</h3>
-                        <p class="text-gray-600 mb-4">Pre-configured API collection for testing and development</p>
-                        <a href="{{ route('developers.show', 'postman') }}" class="text-blue-600 hover:text-blue-800 font-medium">Download Collection →</a>
-                    </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Code Examples</h3>
+                        <p class="text-gray-600 mb-4">Sample implementations and tutorials</p>
+                        <span class="text-green-600 font-semibold">View Examples →</span>
+                    </a>
 
                     <!-- Webhooks -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v2a2 2 0 002 2h4a2 2 0 002-2v-2h2a2 2 0 002-2V9a2 2 0 00-2-2h-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v2H4a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    <a href="{{ route('developers.show', 'webhooks') }}" class="doc-card bg-white rounded-xl p-8 shadow-lg relative">
+                        <div class="absolute top-4 right-4 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold">Planned</div>
+                        <div class="w-14 h-14 bg-yellow-100 rounded-lg flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Webhooks</h3>
-                        <p class="text-gray-600 mb-4">Real-time notifications for transaction events and status updates</p>
-                        <a href="{{ route('developers.show', 'webhooks') }}" class="text-blue-600 hover:text-blue-800 font-medium">Setup Webhooks →</a>
-                    </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Webhooks</h3>
+                        <p class="text-gray-600 mb-4">Real-time event notifications (coming soon)</p>
+                        <span class="text-yellow-600 font-semibold">Learn More →</span>
+                    </a>
 
-                    <!-- Support -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <!-- Postman -->
+                    <a href="{{ route('developers.show', 'postman') }}" class="doc-card bg-white rounded-xl p-8 shadow-lg">
+                        <div class="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Developer Support</h3>
-                        <p class="text-gray-600 mb-4">Get help from our technical team and developer community</p>
-                        <a href="{{ route('support.contact') }}" class="text-blue-600 hover:text-blue-800 font-medium">Get Support →</a>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Postman Collection</h3>
+                        <p class="text-gray-600 mb-4">Import our API collection for testing</p>
+                        <span class="text-orange-600 font-semibold">Download →</span>
+                    </a>
+
+                    <!-- GitHub -->
+                    <a href="https://github.com/FinAegis/core-banking-prototype-laravel" class="doc-card bg-white rounded-xl p-8 shadow-lg">
+                        <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">GitHub</h3>
+                        <p class="text-gray-600 mb-4">Source code and issue tracking</p>
+                        <span class="text-gray-700 font-semibold">View Repo →</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Overview -->
+        <section class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-6">RESTful API Design</h2>
+                        <p class="text-lg text-gray-600 mb-8">
+                            Our API follows REST principles with predictable resource-oriented URLs, accepts JSON request bodies, and returns JSON responses.
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Authentication</h4>
+                                    <p class="text-gray-600">Bearer token authentication (API keys coming soon)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Versioning</h4>
+                                    <p class="text-gray-600">API versioning through URL path (/api/v1)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Rate Limiting</h4>
+                                    <p class="text-gray-600">{{ config('platform.api.rate_limit') }} (configurable)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block p-6 text-sm">
+                        <div class="text-gray-400 mb-2"># Example API Request</div>
+                        <div class="text-green-400">GET /api/v1/accounts/{id}</div>
+                        <div class="text-gray-300 mt-4">
+                            {<br>
+                            &nbsp;&nbsp;"data": {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;"id": "acc_123456",<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;"name": "Main Account",<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;"currency": "EUR",<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;"balance": 10000.00,<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;"created_at": "2025-01-01T00:00:00Z"<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- API Features -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900">What You Can Build</h2>
-                <p class="mt-4 text-xl text-gray-600">Powerful financial features at your fingertips</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Core Features</h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Multi-Asset Wallets</h4>
-                                <p class="text-gray-600">Create and manage wallets supporting multiple currencies and assets</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Instant Transfers</h4>
-                                <p class="text-gray-600">Enable instant transfers between accounts and external recipients</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Currency Exchange</h4>
-                                <p class="text-gray-600">Real-time currency conversion with competitive rates</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Bank Integration</h4>
-                                <p class="text-gray-600">Connect to multiple banks for enhanced security and coverage</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Advanced Features</h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Governance & Voting</h4>
-                                <p class="text-gray-600">Implement democratic decision-making for platform governance</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Batch Processing</h4>
-                                <p class="text-gray-600">Handle large volumes of transactions efficiently</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Transaction Reversal</h4>
-                                <p class="text-gray-600">Critical error recovery with full audit trails</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">Compliance Tools</h4>
-                                <p class="text-gray-600">Built-in KYC, AML, and regulatory compliance features</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Code Example -->
-        <div class="bg-gray-900 py-16">
+        <!-- Coming Soon Features -->
+        <section class="py-20 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-white">Simple Integration</h2>
-                    <p class="mt-4 text-xl text-gray-300">Get started with just a few lines of code</p>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Coming Soon</h2>
+                    <p class="text-xl text-gray-600">Features we're working on for developers</p>
                 </div>
-
-                <div class="bg-gray-800 rounded-lg p-8 overflow-x-auto">
-                    <pre class="text-green-400 text-sm"><code># Install the FinAegis SDK
-npm install @finaegis/sdk
-
-# Create a transfer
-import { FinAegis } from '@finaegis/sdk';
-
-const client = new FinAegis({ 
-  apiKey: 'your-api-key',
-  environment: 'sandbox' 
-});
-
-// Create a multi-currency transfer
-const transfer = await client.transfers.create({
-  fromAccount: 'acct_123',
-  toAccount: 'acct_456',
-  amount: 100.00,
-  assetCode: 'USD',
-  reference: 'Payment for services'
-});
-
-console.log(`Transfer created: ${transfer.id}`);</code></pre>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l4.293-4.293A6 6 0 0119 9z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">API Keys</h3>
+                        <p class="text-sm text-gray-600">Secure API key management</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">SDKs</h3>
+                        <p class="text-sm text-gray-600">PHP, Python, JS libraries</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Webhooks</h3>
+                        <p class="text-sm text-gray-600">Real-time event delivery</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Sandbox</h3>
+                        <p class="text-sm text-gray-600">Test environment</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- CTA Section -->
-        <div class="bg-blue-900 py-16">
+        <section class="py-20 bg-gray-900 text-white">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-white mb-4">Ready to start building?</h2>
-                <p class="text-xl text-blue-100 mb-8">Join our developer community and build the future of finance.</p>
-                <div class="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-                    <a href="{{ route('register') }}" class="bg-white text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-200 block sm:inline-block">
-                        Get API Keys
+                <h2 class="text-4xl font-bold mb-6">Start Building Today</h2>
+                <p class="text-xl mb-8 text-gray-300">
+                    Join our developer community and help shape the future of finance
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="https://github.com/FinAegis/core-banking-prototype-laravel" class="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition inline-block">
+                        View on GitHub
                     </a>
-                    <a href="{{ route('developers.show', 'api-docs') }}" class="bg-blue-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 block sm:inline-block">
-                        View Documentation
+                    <a href="{{ route('register') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/10 transition inline-block">
+                        Create Account
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
-</x-guest-layout>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-gray-400 py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-4 gap-8">
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Platform</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/platform" class="hover:text-white transition">Overview</a></li>
+                            <li><a href="/gcu" class="hover:text-white transition">GCU</a></li>
+                            <li><a href="/sub-products" class="hover:text-white transition">Modules</a></li>
+                            <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Developers</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/developers" class="hover:text-white transition">Documentation</a></li>
+                            <li><a href="/developers/api-docs" class="hover:text-white transition">API Reference</a></li>
+                            <li><a href="/developers/sdks" class="hover:text-white transition">SDKs</a></li>
+                            <li><a href="/status" class="hover:text-white transition">System Status</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Resources</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/support" class="hover:text-white transition">Support</a></li>
+                            <li><a href="/blog" class="hover:text-white transition">Blog</a></li>
+                            <li><a href="/partners" class="hover:text-white transition">Partners</a></li>
+                            <li><a href="/about" class="hover:text-white transition">About</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Legal</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/legal/terms" class="hover:text-white transition">Terms</a></li>
+                            <li><a href="/legal/privacy" class="hover:text-white transition">Privacy</a></li>
+                            <li><a href="/legal/cookies" class="hover:text-white transition">Cookies</a></li>
+                            <li><a href="/support/faq" class="hover:text-white transition">FAQ</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-800 text-center">
+                    <p>&copy; {{ date('Y') }} FinAegis. All rights reserved. Open Source Project.</p>
+                </div>
+            </div>
+        </footer>
+    </body>
+</html>
