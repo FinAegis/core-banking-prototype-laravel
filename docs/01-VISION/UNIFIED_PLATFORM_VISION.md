@@ -2,60 +2,110 @@
 
 ## Overview
 
-FinAegis is evolving into a comprehensive financial platform that powers multiple revolutionary products:
+**FinAegis** is a comprehensive enterprise-grade financial platform that powers innovative banking solutions through a unified architecture. The platform delivers:
 
-1. **Global Currency Unit (GCU)** - User-controlled global currency with democratic governance
-2. **Litas Platform** - Crypto-fiat exchange and P2P lending marketplace
+**Core Product:**
+- **Global Currency Unit (GCU)** - Revolutionary user-controlled global currency with democratic governance and multi-bank backing
 
-Both products run on the same core FinAegis infrastructure, maximizing code reuse and operational efficiency.
+**Sub-Products:**
+- **FinAegis Exchange** - Multi-currency and crypto trading marketplace  
+- **FinAegis Lending** - P2P lending platform for businesses and individuals
+- **FinAegis Stablecoins** - EUR-pegged and multi-backed stable token issuance
+- **FinAegis Treasury** - Advanced multi-bank allocation and treasury management
+
+All products run on the same core FinAegis infrastructure, maximizing code reuse, operational efficiency, and providing users with integrated financial services.
 
 ## Shared Core Components
 
 ### 1. Multi-Asset Ledger
 - **GCU Use**: Manages basket of currencies (USD, EUR, GBP, CHF, JPY, Gold)
-- **Litas Use**: Handles crypto assets (BTC, ETH) and fiat currencies
+- **Exchange Use**: Handles crypto assets (BTC, ETH) and fiat currencies for trading
+- **Lending Use**: Manages loan assets, collateral, and repayment tracking
+- **Stablecoins Use**: Tracks stablecoin issuance, reserves, and redemptions
+- **Treasury Use**: Multi-currency balance management and allocation tracking
 - **Shared**: Event-sourced ledger, multi-balance accounts, atomic transactions
 
 ### 2. Exchange Engine
-- **GCU Use**: Currency-to-currency exchanges within basket
-- **Litas Use**: Crypto-to-fiat conversions for lending
-- **Shared**: Order matching, liquidity management, rate feeds
+- **GCU Use**: Currency-to-currency exchanges within basket rebalancing
+- **Exchange Use**: Multi-asset trading with order matching and settlement
+- **Lending Use**: Asset conversions for loan disbursement and collection
+- **Stablecoins Use**: Reserve asset management and stability mechanisms
+- **Treasury Use**: Currency conversions for optimal allocation
+- **Shared**: Order matching, liquidity management, real-time rate feeds
 
 ### 3. Stablecoin Infrastructure
-- **GCU Use**: GCU tokens representing basket value
-- **Litas Use**: Stable LITAS (EUR-pegged) for loan disbursement
-- **Shared**: Token minting/burning, reserve management, redemption
+- **GCU Use**: GCU tokens representing basket value with democratic governance
+- **Exchange Use**: Multiple stablecoin pairs for trading and liquidity
+- **Lending Use**: Stable tokens for loan disbursement and collection
+- **Stablecoins Use**: EUR-pegged and multi-backed stable token issuance
+- **Treasury Use**: Stable value preservation across currency allocations
+- **Shared**: Token minting/burning, reserve management, redemption systems
 
 ### 4. Governance System
-- **GCU Use**: Monthly voting on currency basket composition
-- **Litas Use**: Could add loan approval voting or platform governance
-- **Shared**: Voting engine, weighted voting, proposal management
+- **GCU Use**: Monthly democratic voting on currency basket composition
+- **Exchange Use**: Community governance for trading parameters and listings
+- **Lending Use**: Loan approval voting and risk parameter governance
+- **Stablecoins Use**: Reserve composition and stability mechanism governance
+- **Treasury Use**: Allocation strategy voting and rebalancing triggers
+- **Shared**: Voting engine, weighted voting, proposal management, poll system
 
 ### 5. Banking Integration
 - **GCU Use**: Multi-bank allocation (Paysera, Deutsche Bank, Santander)
-- **Litas Use**: Fiat on/off ramps, loan disbursement
-- **Shared**: Bank connectors, payment processing, reconciliation
+- **Exchange Use**: Fiat on/off ramps and settlement banking
+- **Lending Use**: Loan disbursement and collection banking services
+- **Stablecoins Use**: Reserve banking and regulatory compliance
+- **Treasury Use**: Multi-jurisdictional banking relationships
+- **Shared**: Bank connectors, payment processing, reconciliation, custody services
 
 ### 6. Compliance Framework
-- **GCU Use**: EMI license, regulatory reporting
-- **Litas Use**: VASP registration, MiCA compliance, ECSP license
-- **Shared**: KYC/AML, transaction monitoring, audit trails
+- **GCU Use**: EMI license, multi-jurisdiction regulatory reporting
+- **Exchange Use**: VASP registration, MiCA compliance for crypto activities
+- **Lending Use**: Lending license compliance, credit reporting
+- **Stablecoins Use**: E-money token regulations, reserve reporting
+- **Treasury Use**: Cross-border compliance, tax reporting
+- **Shared**: KYC/AML, transaction monitoring, audit trails, regulatory reporting
 
 ## Unique Components by Product
 
 ### GCU-Specific
 - Currency basket management algorithms
-- Bank allocation interface (40/30/30 split)
-- Currency composition voting UI
-- Basket rebalancing workflows
+- Multi-bank allocation interface (40/30/30 split)
+- Democratic currency composition voting UI
+- Automated basket rebalancing workflows
+- Bank relationship management
+- Deposit insurance coordination
 
-### Litas-Specific
+### FinAegis Exchange-Specific
 - Crypto wallet infrastructure (hot/cold storage)
 - Blockchain integration (BTC/ETH nodes)
-- P2P lending marketplace
-- Loan servicing and collection
-- Crypto LITAS token (tradeable loan stakes)
-- Secondary market for token trading
+- Multi-asset order book and matching engine
+- Crypto-fiat bridge services
+- Advanced trading interface and tools
+- Market making and liquidity provision
+
+### FinAegis Lending-Specific
+- P2P lending marketplace and matching
+- Credit scoring and risk assessment
+- Loan origination and approval workflows
+- Automated loan servicing and collection
+- Borrower and investor dashboards
+- Default management and recovery
+
+### FinAegis Stablecoins-Specific
+- Multiple stablecoin framework (EUR, USD, basket-backed)
+- Reserve composition and management
+- Automated stability mechanisms
+- Cross-chain token deployment
+- Redemption and minting interfaces
+- Regulatory compliance for e-money tokens
+
+### FinAegis Treasury-Specific
+- Advanced allocation algorithms and optimization
+- Multi-bank relationship management
+- Treasury analytics and forecasting
+- Cash flow management tools
+- Risk-adjusted return optimization
+- Corporate treasury interfaces
 
 ## Technical Architecture
 

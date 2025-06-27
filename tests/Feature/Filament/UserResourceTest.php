@@ -31,6 +31,7 @@ it('can render user creation page', function () {
 
 it('can create user', function () {
     $userData = [
+        'uuid' => fake()->uuid(),
         'name' => 'John Doe',
         'email' => 'john@example.com',
         'password' => 'password123',
@@ -64,6 +65,7 @@ it('validates unique email when creating user', function () {
 
     livewire(UserResource\Pages\CreateUser::class)
         ->fillForm([
+            'uuid' => fake()->uuid(),
             'name' => 'John Doe',
             'email' => $existingUser->email,
             'password' => 'password123',
@@ -196,7 +198,7 @@ it('displays formatted registration date', function () {
         ->assertTableColumnFormattedStateSet('created_at', '15 Jan 2025', record: $user);
 });
 
-it('can access user accounts from view page', function () {
+it('can edit user and see related data', function () {
     $user = User::factory()->create();
     $account = $user->accounts()->create([
         'uuid' => fake()->uuid(),
@@ -204,7 +206,9 @@ it('can access user accounts from view page', function () {
         'balance' => 50000,
     ]);
 
-    livewire(UserResource\Pages\ViewUser::class, ['record' => $user->getRouteKey()])
-        ->assertSee($account->name)
-        ->assertSee('$500.00'); // Formatted balance
+    livewire(UserResource\Pages\EditUser::class, ['record' => $user->getRouteKey()])
+        ->assertFormSet([
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
 });

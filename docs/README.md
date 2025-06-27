@@ -1,13 +1,27 @@
-# FinAegis Documentation Index
+# FinAegis Platform Documentation
 
-Welcome to the FinAegis Core Banking Platform documentation. This guide will help you navigate our comprehensive documentation structure.
+Welcome to the **FinAegis Platform** documentation - the enterprise-grade financial infrastructure powering the next generation of banking services.
+
+## 🏛️ Platform Overview
+
+**FinAegis** is a comprehensive financial platform that delivers:
+
+**🌟 Core Product:**
+- **Global Currency Unit (GCU)** - Revolutionary user-controlled global currency with democratic governance
+
+**⚙️ Sub-Products:**
+- **FinAegis Exchange** - Multi-currency and crypto trading marketplace
+- **FinAegis Lending** - P2P lending platform for businesses and individuals  
+- **FinAegis Stablecoins** - EUR-pegged and multi-backed stable token issuance
+- **FinAegis Treasury** - Advanced multi-bank allocation and treasury management
 
 ## 📚 Documentation Structure
 
 ### [01-VISION](01-VISION/)
 Strategic and business documentation
-- **[GCU_VISION.md](01-VISION/GCU_VISION.md)** - Global Currency Unit concept and vision
-- **[UNIFIED_PLATFORM_VISION.md](01-VISION/UNIFIED_PLATFORM_VISION.md)** - FinAegis as unified platform for GCU and Litas
+- **[GCU_VISION.md](01-VISION/GCU_VISION.md)** - Global Currency Unit flagship product vision
+- **[UNIFIED_PLATFORM_VISION.md](01-VISION/UNIFIED_PLATFORM_VISION.md)** - FinAegis unified platform architecture and sub-products
+- **[FINANCIAL_INSTITUTION_REQUIREMENTS.md](01-VISION/FINANCIAL_INSTITUTION_REQUIREMENTS.md)** - Banking partner requirements for GCU participation
 - **[ROADMAP.md](01-VISION/ROADMAP.md)** - Development phases and current status
 - **[REGULATORY_STRATEGY.md](01-VISION/REGULATORY_STRATEGY.md)** - Compliance and regulatory approach
 
@@ -66,7 +80,7 @@ Implementation details and phase documentation
 - **[IMPLEMENTATION_SUMMARY.md](07-IMPLEMENTATION/IMPLEMENTATION_SUMMARY.md)** - Implementation summary
 - **[PHASE_4.2_ENHANCED_GOVERNANCE.md](07-IMPLEMENTATION/PHASE_4.2_ENHANCED_GOVERNANCE.md)** - Governance implementation
 - **[PHASE_5.2_TRANSACTION_PROCESSING.md](07-IMPLEMENTATION/PHASE_5.2_TRANSACTION_PROCESSING.md)** - Transaction processing
-- **[LITAS_INTEGRATION_ANALYSIS.md](07-IMPLEMENTATION/LITAS_INTEGRATION_ANALYSIS.md)** - Litas platform integration analysis
+- **[LITAS_INTEGRATION_ANALYSIS.md](07-IMPLEMENTATION/LITAS_INTEGRATION_ANALYSIS.md)** - Sub-product integration analysis (archived)
 
 ### [08-OPERATIONS](08-OPERATIONS/)
 Operational procedures
@@ -85,18 +99,23 @@ Historical and deprecated documentation
 3. Check [API-INTEGRATION-GUIDE.md](04-DEVELOPER/API-INTEGRATION-GUIDE.md) for API usage
 
 ### For Users
-1. Begin with [GETTING-STARTED.md](06-USER-GUIDES/GETTING-STARTED.md)
-2. Learn about GCU in [GCU-USER-GUIDE.md](06-USER-GUIDES/GCU-USER-GUIDE.md)
+1. Begin with [GETTING-STARTED.md](11-USER-GUIDES/GETTING-STARTED.md)
+2. Learn about GCU in [GCU-USER-GUIDE.md](11-USER-GUIDES/GCU-USER-GUIDE.md)
+3. Explore sub-products in [UNIFIED_PLATFORM_VISION.md](01-VISION/UNIFIED_PLATFORM_VISION.md)
 
 ### For AI Assistants
 1. Use [CLAUDE.md](06-DEVELOPMENT/CLAUDE.md) for development guidance
 2. Reference [FEATURES.md](03-FEATURES/FEATURES.md) for capabilities
 
+### For Banking Partners
+1. Review [FINANCIAL_INSTITUTION_REQUIREMENTS.md](01-VISION/FINANCIAL_INSTITUTION_REQUIREMENTS.md)
+2. Contact partnerships@finaegis.com for partnership opportunities
+
 ## 📋 Documentation Status
 
 - ✅ **Current**: As of Version 6.1.0 (June 2025)
-- 📝 **Last Updated**: Phase 6.3 completion
-- 🔄 **Next Update**: Phase 7 planning
+- 📝 **Last Updated**: Platform restructuring (June 26, 2025)
+- 🔄 **Next Update**: Sub-product documentation and implementation
 
 ## 🤝 Contributing
 

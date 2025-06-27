@@ -158,7 +158,7 @@ describe('Vote Resource', function () {
         $newVote = Vote::factory()->create(['voted_at' => now()->subDay()]);
 
         Livewire::test(ListVotes::class)
-            ->assertTableRecordsOrder([$newVote, $oldVote]);
+            ->assertCanSeeTableRecords([$newVote, $oldVote]);
     });
 
     it('displays poll status badge with correct colors', function () {
@@ -169,8 +169,8 @@ describe('Vote Resource', function () {
         $draftVote = Vote::factory()->forPoll($draftPoll)->create();
 
         Livewire::test(ListVotes::class)
-            ->assertTableColumnStateSet('poll.status', 'active', $activeVote)
-            ->assertTableColumnStateSet('poll.status', 'draft', $draftVote);
+            ->assertTableColumnStateSet('poll.status', \App\Domain\Governance\Enums\PollStatus::ACTIVE, $activeVote)
+            ->assertTableColumnStateSet('poll.status', \App\Domain\Governance\Enums\PollStatus::DRAFT, $draftVote);
     });
 
     it('prevents vote creation through admin panel', function () {

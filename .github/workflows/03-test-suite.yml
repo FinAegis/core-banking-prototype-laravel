@@ -111,7 +111,7 @@ jobs:
       - name: Run Unit Tests
         run: |
           # Run unit tests in parallel using CI configuration with MySQL
-          ./vendor/bin/pest tests/Unit --configuration=phpunit.ci.xml --parallel --coverage --min=70
+          ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --parallel --coverage --min=70
           
       - name: Run Security Tests
         if: always()
@@ -189,7 +189,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Feature Tests
-        run: ./vendor/bin/pest tests/Feature --configuration=phpunit.ci.xml --parallel --coverage --min=60
+        run: ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --parallel --coverage --min=65
 
   integration-tests:
     name: Integration Tests
@@ -242,7 +242,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Integration Tests
-        run: ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --parallel --coverage --min=50
+        run: ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --parallel --coverage --min=55
         
   behat-tests:
     name: Behat Tests

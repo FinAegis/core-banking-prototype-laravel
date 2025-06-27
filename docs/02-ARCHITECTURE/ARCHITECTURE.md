@@ -1,10 +1,10 @@
 # FinAegis Platform Architecture
 
-**Version:** 3.0  
-**Last Updated:** 2025-06-25  
-**Status:** Extended for Unified Platform (GCU + Litas)
+**Version:** 4.0  
+**Last Updated:** 2025-06-26  
+**Status:** Unified Platform Architecture with Sub-Products
 
-This document provides a comprehensive overview of the FinAegis Core Banking Platform architecture, design patterns, and implementation details. The platform now supports both the Global Currency Unit (GCU) and Litas crypto-fiat exchange platforms.
+This document provides a comprehensive overview of the FinAegis Platform architecture, design patterns, and implementation details. The platform delivers the Global Currency Unit (GCU) as its flagship product alongside modular sub-products: Exchange, Lending, Stablecoins, and Treasury.
 
 ## Table of Contents
 
@@ -37,13 +37,15 @@ This document provides a comprehensive overview of the FinAegis Core Banking Pla
 ├─────────────────────────────────────────────────────────────────────┤
 │  Controllers  │  Commands  │  Queries  │  Event Handlers  │  Jobs   │
 ├─────────────────────────────────────────────────────────────────────┤
-│                            Domain Layer                             │
+│                     Core Shared Domain Layer                       │
 ├─────────────────────────────────────────────────────────────────────┤
 │  Account   │  Payment   │  Asset   │  Governance  │  Custodian      │
 │  Domain    │  Domain    │ Domain   │   Domain     │   Domain        │
 ├─────────────────────────────────────────────────────────────────────┤
-│  Exchange  │  Crypto    │ Lending  │  Stablecoin │  Trading        │
-│  Domain    │  Domain    │ Domain   │   Domain     │   Domain        │
+│                    Sub-Product Domain Layer                         │
+├─────────────────────────────────────────────────────────────────────┤
+│  Exchange  │  Lending   │ Stablecoin │  Treasury  │  Trading        │
+│  Domain    │  Domain    │   Domain   │   Domain   │   Domain        │
 ├─────────────────────────────────────────────────────────────────────┤
 │                        Infrastructure Layer                         │
 ├─────────────────────────────────────────────────────────────────────┤
