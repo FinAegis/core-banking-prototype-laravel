@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\RegulatoryReportingController;
 use App\Http\Controllers\Api\DailyReconciliationController;
 use App\Http\Controllers\Api\BankAlertingController;
 use App\Http\Controllers\Api\WorkflowMonitoringController;
+use App\Http\Controllers\Api\SettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -205,6 +206,12 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('api.rate_limit:public')->group(function () {
     Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
     Route::get('/exchange-rates/{from}/{to}', [ExchangeRateController::class, 'show']);
+    
+    // Public settings endpoints
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [SettingsController::class, 'index']);
+        Route::get('/group/{group}', [SettingsController::class, 'group']);
+    });
 });
 
 Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
