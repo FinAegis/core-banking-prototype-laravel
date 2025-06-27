@@ -1,30 +1,66 @@
-<x-app-layout>
-    <!-- Hero Section -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-800 text-white">
-        <div class="absolute inset-0 bg-black opacity-50"></div>
-        <div class="absolute inset-0">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-        </div>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="FinAegis Platform - Build your financial future with our modular banking infrastructure. Start with GCU, scale with purpose.">
+        <meta name="keywords" content="FinAegis, platform, banking infrastructure, modular, GCU, enterprise banking">
         
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div class="text-center">
-                <h1 class="text-5xl md:text-6xl font-bold mb-6">
-                    The FinAegis Platform
-                </h1>
-                <p class="text-xl md:text-2xl text-indigo-100 max-w-3xl mx-auto mb-8">
-                    Build your financial future with our modular banking infrastructure. Start with GCU, scale with purpose.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="{{ route('register') }}" class="inline-flex items-center px-8 py-4 bg-white text-indigo-900 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
-                        Start Building
-                    </a>
-                    <a href="#architecture" class="inline-flex items-center px-8 py-4 bg-indigo-800 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all">
-                        Explore Architecture
-                    </a>
+        <title>FinAegis Platform - Modular Banking Infrastructure</title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+
+        <!-- Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- Custom Styles -->
+        <style>
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .feature-card {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .feature-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            }
+        </style>
+    </head>
+    <body class="antialiased">
+        <x-alpha-banner />
+        <x-main-navigation />
+
+        <!-- Hero Section -->
+        <section class="pt-16 gradient-bg text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                <div class="text-center">
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                        The FinAegis Platform
+                    </h1>
+                    <p class="text-xl md:text-2xl text-purple-100 max-w-3xl mx-auto mb-8">
+                        Build your financial future with our modular banking infrastructure. Start with GCU, scale with purpose.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
+                            Start Building
+                        </a>
+                        <a href="#architecture" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">
+                            Explore Architecture
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+            
+            <!-- Wave SVG -->
+            <div class="relative">
+                <svg class="absolute bottom-0 w-full h-24 -mb-1 text-white" preserveAspectRatio="none" viewBox="0 0 1440 74">
+                    <path fill="currentColor" d="M0,32L48,37.3C96,43,192,53,288,58.7C384,64,480,64,576,58.7C672,53,768,43,864,42.7C960,43,1056,53,1152,58.7C1248,64,1344,64,1392,64L1440,64L1440,74L1392,74C1344,74,1248,74,1152,74C1056,74,960,74,864,74C768,74,672,74,576,74C480,74,384,74,288,74C192,74,96,74,48,74L0,74Z"></path>
+                </svg>
+            </div>
+        </section>
 
     <!-- Core Platform Features -->
     <section class="py-20 bg-white">
@@ -272,5 +308,6 @@
         </div>
     </section>
 
-    @include('partials.footer')
-</x-app-layout>
+        @include('partials.footer')
+    </body>
+</html>
