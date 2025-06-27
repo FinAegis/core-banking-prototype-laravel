@@ -39,7 +39,7 @@
             <div>
                 <h4 class="text-lg font-semibold mb-4">Product</h4>
                 <ul class="space-y-2">
-                    <li><a href="{{ route('features') }}" class="text-gray-400 hover:text-white">Features</a></li>
+                    <li><a href="{{ route('platform') }}" class="text-gray-400 hover:text-white">Platform</a></li>
                     <li><a href="{{ route('pricing') }}" class="text-gray-400 hover:text-white">Pricing</a></li>
                     <li><a href="{{ route('security') }}" class="text-gray-400 hover:text-white">Security</a></li>
                     <li><a href="{{ route('compliance') }}" class="text-gray-400 hover:text-white">Compliance</a></li>

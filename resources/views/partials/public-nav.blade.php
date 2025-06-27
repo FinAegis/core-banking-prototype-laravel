@@ -13,7 +13,7 @@
                 <div class="hidden md:ml-10 md:flex md:space-x-8">
                     <a href="{{ route('home') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('home') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Home</a>
                     <a href="{{ route('about') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('about') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">About</a>
-                    <a href="{{ route('features') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('features*') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Features</a>
+                    <a href="{{ route('platform') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('platform*') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Platform</a>
                     <a href="{{ route('pricing') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('pricing') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Pricing</a>
                     <a href="{{ route('developers') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('developers*') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Developers</a>
                     <a href="{{ route('support') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('support*') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Support</a>
@@ -50,7 +50,7 @@
         <div class="px-2 pt-2 pb-3 space-y-1">
             <a href="{{ route('home') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Home</a>
             <a href="{{ route('about') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">About</a>
-            <a href="{{ route('features') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Features</a>
+            <a href="{{ route('platform') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Platform</a>
             <a href="{{ route('pricing') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Pricing</a>
             <a href="{{ route('developers') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Developers</a>
             <a href="{{ route('support') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Support</a>
