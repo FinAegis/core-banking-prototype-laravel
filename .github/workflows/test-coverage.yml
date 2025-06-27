@@ -40,7 +40,20 @@ jobs:
       coverage-report: ${{ steps.coverage.outputs.report-url }}
       
     services:
-      # MySQL removed - using SQLite for coverage tests to avoid deadlocks
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
       redis:
         image: redis:7-alpine
         ports:
@@ -94,9 +107,13 @@ jobs:
       - name: Prepare Test Environment
         run: |
           cp .env.testing .env
-          # Override to use SQLite for coverage to avoid deadlocks
-          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-          sed -i 's/DB_DATABASE=.*/DB_DATABASE=:memory:/' .env
+          # Use MySQL for better concurrency handling
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=testing/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
           
           php artisan key:generate
           php artisan config:clear
@@ -108,28 +125,19 @@ jobs:
           
       - name: Run Tests with Coverage
         run: |
-          # Run tests with coverage using testing configuration (SQLite)
-          # Only run Unit and Feature tests for coverage (exclude Integration and Security)
-          # Note: Using SQLite and no parallel execution to avoid deadlocks
+          # Run all tests with coverage using MySQL for better concurrency handling
+          # Using proper database isolation to avoid transaction conflicts
           
-          # Run only specific unit tests that don't use database
-          # Many tests have transaction conflicts in CI with coverage
-          echo "Running limited Unit tests with coverage..."
+          echo "Running all tests with coverage..."
           
-          # Create a temporary test filter to exclude problematic tests
-          cat > coverage-filter.txt << 'EOF'
-          --filter="not:LiquidationServiceTest"
-          --filter="not:StablecoinOperationsControllerTest"
-          --filter="not:ProcessWebhookDeliveryTest"
-          --filter="not:FilamentExportTest"
-          EOF
+          # Ensure database is ready
+          php artisan migrate:fresh --force
           
-          # Run tests excluding problematic ones
-          XDEBUG_MODE=coverage ./vendor/bin/pest tests/Unit \
-            --configuration=phpunit.coverage.xml \
-            --exclude-group=database \
-            --filter="not:LiquidationServiceTest and not:StablecoinOperationsControllerTest and not:ProcessWebhookDeliveryTest" \
+          # Run all test suites with coverage (no parallel to avoid conflicts)
+          XDEBUG_MODE=coverage ./vendor/bin/pest \
+            --configuration=phpunit.ci.xml \
             --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover \
+            --no-parallel \
             || echo "Some tests failed, but continuing with coverage report"
           
       - name: Generate Coverage Report
@@ -148,9 +156,9 @@ jobs:
           echo "report-url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
           
           # Create coverage badge
-          if (( $(echo "$COVERAGE > 80" | bc -l) )); then
+          if (( $(echo "$COVERAGE > 70" | bc -l) )); then
             COLOR="brightgreen"
-          elif (( $(echo "$COVERAGE > 60" | bc -l) )); then
+          elif (( $(echo "$COVERAGE > 50" | bc -l) )); then
             COLOR="yellow"
           else
             COLOR="red"
@@ -210,7 +218,7 @@ jobs:
           # In a real implementation, this would compare against historical data
           echo "Checking for coverage regression..."
           CURRENT_COVERAGE=${{ needs.coverage-analysis.outputs.coverage-percentage }}
-          THRESHOLD=30
+          THRESHOLD=40
           
           if (( $(echo "$CURRENT_COVERAGE < $THRESHOLD" | bc -l) )); then
             echo "⚠️ Coverage below threshold: $CURRENT_COVERAGE% < $THRESHOLD%"
