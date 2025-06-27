@@ -1,8 +1,10 @@
-# Litas Platform Integration Analysis with FinAegis
+# [ARCHIVED] Litas Platform Integration Analysis with FinAegis
+
+> **Note**: This document is archived. The Litas platform features have been integrated into FinAegis as sub-products: FinAegis Exchange, FinAegis Lending, and FinAegis Stablecoins. See [SUB_PRODUCTS_OVERVIEW.md](../01-VISION/SUB_PRODUCTS_OVERVIEW.md) for current implementation.
 
 ## Executive Summary
 
-The Litas platform is a crypto-fiat exchange and SME lending platform that connects cryptocurrency investors with real-economy SME loans. This document analyzes how FinAegis core banking infrastructure can be leveraged and expanded to support the Litas project.
+The Litas platform was originally conceived as a separate crypto-fiat exchange and SME lending platform. This document analyzed how FinAegis core banking infrastructure could be leveraged. These features have now been fully integrated into FinAegis as modular sub-products.
 
 ## Litas Platform Overview
 
