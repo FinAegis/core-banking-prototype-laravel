@@ -17,8 +17,13 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body>
-        <div class="font-sans text-gray-900 dark:text-gray-100 antialiased">
+    <body class="font-sans text-gray-900 antialiased">
+        <x-alpha-banner />
+        
+        <!-- Spacer for fixed banner -->
+        <div class="h-10"></div>
+        
+        <div class="min-h-screen bg-gray-50">
             {{ $slot }}
         </div>
 
