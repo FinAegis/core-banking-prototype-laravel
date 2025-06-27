@@ -107,13 +107,8 @@ jobs:
       - name: Prepare Test Environment
         run: |
           cp .env.testing .env
-          # Use MySQL for better concurrency handling
-          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
-          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
-          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
-          sed -i 's/DB_DATABASE=.*/DB_DATABASE=testing/' .env
-          sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
-          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
+          # Don't override DB settings - let phpunit.xml handle it
+          # The phpunit.xml already configures SQLite for tests
           
           php artisan key:generate
           php artisan config:clear
@@ -125,17 +120,13 @@ jobs:
           
       - name: Run Tests with Coverage
         run: |
-          # Run all tests with coverage using MySQL for better concurrency handling
-          # Using proper database isolation to avoid transaction conflicts
+          # Run all tests with coverage using SQLite (from phpunit.xml)
+          # SQLite in memory provides fast, isolated test execution
           
           echo "Running all tests with coverage..."
           
-          # Ensure database is ready
-          php artisan migrate:fresh --force
-          
           # Run all test suites with coverage (no parallel to avoid conflicts)
           XDEBUG_MODE=coverage ./vendor/bin/pest \
-            --configuration=phpunit.ci.xml \
             --coverage --coverage-html=coverage-html --coverage-xml=coverage.xml --coverage-clover=coverage.clover \
             --no-parallel \
             || echo "Some tests failed, but continuing with coverage report"
