@@ -11,6 +11,22 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
+Route::get('/platform', function () {
+    return view('platform.index');
+})->name('platform');
+
+Route::get('/gcu', function () {
+    return view('gcu.index');
+})->name('gcu');
+
+Route::get('/sub-products', function () {
+    return view('sub-products.index');
+})->name('sub-products');
+
+Route::get('/sub-products/{product}', function ($product) {
+    return view('sub-products.' . $product);
+})->name('sub-products.show');
+
 Route::get('/features', function () {
     return view('features.index');
 })->name('features');
