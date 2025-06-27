@@ -1,6 +1,4 @@
-<x-guest-layout>
-    <x-main-navigation />
-
+<x-app-layout>
     <!-- Hero Section -->
     <section class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
         <div class="absolute inset-0">
@@ -346,4 +344,4 @@ php artisan key:generate</code></pre>
             });
         }
     </script>
-</x-guest-layout>
+</x-app-layout>

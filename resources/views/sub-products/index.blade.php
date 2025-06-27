@@ -68,6 +68,7 @@
         </style>
     </head>
     <body class="antialiased">
+        <x-alpha-banner />
         <x-main-navigation />
 
         <!-- Hero Section -->

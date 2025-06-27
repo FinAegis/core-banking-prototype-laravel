@@ -1,6 +1,4 @@
-<x-guest-layout>
-    <x-main-navigation />
-
+<x-app-layout>
     <!-- Hero Section -->
     <section class="relative overflow-hidden bg-gradient-to-br from-green-600 to-blue-600 text-white">
         <div class="absolute inset-0">
@@ -640,4 +638,4 @@ async function robustTransfer(fromAccount, toAccount, amount) {
             });
         }
     </script>
-</x-guest-layout>
+</x-app-layout>

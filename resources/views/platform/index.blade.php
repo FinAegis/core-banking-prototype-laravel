@@ -1,6 +1,4 @@
-<x-guest-layout>
-    <x-main-navigation />
-
+<x-app-layout>
     <!-- Hero Section -->
     <section class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-800 text-white">
         <div class="absolute inset-0 bg-black opacity-50"></div>
@@ -275,4 +273,4 @@
     </section>
 
     @include('partials.footer')
-</x-guest-layout>
+</x-app-layout>

@@ -1,6 +1,6 @@
 <!-- Alpha Testing Banner -->
-<div class="fixed top-0 left-0 right-0 z-50 bg-amber-50 border-b border-amber-200">
-    <div class="container mx-auto px-4">
+<div class="relative z-50 bg-amber-50 border-b border-amber-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-center py-2">
             <div class="flex items-center gap-3 text-sm">
                 <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
