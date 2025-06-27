@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\RegulatoryReportingController;
 use App\Http\Controllers\Api\DailyReconciliationController;
 use App\Http\Controllers\Api\BankAlertingController;
 use App\Http\Controllers\Api\WorkflowMonitoringController;
+use App\Http\Controllers\Api\SubProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +50,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Sub-product status for authenticated users
+    Route::get('/sub-products/enabled', [SubProductController::class, 'enabled']);
+    
     // Account management endpoints (query rate limiting)
     Route::middleware('api.rate_limit:query')->group(function () {
         Route::post('/accounts', [AccountController::class, 'store']);
@@ -78,8 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/balances', [AccountBalanceController::class, 'index']);
     });
     
-    // Currency conversion endpoint (transaction rate limiting)
-    Route::post('/exchange/convert', [ExchangeRateController::class, 'convertCurrency'])->middleware('transaction.rate_limit:convert');
+    // Currency conversion endpoint (transaction rate limiting, requires exchange sub-product)
+    Route::post('/exchange/convert', [ExchangeRateController::class, 'convertCurrency'])
+        ->middleware(['transaction.rate_limit:convert', 'sub_product:exchange']);
     
     // Custodian integration endpoints
     Route::prefix('custodians')->group(function () {
@@ -205,6 +210,12 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('api.rate_limit:public')->group(function () {
     Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
     Route::get('/exchange-rates/{from}/{to}', [ExchangeRateController::class, 'show']);
+    
+    // Sub-product status endpoints
+    Route::prefix('sub-products')->group(function () {
+        Route::get('/', [SubProductController::class, 'index']);
+        Route::get('/{subProduct}', [SubProductController::class, 'show']);
+    });
 });
 
 Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
@@ -262,8 +273,8 @@ Route::prefix('v2')->group(function () {
         });
     });
     
-    // Stablecoin management endpoints
-    Route::prefix('stablecoins')->group(function () {
+    // Stablecoin management endpoints (requires stablecoins sub-product to be enabled)
+    Route::prefix('stablecoins')->middleware('sub_product:stablecoins')->group(function () {
         Route::get('/', [StablecoinController::class, 'index']);
         Route::get('/metrics', [StablecoinController::class, 'systemMetrics']);
         Route::get('/health', [StablecoinController::class, 'systemHealth']);
@@ -279,8 +290,8 @@ Route::prefix('v2')->group(function () {
         Route::post('/{code}/reactivate', [StablecoinController::class, 'reactivate']);
     });
     
-    // Stablecoin operations endpoints
-    Route::prefix('stablecoin-operations')->group(function () {
+    // Stablecoin operations endpoints (requires stablecoins sub-product to be enabled)
+    Route::prefix('stablecoin-operations')->middleware('sub_product:stablecoins')->group(function () {
         Route::post('/mint', [StablecoinOperationsController::class, 'mint']);
         Route::post('/burn', [StablecoinOperationsController::class, 'burn']);
         Route::post('/add-collateral', [StablecoinOperationsController::class, 'addCollateral']);
