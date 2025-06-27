@@ -1,0 +1,58 @@
+name: Security Scan Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version to use'
+        required: false
+        default: '8.3'
+        type: string
+    secrets:
+      GITLEAKS_LICENSE:
+        required: false
+
+env:
+  PHP_VERSION: ${{ inputs.php-version }}
+
+jobs:
+  secret-scanning:
+    name: Secret & Credential Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  security-audit:
+    name: Security Vulnerability Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-dev
+        
+      - name: Run Security Audit
+        run: |
+          composer audit --no-dev --format=table || true
+          composer audit --format=table || true

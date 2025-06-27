@@ -1,0 +1,230 @@
+name: Security Test Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version to use'
+        required: false
+        default: '8.3'
+        type: string
+
+env:
+  PHP_VERSION: ${{ inputs.php-version }}
+
+jobs:
+  penetration-tests:
+    name: Penetration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: security_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
+          
+      - name: Prepare Security Testing Environment
+        run: |
+          cp .env.testing .env
+          sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
+          php artisan key:generate
+          php artisan migrate --force
+          
+      - name: Run Penetration Tests
+        run: ./vendor/bin/pest tests/Security/Penetration --configuration=phpunit.security.xml --stop-on-failure || true
+
+  authentication-tests:
+    name: Authentication Security Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: security_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
+          
+      - name: Prepare Security Testing Environment
+        run: |
+          cp .env.testing .env
+          sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
+          php artisan key:generate
+          php artisan migrate --force
+          
+      - name: Run Authentication Security Tests
+        run: ./vendor/bin/pest tests/Security/Authentication --configuration=phpunit.security.xml --stop-on-failure || true
+
+  api-security-tests:
+    name: API Security Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: security_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
+          
+      - name: Prepare Security Testing Environment
+        run: |
+          cp .env.testing .env
+          sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
+          php artisan key:generate
+          php artisan migrate --force
+          
+      - name: Run API Security Tests
+        run: ./vendor/bin/pest tests/Security/API --configuration=phpunit.security.xml --stop-on-failure || true
+
+  vulnerability-tests:
+    name: Vulnerability Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: security_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
+          php artisan key:generate
+          php artisan migrate --force
+          
+      - name: Run Vulnerability Tests
+        run: ./vendor/bin/pest tests/Security/Vulnerabilities --configuration=phpunit.security.xml --stop-on-failure || true

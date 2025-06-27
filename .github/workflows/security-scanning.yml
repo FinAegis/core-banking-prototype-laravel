@@ -1,0 +1,292 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:
+    inputs:
+      scan-depth:
+        description: 'Scan depth (full or quick)'
+        required: false
+        default: 'quick'
+        type: choice
+        options:
+          - quick
+          - full
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scanning:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run Gitleaks
+        id: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          GITLEAKS_ENABLE_SUMMARY: true
+        continue-on-error: true
+          
+      - name: Upload SARIF Report
+        if: steps.gitleaks.outcome == 'success' && failure()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
+          
+      - name: Alternative Secret Detection
+        if: steps.gitleaks.outcome == 'failure'
+        run: |
+          echo "⚠️ Gitleaks requires a license for organizations. Using alternative detection..."
+          # Basic secret pattern detection
+          if grep -rE "(password|secret|key|token)\s*=\s*['\"]?[A-Za-z0-9+/=]{20,}['\"]?" . --exclude-dir=.git --exclude-dir=vendor --exclude-dir=node_modules --exclude="*.md" --exclude="*.lock"; then
+            echo "❌ Potential secrets detected in codebase"
+            exit 1
+          fi
+          echo "✅ No obvious secrets detected"
+          
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    strategy:
+      matrix:
+        package-manager: [composer, npm]
+        
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Environment
+        uses: shivammathur/setup-php@v2
+        if: matrix.package-manager == 'composer'
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+          
+      - name: Setup Node.js
+        if: matrix.package-manager == 'npm'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.composer/cache
+            ~/.npm
+          key: ${{ runner.os }}-${{ matrix.package-manager }}-${{ hashFiles('**/composer.lock', '**/package-lock.json') }}
+          
+      - name: Audit Composer Dependencies
+        if: matrix.package-manager == 'composer'
+        run: |
+          composer audit --format=json > composer-audit.json || true
+          
+          # Parse and check for high/critical vulnerabilities
+          if [ -f composer-audit.json ]; then
+            HIGH_VULNS=$(jq '.advisories | map(select(.severity == "high")) | length' composer-audit.json)
+            CRITICAL_VULNS=$(jq '.advisories | map(select(.severity == "critical")) | length' composer-audit.json)
+            
+            if [ "$CRITICAL_VULNS" -gt 0 ]; then
+              echo "❌ Found $CRITICAL_VULNS critical vulnerabilities!"
+              exit 1
+            elif [ "$HIGH_VULNS" -gt 0 ]; then
+              echo "⚠️ Found $HIGH_VULNS high severity vulnerabilities"
+            fi
+          fi
+          
+      - name: Audit NPM Dependencies
+        if: matrix.package-manager == 'npm'
+        run: |
+          npm audit --json > npm-audit.json || true
+          
+          # Check for high/critical vulnerabilities
+          if [ -f npm-audit.json ]; then
+            VULNS=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' npm-audit.json)
+            if [ "$VULNS" -gt 0 ]; then
+              echo "❌ Found $VULNS high/critical vulnerabilities!"
+              npm audit
+              exit 1
+            fi
+          fi
+          
+      - name: Upload Audit Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package-manager }}-audit-report
+          path: |
+            composer-audit.json
+            npm-audit.json
+          retention-days: 30
+
+  sast-analysis:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-and-quality
+          
+      - name: Setup PHP for Analysis
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo
+          tools: composer:v2, psalm, phpstan
+          coverage: none
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --no-scripts
+          
+      - name: Run Security-focused Static Analysis
+        run: |
+          # Run Psalm with security analysis
+          ./vendor/bin/psalm --taint-analysis --report=psalm-security.json || true
+          
+          # Run PHPStan with security rules
+          ./vendor/bin/phpstan analyse --level=max --error-format=json > phpstan-security.json || true
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        
+      - name: Run Semgrep Security Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/php
+            p/laravel
+            p/owasp-top-ten
+          generateSarif: true
+          
+      - name: Upload SAST Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sast-results
+          path: |
+            psalm-security.json
+            phpstan-security.json
+            .semgrep/
+          retention-days: 30
+
+  container-scanning:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: contains(github.event.head_commit.message, '[docker]') || github.event.inputs.scan-depth == 'full'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Build Docker Image
+        run: |
+          if [ -f Dockerfile ]; then
+            docker build -t ${{ github.repository }}:${{ github.sha }} .
+          else
+            echo "No Dockerfile found, skipping container scan"
+            exit 0
+          fi
+          
+      - name: Run Trivy Scanner
+        uses: aquasecurity/trivy-action@master
+        if: success()
+        with:
+          image-ref: '${{ github.repository }}:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          
+      - name: Upload Trivy Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: success()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  security-report:
+    name: Security Report Generation
+    needs: [secret-scanning, dependency-audit, sast-analysis]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Download All Security Reports
+        uses: actions/download-artifact@v4
+        
+      - name: Generate Consolidated Security Report
+        run: |
+          echo "# 🔒 Security Scan Report" > security-report.md
+          echo "**Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> security-report.md
+          echo "**Commit:** ${{ github.sha }}" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Summary" >> security-report.md
+          echo "| Check | Status |" >> security-report.md
+          echo "|-------|--------|" >> security-report.md
+          echo "| Secret Scanning | ${{ needs.secret-scanning.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> security-report.md
+          echo "| Dependency Audit | ${{ needs.dependency-audit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> security-report.md
+          echo "| SAST Analysis | ${{ needs.sast-analysis.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> security-report.md
+          
+          # Add detailed findings if any
+          echo "" >> security-report.md
+          echo "## Detailed Findings" >> security-report.md
+          
+          if [ "${{ needs.secret-scanning.result }}" != "success" ]; then
+            echo "### ⚠️ Secret Detection" >> security-report.md
+            echo "Potential secrets or sensitive data found in the codebase." >> security-report.md
+          fi
+          
+          if [ "${{ needs.dependency-audit.result }}" != "success" ]; then
+            echo "### ⚠️ Vulnerable Dependencies" >> security-report.md
+            echo "Security vulnerabilities found in project dependencies." >> security-report.md
+          fi
+          
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-report
+          path: security-report.md
+          retention-days: 90
+          
+            
+      - name: Fail if Critical Issues
+        if: |
+          needs.secret-scanning.result == 'failure' ||
+          needs.dependency-audit.result == 'failure'
+        run: |
+          echo "❌ Critical security issues detected. Please resolve before merging."
+          exit 1

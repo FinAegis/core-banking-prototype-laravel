@@ -22,24 +22,24 @@ class BasketValueFactory extends Factory
     {
         return [
             'basket_asset_code' => BasketAsset::factory(),
-            'value' => $this->faker->randomFloat(8, 0.8, 1.5),
-            'calculated_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'value' => fake()->randomFloat(8, 0.8, 1.5),
+            'calculated_at' => fake()->dateTimeBetween('-1 month', 'now'),
             'component_values' => [
                 'USD' => [
                     'weight' => 40.0,
-                    'weighted_value' => $this->faker->randomFloat(8, 0.3, 0.6),
+                    'weighted_value' => fake()->randomFloat(8, 0.3, 0.6),
                 ],
                 'EUR' => [
                     'weight' => 30.0,
-                    'weighted_value' => $this->faker->randomFloat(8, 0.2, 0.4),
+                    'weighted_value' => fake()->randomFloat(8, 0.2, 0.4),
                 ],
                 'GBP' => [
                     'weight' => 20.0,
-                    'weighted_value' => $this->faker->randomFloat(8, 0.1, 0.3),
+                    'weighted_value' => fake()->randomFloat(8, 0.1, 0.3),
                 ],
                 'CHF' => [
                     'weight' => 10.0,
-                    'weighted_value' => $this->faker->randomFloat(8, 0.05, 0.15),
+                    'weighted_value' => fake()->randomFloat(8, 0.05, 0.15),
                 ],
             ],
         ];

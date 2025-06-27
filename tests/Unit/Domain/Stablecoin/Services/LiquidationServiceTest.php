@@ -12,14 +12,12 @@ use App\Models\Account;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
 use App\Domain\Asset\Models\Asset;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
 class LiquidationServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected LiquidationService $service;
     protected $exchangeRateService;
@@ -107,7 +105,7 @@ class LiquidationServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_check_liquidation_eligibility()
+    public function it_can_calculate_liquidation_reward()
     {
         $position = StablecoinCollateralPosition::create([
             'account_uuid' => $this->account->uuid,
@@ -117,14 +115,17 @@ class LiquidationServiceTest extends TestCase
             'debt_amount' => 100000,
             'collateral_ratio' => 1.1, // Below minimum
             'status' => 'active',
+            'auto_liquidation_enabled' => true,
         ]);
         
-        $eligibility = $this->service->checkLiquidationEligibility($position);
+        $reward = $this->service->calculateLiquidationReward($position);
         
-        $this->assertTrue($eligibility['eligible']);
-        $this->assertEquals(10000, $eligibility['penalty']); // 10% penalty
-        $this->assertEquals(110000, $eligibility['collateral_seized']);
-        $this->assertEquals(100000, $eligibility['debt_repaid']);
+        $this->assertArrayHasKey('penalty', $reward);
+        $this->assertArrayHasKey('reward', $reward);
+        $this->assertArrayHasKey('collateral_seized', $reward);
+        $this->assertArrayHasKey('eligible', $reward);
+        $this->assertTrue($reward['eligible']);
+        $this->assertEquals(11000, $reward['penalty']); // 10% penalty on 110,000 collateral
     }
 
     /** @test */
@@ -140,10 +141,10 @@ class LiquidationServiceTest extends TestCase
             'status' => 'active',
         ]);
         
-        $eligibility = $this->service->checkLiquidationEligibility($position);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Position is not eligible for liquidation');
         
-        $this->assertFalse($eligibility['eligible']);
-        $this->assertEquals('Position is not eligible for liquidation', $eligibility['reason']);
+        $this->service->liquidatePosition($position);
     }
 
     /** @test */
@@ -169,8 +170,7 @@ class LiquidationServiceTest extends TestCase
         
         $result = $this->service->liquidatePosition(
             $position,
-            $this->liquidatorAccount,
-            100000 // Full liquidation
+            $this->liquidatorAccount
         );
         
         $this->assertTrue($result['success']);

@@ -200,7 +200,7 @@ class StablecoinCollateralPosition extends Model
     /**
      * Scope to positions that should be auto-liquidated.
      */
-    public function scopeShouldAutoLiquidate($query)
+    public function scopeAutoLiquidatable($query)
     {
         return $query->where('auto_liquidation_enabled', true)
                      ->where('status', 'active')

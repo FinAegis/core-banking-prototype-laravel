@@ -44,6 +44,8 @@ class CustodianAccount extends Model
         'status',
         'is_primary',
         'metadata',
+        'last_known_balance',
+        'last_synced_at',
     ];
 
     /**
@@ -54,6 +56,7 @@ class CustodianAccount extends Model
     protected $casts = [
         'is_primary' => 'boolean',
         'metadata' => 'array',
+        'last_synced_at' => 'datetime',
     ];
 
     /**

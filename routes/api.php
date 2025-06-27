@@ -332,6 +332,6 @@ Route::prefix('webhooks/custodian')->middleware('api.rate_limit:webhook')->group
 require __DIR__.'/api-bian.php';
 
 // Include V2 public API routes
-Route::prefix('v2')->group(function () {
+Route::prefix('v2')->middleware('ensure.json')->group(function () {
     require __DIR__.'/api-v2.php';
 });

@@ -4,11 +4,13 @@ namespace App\Domain\Account\Services;
 
 use App\Models\User;
 use App\Models\UserBankPreference;
+use App\Traits\HandlesNestedTransactions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class BankAllocationService
 {
+    use HandlesNestedTransactions;
     /**
      * Set up default bank allocations for a new user
      */
@@ -17,7 +19,7 @@ class BankAllocationService
         $defaultAllocations = UserBankPreference::getDefaultAllocations();
         $preferences = collect();
 
-        DB::transaction(function () use ($user, $defaultAllocations, &$preferences) {
+        $this->executeInTransaction(function () use ($user, $defaultAllocations, &$preferences) {
             foreach ($defaultAllocations as $allocation) {
                 $preference = $user->bankPreferences()->create([
                     'bank_code' => $allocation['bank_code'],
@@ -62,7 +64,7 @@ class BankAllocationService
 
         $preferences = collect();
 
-        DB::transaction(function () use ($user, $allocations, &$preferences) {
+        $this->executeInTransaction(function () use ($user, $allocations, &$preferences) {
             // Delete existing preferences (to avoid unique constraint violations)
             $user->bankPreferences()->delete();
 
@@ -176,7 +178,7 @@ class BankAllocationService
             throw new \Exception("Bank {$bankCode} not found in user's active allocation");
         }
 
-        DB::transaction(function () use ($user, $preference) {
+        $this->executeInTransaction(function () use ($user, $preference) {
             // Remove primary flag from all banks
             $user->bankPreferences()->update(['is_primary' => false]);
             

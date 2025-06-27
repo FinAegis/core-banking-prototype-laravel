@@ -55,7 +55,11 @@ class BasketRebalancingService
 
         $adjustments = $this->calculateAdjustments($basket, $currentValue);
 
-        if (empty($adjustments)) {
+        // Check if weights need normalization even if no individual adjustments needed
+        $totalWeight = $basket->activeComponents->sum('weight');
+        $needsNormalization = abs($totalWeight - 100) > 0.01;
+
+        if (empty($adjustments) && !$needsNormalization) {
             Log::info("Basket {$basket->code} does not need rebalancing");
             return [
                 'status' => 'completed',
@@ -238,7 +242,7 @@ class BasketRebalancingService
      */
     public function rebalanceAll(): array
     {
-        $baskets = BasketAsset::needsRebalancing()->get();
+        $baskets = BasketAsset::query()->needsRebalancing()->get();
         $results = [
             'rebalanced' => [],
             'no_changes' => [],

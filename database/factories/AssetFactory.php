@@ -24,14 +24,14 @@ class AssetFactory extends Factory
      */
     public function definition(): array
     {
-        $type = $this->faker->randomElement(Asset::getTypes());
+        $type = fake()->randomElement(Asset::getTypes());
         
         return [
-            'code' => strtoupper($this->faker->unique()->lexify('???')),
-            'name' => $this->faker->company() . ' ' . $this->getTypeLabel($type),
+            'code' => strtoupper(fake()->unique()->lexify('???')),
+            'name' => fake()->company() . ' ' . $this->getTypeLabel($type),
             'type' => $type,
             'precision' => $this->getPrecisionForType($type),
-            'is_active' => $this->faker->boolean(90), // 90% chance of being active
+            'is_active' => fake()->boolean(90), // 90% chance of being active
             'metadata' => $this->getMetadataForType($type),
         ];
     }
@@ -55,10 +55,10 @@ class AssetFactory extends Factory
     private function getPrecisionForType(string $type): int
     {
         return match ($type) {
-            Asset::TYPE_FIAT => $this->faker->numberBetween(0, 2),
-            Asset::TYPE_CRYPTO => $this->faker->numberBetween(6, 18),
-            Asset::TYPE_COMMODITY => $this->faker->numberBetween(2, 4),
-            Asset::TYPE_CUSTOM => $this->faker->numberBetween(0, 8),
+            Asset::TYPE_FIAT => fake()->numberBetween(0, 2),
+            Asset::TYPE_CRYPTO => fake()->numberBetween(6, 18),
+            Asset::TYPE_COMMODITY => fake()->numberBetween(2, 4),
+            Asset::TYPE_CUSTOM => fake()->numberBetween(0, 8),
         };
     }
     
@@ -67,20 +67,20 @@ class AssetFactory extends Factory
      */
     private function getMetadataForType(string $type): array
     {
-        $metadata = ['symbol' => $this->faker->currencyCode()];
+        $metadata = ['symbol' => fake()->currencyCode()];
         
         return match ($type) {
             Asset::TYPE_FIAT => array_merge($metadata, [
-                'iso_code' => $this->faker->currencyCode(),
-                'country' => $this->faker->country(),
+                'iso_code' => fake()->currencyCode(),
+                'country' => fake()->country(),
             ]),
             Asset::TYPE_CRYPTO => array_merge($metadata, [
-                'network' => $this->faker->randomElement(['ethereum', 'bitcoin', 'solana', 'polygon']),
-                'contract_address' => $this->faker->optional()->sha256(),
+                'network' => fake()->randomElement(['ethereum', 'bitcoin', 'solana', 'polygon']),
+                'contract_address' => fake()->optional()->sha256(),
             ]),
             Asset::TYPE_COMMODITY => array_merge($metadata, [
-                'unit' => $this->faker->randomElement(['troy_ounce', 'kilogram', 'barrel', 'bushel']),
-                'exchange' => $this->faker->randomElement(['COMEX', 'LME', 'NYMEX', 'ICE']),
+                'unit' => fake()->randomElement(['troy_ounce', 'kilogram', 'barrel', 'bushel']),
+                'exchange' => fake()->randomElement(['COMEX', 'LME', 'NYMEX', 'ICE']),
             ]),
             Asset::TYPE_CUSTOM => $metadata,
         };
@@ -95,8 +95,8 @@ class AssetFactory extends Factory
             'type' => Asset::TYPE_FIAT,
             'precision' => 2,
             'metadata' => [
-                'symbol' => $this->faker->currencyCode(),
-                'iso_code' => $this->faker->currencyCode(),
+                'symbol' => fake()->currencyCode(),
+                'iso_code' => fake()->currencyCode(),
             ],
         ]);
     }
@@ -108,10 +108,10 @@ class AssetFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'type' => Asset::TYPE_CRYPTO,
-            'precision' => $this->faker->numberBetween(8, 18),
+            'precision' => fake()->numberBetween(8, 18),
             'metadata' => [
                 'symbol' => '₿',
-                'network' => $this->faker->randomElement(['ethereum', 'bitcoin', 'solana']),
+                'network' => fake()->randomElement(['ethereum', 'bitcoin', 'solana']),
             ],
         ]);
     }
@@ -125,7 +125,7 @@ class AssetFactory extends Factory
             'type' => Asset::TYPE_COMMODITY,
             'precision' => 3,
             'metadata' => [
-                'symbol' => $this->faker->randomElement(['Au', 'Ag', 'Pt', 'Cu']),
+                'symbol' => fake()->randomElement(['Au', 'Ag', 'Pt', 'Cu']),
                 'unit' => 'troy_ounce',
             ],
         ]);

@@ -10,12 +10,14 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Models\Account;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
+use App\Traits\HandlesNestedTransactions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class LiquidationService
 {
+    use HandlesNestedTransactions;
     public function __construct(
         private readonly ExchangeRateService $exchangeRateService,
         private readonly CollateralService $collateralService,
@@ -31,7 +33,7 @@ class LiquidationService
             throw new \RuntimeException('Position is not eligible for liquidation');
         }
 
-        return DB::transaction(function () use ($position, $liquidator) {
+        $callback = function () use ($position, $liquidator) {
             $stablecoin = $position->stablecoin;
             $liquidationPenalty = $stablecoin->liquidation_penalty;
             
@@ -94,7 +96,9 @@ class LiquidationService
             ]));
             
             return $result;
-        });
+        };
+        
+        return $this->executeInTransaction($callback);
     }
 
     /**

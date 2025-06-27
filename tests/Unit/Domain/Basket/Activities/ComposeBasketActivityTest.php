@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Basket\Activities;
 
 use App\Domain\Basket\Activities\ComposeBasketActivity;
-use App\Domain\Basket\Services\BasketAccountService;
+use App\Domain\Basket\Activities\ComposeBasketBusinessActivity;
+use App\Domain\Account\DataObjects\AccountUuid;
 use App\Models\Account;
 use Tests\TestCase;
 use Mockery;
@@ -14,26 +15,35 @@ class ComposeBasketActivityTest extends TestCase
 {
     public function test_activity_extends_workflow_activity()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $this->assertInstanceOf(\Workflow\Activity::class, $activity);
     }
     
-    public function test_execute_method_validates_required_parameters()
+    public function test_execute_method_calls_business_activity()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Missing required parameters: account_uuid, basket_code, amount');
+        $accountUuid = new AccountUuid('test-uuid');
+        $basketCode = 'GCU';
+        $amount = 1000;
+        $expectedResult = ['success' => true];
         
-        $activity->execute([]);
+        $basketService->shouldReceive('execute')
+            ->once()
+            ->with($accountUuid, $basketCode, $amount)
+            ->andReturn($expectedResult);
+        
+        $result = $activity->execute($accountUuid, $basketCode, $amount);
+        
+        $this->assertEquals($expectedResult, $result);
     }
     
     public function test_execute_method_has_correct_signature()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
         $reflection = new \ReflectionClass($activity);
@@ -43,47 +53,42 @@ class ComposeBasketActivityTest extends TestCase
         $this->assertEquals('execute', $executeMethod->getName());
         
         $parameters = $executeMethod->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('input', $parameters[0]->getName());
-        $this->assertEquals('array', $parameters[0]->getType()->getName());
+        $this->assertCount(3, $parameters);
+        
+        $this->assertEquals('accountUuid', $parameters[0]->getName());
+        $this->assertEquals('App\Domain\Account\DataObjects\AccountUuid', $parameters[0]->getType()->getName());
+        
+        $this->assertEquals('basketCode', $parameters[1]->getName());
+        $this->assertEquals('string', $parameters[1]->getType()->getName());
+        
+        $this->assertEquals('amount', $parameters[2]->getName());
+        $this->assertEquals('int', $parameters[2]->getType()->getName());
     }
     
-    public function test_execute_method_validates_missing_account_uuid()
+    public function test_execute_method_returns_business_activity_result()
     {
-        $basketService = Mockery::mock(BasketAccountService::class);
+        $basketService = Mockery::mock(ComposeBasketBusinessActivity::class);
         $activity = new ComposeBasketActivity($basketService);
         
-        $this->expectException(\InvalidArgumentException::class);
+        $accountUuid = new AccountUuid('test-uuid');
+        $basketCode = 'GCU';
+        $amount = 5000;
+        $expectedResult = [
+            'transaction_id' => 'txn-123',
+            'basket_units' => 50,
+            'fee' => 25
+        ];
         
-        $activity->execute([
-            'basket_code' => 'GCU',
-            'amount' => 1000
-        ]);
-    }
-    
-    public function test_execute_method_validates_missing_basket_code()
-    {
-        $basketService = Mockery::mock(BasketAccountService::class);
-        $activity = new ComposeBasketActivity($basketService);
+        $basketService->shouldReceive('execute')
+            ->once()
+            ->with($accountUuid, $basketCode, $amount)
+            ->andReturn($expectedResult);
         
-        $this->expectException(\InvalidArgumentException::class);
+        $result = $activity->execute($accountUuid, $basketCode, $amount);
         
-        $activity->execute([
-            'account_uuid' => 'test-uuid',
-            'amount' => 1000
-        ]);
-    }
-    
-    public function test_execute_method_validates_missing_amount()
-    {
-        $basketService = Mockery::mock(BasketAccountService::class);
-        $activity = new ComposeBasketActivity($basketService);
-        
-        $this->expectException(\InvalidArgumentException::class);
-        
-        $activity->execute([
-            'account_uuid' => 'test-uuid',
-            'basket_code' => 'GCU'
-        ]);
+        $this->assertEquals($expectedResult, $result);
+        $this->assertArrayHasKey('transaction_id', $result);
+        $this->assertArrayHasKey('basket_units', $result);
+        $this->assertArrayHasKey('fee', $result);
     }
 }

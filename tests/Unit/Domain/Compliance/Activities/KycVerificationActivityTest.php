@@ -6,6 +6,7 @@ namespace Tests\Unit\Domain\Compliance\Activities;
 
 use App\Domain\Compliance\Activities\KycVerificationActivity;
 use App\Domain\Compliance\Services\KycService;
+use App\Models\User;
 use Tests\TestCase;
 use Mockery;
 
@@ -49,6 +50,9 @@ class KycVerificationActivityTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Reason is required for rejection');
+        
+        // Create a user to avoid ModelNotFoundException
+        $user = User::factory()->create(['uuid' => 'test-uuid']);
         
         $kycService = Mockery::mock(KycService::class);
         $activity = new KycVerificationActivity($kycService);

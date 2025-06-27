@@ -1,0 +1,501 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable debug mode'
+        required: false
+        default: false
+
+env:
+  PHP_VERSION: '8.3'
+  NODE_VERSION: '20'
+  COMPOSER_PROCESS_TIMEOUT: 0
+  COMPOSER_NO_INTERACTION: 1
+  COMPOSER_NO_AUDIT: 1
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+          
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache
+          tools: composer:v2, phpstan, phpcs, php-cs-fixer
+          coverage: none
+          
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
+        
+      - name: Run PHP Code Sniffer
+        run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/ || true
+        
+      - name: Run PHP Static Analysis
+        run: vendor/bin/phpstan analyse --memory-limit=2G || true
+        
+      - name: Check PHP Code Style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff || true
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup PHP for Security Audit
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+          
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          
+      - name: Security Audit Dependencies
+        run: |
+          composer audit --no-dev
+          composer audit
+          
+      - name: Upload Security Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            gitleaks-report.json
+            composer-audit.json
+          retention-days: 30
+
+  test-suite:
+    name: Test Suite
+    needs: [code-quality]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: [unit, feature, integration]
+        
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap
+          tools: composer:v2
+          coverage: xdebug
+          ini-values: |
+            memory_limit=512M
+            max_execution_time=360
+            
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/composer.lock', '**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+            
+      - name: Install PHP Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          composer dump-autoload
+          
+      - name: Install Node Dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm run build
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan migrate --force
+          
+      - name: Run ${{ matrix.test-type }} Tests
+        run: |
+          if [ "${{ matrix.test-type }}" == "unit" ]; then
+            ./vendor/bin/pest tests/Unit --parallel --coverage --min=80
+          elif [ "${{ matrix.test-type }}" == "feature" ]; then
+            ./vendor/bin/pest tests/Feature --parallel --coverage --min=70
+          else
+            ./vendor/bin/pest tests/Domain --coverage --min=60
+          fi
+          
+      - name: Upload Test Coverage
+        if: matrix.test-type == 'unit'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-type }}
+          path: |
+            coverage/
+            .phpunit.result.cache
+            tests/.pest/
+          retention-days: 7
+
+  security-tests:
+    name: Security Test Suite
+    needs: [security-scan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        security-suite: [penetration, authentication, api, cryptography, vulnerabilities]
+        
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: security_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip
+          tools: composer:v2
+          coverage: none
+          
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            vendor
+            ~/.composer/cache
+          key: ${{ runner.os }}-security-${{ hashFiles('**/composer.lock') }}
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          
+      - name: Prepare Security Testing Environment
+        run: |
+          cp .env.testing .env
+          sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
+          php artisan key:generate
+          php artisan migrate --force
+          
+      - name: Run ${{ matrix.security-suite }} Security Tests
+        run: |
+          ./vendor/bin/pest tests/Security/${{ matrix.security-suite }} --stop-on-failure || TESTS_FAILED=1
+          echo "SECURITY_${{ matrix.security-suite }}_FAILED=${TESTS_FAILED:-0}" >> $GITHUB_ENV
+          
+      - name: Generate Security Report
+        if: always()
+        run: |
+          mkdir -p security-reports
+          echo "# Security Test Report - ${{ matrix.security-suite }}" > security-reports/${{ matrix.security-suite }}.md
+          echo "Status: ${TESTS_FAILED:-0}" >> security-reports/${{ matrix.security-suite }}.md
+          
+      - name: Upload Security Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-test-results-${{ matrix.security-suite }}
+          path: security-reports/
+          retention-days: 30
+
+  performance-tests:
+    name: Performance Testing
+    needs: [test-suite]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: performance_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP with JIT
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl
+          tools: composer:v2
+          coverage: none
+          ini-values: |
+            opcache.enable=1
+            opcache.enable_cli=1
+            opcache.jit=tracing
+            opcache.jit_buffer_size=256M
+            memory_limit=1G
+            
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            vendor
+            ~/.composer/cache
+          key: ${{ runner.os }}-performance-${{ hashFiles('**/composer.lock') }}
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader --no-dev
+          
+      - name: Prepare Performance Testing
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan migrate --force
+          php artisan db:seed --class=PerformanceSeeder || true
+          
+      - name: Run Performance Tests
+        run: |
+          ./vendor/bin/pest tests/Performance --parallel
+          
+      - name: Run Load Tests
+        run: |
+          # Install k6 for load testing
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6 -y
+          
+          # Run load tests if they exist
+          if [ -f "tests/k6/load-test.js" ]; then
+            k6 run tests/k6/load-test.js --out json=load-test-results.json
+          fi
+          
+      - name: Analyze Performance Results
+        run: |
+          php artisan performance:analyze || true
+          
+      - name: Upload Performance Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results
+          path: |
+            storage/performance/
+            load-test-results.json
+          retention-days: 90
+
+  build-assets:
+    name: Build Frontend Assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Cache Node Modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            
+      - name: Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Run Linting
+        run: |
+          npm run lint || true
+          
+      - name: Build Production Assets
+        run: npm run build
+        
+      - name: Upload Built Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-assets
+          path: |
+            public/build/
+            public/mix-manifest.json
+          retention-days: 7
+
+  integration-report:
+    name: Integration Report
+    needs: [code-quality, security-scan, test-suite, security-tests, performance-tests, build-assets]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Generate Comprehensive Report
+        run: |
+          echo "# CI Report - ${{ github.event.pull_request.title || github.ref_name }}" > ci-report.md
+          echo "Run: ${{ github.run_number }} | Commit: ${{ github.sha }}" >> ci-report.md
+          echo "" >> ci-report.md
+          
+          echo "## Summary" >> ci-report.md
+          echo "- Code Quality: ${{ needs.code-quality.result }}" >> ci-report.md
+          echo "- Security Scan: ${{ needs.security-scan.result }}" >> ci-report.md
+          echo "- Test Suite: ${{ needs.test-suite.result }}" >> ci-report.md
+          echo "- Security Tests: ${{ needs.security-tests.result }}" >> ci-report.md
+          echo "- Performance Tests: ${{ needs.performance-tests.result }}" >> ci-report.md
+          echo "- Asset Build: ${{ needs.build-assets.result }}" >> ci-report.md
+          
+            
+      - name: Set Final Status
+        if: |
+          needs.code-quality.result == 'failure' ||
+          needs.security-scan.result == 'failure' ||
+          needs.test-suite.result == 'failure' ||
+          needs.security-tests.result == 'failure'
+        run: exit 1

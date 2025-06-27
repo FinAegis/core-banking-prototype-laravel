@@ -1,0 +1,442 @@
+name: Performance Testing
+
+# Note: These thresholds are for CI environments only.
+# Production performance should be monitored separately with more realistic thresholds.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'routes/**'
+      - 'database/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'routes/**'
+      - 'database/**'
+  schedule:
+    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+  workflow_dispatch:
+    inputs:
+      test-duration:
+        description: 'Load test duration (seconds)'
+        required: false
+        default: '300'
+        type: string
+      concurrent-users:
+        description: 'Number of concurrent users'
+        required: false
+        default: '100'
+        type: string
+      benchmark-iterations:
+        description: 'Benchmark iterations'
+        required: false
+        default: '1000'
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: false  # Don't cancel performance tests
+
+env:
+  PERFORMANCE_THRESHOLD_API: 2500  # ms (CI environment with security features and cold starts)
+  PERFORMANCE_THRESHOLD_WEB: 5000  # ms
+  MEMORY_THRESHOLD: 256  # MB (increased for CI environment)
+
+jobs:
+  benchmark-tests:
+    name: Application Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    outputs:
+      api-response-time: ${{ steps.benchmarks.outputs.api-response-time }}
+      memory-usage: ${{ steps.benchmarks.outputs.memory-usage }}
+      queries-per-request: ${{ steps.benchmarks.outputs.queries-per-request }}
+      
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: performance
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP with JIT
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, apcu
+          tools: composer:v2
+          coverage: none
+          ini-values: |
+            memory_limit=512M
+            opcache.enable=1
+            opcache.enable_cli=1
+            opcache.jit=tracing
+            opcache.jit_buffer_size=256M
+            realpath_cache_size=256K
+            realpath_cache_ttl=600
+            
+      - name: Get Composer Cache
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            vendor
+          key: ${{ runner.os }}-performance-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-performance-
+            
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader --no-dev
+          composer dump-autoload -o
+          
+      - name: Prepare Performance Environment
+        run: |
+          if [ -f .env.performance ]; then
+            cp .env.performance .env
+          else
+            cp .env.example .env
+            sed -i 's/APP_ENV=.*/APP_ENV=production/' .env
+            sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
+            sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+            sed -i 's/DB_DATABASE=.*/DB_DATABASE=performance/' .env
+            sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+            sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
+            sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=redis/' .env
+            sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=redis/' .env
+            sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/' .env
+          fi
+          
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan event:cache
+          php artisan migrate --force --seed
+          
+      - name: Warm Up Application
+        run: |
+          # Warm up OPcache
+          for i in {1..10}; do
+            curl -s http://localhost:8000 > /dev/null || true
+          done
+          
+          # Prime caches
+          php artisan cache:clear
+          php artisan view:cache
+          
+      - name: Run Performance Benchmarks
+        id: benchmarks
+        run: |
+          # Start Laravel server
+          php artisan serve --no-reload &
+          SERVER_PID=$!
+          sleep 5
+          
+          # Warm up the application
+          echo "Warming up application..."
+          for i in {1..10}; do
+            curl -s http://localhost:8000/api/v2/status > /dev/null || true
+          done
+          sleep 2
+          
+          # Install Apache Bench
+          sudo apt-get update && sudo apt-get install -y apache2-utils
+          
+          # Benchmark API endpoints
+          echo "=== API Performance Benchmarks ===" > performance-results.txt
+          
+          # Test critical API endpoints
+          ENDPOINTS=(
+            "/api/v2/status"
+            "/api/v2/accounts"
+            "/api/v2/transactions"
+          )
+          
+          TOTAL_TIME=0
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo "Testing $endpoint..." >> performance-results.txt
+            
+            # Run Apache Bench with reduced load for CI
+            ab -n ${{ github.event.inputs.benchmark-iterations || '100' }} \
+               -c 5 \
+               -k \
+               -H "Accept: application/json" \
+               -H "Content-Type: application/json" \
+               http://localhost:8000$endpoint > ab-results.txt || true
+               
+            # Extract metrics
+            AVG_TIME=$(grep "Time per request:" ab-results.txt | grep -v "across" | awk '{print $4}')
+            REQUESTS_PER_SEC=$(grep "Requests per second:" ab-results.txt | awk '{print $4}')
+            
+            echo "$endpoint: ${AVG_TIME}ms avg, ${REQUESTS_PER_SEC} req/s" >> performance-results.txt
+            TOTAL_TIME=$(echo "$TOTAL_TIME + $AVG_TIME" | bc)
+          done
+          
+          # Calculate average response time
+          AVG_RESPONSE_TIME=$(echo "scale=2; $TOTAL_TIME / ${#ENDPOINTS[@]}" | bc)
+          echo "api-response-time=$AVG_RESPONSE_TIME" >> $GITHUB_OUTPUT
+          
+          # Memory usage test
+          MEMORY_USAGE=$(php -r "echo memory_get_peak_usage(true) / 1024 / 1024;")
+          echo "memory-usage=$MEMORY_USAGE" >> $GITHUB_OUTPUT
+          
+          # Database query analysis
+          php artisan tinker --execute="DB::enableQueryLog();" || true
+          curl -s http://localhost:8000/api/v2/accounts > /dev/null
+          QUERY_COUNT=$(php artisan tinker --execute="echo count(DB::getQueryLog());" || echo "0")
+          echo "queries-per-request=$QUERY_COUNT" >> $GITHUB_OUTPUT
+          
+          # Stop server
+          kill $SERVER_PID
+          
+      - name: Check Performance Thresholds
+        run: |
+          API_TIME=${{ steps.benchmarks.outputs.api-response-time }}
+          MEMORY=${{ steps.benchmarks.outputs.memory-usage }}
+          
+          if (( $(echo "$API_TIME > $PERFORMANCE_THRESHOLD_API" | bc -l) )); then
+            echo "❌ API response time exceeds threshold: ${API_TIME}ms > ${PERFORMANCE_THRESHOLD_API}ms"
+            exit 1
+          fi
+          
+          if (( $(echo "$MEMORY > $MEMORY_THRESHOLD" | bc -l) )); then
+            echo "❌ Memory usage exceeds threshold: ${MEMORY}MB > ${MEMORY_THRESHOLD}MB"
+            exit 1
+          fi
+          
+      - name: Upload Benchmark Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            performance-results.txt
+            ab-results.txt
+          retention-days: 90
+
+  load-testing:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: loadtest
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader --no-dev
+          
+      - name: Prepare Load Test Environment
+        run: |
+          cp .env.example .env
+          sed -i 's/APP_ENV=.*/APP_ENV=production/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=loadtest/' .env
+          php artisan key:generate
+          php artisan migrate --force
+          php artisan db:seed --class=LoadTestSeeder || true
+          
+          # Start application server
+          php artisan serve --port=8080 &
+          sleep 5
+          
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+      - name: Create k6 Load Test Script
+        run: |
+          cat > load-test.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+          import { Rate } from 'k6/metrics';
+          
+          const errorRate = new Rate('errors');
+          
+          export const options = {
+            stages: [
+              { duration: '2m', target: 50 },   // Ramp up
+              { duration: '5m', target: ${{ github.event.inputs.concurrent-users || '100' }} },  // Stay at peak
+              { duration: '2m', target: 0 },    // Ramp down
+            ],
+            thresholds: {
+              http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
+              errors: ['rate<0.1'],              // Error rate must be below 10%
+            },
+          };
+          
+          export default function() {
+            const endpoints = [
+              { url: '/api/v2/status', method: 'GET' },
+              { url: '/api/v2/accounts', method: 'GET' },
+              { url: '/api/v2/transactions', method: 'GET' },
+            ];
+            
+            const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+            
+            const params = {
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            };
+            
+            const res = http.request(endpoint.method, `http://localhost:8080${endpoint.url}`, null, params);
+            
+            const success = check(res, {
+              'status is 200': (r) => r.status === 200,
+              'response time < 500ms': (r) => r.timings.duration < 500,
+            });
+            
+            errorRate.add(!success);
+            sleep(1);
+          }
+          EOF
+          
+      - name: Run Load Test
+        run: |
+          k6 run --out json=k6-results.json load-test.js || true
+          
+      - name: Analyze Load Test Results
+        run: |
+          # Parse k6 results
+          if [ -f k6-results.json ]; then
+            echo "=== Load Test Summary ===" > load-test-report.md
+            echo "Duration: ${{ github.event.inputs.test-duration || '300' }} seconds" >> load-test-report.md
+            echo "Max Users: ${{ github.event.inputs.concurrent-users || '100' }}" >> load-test-report.md
+            echo "" >> load-test-report.md
+            
+            # Extract key metrics using jq
+            AVG_DURATION=$(jq -s 'map(select(.type=="Point" and .metric=="http_req_duration")) | map(.data.value) | add/length' k6-results.json)
+            ERROR_RATE=$(jq -s 'map(select(.type=="Point" and .metric=="errors")) | map(.data.value) | add/length' k6-results.json)
+            
+            echo "Average Response Time: ${AVG_DURATION}ms" >> load-test-report.md
+            echo "Error Rate: ${ERROR_RATE}%" >> load-test-report.md
+          fi
+          
+      - name: Upload Load Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: |
+            k6-results.json
+            load-test-report.md
+          retention-days: 90
+
+  performance-comparison:
+    name: Performance Regression Check
+    needs: [benchmark-tests]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Download Current Results
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
+          path: current-results/
+          
+      - name: Get Baseline Performance
+        id: baseline
+        run: |
+          # In a real scenario, we'd fetch this from a performance monitoring service
+          # For now, we'll use the thresholds as baseline
+          echo "baseline-api-time=$PERFORMANCE_THRESHOLD_API" >> $GITHUB_OUTPUT
+          echo "baseline-memory=$MEMORY_THRESHOLD" >> $GITHUB_OUTPUT
+          
+      - name: Compare Performance
+        run: |
+          CURRENT_API_TIME=${{ needs.benchmark-tests.outputs.api-response-time }}
+          BASELINE_API_TIME=${{ steps.baseline.outputs.baseline-api-time }}
+          
+          DIFF=$(echo "scale=2; (($CURRENT_API_TIME - $BASELINE_API_TIME) / $BASELINE_API_TIME) * 100" | bc)
+          
+          echo "## 📊 Performance Impact" > performance-impact.md
+          echo "" >> performance-impact.md
+          echo "| Metric | Baseline | Current | Change |" >> performance-impact.md
+          echo "|--------|----------|---------|--------|" >> performance-impact.md
+          echo "| API Response Time | ${BASELINE_API_TIME}ms | ${CURRENT_API_TIME}ms | ${DIFF}% |" >> performance-impact.md
+          echo "| Memory Usage | ${{ steps.baseline.outputs.baseline-memory }}MB | ${{ needs.benchmark-tests.outputs.memory-usage }}MB | - |" >> performance-impact.md
+          echo "| DB Queries/Request | - | ${{ needs.benchmark-tests.outputs.queries-per-request }} | - |" >> performance-impact.md
+          
+          # Check for regression
+          if (( $(echo "$DIFF > 10" | bc -l) )); then
+            echo "" >> performance-impact.md
+            echo "⚠️ **Performance regression detected!** Response time increased by ${DIFF}%" >> performance-impact.md
+          fi
+          

@@ -11,24 +11,23 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class WebhookTest extends TestCase
 {
-    use RefreshDatabase;
 
     /** @test */
     public function it_can_create_a_webhook()
     {
         $webhook = Webhook::create([
             'uuid' => 'test-uuid',
+            'name' => 'Test Webhook',
             'url' => 'https://example.com/webhook',
-            'event_types' => ['account.created', 'transfer.completed'],
+            'events' => ['account.created', 'transfer.completed'],
             'is_active' => true,
-            'signing_secret' => 'secret123',
-            'retry_count' => 0,
-            'metadata' => ['owner' => 'test'],
+            'secret' => 'secret123',
+            'retry_attempts' => 3,
         ]);
 
         $this->assertEquals('test-uuid', $webhook->uuid);
         $this->assertEquals('https://example.com/webhook', $webhook->url);
-        $this->assertContains('account.created', $webhook->event_types);
+        $this->assertContains('account.created', $webhook->events);
         $this->assertTrue($webhook->is_active);
     }
 
@@ -38,7 +37,7 @@ class WebhookTest extends TestCase
         $webhook = Webhook::factory()->create();
         
         WebhookDelivery::factory()->create([
-            'webhook_id' => $webhook->id,
+            'webhook_uuid' => $webhook->uuid,
             'event_type' => 'test.event',
         ]);
 
@@ -62,17 +61,17 @@ class WebhookTest extends TestCase
     public function it_has_for_event_scope()
     {
         Webhook::factory()->create([
-            'event_types' => ['account.created', 'account.updated'],
+            'events' => ['account.created', 'account.updated'],
         ]);
 
         Webhook::factory()->create([
-            'event_types' => ['transfer.created'],
+            'events' => ['transfer.created'],
         ]);
 
         $accountWebhooks = Webhook::forEvent('account.created')->get();
 
         $this->assertCount(1, $accountWebhooks);
-        $this->assertContains('account.created', $accountWebhooks->first()->event_types);
+        $this->assertContains('account.created', $accountWebhooks->first()->events);
     }
 
     /** @test */
@@ -80,17 +79,15 @@ class WebhookTest extends TestCase
     {
         $webhook = Webhook::create([
             'uuid' => 'test-uuid',
+            'name' => 'Test Webhook',
             'url' => 'https://example.com/webhook',
-            'event_types' => ['account.created'],
+            'events' => ['account.created'],
             'is_active' => true,
-            'metadata' => ['key' => 'value'],
         ]);
 
-        $fresh = Webhook::find($webhook->id);
+        $fresh = Webhook::find($webhook->uuid);
 
-        $this->assertIsArray($fresh->event_types);
+        $this->assertIsArray($fresh->events);
         $this->assertIsBool($fresh->is_active);
-        $this->assertIsArray($fresh->metadata);
-        $this->assertEquals('value', $fresh->metadata['key']);
     }
 }

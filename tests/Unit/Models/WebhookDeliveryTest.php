@@ -12,7 +12,6 @@ use PHPUnit\Framework\Attributes\Test;
 
 class WebhookDeliveryTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected Webhook $webhook;
 
@@ -30,16 +29,15 @@ class WebhookDeliveryTest extends TestCase
             'uuid' => 'delivery-uuid',
             'webhook_uuid' => $this->webhook->uuid,
             'event_type' => 'test.event',
-            'event_id' => 'evt_123',
             'payload' => ['test' => 'data'],
             'status' => 'pending',
-            'attempts' => 0,
+            'attempt_number' => 1,
         ]);
 
         $this->assertEquals('delivery-uuid', $delivery->uuid);
         $this->assertEquals('test.event', $delivery->event_type);
         $this->assertEquals('pending', $delivery->status);
-        $this->assertEquals(0, $delivery->attempts);
+        $this->assertEquals(1, $delivery->attempt_number);
     }
 
     #[Test]
@@ -61,11 +59,11 @@ class WebhookDeliveryTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $delivery->markAsDelivered(200, ['success' => true]);
+        $delivery->markAsDelivered(200, '{"success": true}', ['Content-Type' => 'application/json'], 150);
 
         $this->assertEquals('delivered', $delivery->status);
         $this->assertEquals(200, $delivery->response_status);
-        $this->assertEquals(['success' => true], $delivery->response_body);
+        $this->assertEquals('{"success": true}', $delivery->response_body);
         $this->assertNotNull($delivery->delivered_at);
     }
 
@@ -75,16 +73,15 @@ class WebhookDeliveryTest extends TestCase
         $delivery = WebhookDelivery::factory()->create([
             'webhook_uuid' => $this->webhook->uuid,
             'status' => 'pending',
-            'attempts' => 1,
+            'attempt_number' => 1,
         ]);
 
-        $delivery->markAsFailed('Connection timeout', 0);
+        $delivery->markAsFailed('Connection timeout', 0, null);
 
         $this->assertEquals('failed', $delivery->status);
-        $this->assertEquals('Connection timeout', $delivery->last_error);
+        $this->assertEquals('Connection timeout', $delivery->error_message);
         $this->assertEquals(0, $delivery->response_status);
-        $this->assertEquals(2, $delivery->attempts);
-        $this->assertNotNull($delivery->last_attempt_at);
+        $this->assertNotNull($delivery->next_retry_at);
     }
 
     #[Test]
@@ -137,10 +134,10 @@ class WebhookDeliveryTest extends TestCase
             'delivered_at' => '2025-06-18 12:00:00',
         ]);
 
-        $fresh = WebhookDelivery::find($delivery->id);
+        $fresh = WebhookDelivery::find($delivery->uuid);
 
         $this->assertIsArray($fresh->payload);
-        $this->assertIsArray($fresh->response_body);
+        $this->assertNull($fresh->response_body);
         $this->assertInstanceOf(\Carbon\Carbon::class, $fresh->delivered_at);
     }
 }

@@ -19,13 +19,13 @@ class VoteFactory extends Factory
             'poll_id' => Poll::factory()->create()->id,
             'user_uuid' => User::factory()->create()->uuid,
             'selected_options' => $this->generateSelectedOptions(),
-            'voting_power' => $this->faker->numberBetween(1, 100),
-            'voted_at' => $this->faker->dateTimeBetween('-1 week', 'now'),
+            'voting_power' => fake()->numberBetween(1, 100),
+            'voted_at' => fake()->dateTimeBetween('-1 week', 'now'),
             'signature' => null, // Will be generated automatically
             'metadata' => [
-                'ip_address' => $this->faker->ipv4,
-                'user_agent' => $this->faker->userAgent,
-                'location' => $this->faker->optional(0.3)->city,
+                'ip_address' => fake()->ipv4,
+                'user_agent' => fake()->userAgent,
+                'location' => fake()->optional(0.3)->city,
             ],
         ];
     }
@@ -40,20 +40,20 @@ class VoteFactory extends Factory
             if (!empty($pollOptions)) {
                 // For single choice polls, select one option
                 if ($poll->type->value === 'single_choice' || $poll->type->value === 'yes_no') {
-                    $selectedOptions = [$this->faker->randomElement($pollOptions)['id']];
+                    $selectedOptions = [fake()->randomElement($pollOptions)['id']];
                 }
                 // For multiple choice, select 1-3 options
                 elseif ($poll->type->value === 'multiple_choice') {
-                    $count = $this->faker->numberBetween(1, min(3, count($pollOptions)));
-                    $selectedOptions = $this->faker->randomElements(
+                    $count = fake()->numberBetween(1, min(3, count($pollOptions)));
+                    $selectedOptions = fake()->randomElements(
                         array_column($pollOptions, 'id'),
                         $count
                     );
                 }
                 // For ranked choice, select and rank options
                 elseif ($poll->type->value === 'ranked_choice') {
-                    $count = $this->faker->numberBetween(2, count($pollOptions));
-                    $selectedOptions = $this->faker->randomElements(
+                    $count = fake()->numberBetween(2, count($pollOptions));
+                    $selectedOptions = fake()->randomElements(
                         array_column($pollOptions, 'id'),
                         $count
                     );
@@ -77,28 +77,28 @@ class VoteFactory extends Factory
     public function withHighVotingPower(): static
     {
         return $this->state(fn (array $attributes) => [
-            'voting_power' => $this->faker->numberBetween(50, 1000),
+            'voting_power' => fake()->numberBetween(50, 1000),
         ]);
     }
 
     public function withLowVotingPower(): static
     {
         return $this->state(fn (array $attributes) => [
-            'voting_power' => $this->faker->numberBetween(1, 10),
+            'voting_power' => fake()->numberBetween(1, 10),
         ]);
     }
 
     public function recentVote(): static
     {
         return $this->state(fn (array $attributes) => [
-            'voted_at' => $this->faker->dateTimeBetween('-1 day', 'now'),
+            'voted_at' => fake()->dateTimeBetween('-1 day', 'now'),
         ]);
     }
 
     public function oldVote(): static
     {
         return $this->state(fn (array $attributes) => [
-            'voted_at' => $this->faker->dateTimeBetween('-1 month', '-1 week'),
+            'voted_at' => fake()->dateTimeBetween('-1 month', '-1 week'),
         ]);
     }
 
@@ -108,7 +108,7 @@ class VoteFactory extends Factory
             $options = $availableOptions ?? ['option1', 'option2', 'option3'];
             
             return [
-                'selected_options' => [$this->faker->randomElement($options)],
+                'selected_options' => [fake()->randomElement($options)],
             ];
         });
     }
@@ -117,10 +117,10 @@ class VoteFactory extends Factory
     {
         return $this->state(function (array $attributes) use ($availableOptions) {
             $options = $availableOptions ?? ['option1', 'option2', 'option3', 'option4'];
-            $count = $this->faker->numberBetween(1, min(3, count($options)));
+            $count = fake()->numberBetween(1, min(3, count($options)));
             
             return [
-                'selected_options' => $this->faker->randomElements($options, $count),
+                'selected_options' => fake()->randomElements($options, $count),
             ];
         });
     }
@@ -149,7 +149,7 @@ class VoteFactory extends Factory
     private function generateSelectedOptions(): array
     {
         // Generate random options for testing
-        $optionCount = $this->faker->numberBetween(1, 3);
+        $optionCount = fake()->numberBetween(1, 3);
         $options = [];
 
         for ($i = 0; $i < $optionCount; $i++) {

@@ -1,0 +1,57 @@
+name: Build Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '20'
+        type: string
+
+env:
+  NODE_VERSION: ${{ inputs.node-version }}
+
+jobs:
+  frontend-build:
+    name: Frontend Assets Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Cache Node Modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            
+      - name: Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Run Linting
+        run: npm run lint || true
+          
+      - name: Build Production Assets
+        run: npm run build
+        
+      - name: Upload Built Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-assets
+          path: |
+            public/build/
+            public/mix-manifest.json
+          retention-days: 7

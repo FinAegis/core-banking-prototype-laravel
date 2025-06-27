@@ -33,8 +33,8 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: finaegis_test
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
         ports:
           - 3306:3306
         options: >-

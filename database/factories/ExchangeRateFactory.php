@@ -32,19 +32,19 @@ class ExchangeRateFactory extends Factory
             $assets = ['USD', 'EUR', 'GBP', 'BTC', 'ETH'];
         }
         
-        $fromAsset = $this->faker->randomElement($assets);
-        $toAsset = $this->faker->randomElement(array_diff($assets, [$fromAsset]));
+        $fromAsset = fake()->randomElement($assets);
+        $toAsset = fake()->randomElement(array_diff($assets, [$fromAsset]));
         
-        $validAt = $this->faker->dateTimeBetween('-30 days', 'now');
+        $validAt = fake()->dateTimeBetween('-30 days', 'now');
         
         return [
             'from_asset_code' => $fromAsset,
             'to_asset_code' => $toAsset,
             'rate' => $this->generateRealisticRate($fromAsset, $toAsset),
-            'source' => $this->faker->randomElement(ExchangeRate::getSources()),
+            'source' => fake()->randomElement(ExchangeRate::getSources()),
             'valid_at' => $validAt,
-            'expires_at' => $this->faker->optional(0.3)->dateTimeBetween($validAt, '+7 days'),
-            'is_active' => $this->faker->boolean(95),
+            'expires_at' => fake()->optional(0.3)->dateTimeBetween($validAt, '+7 days'),
+            'is_active' => fake()->boolean(95),
             'metadata' => $this->generateMetadata(),
         ];
     }
@@ -74,19 +74,19 @@ class ExchangeRateFactory extends Factory
         if (isset($knownRates[$pair])) {
             // Add some variance to the known rate
             $baseRate = $knownRates[$pair];
-            $variance = $this->faker->numberBetween(-5, 5) / 100; // ±5%
+            $variance = fake()->numberBetween(-5, 5) / 100; // ±5%
             return number_format($baseRate * (1 + $variance), 10, '.', '');
         }
         
         // Generate random rate based on asset types
         if ($this->isCrypto($fromAsset) && $this->isFiat($toAsset)) {
-            return number_format($this->faker->randomFloat(10, 0.00001, 0.1), 10, '.', '');
+            return number_format(fake()->randomFloat(10, 0.00001, 0.1), 10, '.', '');
         } elseif ($this->isFiat($fromAsset) && $this->isCrypto($toAsset)) {
-            return number_format($this->faker->randomFloat(2, 1000, 50000), 10, '.', '');
+            return number_format(fake()->randomFloat(2, 1000, 50000), 10, '.', '');
         } elseif ($this->isFiat($fromAsset) && $this->isFiat($toAsset)) {
-            return number_format($this->faker->randomFloat(6, 0.5, 2.0), 10, '.', '');
+            return number_format(fake()->randomFloat(6, 0.5, 2.0), 10, '.', '');
         } else {
-            return number_format($this->faker->randomFloat(8, 0.001, 100), 10, '.', '');
+            return number_format(fake()->randomFloat(8, 0.001, 100), 10, '.', '');
         }
     }
     
@@ -96,9 +96,9 @@ class ExchangeRateFactory extends Factory
     private function generateMetadata(): array
     {
         return [
-            'confidence' => $this->faker->randomFloat(2, 0.8, 1.0),
-            'volume' => $this->faker->numberBetween(1000, 1000000),
-            'provider' => $this->faker->randomElement(['coinbase', 'binance', 'xe.com', 'fixer.io']),
+            'confidence' => fake()->randomFloat(2, 0.8, 1.0),
+            'volume' => fake()->numberBetween(1000, 1000000),
+            'provider' => fake()->randomElement(['coinbase', 'binance', 'xe.com', 'fixer.io']),
         ];
     }
     
@@ -139,7 +139,7 @@ class ExchangeRateFactory extends Factory
             'source' => ExchangeRate::SOURCE_API,
             'metadata' => [
                 'api_endpoint' => 'https://api.example.com/rates',
-                'response_time' => $this->faker->numberBetween(50, 500),
+                'response_time' => fake()->numberBetween(50, 500),
                 'timestamp' => now()->toISOString(),
             ],
         ]);
@@ -153,7 +153,7 @@ class ExchangeRateFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'source' => ExchangeRate::SOURCE_MANUAL,
             'metadata' => [
-                'entered_by' => $this->faker->name(),
+                'entered_by' => fake()->name(),
                 'reason' => 'Manual override for trading session',
             ],
         ]);
@@ -166,8 +166,8 @@ class ExchangeRateFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_active' => true,
-            'valid_at' => now()->subMinutes($this->faker->numberBetween(1, 60)),
-            'expires_at' => now()->addHours($this->faker->numberBetween(1, 24)),
+            'valid_at' => now()->subMinutes(fake()->numberBetween(1, 60)),
+            'expires_at' => now()->addHours(fake()->numberBetween(1, 24)),
         ]);
     }
     
@@ -176,10 +176,10 @@ class ExchangeRateFactory extends Factory
      */
     public function expired(): static
     {
-        $expiredAt = $this->faker->dateTimeBetween('-7 days', '-1 hour');
+        $expiredAt = fake()->dateTimeBetween('-7 days', '-1 hour');
         
         return $this->state(fn (array $attributes) => [
-            'valid_at' => $this->faker->dateTimeBetween('-30 days', $expiredAt),
+            'valid_at' => fake()->dateTimeBetween('-30 days', $expiredAt),
             'expires_at' => $expiredAt,
         ]);
     }

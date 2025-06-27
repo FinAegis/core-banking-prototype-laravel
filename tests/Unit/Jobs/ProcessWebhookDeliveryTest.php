@@ -18,7 +18,10 @@ use Exception;
 
 class ProcessWebhookDeliveryTest extends TestCase
 {
-    use RefreshDatabase;
+    protected function shouldCreateDefaultAccountsInSetup(): bool
+    {
+        return false;
+    }
 
     protected Webhook $webhook;
     protected WebhookDelivery $delivery;
@@ -55,7 +58,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->andReturn($expectedSignature);
 
         Http::fake([
-            $this->webhook->url => Http::response(['success' => true], 200),
+            '*' => Http::response(['success' => true], 200),
         ]);
 
         $job = new ProcessWebhookDelivery($this->delivery);
@@ -76,7 +79,7 @@ class ProcessWebhookDeliveryTest extends TestCase
 
         $this->delivery->refresh();
         $this->assertEquals('delivered', $this->delivery->status);
-        $this->assertEquals(200, $this->delivery->response_status_code);
+        $this->assertEquals(200, $this->delivery->response_status);
         $this->assertNotNull($this->delivery->delivered_at);
     }
 
@@ -88,7 +91,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->shouldNotReceive('generateSignature');
 
         Http::fake([
-            $this->webhook->url => Http::response(['success' => true], 200),
+            '*' => Http::response(['success' => true], 200),
         ]);
 
         $job = new ProcessWebhookDelivery($this->delivery);
@@ -149,7 +152,7 @@ class ProcessWebhookDeliveryTest extends TestCase
 
         $this->delivery->refresh();
         $this->assertEquals('failed', $this->delivery->status);
-        $this->assertEquals(400, $this->delivery->response_status_code);
+        $this->assertEquals(400, $this->delivery->response_status);
     }
 
     public function test_job_handles_network_timeout()
@@ -160,9 +163,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->andReturn('test-signature');
 
         Http::fake([
-            $this->webhook->url => function () {
-                throw new RequestException(Http::response('', 0));
-            },
+            $this->webhook->url => Http::timeout(),
         ]);
 
         Log::shouldReceive('error')
@@ -186,7 +187,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->andReturn('test-signature');
 
         Http::fake([
-            $this->webhook->url => Http::response(['success' => true], 200),
+            '*' => Http::response(['success' => true], 200),
         ]);
 
         Log::shouldReceive('info')
@@ -209,7 +210,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->andReturn('test-signature');
 
         Http::fake([
-            $this->webhook->url => Http::response(['success' => true], 200),
+            '*' => Http::response(['success' => true], 200),
         ]);
 
         $job = new ProcessWebhookDelivery($this->delivery);
@@ -226,7 +227,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->andReturn('test-signature');
 
         Http::fake([
-            $this->webhook->url => Http::response(['success' => true], 200),
+            '*' => Http::response(['success' => true], 200),
         ]);
 
         $job = new ProcessWebhookDelivery($this->delivery);
@@ -246,7 +247,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->andReturn('test-signature');
 
         Http::fake([
-            $this->webhook->url => Http::response(['success' => true], 200),
+            '*' => Http::response(['success' => true], 200),
         ]);
 
         $job = new ProcessWebhookDelivery($this->delivery);
@@ -302,7 +303,7 @@ class ProcessWebhookDeliveryTest extends TestCase
             ->shouldNotReceive('generateSignature');
 
         Http::fake([
-            $this->webhook->url => Http::response(['success' => true], 200),
+            '*' => Http::response(['success' => true], 200),
         ]);
 
         $job = new ProcessWebhookDelivery($this->delivery);

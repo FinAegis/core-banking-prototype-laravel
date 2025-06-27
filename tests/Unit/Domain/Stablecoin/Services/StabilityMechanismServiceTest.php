@@ -12,14 +12,12 @@ use App\Models\StablecoinCollateralPosition;
 use App\Models\Account;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
 class StabilityMechanismServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected StabilityMechanismService $service;
     protected $exchangeRateService;
@@ -133,19 +131,24 @@ class StabilityMechanismServiceTest extends TestCase
     /**
      * Create a mock ExchangeRate object with the given rate.
      */
-    private function createMockRate(float $rate): object
+    private function createMockRate(float $rate, string $from = 'FUSD', string $to = 'USD'): ExchangeRate
     {
-        $mockRate = new \stdClass();
-        $mockRate->rate = $rate;
-        return $mockRate;
+        return new ExchangeRate([
+            'from_asset_code' => $from,
+            'to_asset_code' => $to,
+            'rate' => $rate,
+            'source' => ExchangeRate::SOURCE_API,
+            'valid_at' => now(),
+            'expires_at' => now()->addHour(),
+            'is_active' => true,
+        ]);
     }
 
     /** @test */
     public function it_can_check_peg_deviation()
     {
         // Mock current price above peg
-        $mockRate = new \stdClass();
-        $mockRate->rate = 1.05; // 5% above peg
+        $mockRate = $this->createMockRate(1.05, 'CUSD', 'USD'); // 5% above peg
         
         $this->exchangeRateService
             ->shouldReceive('getRate')
@@ -161,8 +164,7 @@ class StabilityMechanismServiceTest extends TestCase
         $this->assertFalse($deviation['within_threshold']);
         
         // Mock current price below peg
-        $mockRate2 = new \stdClass();
-        $mockRate2->rate = 0.97; // 3% below peg
+        $mockRate2 = $this->createMockRate(0.97, 'CUSD', 'USD'); // 3% below peg
         
         $this->exchangeRateService
             ->shouldReceive('getRate')

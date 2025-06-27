@@ -20,14 +20,14 @@ class TurnoverFactory extends Factory
      */
     public function definition(): array
     {
-        $debit = $this->faker->randomFloat(2, 0, 5000);
-        $credit = $this->faker->randomFloat(2, 0, 5000);
+        $debit = fake()->randomFloat(2, 0, 5000);
+        $credit = fake()->randomFloat(2, 0, 5000);
         $amount = $credit - $debit;
         
         return [
             'account_uuid' => Account::factory(),
-            'date' => $this->faker->date(),
-            'count' => $this->faker->numberBetween(1, 100),
+            'date' => fake()->date(),
+            'count' => fake()->numberBetween(1, 100),
             'amount' => $amount,
             'debit' => $debit,
             'credit' => $credit,

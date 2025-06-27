@@ -1,0 +1,255 @@
+name: Performance Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version to use'
+        required: false
+        default: '8.3'
+        type: string
+
+env:
+  PHP_VERSION: ${{ inputs.php-version }}
+
+jobs:
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: performance_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP with JIT
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl
+          tools: composer:v2
+          coverage: none
+          ini-values: |
+            opcache.enable=1
+            opcache.enable_cli=1
+            opcache.jit=tracing
+            opcache.jit_buffer_size=256M
+            memory_limit=1G
+            
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            vendor
+            ~/.composer/cache
+          key: ${{ runner.os }}-performance-${{ hashFiles('**/composer.lock') }}
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader --no-dev
+          
+      - name: Prepare Performance Testing
+        run: |
+          cp .env.performance .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan event:cache
+          php artisan migrate --force
+          php artisan db:seed --class=PerformanceSeeder || true
+          
+      - name: Run Performance Tests
+        run: ./vendor/bin/pest tests/Performance --parallel
+          
+      - name: Analyze Performance Results
+        run: php artisan performance:analyze || true
+
+  benchmark-tests:
+    name: Application Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: performance_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP with JIT
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl
+          tools: composer:v2
+          coverage: none
+          ini-values: |
+            opcache.enable=1
+            opcache.enable_cli=1
+            opcache.jit=tracing
+            opcache.jit_buffer_size=256M
+            memory_limit=512M
+            
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            vendor
+            ~/.composer/cache
+          key: ${{ runner.os }}-benchmark-${{ hashFiles('**/composer.lock') }}
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader --no-dev
+          
+      - name: Prepare Performance Environment
+        run: |
+          cp .env.performance .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan event:cache
+          php artisan migrate --force
+          
+          # Start Laravel server
+          php artisan serve --no-reload &
+          sleep 5
+          
+      - name: Run Apache Bench Tests
+        id: benchmarks
+        run: |
+          # Install Apache Bench
+          sudo apt-get update && sudo apt-get install -y apache2-utils
+          
+          # Benchmark API endpoints
+          ENDPOINTS=(
+            "/api/v2/status"
+            "/api/v2/accounts"
+            "/api/v2/transactions"
+          )
+          
+          TOTAL_TIME=0
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo "Testing $endpoint..."
+            
+            # Run Apache Bench with fewer requests for CI
+            ab -n 100 -c 5 -k \
+               -H "Accept: application/json" \
+               -H "Content-Type: application/json" \
+               http://localhost:8000$endpoint > ab-results-$endpoint.txt || true
+               
+            # Extract metrics
+            AVG_TIME=$(grep "Time per request:" ab-results-$endpoint.txt | grep -v "across" | awk '{print $4}' || echo "0")
+            echo "$endpoint: ${AVG_TIME}ms"
+            TOTAL_TIME=$(echo "$TOTAL_TIME + $AVG_TIME" | bc)
+          done
+          
+          # Calculate average response time
+          AVG_RESPONSE_TIME=$(echo "scale=2; $TOTAL_TIME / ${#ENDPOINTS[@]}" | bc)
+          echo "Average API Response Time: ${AVG_RESPONSE_TIME}ms"
+          
+          # Check threshold (increased to 250ms for CI environment)
+          if (( $(echo "$AVG_RESPONSE_TIME > 250" | bc -l) )); then
+            echo "⚠️ API response time exceeds threshold: ${AVG_RESPONSE_TIME}ms > 250ms"
+            exit 1
+          fi
+
+  load-tests:
+    name: Load Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: performance_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader --no-dev
+          
+      - name: Prepare Application
+        run: |
+          cp .env.performance .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan event:cache
+          php artisan migrate --force
+          
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6 -y
+          
+      - name: Run Load Tests
+        run: |
+          if [ -f "tests/k6/load-test.js" ]; then
+            k6 run tests/k6/load-test.js --out json=load-test-results.json
+          fi

@@ -20,22 +20,22 @@ class TransferFactory extends Factory
     public function definition(): array
     {
         return [
-            'aggregate_uuid' => $this->faker->uuid(),
-            'aggregate_version' => $this->faker->numberBetween(1, 100),
+            'aggregate_uuid' => fake()->uuid(),
+            'aggregate_version' => fake()->numberBetween(1, 100),
             'event_version' => 1,
             'event_class' => 'App\\Domain\\Account\\Events\\MoneyTransferred',
             'event_properties' => json_encode([
-                'fromAccount' => ['uuid' => $this->faker->uuid()],
-                'toAccount' => ['uuid' => $this->faker->uuid()],
-                'money' => ['amount' => $this->faker->numberBetween(100, 100000)],
-                'hash' => ['hash' => hash('sha3-512', $this->faker->text())]
+                'fromAccount' => ['uuid' => fake()->uuid()],
+                'toAccount' => ['uuid' => fake()->uuid()],
+                'money' => ['amount' => fake()->numberBetween(100, 100000)],
+                'hash' => ['hash' => hash('sha3-512', fake()->text())]
             ]),
             'meta_data' => json_encode([
-                'user_uuid' => $this->faker->uuid(),
-                'ip_address' => $this->faker->ipv4(),
-                'user_agent' => $this->faker->userAgent(),
+                'user_uuid' => fake()->uuid(),
+                'ip_address' => fake()->ipv4(),
+                'user_agent' => fake()->userAgent(),
             ]),
-            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'created_at' => fake()->dateTimeBetween('-1 year', 'now'),
         ];
     }
 
@@ -101,7 +101,7 @@ class TransferFactory extends Factory
      */
     public function large(): static
     {
-        return $this->withAmount($this->faker->numberBetween(100000, 1000000));
+        return $this->withAmount(fake()->numberBetween(100000, 1000000));
     }
 
     /**
@@ -109,6 +109,6 @@ class TransferFactory extends Factory
      */
     public function small(): static
     {
-        return $this->withAmount($this->faker->numberBetween(100, 10000));
+        return $this->withAmount(fake()->numberBetween(100, 10000));
     }
 }

@@ -22,12 +22,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'api.rate_limit' => \App\Http\Middleware\ApiRateLimitMiddleware::class,
             'transaction.rate_limit' => \App\Http\Middleware\TransactionRateLimitMiddleware::class,
+            'ensure.json' => \App\Http\Middleware\EnsureJsonRequest::class,
+            'check.token.expiration' => \App\Http\Middleware\CheckTokenExpiration::class,
         ]);
         
         // Apply middleware to API routes (no global throttling - use custom rate limiting)
         $middleware->group('api', [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

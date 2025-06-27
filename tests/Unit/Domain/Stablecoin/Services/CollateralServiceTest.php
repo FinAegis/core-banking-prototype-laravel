@@ -11,13 +11,11 @@ use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
 
 class CollateralServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected CollateralService $service;
     protected $exchangeRateService;
@@ -65,8 +63,15 @@ class CollateralServiceTest extends TestCase
         $this->assertEquals(100000, $result);
         
         // Test different asset conversion
-        $mockRate = new \stdClass();
-        $mockRate->rate = 1.1;
+        $mockRate = new ExchangeRate([
+            'from_asset_code' => 'EUR',
+            'to_asset_code' => 'USD',
+            'rate' => 1.1,
+            'source' => ExchangeRate::SOURCE_API,
+            'valid_at' => now(),
+            'expires_at' => now()->addHour(),
+            'is_active' => true,
+        ]);
         
         $this->exchangeRateService
             ->shouldReceive('getRate')
@@ -127,8 +132,15 @@ class CollateralServiceTest extends TestCase
             'status' => 'active',
         ]);
         
-        $mockRate = new \stdClass();
-        $mockRate->rate = 1.1;
+        $mockRate = new ExchangeRate([
+            'from_asset_code' => 'EUR',
+            'to_asset_code' => 'USD',
+            'rate' => 1.1,
+            'source' => ExchangeRate::SOURCE_API,
+            'valid_at' => now(),
+            'expires_at' => now()->addHour(),
+            'is_active' => true,
+        ]);
         
         $this->exchangeRateService
             ->shouldReceive('getRate')
@@ -282,15 +294,31 @@ class CollateralServiceTest extends TestCase
             'auto_liquidation_enabled' => true,
         ]);
         
+        // Mock getRate for healthy position (USD to USD = 1.0)
+        $this->exchangeRateService
+            ->shouldReceive('getRate')
+            ->with('USD', 'USD')
+            ->andReturn(null); // Same currency, no rate needed
+        
         $recommendations = $this->service->getPositionRecommendations($position);
         $this->assertCount(1, $recommendations);
         $this->assertEquals('mint_more', $recommendations[0]['action']);
         
-        // At-risk position
-        $position->collateral_ratio = 1.15;
+        // At-risk position - reduce collateral to force low ratio
+        $position->collateral_amount = 125000; // This will give ratio of 1.25
+        $position->collateral_ratio = 1.25;
         $position->save();
         
+        // Mock getRate for at-risk position (USD to USD = 1.0)
+        $this->exchangeRateService
+            ->shouldReceive('getRate')
+            ->with('USD', 'USD')
+            ->andReturn(null); // Same currency, no rate needed
+        
         $recommendations = $this->service->getPositionRecommendations($position);
+        
+        // With ratio of 1.25 and min_ratio of 1.2:
+        // health_score = (1.25 - 1.2) / 1.2 = 0.0417 which is < 0.2
         $this->assertCount(1, $recommendations);
         $this->assertEquals('add_collateral', $recommendations[0]['action']);
         $this->assertEquals('high', $recommendations[0]['urgency']);
@@ -356,8 +384,15 @@ class CollateralServiceTest extends TestCase
             'status' => 'active',
         ]);
         
-        $mockRate = new \stdClass();
-        $mockRate->rate = 1.1;
+        $mockRate = new ExchangeRate([
+            'from_asset_code' => 'EUR',
+            'to_asset_code' => 'USD',
+            'rate' => 1.1,
+            'source' => ExchangeRate::SOURCE_API,
+            'valid_at' => now(),
+            'expires_at' => now()->addHour(),
+            'is_active' => true,
+        ]);
         
         $this->exchangeRateService
             ->shouldReceive('getRate')

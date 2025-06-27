@@ -19,6 +19,20 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicApiController::class, 'index']);
 Route::get('/status', [PublicApiController::class, 'status']);
 
+// Authentication endpoints (public)
+Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
+    Route::post('/register', [\App\Http\Controllers\Api\Auth\RegisterController::class, 'register']);
+    Route::post('/login', [\App\Http\Controllers\Api\Auth\LoginController::class, 'login']);
+    
+    // Protected auth endpoints
+    Route::middleware(['auth:sanctum', 'check.token.expiration'])->group(function () {
+        Route::post('/logout', [\App\Http\Controllers\Api\Auth\LoginController::class, 'logout']);
+        Route::post('/logout-all', [\App\Http\Controllers\Api\Auth\LoginController::class, 'logoutAll']);
+        Route::post('/refresh', [\App\Http\Controllers\Api\Auth\LoginController::class, 'refresh']);
+        Route::get('/user', [\App\Http\Controllers\Api\Auth\LoginController::class, 'user']);
+    });
+});
+
 // GCU-specific endpoints (public read access)
 Route::prefix('gcu')->group(function () {
     Route::get('/', [GCUController::class, 'index']);
@@ -94,7 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Transfers
     Route::prefix('transfers')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\TransferController::class, 'store']);
+        Route::post('/', [\App\Http\Controllers\Api\TransferController::class, 'store'])->middleware('transaction.rate_limit:transfer');
         Route::get('/{uuid}', [\App\Http\Controllers\Api\TransferController::class, 'show']);
     });
 

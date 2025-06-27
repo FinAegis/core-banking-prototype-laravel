@@ -49,14 +49,50 @@ abstract class TestCase extends BaseTestCase
 
         $this->createRoles();
 
-        $this->user = User::factory()->create();
-        $this->business_user = User::factory()->withBusinessRole()->create();
-        $this->account = $this->createAccount($this->business_user);
+        // Only create default users and accounts if the test needs them
+        if ($this->shouldCreateDefaultAccountsInSetup()) {
+            $this->user = User::factory()->create();
+            $this->business_user = User::factory()->withBusinessRole()->create();
+            $this->account = $this->createAccount($this->business_user);
+        }
         
         // Set up Filament panel if we're in a Filament test directory
         $testFile = (new \ReflectionClass($this))->getFileName();
         if (str_contains($testFile, '/Filament/') || str_contains($testFile, '\\Filament\\')) {
             $this->setUpFilament();
+        }
+    }
+
+    /**
+     * Determine if this test should create default accounts in setUp.
+     * Override in child classes to disable.
+     */
+    protected function shouldCreateDefaultAccountsInSetup(): bool
+    {
+        // Don't create accounts for Security tests by default to avoid transaction conflicts
+        $testFile = (new \ReflectionClass($this))->getFileName();
+        if (str_contains($testFile, '/Security/') || str_contains($testFile, '\\Security\\')) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Create default users and accounts if they don't exist.
+     */
+    protected function createDefaultAccounts(): void
+    {
+        if (!isset($this->user)) {
+            $this->user = User::factory()->create();
+        }
+        
+        if (!isset($this->business_user)) {
+            $this->business_user = User::factory()->withBusinessRole()->create();
+        }
+        
+        if (!isset($this->account)) {
+            $this->account = $this->createAccount($this->business_user);
         }
     }
 
@@ -116,14 +152,12 @@ abstract class TestCase extends BaseTestCase
             return;
         }
         
-        // Use a database transaction to ensure atomic operation
-        \DB::transaction(function () {
-            collect(UserRoles::cases())->each(function ($role) {
-                Role::firstOrCreate(
-                    ['name' => $role->value],
-                    ['guard_name' => 'web']
-                );
-            });
+        // Create roles without transaction to avoid nesting issues
+        collect(UserRoles::cases())->each(function ($role) {
+            Role::firstOrCreate(
+                ['name' => $role->value],
+                ['guard_name' => 'web']
+            );
         });
     }
 

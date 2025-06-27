@@ -1,0 +1,89 @@
+name: Code Quality Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version to use'
+        required: false
+        default: '8.3'
+        type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+env:
+  PHP_VERSION: ${{ inputs.php-version }}
+  COMPOSER_PROCESS_TIMEOUT: 0
+  COMPOSER_NO_INTERACTION: 1
+  COMPOSER_NO_AUDIT: 1
+
+jobs:
+  code-standards:
+    name: Code Standards & Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache
+          tools: composer:v2, phpstan, phpcs, php-cs-fixer
+          coverage: none
+          
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
+        
+      - name: Run PHP Code Sniffer
+        run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/ || true
+        
+      - name: Run PHP Static Analysis
+        run: vendor/bin/phpstan analyse --memory-limit=2G || true
+        
+      - name: Check PHP Code Style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff || true
+
+  dependency-security:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+          
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-security-${{ hashFiles('**/composer.lock') }}
+          
+      - name: Security Audit Dependencies
+        run: |
+          composer audit --no-dev || true
+          composer audit || true

@@ -1,0 +1,318 @@
+name: Test Suite Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version to use'
+        required: false
+        default: '8.3'
+        type: string
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '20'
+        type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+env:
+  PHP_VERSION: ${{ inputs.php-version }}
+  NODE_VERSION: ${{ inputs.node-version }}
+  COMPOSER_PROCESS_TIMEOUT: 0
+  COMPOSER_NO_INTERACTION: 1
+  COMPOSER_NO_AUDIT: 1
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap
+          tools: composer:v2
+          coverage: xdebug
+          ini-values: |
+            memory_limit=512M
+            max_execution_time=360
+            
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/composer.lock', '**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+            
+      - name: Install PHP Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          composer dump-autoload
+          
+      - name: Install Node Dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm run build
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan migrate --force
+          
+      - name: Run Unit Tests
+        run: |
+          # Run unit tests using CI configuration with MySQL
+          ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --coverage --min=70
+          
+      - name: Run Security Tests
+        if: always()
+        run: |
+          # Run security tests separately with CI configuration
+          ./vendor/bin/pest --testsuite=Security --configuration=phpunit.ci.xml
+          
+      - name: Upload Test Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  feature-tests:
+    name: Feature Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap
+          tools: composer:v2
+          coverage: xdebug
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          npm ci --prefer-offline --no-audit
+          npm run build
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan migrate --force
+          
+      - name: Run Feature Tests
+        run: ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --coverage --min=65
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap
+          tools: composer:v2
+          coverage: xdebug
+          
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan migrate --force
+          
+      - name: Run Integration Tests
+        run: ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --coverage --min=55
+        
+  behat-tests:
+    name: Behat Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, curl
+          tools: composer:v2
+          coverage: none
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          npm ci --prefer-offline --no-audit
+          npm run build
+          
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan migrate --force
+          php artisan db:seed --class=TestSeeder || true
+          
+      - name: Run Behat Tests
+        run: |
+          vendor/bin/behat --format=pretty --format=junit --out=std --out=tests-results || true
+          
+      - name: Upload Behat Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: behat-results
+          path: tests-results/

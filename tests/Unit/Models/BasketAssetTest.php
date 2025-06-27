@@ -13,7 +13,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class BasketAssetTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

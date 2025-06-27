@@ -13,7 +13,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class StablecoinTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

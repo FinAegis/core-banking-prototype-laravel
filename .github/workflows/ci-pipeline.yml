@@ -1,0 +1,116 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable debug mode'
+        required: false
+        default: false
+
+env:
+  PHP_VERSION: '8.3'
+  NODE_VERSION: '20'
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Phase 1: Code Quality & Security Scanning (Parallel)
+  code-quality:
+    name: Code Quality
+    uses: ./.github/workflows/01-code-quality.yml
+    with:
+      php-version: ${{ env.PHP_VERSION }}
+    secrets: inherit
+
+  security-scan:
+    name: Security Scan
+    uses: ./.github/workflows/02-security-scan.yml
+    with:
+      php-version: ${{ env.PHP_VERSION }}
+    secrets: inherit
+
+  build-assets:
+    name: Build Assets
+    uses: ./.github/workflows/06-build.yml
+    with:
+      node-version: ${{ env.NODE_VERSION }}
+    secrets: inherit
+
+  # Phase 2: Test Suites (After Code Quality)
+  test-suite:
+    name: Test Suite
+    needs: [code-quality]
+    uses: ./.github/workflows/03-test-suite.yml
+    with:
+      php-version: ${{ env.PHP_VERSION }}
+      node-version: ${{ env.NODE_VERSION }}
+    secrets: inherit
+
+  # Phase 3: Security Tests (After Security Scan)
+  security-tests:
+    name: Security Tests
+    needs: [security-scan]
+    uses: ./.github/workflows/04-security-tests.yml
+    with:
+      php-version: ${{ env.PHP_VERSION }}
+    secrets: inherit
+
+  # Phase 4: Performance Tests (After Test Suite)
+  performance-tests:
+    name: Performance Tests
+    needs: [test-suite]
+    uses: ./.github/workflows/05-performance.yml
+    with:
+      php-version: ${{ env.PHP_VERSION }}
+    secrets: inherit
+
+  # Final Phase: Status Check (No commenting)
+  final-status:
+    name: Pipeline Status
+    needs: [code-quality, security-scan, test-suite, security-tests, performance-tests, build-assets]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Check Pipeline Results
+        run: |
+          echo "Pipeline Results Summary:"
+          echo "- Code Quality: ${{ needs.code-quality.result }}"
+          echo "- Security Scan: ${{ needs.security-scan.result }}" 
+          echo "- Test Suite: ${{ needs.test-suite.result }}"
+          echo "- Security Tests: ${{ needs.security-tests.result }}"
+          echo "- Performance Tests: ${{ needs.performance-tests.result }}"
+          echo "- Build Assets: ${{ needs.build-assets.result }}"
+          
+      - name: Determine Overall Status
+        if: |
+          needs.code-quality.result == 'failure' ||
+          needs.security-scan.result == 'failure' ||
+          needs.test-suite.result == 'failure' ||
+          needs.security-tests.result == 'failure'
+        run: |
+          echo "❌ Pipeline failed - critical issues detected"
+          exit 1
+          
+      - name: Success Status
+        if: |
+          needs.code-quality.result == 'success' &&
+          needs.security-scan.result == 'success' &&
+          needs.test-suite.result == 'success' &&
+          needs.security-tests.result == 'success'
+        run: |
+          echo "✅ Pipeline completed successfully"

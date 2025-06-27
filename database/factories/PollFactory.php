@@ -17,33 +17,33 @@ class PollFactory extends Factory
 
     public function definition(): array
     {
-        $startDate = $this->faker->dateTimeBetween('-1 week', '+1 week');
-        $endDate = $this->faker->dateTimeBetween($startDate, '+2 weeks');
+        $startDate = fake()->dateTimeBetween('-1 week', '+1 week');
+        $endDate = fake()->dateTimeBetween($startDate, '+2 weeks');
 
         return [
             'uuid' => (string) Str::uuid(),
-            'title' => $this->faker->sentence(6),
-            'description' => $this->faker->paragraph(3),
-            'type' => $this->faker->randomElement(PollType::cases()),
+            'title' => fake()->sentence(6),
+            'description' => fake()->paragraph(3),
+            'type' => fake()->randomElement(PollType::cases()),
             'options' => $this->generateOptions(),
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'status' => $this->faker->randomElement(PollStatus::cases()),
-            'required_participation' => $this->faker->optional(0.3)->numberBetween(10, 80),
-            'voting_power_strategy' => $this->faker->randomElement([
+            'status' => fake()->randomElement(PollStatus::cases()),
+            'required_participation' => fake()->optional(0.3)->numberBetween(10, 80),
+            'voting_power_strategy' => fake()->randomElement([
                 'one_user_one_vote',
                 'asset_weighted_vote'
             ]),
-            'execution_workflow' => $this->faker->optional(0.5)->randomElement([
+            'execution_workflow' => fake()->optional(0.5)->randomElement([
                 'AddAssetWorkflow',
                 'UpdateConfigurationWorkflow',
                 'FeatureToggleWorkflow'
             ]),
             'created_by' => User::factory()->create()->uuid,
             'metadata' => [
-                'category' => $this->faker->randomElement(['governance', 'features', 'assets', 'policy']),
-                'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
-                'tags' => $this->faker->words(3),
+                'category' => fake()->randomElement(['governance', 'features', 'assets', 'policy']),
+                'priority' => fake()->randomElement(['low', 'medium', 'high']),
+                'tags' => fake()->words(3),
             ],
         ];
     }
@@ -139,15 +139,15 @@ class PollFactory extends Factory
 
     private function generateOptions(int $min = 2, int $max = 4): array
     {
-        $count = $this->faker->numberBetween($min, $max);
+        $count = fake()->numberBetween($min, $max);
         $options = [];
 
         for ($i = 0; $i < $count; $i++) {
             $options[] = [
-                'id' => Str::slug($this->faker->unique()->words(2, true)),
-                'label' => $this->faker->sentence(3),
-                'description' => $this->faker->optional(0.7)->sentence(8),
-                'metadata' => $this->faker->optional(0.3)->randomElement([
+                'id' => Str::slug(fake()->unique()->words(2, true)),
+                'label' => fake()->sentence(3),
+                'description' => fake()->optional(0.7)->sentence(8),
+                'metadata' => fake()->optional(0.3)->randomElement([
                     ['impact' => 'high'],
                     ['cost' => 'low'],
                     ['complexity' => 'medium'],

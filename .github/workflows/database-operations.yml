@@ -1,0 +1,319 @@
+name: Database Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Database operation to perform'
+        required: true
+        type: choice
+        options:
+          - backup
+          - restore
+          - migrate
+          - rollback
+          - seed
+          - refresh
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+        default: development
+      migration-step:
+        description: 'Number of migrations to rollback (for rollback operation)'
+        required: false
+        type: string
+        default: '1'
+      backup-id:
+        description: 'Backup ID to restore (for restore operation)'
+        required: false
+        type: string
+      confirm-production:
+        description: 'Type "CONFIRM" to execute on production'
+        required: false
+        type: string
+
+env:
+  PHP_VERSION: '8.3'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: database-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  validate-request:
+    name: Validate Database Operation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Check Production Confirmation
+        if: github.event.inputs.environment == 'production' && github.event.inputs.confirm-production != 'CONFIRM'
+        run: |
+          echo "::error::Production operations require confirmation. Please type 'CONFIRM' in the confirmation field."
+          exit 1
+          
+      - name: Validate Operation Parameters
+        run: |
+          echo "Operation: ${{ github.event.inputs.operation }}"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          
+          if [[ "${{ github.event.inputs.operation }}" == "restore" && -z "${{ github.event.inputs.backup-id }}" ]]; then
+            echo "::error::Restore operation requires a backup ID"
+            exit 1
+          fi
+          
+          if [[ "${{ github.event.inputs.operation }}" == "rollback" && ! "${{ github.event.inputs.migration-step }}" =~ ^[0-9]+$ ]]; then
+            echo "::error::Rollback steps must be a number"
+            exit 1
+          fi
+
+  database-backup:
+    name: Create Database Backup
+    needs: [validate-request]
+    if: github.event.inputs.operation == 'backup' || github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      backup-id: ${{ steps.backup.outputs.id }}
+      
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Environment
+        run: |
+          echo "Setting up ${{ github.event.inputs.environment }} environment credentials..."
+          # Load environment-specific credentials from secrets
+          
+      - name: Create Database Backup
+        id: backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_ID="${{ github.event.inputs.environment }}_${TIMESTAMP}_${{ github.run_id }}"
+          echo "id=$BACKUP_ID" >> $GITHUB_OUTPUT
+          
+          echo "Creating backup: $BACKUP_ID"
+          
+          # In production, this would:
+          # 1. Connect to database server
+          # 2. Create logical backup with mysqldump
+          # 3. Compress backup
+          # 4. Upload to S3/cloud storage
+          # 5. Verify backup integrity
+          
+      - name: Store Backup Metadata
+        run: |
+          echo "Storing backup metadata..."
+          echo "{
+            \"id\": \"${{ steps.backup.outputs.id }}\",
+            \"environment\": \"${{ github.event.inputs.environment }}\",
+            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"size\": \"$(du -h backup.sql.gz | cut -f1)\",
+            \"tables\": \"$(mysql -h $DB_HOST -u $DB_USER -p$DB_PASS $DB_NAME -e 'SHOW TABLES' | wc -l)\"
+          }" > backup-metadata.json
+          
+      - name: Upload Backup Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ steps.backup.outputs.id }}
+          path: |
+            backup.sql.gz
+            backup-metadata.json
+          retention-days: 30
+
+  database-operation:
+    name: Execute Database Operation
+    needs: [validate-request, database-backup]
+    if: always() && needs.validate-request.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ github.event.inputs.environment }}
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        if: github.event.inputs.environment == 'development'
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: operations_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis
+          tools: composer:v2
+          coverage: none
+          
+      - name: Install Dependencies
+        run: |
+          composer install --prefer-dist --no-progress --optimize-autoloader
+          
+      - name: Configure Environment
+        run: |
+          cp .env.${{ github.event.inputs.environment }} .env || cp .env.example .env
+          php artisan key:generate
+          
+          # Set environment-specific database credentials
+          if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "Using production database configuration"
+            # Set production credentials from secrets
+          fi
+          
+      - name: Execute Migration
+        if: github.event.inputs.operation == 'migrate'
+        run: |
+          echo "Running migrations on ${{ github.event.inputs.environment }}..."
+          
+          # Show pending migrations
+          php artisan migrate:status
+          
+          # Run migrations
+          php artisan migrate --force --no-interaction
+          
+          # Show final status
+          php artisan migrate:status
+          
+      - name: Execute Rollback
+        if: github.event.inputs.operation == 'rollback'
+        run: |
+          echo "Rolling back ${{ github.event.inputs.migration-step }} migration(s)..."
+          
+          # Show current status
+          php artisan migrate:status
+          
+          # Rollback migrations
+          php artisan migrate:rollback --step=${{ github.event.inputs.migration-step }} --force
+          
+          # Show final status
+          php artisan migrate:status
+          
+      - name: Execute Seeding
+        if: github.event.inputs.operation == 'seed'
+        run: |
+          echo "Seeding database on ${{ github.event.inputs.environment }}..."
+          
+          if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "::warning::Seeding production database - only safe seeders will run"
+            php artisan db:seed --class=ProductionSeeder --force
+          else
+            php artisan db:seed --force
+          fi
+          
+      - name: Execute Database Refresh
+        if: github.event.inputs.operation == 'refresh' && github.event.inputs.environment != 'production'
+        run: |
+          echo "Refreshing database on ${{ github.event.inputs.environment }}..."
+          php artisan migrate:fresh --seed --force
+          
+      - name: Execute Restore
+        if: github.event.inputs.operation == 'restore'
+        run: |
+          echo "Restoring database from backup: ${{ github.event.inputs.backup-id }}"
+          
+          # Download backup
+          # Verify backup integrity
+          # Create current backup before restore
+          # Restore database
+          # Verify restoration
+          
+      - name: Run Post-operation Checks
+        if: success()
+        run: |
+          echo "Running post-operation verification..."
+          
+          # Check database connectivity
+          php artisan db:show
+          
+          # Verify migrations status
+          php artisan migrate:status
+          
+          # Run basic health checks
+          php artisan db:monitor
+          
+      - name: Clear Caches
+        if: success() && github.event.inputs.environment != 'development'
+        run: |
+          php artisan cache:clear
+          php artisan config:clear
+          php artisan route:clear
+          php artisan view:clear
+
+  operation-report:
+    name: Operation Summary
+    needs: [database-backup, database-operation]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Generate Operation Report
+        run: |
+          echo "# Database Operation Report" > operation-report.md
+          echo "" >> operation-report.md
+          echo "**Operation:** ${{ github.event.inputs.operation }}" >> operation-report.md
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> operation-report.md
+          echo "**Executed by:** ${{ github.actor }}" >> operation-report.md
+          echo "**Time:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> operation-report.md
+          echo "" >> operation-report.md
+          
+          if [[ "${{ needs.database-backup.result }}" == "success" ]]; then
+            echo "## Backup" >> operation-report.md
+            echo "✅ Backup created: ${{ needs.database-backup.outputs.backup-id }}" >> operation-report.md
+          fi
+          
+          echo "" >> operation-report.md
+          echo "## Operation Status" >> operation-report.md
+          if [[ "${{ needs.database-operation.result }}" == "success" ]]; then
+            echo "✅ Operation completed successfully" >> operation-report.md
+          else
+            echo "❌ Operation failed" >> operation-report.md
+          fi
+          
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-operation-report
+          path: operation-report.md
+          retention-days: 90
+          
+      - name: Create Issue on Failure
+        if: failure() && github.event.inputs.environment == 'production'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Database Operation Failed: ${context.payload.inputs.operation} on ${context.payload.inputs.environment}`,
+              body: `A database operation has failed and requires attention.
+              
+              **Details:**
+              - Operation: ${context.payload.inputs.operation}
+              - Environment: ${context.payload.inputs.environment}
+              - Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+              - Actor: @${context.actor}
+              
+              Please investigate and resolve the issue.`,
+              labels: ['bug', 'database', 'production']
+            });
