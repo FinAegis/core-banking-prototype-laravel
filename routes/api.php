@@ -216,6 +216,8 @@ Route::middleware('api.rate_limit:public')->group(function () {
     Route::prefix('sub-products')->group(function () {
         Route::get('/', [SubProductController::class, 'index']);
         Route::get('/{subProduct}', [SubProductController::class, 'show']);
+    });
+    
     // Public settings endpoints
     Route::prefix('settings')->group(function () {
         Route::get('/', [SettingsController::class, 'index']);

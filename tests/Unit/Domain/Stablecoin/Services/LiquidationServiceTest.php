@@ -65,6 +65,7 @@ class LiquidationServiceTest extends TestCase
         $position->shouldReceive('getAttribute')->with('collateral_amount')->andReturn(110000);
         $position->shouldReceive('getAttribute')->with('debt_amount')->andReturn(100000);
         $position->shouldReceive('getAttribute')->with('collateral_ratio')->andReturn(1.1);
+        $position->shouldReceive('getAttribute')->with('collateral_asset_code')->andReturn('USD');
         $position->shouldReceive('shouldAutoLiquidate')->andReturn(true);
         
         $reward = $this->service->calculateLiquidationReward($position);
@@ -113,6 +114,7 @@ class LiquidationServiceTest extends TestCase
         $position->shouldReceive('getAttribute')->with('collateral_amount')->andReturn(120000);
         $position->shouldReceive('getAttribute')->with('debt_amount')->andReturn(100000);
         $position->shouldReceive('getAttribute')->with('collateral_ratio')->andReturn(1.2);
+        $position->shouldReceive('getAttribute')->with('collateral_asset_code')->andReturn('USD');
         $position->shouldReceive('shouldAutoLiquidate')->andReturn(true);
         
         $reward = $this->service->calculateLiquidationReward($position);
