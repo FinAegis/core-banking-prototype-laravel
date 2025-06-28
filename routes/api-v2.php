@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V2\PublicApiController;
 use App\Http\Controllers\Api\V2\WebhookController;
 use App\Http\Controllers\Api\V2\GCUController;
 use App\Http\Controllers\Api\V2\FinancialInstitutionController;
+use App\Http\Controllers\Api\V2\ComplianceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -133,5 +134,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('transactions')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\TransactionController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\TransactionController::class, 'show']);
+    });
+    
+    // Compliance and KYC/AML
+    Route::prefix('compliance')->group(function () {
+        Route::get('/kyc/status', [ComplianceController::class, 'getKycStatus']);
+        Route::post('/kyc/start', [ComplianceController::class, 'startVerification']);
+        Route::post('/kyc/{verificationId}/document', [ComplianceController::class, 'uploadDocument']);
+        Route::post('/kyc/{verificationId}/selfie', [ComplianceController::class, 'uploadSelfie']);
+        
+        Route::get('/aml/status', [ComplianceController::class, 'getScreeningStatus']);
+        Route::post('/aml/request-screening', [ComplianceController::class, 'requestScreening']);
+        
+        Route::get('/risk-profile', [ComplianceController::class, 'getRiskProfile']);
+        Route::post('/check-transaction', [ComplianceController::class, 'checkTransactionEligibility']);
     });
 });
