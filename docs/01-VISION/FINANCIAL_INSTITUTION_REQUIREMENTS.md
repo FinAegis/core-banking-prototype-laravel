@@ -379,7 +379,7 @@ The financial institution partnership program is critical to GCU's success, prov
 ### 9.3 Call to Action
 
 **For Interested Financial Institutions:**
-1. **Initial Contact**: Reach out to partnerships@finaegis.com
+1. **Initial Contact**: Reach out to partnerships@finaegis.org
 2. **Information Package**: Request detailed partnership information package
 3. **Preliminary Assessment**: Complete initial qualification questionnaire
 4. **Discovery Meeting**: Schedule detailed capability assessment meeting
@@ -400,7 +400,7 @@ The financial institution partnership program is critical to GCU's success, prov
 - **Approval**: Chief Commercial Officer, Chief Risk Officer, Chief Compliance Officer
 
 **Contact Information:**
-- **Partnerships**: partnerships@finaegis.com
-- **Technical**: integration@finaegis.com
-- **Compliance**: compliance@finaegis.com
-- **Legal**: legal@finaegis.com
+- **Partnerships**: partnerships@finaegis.org
+- **Technical**: integration@finaegis.org
+- **Compliance**: compliance@finaegis.org
+- **Legal**: legal@finaegis.org

@@ -109,7 +109,7 @@ Historical and deprecated documentation
 
 ### For Banking Partners
 1. Review [FINANCIAL_INSTITUTION_REQUIREMENTS.md](01-VISION/FINANCIAL_INSTITUTION_REQUIREMENTS.md)
-2. Contact partnerships@finaegis.com for partnership opportunities
+2. Contact partnerships@finaegis.org for partnership opportunities
 
 ## 📋 Documentation Status
 

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StatusController;
 
 // Public Pages
 Route::get('/', function () {
@@ -49,6 +50,34 @@ Route::get('/developers/{section}', function ($section) {
     return view('developers.' . $section);
 })->name('developers.show');
 
+// Subproduct routes
+Route::get('/subproducts/exchange', function () {
+    return view('subproducts.exchange');
+})->name('subproducts.exchange');
+
+Route::get('/subproducts/lending', function () {
+    return view('subproducts.lending');
+})->name('subproducts.lending');
+
+Route::get('/subproducts/stablecoins', function () {
+    return view('subproducts.stablecoins');
+})->name('subproducts.stablecoins');
+
+Route::get('/subproducts/treasury', function () {
+    return view('subproducts.treasury');
+})->name('subproducts.treasury');
+
+// Financial institutions routes
+Route::get('/financial-institutions/apply', function () {
+    return view('financial-institutions.apply');
+})->name('financial-institutions.apply');
+
+Route::post('/financial-institutions/submit', function () {
+    // For now, just redirect back with success message
+    return redirect()->route('financial-institutions.apply')
+        ->with('success', 'Thank you for your application. We will review it and contact you soon.');
+})->name('financial-institutions.submit');
+
 Route::get('/support', function () {
     return view('support.index');
 })->name('support');
@@ -85,9 +114,7 @@ Route::get('/legal/cookies', function () {
     return view('legal.cookies');
 })->name('legal.cookies');
 
-Route::get('/status', function () {
-    return view('status');
-})->name('status');
+Route::get('/status', [StatusController::class, 'index'])->name('status');
 
 Route::middleware([
     'auth:sanctum',

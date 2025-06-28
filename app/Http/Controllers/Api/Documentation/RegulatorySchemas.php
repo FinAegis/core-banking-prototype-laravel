@@ -13,7 +13,7 @@ namespace App\Http\Controllers\Api\Documentation;
  *     @OA\Property(property="status", type="string", enum={"draft", "pending_review", "approved", "submitted", "rejected"}, example="submitted"),
  *     @OA\Property(property="submission_deadline", type="string", format="date", example="2025-02-15"),
  *     @OA\Property(property="submitted_at", type="string", format="date-time", nullable=true),
- *     @OA\Property(property="submitted_by", type="string", example="compliance@finaegis.com"),
+ *     @OA\Property(property="submitted_by", type="string", example="compliance@finaegis.org"),
  *     @OA\Property(property="regulator", type="string", example="Bank of Lithuania"),
  *     @OA\Property(property="reference_number", type="string", example="CTR-2025-01-001"),
  *     @OA\Property(property="file_path", type="string", example="/reports/regulatory/ctr_2025_01.pdf"),
@@ -148,7 +148,7 @@ namespace App\Http\Controllers\Api\Documentation;
  *     @OA\Property(property="subject_id", type="string"),
  *     @OA\Property(property="description", type="string"),
  *     @OA\Property(property="risk_score", type="integer", minimum=0, maximum=100),
- *     @OA\Property(property="assigned_to", type="string", example="compliance_officer@finaegis.com"),
+ *     @OA\Property(property="assigned_to", type="string", example="compliance_officer@finaegis.org"),
  *     @OA\Property(property="evidence", type="array", @OA\Items(
  *         @OA\Property(property="type", type="string"),
  *         @OA\Property(property="description", type="string"),

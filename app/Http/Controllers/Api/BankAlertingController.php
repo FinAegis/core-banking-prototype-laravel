@@ -567,9 +567,9 @@ class BankAlertingController extends Controller
                 ],
                 'notification_channels' => ['mail', 'database'],
                 'alert_recipients' => [
-                    'critical' => ['admin@finaegis.com', 'ops@finaegis.com'],
-                    'warning' => ['ops@finaegis.com'],
-                    'info' => ['ops@finaegis.com'],
+                    'critical' => ['admin@finaegis.org', 'ops@finaegis.org'],
+                    'warning' => ['ops@finaegis.org'],
+                    'info' => ['ops@finaegis.org'],
                 ],
                 'last_updated' => now()->subDays(5)->toISOString(),
             ];

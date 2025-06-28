@@ -8,7 +8,7 @@ namespace App\Http\Controllers\Api\Documentation;
  *     version="1.0.0",
  *     description="Open Source Core Banking as a Service - A modern, scalable, and secure core banking platform built with Laravel 12, featuring event sourcing, domain-driven design, workflow orchestration, and quantum-resistant security measures.",
  *     @OA\Contact(
- *         email="support@finaegis.com",
+ *         email="support@finaegis.org",
  *         name="FinAegis Support"
  *     ),
  *     @OA\License(

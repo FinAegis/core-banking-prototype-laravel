@@ -59,8 +59,8 @@
                                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Community Edition</h3>
                                 <p class="text-gray-600 mb-6">Perfect for developers and small teams</p>
                                 <div class="mb-8">
-                                    <span class="text-5xl font-bold text-gray-900">$0</span>
-                                    <span class="text-xl text-gray-600">/forever</span>
+                                    <span class="text-5xl font-bold text-gray-900">Free</span>
+                                    <span class="text-xl text-gray-600">Open Source</span>
                                 </div>
                             </div>
 
@@ -97,7 +97,7 @@
                                 </li>
                             </ul>
 
-                            <a href="https://github.com/FinAegis" target="_blank" class="w-full bg-gray-900 text-white rounded-lg py-3 font-semibold hover:bg-gray-800 transition text-center block">
+                            <a href="https://github.com/FinAegis/core-banking-prototype-laravel" target="_blank" class="w-full bg-gray-900 text-white rounded-lg py-3 font-semibold hover:bg-gray-800 transition text-center block">
                                 Get Started on GitHub
                             </a>
                         </div>
@@ -113,8 +113,8 @@
                                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Cloud Platform</h3>
                                 <p class="text-gray-600 mb-6">Managed infrastructure for growing businesses</p>
                                 <div class="mb-8">
-                                    <span class="text-5xl font-bold text-gray-900">$199</span>
-                                    <span class="text-xl text-gray-600">/month</span>
+                                    <span class="text-5xl font-bold text-gray-900">TBC</span>
+                                    <span class="text-xl text-gray-600">Pricing coming soon</span>
                                 </div>
                             </div>
 
@@ -170,8 +170,8 @@
                                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
                                 <p class="text-gray-600 mb-6">Custom solutions for large organizations</p>
                                 <div class="mb-8">
-                                    <span class="text-5xl font-bold text-gray-900">Custom</span>
-                                    <span class="text-xl text-gray-600">/pricing</span>
+                                    <span class="text-5xl font-bold text-gray-900">TBC</span>
+                                    <span class="text-xl text-gray-600">Contact us</span>
                                 </div>
                             </div>
 

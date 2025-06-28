@@ -96,11 +96,11 @@
                         <div class="space-y-3">
                             <div class="flex justify-between items-center py-2 border-b border-gray-200">
                                 <span class="font-mono text-sm">base_url</span>
-                                <span class="text-gray-600 text-sm">https://api.finaegis.com/v1</span>
+                                <span class="text-gray-600 text-sm">https://api.finaegis.org/v1</span>
                             </div>
                             <div class="flex justify-between items-center py-2 border-b border-gray-200">
                                 <span class="font-mono text-sm">sandbox_url</span>
-                                <span class="text-gray-600 text-sm">https://api-sandbox.finaegis.com/v1</span>
+                                <span class="text-gray-600 text-sm">https://api-sandbox.finaegis.org/v1</span>
                             </div>
                             <div class="flex justify-between items-center py-2 border-b border-gray-200">
                                 <span class="font-mono text-sm">api_key</span>

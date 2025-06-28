@@ -529,7 +529,7 @@ class SecurityMonitor
 
 ## Security Contacts
 
-- **Security Team Lead**: security@finaegis.com
-- **Incident Response**: incident@finaegis.com
+- **Security Team Lead**: security@finaegis.org
+- **Incident Response**: incident@finaegis.org
 - **Security Hotline**: +1-XXX-XXX-XXXX (24/7)
-- **Bug Bounty Program**: security.finaegis.com/bugbounty
+- **Bug Bounty Program**: security.finaegis.org/bugbounty

@@ -43,7 +43,7 @@
                             
                             <h3>Base URL</h3>
                             <div class="bg-gray-100 rounded-lg p-4 font-mono text-sm">
-                                https://api.finaegis.com/v1
+                                https://api.finaegis.org/v1
                             </div>
                             
                             <h3>Response Format</h3>
@@ -72,14 +72,14 @@
                             <div class="bg-gray-900 rounded-lg p-6 overflow-x-auto">
                                 <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key_here" \
      -H "Content-Type: application/json" \
-     https://api.finaegis.com/v1/accounts</code></pre>
+     https://api.finaegis.org/v1/accounts</code></pre>
                             </div>
                             
                             <h3>Sandbox vs Production</h3>
                             <p>Use these base URLs for testing and production:</p>
                             <ul>
-                                <li><strong>Sandbox:</strong> https://api-sandbox.finaegis.com/v1</li>
-                                <li><strong>Production:</strong> https://api.finaegis.com/v1</li>
+                                <li><strong>Sandbox:</strong> https://api-sandbox.finaegis.org/v1</li>
+                                <li><strong>Production:</strong> https://api.finaegis.org/v1</li>
                             </ul>
                         </div>
                     </section>
@@ -101,7 +101,7 @@
                                 
                                 <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                                     <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.com/v1/accounts</code></pre>
+     https://api.finaegis.org/v1/accounts</code></pre>
                                 </div>
                             </div>
 
@@ -118,7 +118,7 @@
                                 
                                 <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                                     <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.com/v1/accounts/acct_1234567890</code></pre>
+     https://api.finaegis.org/v1/accounts/acct_1234567890</code></pre>
                                 </div>
                             </div>
 
@@ -188,7 +188,7 @@
     "reference": "Payment for services",
     "workflow_enabled": true
   }' \
-  https://api.finaegis.com/v1/transfers</code></pre>
+  https://api.finaegis.org/v1/transfers</code></pre>
                             </div>
                         </div>
                     </section>

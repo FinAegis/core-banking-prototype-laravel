@@ -15,8 +15,8 @@ Welcome to the FinAegis API SDK documentation. This guide will help you integrat
 ## Getting Started
 
 ### Base URLs
-- **Production**: `https://api.finaegis.com/v2`
-- **Sandbox**: `https://sandbox.api.finaegis.com/v2`
+- **Production**: `https://api.finaegis.org/v2`
+- **Sandbox**: `https://sandbox.api.finaegis.org/v2`
 
 ### API Version
 Current version: `2.0.0`
@@ -44,7 +44,7 @@ Authorization: Bearer your_jwt_token_here
 
 ### Getting API Credentials
 
-1. Sign up at [https://developers.finaegis.com](https://developers.finaegis.com)
+1. Sign up at [https://developers.finaegis.org](https://developers.finaegis.org)
 2. Create a new application
 3. Generate API keys from the dashboard
 4. For production access, complete KYC verification
@@ -559,8 +559,8 @@ async function apiCallWithRetry(fn, maxRetries = 3) {
 ## Support
 
 ### Documentation
-- API Reference: [https://docs.finaegis.com/api](https://docs.finaegis.com/api)
-- Developer Portal: [https://developers.finaegis.com](https://developers.finaegis.com)
+- API Reference: [https://docs.finaegis.org/api](https://docs.finaegis.org/api)
+- Developer Portal: [https://developers.finaegis.org](https://developers.finaegis.org)
 
 ### Community
 - Discord: [https://discord.gg/finaegis](https://discord.gg/finaegis)
@@ -568,9 +568,9 @@ async function apiCallWithRetry(fn, maxRetries = 3) {
 - GitHub: [https://github.com/finaegis](https://github.com/finaegis)
 
 ### Contact
-- API Support: api@finaegis.com
-- Security Issues: security@finaegis.com
-- Partnership: partners@finaegis.com
+- API Support: api@finaegis.org
+- Security Issues: security@finaegis.org
+- Partnership: partners@finaegis.org
 
 ## Changelog
 

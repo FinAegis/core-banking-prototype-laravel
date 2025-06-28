@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\DailyReconciliationController;
 use App\Http\Controllers\Api\BankAlertingController;
 use App\Http\Controllers\Api\WorkflowMonitoringController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\StatusController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -212,6 +213,9 @@ Route::middleware('api.rate_limit:public')->group(function () {
         Route::get('/', [SettingsController::class, 'index']);
         Route::get('/group/{group}', [SettingsController::class, 'group']);
     });
+    
+    // Public status endpoint
+    Route::get('/status', [StatusController::class, 'api'])->name('status.api');
 });
 
 Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {

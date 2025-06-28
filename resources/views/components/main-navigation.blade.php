@@ -4,7 +4,9 @@
         <div class="flex justify-between h-16">
             <div class="flex items-center">
                 <a href="/" class="flex items-center">
-                    <h1 class="text-2xl font-bold text-gray-900">FinAegis</h1>
+                    <h1 class="text-2xl font-bold">
+                        <span class="text-indigo-600">Fin</span><span class="text-purple-600">Aegis</span>
+                    </h1>
                 </a>
             </div>
             

@@ -143,7 +143,7 @@
                                 </div>
                                 <h5 class="font-semibold text-gray-900 mb-2">FinAegis Exchange</h5>
                                 <p class="text-sm text-gray-600 mb-3">Trade crypto and fiat currencies</p>
-                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Q3 2025</span>
+                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Soon</span>
                             </div>
 
                             <!-- Lending -->
@@ -155,7 +155,7 @@
                                 </div>
                                 <h5 class="font-semibold text-gray-900 mb-2">FinAegis Lending</h5>
                                 <p class="text-sm text-gray-600 mb-3">P2P lending marketplace</p>
-                                <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Q4 2025</span>
+                                <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Soon</span>
                             </div>
 
                             <!-- Stablecoins -->
@@ -167,7 +167,7 @@
                                 </div>
                                 <h5 class="font-semibold text-gray-900 mb-2">FinAegis Stablecoins</h5>
                                 <p class="text-sm text-gray-600 mb-3">EUR-pegged stable tokens</p>
-                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">Beta Testing</span>
+                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Soon</span>
                             </div>
 
                             <!-- Treasury -->
@@ -179,7 +179,7 @@
                                 </div>
                                 <h5 class="font-semibold text-gray-900 mb-2">FinAegis Treasury</h5>
                                 <p class="text-sm text-gray-600 mb-3">Multi-bank cash management</p>
-                                <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Available</span>
+                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Soon</span>
                             </div>
                         </div>
                     </div>
@@ -310,23 +310,22 @@
                 <div class="text-center mb-12">
                     <h3 class="text-2xl font-bold text-gray-900">Trusted by Leading Financial Institutions</h3>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
-                    <div class="text-center">
-                        <p class="text-lg font-semibold text-gray-700">Paysera</p>
-                        <p class="text-sm text-gray-500">Digital Banking Partner</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-lg font-semibold text-gray-700">Deutsche Bank</p>
-                        <p class="text-sm text-gray-500">Banking Partner</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-lg font-semibold text-gray-700">Santander</p>
-                        <p class="text-sm text-gray-500">Banking Partner</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-lg font-semibold text-gray-700">EMI Licensed</p>
-                        <p class="text-sm text-gray-500">Regulatory Compliance</p>
-                    </div>
+                <div class="bg-gray-50 rounded-2xl p-12 text-center">
+                    <h3 class="text-xl font-semibold mb-2 flex items-center justify-center">
+                        <svg class="w-6 h-6 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        Partner with FinAegis
+                    </h3>
+                    <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+                        We're building partnerships with banks and financial institutions to provide real asset backing for the Global Currency Unit. Join us in creating the future of democratic banking.
+                    </p>
+                    <a href="{{ route('financial-institutions.apply') }}" class="inline-flex items-center justify-center bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                        Apply to Become a Partner Institution
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                    </a>
                 </div>
             </div>
         </section>
@@ -357,7 +356,7 @@
                             <li>• Advanced order types</li>
                             <li>• Real-time settlement</li>
                         </ul>
-                        <a href="/sub-products/exchange" class="text-indigo-600 font-semibold hover:text-indigo-700">
+                        <a href="{{ route('subproducts.exchange') }}" class="text-indigo-600 font-semibold hover:text-indigo-700">
                             Learn more →
                         </a>
                     </div>
@@ -377,7 +376,7 @@
                             <li>• 8-15% returns</li>
                             <li>• Automated servicing</li>
                         </ul>
-                        <a href="/sub-products/lending" class="text-indigo-600 font-semibold hover:text-indigo-700">
+                        <a href="{{ route('subproducts.lending') }}" class="text-indigo-600 font-semibold hover:text-indigo-700">
                             Learn more →
                         </a>
                     </div>
@@ -397,7 +396,7 @@
                             <li>• Instant redemption</li>
                             <li>• MiCA compliant</li>
                         </ul>
-                        <a href="/sub-products/stablecoins" class="text-indigo-600 font-semibold hover:text-indigo-700">
+                        <a href="{{ route('subproducts.stablecoins') }}" class="text-indigo-600 font-semibold hover:text-indigo-700">
                             Learn more →
                         </a>
                     </div>
@@ -417,7 +416,7 @@
                             <li>• Risk diversification</li>
                             <li>• Corporate tools</li>
                         </ul>
-                        <a href="/sub-products/treasury" class="text-indigo-600 font-semibold hover:text-indigo-700">
+                        <a href="{{ route('subproducts.treasury') }}" class="text-indigo-600 font-semibold hover:text-indigo-700">
                             Learn more →
                         </a>
                     </div>
@@ -512,7 +511,7 @@
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
-                        Open Free Account
+                        Create Account
                     </a>
                     <a href="/support/contact" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">
                         Contact Sales

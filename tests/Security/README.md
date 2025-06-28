@@ -183,8 +183,8 @@ Add to `.github/workflows/security.yml`:
 
 ## 📞 Security Contacts
 
-- Security Team: security@finaegis.com
-- Bug Bounty: bounty@finaegis.com
+- Security Team: security@finaegis.org
+- Bug Bounty: bounty@finaegis.org
 - Emergency: +1-xxx-xxx-xxxx
 
 Remember: **Security is everyone's responsibility!** 🔐

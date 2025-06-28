@@ -568,12 +568,12 @@ Use the following cURL commands to test the endpoints:
 
 ```bash
 # Get active polls
-curl -X GET https://api.finaegis.com/api/voting/polls \
+curl -X GET https://api.finaegis.org/api/voting/polls \
   -H "Authorization: Bearer {token}" \
   -H "Accept: application/json"
 
 # Submit vote
-curl -X POST https://api.finaegis.com/api/voting/polls/{uuid}/vote \
+curl -X POST https://api.finaegis.org/api/voting/polls/{uuid}/vote \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{

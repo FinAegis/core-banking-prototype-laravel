@@ -334,7 +334,7 @@
                             <p class="text-gray-600 mb-4">Join our community:</p>
                             <ul class="list-disc list-inside text-gray-600 space-y-2">
                                 <li>GitHub Discussions for general topics</li>
-                                <li>Email alpha@finaegis.com for direct feedback</li>
+                                <li>Email alpha@finaegis.org for direct feedback</li>
                                 <li>Star the repository to show support</li>
                                 <li>Share the project with other developers</li>
                             </ul>
@@ -342,7 +342,7 @@
                                 <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" class="text-indigo-600 font-medium hover:text-indigo-700">
                                     Join Discussions →
                                 </a>
-                                <a href="mailto:alpha@finaegis.com" class="text-indigo-600 font-medium hover:text-indigo-700">
+                                <a href="mailto:alpha@finaegis.org" class="text-indigo-600 font-medium hover:text-indigo-700">
                                     Email Feedback →
                                 </a>
                             </div>

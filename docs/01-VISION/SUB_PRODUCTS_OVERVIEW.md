@@ -269,18 +269,18 @@ Each sub-product can be independently enabled or disabled:
 ## Contact and Support
 
 ### Sales and Partnerships
-- **Email**: partnerships@finaegis.com
+- **Email**: partnerships@finaegis.org
 - **Phone**: +370 600 12345 (Lithuania)
 - **Address**: Vilnius, Lithuania
 
 ### Technical Integration
-- **Developer Portal**: developers.finaegis.com
-- **API Documentation**: api.finaegis.com
-- **Support**: support@finaegis.com
+- **Developer Portal**: developers.finaegis.org
+- **API Documentation**: api.finaegis.org
+- **Support**: support@finaegis.org
 
 ### Regulatory and Compliance
-- **Compliance Team**: compliance@finaegis.com
-- **Legal**: legal@finaegis.com
+- **Compliance Team**: compliance@finaegis.org
+- **Legal**: legal@finaegis.org
 - **Regulatory Filings**: Available upon request
 
 ---

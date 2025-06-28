@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-use HighlightUtilities\Highlighter;
+use Highlight\Highlighter;
 
 class SyntaxHighlighter
 {

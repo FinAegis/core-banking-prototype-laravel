@@ -1,7 +1,7 @@
 @props(['language' => 'plaintext', 'title' => null])
 
 @php
-    use HighlightUtilities\Highlighter;
+    use Highlight\Highlighter;
     
     $code = trim($slot);
     $highlighter = new Highlighter();

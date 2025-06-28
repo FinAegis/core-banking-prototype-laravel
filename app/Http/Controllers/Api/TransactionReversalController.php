@@ -224,7 +224,7 @@ class TransactionReversalController extends Controller
                 'transaction_type' => 'debit',
                 'reversal_reason' => 'Unauthorized transaction detected by fraud system',
                 'original_transaction_id' => 'txn_123456789',
-                'authorized_by' => 'security@finaegis.com',
+                'authorized_by' => 'security@finaegis.org',
                 'status' => 'completed',
                 'created_at' => now()->subDays(2)->toISOString(),
                 'completed_at' => now()->subDays(2)->addMinutes(5)->toISOString(),
