@@ -40,6 +40,17 @@ Route::prefix('gcu')->group(function () {
     Route::get('/value-history', [GCUController::class, 'valueHistory']);
     Route::get('/governance/active-polls', [GCUController::class, 'activePolls']);
     Route::get('/supported-banks', [GCUController::class, 'supportedBanks']);
+    
+    // Voting endpoints
+    Route::prefix('voting')->group(function () {
+        Route::get('/proposals', [\App\Http\Controllers\Api\V2\VotingController::class, 'proposals']);
+        Route::get('/proposals/{id}', [\App\Http\Controllers\Api\V2\VotingController::class, 'proposalDetails']);
+        
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/proposals/{id}/vote', [\App\Http\Controllers\Api\V2\VotingController::class, 'vote']);
+            Route::get('/my-votes', [\App\Http\Controllers\Api\V2\VotingController::class, 'myVotes']);
+        });
+    });
 });
 
 // Webhook event types (public information)

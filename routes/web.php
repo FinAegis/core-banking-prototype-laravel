@@ -132,6 +132,18 @@ Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(func
     Route::get('/certificate/{uuid}', [App\Http\Controllers\CgoController::class, 'downloadCertificate'])->name('certificate');
 });
 
+// GCU Voting routes (public and authenticated)
+Route::prefix('gcu/voting')->name('gcu.voting.')->group(function () {
+    Route::get('/', [App\Http\Controllers\GcuVotingController::class, 'index'])->name('index');
+    Route::get('/{proposal}', [App\Http\Controllers\GcuVotingController::class, 'show'])->name('show');
+    
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::post('/{proposal}/vote', [App\Http\Controllers\GcuVotingController::class, 'vote'])->name('vote');
+        Route::get('/create', [App\Http\Controllers\GcuVotingController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\GcuVotingController::class, 'store'])->name('store');
+    });
+});
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -157,7 +169,7 @@ Route::middleware([
         })->name('bank-allocation');
         
         Route::get('/voting', function () {
-            return view('wallet.voting');
+            return redirect()->route('gcu.voting.index');
         })->name('voting');
         
         Route::get('/transactions', function () {

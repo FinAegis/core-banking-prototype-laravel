@@ -307,6 +307,101 @@
      "https://api.finaegis.org/v2/gcu/value-history?period=7d&interval=hourly"</code></pre>
                                 </div>
                             </div>
+
+                            <!-- Voting Endpoints -->
+                            <div class="mt-12 mb-6">
+                                <h3 class="text-2xl font-semibold text-gray-900">Democratic Voting System</h3>
+                                <p class="text-gray-600 mt-2">The GCU voting system allows token holders to participate in monthly governance votes to optimize the currency basket composition.</p>
+                            </div>
+
+                            <div class="border rounded-lg p-6 mb-6">
+                                <h3 class="text-xl font-semibold mb-4">List Voting Proposals</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/proposals</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Get all voting proposals with optional status filtering.</p>
+                                
+                                <h4 class="font-semibold mb-2">Query Parameters:</h4>
+                                <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                    <li><code class="bg-gray-100 px-1">status</code> - Filter by status: active, upcoming, past (optional)</li>
+                                </ul>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
+     "https://api.finaegis.org/v2/gcu/voting/proposals?status=active"</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-lg p-6 mb-6">
+                                <h3 class="text-xl font-semibold mb-4">Get Proposal Details</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/proposals/{id}</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Get detailed information about a specific voting proposal.</p>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
+     https://api.finaegis.org/v2/gcu/voting/proposals/123</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-lg p-6 mb-6">
+                                <h3 class="text-xl font-semibold mb-4">Cast Vote</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/proposals/{id}/vote</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">Requires Authentication</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Cast your vote on a proposal. Voting power is determined by your GCU balance.</p>
+                                
+                                <h4 class="font-semibold mb-2">Request Body:</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
+                                    <pre class="text-green-400 text-sm"><code>{
+  "vote": "for"  // Options: "for", "against", "abstain"
+}</code></pre>
+                                </div>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -X POST \
+     -H "Authorization: Bearer your_api_key" \
+     -H "Content-Type: application/json" \
+     -d '{"vote": "for"}' \
+     https://api.finaegis.org/v2/gcu/voting/proposals/123/vote</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Get My Voting History</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/my-votes</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">Requires Authentication</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Get your voting history across all proposals.</p>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
+     https://api.finaegis.org/v2/gcu/voting/my-votes</code></pre>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </div>
