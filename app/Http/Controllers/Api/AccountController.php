@@ -28,6 +28,48 @@ class AccountController extends Controller
     ) {}
 
     /**
+     * @OA\Get(
+     *     path="/api/accounts",
+     *     operationId="listAccounts",
+     *     tags={"Accounts"},
+     *     summary="List accounts",
+     *     description="Retrieves a list of accounts for the authenticated user",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of accounts",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Account"))
+     *         )
+     *     )
+     * )
+     */
+    public function index(Request $request): JsonResponse
+    {
+        // Get the authenticated user
+        $user = $request->user();
+        
+        // Retrieve accounts for the authenticated user
+        $accounts = Account::where('user_uuid', $user->uuid)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return response()->json([
+            'data' => $accounts->map(function ($account) {
+                return [
+                    'uuid' => $account->uuid,
+                    'user_uuid' => $account->user_uuid,
+                    'name' => $account->name,
+                    'balance' => $account->balance,
+                    'frozen' => $account->frozen ?? false,
+                    'created_at' => $account->created_at,
+                    'updated_at' => $account->updated_at,
+                ];
+            }),
+        ]);
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/accounts",
      *     operationId="createAccount",

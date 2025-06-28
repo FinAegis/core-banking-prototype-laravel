@@ -65,16 +65,33 @@
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Authentication</h2>
                         
                         <div class="prose prose-lg max-w-none">
-                            <p>The FinAegis API uses API keys to authenticate requests. You can generate and manage your API keys in the developer dashboard.</p>
+                            <p>The FinAegis API uses API keys to authenticate requests. You can generate and manage your API keys in your dashboard.</p>
+                            
+                            <h3>Creating API Keys</h3>
+                            <ol>
+                                <li>Log in to your FinAegis account</li>
+                                <li>Navigate to <a href="{{ route('api-keys.index') }}" class="text-blue-600 hover:text-blue-800">API Keys</a> in your dashboard</li>
+                                <li>Click "Create New Key" and configure permissions</li>
+                                <li>Copy the generated key immediately (it won't be shown again)</li>
+                            </ol>
                             
                             <h3>API Key Authentication</h3>
                             <p>Include your API key in the Authorization header:</p>
                             
                             <div class="bg-gray-900 rounded-lg p-6 overflow-x-auto">
-                                <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key_here" \
+                                <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer fak_your_api_key_here" \
      -H "Content-Type: application/json" \
-     https://api.finaegis.org/v1/accounts</code></pre>
+     https://api.finaegis.org/v2/accounts</code></pre>
                             </div>
+                            
+                            <h3>API Key Security</h3>
+                            <ul>
+                                <li><strong>Permissions:</strong> Grant only the minimum required permissions (read, write, delete)</li>
+                                <li><strong>IP Whitelist:</strong> Restrict API key usage to specific IP addresses</li>
+                                <li><strong>Expiration:</strong> Set expiration dates for temporary keys</li>
+                                <li><strong>Rotation:</strong> Regularly rotate your API keys</li>
+                                <li><strong>Storage:</strong> Never commit API keys to version control</li>
+                            </ul>
                             
                             <h3>Sandbox vs Production</h3>
                             <p>Use these base URLs for testing and production:</p>

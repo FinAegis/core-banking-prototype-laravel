@@ -203,4 +203,12 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(CgoInvestment::class);
     }
+    
+    /**
+     * Get the API keys for the user.
+     */
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class, 'user_uuid', 'uuid');
+    }
 }

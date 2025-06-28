@@ -145,6 +145,10 @@ Route::middleware([
     Route::post('/onboarding/complete', [App\Http\Controllers\OnboardingController::class, 'complete'])->name('onboarding.complete');
     Route::post('/onboarding/skip', [App\Http\Controllers\OnboardingController::class, 'skip'])->name('onboarding.skip');
     
+    // API Key Management
+    Route::resource('api-keys', App\Http\Controllers\ApiKeyController::class);
+    Route::post('/api-keys/{apiKey}/regenerate', [App\Http\Controllers\ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
+    
     // KYC route
     Route::get('/compliance/kyc', function () {
         return view('compliance.kyc');

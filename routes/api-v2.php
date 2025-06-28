@@ -54,39 +54,39 @@ Route::prefix('baskets')->group(function () {
     Route::get('/{code}/performance', [\App\Http\Controllers\Api\BasketController::class, 'getPerformance']);
 });
 
-// Authenticated endpoints
-Route::middleware('auth:sanctum')->group(function () {
+// Authenticated endpoints (supports both Sanctum and API Key authentication)
+Route::middleware(['auth.api_or_sanctum:read'])->group(function () {
     // Webhook management
     Route::prefix('webhooks')->group(function () {
         Route::get('/', [WebhookController::class, 'index']);
-        Route::post('/', [WebhookController::class, 'store']);
+        Route::post('/', [WebhookController::class, 'store'])->middleware('auth.api_or_sanctum:write');
         Route::get('/{id}', [WebhookController::class, 'show']);
-        Route::put('/{id}', [WebhookController::class, 'update']);
-        Route::delete('/{id}', [WebhookController::class, 'destroy']);
+        Route::put('/{id}', [WebhookController::class, 'update'])->middleware('auth.api_or_sanctum:write');
+        Route::delete('/{id}', [WebhookController::class, 'destroy'])->middleware('auth.api_or_sanctum:delete');
         Route::get('/{id}/deliveries', [WebhookController::class, 'deliveries']);
     });
 
     // Include existing V2 endpoints from main api.php
     Route::prefix('accounts')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\AccountController::class, 'index']);
-        Route::post('/', [\App\Http\Controllers\Api\AccountController::class, 'store']);
+        Route::post('/', [\App\Http\Controllers\Api\AccountController::class, 'store'])->middleware('auth.api_or_sanctum:write');
         Route::get('/{uuid}', [\App\Http\Controllers\Api\AccountController::class, 'show']);
-        Route::delete('/{uuid}', [\App\Http\Controllers\Api\AccountController::class, 'destroy']);
-        Route::post('/{uuid}/freeze', [\App\Http\Controllers\Api\AccountController::class, 'freeze']);
-        Route::post('/{uuid}/unfreeze', [\App\Http\Controllers\Api\AccountController::class, 'unfreeze']);
+        Route::delete('/{uuid}', [\App\Http\Controllers\Api\AccountController::class, 'destroy'])->middleware('auth.api_or_sanctum:delete');
+        Route::post('/{uuid}/freeze', [\App\Http\Controllers\Api\AccountController::class, 'freeze'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/{uuid}/unfreeze', [\App\Http\Controllers\Api\AccountController::class, 'unfreeze'])->middleware('auth.api_or_sanctum:write');
         
         // Multi-asset operations
         Route::get('/{uuid}/balances', [\App\Http\Controllers\Api\AccountBalanceController::class, 'show']);
-        Route::post('/{uuid}/deposit', [\App\Http\Controllers\Api\TransactionController::class, 'deposit']);
-        Route::post('/{uuid}/withdraw', [\App\Http\Controllers\Api\TransactionController::class, 'withdraw']);
+        Route::post('/{uuid}/deposit', [\App\Http\Controllers\Api\TransactionController::class, 'deposit'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/{uuid}/withdraw', [\App\Http\Controllers\Api\TransactionController::class, 'withdraw'])->middleware('auth.api_or_sanctum:write');
         Route::get('/{uuid}/transactions', [\App\Http\Controllers\Api\TransactionController::class, 'history']);
         Route::get('/{uuid}/transfers', [\App\Http\Controllers\Api\TransferController::class, 'history']);
         
         // Basket operations
         Route::prefix('{uuid}/baskets')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\BasketAccountController::class, 'getBasketHoldings']);
-            Route::post('/decompose', [\App\Http\Controllers\Api\BasketAccountController::class, 'decompose']);
-            Route::post('/compose', [\App\Http\Controllers\Api\BasketAccountController::class, 'compose']);
+            Route::post('/decompose', [\App\Http\Controllers\Api\BasketAccountController::class, 'decompose'])->middleware('auth.api_or_sanctum:write');
+            Route::post('/compose', [\App\Http\Controllers\Api\BasketAccountController::class, 'compose'])->middleware('auth.api_or_sanctum:write');
         });
     });
 
@@ -94,9 +94,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('assets')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\AssetController::class, 'index']);
         Route::get('/{code}', [\App\Http\Controllers\Api\AssetController::class, 'show']);
-        Route::post('/', [\App\Http\Controllers\Api\AssetController::class, 'store']);
-        Route::put('/{code}', [\App\Http\Controllers\Api\AssetController::class, 'update']);
-        Route::delete('/{code}', [\App\Http\Controllers\Api\AssetController::class, 'destroy']);
+        Route::post('/', [\App\Http\Controllers\Api\AssetController::class, 'store'])->middleware('auth.api_or_sanctum:write');
+        Route::put('/{code}', [\App\Http\Controllers\Api\AssetController::class, 'update'])->middleware('auth.api_or_sanctum:write');
+        Route::delete('/{code}', [\App\Http\Controllers\Api\AssetController::class, 'destroy'])->middleware('auth.api_or_sanctum:delete');
     });
 
     // Exchange rates
@@ -104,19 +104,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\ExchangeRateController::class, 'index']);
         Route::get('/{from}/{to}', [\App\Http\Controllers\Api\ExchangeRateController::class, 'show']);
         Route::get('/{from}/{to}/convert', [\App\Http\Controllers\Api\ExchangeRateController::class, 'convert']);
-        Route::post('/refresh', [\App\Http\Controllers\Api\ExchangeRateController::class, 'refresh']);
+        Route::post('/refresh', [\App\Http\Controllers\Api\ExchangeRateController::class, 'refresh'])->middleware('auth.api_or_sanctum:write');
     });
 
     // Transfers
     Route::prefix('transfers')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\TransferController::class, 'store'])->middleware('transaction.rate_limit:transfer');
+        Route::post('/', [\App\Http\Controllers\Api\TransferController::class, 'store'])->middleware(['transaction.rate_limit:transfer', 'auth.api_or_sanctum:write']);
         Route::get('/{uuid}', [\App\Http\Controllers\Api\TransferController::class, 'show']);
     });
 
     // Basket assets (protected operations)
     Route::prefix('baskets')->group(function () {
-        Route::post('/', [\App\Http\Controllers\Api\BasketController::class, 'store']);
-        Route::post('/{code}/rebalance', [\App\Http\Controllers\Api\BasketController::class, 'rebalance']);
+        Route::post('/', [\App\Http\Controllers\Api\BasketController::class, 'store'])->middleware('auth.api_or_sanctum:write');
+        Route::post('/{code}/rebalance', [\App\Http\Controllers\Api\BasketController::class, 'rebalance'])->middleware('auth.api_or_sanctum:write');
     });
 
     // Transactions
