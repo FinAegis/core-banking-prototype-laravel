@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V2\PublicApiController;
 use App\Http\Controllers\Api\V2\WebhookController;
 use App\Http\Controllers\Api\V2\GCUController;
+use App\Http\Controllers\Api\V2\FinancialInstitutionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -44,6 +45,15 @@ Route::prefix('gcu')->group(function () {
 
 // Webhook event types (public information)
 Route::get('/webhooks/events', [WebhookController::class, 'events']);
+
+// Financial Institution Onboarding (public endpoints)
+Route::prefix('financial-institutions')->group(function () {
+    Route::get('/application-form', [FinancialInstitutionController::class, 'getApplicationForm']);
+    Route::post('/apply', [FinancialInstitutionController::class, 'submitApplication']);
+    Route::get('/application/{applicationNumber}/status', [FinancialInstitutionController::class, 'getApplicationStatus']);
+    Route::post('/application/{applicationNumber}/documents', [FinancialInstitutionController::class, 'uploadDocument']);
+    Route::get('/api-documentation', [FinancialInstitutionController::class, 'getApiDocumentation']);
+});
 
 // Public basket endpoints (read-only)
 Route::prefix('baskets')->group(function () {
