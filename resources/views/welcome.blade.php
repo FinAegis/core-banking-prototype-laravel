@@ -43,6 +43,7 @@
         </style>
     </head>
     <body class="antialiased">
+        <x-platform-banners />
         <x-main-navigation />
 
         <!-- Hero Section -->

@@ -79,6 +79,19 @@ Route::get('/status', function () {
     return view('status');
 })->name('status');
 
+Route::get('/cgo', function () {
+    return view('cgo');
+})->name('cgo');
+
+Route::post('/cgo/notify', [App\Http\Controllers\CgoController::class, 'notify'])->name('cgo.notify');
+
+// Authenticated CGO routes
+Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(function () {
+    Route::get('/invest', [App\Http\Controllers\CgoController::class, 'showInvest'])->name('invest');
+    Route::post('/invest', [App\Http\Controllers\CgoController::class, 'invest']);
+    Route::get('/certificate/{uuid}', [App\Http\Controllers\CgoController::class, 'downloadCertificate'])->name('certificate');
+});
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

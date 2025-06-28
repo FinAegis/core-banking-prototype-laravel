@@ -16,6 +16,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use App\Values\UserRoles;
 use App\Models\Account;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -193,5 +194,13 @@ class User extends Authenticatable implements FilamentUser
             'has_completed_onboarding' => true,
             'onboarding_completed_at' => now(),
         ]);
+    }
+    
+    /**
+     * Get the CGO investments for the user.
+     */
+    public function cgoInvestments(): HasMany
+    {
+        return $this->hasMany(CgoInvestment::class);
     }
 }
