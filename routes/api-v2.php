@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V2\PublicApiController;
 use App\Http\Controllers\Api\V2\WebhookController;
 use App\Http\Controllers\Api\V2\GCUController;
+use App\Http\Controllers\Api\V2\BankIntegrationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -123,5 +124,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('transactions')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\TransactionController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\TransactionController::class, 'show']);
+    });
+    
+    // Bank Integration endpoints
+    Route::prefix('banks')->group(function () {
+        Route::get('/available', [BankIntegrationController::class, 'getAvailableBanks']);
+        Route::get('/health/{bankCode}', [BankIntegrationController::class, 'getBankHealth']);
+        Route::get('/recommendations', [BankIntegrationController::class, 'getRecommendedBanks']);
+        
+        // User bank connections
+        Route::get('/connections', [BankIntegrationController::class, 'getUserConnections']);
+        Route::post('/connect', [BankIntegrationController::class, 'connectBank']);
+        Route::delete('/disconnect/{bankCode}', [BankIntegrationController::class, 'disconnectBank']);
+        
+        // Bank accounts
+        Route::get('/accounts', [BankIntegrationController::class, 'getBankAccounts']);
+        Route::post('/accounts/sync/{bankCode}', [BankIntegrationController::class, 'syncAccounts']);
+        
+        // Balances and transfers
+        Route::get('/balance/aggregate', [BankIntegrationController::class, 'getAggregatedBalance']);
+        Route::post('/transfer', [BankIntegrationController::class, 'initiateTransfer'])->middleware('transaction.rate_limit:transfer');
     });
 });
