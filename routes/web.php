@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\ContactController;
 
 // Public Pages
 Route::get('/', function () {
@@ -85,6 +86,8 @@ Route::get('/support', function () {
 Route::get('/support/contact', function () {
     return view('support.contact');
 })->name('support.contact');
+
+Route::post('/support/contact', [ContactController::class, 'submit'])->name('support.contact.submit');
 
 Route::get('/support/faq', function () {
     return view('support.faq');

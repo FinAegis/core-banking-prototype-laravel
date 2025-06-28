@@ -37,7 +37,7 @@
             }
             .code-container {
                 position: relative;
-                background: #1e293b;
+                background: #0f1419;
                 border-radius: 0.75rem;
                 overflow: hidden;
             }
@@ -343,19 +343,19 @@
                                 </div>
                                 <div class="p-4 font-mono text-sm">
                                     <div id="code-auth">
-                                        <div><span class="text-blue-400">const</span> <span class="text-gray-200">headers</span> <span class="text-gray-400">=</span> <span class="text-gray-400">{</span></div>
+                                        <div><span class="text-blue-400">const</span> <span class="text-white">headers</span> <span class="text-gray-400">=</span> <span class="text-gray-400">{</span></div>
                                         <div class="pl-4"><span class="text-green-400">'Authorization'</span><span class="text-gray-400">:</span> <span class="text-yellow-400">'Bearer YOUR_API_KEY'</span><span class="text-gray-400">,</span></div>
                                         <div class="pl-4"><span class="text-green-400">'Content-Type'</span><span class="text-gray-400">:</span> <span class="text-yellow-400">'application/json'</span><span class="text-gray-400">,</span></div>
                                         <div class="pl-4"><span class="text-green-400">'Accept'</span><span class="text-gray-400">:</span> <span class="text-yellow-400">'application/json'</span></div>
                                         <div><span class="text-gray-400">};</span></div>
                                         <div class="mt-4"></div>
-                                        <div><span class="text-gray-500">// Example API call</span></div>
+                                        <div><span class="text-gray-400">// Example API call</span></div>
                                         <div><span class="text-purple-400">fetch</span><span class="text-gray-400">(</span><span class="text-yellow-400">'https://api.finaegis.org/v1/accounts'</span><span class="text-gray-400">,</span> <span class="text-gray-400">{</span></div>
                                         <div class="pl-4"><span class="text-green-400">method</span><span class="text-gray-400">:</span> <span class="text-yellow-400">'GET'</span><span class="text-gray-400">,</span></div>
-                                        <div class="pl-4"><span class="text-green-400">headers</span><span class="text-gray-400">:</span> <span class="text-gray-200">headers</span></div>
+                                        <div class="pl-4"><span class="text-green-400">headers</span><span class="text-gray-400">:</span> <span class="text-white">headers</span></div>
                                         <div><span class="text-gray-400">})</span></div>
-                                        <div><span class="text-gray-400">.</span><span class="text-purple-400">then</span><span class="text-gray-400">(</span><span class="text-gray-200">response</span> <span class="text-blue-400">=></span> <span class="text-gray-200">response</span><span class="text-gray-400">.</span><span class="text-purple-400">json</span><span class="text-gray-400">())</span></div>
-                                        <div><span class="text-gray-400">.</span><span class="text-purple-400">then</span><span class="text-gray-400">(</span><span class="text-gray-200">data</span> <span class="text-blue-400">=></span> <span class="text-gray-200">console</span><span class="text-gray-400">.</span><span class="text-purple-400">log</span><span class="text-gray-400">(</span><span class="text-gray-200">data</span><span class="text-gray-400">));</span></div>
+                                        <div><span class="text-gray-400">.</span><span class="text-purple-400">then</span><span class="text-gray-400">(</span><span class="text-white">response</span> <span class="text-blue-400">=></span> <span class="text-white">response</span><span class="text-gray-400">.</span><span class="text-purple-400">json</span><span class="text-gray-400">())</span></div>
+                                        <div><span class="text-gray-400">.</span><span class="text-purple-400">then</span><span class="text-gray-400">(</span><span class="text-white">data</span> <span class="text-blue-400">=></span> <span class="text-white">console</span><span class="text-gray-400">.</span><span class="text-purple-400">log</span><span class="text-gray-400">(</span><span class="text-white">data</span><span class="text-gray-400">));</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -460,8 +460,8 @@
                                 </svg>
                             </div>
                             <h3 class="text-xl font-semibold mb-2 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                                 API Documentation
                             </h3>
@@ -478,8 +478,8 @@
                                 </svg>
                             </div>
                             <h3 class="text-xl font-semibold mb-2 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 SDKs & Libraries
                             </h3>
@@ -496,8 +496,8 @@
                                 </svg>
                             </div>
                             <h3 class="text-xl font-semibold mb-2 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                                 </svg>
                                 Code Examples
                             </h3>
@@ -515,19 +515,39 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                     <div>
                         <div class="text-4xl md:text-5xl font-bold mb-2">{{ config('platform.statistics.api_endpoints') }}</div>
-                        <p class="text-indigo-200">API Endpoints</p>
+                        <p class="text-indigo-200 flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            API Endpoints
+                        </p>
                     </div>
                     <div>
                         <div class="text-4xl md:text-5xl font-bold mb-2">3</div>
-                        <p class="text-indigo-200">SDKs Coming</p>
+                        <p class="text-indigo-200 flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                            SDKs Coming
+                        </p>
                     </div>
                     <div>
                         <div class="text-4xl md:text-5xl font-bold mb-2">MIT</div>
-                        <p class="text-indigo-200">Open Source</p>
+                        <p class="text-indigo-200 flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                            Open Source
+                        </p>
                     </div>
                     <div>
                         <div class="text-4xl md:text-5xl font-bold mb-2">24/7</div>
-                        <p class="text-indigo-200">Support</p>
+                        <p class="text-indigo-200 flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            Support
+                        </p>
                     </div>
                 </div>
             </div>
@@ -584,13 +604,13 @@
                                 </button>
                             </div>
                             <pre class="p-4 code-block"><code id="code-create-account"><span class="text-purple-400">const</span> <span class="text-blue-400">createAccount</span> = <span class="text-purple-400">async</span> () <span class="text-blue-400">=></span> {
-    <span class="text-purple-400">const</span> <span class="text-gray-200">response</span> = <span class="text-purple-400">await</span> <span class="text-green-400">fetch</span>(<span class="text-amber-400">'https://api.finaegis.org/v1/accounts'</span>, {
+    <span class="text-purple-400">const</span> <span class="text-white">response</span> = <span class="text-purple-400">await</span> <span class="text-green-400">fetch</span>(<span class="text-amber-400">'https://api.finaegis.org/v1/accounts'</span>, {
         <span class="text-cyan-400">method</span>: <span class="text-amber-400">'POST'</span>,
         <span class="text-cyan-400">headers</span>: {
             <span class="text-amber-400">'Authorization'</span>: <span class="text-amber-400">'Bearer YOUR_API_KEY'</span>,
             <span class="text-amber-400">'Content-Type'</span>: <span class="text-amber-400">'application/json'</span>
         },
-        <span class="text-cyan-400">body</span>: <span class="text-gray-200">JSON</span>.<span class="text-green-400">stringify</span>({
+        <span class="text-cyan-400">body</span>: <span class="text-white">JSON</span>.<span class="text-green-400">stringify</span>({
             <span class="text-cyan-400">customer_id</span>: <span class="text-amber-400">'cust_123456'</span>,
             <span class="text-cyan-400">currency</span>: <span class="text-amber-400">'USD'</span>,
             <span class="text-cyan-400">initial_balance</span>: <span class="text-pink-400">1000.00</span>,
@@ -598,8 +618,8 @@
         })
     });
     
-    <span class="text-purple-400">const</span> <span class="text-gray-200">account</span> = <span class="text-purple-400">await</span> <span class="text-gray-200">response</span>.<span class="text-green-400">json</span>();
-    <span class="text-gray-200">console</span>.<span class="text-green-400">log</span>(<span class="text-amber-400">'Account created:'</span>, <span class="text-gray-200">account</span>);
+    <span class="text-purple-400">const</span> <span class="text-white">account</span> = <span class="text-purple-400">await</span> <span class="text-white">response</span>.<span class="text-green-400">json</span>();
+    <span class="text-white">console</span>.<span class="text-green-400">log</span>(<span class="text-amber-400">'Account created:'</span>, <span class="text-white">account</span>);
 };</code></pre>
                         </div>
                     </div>
@@ -627,27 +647,27 @@
                             </div>
                             <pre class="p-4 code-block"><code id="code-transfer"><span class="text-purple-400">import</span> <span class="text-amber-400">requests</span>
 
-<span class="text-purple-400">def</span> <span class="text-blue-400">transfer_funds</span>(<span class="text-gray-200">from_account</span>, <span class="text-gray-200">to_account</span>, <span class="text-gray-200">amount</span>):
-    <span class="text-gray-200">url</span> = <span class="text-amber-400">"https://api.finaegis.org/v1/transfers"</span>
-    <span class="text-gray-200">headers</span> = {
+<span class="text-purple-400">def</span> <span class="text-blue-400">transfer_funds</span>(<span class="text-white">from_account</span>, <span class="text-white">to_account</span>, <span class="text-white">amount</span>):
+    <span class="text-white">url</span> = <span class="text-amber-400">"https://api.finaegis.org/v1/transfers"</span>
+    <span class="text-white">headers</span> = {
         <span class="text-amber-400">"Authorization"</span>: <span class="text-amber-400">"Bearer YOUR_API_KEY"</span>,
         <span class="text-amber-400">"Content-Type"</span>: <span class="text-amber-400">"application/json"</span>
     }
     
-    <span class="text-gray-200">payload</span> = {
-        <span class="text-amber-400">"from_account_id"</span>: <span class="text-gray-200">from_account</span>,
-        <span class="text-amber-400">"to_account_id"</span>: <span class="text-gray-200">to_account</span>,
-        <span class="text-amber-400">"amount"</span>: <span class="text-gray-200">amount</span>,
+    <span class="text-white">payload</span> = {
+        <span class="text-amber-400">"from_account_id"</span>: <span class="text-white">from_account</span>,
+        <span class="text-amber-400">"to_account_id"</span>: <span class="text-white">to_account</span>,
+        <span class="text-amber-400">"amount"</span>: <span class="text-white">amount</span>,
         <span class="text-amber-400">"currency"</span>: <span class="text-amber-400">"USD"</span>,
         <span class="text-amber-400">"description"</span>: <span class="text-amber-400">"Payment transfer"</span>
     }
     
-    <span class="text-gray-200">response</span> = <span class="text-gray-200">requests</span>.<span class="text-green-400">post</span>(<span class="text-gray-200">url</span>, <span class="text-cyan-400">json</span>=<span class="text-gray-200">payload</span>, <span class="text-cyan-400">headers</span>=<span class="text-gray-200">headers</span>)
-    <span class="text-purple-400">return</span> <span class="text-gray-200">response</span>.<span class="text-green-400">json</span>()
+    <span class="text-white">response</span> = <span class="text-white">requests</span>.<span class="text-green-400">post</span>(<span class="text-white">url</span>, <span class="text-cyan-400">json</span>=<span class="text-white">payload</span>, <span class="text-cyan-400">headers</span>=<span class="text-white">headers</span>)
+    <span class="text-purple-400">return</span> <span class="text-white">response</span>.<span class="text-green-400">json</span>()
 
-<span class="text-gray-500"># Execute transfer</span>
-<span class="text-gray-200">result</span> = <span class="text-green-400">transfer_funds</span>(<span class="text-amber-400">"acc_123"</span>, <span class="text-amber-400">"acc_456"</span>, <span class="text-pink-400">250.00</span>)
-<span class="text-green-400">print</span>(<span class="text-amber-400">f"Transfer ID: </span>{<span class="text-gray-200">result</span>[<span class="text-amber-400">'transfer_id'</span>]}<span class="text-amber-400">"</span>)</code></pre>
+<span class="text-gray-400"># Execute transfer</span>
+<span class="text-white">result</span> = <span class="text-green-400">transfer_funds</span>(<span class="text-amber-400">"acc_123"</span>, <span class="text-amber-400">"acc_456"</span>, <span class="text-pink-400">250.00</span>)
+<span class="text-green-400">print</span>(<span class="text-amber-400">f"Transfer ID: </span>{<span class="text-white">result</span>[<span class="text-amber-400">'transfer_id'</span>]}<span class="text-amber-400">"</span>)</code></pre>
                         </div>
                     </div>
 
@@ -720,42 +740,42 @@
                                     <span>Copy</span>
                                 </button>
                             </div>
-                            <pre class="p-4 code-block"><code id="code-webhook"><span class="text-purple-400">const</span> <span class="text-gray-200">express</span> = <span class="text-green-400">require</span>(<span class="text-amber-400">'express'</span>);
-<span class="text-purple-400">const</span> <span class="text-gray-200">crypto</span> = <span class="text-green-400">require</span>(<span class="text-amber-400">'crypto'</span>);
+                            <pre class="p-4 code-block"><code id="code-webhook"><span class="text-purple-400">const</span> <span class="text-white">express</span> = <span class="text-green-400">require</span>(<span class="text-amber-400">'express'</span>);
+<span class="text-purple-400">const</span> <span class="text-white">crypto</span> = <span class="text-green-400">require</span>(<span class="text-amber-400">'crypto'</span>);
 
-<span class="text-purple-400">const</span> <span class="text-gray-200">app</span> = <span class="text-green-400">express</span>();
-<span class="text-gray-200">app</span>.<span class="text-green-400">use</span>(<span class="text-gray-200">express</span>.<span class="text-green-400">json</span>());
+<span class="text-purple-400">const</span> <span class="text-white">app</span> = <span class="text-green-400">express</span>();
+<span class="text-white">app</span>.<span class="text-green-400">use</span>(<span class="text-white">express</span>.<span class="text-green-400">json</span>());
 
-<span class="text-gray-200">app</span>.<span class="text-green-400">post</span>(<span class="text-amber-400">'/webhooks/finaegis'</span>, (<span class="text-gray-200">req</span>, <span class="text-gray-200">res</span>) <span class="text-blue-400">=></span> {
-    <span class="text-gray-500">// Verify webhook signature</span>
-    <span class="text-purple-400">const</span> <span class="text-gray-200">signature</span> = <span class="text-gray-200">req</span>.<span class="text-cyan-400">headers</span>[<span class="text-amber-400">'x-finaegis-signature'</span>];
-    <span class="text-purple-400">const</span> <span class="text-gray-200">payload</span> = <span class="text-gray-200">JSON</span>.<span class="text-green-400">stringify</span>(<span class="text-gray-200">req</span>.<span class="text-cyan-400">body</span>);
-    <span class="text-purple-400">const</span> <span class="text-gray-200">secret</span> = <span class="text-gray-200">process</span>.<span class="text-cyan-400">env</span>.<span class="text-cyan-400">WEBHOOK_SECRET</span>;
+<span class="text-white">app</span>.<span class="text-green-400">post</span>(<span class="text-amber-400">'/webhooks/finaegis'</span>, (<span class="text-white">req</span>, <span class="text-white">res</span>) <span class="text-blue-400">=></span> {
+    <span class="text-gray-400">// Verify webhook signature</span>
+    <span class="text-purple-400">const</span> <span class="text-white">signature</span> = <span class="text-white">req</span>.<span class="text-cyan-400">headers</span>[<span class="text-amber-400">'x-finaegis-signature'</span>];
+    <span class="text-purple-400">const</span> <span class="text-white">payload</span> = <span class="text-white">JSON</span>.<span class="text-green-400">stringify</span>(<span class="text-white">req</span>.<span class="text-cyan-400">body</span>);
+    <span class="text-purple-400">const</span> <span class="text-white">secret</span> = <span class="text-white">process</span>.<span class="text-cyan-400">env</span>.<span class="text-cyan-400">WEBHOOK_SECRET</span>;
     
-    <span class="text-purple-400">const</span> <span class="text-gray-200">expectedSignature</span> = <span class="text-gray-200">crypto</span>
-        .<span class="text-green-400">createHmac</span>(<span class="text-amber-400">'sha256'</span>, <span class="text-gray-200">secret</span>)
-        .<span class="text-green-400">update</span>(<span class="text-gray-200">payload</span>)
+    <span class="text-purple-400">const</span> <span class="text-white">expectedSignature</span> = <span class="text-white">crypto</span>
+        .<span class="text-green-400">createHmac</span>(<span class="text-amber-400">'sha256'</span>, <span class="text-white">secret</span>)
+        .<span class="text-green-400">update</span>(<span class="text-white">payload</span>)
         .<span class="text-green-400">digest</span>(<span class="text-amber-400">'hex'</span>);
     
-    <span class="text-purple-400">if</span> (<span class="text-gray-200">signature</span> !== <span class="text-gray-200">expectedSignature</span>) {
-        <span class="text-purple-400">return</span> <span class="text-gray-200">res</span>.<span class="text-green-400">status</span>(<span class="text-pink-400">401</span>).<span class="text-green-400">send</span>(<span class="text-amber-400">'Invalid signature'</span>);
+    <span class="text-purple-400">if</span> (<span class="text-white">signature</span> !== <span class="text-white">expectedSignature</span>) {
+        <span class="text-purple-400">return</span> <span class="text-white">res</span>.<span class="text-green-400">status</span>(<span class="text-pink-400">401</span>).<span class="text-green-400">send</span>(<span class="text-amber-400">'Invalid signature'</span>);
     }
     
-    <span class="text-gray-500">// Process the webhook</span>
-    <span class="text-purple-400">const</span> { <span class="text-gray-200">event</span>, <span class="text-gray-200">data</span> } = <span class="text-gray-200">req</span>.<span class="text-cyan-400">body</span>;
+    <span class="text-gray-400">// Process the webhook</span>
+    <span class="text-purple-400">const</span> { <span class="text-white">event</span>, <span class="text-white">data</span> } = <span class="text-white">req</span>.<span class="text-cyan-400">body</span>;
     
-    <span class="text-purple-400">switch</span> (<span class="text-gray-200">event</span>) {
+    <span class="text-purple-400">switch</span> (<span class="text-white">event</span>) {
         <span class="text-purple-400">case</span> <span class="text-amber-400">'transaction.completed'</span>:
-            <span class="text-gray-200">console</span>.<span class="text-green-400">log</span>(<span class="text-amber-400">`Transaction </span>${<span class="text-gray-200">data</span>.<span class="text-cyan-400">id</span>}<span class="text-amber-400"> completed`</span>);
-            <span class="text-gray-500">// Handle completed transaction</span>
+            <span class="text-white">console</span>.<span class="text-green-400">log</span>(<span class="text-amber-400">`Transaction </span>${<span class="text-white">data</span>.<span class="text-cyan-400">id</span>}<span class="text-amber-400"> completed`</span>);
+            <span class="text-gray-400">// Handle completed transaction</span>
             <span class="text-purple-400">break</span>;
         <span class="text-purple-400">case</span> <span class="text-amber-400">'account.created'</span>:
-            <span class="text-gray-200">console</span>.<span class="text-green-400">log</span>(<span class="text-amber-400">`New account created: </span>${<span class="text-gray-200">data</span>.<span class="text-cyan-400">account_id</span>}<span class="text-amber-400">`</span>);
-            <span class="text-gray-500">// Handle new account</span>
+            <span class="text-white">console</span>.<span class="text-green-400">log</span>(<span class="text-amber-400">`New account created: </span>${<span class="text-white">data</span>.<span class="text-cyan-400">account_id</span>}<span class="text-amber-400">`</span>);
+            <span class="text-gray-400">// Handle new account</span>
             <span class="text-purple-400">break</span>;
     }
     
-    <span class="text-gray-200">res</span>.<span class="text-green-400">status</span>(<span class="text-pink-400">200</span>).<span class="text-green-400">send</span>(<span class="text-amber-400">'OK'</span>);
+    <span class="text-white">res</span>.<span class="text-green-400">status</span>(<span class="text-pink-400">200</span>).<span class="text-green-400">send</span>(<span class="text-amber-400">'OK'</span>);
 });</code></pre>
                         </div>
                     </div>

@@ -163,7 +163,7 @@
                             <li>Register for a free account on the platform</li>
                             <li>Explore the demo features and simulated transactions</li>
                             <li>Report bugs and issues on our GitHub repository</li>
-                            <li>Provide feedback via email at alpha@finaegis.org</li>
+                            <li>Provide feedback via email at info@finaegis.org</li>
                             <li>Join discussions on our GitHub community forum</li>
                         </ol>
                         <p class="text-gray-600 mt-3">

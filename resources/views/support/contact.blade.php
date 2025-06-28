@@ -52,8 +52,8 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Email Support</h3>
-                    <p class="text-gray-600 mb-2">Alpha testing feedback</p>
-                    <a href="mailto:alpha@finaegis.org" class="text-indigo-600 hover:text-indigo-700 font-medium">alpha@finaegis.org</a>
+                    <p class="text-gray-600 mb-2">General inquiries & support</p>
+                    <a href="mailto:info@finaegis.org" class="text-indigo-600 hover:text-indigo-700 font-medium">info@finaegis.org</a>
                 </div>
                 
                 <!-- GitHub Issues -->
@@ -77,16 +77,27 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Community Forum</h3>
                     <p class="text-gray-600 mb-2">Join discussions</p>
-                    <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" class="text-green-600 hover:text-green-700 font-medium">Visit Forum</a>
+                    <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" target="_blank" class="text-green-600 hover:text-green-700 font-medium">Visit Forum</a>
                 </div>
             </div>
 
             <!-- Contact Form -->
             <div class="max-w-3xl mx-auto">
+                @if(session('success'))
+                    <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p class="text-green-800">
+                            <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {{ session('success') }}
+                        </p>
+                    </div>
+                @endif
+
                 <div class="bg-white rounded-2xl shadow-xl p-8">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Send us a message</h2>
                     
-                    <form method="POST" action="#" class="space-y-6" onsubmit="alert('Form submission is not active during alpha testing. Please email alpha@finaegis.org'); return false;">
+                    <form method="POST" action="{{ route('support.contact.submit') }}" class="space-y-6" enctype="multipart/form-data">
                         @csrf
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -184,12 +195,12 @@
                 </div>
                 
                 <!-- Response Time Notice -->
-                <div class="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <p class="text-amber-800 text-center">
+                <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-blue-800 text-center">
                         <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span class="font-semibold">Alpha Testing:</span> Form submission is currently disabled. Please email us directly at alpha@finaegis.org
+                        <span class="font-semibold">Response Time:</span> We typically respond within 24-48 hours during business days.
                     </p>
                 </div>
             </div>

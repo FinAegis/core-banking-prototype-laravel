@@ -36,6 +36,7 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
 // GCU-specific endpoints (public read access)
 Route::prefix('gcu')->group(function () {
     Route::get('/', [GCUController::class, 'index']);
+    Route::get('/composition', [GCUController::class, 'composition']);
     Route::get('/value-history', [GCUController::class, 'valueHistory']);
     Route::get('/governance/active-polls', [GCUController::class, 'activePolls']);
     Route::get('/supported-banks', [GCUController::class, 'supportedBanks']);
