@@ -341,22 +341,22 @@ A: The current composition is maintained in case of exact ties.
 
 ### Getting Help
 
-- **GCU Support**: gcu@finaegis.com
+- **GCU Support**: gcu@finaegis.org
 - **Live Chat**: Available 24/7
-- **Community Forum**: discuss.finaegis.com/gcu
+- **Community Forum**: discuss.finaegis.org/gcu
 - **Video Tutorials**: youtube.com/finaegis
 
 ### Stay Updated
 
 - **Monthly Newsletter**: GCU composition updates
 - **Twitter**: @FinAegisGCU
-- **Blog**: blog.finaegis.com/gcu
-- **API Status**: status.finaegis.com
+- **Blog**: blog.finaegis.org/gcu
+- **API Status**: status.finaegis.org
 
 ### Feedback
 
 We value your input on GCU:
-- Feature requests: features@finaegis.com
+- Feature requests: features@finaegis.org
 - Bug reports: GitHub issues
 - General feedback: In-app feedback form
 

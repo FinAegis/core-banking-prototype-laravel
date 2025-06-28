@@ -15,7 +15,7 @@ namespace App\Http\Controllers\Api\Documentation;
  *     @OA\Property(property="verification_notes", type="string", example="Document verified successfully"),
  *     @OA\Property(property="expires_at", type="string", format="date", example="2030-12-31"),
  *     @OA\Property(property="verified_at", type="string", format="date-time", example="2025-01-15T10:00:00Z"),
- *     @OA\Property(property="verified_by", type="string", example="admin@finaegis.com"),
+ *     @OA\Property(property="verified_by", type="string", example="admin@finaegis.org"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2025-01-15T09:00:00Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2025-01-15T10:00:00Z")
  * )
@@ -129,7 +129,7 @@ namespace App\Http\Controllers\Api\Documentation;
  *     @OA\Property(property="transaction_ids", type="array", @OA\Items(type="string"), description="Related transaction IDs"),
  *     @OA\Property(property="amount", type="integer", example=10000000, description="Amount involved in cents"),
  *     @OA\Property(property="description", type="string", example="Multiple high-value transactions within 24 hours"),
- *     @OA\Property(property="investigator", type="string", example="compliance@finaegis.com"),
+ *     @OA\Property(property="investigator", type="string", example="compliance@finaegis.org"),
  *     @OA\Property(property="resolution", type="string", example="False positive - legitimate business activity"),
  *     @OA\Property(property="reported_to_authorities", type="boolean", example=false),
  *     @OA\Property(property="created_at", type="string", format="date-time"),

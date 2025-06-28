@@ -196,7 +196,7 @@
                 <p>If you have questions about our use of cookies, please contact us:</p>
                 <div class="bg-gray-50 p-6 rounded-lg mt-6">
                     <p><strong>Data Protection Officer</strong><br>
-                    Email: privacy@finaegis.com<br>
+                    Email: privacy@finaegis.org<br>
                     Address: Vilnius, Lithuania</p>
                 </div>
 

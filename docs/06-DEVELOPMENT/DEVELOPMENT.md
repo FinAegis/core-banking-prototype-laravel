@@ -470,4 +470,4 @@ This project is specifically designed to work well with AI coding tools. AI agen
 For technical support and questions:
 - GitHub Issues: [Repository Issues](https://github.com/your-repo/issues)
 - Documentation: [Full Documentation](./docs/)
-- Email: support@finaegis.com
+- Email: support@finaegis.org

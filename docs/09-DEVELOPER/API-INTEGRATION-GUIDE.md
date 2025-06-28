@@ -9,20 +9,20 @@ This guide provides comprehensive documentation for integrating with the FinAegi
 ### 1. Get Your API Credentials
 
 ```bash
-# Request API access at https://developers.finaegis.com
+# Request API access at https://developers.finaegis.org
 # You'll receive:
 - API Key: your_api_key_here
 - API Secret: your_api_secret_here
 - Environment URLs:
-  - Sandbox: https://sandbox-api.finaegis.com
-  - Production: https://api.finaegis.com
+  - Sandbox: https://sandbox-api.finaegis.org
+  - Production: https://api.finaegis.org
 ```
 
 ### 2. Make Your First Request
 
 ```bash
 # Get account information
-curl -X GET https://sandbox-api.finaegis.com/v2/accounts \
+curl -X GET https://sandbox-api.finaegis.org/v2/accounts \
   -H "Authorization: Bearer your_api_key_here" \
   -H "Content-Type: application/json"
 ```
@@ -31,7 +31,7 @@ curl -X GET https://sandbox-api.finaegis.com/v2/accounts \
 
 ```bash
 # Register a webhook endpoint
-curl -X POST https://sandbox-api.finaegis.com/v2/webhooks \
+curl -X POST https://sandbox-api.finaegis.org/v2/webhooks \
   -H "Authorization: Bearer your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -291,7 +291,7 @@ GET /v2/exchange-rates/{from}/{to}
 
 1. **Register Endpoint**
 ```bash
-curl -X POST https://api.finaegis.com/v2/webhooks \
+curl -X POST https://api.finaegis.org/v2/webhooks \
   -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -485,7 +485,7 @@ client.webhooks.listen(3000, (event) => {
 
 ### Sandbox Environment
 
-- Base URL: `https://sandbox-api.finaegis.com`
+- Base URL: `https://sandbox-api.finaegis.org`
 - Test API keys available in dashboard
 - Simulated bank responses
 - Accelerated time for testing recurring features
@@ -587,14 +587,14 @@ describe('FinAegis API Integration', () => {
 
 ### Resources
 
-- **API Reference**: https://api-docs.finaegis.com
-- **Status Page**: https://status.finaegis.com
-- **Developer Forum**: https://developers.finaegis.com/forum
+- **API Reference**: https://api-docs.finaegis.org
+- **Status Page**: https://status.finaegis.org
+- **Developer Forum**: https://developers.finaegis.org/forum
 - **GitHub**: https://github.com/finaegis
 
 ### Contact
 
-- **Email**: api-support@finaegis.com
+- **Email**: api-support@finaegis.org
 - **Slack**: finaegis-dev.slack.com
 - **Emergency**: +1-888-FINAEGIS (24/7)
 

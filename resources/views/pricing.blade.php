@@ -1,261 +1,278 @@
-<x-guest-layout>
-    <div class="bg-white">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-900 to-blue-800">
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="FinAegis Pricing - Open source community edition or enterprise support. Start free, scale when ready.">
+        <meta name="keywords" content="FinAegis, pricing, open source, enterprise, support">
+        
+        <title>Pricing - FinAegis</title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+
+        <!-- Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- Custom Styles -->
+        <style>
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+        </style>
+    </head>
+    <body class="antialiased">
+        <x-alpha-banner />
+        <x-main-navigation />
+
+        <!-- Hero Section -->
+        <section class="pt-16 gradient-bg text-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                 <div class="text-center">
-                    <h1 class="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
-                        Simple, Transparent Pricing
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                        Open Source & Enterprise Ready
                     </h1>
-                    <p class="mt-6 text-xl text-blue-100 max-w-3xl mx-auto">
-                        No hidden fees. No monthly charges. Pay only for what you use with the most competitive rates in the market.
+                    <p class="text-xl md:text-2xl text-purple-100 max-w-3xl mx-auto mb-8">
+                        Start with our community edition, scale with enterprise support when you're ready.
                     </p>
                 </div>
             </div>
-        </div>
-
-        <!-- Pricing Cards -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                
-                <!-- Personal Plan -->
-                <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-                    <div class="text-center">
-                        <h3 class="text-2xl font-bold text-gray-900">Personal</h3>
-                        <p class="mt-4 text-gray-600">Perfect for individuals</p>
-                        <div class="mt-8">
-                            <span class="text-5xl font-bold text-gray-900">Free</span>
-                            <span class="text-gray-600">/month</span>
-                        </div>
-                    </div>
-                    
-                    <ul class="mt-8 space-y-4">
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Multi-currency wallet</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Free transfers between accounts</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Basic bank allocation (3 banks)</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Up to €300,000 deposit protection</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">GCU governance voting</span>
-                        </li>
-                    </ul>
-
-                    <a href="{{ route('register') }}" class="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 block text-center">
-                        Get Started Free
-                    </a>
-                </div>
-
-                <!-- Business Plan -->
-                <div class="bg-white rounded-2xl shadow-xl border-2 border-blue-500 p-8 relative">
-                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">Most Popular</span>
-                    </div>
-                    
-                    <div class="text-center">
-                        <h3 class="text-2xl font-bold text-gray-900">Business</h3>
-                        <p class="mt-4 text-gray-600">For growing businesses</p>
-                        <div class="mt-8">
-                            <span class="text-5xl font-bold text-gray-900">€29</span>
-                            <span class="text-gray-600">/month</span>
-                        </div>
-                    </div>
-                    
-                    <ul class="mt-8 space-y-4">
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Everything in Personal</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Advanced bank allocation (5 banks)</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Up to €500,000 deposit protection</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">API access & webhooks</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Priority support</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Batch processing</span>
-                        </li>
-                    </ul>
-
-                    <a href="{{ route('register') }}" class="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 block text-center">
-                        Start Business Plan
-                    </a>
-                </div>
-
-                <!-- Enterprise Plan -->
-                <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-                    <div class="text-center">
-                        <h3 class="text-2xl font-bold text-gray-900">Enterprise</h3>
-                        <p class="mt-4 text-gray-600">For large organizations</p>
-                        <div class="mt-8">
-                            <span class="text-5xl font-bold text-gray-900">Custom</span>
-                        </div>
-                    </div>
-                    
-                    <ul class="mt-8 space-y-4">
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Everything in Business</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Unlimited bank allocation</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Unlimited deposit protection</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Dedicated account manager</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">Custom integrations</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-gray-700">SLA guarantees</span>
-                        </li>
-                    </ul>
-
-                    <a href="{{ route('support.contact') }}" class="mt-8 w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-800 transition duration-200 block text-center">
-                        Contact Sales
-                    </a>
-                </div>
+            
+            <!-- Wave SVG -->
+            <div class="relative">
+                <svg class="absolute bottom-0 w-full h-24 -mb-1 text-gray-50" preserveAspectRatio="none" viewBox="0 0 1440 74">
+                    <path fill="currentColor" d="M0,32L48,37.3C96,43,192,53,288,58.7C384,64,480,64,576,58.7C672,53,768,43,864,42.7C960,43,1056,53,1152,58.7C1248,64,1344,64,1392,64L1440,64L1440,74L1392,74C1344,74,1248,74,1152,74C1056,74,960,74,864,74C768,74,672,74,576,74C480,74,384,74,288,74C192,74,96,74,48,74L0,74Z"></path>
+                </svg>
             </div>
-        </div>
+        </section>
 
-        <!-- Transaction Fees -->
-        <div class="bg-gray-50 py-24">
+        <!-- Pricing Options -->
+        <section class="py-20 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl font-bold text-gray-900">Transaction Fees</h2>
-                    <p class="mt-4 text-xl text-gray-600">Transparent, low-cost pricing for all your transactions</p>
-                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Community Edition -->
+                    <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-gray-200">
+                        <div class="p-8">
+                            <div class="text-center">
+                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Community Edition</h3>
+                                <p class="text-gray-600 mb-6">Perfect for developers and small teams</p>
+                                <div class="mb-8">
+                                    <span class="text-5xl font-bold text-gray-900">Free</span>
+                                    <span class="text-xl text-gray-600">Open Source</span>
+                                </div>
+                            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div class="bg-white rounded-lg p-6 text-center shadow-sm">
-                        <h3 class="text-lg font-semibold text-gray-900">Currency Exchange</h3>
-                        <div class="mt-4 text-3xl font-bold text-blue-600">0.01%</div>
-                        <p class="mt-2 text-gray-600">Lowest in the market</p>
+                            <ul class="space-y-4 mb-8">
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Full source code access</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">MIT License</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">All core features</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Community support</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Self-hosted deployment</span>
+                                </li>
+                            </ul>
+
+                            <a href="https://github.com/FinAegis/core-banking-prototype-laravel" target="_blank" class="w-full bg-gray-900 text-white rounded-lg py-3 font-semibold hover:bg-gray-800 transition text-center block">
+                                Get Started on GitHub
+                            </a>
+                        </div>
                     </div>
 
-                    <div class="bg-white rounded-lg p-6 text-center shadow-sm">
-                        <h3 class="text-lg font-semibold text-gray-900">International Transfers</h3>
-                        <div class="mt-4 text-3xl font-bold text-blue-600">€0.50</div>
-                        <p class="mt-2 text-gray-600">Per transfer</p>
+                    <!-- Cloud Platform -->
+                    <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-indigo-600 relative">
+                        <div class="absolute top-0 right-0 bg-indigo-600 text-white px-4 py-2 rounded-bl-lg text-sm font-semibold">
+                            Most Popular
+                        </div>
+                        <div class="p-8">
+                            <div class="text-center">
+                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Cloud Platform</h3>
+                                <p class="text-gray-600 mb-6">Managed infrastructure for growing businesses</p>
+                                <div class="mb-8">
+                                    <span class="text-5xl font-bold text-gray-900">TBC</span>
+                                    <span class="text-xl text-gray-600">Pricing coming soon</span>
+                                </div>
+                            </div>
+
+                            <ul class="space-y-4 mb-8">
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Everything in Community</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Managed hosting</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">99.9% uptime SLA</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Priority support</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Automatic updates</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Daily backups</span>
+                                </li>
+                            </ul>
+
+                            <a href="{{ route('support.contact') }}" class="w-full bg-indigo-600 text-white rounded-lg py-3 font-semibold hover:bg-indigo-700 transition text-center block">
+                                Contact Sales
+                            </a>
+                        </div>
                     </div>
 
-                    <div class="bg-white rounded-lg p-6 text-center shadow-sm">
-                        <h3 class="text-lg font-semibold text-gray-900">Bank Deposits</h3>
-                        <div class="mt-4 text-3xl font-bold text-blue-600">€1.00</div>
-                        <p class="mt-2 text-gray-600">Per deposit</p>
-                    </div>
+                    <!-- Enterprise -->
+                    <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-gray-200">
+                        <div class="p-8">
+                            <div class="text-center">
+                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                                <p class="text-gray-600 mb-6">Custom solutions for large organizations</p>
+                                <div class="mb-8">
+                                    <span class="text-5xl font-bold text-gray-900">TBC</span>
+                                    <span class="text-xl text-gray-600">Contact us</span>
+                                </div>
+                            </div>
 
-                    <div class="bg-white rounded-lg p-6 text-center shadow-sm">
-                        <h3 class="text-lg font-semibold text-gray-900">Withdrawals</h3>
-                        <div class="mt-4 text-3xl font-bold text-blue-600">€2.00</div>
-                        <p class="mt-2 text-gray-600">Per withdrawal</p>
+                            <ul class="space-y-4 mb-8">
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Everything in Cloud</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">On-premise deployment</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Custom integrations</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Dedicated support team</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Service level agreements</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Compliance assistance</span>
+                                </li>
+                            </ul>
+
+                            <a href="{{ route('support.contact') }}" class="w-full bg-gray-900 text-white rounded-lg py-3 font-semibold hover:bg-gray-800 transition text-center block">
+                                Contact Enterprise Sales
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- FAQ Section -->
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
+        <section class="py-20 bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+                    <p class="text-xl text-gray-600">Everything you need to know about our pricing</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Is the community edition really free?</h3>
+                        <p class="text-gray-600">Yes! Our community edition is completely free and open source under the MIT license. You can use it for any purpose, including commercial projects.</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">What's included in the Cloud Platform?</h3>
+                        <p class="text-gray-600">The Cloud Platform includes managed hosting, automatic updates, daily backups, 99.9% uptime SLA, and priority support. We handle all the infrastructure so you can focus on your business.</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I switch between plans?</h3>
+                        <p class="text-gray-600">Absolutely! You can start with the community edition and upgrade to Cloud or Enterprise plans at any time. We'll help you migrate your data seamlessly.</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Do you offer discounts for non-profits?</h3>
+                        <p class="text-gray-600">Yes, we offer special pricing for non-profit organizations and educational institutions. Contact our sales team for more information.</p>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <div class="space-y-8">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Is there a minimum balance requirement?</h3>
-                    <p class="text-gray-600">No, there are no minimum balance requirements for any of our plans. You can start with any amount.</p>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Are my funds protected?</h3>
-                    <p class="text-gray-600">Yes, your funds are distributed across multiple licensed banks, each providing deposit insurance protection up to €100,000 per bank.</p>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I change plans anytime?</h3>
-                    <p class="text-gray-600">Absolutely! You can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">What currencies are supported?</h3>
-                    <p class="text-gray-600">We support major currencies including USD, EUR, GBP, CHF, JPY, and our flagship Global Currency Unit (GCU).</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- CTA Section -->
-        <div class="bg-blue-900 py-16">
+        <!-- CTA -->
+        <section class="py-20 bg-gray-50">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-white mb-4">Ready to get started?</h2>
-                <p class="text-xl text-blue-100 mb-8">Join thousands of users who trust FinAegis with their financial future.</p>
-                <a href="{{ route('register') }}" class="bg-white text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-200">
-                    Create Your Account
-                </a>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Ready to Get Started?</h2>
+                <p class="text-xl text-gray-600 mb-8">
+                    Join thousands of developers building the future of finance
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="https://github.com/FinAegis" target="_blank" class="bg-gray-900 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-800 transition shadow-lg hover:shadow-xl">
+                        Start with Community Edition
+                    </a>
+                    <a href="{{ route('support.contact') }}" class="border-2 border-gray-900 text-gray-900 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition">
+                        Talk to Sales
+                    </a>
+                </div>
             </div>
-        </div>
-    </div>
-</x-guest-layout>
+        </section>
+
+        @include('partials.footer')
+    </body>
+</html>

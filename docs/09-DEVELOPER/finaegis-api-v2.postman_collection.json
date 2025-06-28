@@ -17,7 +17,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://api.finaegis.com/v2",
+      "value": "https://api.finaegis.org/v2",
       "type": "string"
     },
     {

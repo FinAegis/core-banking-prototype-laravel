@@ -17,20 +17,20 @@ This document provides practical examples of integrating with the FinAegis API i
 ### cURL Example
 ```bash
 # Get API status
-curl https://api.finaegis.com/v2/status
+curl https://api.finaegis.org/v2/status
 
 # Get GCU information
-curl https://api.finaegis.com/v2/gcu
+curl https://api.finaegis.org/v2/gcu
 
 # Authenticated request
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     https://api.finaegis.com/v2/accounts
+     https://api.finaegis.org/v2/accounts
 ```
 
 ### JavaScript/Node.js Quick Start
 ```javascript
 // Using fetch (Node.js 18+ or browser)
-const response = await fetch('https://api.finaegis.com/v2/gcu');
+const response = await fetch('https://api.finaegis.org/v2/gcu');
 const gcuInfo = await response.json();
 console.log(`Current GCU value: ${gcuInfo.data.symbol}${gcuInfo.data.current_value}`);
 ```
@@ -44,7 +44,7 @@ const axios = require('axios');
 class FinAegisClient {
   constructor(apiKey) {
     this.client = axios.create({
-      baseURL: 'https://api.finaegis.com/v2',
+      baseURL: 'https://api.finaegis.org/v2',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
@@ -69,7 +69,7 @@ import os
 
 class FinAegisClient:
     def __init__(self, api_key):
-        self.base_url = 'https://api.finaegis.com/v2'
+        self.base_url = 'https://api.finaegis.org/v2'
         self.headers = {
             'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
@@ -96,7 +96,7 @@ class FinAegisClient {
     
     public function __construct($apiKey) {
         $this->client = new Client([
-            'base_uri' => 'https://api.finaegis.com/v2/',
+            'base_uri' => 'https://api.finaegis.org/v2/',
             'headers' => [
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type' => 'application/json'
@@ -121,7 +121,7 @@ $accounts = $client->getAccounts();
 async function createAndFundAccount(userEmail, initialDeposit) {
   try {
     // Step 1: Create account
-    const accountResponse = await fetch('https://api.finaegis.com/v2/accounts', {
+    const accountResponse = await fetch('https://api.finaegis.org/v2/accounts', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
@@ -142,7 +142,7 @@ async function createAndFundAccount(userEmail, initialDeposit) {
 
     // Step 2: Fund account with GCU
     const depositResponse = await fetch(
-      `https://api.finaegis.com/v2/accounts/${account.data.uuid}/deposit`,
+      `https://api.finaegis.org/v2/accounts/${account.data.uuid}/deposit`,
       {
         method: 'POST',
         headers: {
@@ -180,7 +180,7 @@ class MultiCurrencyAccount:
     def __init__(self, api_key, account_uuid):
         self.api_key = api_key
         self.account_uuid = account_uuid
-        self.base_url = 'https://api.finaegis.com/v2'
+        self.base_url = 'https://api.finaegis.org/v2'
     
     async def get_all_balances(self):
         async with aiohttp.ClientSession() as session:
@@ -258,7 +258,7 @@ function GCUVotingComponent({ apiKey }) {
   }, []);
 
   const fetchActivePolls = async () => {
-    const response = await fetch('https://api.finaegis.com/v2/gcu/governance/active-polls');
+    const response = await fetch('https://api.finaegis.org/v2/gcu/governance/active-polls');
     const data = await response.json();
     setActivePolls(data.data);
   };
@@ -271,7 +271,7 @@ function GCUVotingComponent({ apiKey }) {
       return;
     }
 
-    const response = await fetch(`https://api.finaegis.com/v2/polls/${pollId}/vote`, {
+    const response = await fetch(`https://api.finaegis.org/v2/polls/${pollId}/vote`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -392,7 +392,7 @@ export default {
   },
   methods: {
     async fetchGCUInfo() {
-      const response = await fetch('https://api.finaegis.com/v2/gcu');
+      const response = await fetch('https://api.finaegis.org/v2/gcu');
       const data = await response.json();
       
       this.currentValue = data.data.current_value;
@@ -402,7 +402,7 @@ export default {
     
     async fetchAndDrawChart() {
       const response = await fetch(
-        'https://api.finaegis.com/v2/gcu/value-history?period=7d&interval=hourly'
+        'https://api.finaegis.org/v2/gcu/value-history?period=7d&interval=hourly'
       );
       const data = await response.json();
       
@@ -451,7 +451,7 @@ interface DistributionResult {
 class BankDistributionService {
   constructor(
     private apiKey: string,
-    private baseUrl: string = 'https://api.finaegis.com/v2'
+    private baseUrl: string = 'https://api.finaegis.org/v2'
   ) {}
 
   async distributeDeposit(
@@ -902,7 +902,7 @@ const fetch = require('node-fetch');
 class FinAegisClient {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    this.baseUrl = 'https://api.finaegis.com/v2';
+    this.baseUrl = 'https://api.finaegis.org/v2';
     
     // Connection pooling
     this.agent = new Agent({
@@ -1070,7 +1070,7 @@ class HealthChecker {
   async checkAPI() {
     try {
       const start = Date.now();
-      const response = await fetch('https://api.finaegis.com/v2/status');
+      const response = await fetch('https://api.finaegis.org/v2/status');
       const data = await response.json();
       
       return {

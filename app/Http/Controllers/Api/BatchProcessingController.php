@@ -52,7 +52,7 @@ class BatchProcessingController extends Controller
      *                 @OA\Property(property="operations_count", type="integer", example=4),
      *                 @OA\Property(property="estimated_duration", type="string", example="15-30 minutes"),
      *                 @OA\Property(property="started_at", type="string", format="date-time"),
-     *                 @OA\Property(property="started_by", type="string", example="admin@finaegis.com")
+     *                 @OA\Property(property="started_by", type="string", example="admin@finaegis.org")
      *             )
      *         )
      *     ),
@@ -284,7 +284,7 @@ class BatchProcessingController extends Controller
      *                     @OA\Property(property="started_at", type="string", format="date-time"),
      *                     @OA\Property(property="completed_at", type="string", format="date-time"),
      *                     @OA\Property(property="duration_minutes", type="integer", example=23),
-     *                     @OA\Property(property="started_by", type="string", example="admin@finaegis.com")
+     *                     @OA\Property(property="started_by", type="string", example="admin@finaegis.org")
      *                 )
      *             ),
      *             @OA\Property(property="pagination", type="object",
@@ -318,7 +318,7 @@ class BatchProcessingController extends Controller
                 'started_at' => now()->subDays(1)->toISOString(),
                 'completed_at' => now()->subDays(1)->addMinutes(25)->toISOString(),
                 'duration_minutes' => 25,
-                'started_by' => 'admin@finaegis.com',
+                'started_by' => 'admin@finaegis.org',
             ],
             [
                 'batch_id' => 'batch_' . Str::uuid(),
@@ -328,7 +328,7 @@ class BatchProcessingController extends Controller
                 'started_at' => now()->subDays(7)->toISOString(),
                 'completed_at' => now()->subDays(7)->addMinutes(12)->toISOString(),
                 'duration_minutes' => 12,
-                'started_by' => 'system@finaegis.com',
+                'started_by' => 'system@finaegis.org',
             ],
         ];
 
@@ -373,7 +373,7 @@ class BatchProcessingController extends Controller
      *                 @OA\Property(property="batch_id", type="string", example="batch_550e8400_e29b_41d4"),
      *                 @OA\Property(property="status", type="string", example="cancelled"),
      *                 @OA\Property(property="cancelled_at", type="string", format="date-time"),
-     *                 @OA\Property(property="cancelled_by", type="string", example="admin@finaegis.com"),
+     *                 @OA\Property(property="cancelled_by", type="string", example="admin@finaegis.org"),
      *                 @OA\Property(property="compensation_required", type="boolean", example=true)
      *             )
      *         )

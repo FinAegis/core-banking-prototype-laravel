@@ -617,7 +617,7 @@ The FinAegis platform has completed all major technical phases and is ready for 
 - **Documentation**: [Full Documentation](./docs/)
 - **Issues**: [GitHub Issues](https://github.com/finaegis/core-banking-laravel/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/finaegis/core-banking-laravel/discussions)
-- **Email**: support@finaegis.com
+- **Email**: support@finaegis.org
 
 ## 📄 License
 

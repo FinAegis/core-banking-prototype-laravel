@@ -258,6 +258,119 @@ class GCUController extends Controller
 
     /**
      * @OA\Get(
+     *     path="/gcu/composition",
+     *     operationId="getGCUComposition",
+     *     tags={"GCU"},
+     *     summary="Get real-time GCU composition data",
+     *     description="Get detailed real-time composition data for the Global Currency Unit including current weights, values, and recent changes",
+     *     @OA\Response(
+     *         response=200,
+     *         description="GCU composition data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="basket_code", type="string", example="GCU"),
+     *                 @OA\Property(property="last_updated", type="string", format="date-time"),
+     *                 @OA\Property(property="total_value_usd", type="number", format="float"),
+     *                 @OA\Property(property="composition", type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="asset_code", type="string"),
+     *                         @OA\Property(property="asset_name", type="string"),
+     *                         @OA\Property(property="asset_type", type="string", enum={"fiat", "crypto", "commodity"}),
+     *                         @OA\Property(property="weight", type="number", format="float"),
+     *                         @OA\Property(property="current_price_usd", type="number", format="float"),
+     *                         @OA\Property(property="value_contribution_usd", type="number", format="float"),
+     *                         @OA\Property(property="percentage_of_basket", type="number", format="float"),
+     *                         @OA\Property(property="24h_change", type="number", format="float"),
+     *                         @OA\Property(property="7d_change", type="number", format="float")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="rebalancing", type="object",
+     *                     @OA\Property(property="frequency", type="string"),
+     *                     @OA\Property(property="last_rebalanced", type="string", format="date-time"),
+     *                     @OA\Property(property="next_rebalance", type="string", format="date-time"),
+     *                     @OA\Property(property="automatic", type="boolean")
+     *                 ),
+     *                 @OA\Property(property="performance", type="object",
+     *                     @OA\Property(property="24h_change_usd", type="number", format="float"),
+     *                     @OA\Property(property="24h_change_percent", type="number", format="float"),
+     *                     @OA\Property(property="7d_change_usd", type="number", format="float"),
+     *                     @OA\Property(property="7d_change_percent", type="number", format="float"),
+     *                     @OA\Property(property="30d_change_usd", type="number", format="float"),
+     *                     @OA\Property(property="30d_change_percent", type="number", format="float")
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function composition(): JsonResponse
+    {
+        $gcu = BasketAsset::where('code', 'GCU')->with('components.asset')->firstOrFail();
+        $latestValue = BasketValue::where('basket_code', 'GCU')
+            ->orderBy('calculated_at', 'desc')
+            ->first();
+
+        // Get exchange rates for each component
+        $exchangeRateService = app(\App\Domain\Asset\Services\ExchangeRateService::class);
+        
+        // Calculate detailed composition data
+        $composition = $gcu->components->map(function ($component) use ($latestValue, $exchangeRateService) {
+            $asset = $component->asset;
+            
+            // Get current price in USD
+            $currentPriceUSD = 1.0;
+            if ($component->asset_code !== 'USD') {
+                $rate = $exchangeRateService->getRate($component->asset_code, 'USD');
+                $currentPriceUSD = $rate ? $rate->rate : 0;
+            }
+            
+            // Calculate value contribution
+            $valueContribution = 0;
+            $percentageOfBasket = 0;
+            if ($latestValue && isset($latestValue->component_values[$component->asset_code])) {
+                $valueContribution = $latestValue->component_values[$component->asset_code]['weighted_value'] ?? 0;
+                $percentageOfBasket = ($valueContribution / $latestValue->value) * 100;
+            }
+            
+            // Get historical changes
+            $changes24h = $this->getAssetPriceChange($component->asset_code, 1);
+            $changes7d = $this->getAssetPriceChange($component->asset_code, 7);
+            
+            return [
+                'asset_code' => $component->asset_code,
+                'asset_name' => $asset->name,
+                'asset_type' => $asset->type,
+                'weight' => $component->weight,
+                'current_price_usd' => round($currentPriceUSD, 4),
+                'value_contribution_usd' => round($valueContribution, 4),
+                'percentage_of_basket' => round($percentageOfBasket, 2),
+                '24h_change' => round($changes24h, 2),
+                '7d_change' => round($changes7d, 2),
+            ];
+        });
+
+        // Calculate performance metrics
+        $performance = $this->calculateGCUPerformance('GCU');
+
+        return response()->json([
+            'data' => [
+                'basket_code' => 'GCU',
+                'last_updated' => $latestValue ? $latestValue->calculated_at->toIso8601String() : now()->toIso8601String(),
+                'total_value_usd' => $latestValue ? round($latestValue->value, 4) : 1.0,
+                'composition' => $composition,
+                'rebalancing' => [
+                    'frequency' => $gcu->rebalance_frequency,
+                    'last_rebalanced' => $gcu->last_rebalanced_at?->toIso8601String(),
+                    'next_rebalance' => $this->getNextRebalanceDate($gcu),
+                    'automatic' => $gcu->rebalance_frequency !== 'never',
+                ],
+                'performance' => $performance,
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Get(
      *     path="/gcu/supported-banks",
      *     operationId="getGCUSupportedBanks",
      *     tags={"GCU"},
@@ -443,5 +556,55 @@ class GCUController extends Controller
         } catch (\Exception $e) {
             return 'unknown';
         }
+    }
+
+    private function getAssetPriceChange(string $assetCode, int $days): float
+    {
+        $exchangeRateService = app(\App\Domain\Asset\Services\ExchangeRateService::class);
+        $now = now();
+        
+        // Get current rate to USD
+        $currentRate = 1.0;
+        if ($assetCode !== 'USD') {
+            $rate = $exchangeRateService->getRate($assetCode, 'USD');
+            $currentRate = $rate ? $rate->rate : 0;
+        }
+        
+        // Get historical rate
+        $historicalRates = $exchangeRateService->getRateHistory($assetCode, 'USD', $days);
+        if ($historicalRates->isEmpty()) {
+            return 0;
+        }
+        
+        $oldestRate = $historicalRates->last();
+        if (!$oldestRate || $oldestRate->rate == 0) {
+            return 0;
+        }
+        
+        return (($currentRate - $oldestRate->rate) / $oldestRate->rate) * 100;
+    }
+
+    private function calculateGCUPerformance(string $basketCode): array
+    {
+        $currentValue = BasketValue::where('basket_code', $basketCode)
+            ->orderBy('calculated_at', 'desc')
+            ->value('value') ?? 1.0;
+        
+        $performance = [];
+        
+        foreach ([1 => '24h', 7 => '7d', 30 => '30d'] as $days => $label) {
+            $pastValue = BasketValue::where('basket_code', $basketCode)
+                ->where('calculated_at', '<=', now()->subDays($days))
+                ->orderBy('calculated_at', 'desc')
+                ->value('value') ?? $currentValue;
+            
+            $changeUsd = $currentValue - $pastValue;
+            $changePercent = $pastValue > 0 ? (($currentValue - $pastValue) / $pastValue * 100) : 0;
+            
+            $performance["{$label}_change_usd"] = round($changeUsd, 4);
+            $performance["{$label}_change_percent"] = round($changePercent, 2);
+        }
+        
+        return $performance;
     }
 }

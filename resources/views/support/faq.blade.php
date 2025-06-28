@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Frequently asked questions about FinAegis, Global Currency Unit (GCU), banking services, and platform features.">
+    <meta name="description" content="Frequently asked questions about FinAegis alpha platform, Global Currency Unit (GCU), and upcoming features.">
     
     <title>FAQ - Frequently Asked Questions | FinAegis</title>
 
@@ -27,29 +27,33 @@
             transition: max-height 0.3s ease;
         }
         .faq-answer.active {
-            max-height: 500px;
+            max-height: 800px;
         }
     </style>
 </head>
-<body class="antialiased">
-    <!-- Navigation -->
-    @include('partials.public-nav')
+<body class="antialiased bg-gray-50">
+    <x-alpha-banner />
+    
+    <!-- Spacer for fixed banner -->
+    <div class="h-12"></div>
+    
+    <x-main-navigation />
 
     <!-- Hero Section -->
-    <section class="pt-16 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <section class="pt-16 pb-20 gradient-bg text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h1 class="text-5xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h1>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Find answers to common questions about FinAegis and the Global Currency Unit.
+                <h1 class="text-5xl font-bold mb-6">Frequently Asked Questions</h1>
+                <p class="text-xl text-purple-100 max-w-3xl mx-auto">
+                    Find answers to common questions about FinAegis alpha platform and the Global Currency Unit concept.
                 </p>
                 
                 <!-- Search Bar -->
                 <div class="mt-8 max-w-xl mx-auto">
                     <div class="relative">
-                        <input type="text" id="faq-search" placeholder="Search for answers..."
-                            class="w-full px-6 py-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <svg class="absolute right-4 top-4 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <input type="text" id="faq-search" placeholder="Search for answers..." 
+                            class="w-full px-6 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white">
+                        <svg class="absolute right-4 top-3.5 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
@@ -58,84 +62,145 @@
         </div>
     </section>
 
-    <!-- FAQ Categories -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Category Navigation -->
-            <div class="flex flex-wrap justify-center gap-4 mb-12">
-                <button class="category-btn active px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium" data-category="all">
+    <!-- Category Filter -->
+    <section class="py-8 bg-white border-b">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button class="category-filter active px-4 py-2 rounded-full bg-indigo-600 text-white transition" data-category="all">
                     All Questions
                 </button>
-                <button class="category-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300" data-category="getting-started">
+                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="getting-started">
                     Getting Started
                 </button>
-                <button class="category-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300" data-category="gcu">
-                    GCU & Voting
+                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="gcu">
+                    GCU
                 </button>
-                <button class="category-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300" data-category="security">
-                    Security
+                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="alpha">
+                    Alpha Testing
                 </button>
-                <button class="category-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300" data-category="fees">
-                    Fees & Pricing
+                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="technical">
+                    Technical
                 </button>
-                <button class="category-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300" data-category="api">
-                    API & Integration
+                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="future">
+                    Future Features
                 </button>
             </div>
+        </div>
+    </section>
 
-            <!-- FAQ Items -->
-            <div class="max-w-4xl mx-auto space-y-4">
-                <!-- Getting Started Questions -->
-                <div class="faq-item" data-category="getting-started">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+    <!-- FAQ Items -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="space-y-4" id="faq-container">
+                
+                <!-- Alpha Testing Questions -->
+                <div class="faq-item" data-category="alpha">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">How do I create a FinAegis account?</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">What is the current status of FinAegis?</h3>
                             <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </div>
                     </button>
-                    <div class="faq-answer px-6 py-4">
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            Creating an account is simple:
+                            FinAegis is currently in alpha testing phase. This means:
+                        </p>
+                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                            <li>No real money transactions are processed yet</li>
+                            <li>No actual bank integrations are active</li>
+                            <li>The platform is for demonstration and testing purposes only</li>
+                            <li>Features are being actively developed and may change</li>
+                            <li>We're gathering feedback to improve the platform</li>
+                        </ul>
+                        <p class="text-gray-600 mt-3">
+                            We expect to launch beta testing in Q2 2025 with limited real transactions.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="alpha">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">Can I use real money on the platform now?</h3>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
+                        <p class="text-gray-600">
+                            No, the platform currently does not support real money transactions. During the alpha phase:
+                        </p>
+                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                            <li>All balances and transactions are simulated</li>
+                            <li>No real bank accounts are connected</li>
+                            <li>No actual currency conversions occur</li>
+                            <li>Payment integrations are disabled</li>
+                        </ul>
+                        <p class="text-gray-600 mt-3">
+                            This allows us to test and refine features safely before handling real funds.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Getting Started Questions -->
+                <div class="faq-item" data-category="getting-started">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">How do I participate in alpha testing?</h3>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
+                        <p class="text-gray-600">
+                            To participate in alpha testing:
                         </p>
                         <ol class="list-decimal list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Click "Get Started" on our homepage</li>
-                            <li>Enter your email and create a password</li>
-                            <li>Complete the KYC verification process</li>
-                            <li>Fund your account via bank transfer or card</li>
-                            <li>Start using FinAegis services immediately</li>
+                            <li>Register for a free account on the platform</li>
+                            <li>Explore the demo features and simulated transactions</li>
+                            <li>Report bugs and issues on our GitHub repository</li>
+                            <li>Provide feedback via email at info@finaegis.org</li>
+                            <li>Join discussions on our GitHub community forum</li>
                         </ol>
+                        <p class="text-gray-600 mt-3">
+                            Your feedback helps us build a better platform for everyone.
+                        </p>
                     </div>
                 </div>
 
                 <div class="faq-item" data-category="getting-started">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">What documents do I need for KYC verification?</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">Is FinAegis open source?</h3>
                             <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </div>
                     </button>
-                    <div class="faq-answer px-6 py-4">
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            For individual accounts, you'll need:
+                            Yes! FinAegis is fully open source under the MIT license. This means:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Valid government-issued ID (passport, driver's license, or national ID)</li>
-                            <li>Proof of address (utility bill, bank statement, or rental agreement)</li>
-                            <li>Selfie for identity verification</li>
+                            <li>You can view all source code on GitHub</li>
+                            <li>You can contribute improvements and features</li>
+                            <li>You can fork and modify the code for your needs</li>
+                            <li>You can use it for commercial purposes (with commercial license when available)</li>
+                            <li>The community helps drive development</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
-                            Business accounts require additional documentation including business registration and ownership proof.
+                            Visit our GitHub repository at: github.com/FinAegis/core-banking-prototype-laravel
                         </p>
                     </div>
                 </div>
 
                 <!-- GCU Questions -->
                 <div class="faq-item" data-category="gcu">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
                             <h3 class="text-lg font-semibold text-gray-900">What is the Global Currency Unit (GCU)?</h3>
                             <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,197 +208,170 @@
                             </svg>
                         </div>
                     </button>
-                    <div class="faq-answer px-6 py-4">
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            The Global Currency Unit (GCU) is a revolutionary basket currency that combines multiple fiat currencies into a single, stable unit of value. Key features include:
+                            The Global Currency Unit (GCU) is a concept for a basket currency that will combine multiple fiat currencies into a single, stable unit. The planned features include:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Backed by USD, EUR, GBP, CHF, JPY, and XAU (gold)</li>
-                            <li>Democratic governance through monthly voting</li>
+                            <li>Backing by USD, EUR, GBP, CHF, JPY, and XAU (gold)</li>
+                            <li>Democratic governance through community voting (coming soon)</li>
                             <li>Reduced volatility compared to single currencies</li>
-                            <li>Real-time rebalancing based on community decisions</li>
                             <li>Transparent composition and valuation</li>
+                            <li>Real bank backing with government insurance (when launched)</li>
                         </ul>
+                        <p class="text-gray-600 mt-3">
+                            <strong>Note:</strong> GCU is currently a demonstration concept. Real implementation will begin in beta phase.
+                        </p>
                     </div>
                 </div>
 
                 <div class="faq-item" data-category="gcu">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">How does GCU voting work?</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">How will GCU voting work?</h3>
                             <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </div>
                     </button>
-                    <div class="faq-answer px-6 py-4">
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            GCU holders participate in monthly governance votes to determine the basket composition:
+                            When implemented, GCU voting will allow currency holders to participate in governance:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Voting occurs on the first week of each month</li>
-                            <li>Your voting power equals your GCU balance</li>
-                            <li>Vote on percentage allocations for each currency</li>
-                            <li>Results are weighted by voting power</li>
-                            <li>New composition takes effect immediately after voting closes</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Security Questions -->
-                <div class="faq-item" data-category="security">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">How secure is FinAegis?</h3>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                    </button>
-                    <div class="faq-answer px-6 py-4">
-                        <p class="text-gray-600">
-                            FinAegis employs bank-grade security measures:
-                        </p>
-                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Quantum-resistant encryption (SHA3-512)</li>
-                            <li>Multi-factor authentication (MFA)</li>
-                            <li>Cold storage for majority of funds</li>
-                            <li>Real-time fraud detection</li>
-                            <li>Regular third-party security audits</li>
-                            <li>GDPR compliant data protection</li>
-                            <li>24/7 security monitoring</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="faq-item" data-category="security">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">Is my money insured?</h3>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                    </button>
-                    <div class="faq-answer px-6 py-4">
-                        <p class="text-gray-600">
-                            Yes, your funds are protected through multiple layers:
-                        </p>
-                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Funds held at partner banks are covered by deposit insurance</li>
-                            <li>Additional insurance coverage up to $250,000 per account</li>
-                            <li>Segregated customer accounts</li>
-                            <li>Regular audits and reconciliation</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Fees Questions -->
-                <div class="faq-item" data-category="fees">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">What are the fees for using FinAegis?</h3>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                    </button>
-                    <div class="faq-answer px-6 py-4">
-                        <p class="text-gray-600">
-                            Our fee structure is transparent and competitive:
-                        </p>
-                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Account opening: Free</li>
-                            <li>Monthly maintenance: Free for balances over Ǥ1,000</li>
-                            <li>Deposits: Free via bank transfer, 2.5% for cards</li>
-                            <li>Withdrawals: $5 flat fee</li>
-                            <li>Currency conversion: 0.5% spread</li>
-                            <li>International transfers: $15 + 0.25%</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="faq-item" data-category="fees">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">Are there any hidden fees?</h3>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                    </button>
-                    <div class="faq-answer px-6 py-4">
-                        <p class="text-gray-600">
-                            No, we believe in complete transparency. All fees are clearly displayed before you confirm any transaction. There are no hidden charges, and you can view our complete fee schedule in your account settings.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- API Questions -->
-                <div class="faq-item" data-category="api">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">How do I integrate FinAegis API?</h3>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                    </button>
-                    <div class="faq-answer px-6 py-4">
-                        <p class="text-gray-600">
-                            Getting started with our API is straightforward:
-                        </p>
-                        <ol class="list-decimal list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Create an API key in your dashboard</li>
-                            <li>Review our API documentation</li>
-                            <li>Choose an SDK (Node.js, Python, PHP, Java)</li>
-                            <li>Test in our sandbox environment</li>
-                            <li>Go live with production credentials</li>
-                        </ol>
-                        <p class="text-gray-600 mt-3">
-                            Our developer support team is available to help with integration.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="faq-item" data-category="api">
-                    <button class="faq-question w-full text-left px-6 py-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">What are the API rate limits?</h3>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                    </button>
-                    <div class="faq-answer px-6 py-4">
-                        <p class="text-gray-600">
-                            API rate limits vary by plan:
-                        </p>
-                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>Free tier: 60 requests/minute, 1,000/hour</li>
-                            <li>Standard: 300 requests/minute, 10,000/hour</li>
-                            <li>Premium: 1,000 requests/minute, 100,000/hour</li>
-                            <li>Enterprise: Custom limits available</li>
+                            <li>Monthly voting cycles to adjust currency composition</li>
+                            <li>Voting power proportional to GCU holdings</li>
+                            <li>Community proposals for basket changes</li>
+                            <li>Transparent vote counting and results</li>
+                            <li>Automatic rebalancing based on vote outcomes</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
-                            Rate limit headers are included in all API responses.
+                            <strong>Status:</strong> Voting functionality is planned for Q3 2025 after beta launch.
                         </p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Still Have Questions -->
-            <div class="mt-16 text-center">
-                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
-                    <h2 class="text-2xl font-bold mb-4">Still have questions?</h2>
-                    <p class="mb-6">Our support team is here to help you 24/7</p>
+                <!-- Technical Questions -->
+                <div class="faq-item" data-category="technical">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">What technology stack does FinAegis use?</h3>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
+                        <p class="text-gray-600">
+                            FinAegis is built with modern, scalable technologies:
+                        </p>
+                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                            <li><strong>Backend:</strong> Laravel (PHP framework)</li>
+                            <li><strong>Frontend:</strong> Blade templates, Alpine.js, Tailwind CSS</li>
+                            <li><strong>Database:</strong> MySQL/PostgreSQL compatible</li>
+                            <li><strong>Queue:</strong> Laravel Queue with Redis</li>
+                            <li><strong>API:</strong> RESTful JSON API</li>
+                            <li><strong>Testing:</strong> PHPUnit and Pest</li>
+                            <li><strong>Admin:</strong> Laravel Filament</li>
+                        </ul>
+                        <p class="text-gray-600 mt-3">
+                            View the full tech stack on our GitHub repository.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="technical">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">How many API endpoints are available?</h3>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
+                        <p class="text-gray-600">
+                            Currently, we have {{ config('platform.statistics.api_endpoints') }} core API endpoints available:
+                        </p>
+                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                            <li>Authentication endpoints (login, register, logout)</li>
+                            <li>Account management endpoints</li>
+                            <li>Transaction endpoints (simulated)</li>
+                            <li>Currency conversion endpoints</li>
+                            <li>User profile endpoints</li>
+                        </ul>
+                        <p class="text-gray-600 mt-3">
+                            More endpoints will be added as we develop additional features. Check our API documentation for the latest information.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Future Features -->
+                <div class="faq-item" data-category="future">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">What features are coming next?</h3>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
+                        <p class="text-gray-600">
+                            We have an exciting roadmap ahead:
+                        </p>
+                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                            <li><strong>Q2 2025:</strong> Beta launch with limited real transactions</li>
+                            <li><strong>Q3 2025:</strong> GCU voting system implementation</li>
+                            <li><strong>Q4 2025:</strong> API key management and SDKs</li>
+                            <li><strong>2026:</strong> Exchange module, lending module, stablecoins</li>
+                            <li><strong>Future:</strong> Mobile apps, advanced trading features</li>
+                        </ul>
+                        <p class="text-gray-600 mt-3">
+                            Follow our GitHub repository for detailed progress updates.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-category="future">
+                    <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">Will there be mobile apps?</h3>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
+                        <p class="text-gray-600">
+                            Yes, mobile apps are on our roadmap:
+                        </p>
+                        <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                            <li>iOS and Android native apps planned</li>
+                            <li>Expected release after platform stabilization</li>
+                            <li>Will include all core platform features</li>
+                            <li>Biometric authentication support</li>
+                            <li>Push notifications for transactions</li>
+                        </ul>
+                        <p class="text-gray-600 mt-3">
+                            In the meantime, our web platform is fully responsive and works well on mobile browsers.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Contact Support -->
+                <div class="mt-12 bg-indigo-50 rounded-xl p-8 text-center">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Can't find what you're looking for?</h3>
+                    <p class="text-gray-600 mb-6">
+                        Our team is here to help during the alpha testing phase.
+                    </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="{{ route('support.contact') }}" class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                        <a href="{{ route('support.contact') }}" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
                             Contact Support
                         </a>
-                        <button onclick="alert('Live chat coming soon!')" class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition">
-                            Start Live Chat
-                        </button>
+                        <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold border-2 border-indigo-600 hover:bg-indigo-50 transition">
+                            Community Forum
+                        </a>
                     </div>
                 </div>
             </div>
@@ -341,7 +379,51 @@
     </section>
 
     <!-- Footer -->
-    @include('partials.footer')
+    <footer class="bg-gray-900 text-gray-400 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Platform</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/platform" class="hover:text-white transition">Overview</a></li>
+                        <li><a href="/gcu" class="hover:text-white transition">GCU</a></li>
+                        <li><a href="/sub-products" class="hover:text-white transition">Modules</a></li>
+                        <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Developers</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/developers" class="hover:text-white transition">Documentation</a></li>
+                        <li><a href="/developers/api-docs" class="hover:text-white transition">API Reference</a></li>
+                        <li><a href="/developers/sdks" class="hover:text-white transition">SDKs</a></li>
+                        <li><a href="/status" class="hover:text-white transition">System Status</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Resources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/support" class="hover:text-white transition">Support</a></li>
+                        <li><a href="/blog" class="hover:text-white transition">Blog</a></li>
+                        <li><a href="/partners" class="hover:text-white transition">Partners</a></li>
+                        <li><a href="/about" class="hover:text-white transition">About</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/legal/terms" class="hover:text-white transition">Terms</a></li>
+                        <li><a href="/legal/privacy" class="hover:text-white transition">Privacy</a></li>
+                        <li><a href="/legal/cookies" class="hover:text-white transition">Cookies</a></li>
+                        <li><a href="/support/faq" class="hover:text-white transition">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center">
+                <p>&copy; {{ date('Y') }} FinAegis. All rights reserved. Open Source Project.</p>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // FAQ Toggle
@@ -356,19 +438,19 @@
         });
 
         // Category Filter
-        document.querySelectorAll('.category-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const category = button.dataset.category;
+        document.querySelectorAll('.category-filter').forEach(filter => {
+            filter.addEventListener('click', () => {
+                const category = filter.dataset.category;
                 
-                // Update active button
-                document.querySelectorAll('.category-btn').forEach(btn => {
-                    btn.classList.remove('bg-indigo-600', 'text-white');
-                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                // Update active filter
+                document.querySelectorAll('.category-filter').forEach(f => {
+                    f.classList.remove('bg-indigo-600', 'text-white');
+                    f.classList.add('bg-gray-200', 'text-gray-700');
                 });
-                button.classList.remove('bg-gray-200', 'text-gray-700');
-                button.classList.add('bg-indigo-600', 'text-white');
+                filter.classList.remove('bg-gray-200', 'text-gray-700');
+                filter.classList.add('bg-indigo-600', 'text-white');
                 
-                // Filter FAQs
+                // Filter FAQ items
                 document.querySelectorAll('.faq-item').forEach(item => {
                     if (category === 'all' || item.dataset.category === category) {
                         item.style.display = 'block';
@@ -380,7 +462,8 @@
         });
 
         // Search Functionality
-        document.getElementById('faq-search').addEventListener('input', (e) => {
+        const searchInput = document.getElementById('faq-search');
+        searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             
             document.querySelectorAll('.faq-item').forEach(item => {

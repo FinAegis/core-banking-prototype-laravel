@@ -15,7 +15,7 @@ Welcome to FinAegis, the revolutionary multi-asset banking platform. This guide 
 
 ### Step 1: Registration
 
-1. Visit the FinAegis platform at `https://app.finaegis.com`
+1. Visit the FinAegis platform at `https://app.finaegis.org`
 2. Click **"Create Account"** on the homepage
 3. Enter your details:
    - Full Name
@@ -244,7 +244,7 @@ The GCU basket is rebalanced monthly based on user votes:
 
 - **Help Center**: Comprehensive FAQ and guides
 - **Live Chat**: Available 24/7 for urgent issues
-- **Email Support**: support@finaegis.com
+- **Email Support**: support@finaegis.org
 - **Phone Support**: Premium accounts only
 
 ### Troubleshooting

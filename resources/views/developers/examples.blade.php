@@ -1,79 +1,84 @@
-<x-guest-layout>
-    <div class="bg-white">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-green-600 to-blue-600">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
-                        Code Examples
-                    </h1>
-                    <p class="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-                        Working examples and integration patterns for common use cases with the FinAegis API.
-                    </p>
-                </div>
+<x-app-layout>
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden bg-gradient-to-br from-green-600 to-blue-600 text-white">
+        <div class="absolute inset-0">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        </div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div class="text-center">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                    Code Examples
+                </h1>
+                <p class="text-xl md:text-2xl text-green-100 max-w-3xl mx-auto">
+                    Working examples and integration patterns for common use cases with the FinAegis API.
+                </p>
             </div>
         </div>
+    </section>
 
-        <!-- Example Categories -->
-        <div class="bg-gray-50 py-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-900">Browse by Category</h2>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <a href="#basic-operations" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Basic Operations</h3>
-                        <p class="text-gray-600 text-sm">Account creation, balance queries, and simple transfers</p>
-                    </a>
+    <!-- Example Categories -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">Browse by Category</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <a href="#basic-operations" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Basic Operations</h3>
+                    <p class="text-gray-600 text-sm">Account creation, balance queries, and simple transfers</p>
+                </a>
 
-                    <a href="#advanced-workflows" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Advanced Workflows</h3>
-                        <p class="text-gray-600 text-sm">Multi-step transactions, batch operations, and saga patterns</p>
-                    </a>
+                <a href="#advanced-workflows" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Advanced Workflows</h3>
+                    <p class="text-gray-600 text-sm">Multi-step transactions, batch operations, and saga patterns</p>
+                </a>
 
-                    <a href="#webhooks" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
-                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v2a2 2 0 002 2h4a2 2 0 002-2v-2h2a2 2 0 002-2V9a2 2 0 00-2-2h-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v2H4a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Webhooks</h3>
-                        <p class="text-gray-600 text-sm">Real-time notifications and event handling</p>
-                    </a>
+                <a href="#webhooks" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v2a2 2 0 002 2h4a2 2 0 002-2v-2h2a2 2 0 002-2V9a2 2 0 00-2-2h-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v2H4a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Webhooks</h3>
+                    <p class="text-gray-600 text-sm">Real-time notifications and event handling</p>
+                </a>
 
-                    <a href="#error-handling" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
-                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Error Handling</h3>
-                        <p class="text-gray-600 text-sm">Robust error handling and retry patterns</p>
-                    </a>
-                </div>
+                <a href="#error-handling" class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-200 transition-colors">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Error Handling</h3>
+                    <p class="text-gray-600 text-sm">Robust error handling and retry patterns</p>
+                </a>
             </div>
         </div>
+    </section>
 
-        <!-- Examples Content -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- Examples Content -->
+    <section class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Basic Operations -->
-            <section id="basic-operations" class="mb-20">
+            <div id="basic-operations" class="mb-20">
                 <h2 class="text-3xl font-bold text-gray-900 mb-8">Basic Operations</h2>
                 
                 <div class="space-y-12">
-                    <div class="border rounded-lg overflow-hidden">
+                    <!-- Create Account Example -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b">
                             <h3 class="text-xl font-semibold text-gray-900">Create Account and Get Balance</h3>
                             <p class="text-gray-600 mt-1">Set up a new account and check its balance</p>
@@ -83,8 +88,8 @@
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-3">JavaScript/Node.js</h4>
-                                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                        <pre class="text-green-400 text-sm"><code>import { FinAegis } from '@finaegis/sdk';
+                                    <x-code-block language="javascript">
+import { FinAegis } from '@finaegis/sdk';
 
 const client = new FinAegis({
   apiKey: process.env.FINAEGIS_API_KEY,
@@ -116,14 +121,14 @@ async function createAccountAndCheckBalance() {
   }
 }
 
-createAccountAndCheckBalance();</code></pre>
-                                    </div>
+createAccountAndCheckBalance();
+                                    </x-code-block>
                                 </div>
                                 
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-3">Python</h4>
-                                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                        <pre class="text-green-400 text-sm"><code>from finaegis import FinAegis
+                                    <x-code-block language="python">
+from finaegis import FinAegis
 import os
 
 client = FinAegis(
@@ -153,14 +158,15 @@ def create_account_and_check_balance():
         print(f'Error: {error}')
         raise
 
-create_account_and_check_balance()</code></pre>
-                                    </div>
+create_account_and_check_balance()
+                                    </x-code-block>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="border rounded-lg overflow-hidden">
+                    <!-- Simple Transfer Example -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b">
                             <h3 class="text-xl font-semibold text-gray-900">Simple Transfer</h3>
                             <p class="text-gray-600 mt-1">Transfer funds between accounts</p>
@@ -170,8 +176,8 @@ create_account_and_check_balance()</code></pre>
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-3">JavaScript/Node.js</h4>
-                                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                        <pre class="text-green-400 text-sm"><code>async function transferFunds(fromAccount, toAccount, amount) {
+                                    <x-code-block language="javascript">
+async function transferFunds(fromAccount, toAccount, amount) {
   try {
     const transfer = await client.transfers.create({
       from_account: fromAccount,
@@ -205,14 +211,14 @@ transferFunds(
   'acct_1234567890',
   'acct_0987654321', 
   '100.00'
-);</code></pre>
-                                    </div>
+);
+                                    </x-code-block>
                                 </div>
                                 
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-3">Response Example</h4>
-                                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                        <pre class="text-green-400 text-sm"><code>{
+                                    <x-code-block language="json">
+{
   "data": {
     "uuid": "txfr_abc123def456",
     "from_account": "acct_1234567890",
@@ -229,28 +235,28 @@ transferFunds(
       "currency": "USD"
     }
   }
-}</code></pre>
-                                    </div>
+}
+                                    </x-code-block>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Advanced Workflows -->
-            <section id="advanced-workflows" class="mb-20">
+            <div id="advanced-workflows" class="mb-20">
                 <h2 class="text-3xl font-bold text-gray-900 mb-8">Advanced Workflows</h2>
                 
-                <div class="border rounded-lg overflow-hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="bg-gray-50 px-6 py-4 border-b">
                         <h3 class="text-xl font-semibold text-gray-900">Multi-Currency Conversion with Transfer</h3>
                         <p class="text-gray-600 mt-1">Convert currency and transfer in one workflow</p>
                     </div>
                     
                     <div class="p-6">
-                        <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                            <pre class="text-green-400 text-sm"><code>async function convertAndTransfer(fromAccount, toAccount, amount, fromCurrency, toCurrency) {
+                        <x-code-block language="javascript" title="JavaScript Implementation">
+async function convertAndTransfer(fromAccount, toAccount, amount, fromCurrency, toCurrency) {
   try {
     // Get current exchange rate
     const rate = await client.exchangeRates.get(fromCurrency, toCurrency);
@@ -310,18 +316,18 @@ convertAndTransfer(
   '1000.00', 
   'USD', 
   'EUR'
-);</code></pre>
-                        </div>
+);
+                        </x-code-block>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Webhooks -->
-            <section id="webhooks" class="mb-20">
+            <div id="webhooks" class="mb-20">
                 <h2 class="text-3xl font-bold text-gray-900 mb-8">Webhooks</h2>
                 
                 <div class="space-y-8">
-                    <div class="border rounded-lg overflow-hidden">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b">
                             <h3 class="text-xl font-semibold text-gray-900">Setting Up Webhook Endpoints</h3>
                             <p class="text-gray-600 mt-1">Handle real-time events from FinAegis</p>
@@ -331,8 +337,8 @@ convertAndTransfer(
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-3">Express.js Handler</h4>
-                                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                        <pre class="text-green-400 text-sm"><code>const express = require('express');
+                                    <x-code-block language="javascript">
+const express = require('express');
 const crypto = require('crypto');
 const app = express();
 
@@ -407,14 +413,14 @@ async function handleWorkflowCompleted(workflow) {
   
   // Process completion logic
   await processWorkflowCompletion(workflow);
-}</code></pre>
-                                    </div>
+}
+                                    </x-code-block>
                                 </div>
                                 
                                 <div>
                                     <h4 class="font-semibold text-gray-900 mb-3">Webhook Configuration</h4>
-                                    <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                        <pre class="text-green-400 text-sm"><code>// Configure webhook endpoints
+                                    <x-code-block language="javascript">
+// Configure webhook endpoints
 async function setupWebhooks() {
   const webhook = await client.webhooks.create({
     url: 'https://yourapp.com/webhooks/finaegis',
@@ -442,28 +448,28 @@ async function testWebhook(webhookId) {
   });
   
   console.log('Test result:', result.status);
-}</code></pre>
-                                    </div>
+}
+                                    </x-code-block>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Error Handling -->
-            <section id="error-handling" class="mb-20">
+            <div id="error-handling" class="mb-20">
                 <h2 class="text-3xl font-bold text-gray-900 mb-8">Error Handling</h2>
                 
-                <div class="border rounded-lg overflow-hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="bg-gray-50 px-6 py-4 border-b">
                         <h3 class="text-xl font-semibold text-gray-900">Robust Error Handling with Retries</h3>
                         <p class="text-gray-600 mt-1">Handle failures gracefully with automatic retries</p>
                     </div>
                     
                     <div class="p-6">
-                        <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                            <pre class="text-green-400 text-sm"><code>class FinAegisWrapper {
+                        <x-code-block language="javascript" title="Complete Error Handling Implementation">
+class FinAegisWrapper {
   constructor(apiKey, options = {}) {
     this.client = new FinAegis({
       apiKey,
@@ -591,27 +597,45 @@ async function robustTransfer(fromAccount, toAccount, amount) {
     
     throw error;
   }
-}</code></pre>
-                        </div>
+}
+                        </x-code-block>
                     </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- CTA Section -->
-        <div class="bg-green-900 py-16">
-            <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-white mb-4">Start Building Today</h2>
-                <p class="text-xl text-green-100 mb-8">Use these examples as a starting point for your FinAegis integration.</p>
-                <div class="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-                    <a href="{{ route('register') }}" class="bg-white text-green-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-200 block sm:inline-block">
-                        Get API Keys
-                    </a>
-                    <a href="{{ route('developers.show', 'api-docs') }}" class="bg-green-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200 block sm:inline-block">
-                        API Documentation
-                    </a>
                 </div>
             </div>
         </div>
-    </div>
-</x-guest-layout>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-gradient-to-br from-green-600 to-blue-600 text-white">
+        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Start Building Today</h2>
+            <p class="text-xl text-green-100 mb-8">Use these examples as a starting point for your FinAegis integration.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-8 py-3 bg-white text-green-600 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
+                    Get API Keys
+                </a>
+                <a href="{{ route('developers.show', 'api-docs') }}" class="inline-flex items-center justify-center px-8 py-3 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800 transition-all border border-green-500">
+                    API Documentation
+                </a>
+            </div>
+        </div>
+    </section>
+
+    @include('partials.footer')
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                }, 2000);
+            });
+        }
+    </script>
+</x-app-layout>

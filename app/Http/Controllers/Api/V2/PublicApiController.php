@@ -37,8 +37,8 @@ class PublicApiController extends Controller
      *                 @OA\Property(property="baskets", type="string", example="/v2/baskets"),
      *                 @OA\Property(property="webhooks", type="string", example="/v2/webhooks")
      *             ),
-     *             @OA\Property(property="documentation", type="string", example="https://docs.finaegis.com"),
-     *             @OA\Property(property="support", type="string", example="api@finaegis.com")
+     *             @OA\Property(property="documentation", type="string", example="https://docs.finaegis.org"),
+     *             @OA\Property(property="support", type="string", example="api@finaegis.org")
      *         )
      *     )
      * )
@@ -73,9 +73,9 @@ class PublicApiController extends Controller
                 'requests_per_hour' => 1000,
                 'burst_limit' => 100,
             ],
-            'documentation' => 'https://docs.finaegis.com',
-            'support' => 'api@finaegis.com',
-            'sandbox' => 'https://sandbox.api.finaegis.com',
+            'documentation' => 'https://docs.finaegis.org',
+            'support' => 'api@finaegis.org',
+            'sandbox' => 'https://sandbox.api.finaegis.org',
         ]);
     }
 

@@ -1,391 +1,421 @@
-<x-guest-layout>
-    <div class="bg-white">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-green-600 to-blue-600">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
-                        Support Guides
-                    </h1>
-                    <p class="mt-6 text-xl text-green-100 max-w-3xl mx-auto">
-                        Comprehensive guides to help you get the most out of FinAegis platform features and services.
-                    </p>
-                </div>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="FinAegis Alpha Platform Guides - Learn how to use and contribute to our open source banking platform.">
+        <meta name="keywords" content="FinAegis guides, alpha testing, documentation, tutorials, open source banking">
+        
+        <title>Support Guides - FinAegis Alpha</title>
 
-        <!-- Search -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="max-w-2xl mx-auto">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+
+        <!-- Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <style>
+            .gradient-bg {
+                background: linear-gradient(135deg, #22c55e 0%, #3b82f6 100%);
+            }
+            .guide-card {
+                transition: all 0.3s ease;
+            }
+            .guide-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            }
+        </style>
+    </head>
+    <body class="antialiased bg-gray-50">
+        <x-alpha-banner />
+        
+        <!-- Spacer for fixed banner -->
+        <div class="h-12"></div>
+        
+        <x-main-navigation />
+
+        <!-- Hero Section -->
+        <section class="pt-16 pb-20 gradient-bg text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                        Alpha Platform Guides
+                    </h1>
+                    <p class="text-xl md:text-2xl mb-8 text-green-100 max-w-4xl mx-auto">
+                        Learn how to explore the FinAegis alpha platform and contribute to our open source project.
+                    </p>
+                    <div class="max-w-2xl mx-auto">
+                        <div class="relative">
+                            <input type="text" id="guide-search" placeholder="Search guides..." 
+                                class="w-full px-6 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white pl-12">
+                            <svg class="absolute left-4 top-3.5 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
                     </div>
-                    <input type="text" placeholder="Search guides..." class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Quick Links -->
-        <div class="bg-gray-50 py-16">
+        <section class="py-16 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl font-bold text-gray-900">Popular Guides</h2>
-                    <p class="mt-4 text-xl text-gray-600">Start with these frequently accessed guides</p>
+                    <p class="mt-4 text-xl text-gray-600">Start with these essential guides for alpha testing</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <a href="#getting-started" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
+                    <a href="#getting-started" class="guide-card bg-white rounded-lg shadow-md border border-gray-200 p-6">
                         <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
                         </div>
                         <h3 class="font-semibold text-gray-900 mb-2">Getting Started</h3>
-                        <p class="text-gray-600 text-sm">Account setup and first steps</p>
+                        <p class="text-gray-600 text-sm">Alpha platform overview</p>
                     </a>
 
-                    <a href="#wallet-management" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Wallet Management</h3>
-                        <p class="text-gray-600 text-sm">Deposits, withdrawals, and transfers</p>
-                    </a>
-
-                    <a href="#security" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
+                    <a href="#development" class="guide-card bg-white rounded-lg shadow-md border border-gray-200 p-6">
                         <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                             <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">Security Settings</h3>
-                        <p class="text-gray-600 text-sm">2FA, device management, and more</p>
-                    </a>
-
-                    <a href="#api-integration" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition duration-200">
-                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
                             </svg>
                         </div>
-                        <h3 class="font-semibold text-gray-900 mb-2">API Integration</h3>
-                        <p class="text-gray-600 text-sm">Developer documentation and examples</p>
+                        <h3 class="font-semibold text-gray-900 mb-2">Development Setup</h3>
+                        <p class="text-gray-600 text-sm">Contributing to the project</p>
+                    </a>
+
+                    <a href="#testing" class="guide-card bg-white rounded-lg shadow-md border border-gray-200 p-6">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Testing Features</h3>
+                        <p class="text-gray-600 text-sm">Exploring demo functionality</p>
+                    </a>
+
+                    <a href="#feedback" class="guide-card bg-white rounded-lg shadow-md border border-gray-200 p-6">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Providing Feedback</h3>
+                        <p class="text-gray-600 text-sm">Reporting issues & suggestions</p>
                     </a>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Guide Categories -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div class="space-y-16">
-                
+        <!-- Guides Content -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Getting Started -->
-                <section id="getting-started">
+                <section id="getting-started" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900">Getting Started</h2>
-                        <p class="mt-2 text-gray-600">Everything you need to begin using FinAegis</p>
+                        <h2 class="text-2xl font-bold text-gray-900">Getting Started with Alpha Testing</h2>
+                        <p class="mt-2 text-gray-600">Understanding the FinAegis alpha platform and its current state</p>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-6">
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Creating Your Account</h3>
-                            <p class="text-gray-600 mb-4">Step-by-step guide to account registration and initial verification.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Email verification process</li>
-                                <li>• Identity document upload</li>
-                                <li>• Phone number verification</li>
-                                <li>• Initial security setup</li>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">What is Alpha Testing?</h3>
+                            <p class="text-gray-600 mb-4">The FinAegis platform is currently in alpha testing phase, which means:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                                <li>All transactions and balances are simulated (no real money)</li>
+                                <li>Features are being actively developed and may change</li>
+                                <li>Some functionality may be incomplete or unstable</li>
+                                <li>Your feedback helps shape the platform</li>
                             </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">5 min read</span>
+                            <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p class="text-amber-800 text-sm">
+                                    <strong>Important:</strong> Do not attempt to use real financial information or expect real transactions during alpha testing.
+                                </p>
                             </div>
                         </div>
 
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Understanding Your Dashboard</h3>
-                            <p class="text-gray-600 mb-4">Overview of the main dashboard features and navigation.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Account overview section</li>
-                                <li>• Transaction history</li>
-                                <li>• Quick actions menu</li>
-                                <li>• Settings and preferences</li>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Creating Your Test Account</h3>
+                            <p class="text-gray-600 mb-4">Follow these steps to create an alpha testing account:</p>
+                            <ol class="list-decimal list-inside text-gray-600 space-y-2">
+                                <li>Click "Register" on the homepage</li>
+                                <li>Use a test email address (can be your real email)</li>
+                                <li>Create a password (this is for testing only)</li>
+                                <li>Explore the demo dashboard with simulated data</li>
+                            </ol>
+                            <p class="text-gray-600 mt-4">
+                                <strong>Note:</strong> No real identity verification is required during alpha testing.
+                            </p>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Available Features in Alpha</h3>
+                            <p class="text-gray-600 mb-4">Currently available for testing:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                                <li>User registration and authentication</li>
+                                <li>Dashboard with simulated account data</li>
+                                <li>GCU concept demonstration</li>
+                                <li>Basic API endpoints ({{ config('platform.statistics.api_endpoints') }} endpoints)</li>
+                                <li>Admin panel (for authorized testers)</li>
                             </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">8 min read</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Development Setup -->
+                <section id="development" class="mb-16">
+                    <div class="border-b border-gray-200 pb-6 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900">Development Setup</h2>
+                        <p class="mt-2 text-gray-600">Contributing to the FinAegis open source project</p>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Local Development Environment</h3>
+                            <p class="text-gray-600 mb-4">Set up FinAegis locally for development:</p>
+                            <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm">
+                                <p class="text-gray-700"># Clone the repository</p>
+                                <p class="text-green-600">git clone https://github.com/FinAegis/core-banking-prototype-laravel.git</p>
+                                <p class="text-green-600">cd core-banking-prototype-laravel</p>
+                                <br>
+                                <p class="text-gray-700"># Install dependencies</p>
+                                <p class="text-green-600">composer install</p>
+                                <p class="text-green-600">npm install</p>
+                                <br>
+                                <p class="text-gray-700"># Configure environment</p>
+                                <p class="text-green-600">cp .env.example .env</p>
+                                <p class="text-green-600">php artisan key:generate</p>
+                                <br>
+                                <p class="text-gray-700"># Run migrations</p>
+                                <p class="text-green-600">php artisan migrate</p>
+                                <br>
+                                <p class="text-gray-700"># Start development server</p>
+                                <p class="text-green-600">php artisan serve</p>
                             </div>
                         </div>
 
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">KYC Verification Process</h3>
-                            <p class="text-gray-600 mb-4">Complete your Know Your Customer verification for full access.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Required documents</li>
-                                <li>• Photo ID verification</li>
-                                <li>• Address verification</li>
-                                <li>• Processing timelines</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">6 min read</span>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Tech Stack Overview</h3>
+                            <p class="text-gray-600 mb-4">FinAegis is built with:</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Backend</h4>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>• Laravel (PHP framework)</li>
+                                        <li>• MySQL/PostgreSQL</li>
+                                        <li>• Redis for queues</li>
+                                        <li>• Laravel Sanctum for API auth</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Frontend</h4>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>• Blade templates</li>
+                                        <li>• Tailwind CSS</li>
+                                        <li>• Alpine.js</li>
+                                        <li>• Laravel Livewire</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
 
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Account Limits and Tiers</h3>
-                            <p class="text-gray-600 mb-4">Understanding transaction limits and how to increase them.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Basic tier limits</li>
-                                <li>• Verified tier benefits</li>
-                                <li>• Business account features</li>
-                                <li>• Limit increase requests</li>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Contributing Guidelines</h3>
+                            <p class="text-gray-600 mb-4">How to contribute to FinAegis:</p>
+                            <ol class="list-decimal list-inside text-gray-600 space-y-2">
+                                <li>Fork the repository on GitHub</li>
+                                <li>Create a feature branch (<code class="bg-gray-100 px-2 py-1 rounded">git checkout -b feature/your-feature</code>)</li>
+                                <li>Make your changes and test thoroughly</li>
+                                <li>Run tests (<code class="bg-gray-100 px-2 py-1 rounded">./vendor/bin/pest</code>)</li>
+                                <li>Commit with clear messages</li>
+                                <li>Push to your fork and create a pull request</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Testing Features -->
+                <section id="testing" class="mb-16">
+                    <div class="border-b border-gray-200 pb-6 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900">Testing Platform Features</h2>
+                        <p class="mt-2 text-gray-600">How to test and explore the demo functionality</p>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Simulated Transactions</h3>
+                            <p class="text-gray-600 mb-4">Testing transaction flows:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                                <li>All balances are simulated (starting with demo funds)</li>
+                                <li>Transactions don't involve real money or banks</li>
+                                <li>Currency conversions use demo exchange rates</li>
+                                <li>Transaction history is for demonstration only</li>
                             </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">4 min read</span>
+                            <p class="text-gray-600 mt-4">
+                                Feel free to test all transaction types without worry - nothing is real!
+                            </p>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">API Testing</h3>
+                            <p class="text-gray-600 mb-4">Testing the REST API:</p>
+                            <ol class="list-decimal list-inside text-gray-600 space-y-2">
+                                <li>Register for an account to get API access</li>
+                                <li>Use the API documentation at <code class="bg-gray-100 px-2 py-1 rounded">/developers/api-docs</code></li>
+                                <li>Test with tools like Postman or curl</li>
+                                <li>All API responses use simulated data</li>
+                            </ol>
+                            <div class="mt-4 bg-gray-50 rounded-lg p-4 font-mono text-sm">
+                                <p class="text-gray-700"># Example API call</p>
+                                <p class="text-green-600">curl -X GET http://localhost:8000/api/v1/accounts \</p>
+                                <p class="text-green-600">  -H "Authorization: Bearer YOUR_TOKEN"</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">GCU Demo Features</h3>
+                            <p class="text-gray-600 mb-4">Exploring the Global Currency Unit concept:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                                <li>View the current GCU composition (demonstration values)</li>
+                                <li>See how democratic voting will work (UI preview only)</li>
+                                <li>Test currency conversion with GCU</li>
+                                <li>Understand the multi-currency basket concept</li>
+                            </ul>
+                            <p class="text-gray-600 mt-4">
+                                <strong>Note:</strong> Actual voting functionality will be implemented in beta phase.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Providing Feedback -->
+                <section id="feedback" class="mb-16">
+                    <div class="border-b border-gray-200 pb-6 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900">Providing Feedback</h2>
+                        <p class="mt-2 text-gray-600">Help us improve FinAegis with your feedback</p>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Reporting Bugs</h3>
+                            <p class="text-gray-600 mb-4">Found a bug? Here's how to report it:</p>
+                            <ol class="list-decimal list-inside text-gray-600 space-y-2">
+                                <li>Check if the issue already exists on GitHub</li>
+                                <li>Create a new issue with a clear title</li>
+                                <li>Provide steps to reproduce the bug</li>
+                                <li>Include error messages or screenshots</li>
+                                <li>Mention your environment (OS, browser, etc.)</li>
+                            </ol>
+                            <div class="mt-4">
+                                <a href="https://github.com/FinAegis/core-banking-prototype-laravel/issues/new" class="text-indigo-600 font-medium hover:text-indigo-700">
+                                    Create Bug Report →
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Feature Requests</h3>
+                            <p class="text-gray-600 mb-4">Have an idea for a new feature?</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                                <li>Check our roadmap to see if it's planned</li>
+                                <li>Create a GitHub issue with [Feature Request] tag</li>
+                                <li>Describe the feature and its benefits</li>
+                                <li>Provide use cases and examples</li>
+                                <li>Join the discussion on existing requests</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Community Discussion</h3>
+                            <p class="text-gray-600 mb-4">Join our community:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                                <li>GitHub Discussions for general topics</li>
+                                <li>Email info@finaegis.org for direct feedback</li>
+                                <li>Star the repository to show support</li>
+                                <li>Share the project with other developers</li>
+                            </ul>
+                            <div class="mt-4 flex gap-4">
+                                <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" class="text-indigo-600 font-medium hover:text-indigo-700">
+                                    Join Discussions →
+                                </a>
+                                <a href="mailto:info@finaegis.org" class="text-indigo-600 font-medium hover:text-indigo-700">
+                                    Email Feedback →
+                                </a>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Wallet Management -->
-                <section id="wallet-management">
-                    <div class="border-b border-gray-200 pb-6 mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900">Wallet Management</h2>
-                        <p class="mt-2 text-gray-600">Managing your funds across multiple currencies and banks</p>
+                <!-- Additional Resources -->
+                <div class="bg-indigo-50 rounded-xl p-8 text-center">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Need More Help?</h3>
+                    <p class="text-gray-600 mb-6">
+                        Can't find what you're looking for? Check out these additional resources.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="{{ route('support.faq') }}" class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold border-2 border-indigo-600 hover:bg-indigo-50 transition">
+                            Browse FAQ
+                        </a>
+                        <a href="{{ route('support.contact') }}" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                            Contact Support
+                        </a>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Making Deposits</h3>
-                            <p class="text-gray-600 mb-4">How to add funds to your FinAegis account from various sources.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Bank transfer deposits</li>
-                                <li>• Supported currencies</li>
-                                <li>• Processing times</li>
-                                <li>• Deposit confirmation</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">7 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Withdrawing Funds</h3>
-                            <p class="text-gray-600 mb-4">Secure withdrawal process to your designated bank accounts.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Withdrawal methods</li>
-                                <li>• Bank account verification</li>
-                                <li>• Processing schedules</li>
-                                <li>• Fee structure</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">6 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Currency Exchange</h3>
-                            <p class="text-gray-600 mb-4">Converting between different currencies at competitive rates.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Real-time exchange rates</li>
-                                <li>• Supported currency pairs</li>
-                                <li>• Exchange fee calculation</li>
-                                <li>• Rate alerts and limits</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">9 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Multi-Bank Distribution</h3>
-                            <p class="text-gray-600 mb-4">How your funds are automatically distributed across partner banks.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Distribution algorithms</li>
-                                <li>• Bank allocation preferences</li>
-                                <li>• Insurance coverage</li>
-                                <li>• Risk management</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">10 min read</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Security -->
-                <section id="security">
-                    <div class="border-b border-gray-200 pb-6 mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900">Security & Privacy</h2>
-                        <p class="mt-2 text-gray-600">Protecting your account and personal information</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Two-Factor Authentication</h3>
-                            <p class="text-gray-600 mb-4">Setting up and managing 2FA for enhanced account security.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• SMS authentication</li>
-                                <li>• Authenticator apps</li>
-                                <li>• Hardware key support</li>
-                                <li>• Backup codes</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">8 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Device Management</h3>
-                            <p class="text-gray-600 mb-4">Managing trusted devices and login sessions.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Active sessions overview</li>
-                                <li>• Device registration</li>
-                                <li>• Remote logout</li>
-                                <li>• Suspicious activity alerts</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">5 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Privacy Settings</h3>
-                            <p class="text-gray-600 mb-4">Control your data sharing and privacy preferences.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Data sharing controls</li>
-                                <li>• Marketing preferences</li>
-                                <li>• Cookie settings</li>
-                                <li>• Data export options</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">6 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Account Recovery</h3>
-                            <p class="text-gray-600 mb-4">Regaining access to your account if you're locked out.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Password reset process</li>
-                                <li>• 2FA recovery codes</li>
-                                <li>• Identity verification</li>
-                                <li>• Support contact methods</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">7 min read</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- API Integration -->
-                <section id="api-integration">
-                    <div class="border-b border-gray-200 pb-6 mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900">API Integration</h2>
-                        <p class="mt-2 text-gray-600">Developer resources and integration guides</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Getting Started with APIs</h3>
-                            <p class="text-gray-600 mb-4">Basic setup and authentication for FinAegis APIs.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• API key generation</li>
-                                <li>• Authentication methods</li>
-                                <li>• Rate limiting guidelines</li>
-                                <li>• Testing environment</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">12 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Webhook Configuration</h3>
-                            <p class="text-gray-600 mb-4">Setting up real-time notifications for your application.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Webhook endpoint setup</li>
-                                <li>• Event types and payloads</li>
-                                <li>• Security verification</li>
-                                <li>• Error handling</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">15 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">SDK Documentation</h3>
-                            <p class="text-gray-600 mb-4">Using our official SDKs for faster integration.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• JavaScript/Node.js SDK</li>
-                                <li>• Python SDK</li>
-                                <li>• PHP SDK</li>
-                                <li>• Code examples</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">20 min read</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">API Reference</h3>
-                            <p class="text-gray-600 mb-4">Complete documentation of all available endpoints.</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li>• Account management</li>
-                                <li>• Transaction operations</li>
-                                <li>• Reporting endpoints</li>
-                                <li>• Error codes reference</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <span class="text-blue-600 font-medium text-sm">Reference</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </div>
-
-        <!-- Contact Support -->
-        <div class="bg-gray-50 py-16">
-            <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">Still Need Help?</h2>
-                <p class="text-xl text-gray-600 mb-8">Our support team is here to assist you with any questions.</p>
-                <div class="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-                    <a href="{{ route('support.contact') }}" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 block sm:inline-block">
-                        Contact Support
-                    </a>
-                    <a href="{{ route('support') }}" class="bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition duration-200 block sm:inline-block">
-                        Help Center
-                    </a>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <script>
-        // Search functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.querySelector('input[type="text"]');
-            const sections = document.querySelectorAll('section');
-            
-            searchInput.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                
-                sections.forEach(section => {
-                    const content = section.textContent.toLowerCase();
-                    if (content.includes(query) || query === '') {
-                        section.style.display = 'block';
-                    } else {
-                        section.style.display = 'none';
-                    }
-                });
-            });
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-gray-400 py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-4 gap-8">
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Platform</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/platform" class="hover:text-white transition">Overview</a></li>
+                            <li><a href="/gcu" class="hover:text-white transition">GCU</a></li>
+                            <li><a href="/sub-products" class="hover:text-white transition">Modules</a></li>
+                            <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Developers</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/developers" class="hover:text-white transition">Documentation</a></li>
+                            <li><a href="/developers/api-docs" class="hover:text-white transition">API Reference</a></li>
+                            <li><a href="/developers/sdks" class="hover:text-white transition">SDKs</a></li>
+                            <li><a href="/status" class="hover:text-white transition">System Status</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Resources</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/support" class="hover:text-white transition">Support</a></li>
+                            <li><a href="/blog" class="hover:text-white transition">Blog</a></li>
+                            <li><a href="/partners" class="hover:text-white transition">Partners</a></li>
+                            <li><a href="/about" class="hover:text-white transition">About</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-4">Legal</h4>
+                        <ul class="space-y-2">
+                            <li><a href="/legal/terms" class="hover:text-white transition">Terms</a></li>
+                            <li><a href="/legal/privacy" class="hover:text-white transition">Privacy</a></li>
+                            <li><a href="/legal/cookies" class="hover:text-white transition">Cookies</a></li>
+                            <li><a href="/support/faq" class="hover:text-white transition">FAQ</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-800 text-center">
+                    <p>&copy; {{ date('Y') }} FinAegis. All rights reserved. Open Source Project.</p>
+                </div>
+            </div>
+        </footer>
 
+        <script>
             // Smooth scrolling for anchor links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
@@ -399,6 +429,22 @@
                     }
                 });
             });
-        });
-    </script>
-</x-guest-layout>
+
+            // Search functionality
+            const searchInput = document.getElementById('guide-search');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                document.querySelectorAll('section[id]').forEach(section => {
+                    const content = section.textContent.toLowerCase();
+                    
+                    if (searchTerm === '' || content.includes(searchTerm)) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
