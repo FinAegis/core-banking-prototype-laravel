@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\GCUController;
 
 // Public Pages
 Route::get('/', function () {
@@ -17,9 +18,7 @@ Route::get('/platform', function () {
     return view('platform.index');
 })->name('platform');
 
-Route::get('/gcu', function () {
-    return view('gcu.index');
-})->name('gcu');
+Route::get('/gcu', [GCUController::class, 'index'])->name('gcu');
 
 Route::get('/sub-products', function () {
     return view('sub-products.index');

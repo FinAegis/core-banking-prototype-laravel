@@ -90,7 +90,7 @@
                         <!-- Real-time Stats -->
                         <div class="grid grid-cols-3 gap-6">
                             <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                                <div class="text-3xl font-bold">{{ config('platform.statistics.supported_currencies') }}</div>
+                                <div class="text-3xl font-bold">{{ count($compositionData['composition'] ?? config('platform.gcu.composition')) }}</div>
                                 <div class="text-purple-200 text-sm">Currencies</div>
                             </div>
                             <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -155,6 +155,43 @@
                     <p class="text-xl text-gray-600">Optimized for stability through community governance</p>
                 </div>
                 
+                <!-- Performance Metrics -->
+                @if(isset($compositionData['performance']))
+                <div class="max-w-4xl mx-auto mb-12">
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                            <div>
+                                <div class="text-sm text-gray-600 mb-1">Current Value</div>
+                                <div class="text-2xl font-bold text-gray-900">Ǥ{{ number_format($compositionData['performance']['value'], 4) }}</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-600 mb-1">24h Change</div>
+                                <div class="text-2xl font-bold {{ $compositionData['performance']['change_24h'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $compositionData['performance']['change_24h'] >= 0 ? '+' : '' }}{{ number_format($compositionData['performance']['change_24h'], 2) }}%
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-600 mb-1">7d Change</div>
+                                <div class="text-2xl font-bold {{ $compositionData['performance']['change_7d'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $compositionData['performance']['change_7d'] >= 0 ? '+' : '' }}{{ number_format($compositionData['performance']['change_7d'], 2) }}%
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-600 mb-1">30d Change</div>
+                                <div class="text-2xl font-bold {{ $compositionData['performance']['change_30d'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $compositionData['performance']['change_30d'] >= 0 ? '+' : '' }}{{ number_format($compositionData['performance']['change_30d'], 2) }}%
+                                </div>
+                            </div>
+                        </div>
+                        @if(isset($compositionData['last_updated']))
+                        <div class="text-center mt-4 text-sm text-gray-500">
+                            Last updated: {{ \Carbon\Carbon::parse($compositionData['last_updated'])->diffForHumans() }}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+                
                 <!-- Interactive Composition Display -->
                 <div class="max-w-5xl mx-auto">
                     <!-- Visual Pie Chart Representation -->
@@ -164,7 +201,7 @@
                             <div class="bg-white rounded-2xl p-8 shadow-lg">
                                 <svg viewBox="0 0 200 200" class="w-full h-80">
                                     @php
-                                        $composition = config('platform.gcu.composition');
+                                        $composition = $compositionData['composition'] ?? config('platform.gcu.composition');
                                         $colors = [
                                             'USD' => '#3b82f6',
                                             'EUR' => '#6366f1',
@@ -226,6 +263,11 @@
                                     <div class="text-right">
                                         <span class="text-2xl font-bold text-gray-900">{{ $percentage }}%</span>
                                         <p class="text-sm text-gray-500">{{ number_format($percentage * 10, 2) }}Ǥ per 1000Ǥ</p>
+                                        @if(isset($compositionData['assets']) && isset($compositionData['assets'][$currency]['price_change']))
+                                        <p class="text-xs {{ $compositionData['assets'][$currency]['price_change'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            {{ $compositionData['assets'][$currency]['price_change'] >= 0 ? '+' : '' }}{{ number_format($compositionData['assets'][$currency]['price_change'], 2) }}% today
+                                        </p>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="relative h-3 bg-gray-200 rounded-full overflow-hidden">
