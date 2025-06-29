@@ -73,13 +73,13 @@ jobs:
           
       - name: Prepare Performance Testing
         run: |
-          cp .env.performance .env
+          cp .env.ci .env
           php artisan key:generate
           php artisan config:cache
           php artisan route:cache
           php artisan event:cache
           php artisan migrate --force
-          php artisan db:seed --class=PerformanceSeeder || true
+          php artisan db:seed --class=LoadTestSeeder || true
           
       - name: Run Performance Tests
         run: ./vendor/bin/pest tests/Performance --parallel
@@ -147,7 +147,7 @@ jobs:
           
       - name: Prepare Performance Environment
         run: |
-          cp .env.performance .env
+          cp .env.ci .env
           php artisan key:generate
           php artisan config:cache
           php artisan route:cache
@@ -164,11 +164,11 @@ jobs:
           # Install Apache Bench
           sudo apt-get update && sudo apt-get install -y apache2-utils
           
-          # Benchmark API endpoints
+          # Benchmark API endpoints (using public endpoints that don't require auth)
           ENDPOINTS=(
             "/api/v2/status"
-            "/api/v2/accounts"
-            "/api/v2/transactions"
+            "/api/v2/gcu"
+            "/api/v2/baskets"
           )
           
           TOTAL_TIME=0
@@ -179,10 +179,10 @@ jobs:
             ab -n 100 -c 5 -k \
                -H "Accept: application/json" \
                -H "Content-Type: application/json" \
-               http://localhost:8000$endpoint > ab-results-$endpoint.txt || true
+               http://localhost:8000$endpoint > ab-results.txt 2>&1 || true
                
             # Extract metrics
-            AVG_TIME=$(grep "Time per request:" ab-results-$endpoint.txt | grep -v "across" | awk '{print $4}' || echo "0")
+            AVG_TIME=$(grep "Time per request:" ab-results.txt | grep -v "across" | awk '{print $4}' || echo "0")
             echo "$endpoint: ${AVG_TIME}ms"
             TOTAL_TIME=$(echo "$TOTAL_TIME + $AVG_TIME" | bc)
           done
@@ -250,7 +250,7 @@ jobs:
           
       - name: Prepare Application
         run: |
-          cp .env.performance .env
+          cp .env.ci .env
           php artisan key:generate
           php artisan config:cache
           php artisan route:cache

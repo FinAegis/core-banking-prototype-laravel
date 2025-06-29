@@ -340,8 +340,8 @@ jobs:
           export default function() {
             const endpoints = [
               { url: '/api/v2/status', method: 'GET' },
-              { url: '/api/v2/accounts', method: 'GET' },
-              { url: '/api/v2/transactions', method: 'GET' },
+              { url: '/api/v2/gcu', method: 'GET' },
+              { url: '/api/v2/baskets', method: 'GET' },
             ];
             
             const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
@@ -368,6 +368,9 @@ jobs:
       - name: Run Load Test
         run: |
           k6 run --out json=k6-results.json load-test.js || true
+          
+          # Ensure results file exists
+          touch k6-results.json
           
       - name: Analyze Load Test Results
         run: |

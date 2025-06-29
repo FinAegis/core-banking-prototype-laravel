@@ -1,65 +1,73 @@
 <?php
 
-use App\Http\Controllers\Api\FraudDetectionController;
-use App\Http\Controllers\Api\RiskAnalysisController;
-use App\Http\Controllers\Api\TransactionMonitoringController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\Fraud\FraudDetectionController;
+use App\Http\Controllers\API\Fraud\FraudCaseController;
+use App\Http\Controllers\API\Fraud\FraudRuleController;
 
-/*
-|--------------------------------------------------------------------------
-| Fraud Detection API Routes
-|--------------------------------------------------------------------------
-|
-| These routes handle fraud detection, transaction monitoring, and risk analysis
-|
-*/
-
-Route::middleware(['auth:sanctum', 'check.token.expiration'])->group(function () {
-    // Fraud Detection Dashboard
-    Route::prefix('fraud')->group(function () {
-        Route::get('/dashboard', [FraudDetectionController::class, 'dashboard']);
-        Route::get('/alerts', [FraudDetectionController::class, 'getAlerts']);
-        Route::get('/alerts/{id}', [FraudDetectionController::class, 'getAlertDetails']);
-        Route::post('/alerts/{id}/acknowledge', [FraudDetectionController::class, 'acknowledgeAlert']);
-        Route::post('/alerts/{id}/investigate', [FraudDetectionController::class, 'investigateAlert']);
-        Route::get('/statistics', [FraudDetectionController::class, 'getStatistics']);
-        Route::get('/patterns', [FraudDetectionController::class, 'getPatterns']);
-        Route::get('/cases', [FraudDetectionController::class, 'getCases']);
-        Route::get('/cases/{id}', [FraudDetectionController::class, 'getCaseDetails']);
-        Route::post('/cases/{id}/update', [FraudDetectionController::class, 'updateCase']);
+Route::middleware(['auth:sanctum'])->prefix('fraud')->group(function () {
+    
+    // Fraud Detection
+    Route::prefix('detection')->group(function () {
+        Route::post('analyze/transaction/{transaction}', [FraudDetectionController::class, 'analyzeTransaction'])
+            ->name('fraud.analyze.transaction');
+        Route::post('analyze/user/{user}', [FraudDetectionController::class, 'analyzeUser'])
+            ->name('fraud.analyze.user');
+        Route::get('score/{fraudScore}', [FraudDetectionController::class, 'getFraudScore'])
+            ->name('fraud.score.show');
+        Route::put('score/{fraudScore}/outcome', [FraudDetectionController::class, 'updateOutcome'])
+            ->name('fraud.score.outcome');
+        Route::get('statistics', [FraudDetectionController::class, 'getStatistics'])
+            ->name('fraud.statistics');
+        Route::get('model/metrics', [FraudDetectionController::class, 'getModelMetrics'])
+            ->name('fraud.model.metrics');
     });
-
-    // Transaction Monitoring
-    Route::prefix('monitoring')->group(function () {
-        Route::get('/transactions', [TransactionMonitoringController::class, 'getMonitoredTransactions']);
-        Route::get('/transactions/{id}', [TransactionMonitoringController::class, 'getTransactionDetails']);
-        Route::post('/transactions/{id}/flag', [TransactionMonitoringController::class, 'flagTransaction']);
-        Route::post('/transactions/{id}/clear', [TransactionMonitoringController::class, 'clearTransaction']);
-        Route::get('/rules', [TransactionMonitoringController::class, 'getRules']);
-        Route::post('/rules', [TransactionMonitoringController::class, 'createRule']);
-        Route::put('/rules/{id}', [TransactionMonitoringController::class, 'updateRule']);
-        Route::delete('/rules/{id}', [TransactionMonitoringController::class, 'deleteRule']);
-        Route::get('/patterns', [TransactionMonitoringController::class, 'getPatterns']);
-        Route::get('/thresholds', [TransactionMonitoringController::class, 'getThresholds']);
-        Route::put('/thresholds', [TransactionMonitoringController::class, 'updateThresholds']);
+    
+    // Fraud Cases
+    Route::prefix('cases')->group(function () {
+        Route::get('/', [FraudCaseController::class, 'index'])
+            ->name('fraud.cases.index');
+        Route::get('statistics', [FraudCaseController::class, 'statistics'])
+            ->name('fraud.cases.statistics');
+        Route::get('{case}', [FraudCaseController::class, 'show'])
+            ->name('fraud.cases.show');
+        Route::put('{case}', [FraudCaseController::class, 'update'])
+            ->name('fraud.cases.update');
+        Route::post('{case}/resolve', [FraudCaseController::class, 'resolve'])
+            ->name('fraud.cases.resolve');
+        Route::post('{case}/escalate', [FraudCaseController::class, 'escalate'])
+            ->name('fraud.cases.escalate');
+        Route::post('{case}/assign', [FraudCaseController::class, 'assign'])
+            ->name('fraud.cases.assign');
+        Route::post('{case}/evidence', [FraudCaseController::class, 'addEvidence'])
+            ->name('fraud.cases.evidence');
+        Route::get('{case}/timeline', [FraudCaseController::class, 'timeline'])
+            ->name('fraud.cases.timeline');
     });
-
-    // Risk Analysis
-    Route::prefix('risk')->group(function () {
-        Route::get('/profile/{userId}', [RiskAnalysisController::class, 'getUserRiskProfile']);
-        Route::get('/transaction/{transactionId}', [RiskAnalysisController::class, 'analyzeTransaction']);
-        Route::post('/calculate', [RiskAnalysisController::class, 'calculateRiskScore']);
-        Route::get('/factors', [RiskAnalysisController::class, 'getRiskFactors']);
-        Route::get('/models', [RiskAnalysisController::class, 'getRiskModels']);
-        Route::get('/history/{userId}', [RiskAnalysisController::class, 'getRiskHistory']);
-        Route::post('/device/fingerprint', [RiskAnalysisController::class, 'storeDeviceFingerprint']);
-        Route::get('/device/{userId}', [RiskAnalysisController::class, 'getDeviceHistory']);
-    });
-
-    // Real-time Transaction Analysis
-    Route::prefix('realtime')->group(function () {
-        Route::post('/analyze', [TransactionMonitoringController::class, 'analyzeRealtime']);
-        Route::post('/batch', [TransactionMonitoringController::class, 'analyzeBatch']);
-        Route::get('/status/{analysisId}', [TransactionMonitoringController::class, 'getAnalysisStatus']);
+    
+    // Fraud Rules
+    Route::prefix('rules')->group(function () {
+        Route::get('/', [FraudRuleController::class, 'index'])
+            ->name('fraud.rules.index');
+        Route::get('statistics', [FraudRuleController::class, 'statistics'])
+            ->name('fraud.rules.statistics');
+        Route::post('/', [FraudRuleController::class, 'store'])
+            ->name('fraud.rules.store');
+        Route::get('{rule}', [FraudRuleController::class, 'show'])
+            ->name('fraud.rules.show');
+        Route::put('{rule}', [FraudRuleController::class, 'update'])
+            ->name('fraud.rules.update');
+        Route::delete('{rule}', [FraudRuleController::class, 'destroy'])
+            ->name('fraud.rules.destroy');
+        Route::post('{rule}/toggle', [FraudRuleController::class, 'toggleStatus'])
+            ->name('fraud.rules.toggle');
+        Route::post('{rule}/test', [FraudRuleController::class, 'test'])
+            ->name('fraud.rules.test');
+        Route::post('create-defaults', [FraudRuleController::class, 'createDefaults'])
+            ->name('fraud.rules.defaults');
+        Route::get('export/all', [FraudRuleController::class, 'export'])
+            ->name('fraud.rules.export');
+        Route::post('import', [FraudRuleController::class, 'import'])
+            ->name('fraud.rules.import');
     });
 });
