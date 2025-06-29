@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('device_fingerprints', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('fingerprint_hash')->unique()->index(); // SHA-256 of device data
-            $table->foreignId('user_id')->nullable()->constrained()->index();
+            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->foreign('user_id', 'device_fingerprints_user_foreign')->references('id')->on('users');
             
             // Device Information
             $table->string('device_type')->nullable(); // desktop, mobile, tablet
