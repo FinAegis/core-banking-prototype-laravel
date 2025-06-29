@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.json' => \App\Http\Middleware\EnsureJsonRequest::class,
             'check.token.expiration' => \App\Http\Middleware\CheckTokenExpiration::class,
             'sub_product' => \App\Http\Middleware\EnsureSubProductEnabled::class,
+            'auth.apikey' => \App\Http\Middleware\AuthenticateApiKey::class,
+            'auth.api_or_sanctum' => \App\Http\Middleware\AuthenticateApiOrSanctum::class,
         ]);
         
         // Apply middleware to API routes (no global throttling - use custom rate limiting)

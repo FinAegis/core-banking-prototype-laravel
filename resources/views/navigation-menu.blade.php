@@ -28,6 +28,10 @@
                         {{ __('Voting') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('api-keys.index') }}" :active="request()->routeIs('api-keys.*')">
+                        {{ __('API Keys') }}
+                    </x-nav-link>
+                    
                     <!-- Quick Actions Dropdown -->
                     <div class="hidden sm:flex sm:items-center">
                         <x-dropdown align="left" width="48">
