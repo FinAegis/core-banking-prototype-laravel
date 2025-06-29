@@ -62,8 +62,8 @@ return new class extends Migration
             // Indexes
             $table->index('filing_status');
             $table->index('filed_at');
-            $table->index(['regulatory_report_id', 'filing_status']);
-            $table->index(['requires_retry', 'retry_after']);
+            $table->index(['regulatory_report_id', 'filing_status'], 'idx_report_filing_status');
+            $table->index(['requires_retry', 'retry_after'], 'idx_retry_status');
         });
     }
 
