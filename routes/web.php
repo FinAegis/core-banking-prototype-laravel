@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\GCUController;
 
 // Public Pages
 Route::get('/', function () {
@@ -17,9 +18,7 @@ Route::get('/platform', function () {
     return view('platform.index');
 })->name('platform');
 
-Route::get('/gcu', function () {
-    return view('gcu.index');
-})->name('gcu');
+Route::get('/gcu', [GCUController::class, 'index'])->name('gcu');
 
 Route::get('/sub-products', function () {
     return view('sub-products.index');
@@ -132,6 +131,18 @@ Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(func
     Route::get('/certificate/{uuid}', [App\Http\Controllers\CgoController::class, 'downloadCertificate'])->name('certificate');
 });
 
+// GCU Voting routes (public and authenticated)
+Route::prefix('gcu/voting')->name('gcu.voting.')->group(function () {
+    Route::get('/', [App\Http\Controllers\GcuVotingController::class, 'index'])->name('index');
+    Route::get('/{proposal}', [App\Http\Controllers\GcuVotingController::class, 'show'])->name('show');
+    
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::post('/{proposal}/vote', [App\Http\Controllers\GcuVotingController::class, 'vote'])->name('vote');
+        Route::get('/create', [App\Http\Controllers\GcuVotingController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\GcuVotingController::class, 'store'])->name('store');
+    });
+});
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -145,6 +156,10 @@ Route::middleware([
     Route::post('/onboarding/complete', [App\Http\Controllers\OnboardingController::class, 'complete'])->name('onboarding.complete');
     Route::post('/onboarding/skip', [App\Http\Controllers\OnboardingController::class, 'skip'])->name('onboarding.skip');
     
+    // API Key Management
+    Route::resource('api-keys', App\Http\Controllers\ApiKeyController::class);
+    Route::post('/api-keys/{apiKey}/regenerate', [App\Http\Controllers\ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
+    
     // KYC route
     Route::get('/compliance/kyc', function () {
         return view('compliance.kyc');
@@ -157,7 +172,7 @@ Route::middleware([
         })->name('bank-allocation');
         
         Route::get('/voting', function () {
-            return view('wallet.voting');
+            return redirect()->route('gcu.voting.index');
         })->name('voting');
         
         Route::get('/transactions', function () {

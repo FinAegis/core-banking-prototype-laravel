@@ -1,0 +1,9 @@
+/vendor/
+/composer.lock
+/.phpunit.cache/
+/.phpunit.result.cache
+/phpunit.xml.dist
+/coverage/
+/.idea/
+/.vscode/
+.DS_Store

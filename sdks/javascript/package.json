@@ -1,0 +1,50 @@
+{
+  "name": "@finaegis/sdk",
+  "version": "1.0.0",
+  "description": "Official FinAegis JavaScript/TypeScript SDK for interacting with the FinAegis API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "finaegis",
+    "api",
+    "sdk",
+    "banking",
+    "finance",
+    "gcu",
+    "typescript"
+  ],
+  "author": "FinAegis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FinAegis/finaegis-js.git"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "axios-retry": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

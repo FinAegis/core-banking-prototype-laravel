@@ -145,7 +145,7 @@ class StabilityMechanismServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_check_peg_deviation()
+    public function it_can_check_peg_deviation_above_target()
     {
         // Mock current price above peg
         $mockRate = $this->createMockRate(1.05, 'CUSD', 'USD'); // 5% above peg
@@ -162,15 +162,19 @@ class StabilityMechanismServiceTest extends TestCase
         $this->assertEqualsWithDelta(5.0, $deviation['percentage'], 0.0001);
         $this->assertEquals('above', $deviation['direction']);
         $this->assertFalse($deviation['within_threshold']);
-        
+    }
+    
+    /** @test */
+    public function it_can_check_peg_deviation_below_target()
+    {
         // Mock current price below peg
-        $mockRate2 = $this->createMockRate(0.97, 'CUSD', 'USD'); // 3% below peg
+        $mockRate = $this->createMockRate(0.97, 'CUSD', 'USD'); // 3% below peg
         
         $this->exchangeRateService
             ->shouldReceive('getRate')
             ->with('CUSD', 'USD')
             ->once()
-            ->andReturn($mockRate2);
+            ->andReturn($mockRate);
             
         $deviation = $this->service->checkPegDeviation('CUSD');
         

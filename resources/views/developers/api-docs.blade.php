@@ -65,16 +65,33 @@
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Authentication</h2>
                         
                         <div class="prose prose-lg max-w-none">
-                            <p>The FinAegis API uses API keys to authenticate requests. You can generate and manage your API keys in the developer dashboard.</p>
+                            <p>The FinAegis API uses API keys to authenticate requests. You can generate and manage your API keys in your dashboard.</p>
+                            
+                            <h3>Creating API Keys</h3>
+                            <ol>
+                                <li>Log in to your FinAegis account</li>
+                                <li>Navigate to <a href="{{ route('api-keys.index') }}" class="text-blue-600 hover:text-blue-800">API Keys</a> in your dashboard</li>
+                                <li>Click "Create New Key" and configure permissions</li>
+                                <li>Copy the generated key immediately (it won't be shown again)</li>
+                            </ol>
                             
                             <h3>API Key Authentication</h3>
                             <p>Include your API key in the Authorization header:</p>
                             
                             <div class="bg-gray-900 rounded-lg p-6 overflow-x-auto">
-                                <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key_here" \
+                                <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer fak_your_api_key_here" \
      -H "Content-Type: application/json" \
-     https://api.finaegis.org/v1/accounts</code></pre>
+     https://api.finaegis.org/v2/accounts</code></pre>
                             </div>
+                            
+                            <h3>API Key Security</h3>
+                            <ul>
+                                <li><strong>Permissions:</strong> Grant only the minimum required permissions (read, write, delete)</li>
+                                <li><strong>IP Whitelist:</strong> Restrict API key usage to specific IP addresses</li>
+                                <li><strong>Expiration:</strong> Set expiration dates for temporary keys</li>
+                                <li><strong>Rotation:</strong> Regularly rotate your API keys</li>
+                                <li><strong>Storage:</strong> Never commit API keys to version control</li>
+                            </ul>
                             
                             <h3>Sandbox vs Production</h3>
                             <p>Use these base URLs for testing and production:</p>
@@ -305,6 +322,101 @@
                                 <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                                     <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
      "https://api.finaegis.org/v2/gcu/value-history?period=7d&interval=hourly"</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Voting Endpoints -->
+                            <div class="mt-12 mb-6">
+                                <h3 class="text-2xl font-semibold text-gray-900">Democratic Voting System</h3>
+                                <p class="text-gray-600 mt-2">The GCU voting system allows token holders to participate in monthly governance votes to optimize the currency basket composition.</p>
+                            </div>
+
+                            <div class="border rounded-lg p-6 mb-6">
+                                <h3 class="text-xl font-semibold mb-4">List Voting Proposals</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/proposals</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Get all voting proposals with optional status filtering.</p>
+                                
+                                <h4 class="font-semibold mb-2">Query Parameters:</h4>
+                                <ul class="list-disc list-inside text-gray-600 mb-4 space-y-1">
+                                    <li><code class="bg-gray-100 px-1">status</code> - Filter by status: active, upcoming, past (optional)</li>
+                                </ul>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
+     "https://api.finaegis.org/v2/gcu/voting/proposals?status=active"</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-lg p-6 mb-6">
+                                <h3 class="text-xl font-semibold mb-4">Get Proposal Details</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/proposals/{id}</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Get detailed information about a specific voting proposal.</p>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
+     https://api.finaegis.org/v2/gcu/voting/proposals/123</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-lg p-6 mb-6">
+                                <h3 class="text-xl font-semibold mb-4">Cast Vote</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/proposals/{id}/vote</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">Requires Authentication</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Cast your vote on a proposal. Voting power is determined by your GCU balance.</p>
+                                
+                                <h4 class="font-semibold mb-2">Request Body:</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
+                                    <pre class="text-green-400 text-sm"><code>{
+  "vote": "for"  // Options: "for", "against", "abstain"
+}</code></pre>
+                                </div>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -X POST \
+     -H "Authorization: Bearer your_api_key" \
+     -H "Content-Type: application/json" \
+     -d '{"vote": "for"}' \
+     https://api.finaegis.org/v2/gcu/voting/proposals/123/vote</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Get My Voting History</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v2/gcu/voting/my-votes</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">Requires Authentication</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4">Get your voting history across all proposals.</p>
+                                
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code>curl -H "Authorization: Bearer your_api_key" \
+     https://api.finaegis.org/v2/gcu/voting/my-votes</code></pre>
                                 </div>
                             </div>
                         </div>

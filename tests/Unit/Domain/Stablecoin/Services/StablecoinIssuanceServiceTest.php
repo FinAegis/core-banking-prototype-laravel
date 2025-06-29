@@ -105,14 +105,15 @@ class StablecoinIssuanceServiceTest extends TestCase
     /** @test */
     public function it_can_mint_stablecoins_with_usd_collateral()
     {
-        // This test requires actual workflow execution since WorkflowStub is final
-        $this->markTestSkipped('Requires full workflow infrastructure. Move to integration tests.');
+        // This test has been moved to integration tests
+        $this->markTestSkipped('Moved to StablecoinIssuanceIntegrationTest');
     }
 
     /** @test */
     public function it_can_mint_with_different_collateral_asset()
     {
-        $this->markTestSkipped('Requires full workflow infrastructure. Move to integration tests.');
+        // This test has been moved to integration tests
+        $this->markTestSkipped('Moved to StablecoinIssuanceIntegrationTest');
         return;
         // Setup
         $positionUuid = (string) Str::uuid();
@@ -261,7 +262,8 @@ class StablecoinIssuanceServiceTest extends TestCase
     /** @test */
     public function it_can_burn_stablecoins_and_release_collateral()
     {
-        $this->markTestSkipped('Requires full workflow infrastructure. Move to integration tests.');
+        // This test has been moved to integration tests
+        $this->markTestSkipped('Moved to StablecoinIssuanceIntegrationTest');
         return;
         // Setup
         $position = StablecoinCollateralPosition::create([
@@ -322,7 +324,8 @@ class StablecoinIssuanceServiceTest extends TestCase
     /** @test */
     public function it_can_burn_entire_position()
     {
-        $this->markTestSkipped('Requires full workflow infrastructure. Move to integration tests.');
+        // This test has been moved to integration tests
+        $this->markTestSkipped('Moved to StablecoinIssuanceIntegrationTest');
         return;
         // Setup
         $position = StablecoinCollateralPosition::create([
@@ -447,7 +450,8 @@ class StablecoinIssuanceServiceTest extends TestCase
     /** @test */
     public function it_can_add_collateral_to_existing_position()
     {
-        $this->markTestSkipped('Requires full workflow infrastructure. Move to integration tests.');
+        // This test has been moved to integration tests
+        $this->markTestSkipped('Moved to StablecoinIssuanceIntegrationTest');
         return;
         // Setup
         $position = StablecoinCollateralPosition::create([
@@ -525,7 +529,8 @@ class StablecoinIssuanceServiceTest extends TestCase
     /** @test */
     public function it_updates_existing_position_when_minting_again()
     {
-        $this->markTestSkipped('Requires full workflow infrastructure. Move to integration tests.');
+        // This test has been moved to integration tests
+        $this->markTestSkipped('Moved to StablecoinIssuanceIntegrationTest');
         return;
         // Setup existing position
         $existingPosition = StablecoinCollateralPosition::create([
