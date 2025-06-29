@@ -34,5 +34,48 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Bank Services Configuration
+    |--------------------------------------------------------------------------
+    */
+    
+    'banks' => [
+        'paysera' => [
+            'enabled' => env('BANK_PAYSERA_ENABLED', true),
+            'client_id' => env('BANK_PAYSERA_CLIENT_ID'),
+            'client_secret' => env('BANK_PAYSERA_CLIENT_SECRET'),
+            'base_url' => env('BANK_PAYSERA_BASE_URL', 'https://bank.paysera.com/rest/v1'),
+            'oauth_url' => env('BANK_PAYSERA_OAUTH_URL', 'https://bank.paysera.com/oauth/v1'),
+        ],
+        
+        'deutsche' => [
+            'enabled' => env('BANK_DEUTSCHE_ENABLED', true),
+            'client_id' => env('BANK_DEUTSCHE_CLIENT_ID'),
+            'client_secret' => env('BANK_DEUTSCHE_CLIENT_SECRET'),
+            'base_url' => env('BANK_DEUTSCHE_BASE_URL', 'https://api.db.com/v2'),
+        ],
+        
+        'santander' => [
+            'enabled' => env('BANK_SANTANDER_ENABLED', true),
+            'client_id' => env('BANK_SANTANDER_CLIENT_ID'),
+            'client_secret' => env('BANK_SANTANDER_CLIENT_SECRET'),
+            'base_url' => env('BANK_SANTANDER_BASE_URL', 'https://api.santander.com/v2'),
+        ],
+        
+        'revolut' => [
+            'enabled' => env('BANK_REVOLUT_ENABLED', false),
+            'client_id' => env('BANK_REVOLUT_CLIENT_ID'),
+            'client_secret' => env('BANK_REVOLUT_CLIENT_SECRET'),
+            'base_url' => env('BANK_REVOLUT_BASE_URL', 'https://api.revolut.com/v1'),
+        ],
+        
+        'wise' => [
+            'enabled' => env('BANK_WISE_ENABLED', false),
+            'api_key' => env('BANK_WISE_API_KEY'),
+            'base_url' => env('BANK_WISE_BASE_URL', 'https://api.wise.com/v2'),
+        ],
+    ],
 
 ];

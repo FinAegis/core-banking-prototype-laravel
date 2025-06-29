@@ -197,7 +197,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg mb-8">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <a href="{{ route('wallet.deposit') }}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition group">
                             <div class="p-3 bg-indigo-100 rounded-full mb-2 group-hover:bg-indigo-200 transition">
                                 <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,6 +232,15 @@
                                 </svg>
                             </div>
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Convert</span>
+                        </a>
+                        
+                        <a href="{{ route('gcu.voting.index') }}" class="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition group">
+                            <div class="p-3 bg-orange-100 rounded-full mb-2 group-hover:bg-orange-200 transition">
+                                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Vote</span>
                         </a>
                     </div>
                 </div>
