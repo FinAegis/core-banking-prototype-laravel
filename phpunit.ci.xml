@@ -3,6 +3,8 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         enforceTimeLimit="true"
+         defaultTimeLimit="5"
 >
     <testsuites>
         <testsuite name="Unit">
