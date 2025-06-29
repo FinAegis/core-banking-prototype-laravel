@@ -115,6 +115,9 @@ jobs:
           # Run the performance test suite
           php artisan test --filter=LoadTest > performance-results.txt 2>&1 || true
           
+          # Ensure the file exists even if tests fail
+          touch performance-results.txt
+          
           # Extract key metrics
           echo "## Performance Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
