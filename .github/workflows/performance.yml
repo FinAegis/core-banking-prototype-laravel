@@ -112,8 +112,14 @@ jobs:
           ITERATIONS="${{ github.event.inputs.iterations || '100' }}"
           CONCURRENT="${{ github.event.inputs.concurrent || '10' }}"
           
+          # Create necessary directories
+          mkdir -p storage/app/benchmarks
+          
           # Run the performance test suite
           php artisan test --filter=LoadTest > performance-results.txt 2>&1 || true
+          
+          # Ensure the file exists even if tests fail
+          touch performance-results.txt
           
           # Extract key metrics
           echo "## Performance Test Results" >> $GITHUB_STEP_SUMMARY
