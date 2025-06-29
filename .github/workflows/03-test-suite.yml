@@ -110,14 +110,14 @@ jobs:
           
       - name: Run Unit Tests
         run: |
-          # Run unit tests using CI configuration with MySQL
-          ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --coverage --min=70
+          # Run unit tests using CI configuration with MySQL and parallel execution
+          ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --parallel --coverage --min=70
           
       - name: Run Security Tests
         if: always()
         run: |
-          # Run security tests separately with CI configuration
-          ./vendor/bin/pest --testsuite=Security --configuration=phpunit.ci.xml
+          # Run security tests separately with CI configuration and parallel execution
+          ./vendor/bin/pest --testsuite=Security --configuration=phpunit.ci.xml --parallel
           
       - name: Upload Test Coverage
         uses: codecov/codecov-action@v4
@@ -189,7 +189,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Feature Tests
-        run: ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --coverage --min=65
+        run: ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --parallel --coverage --min=65
 
   integration-tests:
     name: Integration Tests
@@ -242,7 +242,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Integration Tests
-        run: ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --coverage --min=55
+        run: ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --parallel --coverage --min=55
         
   behat-tests:
     name: Behat Tests

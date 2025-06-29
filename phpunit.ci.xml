@@ -51,5 +51,10 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Parallel testing configuration -->
+        <env name="PEST_PARALLEL" value="true"/>
+        <!-- Redis configuration for parallel testing -->
+        <env name="REDIS_HOST" value="127.0.0.1"/>
+        <env name="REDIS_PORT" value="6379"/>
     </php>
 </phpunit>
