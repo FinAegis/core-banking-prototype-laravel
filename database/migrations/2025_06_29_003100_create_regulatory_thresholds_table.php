@@ -59,8 +59,8 @@ return new class extends Migration
             $table->index('category');
             $table->index('report_type');
             $table->index('jurisdiction');
-            $table->index(['is_active', 'effective_from', 'effective_to']);
-            $table->index(['report_type', 'jurisdiction', 'is_active']);
+            $table->index(['is_active', 'effective_from', 'effective_to'], 'idx_active_effective');
+            $table->index(['report_type', 'jurisdiction', 'is_active'], 'idx_type_jurisdiction_active');
         });
     }
 
