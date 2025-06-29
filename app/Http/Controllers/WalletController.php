@@ -10,6 +10,17 @@ use Illuminate\Support\Facades\Auth;
 class WalletController extends Controller
 {
     /**
+     * Show the wallet dashboard
+     */
+    public function index()
+    {
+        $user = Auth::user();
+        $account = $user->accounts()->first();
+        
+        return view('wallet.index', compact('account'));
+    }
+
+    /**
      * Show the deposit form
      */
     public function showDeposit()

@@ -16,6 +16,10 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('wallet.index') }}" :active="request()->routeIs('wallet.index')">
+                        {{ __('Wallet') }}
+                    </x-nav-link>
+                    
                     <x-nav-link href="{{ route('wallet.transactions') }}" :active="request()->routeIs('wallet.transactions')">
                         {{ __('Transactions') }}
                     </x-nav-link>
@@ -28,9 +32,23 @@
                         {{ __('Voting') }}
                     </x-nav-link>
                     
-                    <x-nav-link href="{{ route('api-keys.index') }}" :active="request()->routeIs('api-keys.*')">
-                        {{ __('API Keys') }}
-                    </x-nav-link>
+                    @if(auth()->user()->hasRole(['customer_business', 'developer', 'super_admin', 'bank_admin']))
+                        <x-nav-link href="{{ route('api-keys.index') }}" :active="request()->routeIs('api-keys.*')">
+                            {{ __('API Keys') }}
+                        </x-nav-link>
+                    @endif
+                    
+                    @can('view_fraud_alerts')
+                        <x-nav-link href="{{ route('fraud.alerts.index') }}" :active="request()->routeIs('fraud.alerts.*')">
+                            {{ __('Fraud Alerts') }}
+                        </x-nav-link>
+                    @endcan
+                    
+                    @can('generate_regulatory_reports')
+                        <x-nav-link href="{{ route('regulatory.reports.index') }}" :active="request()->routeIs('regulatory.reports.*')">
+                            {{ __('Reports') }}
+                        </x-nav-link>
+                    @endcan
                     
                     <!-- Quick Actions Dropdown -->
                     <div class="hidden sm:flex sm:items-center">

@@ -167,6 +167,8 @@ Route::middleware([
     
     // GCU Wallet Routes
     Route::prefix('wallet')->name('wallet.')->group(function () {
+        Route::get('/', [App\Http\Controllers\WalletController::class, 'index'])->name('index');
+        
         Route::get('/bank-allocation', function () {
             return view('wallet.bank-allocation');
         })->name('bank-allocation');
