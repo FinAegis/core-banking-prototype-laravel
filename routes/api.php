@@ -357,3 +357,6 @@ require __DIR__.'/api-bian.php';
 Route::prefix('v2')->middleware('ensure.json')->group(function () {
     require __DIR__.'/api-v2.php';
 });
+
+// Include fraud detection routes
+require __DIR__.'/api/fraud.php';
