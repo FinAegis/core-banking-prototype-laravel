@@ -55,6 +55,11 @@ class CgoInvestment extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function round(): BelongsTo
+    {
+        return $this->belongsTo(CgoPricingRound::class, 'round_id');
+    }
+
     public function getTierColorAttribute(): string
     {
         return match($this->tier) {

@@ -114,6 +114,8 @@ class CgoController extends Controller
                 ],
             ]);
             
+            DB::commit();
+            
             // Generate payment details based on method
             if ($validated['payment_method'] === 'crypto') {
                 return $this->processCryptoPayment($investment, $validated['crypto_currency']);
@@ -122,8 +124,6 @@ class CgoController extends Controller
             } else {
                 return $this->processCardPayment($investment);
             }
-            
-            DB::commit();
             
         } catch (\Exception $e) {
             DB::rollBack();
@@ -175,7 +175,11 @@ class CgoController extends Controller
     private function processCardPayment($investment)
     {
         // In production, this would integrate with Stripe or similar
-        return redirect()->route('cgo.payment', $investment->uuid);
+        // For now, show a simple payment confirmation page
+        return view('cgo.card-payment', [
+            'investment' => $investment,
+            'amount' => $investment->amount,
+        ]);
     }
     
     public function downloadCertificate($uuid)

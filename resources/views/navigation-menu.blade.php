@@ -32,6 +32,10 @@
                         {{ __('Voting') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('cgo') }}" :active="request()->routeIs('cgo*')">
+                        {{ __('CGO') }}
+                    </x-nav-link>
+                    
                     @if(auth()->user()->hasRole(['customer_business', 'developer', 'super_admin', 'bank_admin']))
                         <x-nav-link href="{{ route('api-keys.index') }}" :active="request()->routeIs('api-keys.*')">
                             {{ __('API Keys') }}
