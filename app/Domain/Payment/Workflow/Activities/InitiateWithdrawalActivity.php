@@ -18,9 +18,10 @@ class InitiateWithdrawalActivity extends Activity
             amount: $input['amount'],
             currency: $input['currency'],
             reference: $input['reference'],
-            bankAccountNumber: $input['bank_account_number'],
-            bankRoutingNumber: $input['bank_routing_number'],
-            bankAccountName: $input['bank_account_name'],
+            bankName: $input['bank_name'] ?? 'Unknown Bank',
+            accountNumber: $input['bank_account_number'],
+            accountHolderName: $input['bank_account_name'],
+            routingNumber: $input['bank_routing_number'] ?? null,
             metadata: $input['metadata'] ?? []
         );
         

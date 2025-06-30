@@ -36,9 +36,9 @@ class PaymentWithdrawalAggregate extends AggregateRoot
                 amount: $withdrawal->getAmount(),
                 currency: $withdrawal->getCurrency(),
                 reference: $withdrawal->getReference(),
-                bankAccountNumber: $withdrawal->getBankAccountNumber(),
-                bankRoutingNumber: $withdrawal->getBankRoutingNumber(),
-                bankAccountName: $withdrawal->getBankAccountName(),
+                bankAccountNumber: $withdrawal->getAccountNumber(),
+                bankRoutingNumber: $withdrawal->getRoutingNumber(),
+                bankAccountName: $withdrawal->getAccountHolderName(),
                 metadata: $withdrawal->getMetadata()
             )
         );
