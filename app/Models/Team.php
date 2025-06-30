@@ -81,9 +81,9 @@ class Team extends JetstreamTeam
         return $this->teamUserRoles()->updateOrCreate(
             [
                 'user_id' => $user->id,
-                'role' => $role,
             ],
             [
+                'role' => $role,
                 'permissions' => $permissions,
             ]
         );

@@ -247,7 +247,7 @@ Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
         Route::get('/aggregated', [\App\Http\Controllers\Api\ExchangeRateProviderController::class, 'getAggregatedRate']);
         Route::post('/refresh', [\App\Http\Controllers\Api\ExchangeRateProviderController::class, 'refresh'])->middleware('auth:sanctum');
         Route::get('/historical', [\App\Http\Controllers\Api\ExchangeRateProviderController::class, 'historical']);
-        Route::post('/validate', [\App\Http\Controllers\Api\ExchangeRateProviderController::class, 'validate']);
+        Route::post('/validate', [\App\Http\Controllers\Api\ExchangeRateProviderController::class, 'validateRate']);
     });
 });
 

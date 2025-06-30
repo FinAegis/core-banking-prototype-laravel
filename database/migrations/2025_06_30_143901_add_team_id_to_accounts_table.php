@@ -24,7 +24,7 @@ return new class extends Migration
         
         // Add team_id to fraud_cases for isolation
         Schema::table('fraud_cases', function (Blueprint $table) {
-            $table->foreignId('team_id')->nullable()->after('transaction_id')->constrained()->nullOnDelete();
+            $table->foreignId('team_id')->nullable()->after('id')->constrained()->nullOnDelete();
             $table->index('team_id');
         });
         

@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use PHPUnit\Framework\Attributes\Test;
 
 class BusinessTeamManagementTest extends TestCase
 {
@@ -53,7 +54,7 @@ class BusinessTeamManagementTest extends TestCase
         $this->otherBusinessOwner->assignRole('customer_business');
     }
     
-    /** @test */
+    #[Test]
     public function business_owner_can_view_team_members_page()
     {
         $response = $this->actingAs($this->businessOwner)
@@ -64,7 +65,7 @@ class BusinessTeamManagementTest extends TestCase
         $response->assertSee('Test Business');
     }
     
-    /** @test */
+    #[Test]
     public function non_business_team_cannot_access_members_page()
     {
         $personalUser = User::factory()->create();
@@ -80,7 +81,7 @@ class BusinessTeamManagementTest extends TestCase
         $response->assertStatus(403);
     }
     
-    /** @test */
+    #[Test]
     public function business_owner_can_add_team_member()
     {
         $response = $this->actingAs($this->businessOwner)
@@ -105,7 +106,7 @@ class BusinessTeamManagementTest extends TestCase
         $this->assertEquals('compliance_officer', $teamRole->role);
     }
     
-    /** @test */
+    #[Test]
     public function cannot_add_member_beyond_team_limit()
     {
         // Add members up to the limit
@@ -130,7 +131,7 @@ class BusinessTeamManagementTest extends TestCase
         ]);
     }
     
-    /** @test */
+    #[Test]
     public function can_only_assign_allowed_roles()
     {
         $response = $this->actingAs($this->businessOwner)
@@ -144,7 +145,7 @@ class BusinessTeamManagementTest extends TestCase
         $response->assertSessionHasErrors(['role']);
     }
     
-    /** @test */
+    #[Test]
     public function business_owner_can_update_member_role()
     {
         $member = User::factory()->create();
@@ -167,7 +168,7 @@ class BusinessTeamManagementTest extends TestCase
         $this->assertEquals('compliance_officer', $teamRole->role);
     }
     
-    /** @test */
+    #[Test]
     public function cannot_update_team_owner_role()
     {
         $response = $this->actingAs($this->businessOwner)
@@ -179,7 +180,7 @@ class BusinessTeamManagementTest extends TestCase
         $response->assertSessionHas('error', 'Cannot edit the team owner\'s role.');
     }
     
-    /** @test */
+    #[Test]
     public function business_owner_can_remove_team_member()
     {
         $member = User::factory()->create();
@@ -196,7 +197,7 @@ class BusinessTeamManagementTest extends TestCase
         $this->assertNull($member->fresh()->current_team_id);
     }
     
-    /** @test */
+    #[Test]
     public function cannot_remove_team_owner()
     {
         $response = $this->actingAs($this->businessOwner)
@@ -206,7 +207,7 @@ class BusinessTeamManagementTest extends TestCase
         $response->assertSessionHas('error', 'Cannot remove the team owner.');
     }
     
-    /** @test */
+    #[Test]
     public function cannot_access_other_teams_members()
     {
         $response = $this->actingAs($this->businessOwner)
@@ -215,7 +216,7 @@ class BusinessTeamManagementTest extends TestCase
         $response->assertStatus(403);
     }
     
-    /** @test */
+    #[Test]
     public function data_isolation_for_accounts()
     {
         // Create accounts for both teams
@@ -237,7 +238,7 @@ class BusinessTeamManagementTest extends TestCase
         $this->assertFalse($visibleAccounts->contains($account2));
     }
     
-    /** @test */
+    #[Test]
     public function compliance_officer_sees_only_team_fraud_alerts()
     {
         // Create compliance officer in team 1
@@ -265,7 +266,7 @@ class BusinessTeamManagementTest extends TestCase
         $response->assertDontSee($fraudCase2->id);
     }
     
-    /** @test */
+    #[Test]
     public function super_admin_can_see_all_data()
     {
         $superAdmin = User::factory()->create();
@@ -290,7 +291,7 @@ class BusinessTeamManagementTest extends TestCase
         $this->assertTrue($visibleAccounts->contains($account2));
     }
     
-    /** @test */
+    #[Test]
     public function team_member_automatically_associated_with_team()
     {
         $member = User::factory()->create();
@@ -305,7 +306,6 @@ class BusinessTeamManagementTest extends TestCase
             'uuid' => \Str::uuid(),
             'user_uuid' => $member->uuid,
             'name' => 'Test Account',
-            'type' => 'business',
         ]);
         
         // Account should automatically have the team_id set

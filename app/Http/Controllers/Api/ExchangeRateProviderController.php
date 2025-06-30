@@ -550,7 +550,7 @@ class ExchangeRateProviderController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function validate(Request $request): JsonResponse
+    public function validateRate(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'from' => 'required|string|size:3',
