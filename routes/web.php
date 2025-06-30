@@ -193,6 +193,14 @@ Route::middleware([
             Route::post('/payment-method', [App\Http\Controllers\DepositController::class, 'addPaymentMethod'])->name('payment-method.add');
             Route::delete('/payment-method/{id}', [App\Http\Controllers\DepositController::class, 'removePaymentMethod'])->name('payment-method.remove');
         });
+        
+        // Bank withdrawal routes
+        Route::prefix('withdraw')->name('withdraw.')->group(function () {
+            Route::get('/bank', [App\Http\Controllers\WithdrawalController::class, 'create'])->name('create');
+            Route::post('/bank', [App\Http\Controllers\WithdrawalController::class, 'store'])->name('store');
+            Route::post('/bank-account', [App\Http\Controllers\WithdrawalController::class, 'addBankAccount'])->name('bank-account.add');
+            Route::delete('/bank-account/{bankAccount}', [App\Http\Controllers\WithdrawalController::class, 'removeBankAccount'])->name('bank-account.remove');
+        });
     });
 });
 
