@@ -133,7 +133,7 @@
                     <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
                         <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-4">Other Payment Methods</h4>
                         <div class="grid grid-cols-2 gap-4">
-                            <a href="{{ route('wallet.deposit.card') }}" class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                            <a href="{{ route('wallet.deposit.create') }}" class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                                 <svg class="w-8 h-8 text-gray-600 dark:text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                                 </svg>
