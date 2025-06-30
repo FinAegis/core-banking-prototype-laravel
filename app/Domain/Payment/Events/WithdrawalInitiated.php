@@ -14,7 +14,7 @@ class WithdrawalInitiated extends ShouldBeStored
         public string $currency,
         public string $reference,
         public string $bankAccountNumber,
-        public string $bankRoutingNumber,
+        public ?string $bankRoutingNumber,
         public string $bankAccountName,
         public array $metadata = []
     ) {
