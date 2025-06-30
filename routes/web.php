@@ -219,6 +219,13 @@ Route::middleware([
         })->name('analysis.index');
     });
     
+    // Transaction Monitoring Routes
+    Route::prefix('monitoring')->name('monitoring.')->group(function () {
+        Route::get('/transactions', function () {
+            return view('monitoring.transactions.index');
+        })->name('transactions.index');
+    });
+    
     // Account Management Routes
     Route::get('/accounts', function () {
         $accounts = Auth::user()->accounts()->with('balances.asset')->get();

@@ -36,6 +36,7 @@ class NavigationTest extends TestCase
             '/gcu/voting' => 200,
             '/fraud/alerts' => 200,
             '/risk/analysis' => 200,
+            '/monitoring/transactions' => 200,
             '/cgo/invest' => 200,
         ];
 
