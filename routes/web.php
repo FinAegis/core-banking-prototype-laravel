@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\GCUController;
@@ -231,6 +232,24 @@ Route::middleware([
         $accounts = Auth::user()->accounts()->with('balances.asset')->get();
         return view('accounts.index', compact('accounts'));
     })->name('accounts');
+    
+    Route::post('/accounts/create', function (Request $request) {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+        
+        $user = Auth::user();
+        
+        // Use the CreateAccountWorkflow to create the account
+        $workflow = app(\App\Domain\Account\Workflows\CreateAccountWorkflow::class);
+        $workflow->start([
+            'user_uuid' => $user->uuid,
+            'name' => $request->name,
+            'initial_balance' => 0,
+        ]);
+        
+        return response()->json(['success' => true]);
+    })->name('accounts.create');
     
     // Transaction History Route
     Route::get('/transactions', function () {

@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Account Status Alert -->
             @if(!auth()->user()->accounts->first())
-                <div class="mb-6 bg-yellow-50 border border-yellow-400 text-yellow-800 px-6 py-4 rounded-lg">
+                <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 text-yellow-800 dark:text-yellow-200 px-6 py-4 rounded-lg">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -18,7 +18,9 @@
                         </div>
                         <div class="ml-3">
                             <p class="text-sm font-medium">Account Setup Required</p>
-                            <p class="text-sm mt-1">You need to create an account before you can deposit funds. <a href="#" class="font-semibold underline">Create Account</a></p>
+                            <p class="text-sm mt-1">You need to create an account before you can deposit funds. 
+                                <button onclick="createAccount()" class="font-semibold underline hover:no-underline cursor-pointer">Create Account</button>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -194,4 +196,125 @@
             </div>
         </div>
     </div>
+
+    <!-- Account Creation Modal -->
+    <div id="accountModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form id="accountForm" onsubmit="submitAccountForm(event)">
+                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+                                    Create Your Account
+                                </h3>
+                                <div class="mt-4">
+                                    <label for="accountName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Account Name
+                                    </label>
+                                    <input type="text" 
+                                           name="accountName" 
+                                           id="accountName" 
+                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-700 dark:text-white" 
+                                           placeholder="e.g., Personal Account"
+                                           value="Personal Account"
+                                           required>
+                                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                        This will create a multi-currency account that supports USD, EUR, GBP, and GCU.
+                                    </p>
+                                </div>
+                                <div id="accountError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" 
+                                id="createAccountBtn"
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Create Account
+                        </button>
+                        <button type="button" 
+                                onclick="closeAccountModal()"
+                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function createAccount() {
+            document.getElementById('accountModal').classList.remove('hidden');
+        }
+
+        function closeAccountModal() {
+            document.getElementById('accountModal').classList.add('hidden');
+            document.getElementById('accountError').classList.add('hidden');
+        }
+
+        async function submitAccountForm(event) {
+            event.preventDefault();
+            
+            const accountName = document.getElementById('accountName').value;
+            const errorDiv = document.getElementById('accountError');
+            const submitBtn = document.getElementById('createAccountBtn');
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+            errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/accounts/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: accountName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success - reload the page to show the new account
+                    window.location.reload();
+                } else {
+                    // Show error message
+                    errorDiv.textContent = data.message || 'Failed to create account. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error creating account:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('accountModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeAccountModal();
+            }
+        });
+    </script>
+    @endpush
 </x-app-layout>
