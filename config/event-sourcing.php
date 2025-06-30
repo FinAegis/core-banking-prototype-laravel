@@ -125,6 +125,12 @@ return [
         'collateral_position_updated'   => App\Domain\Stablecoin\Events\CollateralPositionUpdated::class,
         'collateral_position_closed'    => App\Domain\Stablecoin\Events\CollateralPositionClosed::class,
         'collateral_position_liquidated'=> App\Domain\Stablecoin\Events\CollateralPositionLiquidated::class,
+        'deposit_initiated'             => App\Domain\Payment\Events\DepositInitiated::class,
+        'deposit_completed'             => App\Domain\Payment\Events\DepositCompleted::class,
+        'deposit_failed'                => App\Domain\Payment\Events\DepositFailed::class,
+        'withdrawal_initiated'          => App\Domain\Payment\Events\WithdrawalInitiated::class,
+        'withdrawal_completed'          => App\Domain\Payment\Events\WithdrawalCompleted::class,
+        'withdrawal_failed'             => App\Domain\Payment\Events\WithdrawalFailed::class,
     ],
 
     /*
