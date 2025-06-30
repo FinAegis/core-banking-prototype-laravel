@@ -30,7 +30,7 @@ return new class extends Migration
         
         // Add team_id to regulatory_reports for isolation
         Schema::table('regulatory_reports', function (Blueprint $table) {
-            $table->foreignId('team_id')->nullable()->after('generated_by')->constrained()->nullOnDelete();
+            $table->foreignId('team_id')->nullable()->after('id')->constrained()->nullOnDelete();
             $table->index('team_id');
         });
     }
