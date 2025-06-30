@@ -184,6 +184,15 @@ Route::middleware([
         Route::get('/withdraw', [App\Http\Controllers\WalletController::class, 'showWithdraw'])->name('withdraw');
         Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'showTransfer'])->name('transfer');
         Route::get('/convert', [App\Http\Controllers\WalletController::class, 'showConvert'])->name('convert');
+        
+        // Card deposit routes (Stripe integration)
+        Route::prefix('deposit')->name('deposit.')->group(function () {
+            Route::get('/card', [App\Http\Controllers\DepositController::class, 'create'])->name('create');
+            Route::post('/card', [App\Http\Controllers\DepositController::class, 'store'])->name('store');
+            Route::get('/confirm', [App\Http\Controllers\DepositController::class, 'confirm'])->name('confirm');
+            Route::post('/payment-method', [App\Http\Controllers\DepositController::class, 'addPaymentMethod'])->name('payment-method.add');
+            Route::delete('/payment-method/{id}', [App\Http\Controllers\DepositController::class, 'removePaymentMethod'])->name('payment-method.remove');
+        });
     });
 });
 
