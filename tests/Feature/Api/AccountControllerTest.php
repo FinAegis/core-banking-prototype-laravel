@@ -111,6 +111,13 @@ class AccountControllerTest extends TestCase
             'name' => 'Display Account',
             'balance' => 5000,
         ]);
+        
+        // Create the USD balance record
+        \App\Models\AccountBalance::create([
+            'account_uuid' => $account->uuid,
+            'asset_code' => 'USD',
+            'balance' => 5000,
+        ]);
 
         $response = $this->getJson("/api/accounts/{$account->uuid}");
 
