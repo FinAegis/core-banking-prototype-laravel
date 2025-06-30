@@ -18,9 +18,9 @@ This includes:
 
 Please refer to the main documentation for all development guidance.
 
-## 📋 Local TODO List (Optional)
+## 📋 Project TODO List
 
-If a `TODO.md` file exists in the project root, read it at the start of each session for current task tracking and context. This is a local file (gitignored) used for session continuity.
+**IMPORTANT**: Always read `TODO.md` at the start of each session if it exists. This is a local file (gitignored) that contains all project tasks organized by feature branches, priorities, and completion status. It serves as session continuity between Claude Code interactions.
 
 ---
 
