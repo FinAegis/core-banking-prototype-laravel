@@ -38,12 +38,29 @@ class CreateNewUser implements CreatesNewUsers
             'password' => Hash::make($input['password']),
         ]);
 
-        $this->createTeam($user);
+        $team = $this->createTeam($user);
 
         if (isset($input['is_business_customer']) && $input['is_business_customer']) {
-            $user->assignRole(UserRoles::BUSINESS);
+            $user->assignRole('customer_business');
+            
+            // Convert personal team to business organization
+            $team->update([
+                'is_business_organization' => true,
+                'organization_type' => 'business',
+                'max_users' => 10, // Default limit for business accounts
+                'allowed_roles' => [
+                    'compliance_officer',
+                    'risk_manager',
+                    'accountant',
+                    'operations_manager',
+                    'customer_service',
+                ],
+            ]);
+            
+            // Assign owner role in the team
+            $team->assignUserRole($user, 'owner');
         } else {
-            $user->assignRole(UserRoles::PRIVATE);
+            $user->assignRole('customer_private');
         }
 
         return $user;
@@ -52,9 +69,9 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Create a personal team for the user.
      */
-    protected function createTeam(User $user): void
+    protected function createTeam(User $user): Team
     {
-        $user->ownedTeams()->save(Team::forceCreate([
+        return $user->ownedTeams()->save(Team::forceCreate([
             'user_id' => $user->id,
             'name' => explode(' ', $user->name, 2)[0]."'s Team",
             'personal_team' => true,

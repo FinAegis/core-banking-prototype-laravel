@@ -20,6 +20,13 @@ class Team extends JetstreamTeam
     protected $fillable = [
         'name',
         'personal_team',
+        'is_business_organization',
+        'organization_type',
+        'business_registration_number',
+        'tax_id',
+        'business_details',
+        'max_users',
+        'allowed_roles',
     ];
 
     /**
@@ -42,6 +49,68 @@ class Team extends JetstreamTeam
     {
         return [
             'personal_team' => 'boolean',
+            'is_business_organization' => 'boolean',
+            'business_details' => 'array',
+            'allowed_roles' => 'array',
+        ];
+    }
+    
+    /**
+     * Team-specific user roles
+     */
+    public function teamUserRoles()
+    {
+        return $this->hasMany(TeamUserRole::class);
+    }
+    
+    /**
+     * Get team-specific role for a user
+     */
+    public function getUserTeamRole($user)
+    {
+        return $this->teamUserRoles()
+            ->where('user_id', $user->id)
+            ->first();
+    }
+    
+    /**
+     * Assign a team-specific role to a user
+     */
+    public function assignUserRole($user, $role, $permissions = null)
+    {
+        return $this->teamUserRoles()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'role' => $role,
+            ],
+            [
+                'permissions' => $permissions,
+            ]
+        );
+    }
+    
+    /**
+     * Check if team has reached user limit
+     */
+    public function hasReachedUserLimit(): bool
+    {
+        return $this->users()->count() >= $this->max_users;
+    }
+    
+    /**
+     * Available roles for this team
+     */
+    public function getAvailableRoles(): array
+    {
+        if (!$this->is_business_organization) {
+            return [];
+        }
+        
+        return $this->allowed_roles ?? [
+            'compliance_officer',
+            'accountant',
+            'operations_manager',
+            'customer_service',
         ];
     }
 }

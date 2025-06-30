@@ -135,6 +135,12 @@
                                     <x-dropdown-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}">
                                         {{ __('Team Settings') }}
                                     </x-dropdown-link>
+                                    
+                                    @if (Auth::user()->currentTeam->is_business_organization && Auth::user()->ownsTeam(Auth::user()->currentTeam))
+                                        <x-dropdown-link href="{{ route('teams.members.index', Auth::user()->currentTeam->id) }}">
+                                            {{ __('Team Members') }}
+                                        </x-dropdown-link>
+                                    @endif
 
                                     @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
                                         <x-dropdown-link href="{{ route('teams.create') }}">

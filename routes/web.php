@@ -152,6 +152,16 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
     
+    // Team Member Management (for business organizations)
+    Route::prefix('teams/{team}')->name('teams.')->group(function () {
+        Route::get('/members', [App\Http\Controllers\TeamMemberController::class, 'index'])->name('members.index');
+        Route::get('/members/create', [App\Http\Controllers\TeamMemberController::class, 'create'])->name('members.create');
+        Route::post('/members', [App\Http\Controllers\TeamMemberController::class, 'store'])->name('members.store');
+        Route::get('/members/{user}/edit', [App\Http\Controllers\TeamMemberController::class, 'edit'])->name('members.edit');
+        Route::put('/members/{user}', [App\Http\Controllers\TeamMemberController::class, 'update'])->name('members.update');
+        Route::delete('/members/{user}', [App\Http\Controllers\TeamMemberController::class, 'destroy'])->name('members.destroy');
+    });
+    
     // Onboarding routes
     Route::post('/onboarding/complete', [App\Http\Controllers\OnboardingController::class, 'complete'])->name('onboarding.complete');
     Route::post('/onboarding/skip', [App\Http\Controllers\OnboardingController::class, 'skip'])->name('onboarding.skip');

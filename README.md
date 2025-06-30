@@ -273,6 +273,22 @@ app/Domain/
 - **Balance Synchronization**: Automated reconciliation service
 - **Console Command**: `php artisan custodian:sync-balances`
 
+#### Phase 6: Business Team Management ✅
+- **Multi-Tenant Architecture**: Complete data isolation between business organizations
+- **Team Member Management**: CRUD interface for adding/managing team members
+- **Role-Based Permissions**: Business-specific roles (Compliance Officer, Risk Manager, Accountant, etc.)
+- **Automatic Data Scoping**: BelongsToTeam trait ensures data isolation at model level
+- **Team Limits**: Configurable user limits per organization
+- **Team-Specific Roles**: Separate from global system roles
+
+#### Phase 7: Continuous Growth Offering (CGO) ✅
+- **Investment Platform**: Allow users to invest in platform growth
+- **Multiple Payment Methods**: Support for crypto (BTC, ETH, USDT), bank transfers, and cards
+- **QR Code Generation**: Easy mobile crypto payments
+- **Reference Tracking**: Unique reference numbers for all investments
+- **Payment Confirmation Views**: Dedicated views for each payment method
+- **Investment Management**: Track investment status and history
+
 ## 🔧 Usage Examples
 
 ### Account Operations
@@ -419,6 +435,8 @@ The platform includes a powerful admin dashboard built with Filament:
 - **[BIAN API Documentation](BIAN_API_DOCUMENTATION.md)**: BIAN-compliant API following banking industry standards
 - **[Admin Dashboard Guide](docs/04-TECHNICAL/ADMIN_DASHBOARD.md)**: Comprehensive admin interface documentation
 - **[Webhook Integration Guide](docs/04-TECHNICAL/WEBHOOK_INTEGRATION.md)**: Webhook configuration and integration documentation
+- **[Business Team Management](docs/BUSINESS_TEAM_MANAGEMENT.md)**: Multi-tenant architecture and team management documentation
+- **[CGO Documentation](docs/CGO_DOCUMENTATION.md)**: Continuous Growth Offering implementation guide
 
 ### API Endpoints
 

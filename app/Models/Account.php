@@ -9,11 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Domain\Asset\Models\Asset;
 use App\Models\AccountBalance;
+use App\Traits\BelongsToTeam;
 
 class Account extends Model
 {
     use HasFactory;
     use HasUuids;
+    use BelongsToTeam;
 
     /**
      * Get the columns that should receive a unique identifier.
