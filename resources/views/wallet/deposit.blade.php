@@ -58,131 +58,25 @@
                     </p>
                     
                     @if(!auth()->user()->accounts->first())
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
-                            <p class="text-gray-600 dark:text-gray-400">Create an account to get started with deposits</p>
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6 text-center">
+                            <svg class="mx-auto h-12 w-12 text-yellow-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Account Setup Required</h4>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">Your account is being set up. Please refresh the page in a moment.</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-500 mb-4">If this message persists, please contact support.</p>
+                            <button onclick="window.location.reload()" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+                                Refresh Page
+                            </button>
                         </div>
                     @else
-                        <form id="deposit-form" class="space-y-4">
-                        @csrf
+                        <a href="{{ route('wallet.deposit.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+                            {{ __('Deposit with Card') }}
+                        </a>
                         
-                        <div>
-                            <x-label for="card_amount" value="{{ __('Amount') }}" />
-                            <x-input id="card_amount" type="number" step="0.01" min="10" max="10000" name="amount" placeholder="100.00" class="mt-1 block w-full" required />
-                            <div id="amount-error" class="text-red-600 text-sm mt-1 hidden"></div>
-                        </div>
-                        
-                        <div>
-                            <x-label for="currency" value="{{ __('Currency') }}" />
-                            <select id="currency" name="asset_code" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
-                                @foreach($assets as $asset)
-                                    <option value="{{ $asset->code }}">{{ $asset->code }} - {{ $asset->name }}</option>
-                                @endforeach
-                            </select>
-                            <div id="asset-error" class="text-red-600 text-sm mt-1 hidden"></div>
-                        </div>
-                        
-                        <p class="text-xs text-gray-500 dark:text-gray-500">
-                            {{ __('Card processing fee: 2.9% + $0.30') }}
+                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-3">
+                            {{ __('Secure payment processing powered by Stripe. Card processing fee: 2.9% + $0.30') }}
                         </p>
-                        
-                        <div id="success-message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded hidden"></div>
-                        <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded hidden"></div>
-                        
-                        <x-button type="button" id="deposit-btn" class="w-full justify-center">
-                            {{ __('Continue to Payment') }}
-                        </x-button>
-                    </form>
-
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const depositForm = document.getElementById('deposit-form');
-                        const depositBtn = document.getElementById('deposit-btn');
-                        const successMessage = document.getElementById('success-message');
-                        const errorMessage = document.getElementById('error-message');
-                        
-                        depositBtn.addEventListener('click', async function(e) {
-                            e.preventDefault();
-                            
-                            // Clear previous errors
-                            clearErrors();
-                            
-                            const formData = new FormData(depositForm);
-                            const accountUuid = '{{ auth()->user()->accounts->first()->uuid ?? '' }}';
-                            
-                            const requestData = {
-                                amount: parseFloat(formData.get('amount')),
-                                asset_code: formData.get('asset_code')
-                            };
-                            
-                            try {
-                                depositBtn.disabled = true;
-                                depositBtn.textContent = 'Processing...';
-                                
-                                const response = await fetch(`/api/accounts/${accountUuid}/deposit`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                        'Authorization': `Bearer {{ auth()->user()->currentAccessToken()->token ?? auth()->user()->createToken('wallet-access')->plainTextToken }}`
-                                    },
-                                    body: JSON.stringify(requestData)
-                                });
-                                
-                                const result = await response.json();
-                                
-                                if (response.ok) {
-                                    showSuccess(result.message || 'Deposit initiated successfully');
-                                    depositForm.reset();
-                                    setTimeout(() => {
-                                        window.location.href = '{{ route("dashboard") }}';
-                                    }, 2000);
-                                } else {
-                                    if (result.errors) {
-                                        showValidationErrors(result.errors);
-                                    } else {
-                                        showError(result.message || 'Deposit failed');
-                                    }
-                                }
-                            } catch (error) {
-                                showError('Network error occurred. Please try again.');
-                                console.error('Deposit error:', error);
-                            } finally {
-                                depositBtn.disabled = false;
-                                depositBtn.textContent = 'Continue to Payment';
-                            }
-                        });
-                        
-                        function clearErrors() {
-                            document.getElementById('amount-error').classList.add('hidden');
-                            document.getElementById('asset-error').classList.add('hidden');
-                            successMessage.classList.add('hidden');
-                            errorMessage.classList.add('hidden');
-                        }
-                        
-                        function showSuccess(message) {
-                            successMessage.textContent = message;
-                            successMessage.classList.remove('hidden');
-                        }
-                        
-                        function showError(message) {
-                            errorMessage.textContent = message;
-                            errorMessage.classList.remove('hidden');
-                        }
-                        
-                        function showValidationErrors(errors) {
-                            if (errors.amount) {
-                                const amountError = document.getElementById('amount-error');
-                                amountError.textContent = errors.amount[0];
-                                amountError.classList.remove('hidden');
-                            }
-                            if (errors.asset_code) {
-                                const assetError = document.getElementById('asset-error');
-                                assetError.textContent = errors.asset_code[0];
-                                assetError.classList.remove('hidden');
-                            }
-                        }
-                    });
-                    </script>
                     @endif
                 </div>
 

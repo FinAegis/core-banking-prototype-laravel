@@ -194,15 +194,30 @@ Route::middleware([
             return redirect()->route('gcu.voting.index');
         })->name('voting');
         
-        Route::get('/transactions', function () {
-            return view('wallet.transactions');
-        })->name('transactions');
+        Route::get('/transactions', [App\Http\Controllers\WalletController::class, 'transactions'])->name('transactions');
         
         // Wallet transaction routes (views only - operations handled via API)
         Route::get('/deposit', [App\Http\Controllers\WalletController::class, 'showDeposit'])->name('deposit');
         Route::get('/withdraw', [App\Http\Controllers\WalletController::class, 'showWithdraw'])->name('withdraw');
         Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'showTransfer'])->name('transfer');
         Route::get('/convert', [App\Http\Controllers\WalletController::class, 'showConvert'])->name('convert');
+        
+        // Card deposit routes (Stripe integration)
+        Route::prefix('deposit')->name('deposit.')->group(function () {
+            Route::get('/card', [App\Http\Controllers\DepositController::class, 'create'])->name('create');
+            Route::post('/card', [App\Http\Controllers\DepositController::class, 'store'])->name('store');
+            Route::get('/confirm', [App\Http\Controllers\DepositController::class, 'confirm'])->name('confirm');
+            Route::post('/payment-method', [App\Http\Controllers\DepositController::class, 'addPaymentMethod'])->name('payment-method.add');
+            Route::delete('/payment-method/{id}', [App\Http\Controllers\DepositController::class, 'removePaymentMethod'])->name('payment-method.remove');
+        });
+        
+        // Bank withdrawal routes
+        Route::prefix('withdraw')->name('withdraw.')->group(function () {
+            Route::get('/bank', [App\Http\Controllers\WithdrawalController::class, 'create'])->name('create');
+            Route::post('/bank', [App\Http\Controllers\WithdrawalController::class, 'store'])->name('store');
+            Route::post('/bank-account', [App\Http\Controllers\WithdrawalController::class, 'addBankAccount'])->name('bank-account.add');
+            Route::delete('/bank-account/{bankAccount}', [App\Http\Controllers\WithdrawalController::class, 'removeBankAccount'])->name('bank-account.remove');
+        });
     });
 });
 

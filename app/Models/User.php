@@ -211,4 +211,12 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(ApiKey::class, 'user_uuid', 'uuid');
     }
+    
+    /**
+     * Get the bank accounts for the user.
+     */
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
 }

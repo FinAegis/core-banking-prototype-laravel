@@ -30,6 +30,23 @@
                     Invest in the future of democratic banking. Own a piece of FinAegis and shape the future of global finance.
                 </p>
                 
+                <!-- Important Notice -->
+                <div class="bg-green-500/20 backdrop-blur-sm border-2 border-green-400 rounded-2xl p-6 max-w-2xl mx-auto mb-8">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-green-300 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-left">
+                            <h3 class="text-lg font-bold text-white mb-2">Real Investment Opportunity</h3>
+                            <p class="text-green-100 text-sm">
+                                This is a genuine investment opportunity. While the rest of the platform is in alpha testing, 
+                                the CGO program is fully operational. All investments are real, legally binding, and will result 
+                                in actual ownership certificates of FinAegis Ltd.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Countdown Timer -->
                 <div class="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-2xl mx-auto mb-8">
                     <h3 class="text-2xl font-bold mb-4 text-white">CGO Launches In:</h3>

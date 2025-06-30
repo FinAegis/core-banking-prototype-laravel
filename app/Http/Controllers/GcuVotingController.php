@@ -36,11 +36,12 @@ class GcuVotingController extends Controller
         // Get user's GCU balance for voting power
         $gcuBalance = 0;
         if (Auth::check()) {
-            $gcuAccount = Auth::user()->accounts()
-                ->where('currency', 'GCU')
-                ->where('type', 'personal')
-                ->first();
-            $gcuBalance = $gcuAccount ? $gcuAccount->balance : 0;
+            $account = Auth::user()->accounts()->first();
+            if ($account) {
+                $gcuBalance = $account->balances()
+                    ->where('asset_code', 'GCU')
+                    ->first()?->balance ?? 0;
+            }
         }
             
         return view('gcu.voting.index', compact(
@@ -67,11 +68,13 @@ class GcuVotingController extends Controller
                 ->where('user_uuid', Auth::user()->uuid)
                 ->first();
                 
-            $gcuAccount = Auth::user()->accounts()
-                ->where('currency', 'GCU')
-                ->where('type', 'personal')
-                ->first();
-            $gcuBalance = $gcuAccount ? $gcuAccount->balance : 0;
+            $account = Auth::user()->accounts()->first();
+            $gcuBalance = 0;
+            if ($account) {
+                $gcuBalance = $account->balances()
+                    ->where('asset_code', 'GCU')
+                    ->first()?->balance ?? 0;
+            }
         }
         
         // Calculate vote distribution
@@ -98,16 +101,20 @@ class GcuVotingController extends Controller
         ]);
         
         // Get user's GCU balance
-        $gcuAccount = Auth::user()->accounts()
-            ->where('currency', 'GCU')
-            ->where('type', 'personal')
-            ->first();
+        $account = Auth::user()->accounts()->first();
+        if (!$account) {
+            return back()->with('error', 'You need an account to vote.');
+        }
+        
+        $gcuBalance = $account->balances()
+            ->where('asset_code', 'GCU')
+            ->first()?->balance ?? 0;
             
-        if (!$gcuAccount || $gcuAccount->balance <= 0) {
+        if ($gcuBalance <= 0) {
             return back()->with('error', 'You need GCU holdings to vote.');
         }
         
-        DB::transaction(function () use ($request, $proposal, $gcuAccount) {
+        DB::transaction(function () use ($request, $proposal, $gcuBalance) {
             // Create or update vote
             $vote = GcuVote::updateOrCreate(
                 [
@@ -116,7 +123,7 @@ class GcuVotingController extends Controller
                 ],
                 [
                     'vote' => $request->vote,
-                    'voting_power' => $gcuAccount->balance,
+                    'voting_power' => $gcuBalance,
                 ]
             );
             
@@ -187,8 +194,7 @@ class GcuVotingController extends Controller
         }
         
         // Calculate total GCU supply
-        $totalGcuSupply = Account::where('currency', 'GCU')
-            ->where('type', 'personal')
+        $totalGcuSupply = \App\Models\AccountBalance::where('asset_code', 'GCU')
             ->sum('balance');
         
         $proposal = GcuVotingProposal::create([
