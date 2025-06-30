@@ -193,6 +193,32 @@ Route::middleware([
         Route::post('/reports/{report}/submit', [App\Http\Controllers\RegulatoryReportsController::class, 'submit'])->name('reports.submit');
     });
     
+    // Risk Analysis Routes
+    Route::prefix('risk')->name('risk.')->group(function () {
+        Route::get('/analysis', function () {
+            // Mock data for demonstration
+            $stats = [
+                'low_risk' => 1243,
+                'medium_risk' => 567,
+                'high_risk' => 190,
+                'total_customers' => 2000,
+                'avg_risk_score' => 32.5,
+            ];
+            
+            $topRiskFactors = [
+                ['name' => 'High Transaction Volume', 'count' => 234, 'percentage' => 45],
+                ['name' => 'Geographic Risk', 'count' => 189, 'percentage' => 36],
+                ['name' => 'PEP Status', 'count' => 123, 'percentage' => 24],
+                ['name' => 'Unusual Transaction Patterns', 'count' => 98, 'percentage' => 19],
+                ['name' => 'Business Type Risk', 'count' => 87, 'percentage' => 17],
+            ];
+            
+            $highRiskCustomers = collect(); // Empty collection for now
+            
+            return view('risk.analysis.index', compact('stats', 'topRiskFactors', 'highRiskCustomers'));
+        })->name('analysis.index');
+    });
+    
     // Account Management Routes
     Route::get('/accounts', function () {
         $accounts = Auth::user()->accounts()->with('balances.asset')->get();

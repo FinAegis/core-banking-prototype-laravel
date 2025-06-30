@@ -35,6 +35,7 @@ class NavigationTest extends TestCase
             '/user/profile' => 200, // Jetstream profile route
             '/gcu/voting' => 200,
             '/fraud/alerts' => 200,
+            '/risk/analysis' => 200,
             '/cgo/invest' => 200,
         ];
 
