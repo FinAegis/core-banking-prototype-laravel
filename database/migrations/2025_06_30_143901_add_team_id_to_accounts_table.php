@@ -18,7 +18,7 @@ return new class extends Migration
         
         // Also add team_id to transactions for isolation
         Schema::table('transactions', function (Blueprint $table) {
-            $table->foreignId('team_id')->nullable()->after('account_uuid')->constrained()->nullOnDelete();
+            $table->foreignId('team_id')->nullable()->after('aggregate_uuid')->constrained()->nullOnDelete();
             $table->index('team_id');
         });
         
