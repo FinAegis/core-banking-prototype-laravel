@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTeam;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -9,9 +10,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FraudCase extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, BelongsToTeam;
 
     protected $fillable = [
+        'team_id',
         'case_number',
         'status',
         'priority',

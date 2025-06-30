@@ -19,14 +19,12 @@ class FraudAlertsController extends Controller
         // Check if user has permission to view fraud alerts
         if (!$user->can('view_fraud_alerts')) {
             // For regular customers, show only their fraud alerts
-            $fraudCases = FraudCase::whereHas('transaction', function ($query) use ($user) {
-                $query->whereHas('account', function ($q) use ($user) {
-                    $q->where('user_uuid', $user->uuid);
-                });
+            $fraudCases = FraudCase::whereHas('subjectAccount', function ($query) use ($user) {
+                $query->where('user_uuid', $user->uuid);
             })->latest()->paginate(10);
         } else {
             // For staff with permission, show fraud cases within their team scope
-            $fraudCases = FraudCase::with(['transaction.account.user'])
+            $fraudCases = FraudCase::with(['subjectAccount.user'])
                 ->when($user->currentTeam && $user->currentTeam->is_business_organization, function($query) use ($user) {
                     // If user is part of a business organization, only show their team's data
                     $query->where('team_id', $user->currentTeam->id);
@@ -60,7 +58,7 @@ class FraudAlertsController extends Controller
         // Check authorization
         if ($user->hasRole(['customer_private', 'customer_business'])) {
             // Customers can only view their own fraud cases
-            if ($fraudCase->transaction->account->user_uuid !== $user->uuid) {
+            if ($fraudCase->subjectAccount && $fraudCase->subjectAccount->user_uuid !== $user->uuid) {
                 abort(403);
             }
         } else {
