@@ -81,7 +81,7 @@ class DepositController extends Controller
         ]);
         
         try {
-            $transaction = $this->paymentGateway->processDeposit($request->payment_intent_id);
+            $result = $this->paymentGateway->processDeposit($request->payment_intent_id);
             
             return redirect()->route('wallet.index')
                 ->with('success', 'Deposit successful! Your account has been credited.');

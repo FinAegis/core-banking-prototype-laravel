@@ -8,7 +8,7 @@ use App\Domain\Transaction\Models\Transaction;
 use App\Domain\Banking\Models\PaymentMethod;
 use App\Domain\Banking\Events\DepositCompleted;
 use App\Domain\Banking\Events\WithdrawalRequested;
-use App\Domain\Account\Services\AccountService;
+use App\Domain\Payment\Services\PaymentService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Exceptions\IncompletePayment;
@@ -18,11 +18,11 @@ use Exception;
 
 class PaymentGatewayService
 {
-    protected AccountService $accountService;
+    protected PaymentService $paymentService;
     
-    public function __construct(AccountService $accountService)
+    public function __construct(PaymentService $paymentService)
     {
-        $this->accountService = $accountService;
+        $this->paymentService = $paymentService;
     }
     
     /**
@@ -62,56 +62,46 @@ class PaymentGatewayService
     /**
      * Process a successful deposit
      */
-    public function processDeposit(string $paymentIntentId): Transaction
+    public function processDeposit(string $paymentIntentId): array
     {
-        return DB::transaction(function () use ($paymentIntentId) {
-            // Retrieve payment intent from Stripe
-            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
-            $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
-            
-            if ($paymentIntent->status !== 'succeeded') {
-                throw new Exception('Payment intent not succeeded');
-            }
-            
-            // Find user and account
-            $userId = $paymentIntent->metadata['user_id'] ?? null;
-            $accountUuid = $paymentIntent->metadata['account_uuid'] ?? null;
-            
-            if (!$userId || !$accountUuid) {
-                throw new Exception('Invalid payment metadata');
-            }
-            
-            $account = Account::where('uuid', $accountUuid)->firstOrFail();
-            
-            // Create transaction record
-            $transaction = Transaction::create([
-                'account_id' => $account->id,
-                'type' => 'deposit',
-                'amount' => $paymentIntent->amount,
-                'currency' => strtoupper($paymentIntent->currency),
-                'status' => 'completed',
-                'reference' => 'DEP-' . strtoupper(uniqid()),
-                'external_reference' => $paymentIntent->id,
+        // Retrieve payment intent from Stripe
+        $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+        $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
+        
+        if ($paymentIntent->status !== 'succeeded') {
+            throw new Exception('Payment intent not succeeded');
+        }
+        
+        // Find user and account
+        $userId = $paymentIntent->metadata['user_id'] ?? null;
+        $accountUuid = $paymentIntent->metadata['account_uuid'] ?? null;
+        
+        if (!$userId || !$accountUuid) {
+            throw new Exception('Invalid payment metadata');
+        }
+        
+        // Use PaymentService to process deposit through event sourcing
+        $reference = 'DEP-' . strtoupper(uniqid());
+        $this->paymentService->processStripeDeposit([
+            'account_uuid' => $accountUuid,
+            'amount' => $paymentIntent->amount,
+            'currency' => strtoupper($paymentIntent->currency),
+            'reference' => $reference,
+            'external_reference' => $paymentIntent->id,
+            'payment_method' => $paymentIntent->payment_method,
+            'payment_method_type' => $paymentIntent->payment_method_types[0] ?? 'card',
+            'metadata' => [
+                'stripe_payment_intent_id' => $paymentIntent->id,
                 'processor' => 'stripe',
-                'metadata' => [
-                    'payment_method' => $paymentIntent->payment_method,
-                    'payment_method_type' => $paymentIntent->payment_method_types[0] ?? 'card',
-                    'stripe_payment_intent_id' => $paymentIntent->id,
-                ],
-                'processed_at' => now(),
-            ]);
-            
-            // Update account balance using AccountService
-            $this->accountService->deposit($account->uuid, [
-                'amount' => $paymentIntent->amount,
-                'currency' => strtoupper($paymentIntent->currency)
-            ]);
-            
-            // Dispatch event
-            event(new DepositCompleted($transaction));
-            
-            return $transaction;
-        });
+            ],
+        ]);
+        
+        return [
+            'account_uuid' => $accountUuid,
+            'amount' => $paymentIntent->amount,
+            'currency' => strtoupper($paymentIntent->currency),
+            'reference' => 'DEP-' . strtoupper(uniqid()),
+        ];
     }
     
     /**
@@ -122,44 +112,39 @@ class PaymentGatewayService
         int $amountInCents, 
         string $currency,
         array $bankDetails
-    ): Transaction {
-        return DB::transaction(function () use ($account, $amountInCents, $currency, $bankDetails) {
-            // Validate account has sufficient balance
-            $balance = $account->getBalance($currency);
-            if ($balance < $amountInCents) {
-                throw new Exception('Insufficient balance');
-            }
-            
-            // Create pending withdrawal transaction
-            $transaction = Transaction::create([
-                'account_id' => $account->id,
-                'type' => 'withdrawal',
-                'amount' => $amountInCents,
-                'currency' => $currency,
-                'status' => 'pending',
-                'reference' => 'WTH-' . strtoupper(uniqid()),
+    ): array {
+        // Validate account has sufficient balance
+        $balance = $account->getBalance($currency);
+        if ($balance < $amountInCents) {
+            throw new Exception('Insufficient balance');
+        }
+        
+        $reference = 'WTH-' . strtoupper(uniqid());
+        
+        // Use PaymentService to process withdrawal through event sourcing
+        $result = $this->paymentService->processBankWithdrawal([
+            'account_uuid' => $account->uuid,
+            'amount' => $amountInCents,
+            'currency' => $currency,
+            'reference' => $reference,
+            'bank_name' => $bankDetails['bank_name'],
+            'account_number' => $bankDetails['account_number'],
+            'account_holder_name' => $bankDetails['account_holder_name'],
+            'routing_number' => $bankDetails['routing_number'] ?? null,
+            'iban' => $bankDetails['iban'] ?? null,
+            'swift' => $bankDetails['swift'] ?? null,
+            'metadata' => [
                 'processor' => 'bank_transfer',
-                'metadata' => [
-                    'bank_name' => $bankDetails['bank_name'],
-                    'account_number' => $bankDetails['account_number'],
-                    'routing_number' => $bankDetails['routing_number'] ?? null,
-                    'iban' => $bankDetails['iban'] ?? null,
-                    'swift' => $bankDetails['swift'] ?? null,
-                    'account_holder_name' => $bankDetails['account_holder_name'],
-                ],
-            ]);
-            
-            // Debit account (hold funds) using AccountService
-            $this->accountService->withdraw($account->uuid, [
-                'amount' => $amountInCents,
-                'currency' => $currency
-            ]);
-            
-            // Dispatch event for processing
-            event(new WithdrawalRequested($transaction));
-            
-            return $transaction;
-        });
+                'initiated_at' => now()->toIso8601String(),
+            ],
+        ]);
+        
+        return [
+            'account_uuid' => $account->uuid,
+            'amount' => $amountInCents,
+            'currency' => $currency,
+            'reference' => $reference,
+        ];
     }
     
     /**

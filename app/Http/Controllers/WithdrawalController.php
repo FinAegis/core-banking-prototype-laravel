@@ -111,7 +111,7 @@ class WithdrawalController extends Controller
         }
         
         try {
-            $transaction = $this->paymentGateway->createWithdrawalRequest(
+            $result = $this->paymentGateway->createWithdrawalRequest(
                 $account,
                 $amountInCents,
                 $request->currency,
