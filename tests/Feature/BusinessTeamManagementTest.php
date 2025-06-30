@@ -109,8 +109,9 @@ class BusinessTeamManagementTest extends TestCase
     #[Test]
     public function cannot_add_member_beyond_team_limit()
     {
-        // Add members up to the limit
-        for ($i = 1; $i < $this->businessTeam->max_users; $i++) {
+        // Add members up to the limit (minus 1 for the owner who is already a member)
+        $currentCount = $this->businessTeam->users()->count();
+        for ($i = $currentCount; $i < $this->businessTeam->max_users; $i++) {
             $user = User::factory()->create();
             $this->businessTeam->users()->attach($user);
         }
@@ -262,8 +263,8 @@ class BusinessTeamManagementTest extends TestCase
             ->get(route('fraud.alerts.index'));
         
         $response->assertStatus(200);
-        $response->assertSee($fraudCase1->id);
-        $response->assertDontSee($fraudCase2->id);
+        $response->assertSee($fraudCase1->case_number);
+        $response->assertDontSee($fraudCase2->case_number);
     }
     
     #[Test]

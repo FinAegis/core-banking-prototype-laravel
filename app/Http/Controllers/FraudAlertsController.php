@@ -23,26 +23,29 @@ class FraudAlertsController extends Controller
                 $query->where('user_uuid', $user->uuid);
             })->latest()->paginate(10);
         } else {
-            // For staff with permission, show fraud cases within their team scope
-            $fraudCases = FraudCase::with(['subjectAccount.user'])
-                ->when($user->currentTeam && $user->currentTeam->is_business_organization, function($query) use ($user) {
-                    // If user is part of a business organization, only show their team's data
-                    $query->where('team_id', $user->currentTeam->id);
-                })
-                ->when(!$user->hasRole('super_admin'), function($query) {
-                    // Non-super admins can only see their team's data
-                    $query->whereNotNull('team_id');
-                })
-                ->latest()
-                ->paginate(20);
+            // For staff with permission, show fraud cases
+            // The BelongsToTeam trait will automatically filter by current team
+            $query = FraudCase::with(['subjectAccount.user']);
+            
+            // Super admins can see all teams' data
+            if ($user->hasRole('super_admin')) {
+                $query->allTeams();
+            }
+            
+            $fraudCases = $query->latest()->paginate(20);
         }
         
-        // Get fraud statistics
+        // Get fraud statistics (respecting team boundaries)
+        $statsQuery = FraudCase::query();
+        if ($user->hasRole('super_admin')) {
+            $statsQuery->allTeams();
+        }
+        
         $stats = [
             'total_cases' => $fraudCases->total(),
-            'pending_cases' => FraudCase::where('status', 'pending')->count(),
-            'confirmed_cases' => FraudCase::where('status', 'confirmed')->count(),
-            'false_positives' => FraudCase::where('status', 'false_positive')->count(),
+            'pending_cases' => (clone $statsQuery)->where('status', 'pending')->count(),
+            'confirmed_cases' => (clone $statsQuery)->where('status', 'confirmed')->count(),
+            'false_positives' => (clone $statsQuery)->where('status', 'false_positive')->count(),
         ];
         
         return view('fraud.alerts.index', compact('fraudCases', 'stats'));

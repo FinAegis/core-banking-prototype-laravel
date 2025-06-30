@@ -22,31 +22,30 @@ class FraudCaseFactory extends Factory
     public function definition(): array
     {
         return [
+            'uuid' => $this->faker->uuid(),
             'case_number' => FraudCase::generateCaseNumber(),
-            'status' => $this->faker->randomElement(['open', 'investigating', 'resolved', 'closed']),
-            'priority' => $this->faker->randomElement(['low', 'medium', 'high', 'critical']),
+            'status' => $this->faker->randomElement(['pending', 'investigating', 'confirmed', 'false_positive', 'resolved']),
+            'severity' => $this->faker->randomElement(['low', 'medium', 'high', 'critical']),
             'type' => $this->faker->randomElement(array_keys(FraudCase::FRAUD_TYPES)),
-            'subject_user_id' => User::factory(),
-            'subject_account_id' => Account::factory(),
-            'total_amount' => $this->faker->randomFloat(2, 100, 10000),
+            'subject_account_uuid' => function() {
+                return Account::factory()->create()->uuid;
+            },
+            'risk_score' => $this->faker->randomFloat(2, 0, 100),
+            'amount' => $this->faker->randomFloat(8, 100, 10000),
             'currency' => 'USD',
-            'transaction_count' => $this->faker->numberBetween(1, 10),
-            'fraud_start_date' => $this->faker->dateTimeBetween('-30 days', '-7 days'),
-            'fraud_end_date' => $this->faker->dateTimeBetween('-7 days', 'now'),
             'description' => $this->faker->paragraph(),
-            'detection_method' => $this->faker->randomElement(['rule_based', 'ml_model', 'manual_report', 'external_report']),
-            'detection_details' => ['rule' => 'high_value_transaction', 'threshold' => 5000],
+            'detection_rules' => ['rule' => 'high_value_transaction', 'threshold' => 5000],
             'detected_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
         ];
     }
 
     /**
-     * Indicate that the fraud case is open.
+     * Indicate that the fraud case is pending.
      */
-    public function open(): static
+    public function pending(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => FraudCase::STATUS_OPEN,
+            'status' => FraudCase::STATUS_PENDING,
         ]);
     }
 
@@ -69,7 +68,6 @@ class FraudCaseFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => FraudCase::STATUS_RESOLVED,
             'resolved_at' => now(),
-            'resolution' => FraudCase::RESOLUTION_CONFIRMED_FRAUD,
         ]);
     }
 }

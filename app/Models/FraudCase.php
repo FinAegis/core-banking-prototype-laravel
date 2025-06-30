@@ -4,92 +4,83 @@ namespace App\Models;
 
 use App\Traits\BelongsToTeam;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FraudCase extends Model
 {
-    use HasUuids, SoftDeletes, BelongsToTeam;
+    use HasUuids, BelongsToTeam, HasFactory;
+    
+    /**
+     * The primary key type.
+     *
+     * @var string
+     */
+    protected $keyType = 'int';
+    
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = true;
+    
+    /**
+     * Get the columns that should receive a unique identifier.
+     *
+     * @return array<int, string>
+     */
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
 
     protected $fillable = [
+        'uuid',
         'team_id',
         'case_number',
         'status',
-        'priority',
+        'severity',
         'type',
-        'subject_user_id',
-        'subject_account_id',
-        'related_entities',
-        'total_amount',
+        'subject_account_uuid',
+        'related_transactions',
+        'related_accounts',
+        'amount',
         'currency',
-        'transaction_count',
-        'fraud_start_date',
-        'fraud_end_date',
+        'risk_score',
         'description',
-        'detection_method',
-        'detection_details',
-        'initial_fraud_score_id',
+        'detection_rules',
+        'evidence',
         'detected_at',
         'assigned_to',
-        'assigned_at',
-        'investigation_started_at',
-        'investigation_completed_at',
-        'investigation_notes',
-        'evidence',
-        'actions_taken',
-        'funds_recovered',
-        'amount_recovered',
-        'law_enforcement_notified',
-        'law_enforcement_reference',
-        'resolution',
-        'resolution_summary',
-        'resolved_by',
         'resolved_at',
-        'prevention_measures',
-        'rules_updated',
-        'updated_rules',
-        'reported_to_regulator',
-        'regulatory_reports',
-        'customer_notified',
-        'customer_notified_at',
+        'actions_taken',
+        'resolution_notes',
     ];
 
     protected $casts = [
-        'related_entities' => 'array',
-        'detection_details' => 'array',
-        'investigation_notes' => 'array',
+        'related_transactions' => 'array',
+        'related_accounts' => 'array',
+        'detection_rules' => 'array',
         'evidence' => 'array',
         'actions_taken' => 'array',
-        'prevention_measures' => 'array',
-        'updated_rules' => 'array',
-        'regulatory_reports' => 'array',
-        'total_amount' => 'decimal:2',
-        'amount_recovered' => 'decimal:2',
-        'funds_recovered' => 'boolean',
-        'law_enforcement_notified' => 'boolean',
-        'rules_updated' => 'boolean',
-        'reported_to_regulator' => 'boolean',
-        'customer_notified' => 'boolean',
-        'fraud_start_date' => 'datetime',
-        'fraud_end_date' => 'datetime',
+        'amount' => 'decimal:8',
+        'risk_score' => 'decimal:2',
         'detected_at' => 'datetime',
-        'assigned_at' => 'datetime',
-        'investigation_started_at' => 'datetime',
-        'investigation_completed_at' => 'datetime',
         'resolved_at' => 'datetime',
-        'customer_notified_at' => 'datetime',
     ];
 
-    const STATUS_OPEN = 'open';
+    const STATUS_PENDING = 'pending';
     const STATUS_INVESTIGATING = 'investigating';
+    const STATUS_CONFIRMED = 'confirmed';
+    const STATUS_FALSE_POSITIVE = 'false_positive';
     const STATUS_RESOLVED = 'resolved';
-    const STATUS_CLOSED = 'closed';
 
-    const PRIORITY_LOW = 'low';
-    const PRIORITY_MEDIUM = 'medium';
-    const PRIORITY_HIGH = 'high';
-    const PRIORITY_CRITICAL = 'critical';
+    const SEVERITY_LOW = 'low';
+    const SEVERITY_MEDIUM = 'medium';
+    const SEVERITY_HIGH = 'high';
+    const SEVERITY_CRITICAL = 'critical';
 
     const TYPE_ACCOUNT_TAKEOVER = 'account_takeover';
     const TYPE_IDENTITY_THEFT = 'identity_theft';
@@ -104,9 +95,6 @@ class FraudCase extends Model
     const DETECTION_METHOD_MANUAL_REPORT = 'manual_report';
     const DETECTION_METHOD_EXTERNAL_REPORT = 'external_report';
 
-    const RESOLUTION_CONFIRMED_FRAUD = 'confirmed_fraud';
-    const RESOLUTION_FALSE_POSITIVE = 'false_positive';
-    const RESOLUTION_INSUFFICIENT_EVIDENCE = 'insufficient_evidence';
 
     const FRAUD_TYPES = [
         self::TYPE_ACCOUNT_TAKEOVER => 'Account Takeover',
@@ -150,35 +138,21 @@ class FraudCase extends Model
     }
 
     // Relationships
-    public function subjectUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'subject_user_id');
-    }
-
     public function subjectAccount(): BelongsTo
     {
-        return $this->belongsTo(Account::class, 'subject_account_id');
+        return $this->belongsTo(Account::class, 'subject_account_uuid', 'uuid');
     }
 
     public function assignedTo(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_to');
+        return $this->belongsTo(User::class, 'assigned_to', 'uuid');
     }
 
-    public function resolvedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'resolved_by');
-    }
-
-    public function initialFraudScore(): BelongsTo
-    {
-        return $this->belongsTo(FraudScore::class, 'initial_fraud_score_id');
-    }
 
     // Helper methods
-    public function isOpen(): bool
+    public function isPending(): bool
     {
-        return $this->status === self::STATUS_OPEN;
+        return $this->status === self::STATUS_PENDING;
     }
 
     public function isInvestigating(): bool
@@ -191,81 +165,39 @@ class FraudCase extends Model
         return $this->status === self::STATUS_RESOLVED;
     }
 
-    public function isClosed(): bool
+    public function isConfirmed(): bool
     {
-        return $this->status === self::STATUS_CLOSED;
+        return $this->status === self::STATUS_CONFIRMED;
     }
 
     public function isHighPriority(): bool
     {
-        return in_array($this->priority, [self::PRIORITY_HIGH, self::PRIORITY_CRITICAL]);
-    }
-
-    public function wasConfirmedFraud(): bool
-    {
-        return $this->resolution === self::RESOLUTION_CONFIRMED_FRAUD;
+        return in_array($this->severity, [self::SEVERITY_HIGH, self::SEVERITY_CRITICAL]);
     }
 
     public function wasFalsePositive(): bool
     {
-        return $this->resolution === self::RESOLUTION_FALSE_POSITIVE;
+        return $this->status === self::STATUS_FALSE_POSITIVE;
     }
 
     public function getDurationInDays(): int
     {
-        if (!$this->fraud_start_date || !$this->fraud_end_date) {
+        // Since we don't have fraud_start_date and fraud_end_date columns,
+        // we'll calculate based on detected_at and resolved_at
+        if (!$this->detected_at || !$this->resolved_at) {
             return 0;
         }
         
-        return $this->fraud_start_date->diffInDays($this->fraud_end_date);
+        return $this->detected_at->diffInDays($this->resolved_at);
     }
 
-    public function getInvestigationDurationInHours(): float
-    {
-        if (!$this->investigation_started_at || !$this->investigation_completed_at) {
-            return 0;
-        }
-        
-        return $this->investigation_started_at->diffInHours($this->investigation_completed_at);
-    }
-
-    public function getRecoveryRate(): float
-    {
-        if (!$this->total_amount || $this->total_amount == 0) {
-            return 0;
-        }
-        
-        return round(($this->amount_recovered / $this->total_amount) * 100, 2);
-    }
 
     public function assign(User $investigator): void
     {
         $this->update([
-            'assigned_to' => $investigator->id,
-            'assigned_at' => now(),
+            'assigned_to' => $investigator->uuid,
             'status' => self::STATUS_INVESTIGATING,
         ]);
-    }
-
-    public function startInvestigation(): void
-    {
-        $this->update([
-            'investigation_started_at' => now(),
-            'status' => self::STATUS_INVESTIGATING,
-        ]);
-    }
-
-    public function addInvestigationNote(string $note, User $user): void
-    {
-        $notes = $this->investigation_notes ?? [];
-        $notes[] = [
-            'timestamp' => now()->toIso8601String(),
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'note' => $note,
-        ];
-        
-        $this->update(['investigation_notes' => $notes]);
     }
 
     public function addEvidence(array $evidence): void
@@ -289,62 +221,12 @@ class FraudCase extends Model
         $this->update(['actions_taken' => $actions]);
     }
 
-    public function resolve(string $resolution, string $summary, User $resolver): void
+    public function resolve(string $notes): void
     {
         $this->update([
-            'resolution' => $resolution,
-            'resolution_summary' => $summary,
-            'resolved_by' => $resolver->id,
+            'resolution_notes' => $notes,
             'resolved_at' => now(),
-            'investigation_completed_at' => now(),
             'status' => self::STATUS_RESOLVED,
-        ]);
-    }
-
-    public function close(): void
-    {
-        $this->update(['status' => self::STATUS_CLOSED]);
-    }
-
-    public function notifyCustomer(): void
-    {
-        $this->update([
-            'customer_notified' => true,
-            'customer_notified_at' => now(),
-        ]);
-    }
-
-    public function notifyLawEnforcement(string $reference): void
-    {
-        $this->update([
-            'law_enforcement_notified' => true,
-            'law_enforcement_reference' => $reference,
-        ]);
-        
-        $this->recordAction('law_enforcement_notified', [
-            'reference' => $reference,
-        ]);
-    }
-
-    public function reportToRegulator(array $reportDetails): void
-    {
-        $reports = $this->regulatory_reports ?? [];
-        $reports[] = array_merge($reportDetails, [
-            'reported_at' => now()->toIso8601String(),
-        ]);
-        
-        $this->update([
-            'reported_to_regulator' => true,
-            'regulatory_reports' => $reports,
-        ]);
-    }
-
-    public function implementPreventionMeasures(array $measures): void
-    {
-        $this->update([
-            'prevention_measures' => $measures,
-            'rules_updated' => !empty($measures['updated_rules']),
-            'updated_rules' => $measures['updated_rules'] ?? [],
         ]);
     }
 
@@ -354,16 +236,10 @@ class FraudCase extends Model
             'case_number' => $this->case_number,
             'type' => $this->type,
             'status' => $this->status,
-            'priority' => $this->priority,
-            'total_loss' => $this->total_amount,
-            'amount_recovered' => $this->amount_recovered,
-            'recovery_rate' => $this->getRecoveryRate() . '%',
+            'severity' => $this->severity,
+            'total_loss' => $this->amount,
             'duration_days' => $this->getDurationInDays(),
-            'resolution' => $this->resolution,
-            'customer_impact' => [
-                'notified' => $this->customer_notified,
-                'accounts_affected' => count($this->related_entities['accounts'] ?? []),
-            ],
+            'accounts_affected' => count($this->related_accounts ?? []),
         ];
     }
 }

@@ -185,8 +185,8 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                @if($case->transaction)
-                                                    ${{ number_format($case->transaction->amount / 100, 2) }}
+                                                @if($case->amount)
+                                                    ${{ number_format($case->amount, 2) }} {{ $case->currency ?? 'USD' }}
                                                 @else
                                                     N/A
                                                 @endif
