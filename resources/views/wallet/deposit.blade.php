@@ -18,34 +18,35 @@
                         {{ __('Bank Transfer') }}
                     </h4>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        {{ __('Transfer funds from your bank account. Processing time: 1-3 business days.') }}
+                        {{ __('Transfer funds directly from your bank account using Open Banking or Paysera.') }}
                     </p>
                     
-                    <div class="bg-gray-50 dark:bg-gray-900 rounded p-4 mb-4">
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{{ __('Transfer Details:') }}</p>
-                        <dl class="text-sm space-y-1">
-                            <div class="flex justify-between">
-                                <dt class="text-gray-600 dark:text-gray-400">{{ __('Bank Name:') }}</dt>
-                                <dd class="font-mono text-gray-900 dark:text-gray-100">Paysera LT</dd>
-                            </div>
-                            <div class="flex justify-between">
-                                <dt class="text-gray-600 dark:text-gray-400">{{ __('IBAN:') }}</dt>
-                                <dd class="font-mono text-gray-900 dark:text-gray-100">LT12 3456 7890 1234 5678</dd>
-                            </div>
-                            <div class="flex justify-between">
-                                <dt class="text-gray-600 dark:text-gray-400">{{ __('BIC/SWIFT:') }}</dt>
-                                <dd class="font-mono text-gray-900 dark:text-gray-100">EVPALT21XXX</dd>
-                            </div>
-                            <div class="flex justify-between">
-                                <dt class="text-gray-600 dark:text-gray-400">{{ __('Reference:') }}</dt>
-                                <dd class="font-mono text-gray-900 dark:text-gray-100">{{ auth()->user()->id }}-{{ auth()->user()->accounts->first()->uuid ?? 'ACCOUNT' }}</dd>
-                            </div>
-                        </dl>
+                    <div class="flex space-x-4">
+                        <a href="{{ route('wallet.deposit.bank') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+                            {{ __('Bank Deposit Options') }}
+                        </a>
                     </div>
                     
-                    <p class="text-xs text-gray-500 dark:text-gray-500">
-                        {{ __('Important: Include the reference number to ensure your deposit is credited to the correct account.') }}
-                    </p>
+                    <div class="mt-4 flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Instant deposits
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Secure PSD2 compliant
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Multiple banks supported
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Card Deposit -->

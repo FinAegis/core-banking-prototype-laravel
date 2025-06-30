@@ -193,6 +193,27 @@ Route::middleware([
         Route::post('/reports/{report}/submit', [App\Http\Controllers\RegulatoryReportsController::class, 'submit'])->name('reports.submit');
     });
     
+    // Account Management Routes
+    Route::get('/accounts', function () {
+        $accounts = Auth::user()->accounts()->with('balances.asset')->get();
+        return view('accounts.index', compact('accounts'));
+    })->name('accounts');
+    
+    // Transaction History Route
+    Route::get('/transactions', function () {
+        return redirect()->route('wallet.transactions');
+    })->name('transactions');
+    
+    // Transfer Route
+    Route::get('/transfers', function () {
+        return redirect()->route('wallet.transfer');
+    })->name('transfers');
+    
+    // Exchange Route
+    Route::get('/exchange', function () {
+        return redirect()->route('wallet.convert');
+    })->name('exchange');
+    
     // GCU Wallet Routes
     Route::prefix('wallet')->name('wallet.')->group(function () {
         Route::get('/', [App\Http\Controllers\WalletController::class, 'index'])->name('index');
@@ -213,13 +234,47 @@ Route::middleware([
         Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'showTransfer'])->name('transfer');
         Route::get('/convert', [App\Http\Controllers\WalletController::class, 'showConvert'])->name('convert');
         
-        // Card deposit routes (Stripe integration)
+        // Deposit routes
         Route::prefix('deposit')->name('deposit.')->group(function () {
+            // Card deposits (Stripe integration)
             Route::get('/card', [App\Http\Controllers\DepositController::class, 'create'])->name('create');
             Route::post('/card', [App\Http\Controllers\DepositController::class, 'store'])->name('store');
             Route::get('/confirm', [App\Http\Controllers\DepositController::class, 'confirm'])->name('confirm');
             Route::post('/payment-method', [App\Http\Controllers\DepositController::class, 'addPaymentMethod'])->name('payment-method.add');
             Route::delete('/payment-method/{id}', [App\Http\Controllers\DepositController::class, 'removePaymentMethod'])->name('payment-method.remove');
+            
+            // Bank deposits
+            Route::get('/bank', function () {
+                $account = Auth::user()->accounts()->first();
+                return view('wallet.deposit-bank', compact('account'));
+            })->name('bank');
+            
+            // Paysera deposits
+            Route::get('/paysera', function () {
+                $account = Auth::user()->accounts()->first();
+                return view('wallet.deposit-paysera', compact('account'));
+            })->name('paysera');
+            Route::post('/paysera/initiate', [App\Http\Controllers\PayseraDepositController::class, 'initiate'])->name('paysera.initiate');
+            Route::get('/paysera/callback', [App\Http\Controllers\PayseraDepositController::class, 'callback'])->name('paysera.callback');
+            
+            // Open Banking deposits
+            Route::get('/openbanking', function () {
+                $account = Auth::user()->accounts()->first();
+                return view('wallet.deposit-openbanking', compact('account'));
+            })->name('openbanking');
+            Route::post('/openbanking/initiate', [App\Http\Controllers\OpenBankingDepositController::class, 'initiate'])->name('openbanking.initiate');
+            Route::get('/openbanking/callback', [App\Http\Controllers\OpenBankingDepositController::class, 'callback'])->name('openbanking.callback');
+            
+            // Manual bank transfer
+            Route::get('/manual', function () {
+                $account = Auth::user()->accounts()->first();
+                return view('wallet.deposit-manual', compact('account'));
+            })->name('manual');
+            
+            // Crypto deposits (placeholder)
+            Route::get('/crypto', function () {
+                return view('wallet.deposit-crypto');
+            })->name('crypto');
         });
         
         // Bank withdrawal routes
