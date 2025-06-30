@@ -1,6 +1,7 @@
 <!-- Platform Banners (Alpha + CGO) -->
 <div class="relative z-50">
-    <!-- Alpha Testing Banner (From main branch) -->
+    <!-- Alpha Testing Banner (From main branch) - Only show on non-CGO pages -->
+    @unless(request()->routeIs('cgo') || request()->routeIs('cgo.*'))
     <div class="bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="py-2">
@@ -18,6 +19,7 @@
             </div>
         </div>
     </div>
+    @endunless
     
     <!-- CGO (Continuous Growth Offering) Banner -->
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 px-4 text-center">

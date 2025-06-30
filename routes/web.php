@@ -175,9 +175,7 @@ Route::middleware([
             return redirect()->route('gcu.voting.index');
         })->name('voting');
         
-        Route::get('/transactions', function () {
-            return view('wallet.transactions');
-        })->name('transactions');
+        Route::get('/transactions', [App\Http\Controllers\WalletController::class, 'transactions'])->name('transactions');
         
         // Wallet transaction routes (views only - operations handled via API)
         Route::get('/deposit', [App\Http\Controllers\WalletController::class, 'showDeposit'])->name('deposit');

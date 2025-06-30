@@ -50,7 +50,7 @@
                                                 type="range" 
                                                 :min="bank.min_allocation" 
                                                 :max="bank.max_allocation" 
-                                                v-model="bank.allocation"
+                                                x-model="bank.allocation"
                                                 @input="updateAllocation(bank)"
                                                 class="w-1/2"
                                             />
@@ -212,9 +212,9 @@
                     try {
                         const response = await fetch('/api/users/{{ auth()->user()->uuid }}/bank-allocation', {
                             headers: {
-                                'Authorization': 'Bearer {{ auth()->user()->createToken("bank-allocation")->plainTextToken }}',
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             }
                         });
                         
@@ -299,7 +299,6 @@
                         const response = await fetch('/api/users/{{ auth()->user()->uuid }}/bank-allocation', {
                             method: 'PUT',
                             headers: {
-                                'Authorization': 'Bearer {{ auth()->user()->createToken("bank-allocation")->plainTextToken }}',
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

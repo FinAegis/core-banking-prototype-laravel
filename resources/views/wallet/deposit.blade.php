@@ -58,8 +58,16 @@
                     </p>
                     
                     @if(!auth()->user()->accounts->first())
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
-                            <p class="text-gray-600 dark:text-gray-400">Create an account to get started with deposits</p>
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6 text-center">
+                            <svg class="mx-auto h-12 w-12 text-yellow-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Account Setup Required</h4>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">Your account is being set up. Please refresh the page in a moment.</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-500 mb-4">If this message persists, please contact support.</p>
+                            <button onclick="window.location.reload()" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+                                Refresh Page
+                            </button>
                         </div>
                     @else
                         <a href="{{ route('wallet.deposit.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">

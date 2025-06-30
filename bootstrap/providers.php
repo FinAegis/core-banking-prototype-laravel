@@ -6,6 +6,7 @@ return [
     App\Providers\BankIntegrationServiceProvider::class,
     App\Providers\CacheServiceProvider::class,
     App\Providers\CustodianServiceProvider::class,
+    App\Providers\EventServiceProvider::class,
     App\Providers\ExchangeRateProviderServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
     App\Providers\FortifyServiceProvider::class,

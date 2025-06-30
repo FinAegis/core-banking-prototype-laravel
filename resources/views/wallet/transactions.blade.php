@@ -188,7 +188,7 @@
     <script>
         function transactionHistory() {
             return {
-                transactions: [],
+                transactions: @json($transactionsJson ?? []),
                 filters: {
                     asset: '',
                     type: '',
@@ -221,7 +221,13 @@
                 },
                 
                 init() {
-                    this.loadTransactions();
+                    // If we have server-side data, use it directly
+                    if (this.transactions.length > 0) {
+                        this.totalTransactions = this.transactions.length;
+                        this.calculateSummary();
+                    } else {
+                        this.loadTransactions();
+                    }
                 },
                 
                 async loadTransactions() {
