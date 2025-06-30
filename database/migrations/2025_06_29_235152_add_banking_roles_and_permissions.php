@@ -60,6 +60,7 @@ return new class extends Migration
             'manage_fraud_cases' => 'Manage fraud investigation cases',
             'configure_risk_rules' => 'Configure risk assessment rules',
             'view_risk_dashboard' => 'View risk analytics dashboard',
+            'export_fraud_data' => 'Export fraud case data',
             
             // Banking Operations
             'manage_bank_integrations' => 'Manage bank connections',
@@ -140,6 +141,7 @@ return new class extends Migration
             'view_compliance_dashboard',
             'manage_aml_rules',
             'view_fraud_alerts',
+            'export_fraud_data',
             'view_audit_logs',
         ]);
 
@@ -152,6 +154,7 @@ return new class extends Migration
             'manage_fraud_cases',
             'configure_risk_rules',
             'view_risk_dashboard',
+            'export_fraud_data',
             'view_compliance_dashboard',
         ]);
 
@@ -233,7 +236,7 @@ return new class extends Migration
             'view_all_customers', 'edit_customer_accounts', 'freeze_accounts', 'close_accounts',
             'view_all_transactions', 'reverse_transactions', 'approve_large_transactions',
             'manage_kyc', 'generate_regulatory_reports', 'view_compliance_dashboard', 'manage_aml_rules',
-            'view_fraud_alerts', 'manage_fraud_cases', 'configure_risk_rules', 'view_risk_dashboard',
+            'view_fraud_alerts', 'manage_fraud_cases', 'configure_risk_rules', 'view_risk_dashboard', 'export_fraud_data',
             'manage_bank_integrations', 'view_reconciliation_reports', 'manage_bank_allocations', 'view_bank_health',
             'manage_exchange_rates', 'manage_fees', 'manage_limits', 'process_withdrawals',
             'manage_users', 'manage_roles', 'view_audit_logs', 'manage_system_settings',

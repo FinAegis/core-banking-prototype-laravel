@@ -178,6 +178,7 @@ Route::middleware([
     // Fraud Alerts Routes
     Route::prefix('fraud')->name('fraud.')->group(function () {
         Route::get('/alerts', [App\Http\Controllers\FraudAlertsController::class, 'index'])->name('alerts.index');
+        Route::get('/alerts/export', [App\Http\Controllers\FraudAlertsController::class, 'export'])->name('alerts.export');
         Route::get('/alerts/{fraudCase}', [App\Http\Controllers\FraudAlertsController::class, 'show'])->name('alerts.show');
         Route::patch('/alerts/{fraudCase}/status', [App\Http\Controllers\FraudAlertsController::class, 'updateStatus'])->name('alerts.update-status');
     });

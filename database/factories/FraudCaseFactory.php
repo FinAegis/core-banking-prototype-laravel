@@ -21,9 +21,13 @@ class FraudCaseFactory extends Factory
      */
     public function definition(): array
     {
+        // Generate unique case number for tests
+        static $counter = 1;
+        $caseNumber = 'FC-' . date('Y') . '-' . str_pad($counter++, 5, '0', STR_PAD_LEFT);
+        
         return [
             'uuid' => $this->faker->uuid(),
-            'case_number' => FraudCase::generateCaseNumber(),
+            'case_number' => $caseNumber,
             'status' => $this->faker->randomElement(['pending', 'investigating', 'confirmed', 'false_positive', 'resolved']),
             'severity' => $this->faker->randomElement(['low', 'medium', 'high', 'critical']),
             'type' => $this->faker->randomElement(array_keys(FraudCase::FRAUD_TYPES)),

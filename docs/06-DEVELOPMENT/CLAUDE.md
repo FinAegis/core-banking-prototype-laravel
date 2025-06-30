@@ -1654,6 +1654,27 @@ test('fallback service executes chain in order', function () {
 - Team role management: `database/migrations/2025_06_30_143734_enhance_teams_for_business_organizations.php`
 - Multi-tenant tests: `tests/Feature/BusinessTeamManagementTest.php`
 
+#### Business Team Management Usage
+```bash
+# Create a business organization user
+php artisan tinker
+$user = User::factory()->create(['name' => 'Business Owner']);
+$team = Team::factory()->create([
+    'user_id' => $user->id,
+    'name' => 'My Business',
+    'is_business_organization' => true,
+    'max_users' => 10,
+    'allowed_roles' => ['compliance_officer', 'accountant']
+]);
+$user->assignRole('customer_business');
+```
+
+**Key Features:**
+- **Data Isolation**: All models using `BelongsToTeam` trait automatically scope to current team
+- **Team Roles**: Members can have team-specific roles (compliance_officer, accountant, etc.)
+- **User Limits**: Teams have configurable user limits
+- **Super Admin Access**: Super admins can view all teams' data using `Model::allTeams()`
+
 ### Phase 7 - CGO (Continuous Growth Offering) ✅ Completed
 - CGO controller: `app/Http/Controllers/CgoController.php`
 - CGO views: `resources/views/cgo/`
