@@ -252,7 +252,6 @@
         </div>
     </div>
 
-    @push('scripts')
     <script>
         window.createAccount = function() {
             document.getElementById('accountModal').classList.remove('hidden');
@@ -321,5 +320,4 @@
             }
         });
     </script>
-    @endpush
 </x-app-layout>
