@@ -16,40 +16,38 @@ class BankAccount extends Model
      */
     public function uniqueIds(): array
     {
-        return ['uuid'];
+        return ['id'];
     }
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'user_id',
-        'bank_name',
+        'user_uuid',
+        'bank_code',
+        'external_id',
         'account_number',
-        'account_number_encrypted',
-        'account_holder_name',
-        'routing_number',
         'iban',
         'swift',
-        'verified',
-        'verified_at',
-        'is_default',
+        'currency',
+        'account_type',
+        'status',
+        'metadata',
     ];
 
     /**
      * The attributes that should be cast.
      */
     protected $casts = [
-        'verified' => 'boolean',
-        'is_default' => 'boolean',
-        'verified_at' => 'datetime',
+        'metadata' => 'array',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      */
     protected $hidden = [
-        'account_number_encrypted',
+        'account_number',
+        'iban',
     ];
 
     /**
@@ -57,7 +55,7 @@ class BankAccount extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_uuid', 'uuid');
     }
 
     /**
@@ -73,6 +71,15 @@ class BankAccount extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return "{$this->bank_name} - ****{$this->account_number}";
+        $lastFour = substr($this->account_number, -4);
+        return "{$this->bank_code} - ****{$lastFour}";
+    }
+    
+    /**
+     * Scope a query to only include verified bank accounts.
+     */
+    public function scopeVerified($query)
+    {
+        return $query->where('status', 'verified');
     }
 }

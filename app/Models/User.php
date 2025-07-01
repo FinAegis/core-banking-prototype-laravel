@@ -12,6 +12,7 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Laravel\Cashier\Billable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use App\Values\UserRoles;
@@ -28,6 +29,7 @@ class User extends Authenticatable implements FilamentUser
     use Notifiable;
     use TwoFactorAuthenticatable;
     use HasRoles;
+    use Billable;
 
     /**
      * Get the columns that should receive a unique identifier.
@@ -141,6 +143,14 @@ class User extends Authenticatable implements FilamentUser
     public function bankPreferences()
     {
         return $this->hasMany(UserBankPreference::class, 'user_uuid', 'uuid');
+    }
+    
+    /**
+     * Get the bank accounts for the user.
+     */
+    public function bankAccounts()
+    {
+        return $this->hasMany(BankAccount::class, 'user_uuid', 'uuid');
     }
 
     /**

@@ -296,51 +296,34 @@ Route::middleware([
                 'account_name' => $request->name
             ]);
             
-            // Create account directly until workflow issue is resolved
-            $account = \App\Models\Account::create([
-                'uuid' => \Illuminate\Support\Str::uuid()->toString(),
-                'user_uuid' => $user->uuid,
-                'name' => $request->name,
-                'balance' => 0,
-                'frozen' => false,
-                'team_id' => $user->currentTeam->id ?? null,
-                'created_at' => now(),
-                'updated_at' => now(),
+            // Use the AccountService to create the account via event sourcing
+            $accountService = app(\App\Domain\Account\Services\AccountService::class);
+            $account = new \App\Domain\Account\DataObjects\Account(
+                name: $request->name,
+                userUuid: $user->uuid
+            );
+            
+            $accountService->create($account);
+            
+            // Process the workflow queue immediately
+            \Artisan::call('queue:work', [
+                '--stop-when-empty' => true,
+                '--queue' => 'default,events,ledger,transactions'
             ]);
             
-            // Also create USD balance
-            if ($account) {
-                \App\Models\AccountBalance::create([
-                    'account_uuid' => $account->uuid,
-                    'asset_code' => 'USD',
-                    'balance' => 0,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-            
-            // Also try the workflow (for event sourcing)
-            try {
-                $accountService = app(\App\Domain\Account\Services\AccountService::class);
-                $accountService->create([
-                    'user_uuid' => $user->uuid,
-                    'name' => $request->name,
-                    'uuid' => $account->uuid,
-                ]);
-            } catch (\Exception $e) {
-                \Log::warning('Workflow failed but account created directly', [
-                    'error' => $e->getMessage()
-                ]);
-            }
+            // Verify account was created
+            $createdAccount = \App\Models\Account::where('user_uuid', $user->uuid)
+                ->where('name', $request->name)
+                ->first();
                 
             \Log::info('Account creation result', [
-                'account_found' => $account ? true : false,
-                'account_id' => $account ? $account->id : null
+                'account_found' => $createdAccount ? true : false,
+                'account_id' => $createdAccount ? $createdAccount->id : null
             ]);
             
             return response()->json([
                 'success' => true,
-                'account_created' => $account ? true : false
+                'account_created' => $createdAccount ? true : false
             ]);
         } catch (\Exception $e) {
             \Log::error('Account creation failed', [

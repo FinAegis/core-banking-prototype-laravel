@@ -142,6 +142,17 @@ class Account extends Model
     // Legacy balance manipulation methods removed - use event sourcing via WalletService instead
     
     /**
+     * Get transactions from event sourcing ledger
+     * This is a temporary method until we have a proper transaction projection
+     */
+    public function transactions()
+    {
+        // For now, return an empty relationship to prevent errors
+        // In a proper implementation, this would query the event store or a transaction projection
+        return $this->hasMany(Transaction::class, 'account_uuid', 'uuid');
+    }
+    
+    /**
      * Get the account UUID as an AccountUuid value object.
      */
     public function getAggregateUuid(): \App\Domain\Account\DataObjects\AccountUuid

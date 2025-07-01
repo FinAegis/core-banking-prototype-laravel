@@ -198,7 +198,7 @@
                 saving: false,
                 
                 get totalAllocation() {
-                    return this.banks.reduce((sum, bank) => sum + bank.allocation, 0);
+                    return this.banks.reduce((sum, bank) => sum + parseInt(bank.allocation), 0);
                 },
                 
                 init() {
@@ -265,17 +265,9 @@
                 },
                 
                 updateAllocation(bank) {
-                    // Auto-adjust other banks if needed
-                    const total = this.totalAllocation;
-                    if (total > 100) {
-                        const excess = total - 100;
-                        const otherBanks = this.banks.filter(b => b.code !== bank.code);
-                        const adjustment = excess / otherBanks.length;
-                        
-                        otherBanks.forEach(b => {
-                            b.allocation = Math.max(b.min_allocation, b.allocation - adjustment);
-                        });
-                    }
+                    // Ensure the value is within bounds
+                    bank.allocation = Math.max(bank.min_allocation, Math.min(bank.max_allocation, parseInt(bank.allocation)));
+                    // Don't auto-adjust other banks - let user manually balance
                 },
                 
                 resetToDefault() {

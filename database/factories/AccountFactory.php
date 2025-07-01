@@ -85,28 +85,26 @@ class AccountFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function (Account $account) {
-            // Temporarily disabled automatic USD balance creation to fix test conflicts
-            // This was causing unique constraint violations in tests
-            
-            // // Skip auto balance creation if explicitly requested
-            // $attributes = $account->getAttributes();
-            // if (isset($attributes['skip_auto_balance']) && $attributes['skip_auto_balance']) {
-            //     return;
-            // }
-            
-            // // Get the balance from the raw attributes to avoid the accessor
-            // $rawBalance = \DB::table('accounts')
-            //     ->where('id', $account->id)
-            //     ->value('balance');
-            //     
-            // // Create USD balance for backward compatibility
-            // if ($rawBalance && $rawBalance > 0) {
-            //     AccountBalance::create([
-            //         'account_uuid' => $account->uuid,
-            //         'asset_code' => 'USD',
-            //         'balance' => $rawBalance,
-            //     ]);
-            // }
+            // Get the balance from the raw attributes to avoid the accessor
+            $rawBalance = \DB::table('accounts')
+                ->where('id', $account->id)
+                ->value('balance');
+                
+            // Create USD balance for backward compatibility
+            if ($rawBalance && $rawBalance > 0) {
+                // Check if balance already exists to avoid duplicate key errors
+                $existingBalance = AccountBalance::where('account_uuid', $account->uuid)
+                    ->where('asset_code', 'USD')
+                    ->first();
+                    
+                if (!$existingBalance) {
+                    AccountBalance::create([
+                        'account_uuid' => $account->uuid,
+                        'asset_code' => 'USD',
+                        'balance' => $rawBalance,
+                    ]);
+                }
+            }
         });
     }
 }
