@@ -52,6 +52,28 @@
                 background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
                 border: 2px solid #667eea;
             }
+            .floating-invest {
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                z-index: 40;
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: .8;
+                    transform: scale(1.05);
+                }
+            }
+            @media (max-width: 768px) {
+                .floating-invest {
+                    bottom: 1rem;
+                    right: 1rem;
+                }
+            }
         </style>
     </head>
     <body class="antialiased">
@@ -85,6 +107,112 @@
                 <svg class="absolute bottom-0 w-full h-24 -mb-1 text-white" preserveAspectRatio="none" viewBox="0 0 1440 74">
                     <path fill="currentColor" d="M0,32L48,37.3C96,43,192,53,288,58.7C384,64,480,64,576,58.7C672,53,768,43,864,42.7C960,43,1056,53,1152,58.7C1248,64,1344,64,1392,64L1440,64L1440,74L1392,74C1344,74,1248,74,1152,74C1056,74,960,74,864,74C768,74,672,74,576,74C480,74,384,74,288,74C192,74,96,74,48,74L0,74Z"></path>
                 </svg>
+            </div>
+        </section>
+
+        <!-- Investment CTA Section -->
+        <section class="py-16 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="grid md:grid-cols-2">
+                        <!-- Left Side - Investment Info -->
+                        <div class="p-12 bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
+                            <div class="mb-4">
+                                <span class="inline-block px-4 py-2 bg-white/20 backdrop-blur rounded-full text-sm font-semibold">
+                                    🚀 Alpha Testing Phase - Limited Opportunity
+                                </span>
+                            </div>
+                            <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                                Invest in the Future of Democratic Banking
+                            </h2>
+                            <p class="text-lg mb-6 text-indigo-100">
+                                Be part of the financial revolution. FinAegis is currently in alpha testing, offering early investors a unique opportunity to shape the future of global finance.
+                            </p>
+                            <div class="space-y-4 mb-8">
+                                <div class="flex items-start">
+                                    <svg class="w-6 h-6 text-green-400 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Early access to revolutionary GCU technology</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <svg class="w-6 h-6 text-green-400 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Democratic governance participation rights</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <svg class="w-6 h-6 text-green-400 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Preferential terms for alpha investors</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur rounded-lg p-4">
+                                <p class="text-sm">
+                                    <strong>Note:</strong> This is an alpha testing phase. Investment opportunities are limited and subject to regulatory compliance in your jurisdiction.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Side - Investment Details -->
+                        <div class="p-12">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-6">Continuous Growth Offering (CGO)</h3>
+                            
+                            <div class="space-y-6 mb-8">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-2">Investment Tiers</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <span class="font-medium">Bronze Tier</span>
+                                            <span class="text-indigo-600 font-semibold">€1,000 - €9,999</span>
+                                        </div>
+                                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <span class="font-medium">Silver Tier</span>
+                                            <span class="text-indigo-600 font-semibold">€10,000 - €49,999</span>
+                                        </div>
+                                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <span class="font-medium">Gold Tier</span>
+                                            <span class="text-indigo-600 font-semibold">€50,000+</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-2">Key Benefits</h4>
+                                    <ul class="space-y-2 text-gray-600">
+                                        <li class="flex items-center">
+                                            <span class="w-2 h-2 bg-indigo-600 rounded-full mr-3"></span>
+                                            Revenue sharing from platform operations
+                                        </li>
+                                        <li class="flex items-center">
+                                            <span class="w-2 h-2 bg-indigo-600 rounded-full mr-3"></span>
+                                            Priority access to new features
+                                        </li>
+                                        <li class="flex items-center">
+                                            <span class="w-2 h-2 bg-indigo-600 rounded-full mr-3"></span>
+                                            Governance voting rights
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <a href="{{ route('cgo') }}" class="flex-1 text-center bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg hover:shadow-xl">
+                                    Learn About CGO
+                                </a>
+                                <a href="{{ route('register') }}" class="flex-1 text-center border-2 border-indigo-600 text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition">
+                                    Start Investing
+                                </a>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 mt-6 text-center">
+                                Investment subject to terms and conditions. 
+                                <a href="{{ route('cgo.terms') }}" class="text-indigo-600 hover:underline">Read full terms</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -522,5 +650,16 @@
 
         <!-- Footer -->
         @include('partials.footer')
+
+        <!-- Floating Investment Button -->
+        <div class="floating-invest">
+            <a href="{{ route('cgo') }}" class="flex items-center bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-3 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group">
+                <svg class="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+                <span class="font-semibold">Invest Now</span>
+                <span class="ml-2 bg-white/20 px-2 py-1 rounded text-xs">Alpha</span>
+            </a>
+        </div>
     </body>
 </html>
