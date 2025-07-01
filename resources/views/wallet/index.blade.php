@@ -288,12 +288,15 @@
                 });
 
                 const data = await response.json();
+                console.log('Account creation response:', data);
 
-                if (response.ok) {
+                if (response.ok && data.success) {
                     // Success - reload the page to show the new account
+                    console.log('Account created successfully, reloading...');
                     window.location.reload();
                 } else {
                     // Show error message
+                    console.error('Account creation failed:', data);
                     errorDiv.textContent = data.message || 'Failed to create account. Please try again.';
                     errorDiv.classList.remove('hidden');
                 }

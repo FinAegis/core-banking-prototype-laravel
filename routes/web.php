@@ -283,20 +283,51 @@ Route::middleware([
     })->name('accounts');
     
     Route::post('/accounts/create', function (Request $request) {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-        
-        $user = Auth::user();
-        
-        // Use the AccountService to create the account
-        $accountService = app(\App\Domain\Account\Services\AccountService::class);
-        $accountService->create([
-            'user_uuid' => $user->uuid,
-            'name' => $request->name,
-        ]);
-        
-        return response()->json(['success' => true]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+            
+            $user = Auth::user();
+            
+            \Log::info('Creating account for user', [
+                'user_id' => $user->id,
+                'user_uuid' => $user->uuid,
+                'account_name' => $request->name
+            ]);
+            
+            // Use the AccountService to create the account
+            $accountService = app(\App\Domain\Account\Services\AccountService::class);
+            $accountService->create([
+                'user_uuid' => $user->uuid,
+                'name' => $request->name,
+            ]);
+            
+            // Verify account was created
+            $account = \App\Models\Account::where('user_uuid', $user->uuid)
+                ->where('name', $request->name)
+                ->first();
+                
+            \Log::info('Account creation result', [
+                'account_found' => $account ? true : false,
+                'account_id' => $account ? $account->id : null
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'account_created' => $account ? true : false
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Account creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create account: ' . $e->getMessage()
+            ], 500);
+        }
     })->name('accounts.create');
     
     // Transaction History Route
