@@ -82,8 +82,8 @@
                     @endif
                     
                     @auth
-                        <a href="{{ route('cgo.invest') }}" class="block w-full bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-center">
-                            Invest Now
+                        <a href="{{ route('cgo.invest') }}" id="investButton" class="block w-full bg-gray-400 text-gray-600 px-6 py-3 rounded-lg font-semibold cursor-not-allowed text-center" onclick="return checkCountdown()">
+                            <span id="investButtonText">Invest Now (Launching Soon)</span>
                         </a>
                     @else
                         <form action="{{ route('cgo.notify') }}" method="POST" class="space-y-4">
@@ -323,6 +323,31 @@
     <script>
         // Set the date we're counting down to (July 21st, 2025)
         const countDownDate = new Date("Jul 21, 2025 00:00:00").getTime();
+        let isLive = false;
+        
+        function checkCountdown() {
+            if (!isLive) {
+                alert('The CGO will launch on July 21st, 2025. Please check back then!');
+                return false;
+            }
+            return true;
+        }
+        
+        function updateInvestButton(live) {
+            const investButton = document.getElementById('investButton');
+            const investButtonText = document.getElementById('investButtonText');
+            
+            if (investButton) {
+                if (live) {
+                    investButton.classList.remove('bg-gray-400', 'text-gray-600', 'cursor-not-allowed');
+                    investButton.classList.add('bg-white', 'text-indigo-600', 'hover:bg-gray-100');
+                    investButtonText.textContent = 'Invest Now';
+                } else {
+                    investButton.classList.remove('bg-white', 'text-indigo-600', 'hover:bg-gray-100');
+                    investButton.classList.add('bg-gray-400', 'text-gray-600', 'cursor-not-allowed');
+                }
+            }
+        }
         
         // Update the countdown every 1 second
         const x = setInterval(function() {
@@ -344,9 +369,18 @@
             // If the countdown is finished
             if (distance < 0) {
                 clearInterval(x);
-                document.getElementById("countdown").innerHTML = "<div class='text-3xl font-bold'>CGO IS LIVE!</div>";
+                document.getElementById("countdown").innerHTML = "<div class='text-3xl font-bold text-green-300'>CGO IS LIVE!</div>";
+                isLive = true;
+                updateInvestButton(true);
             }
         }, 1000);
+        
+        // Initial check
+        const now = new Date().getTime();
+        if (countDownDate - now < 0) {
+            isLive = true;
+            updateInvestButton(true);
+        }
     </script>
 </body>
 </html>
