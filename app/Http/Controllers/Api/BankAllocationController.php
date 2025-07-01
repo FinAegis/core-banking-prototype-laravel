@@ -74,7 +74,7 @@ class BankAllocationController extends Controller
         
         // Calculate insurance coverage
         $totalInsurance = $allocations->sum(function ($allocation) {
-            return $allocation->metadata['insurance_limit'] ?? 100000;
+            return $allocation->metadata['deposit_insurance'] ?? 100000;
         });
 
         return response()->json([
@@ -386,7 +386,7 @@ class BankAllocationController extends Controller
                 'bank_name' => $bankInfo['name'],
                 'country' => $bankInfo['country'],
                 'currency' => $bankInfo['currency'],
-                'insurance_limit' => $bankInfo['insurance_limit'],
+                'insurance_limit' => $bankInfo['deposit_insurance'],
                 'supported_features' => $bankInfo['features'] ?? [],
             ];
         })->values();

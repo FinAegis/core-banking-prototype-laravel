@@ -164,8 +164,8 @@
             return {
                 banks: [
                     {
-                        code: 'paysera',
-                        name: 'Paysera LT',
+                        code: 'PAYSERA',
+                        name: 'Paysera',
                         country: 'Lithuania',
                         allocation: 40,
                         min_allocation: 20,
@@ -174,7 +174,7 @@
                         deposit_protection: '€100,000'
                     },
                     {
-                        code: 'deutsche',
+                        code: 'DEUTSCHE',
                         name: 'Deutsche Bank',
                         country: 'Germany',
                         allocation: 30,
@@ -184,7 +184,7 @@
                         deposit_protection: '€100,000'
                     },
                     {
-                        code: 'santander',
+                        code: 'SANTANDER',
                         name: 'Santander',
                         country: 'Spain',
                         allocation: 30,
@@ -210,12 +210,16 @@
                 
                 async loadCurrentAllocation() {
                     try {
-                        const response = await fetch('/api/users/{{ auth()->user()->uuid }}/bank-allocation', {
+                        const response = await fetch('/api/bank-allocations', {
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            }
+                                @if(session('api_token'))
+                                'Authorization': 'Bearer {{ session("api_token") }}'
+                                @endif
+                            },
+                            credentials: 'same-origin'
                         });
                         
                         if (!response.ok) {
@@ -224,12 +228,13 @@
                         
                         const data = await response.json();
                         
-                        if (data.data && data.data.length > 0) {
+                        if (data.data && data.data.allocations && data.data.allocations.length > 0) {
                             // Update banks with current allocations
-                            data.data.forEach(pref => {
-                                const bank = this.banks.find(b => b.code === pref.bank_name.toLowerCase());
+                            data.data.allocations.forEach(allocation => {
+                                const bank = this.banks.find(b => b.code === allocation.bank_code);
                                 if (bank) {
-                                    bank.allocation = pref.allocation_percentage;
+                                    bank.allocation = allocation.allocation_percentage;
+                                    bank.is_primary = allocation.is_primary;
                                 }
                             });
                         }
@@ -241,7 +246,14 @@
                 
                 loadTotalBalance() {
                     @if(auth()->user()->accounts->first())
-                        fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances')
+                        fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances', {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            },
+                            credentials: 'same-origin'
+                        })
                             .then(response => {
                                 if (!response.ok) {
                                     throw new Error('Failed to fetch balance');
@@ -282,24 +294,32 @@
                     this.saving = true;
                     
                     try {
-                        const allocations = this.banks.map((bank, index) => ({
-                            bank_name: bank.name,
-                            allocation_percentage: bank.allocation,
-                            priority: index + 1,
-                        }));
+                        // Map bank codes to uppercase to match the API expectations
+                        const allocations = {};
+                        this.banks.forEach(bank => {
+                            allocations[bank.code] = bank.allocation;
+                        });
                         
-                        const response = await fetch('/api/users/{{ auth()->user()->uuid }}/bank-allocation', {
+                        // Find the primary bank
+                        const primaryBank = this.banks.find(b => b.is_primary);
+                        
+                        const response = await fetch('/api/bank-allocations', {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             },
-                            body: JSON.stringify({ allocations })
+                            credentials: 'same-origin',
+                            body: JSON.stringify({ 
+                                allocations: allocations,
+                                primary_bank: primaryBank ? primaryBank.code : 'PAYSERA'
+                            })
                         });
                         
                         if (!response.ok) {
-                            throw new Error('Failed to save allocations');
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Failed to save allocations');
                         }
                         
                         const data = await response.json();
@@ -312,7 +332,7 @@
                         
                     } catch (error) {
                         console.error('Error saving allocation:', error);
-                        alert('Failed to save allocation. Please try again.');
+                        alert('Failed to save allocation: ' + error.message);
                     } finally {
                         this.saving = false;
                     }
