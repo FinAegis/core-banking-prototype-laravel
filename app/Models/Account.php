@@ -149,7 +149,7 @@ class Account extends Model
     {
         // For now, return an empty relationship to prevent errors
         // In a proper implementation, this would query the event store or a transaction projection
-        return $this->hasMany(Transaction::class, 'account_uuid', 'uuid');
+        return $this->hasMany(Transaction::class, 'aggregate_uuid', 'uuid');
     }
     
     /**
