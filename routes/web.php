@@ -289,12 +289,11 @@ Route::middleware([
         
         $user = Auth::user();
         
-        // Use the CreateAccountWorkflow to create the account
-        $workflow = app(\App\Domain\Account\Workflows\CreateAccountWorkflow::class);
-        $workflow->start([
+        // Use the AccountService to create the account
+        $accountService = app(\App\Domain\Account\Services\AccountService::class);
+        $accountService->create([
             'user_uuid' => $user->uuid,
             'name' => $request->name,
-            'initial_balance' => 0,
         ]);
         
         return response()->json(['success' => true]);
