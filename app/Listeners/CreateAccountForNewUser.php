@@ -2,7 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Domain\Account\DataObjects\CreateAccount;
+use App\Domain\Account\DataObjects\Account;
 use App\Domain\Account\Services\AccountService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Log;
@@ -20,11 +20,10 @@ class CreateAccountForNewUser
     {
         try {
             // Create a default personal account for the new user
-            $this->accountService->createAccount(
-                new CreateAccount(
-                    userUuid: $event->user->uuid,
-                    accountName: $event->user->name . "'s Account",
-                    accountType: 'personal'
+            $this->accountService->create(
+                new Account(
+                    name: $event->user->name . "'s Account",
+                    userUuid: $event->user->uuid
                 )
             );
             
@@ -36,7 +35,8 @@ class CreateAccountForNewUser
             // Log the error but don't prevent user registration
             Log::error('Failed to create account for new user', [
                 'user_uuid' => $event->user->uuid,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
