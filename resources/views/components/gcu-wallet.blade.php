@@ -32,7 +32,7 @@
                     fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances?asset=GCU', {
                         headers: {
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
                         },
                         credentials: 'same-origin'
                     })
@@ -69,7 +69,7 @@
                     fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances', {
                         headers: {
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
                         },
                         credentials: 'same-origin'
                     })
@@ -106,7 +106,7 @@
                     fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances?asset=GCU', {
                         headers: {
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
                         },
                         credentials: 'same-origin'
                     })
@@ -185,7 +185,7 @@
                         fetch('/api/accounts/{{ auth()->user()->accounts->first()->uuid }}/balances', {
                             headers: {
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
                             },
                             credentials: 'same-origin'
                         })
