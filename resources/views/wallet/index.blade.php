@@ -19,7 +19,7 @@
                         <div class="ml-3">
                             <p class="text-sm font-medium">Account Setup Required</p>
                             <p class="text-sm mt-1">You need to create an account before you can deposit funds. 
-                                <button id="createAccountButton" class="font-semibold underline hover:no-underline cursor-pointer">Create Account</button>
+                                <button type="button" onclick="window.createAccount()" class="font-semibold underline hover:no-underline cursor-pointer">Create Account</button>
                             </p>
                         </div>
                     </div>
@@ -204,7 +204,7 @@
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             
             <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <form id="accountForm" onsubmit="submitAccountForm(event)">
+                <form id="accountForm" onsubmit="window.submitAccountForm(event)">
                     <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <div class="sm:flex sm:items-start">
                             <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900 sm:mx-0 sm:h-10 sm:w-10">
@@ -242,7 +242,7 @@
                             Create Account
                         </button>
                         <button type="button" 
-                                onclick="closeAccountModal()"
+                                onclick="window.closeAccountModal()"
                                 class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Cancel
                         </button>
@@ -254,26 +254,16 @@
 
     @push('scripts')
     <script>
-        // Add event listener when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const createAccountBtn = document.getElementById('createAccountButton');
-            if (createAccountBtn) {
-                createAccountBtn.addEventListener('click', function() {
-                    createAccount();
-                });
-            }
-        });
-
-        function createAccount() {
+        window.createAccount = function() {
             document.getElementById('accountModal').classList.remove('hidden');
         }
 
-        function closeAccountModal() {
+        window.closeAccountModal = function() {
             document.getElementById('accountModal').classList.add('hidden');
             document.getElementById('accountError').classList.add('hidden');
         }
 
-        async function submitAccountForm(event) {
+        window.submitAccountForm = async function(event) {
             event.preventDefault();
             
             const accountName = document.getElementById('accountName').value;
@@ -320,9 +310,14 @@
         }
 
         // Close modal when clicking outside
-        document.getElementById('accountModal').addEventListener('click', function(event) {
-            if (event.target === this) {
-                closeAccountModal();
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('accountModal');
+            if (modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === this) {
+                        window.closeAccountModal();
+                    }
+                });
             }
         });
     </script>
