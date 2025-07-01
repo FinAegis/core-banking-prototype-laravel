@@ -14,9 +14,9 @@ use App\Models\BasketValue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Mockery;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class BasketValueCalculationServiceTest extends TestCase
+class BasketValueCalculationServiceTest extends UnitTestCase
 {
 
     private BasketValueCalculationService $service;

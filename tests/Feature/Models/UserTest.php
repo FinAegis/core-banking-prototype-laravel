@@ -1,10 +1,7 @@
 <?php
 
 use App\Models\User;
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(TestCase::class, RefreshDatabase::class);
+// No need for manual imports - Pest.php handles TestCase and RefreshDatabase for Feature tests
 
 it('can get route key name', function () {
     $user = new User();

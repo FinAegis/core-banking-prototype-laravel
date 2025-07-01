@@ -12,9 +12,9 @@ use App\Domain\Asset\Models\Asset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Mockery;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class StablecoinControllerTest extends TestCase
+class StablecoinControllerTest extends UnitTestCase
 {
 
     protected StablecoinController $controller;

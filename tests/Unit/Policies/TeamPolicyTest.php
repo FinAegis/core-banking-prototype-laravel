@@ -3,6 +3,9 @@
 use App\Models\Team;
 use App\Models\User;
 use App\Policies\TeamPolicy;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 beforeEach(function () {
     $this->policy = new TeamPolicy();

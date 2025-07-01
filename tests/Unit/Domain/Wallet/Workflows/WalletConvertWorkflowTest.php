@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Wallet\Workflows;
 
 use App\Domain\Wallet\Workflows\WalletConvertWorkflow;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class WalletConvertWorkflowTest extends TestCase
+class WalletConvertWorkflowTest extends UnitTestCase
 {
     public function test_workflow_extends_base_workflow()
     {

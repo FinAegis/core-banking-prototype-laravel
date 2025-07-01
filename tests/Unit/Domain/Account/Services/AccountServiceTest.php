@@ -8,10 +8,10 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Services\AccountService;
 use App\Models\Account;
 use App\Models\User;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use App\Domain\Account\DataObjects\Account as AccountDataObject;
 
-class AccountServiceTest extends TestCase
+class AccountServiceTest extends UnitTestCase
 {
     private AccountService $accountService;
 

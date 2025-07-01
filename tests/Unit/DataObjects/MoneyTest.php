@@ -1,6 +1,9 @@
 <?php
 
 declare(strict_types=1);
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 use App\Domain\Account\DataObjects\Money;
 

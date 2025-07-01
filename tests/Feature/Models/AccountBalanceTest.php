@@ -5,10 +5,7 @@ declare(strict_types=1);
 use App\Models\Account;
 use App\Models\AccountBalance;
 use App\Domain\Asset\Models\Asset;
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(TestCase::class, RefreshDatabase::class);
+// No need for manual imports - Pest.php handles TestCase and RefreshDatabase for Feature tests
 
 describe('AccountBalance Model', function () {
     it('belongs to an account', function () {

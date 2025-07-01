@@ -2,6 +2,9 @@
 
 use App\Providers\FortifyServiceProvider;
 use Illuminate\Foundation\Application;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 beforeEach(function () {
     $this->app = Mockery::mock(Application::class);

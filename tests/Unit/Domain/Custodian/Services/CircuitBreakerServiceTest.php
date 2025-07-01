@@ -7,9 +7,9 @@ namespace Tests\Unit\Domain\Custodian\Services;
 use App\Domain\Custodian\Services\CircuitBreakerService;
 use App\Domain\Custodian\Exceptions\CircuitOpenException;
 use Illuminate\Support\Facades\Cache;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class CircuitBreakerServiceTest extends TestCase
+class CircuitBreakerServiceTest extends UnitTestCase
 {
     private CircuitBreakerService $circuitBreaker;
     

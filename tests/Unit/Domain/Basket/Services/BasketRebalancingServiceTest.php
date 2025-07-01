@@ -14,9 +14,9 @@ use App\Models\BasketValue;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Mockery;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class BasketRebalancingServiceTest extends TestCase
+class BasketRebalancingServiceTest extends UnitTestCase
 {
 
     private BasketRebalancingService $service;

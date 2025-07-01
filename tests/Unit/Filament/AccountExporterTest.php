@@ -3,6 +3,9 @@
 use App\Filament\Exports\AccountExporter;
 use App\Models\Account;
 use Filament\Actions\Exports\Models\Export;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 it('has correct model', function () {
     $reflection = new ReflectionClass(AccountExporter::class);

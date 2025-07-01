@@ -9,9 +9,9 @@ use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Mockery;
-use PHPUnit\Framework\TestCase;
+use Tests\UnitTestCase;
 
-class SettingsServiceTest extends TestCase
+class SettingsServiceTest extends UnitTestCase
 {
     use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 

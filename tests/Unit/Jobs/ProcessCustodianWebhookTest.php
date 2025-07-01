@@ -9,10 +9,10 @@ use App\Domain\Custodian\Services\WebhookProcessorService;
 use App\Models\CustodianWebhook;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use Exception;
 
-class ProcessCustodianWebhookTest extends TestCase
+class ProcessCustodianWebhookTest extends UnitTestCase
 {
 
     protected CustodianWebhook $webhook;

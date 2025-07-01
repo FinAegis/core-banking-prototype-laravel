@@ -1,6 +1,9 @@
 <?php
 
 declare(strict_types=1);
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 use App\Domain\Account\Events\AccountCreated;
 use App\Domain\Account\Events\AccountDeleted;

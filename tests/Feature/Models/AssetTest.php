@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Asset;
+namespace Tests\Feature\Models;
 
 use Tests\TestCase;
 use App\Domain\Asset\Models\Asset;
@@ -8,7 +8,7 @@ use App\Models\AccountBalance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 
-class AssetModelTest extends TestCase
+class AssetTest extends TestCase
 {
     
     #[Test]

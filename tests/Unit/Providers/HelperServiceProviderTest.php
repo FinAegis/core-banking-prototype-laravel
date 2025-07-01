@@ -6,9 +6,9 @@ namespace Tests\Unit\Providers;
 
 use App\Providers\HelperServiceProvider;
 use Illuminate\Support\ServiceProvider;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class HelperServiceProviderTest extends TestCase
+class HelperServiceProviderTest extends UnitTestCase
 {
     public function test_provider_is_service_provider()
     {

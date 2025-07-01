@@ -7,9 +7,9 @@ namespace Tests\Unit\Domain\Custodian\Services;
 use App\Domain\Custodian\Services\RetryService;
 use App\Domain\Custodian\Exceptions\MaxRetriesExceededException;
 use Illuminate\Support\Facades\Log;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class RetryServiceTest extends TestCase
+class RetryServiceTest extends UnitTestCase
 {
     private RetryService $retryService;
     

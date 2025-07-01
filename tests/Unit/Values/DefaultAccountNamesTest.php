@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Values;
 
 use App\Values\DefaultAccountNames;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class DefaultAccountNamesTest extends TestCase
+class DefaultAccountNamesTest extends UnitTestCase
 {
     public function test_enum_has_correct_values()
     {

@@ -13,10 +13,10 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use Exception;
 
-class ProcessWebhookDeliveryTest extends TestCase
+class ProcessWebhookDeliveryTest extends UnitTestCase
 {
     protected function shouldCreateDefaultAccountsInSetup(): bool
     {

@@ -8,10 +8,10 @@ use App\Domain\Basket\Activities\ComposeBasketActivity;
 use App\Domain\Basket\Activities\ComposeBasketBusinessActivity;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Models\Account;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use Mockery;
 
-class ComposeBasketActivityTest extends TestCase
+class ComposeBasketActivityTest extends UnitTestCase
 {
     public function test_activity_extends_workflow_activity()
     {

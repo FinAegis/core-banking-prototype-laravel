@@ -4,6 +4,9 @@ use App\Filament\Exports\AccountExporter;
 use App\Models\Account;
 use App\Models\User;
 use Filament\Actions\Exports\Models\Export;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 it('can define export columns for accounts', function () {
     $columns = AccountExporter::getColumns();

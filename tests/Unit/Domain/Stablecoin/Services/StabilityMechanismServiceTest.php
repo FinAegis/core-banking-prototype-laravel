@@ -14,9 +14,9 @@ use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
 use Illuminate\Support\Facades\Event;
 use Mockery;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class StabilityMechanismServiceTest extends TestCase
+class StabilityMechanismServiceTest extends UnitTestCase
 {
 
     protected StabilityMechanismService $service;

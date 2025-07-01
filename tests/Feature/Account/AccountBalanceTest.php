@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Account;
+namespace Tests\Feature\Account;
 
 use Tests\TestCase;
 use App\Models\Account;
@@ -15,9 +15,6 @@ class AccountBalanceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Run migrations to create assets
-        $this->artisan('migrate');
     }
     
     #[Test]

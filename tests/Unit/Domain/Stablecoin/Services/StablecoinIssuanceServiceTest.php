@@ -18,10 +18,10 @@ use App\Domain\Asset\Models\Asset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Mockery;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use Workflow\WorkflowStub;
 
-class StablecoinIssuanceServiceTest extends TestCase
+class StablecoinIssuanceServiceTest extends UnitTestCase
 {
     use RefreshDatabase;
 

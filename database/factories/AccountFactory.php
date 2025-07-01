@@ -33,7 +33,7 @@ class AccountFactory extends Factory
             'user_uuid' => function () {
                 return User::factory()->create()->uuid;
             },
-            'balance' => fake()->numberBetween(0, 100000),
+            'balance' => 0, // Default to 0 to prevent automatic USD balance creation
             'frozen' => false,
         ];
     }

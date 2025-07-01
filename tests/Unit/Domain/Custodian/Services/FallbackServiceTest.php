@@ -13,9 +13,9 @@ use App\Models\CustodianAccount;
 use App\Models\CustodianTransfer;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class FallbackServiceTest extends TestCase
+class FallbackServiceTest extends UnitTestCase
 {
     
     private FallbackService $fallbackService;

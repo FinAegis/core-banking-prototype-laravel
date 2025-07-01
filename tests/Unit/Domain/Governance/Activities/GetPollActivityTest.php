@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Governance\Activities;
 
 use App\Domain\Governance\Activities\GetPollActivity;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class GetPollActivityTest extends TestCase
+class GetPollActivityTest extends UnitTestCase
 {
     public function test_activity_extends_workflow_activity()
     {

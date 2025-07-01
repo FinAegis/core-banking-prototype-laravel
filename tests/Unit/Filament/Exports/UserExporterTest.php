@@ -3,6 +3,9 @@
 use App\Filament\Exports\UserExporter;
 use App\Models\User;
 use Filament\Actions\Exports\Models\Export;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 it('can define export columns for users', function () {
     $columns = UserExporter::getColumns();

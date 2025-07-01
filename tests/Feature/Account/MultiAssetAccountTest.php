@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Account;
+namespace Tests\Feature\Account;
 
 use Tests\TestCase;
 use App\Models\Account;
@@ -17,9 +17,6 @@ class MultiAssetAccountTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Run migrations to create assets
-        $this->artisan('migrate');
         
         $this->testAccount = Account::factory()->create();
     }

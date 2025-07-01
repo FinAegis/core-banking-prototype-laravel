@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Values;
 
 use App\Values\EventQueues;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class EventQueuesTest extends TestCase
+class EventQueuesTest extends UnitTestCase
 {
     public function test_enum_has_correct_values()
     {

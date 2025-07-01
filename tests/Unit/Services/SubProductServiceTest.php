@@ -8,9 +8,9 @@ use App\Services\SubProductService;
 use Illuminate\Support\Facades\Config;
 use Laravel\Pennant\Feature;
 use Mockery;
-use PHPUnit\Framework\TestCase;
+use Tests\UnitTestCase;
 
-class SubProductServiceTest extends TestCase
+class SubProductServiceTest extends UnitTestCase
 {
     use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 

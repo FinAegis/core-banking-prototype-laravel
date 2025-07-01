@@ -3,10 +3,9 @@
 use App\Filament\Exports\TransactionExporter;
 use App\Models\Transaction;
 use Filament\Actions\Exports\Models\Export;
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\UnitTestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
+uses(UnitTestCase::class);
 
 it('can define export columns for transactions', function () {
     $columns = TransactionExporter::getColumns();

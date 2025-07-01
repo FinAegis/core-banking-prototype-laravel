@@ -15,10 +15,10 @@ use App\Domain\Asset\Models\Asset;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
 use Mockery;
-use PHPUnit\Framework\TestCase;
+use Tests\UnitTestCase;
 use Illuminate\Support\Str;
 
-class LiquidationServiceTest extends TestCase
+class LiquidationServiceTest extends UnitTestCase
 {
     use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 

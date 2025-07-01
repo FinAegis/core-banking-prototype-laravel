@@ -9,9 +9,9 @@ use App\Services\SubProductService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Mockery;
-use PHPUnit\Framework\TestCase;
+use Tests\UnitTestCase;
 
-class EnsureSubProductEnabledTest extends TestCase
+class EnsureSubProductEnabledTest extends UnitTestCase
 {
     use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 

@@ -2,14 +2,14 @@
 
 namespace Tests\Unit\MultiAsset;
 
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Conceptual tests for multi-asset platform features.
  * These tests demonstrate the expected behavior once implemented.
  */
-class MultiAssetConceptTest extends TestCase
+class MultiAssetConceptTest extends UnitTestCase
 {
     #[Test]
     public function it_demonstrates_multi_asset_account_structure()

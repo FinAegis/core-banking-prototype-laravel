@@ -3,6 +3,9 @@
 use App\Providers\AppServiceProvider;
 use App\Providers\WaterlineServiceProvider;
 use Illuminate\Foundation\Application;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
 
 beforeEach(function () {
     $this->app = Mockery::mock(Application::class);

@@ -12,9 +12,9 @@ use App\Models\StablecoinCollateralPosition;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
 use Mockery;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class CollateralServiceTest extends TestCase
+class CollateralServiceTest extends UnitTestCase
 {
 
     protected CollateralService $service;

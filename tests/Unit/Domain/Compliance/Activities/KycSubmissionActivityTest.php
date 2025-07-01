@@ -6,10 +6,10 @@ namespace Tests\Unit\Domain\Compliance\Activities;
 
 use App\Domain\Compliance\Activities\KycSubmissionActivity;
 use App\Domain\Compliance\Services\KycService;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use Mockery;
 
-class KycSubmissionActivityTest extends TestCase
+class KycSubmissionActivityTest extends UnitTestCase
 {
     public function test_activity_extends_workflow_activity()
     {

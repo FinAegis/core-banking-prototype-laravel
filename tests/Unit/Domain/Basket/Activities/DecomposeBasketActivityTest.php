@@ -8,10 +8,10 @@ use App\Domain\Basket\Activities\DecomposeBasketActivity;
 use App\Domain\Basket\Activities\DecomposeBasketBusinessActivity;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Models\Account;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 use Mockery;
 
-class DecomposeBasketActivityTest extends TestCase
+class DecomposeBasketActivityTest extends UnitTestCase
 {
     public function test_activity_extends_workflow_activity()
     {
