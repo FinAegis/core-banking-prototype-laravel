@@ -54,6 +54,52 @@
                         </x-nav-link>
                     @endcan
                     
+                    @canany(['view_compliance_metrics', 'view_audit_trail', 'super_admin'])
+                        <!-- Compliance Dropdown -->
+                        <div class="hidden sm:flex sm:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition duration-150 ease-in-out">
+                                        <div>{{ __('Compliance') }}</div>
+                                        <div class="ms-1">
+                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </x-slot>
+                                
+                                <x-slot name="content">
+                                    @can('view_compliance_metrics')
+                                        <x-dropdown-link href="{{ route('compliance.metrics') }}">
+                                            {{ __('Compliance Metrics') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('view_aml_reports')
+                                        <x-dropdown-link href="{{ route('compliance.aml') }}">
+                                            {{ __('AML/BSA/OFAC') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('view_audit_trail')
+                                        <x-dropdown-link href="{{ route('audit.trail') }}">
+                                            {{ __('Audit Trail') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('view_risk_analysis')
+                                        <x-dropdown-link href="{{ route('risk.analysis.index') }}">
+                                            {{ __('Risk Analysis') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('view_transaction_monitoring')
+                                        <x-dropdown-link href="{{ route('monitoring.transactions.index') }}">
+                                            {{ __('Transaction Monitoring') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @endcanany
+                    
                     <!-- Quick Actions Dropdown -->
                     <div class="hidden sm:flex sm:items-center">
                         <x-dropdown align="left" width="48">

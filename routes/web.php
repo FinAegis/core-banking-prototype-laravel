@@ -171,10 +171,59 @@ Route::middleware([
     Route::resource('api-keys', App\Http\Controllers\ApiKeyController::class);
     Route::post('/api-keys/{apiKey}/regenerate', [App\Http\Controllers\ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
     
-    // KYC route
-    Route::get('/compliance/kyc', function () {
-        return view('compliance.kyc');
-    })->name('compliance.kyc');
+    // Compliance Routes
+    Route::prefix('compliance')->name('compliance.')->group(function () {
+        // KYC route
+        Route::get('/kyc', function () {
+            return view('compliance.kyc');
+        })->name('kyc');
+        
+        // Compliance Metrics
+        Route::get('/metrics', function () {
+            $metrics = [
+                'overall_score' => 94.5,
+                'kyc_rate' => 98.2,
+                'pending_kyc' => 12,
+                'aml_alerts' => 23,
+                'resolved_alerts' => 18,
+                'sanctions_hits' => 2,
+                'risk_score' => 'Low'
+            ];
+            
+            return view('compliance.metrics', compact('metrics'));
+        })->name('metrics');
+        
+        // AML/BSA/OFAC Reporting
+        Route::get('/aml', function () {
+            $stats = [
+                'active_alerts' => 18,
+                'new_today' => 3,
+                'ofac_matches' => 2,
+                'bsa_reports' => 45,
+                'pending_bsa' => 5,
+                'risk_score' => 'Low'
+            ];
+            
+            return view('compliance.aml-reporting', compact('stats'));
+        })->name('aml');
+        Route::get('/aml/create', function () {
+            return redirect()->route('regulatory.reports.create');
+        })->name('aml.create');
+        Route::get('/bsa/create', function () {
+            return redirect()->route('regulatory.reports.create');
+        })->name('bsa.create');
+        Route::get('/risk/assessment', function () {
+            return redirect()->route('risk.analysis.index');
+        })->name('risk.assessment');
+    });
+    
+    // Audit Trail Routes
+    Route::prefix('audit')->name('audit.')->group(function () {
+        Route::get('/trail', function () {
+            $auditLogs = collect(); // Empty collection for now
+            return view('audit.trail', compact('auditLogs'));
+        })->name('trail');
+    });
     
     // Fraud Alerts Routes
     Route::prefix('fraud')->name('fraud.')->group(function () {
