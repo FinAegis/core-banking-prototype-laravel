@@ -302,7 +302,8 @@ Route::middleware([
                 'user_uuid' => $user->uuid,
                 'name' => $request->name,
                 'balance' => 0,
-                'is_frozen' => false,
+                'frozen' => false,
+                'team_id' => $user->currentTeam->id ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
