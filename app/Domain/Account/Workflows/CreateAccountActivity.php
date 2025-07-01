@@ -11,16 +11,19 @@ class CreateAccountActivity extends Activity
 {
     /**
      * @param \App\Domain\Account\DataObjects\Account $account
-     * @param \App\Domain\Account\Aggregates\LedgerAggregate $ledger
      *
      * @return string
      */
-    public function execute( Account $account, LedgerAggregate $ledger ): string
+    public function execute( Account $account ): string
     {
-        $uuid = Str::uuid();
-
+        $uuid = $account->getUuid() ?: Str::uuid()->toString();
+        
+        $ledger = app(LedgerAggregate::class);
+        
+        $accountWithUuid = $account->withUuid($uuid);
+        
         $ledger->retrieve( $uuid )
-               ->createAccount( __account( $account ) )
+               ->createAccount( $accountWithUuid )
                ->persist();
 
         return $uuid;
