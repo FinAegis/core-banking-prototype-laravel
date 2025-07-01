@@ -19,7 +19,7 @@
                         <div class="ml-3">
                             <p class="text-sm font-medium">Account Setup Required</p>
                             <p class="text-sm mt-1">You need to create an account before you can deposit funds. 
-                                <button onclick="createAccount()" class="font-semibold underline hover:no-underline cursor-pointer">Create Account</button>
+                                <button id="createAccountButton" class="font-semibold underline hover:no-underline cursor-pointer">Create Account</button>
                             </p>
                         </div>
                     </div>
@@ -254,6 +254,16 @@
 
     @push('scripts')
     <script>
+        // Add event listener when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const createAccountBtn = document.getElementById('createAccountButton');
+            if (createAccountBtn) {
+                createAccountBtn.addEventListener('click', function() {
+                    createAccount();
+                });
+            }
+        });
+
         function createAccount() {
             document.getElementById('accountModal').classList.remove('hidden');
         }
