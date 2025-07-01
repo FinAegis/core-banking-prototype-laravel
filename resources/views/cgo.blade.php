@@ -107,7 +107,7 @@
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-900 mb-4">What is a Continuous Growth Offering?</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Unlike traditional ICOs with fixed end dates, our CGO continues indefinitely, allowing continuous investment as the platform grows.
+                    A unique way to support the development of FinAegis. Your contributions help build the future of democratic banking while receiving recognition and benefits.
                 </p>
             </div>
             
@@ -118,28 +118,28 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Ownership Certificates</h3>
-                    <p class="text-gray-600">Receive official certificates proving your ownership stake in FinAegis (max 1% per round)</p>
+                    <h3 class="text-xl font-semibold mb-3">Support Certificate</h3>
+                    <p class="text-gray-600">Receive digital certificates recognizing your contribution to the democratic banking movement</p>
                 </div>
                 
                 <div class="text-center">
                     <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg class="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">Increasing Value</h3>
-                    <p class="text-gray-600">Share prices increase over time as the platform grows and develops new features</p>
+                    <h3 class="text-xl font-semibold mb-3">Join the Movement</h3>
+                    <p class="text-gray-600">Become part of a community building a fairer, more transparent financial system</p>
                 </div>
                 
                 <div class="text-center">
                     <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Fund Development</h3>
-                    <p class="text-gray-600">100% of CGO funds go directly to platform development and expansion</p>
+                    <p class="text-gray-600">100% of contributions go directly to platform development and expansion</p>
                 </div>
             </div>
         </div>
@@ -165,19 +165,25 @@
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Digital ownership certificate</span>
+                            <span>Digital certificate of support</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Early access to new features</span>
+                            <span>Recognition as project supporter</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Monthly investor updates</span>
+                            <span>Early access to platform features</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Monthly development updates</span>
                         </li>
                     </ul>
                 </div>
@@ -185,7 +191,7 @@
                 <!-- Silver Tier -->
                 <div class="bg-white rounded-2xl shadow-lg p-8 border-2 border-indigo-400 relative">
                     <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold">POPULAR</span>
+                        <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold">RECOMMENDED</span>
                     </div>
                     <div class="text-center mb-6">
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">Silver</h3>
@@ -202,19 +208,25 @@
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Physical certificate option</span>
+                            <span>Monthly community calls</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Voting rights on platform decisions</span>
+                            <span>Digital "Idea Shareholding" certificate</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Quarterly investor calls</span>
+                            <span>Input on feature prioritization</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Recognition as "Founding Supporter"</span>
                         </li>
                     </ul>
                 </div>
@@ -236,7 +248,13 @@
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Direct access to founding team</span>
+                            <span>Direct discussions with founders</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Potential ownership discussion*</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +273,11 @@
             </div>
             
             <div class="text-center mt-12">
-                <p class="text-gray-600 mb-4">Maximum 1% ownership per investment round to ensure fair distribution</p>
+                <p class="text-sm text-gray-500 mb-4">* Ownership discussions are subject to separate agreements and regulatory compliance</p>
+                <p class="text-gray-600 mb-6">This is a contribution to support development, not an investment for financial returns</p>
+                <a href="{{ route('cgo.terms') }}" class="text-indigo-600 hover:text-indigo-700 underline font-medium">
+                    Read Full Terms and Conditions
+                </a>
             </div>
         </div>
     </section>
@@ -271,7 +293,7 @@
                 <div class="grid md:grid-cols-3 gap-6 mb-8">
                     <div class="bg-white/20 backdrop-blur rounded-xl p-6">
                         <h3 class="text-xl font-bold mb-2">$10/month</h3>
-                        <p>Supporter badge + Discord access</p>
+                        <p>Supporter badge + Updates</p>
                     </div>
                     <div class="bg-white/20 backdrop-blur rounded-xl p-6">
                         <h3 class="text-xl font-bold mb-2">$25/month</h3>
@@ -279,7 +301,7 @@
                     </div>
                     <div class="bg-white/20 backdrop-blur rounded-xl p-6">
                         <h3 class="text-xl font-bold mb-2">$100/month</h3>
-                        <p>Direct input on roadmap + 1-on-1 calls</p>
+                        <p>Direct input on roadmap + Priority support</p>
                     </div>
                 </div>
                 <a href="https://patreon.com/finaegis" target="_blank" class="bg-white text-pink-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">

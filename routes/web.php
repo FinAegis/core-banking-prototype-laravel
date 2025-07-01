@@ -123,6 +123,10 @@ Route::get('/cgo', function () {
     return view('cgo');
 })->name('cgo');
 
+Route::get('/cgo/terms', function () {
+    return view('legal.cgo-terms');
+})->name('cgo.terms');
+
 Route::post('/cgo/notify', [App\Http\Controllers\CgoController::class, 'notify'])->name('cgo.notify');
 
 // Authenticated CGO routes
