@@ -177,7 +177,10 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Transactions</p>
                                 <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { return $account->transactions()->count(); }) : 0 }}
+                                    {{ Auth::user()->accounts->count() > 0 ? Auth::user()->accounts->sum(function($account) { 
+                                        // Transaction count from projections
+                                        return \App\Models\TransactionProjection::where('account_uuid', $account->uuid)->count();
+                                    }) : 0 }}
                                 </p>
                             </div>
                             <div class="p-3 bg-yellow-100 rounded-full">
