@@ -24,6 +24,10 @@
                         {{ __('Transactions') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('transactions.status') }}" :active="request()->routeIs('transactions.status*')">
+                        {{ __('Track Status') }}
+                    </x-nav-link>
+                    
                     <x-nav-link href="{{ route('wallet.bank-allocation') }}" :active="request()->routeIs('wallet.bank-allocation')">
                         {{ __('Banks') }}
                     </x-nav-link>

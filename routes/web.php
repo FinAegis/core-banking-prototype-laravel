@@ -357,6 +357,15 @@ Route::middleware([
         return redirect()->route('wallet.transactions');
     })->name('transactions');
     
+    // Transaction Status Tracking Routes
+    Route::get('/transactions/status', [App\Http\Controllers\TransactionStatusController::class, 'index'])->name('transactions.status');
+    Route::prefix('transactions/status')->name('transactions.status.')->group(function () {
+        Route::get('/{transactionId}', [App\Http\Controllers\TransactionStatusController::class, 'show'])->name('show');
+        Route::get('/{transactionId}/status', [App\Http\Controllers\TransactionStatusController::class, 'status'])->name('status');
+        Route::post('/{transactionId}/cancel', [App\Http\Controllers\TransactionStatusController::class, 'cancel'])->name('cancel');
+        Route::post('/{transactionId}/retry', [App\Http\Controllers\TransactionStatusController::class, 'retry'])->name('retry');
+    });
+    
     // Transfer Route
     Route::get('/transfers', function () {
         return redirect()->route('wallet.transfer');
