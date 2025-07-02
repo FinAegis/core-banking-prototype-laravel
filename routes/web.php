@@ -366,6 +366,13 @@ Route::middleware([
         Route::post('/{transactionId}/retry', [App\Http\Controllers\TransactionStatusController::class, 'retry'])->name('retry');
     });
     
+    // Fund Flow Visualization Routes
+    Route::prefix('fund-flow')->name('fund-flow.')->group(function () {
+        Route::get('/', [App\Http\Controllers\FundFlowController::class, 'index'])->name('index');
+        Route::get('/account/{accountUuid}', [App\Http\Controllers\FundFlowController::class, 'accountFlow'])->name('account');
+        Route::get('/data', [App\Http\Controllers\FundFlowController::class, 'data'])->name('data');
+    });
+    
     // Transfer Route
     Route::get('/transfers', function () {
         return redirect()->route('wallet.transfer');

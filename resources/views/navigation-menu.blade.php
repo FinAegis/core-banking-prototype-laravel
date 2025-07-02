@@ -28,6 +28,10 @@
                         {{ __('Track Status') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('fund-flow.index') }}" :active="request()->routeIs('fund-flow.*')">
+                        {{ __('Fund Flow') }}
+                    </x-nav-link>
+                    
                     <x-nav-link href="{{ route('wallet.bank-allocation') }}" :active="request()->routeIs('wallet.bank-allocation')">
                         {{ __('Banks') }}
                     </x-nav-link>
