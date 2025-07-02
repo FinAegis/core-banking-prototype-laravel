@@ -91,6 +91,9 @@
                     <p class="text-xl md:text-2xl mb-8 text-purple-100 max-w-4xl mx-auto">
                         Experience the Global Currency Unit - where your money stays in real banks while you control the currency composition through democratic voting
                     </p>
+                    <p class="mb-8">
+                        <a href="{{ route('about') }}" class="text-purple-200 hover:text-white underline">Learn more about FinAegis →</a>
+                    </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
                             Open GCU Account

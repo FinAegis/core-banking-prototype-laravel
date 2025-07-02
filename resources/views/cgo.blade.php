@@ -320,19 +320,19 @@
             </div>
             
             <div class="grid md:grid-cols-3 gap-6">
-                <a href="/docs/VISION.md" target="_blank" class="block bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition">
-                    <h3 class="text-xl font-semibold mb-2">Vision & Mission</h3>
-                    <p class="text-gray-600">Our long-term vision for democratizing global finance</p>
+                <a href="{{ route('about') }}" class="block bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition">
+                    <h3 class="text-xl font-semibold mb-2">About FinAegis</h3>
+                    <p class="text-gray-600">Our mission, story, team, and journey towards democratizing global finance</p>
                 </a>
                 
-                <a href="/docs/ARCHITECTURE.md" target="_blank" class="block bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition">
-                    <h3 class="text-xl font-semibold mb-2">Technical Architecture</h3>
-                    <p class="text-gray-600">How we're building a robust, scalable banking platform</p>
+                <a href="{{ route('features.gcu') }}" class="block bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition">
+                    <h3 class="text-xl font-semibold mb-2">Global Currency Unit</h3>
+                    <p class="text-gray-600">Learn about our innovative basket currency with democratic governance</p>
                 </a>
                 
-                <a href="/docs/ROADMAP.md" target="_blank" class="block bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition">
-                    <h3 class="text-xl font-semibold mb-2">Development Roadmap</h3>
-                    <p class="text-gray-600">Our plans for features, integrations, and expansion</p>
+                <a href="{{ route('features') }}" class="block bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition">
+                    <h3 class="text-xl font-semibold mb-2">Platform Features</h3>
+                    <p class="text-gray-600">Explore all the features that make FinAegis unique</p>
                 </a>
             </div>
         </div>

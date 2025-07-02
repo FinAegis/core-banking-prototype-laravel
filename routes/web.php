@@ -29,7 +29,14 @@ Route::get('/sub-products/{product}', function ($product) {
     return view('sub-products.' . $product);
 })->name('sub-products.show');
 
-// Features route removed - content moved to platform page
+// Features routes
+Route::get('/features', function () {
+    return view('features.index');
+})->name('features');
+
+Route::get('/features/gcu', function () {
+    return view('features.gcu');
+})->name('features.gcu');
 
 Route::get('/pricing', function () {
     return view('pricing');
