@@ -20,6 +20,10 @@ use App\Http\Controllers\Api\GdprController;
 use App\Http\Controllers\Api\BasketPerformanceController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\LoginController;
+use App\Http\Controllers\Api\Auth\PasswordResetController;
+use App\Http\Controllers\Api\Auth\EmailVerificationController;
+use App\Http\Controllers\Api\Auth\TwoFactorAuthController;
+use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\TransactionReversalController;
 use App\Http\Controllers\Api\BatchProcessingController;
 use App\Http\Controllers\Api\BankAllocationController;
@@ -38,12 +42,38 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
     Route::post('/login', [LoginController::class, 'login']);
     
+    // Password reset endpoints (public)
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+    
+    // Email verification endpoints
+    Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    
+    // Social authentication endpoints
+    Route::get('/social/{provider}', [SocialAuthController::class, 'redirect']);
+    Route::post('/social/{provider}/callback', [SocialAuthController::class, 'callback']);
+    
     // Protected auth endpoints
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
         Route::post('/logout-all', [LoginController::class, 'logoutAll']);
         Route::post('/refresh', [LoginController::class, 'refresh']);
         Route::get('/user', [LoginController::class, 'user']);
+        
+        // Email verification resend
+        Route::post('/resend-verification', [EmailVerificationController::class, 'resend'])
+            ->middleware('throttle:6,1');
+        
+        // Two-factor authentication endpoints
+        Route::prefix('2fa')->group(function () {
+            Route::post('/enable', [TwoFactorAuthController::class, 'enable']);
+            Route::post('/confirm', [TwoFactorAuthController::class, 'confirm']);
+            Route::post('/disable', [TwoFactorAuthController::class, 'disable']);
+            Route::post('/verify', [TwoFactorAuthController::class, 'verify']);
+            Route::post('/recovery-codes', [TwoFactorAuthController::class, 'regenerateRecoveryCodes']);
+        });
     });
 });
 

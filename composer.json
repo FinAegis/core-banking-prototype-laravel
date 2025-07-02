@@ -39,6 +39,7 @@
         "laravel/pulse": "^1.2",
         "laravel/sanctum": "^4.0",
         "laravel/scout": "^10.11",
+        "laravel/socialite": "^5.21",
         "laravel/telescope": "^5.2",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.0",
