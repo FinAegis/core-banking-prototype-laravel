@@ -4,7 +4,7 @@
     {{ $head ?? '' }}
 </head>
 <body class="antialiased">
-    <x-alpha-banner />
+    <x-platform-banners />
     
     <!-- Spacer for fixed banner -->
     <div class="h-12"></div>

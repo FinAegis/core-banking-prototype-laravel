@@ -27,6 +27,7 @@
     </style>
 </head>
 <body class="antialiased">
+    <x-platform-banners />
     <!-- Navigation -->
     @include('partials.public-nav')
 

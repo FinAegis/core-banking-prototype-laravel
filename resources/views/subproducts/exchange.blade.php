@@ -23,7 +23,7 @@
         </style>
     </head>
     <body class="antialiased">
-        <x-alpha-banner />
+        <x-platform-banners />
         <x-main-navigation />
 
         <!-- Hero Section -->

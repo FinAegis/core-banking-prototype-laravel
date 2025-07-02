@@ -29,7 +29,7 @@
         </style>
     </head>
     <body class="antialiased bg-gray-50">
-        <x-alpha-banner />
+        <x-platform-banners />
         
         <!-- Spacer for fixed banner -->
         <div class="h-12"></div>

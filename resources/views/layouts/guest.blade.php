@@ -18,7 +18,7 @@
         @livewireStyles
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <x-alpha-banner />
+        <x-platform-banners />
         
         <div class="min-h-screen">
             {{ $slot }}

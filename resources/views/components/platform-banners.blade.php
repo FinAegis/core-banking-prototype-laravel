@@ -7,13 +7,15 @@
             <div class="py-2">
                 <div class="flex items-center justify-center space-x-3">
                     <div class="flex items-center space-x-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                         </svg>
                         <span class="font-bold text-sm">ALPHA TESTING</span>
                     </div>
                     <div class="hidden sm:flex items-center space-x-2 text-xs">
+                        <span class="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">No Real Transactions</span>
                         <span class="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">Demo Only</span>
+                        <span class="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">Prototype Mode</span>
                     </div>
                 </div>
             </div>
