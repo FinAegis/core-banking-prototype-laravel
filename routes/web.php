@@ -378,6 +378,17 @@ Route::middleware([
         Route::get('/historical', [App\Http\Controllers\ExchangeRateViewController::class, 'historical'])->name('historical');
     });
     
+    // Batch Processing Routes
+    Route::prefix('batch-processing')->name('batch-processing.')->group(function () {
+        Route::get('/', [App\Http\Controllers\BatchProcessingController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\BatchProcessingController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\BatchProcessingController::class, 'store'])->name('store');
+        Route::get('/{batchJob}', [App\Http\Controllers\BatchProcessingController::class, 'show'])->name('show');
+        Route::post('/{batchJob}/cancel', [App\Http\Controllers\BatchProcessingController::class, 'cancel'])->name('cancel');
+        Route::post('/{batchJob}/retry', [App\Http\Controllers\BatchProcessingController::class, 'retry'])->name('retry');
+        Route::get('/{batchJob}/download', [App\Http\Controllers\BatchProcessingController::class, 'download'])->name('download');
+    });
+    
     // Transfer Route
     Route::get('/transfers', function () {
         return redirect()->route('wallet.transfer');

@@ -36,6 +36,10 @@
                         {{ __('Exchange Rates') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('batch-processing.index') }}" :active="request()->routeIs('batch-processing.*')">
+                        {{ __('Batch Processing') }}
+                    </x-nav-link>
+                    
                     <x-nav-link href="{{ route('wallet.bank-allocation') }}" :active="request()->routeIs('wallet.bank-allocation')">
                         {{ __('Banks') }}
                     </x-nav-link>
