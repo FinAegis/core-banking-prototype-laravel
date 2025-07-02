@@ -72,40 +72,6 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <a href="/wallet/deposit" class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow hover:shadow-md transition-shadow text-center">
-                <svg class="w-8 h-8 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
-                </svg>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Deposit</span>
-            </a>
-
-            <a href="/wallet/withdraw" class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow hover:shadow-md transition-shadow text-center">
-                <svg class="w-8 h-8 mx-auto mb-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
-                </svg>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Withdraw</span>
-            </a>
-
-            <a href="/wallet/transfer" class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow hover:shadow-md transition-shadow text-center">
-                <svg class="w-8 h-8 mx-auto mb-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                </svg>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Transfer</span>
-            </a>
-
-            <a href="/wallet/convert" class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow hover:shadow-md transition-shadow text-center">
-                <svg class="w-8 h-8 mx-auto mb-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Convert</span>
-            </a>
-        </div>
-    </div>
-
     <!-- Asset Breakdown -->
     <div class="mb-8">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Assets</h2>
