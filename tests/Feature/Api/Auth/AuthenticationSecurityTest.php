@@ -133,7 +133,7 @@ class AuthenticationSecurityTest extends TestCase
         $user = User::factory()->unverified()->create();
         
         $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
+            'api.verification.verify',
             now()->addMinutes(60),
             [
                 'id' => $user->id,

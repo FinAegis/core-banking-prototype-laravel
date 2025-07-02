@@ -49,7 +49,7 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
     // Email verification endpoints
     Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
+        ->name('api.verification.verify');
     
     // Social authentication endpoints
     Route::get('/social/{provider}', [SocialAuthController::class, 'redirect']);
