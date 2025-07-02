@@ -3,8 +3,8 @@
 namespace App\Domain\Batch\Actions;
 
 use App\Domain\Batch\Events\BatchJobCreated;
-use App\Domain\Batch\Models\BatchJob;
-use App\Domain\Batch\Models\BatchItem;
+use App\Models\BatchJob;
+use App\Models\BatchJobItem;
 
 class CreateBatchJob
 {
@@ -29,10 +29,9 @@ class CreateBatchJob
         
         // Create batch items
         foreach ($event->batchJob->items as $index => $item) {
-            BatchItem::create([
-                'batch_job_id' => $batchJob->id,
+            BatchJobItem::create([
+                'batch_job_uuid' => $batchJob->uuid,
                 'sequence' => $index + 1,
-                'type' => $item['type'] ?? $event->batchJob->type,
                 'status' => 'pending',
                 'data' => $item,
             ]);

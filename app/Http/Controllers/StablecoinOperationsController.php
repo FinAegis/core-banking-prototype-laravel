@@ -10,10 +10,7 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use App\Domain\Stablecoin\Services\StablecoinService;
-use App\Domain\Stablecoin\Events\StablecoinOperationCreated;
-use App\Domain\Stablecoin\Events\StablecoinOperationCompleted;
-use App\Domain\Stablecoin\Events\StablecoinOperationFailed;
-use App\Domain\Stablecoin\Aggregates\StablecoinAggregate;
+use App\Models\StablecoinOperation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -148,28 +145,25 @@ class StablecoinOperationsController extends Controller
                 $mintAmount
             );
             
-            // Record the operation using event sourcing
+            // Record the operation for audit
             $operationId = (string) Str::uuid();
-            StablecoinAggregate::retrieve($operationId)
-                ->recordThat(new StablecoinOperationCreated(
-                    uuid: $operationId,
-                    type: 'mint',
-                    stablecoin: $validated['stablecoin'],
-                    amount: $mintAmount,
-                    collateralAsset: $validated['collateral_asset'],
-                    collateralAmount: $collateralAmount,
-                    collateralReturn: null,
-                    sourceAccount: null,
-                    recipientAccount: $validated['recipient_account'],
-                    operatorUuid: $user->uuid,
-                    positionUuid: $positionUuid,
-                    reason: $validated['reason'],
-                    status: 'completed',
-                    metadata: [
-                        'authorized_at' => now()->toIso8601String(),
-                    ]
-                ))
-                ->persist();
+            StablecoinOperation::create([
+                'uuid' => $operationId,
+                'type' => 'mint',
+                'stablecoin' => $validated['stablecoin'],
+                'amount' => $mintAmount,
+                'collateral_asset' => $validated['collateral_asset'],
+                'collateral_amount' => $collateralAmount,
+                'recipient_account' => $validated['recipient_account'],
+                'operator_uuid' => $user->uuid,
+                'position_uuid' => $positionUuid,
+                'reason' => $validated['reason'],
+                'status' => 'completed',
+                'metadata' => [
+                    'authorized_at' => now()->toIso8601String(),
+                ],
+                'executed_at' => now(),
+            ]);
             
             return redirect()
                 ->route('stablecoin-operations.index')
@@ -272,29 +266,26 @@ class StablecoinOperationsController extends Controller
                 false // Don't close position
             );
             
-            // Record the operation using event sourcing
+            // Record the operation for audit
             $operationId = (string) Str::uuid();
-            StablecoinAggregate::retrieve($operationId)
-                ->recordThat(new StablecoinOperationCreated(
-                    uuid: $operationId,
-                    type: 'burn',
-                    stablecoin: $validated['stablecoin'],
-                    amount: $amountInCents,
-                    collateralAsset: $validated['collateral_asset'] ?? null,
-                    collateralAmount: null,
-                    collateralReturn: $collateralReturn > 0 ? (int)($collateralReturn * 100) : null,
-                    sourceAccount: $validated['source_account'],
-                    recipientAccount: null,
-                    operatorUuid: $user->uuid,
-                    positionUuid: $positionUuid,
-                    reason: $validated['reason'],
-                    status: 'completed',
-                    metadata: [
-                        'return_collateral' => $validated['return_collateral'],
-                        'authorized_at' => now()->toIso8601String(),
-                    ]
-                ))
-                ->persist();
+            StablecoinOperation::create([
+                'uuid' => $operationId,
+                'type' => 'burn',
+                'stablecoin' => $validated['stablecoin'],
+                'amount' => $amountInCents,
+                'collateral_asset' => $validated['collateral_asset'] ?? null,
+                'collateral_return' => $collateralReturn > 0 ? (int)($collateralReturn * 100) : null,
+                'source_account' => $validated['source_account'],
+                'operator_uuid' => $user->uuid,
+                'position_uuid' => $positionUuid,
+                'reason' => $validated['reason'],
+                'status' => 'completed',
+                'metadata' => [
+                    'return_collateral' => $validated['return_collateral'],
+                    'authorized_at' => now()->toIso8601String(),
+                ],
+                'executed_at' => now(),
+            ]);
             
             return redirect()
                 ->route('stablecoin-operations.index')

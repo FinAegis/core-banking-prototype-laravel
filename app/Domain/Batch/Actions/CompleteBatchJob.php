@@ -3,7 +3,7 @@
 namespace App\Domain\Batch\Actions;
 
 use App\Domain\Batch\Events\BatchJobCompleted;
-use App\Domain\Batch\Models\BatchJob;
+use App\Models\BatchJob;
 
 class CompleteBatchJob
 {

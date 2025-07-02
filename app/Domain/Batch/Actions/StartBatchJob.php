@@ -3,7 +3,7 @@
 namespace App\Domain\Batch\Actions;
 
 use App\Domain\Batch\Events\BatchJobStarted;
-use App\Domain\Batch\Models\BatchJob;
+use App\Models\BatchJob;
 
 class StartBatchJob
 {

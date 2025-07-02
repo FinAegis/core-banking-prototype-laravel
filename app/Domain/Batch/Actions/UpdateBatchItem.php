@@ -3,8 +3,8 @@
 namespace App\Domain\Batch\Actions;
 
 use App\Domain\Batch\Events\BatchItemProcessed;
-use App\Domain\Batch\Models\BatchJob;
-use App\Domain\Batch\Models\BatchItem;
+use App\Models\BatchJob;
+use App\Models\BatchJobItem;
 
 class UpdateBatchItem
 {
@@ -21,7 +21,7 @@ class UpdateBatchItem
         }
         
         // Update the item
-        BatchItem::where('batch_job_id', $batchJob->id)
+        BatchJobItem::where('batch_job_uuid', $batchJob->uuid)
             ->where('sequence', $event->itemIndex + 1)
             ->update([
                 'status' => $event->status,

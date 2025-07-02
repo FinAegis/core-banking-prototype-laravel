@@ -3,7 +3,8 @@
 namespace App\Domain\Batch\Activities;
 
 use App\Domain\Batch\Aggregates\BatchAggregate;
-use App\Domain\Batch\Models\BatchJob;
+use App\Domain\Batch\DataObjects\BatchJob;
+use App\Models\BatchJob as BatchJobModel;
 use Workflow\Activity;
 
 class ValidateBatchJobActivity extends Activity
@@ -14,14 +15,14 @@ class ValidateBatchJobActivity extends Activity
      */
     public function execute(string $batchJobUuid): BatchJob
     {
-        $batchJob = BatchJob::where('uuid', $batchJobUuid)->first();
+        $batchJobModel = BatchJobModel::where('uuid', $batchJobUuid)->with('items')->first();
         
-        if (!$batchJob) {
+        if (!$batchJobModel) {
             throw new \InvalidArgumentException("Batch job not found: {$batchJobUuid}");
         }
         
-        if ($batchJob->status !== 'pending') {
-            throw new \InvalidArgumentException("Batch job is not in pending status: {$batchJob->status}");
+        if ($batchJobModel->status !== 'pending') {
+            throw new \InvalidArgumentException("Batch job is not in pending status: {$batchJobModel->status}");
         }
         
         // Start the batch job
@@ -29,6 +30,14 @@ class ValidateBatchJobActivity extends Activity
             ->startBatchJob()
             ->persist();
         
-        return $batchJob;
+        // Convert to DataObject
+        return BatchJob::create(
+            userUuid: $batchJobModel->user_uuid,
+            name: $batchJobModel->name,
+            type: $batchJobModel->type,
+            items: $batchJobModel->items->map(fn($item) => $item->data)->toArray(),
+            scheduledAt: $batchJobModel->scheduled_at?->toIso8601String(),
+            metadata: $batchJobModel->metadata ?? []
+        );
     }
 }
