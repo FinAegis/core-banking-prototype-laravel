@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Mockery;
 use Tests\UnitTestCase;
-use PHPUnit\Framework\Attributes\Test;
 
 class EnsureSubProductEnabledTest extends UnitTestCase
 {
@@ -33,7 +32,7 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         parent::tearDown();
     }
 
-    #[Test]
+    /** @test */
     public function it_allows_request_when_sub_product_is_enabled()
     {
         $request = Request::create('/api/exchange/orders');
@@ -54,7 +53,7 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         $this->assertEquals('Success', $response->getContent());
     }
 
-    #[Test]
+    /** @test */
     public function it_blocks_request_when_sub_product_is_disabled()
     {
         $request = Request::create('/api/lending/loans');
@@ -74,20 +73,14 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         $this->assertEquals(403, $response->getStatusCode());
         
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Sub-product not available', $content['error']);
+        $this->assertEquals('Sub-product lending is not enabled', $content['error']);
     }
 
-    #[Test]
+    /** @test */
     public function it_allows_request_when_feature_is_enabled()
     {
         $request = Request::create('/api/exchange/crypto');
         
-        $this->subProductService
-            ->shouldReceive('isEnabled')
-            ->once()
-            ->with('exchange')
-            ->andReturn(true);
-            
         $this->subProductService
             ->shouldReceive('isFeatureEnabled')
             ->once()
@@ -98,23 +91,17 @@ class EnsureSubProductEnabledTest extends UnitTestCase
             return new Response('Success');
         };
         
-        $response = $this->middleware->handle($request, $next, 'exchange', 'crypto_trading');
+        $response = $this->middleware->handle($request, $next, 'exchange:crypto_trading');
         
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('Success', $response->getContent());
     }
 
-    #[Test]
+    /** @test */
     public function it_blocks_request_when_feature_is_disabled()
     {
         $request = Request::create('/api/exchange/derivatives');
         
-        $this->subProductService
-            ->shouldReceive('isEnabled')
-            ->once()
-            ->with('exchange')
-            ->andReturn(true);
-            
         $this->subProductService
             ->shouldReceive('isFeatureEnabled')
             ->once()
@@ -125,41 +112,74 @@ class EnsureSubProductEnabledTest extends UnitTestCase
             return new Response('Should not reach here');
         };
         
-        $response = $this->middleware->handle($request, $next, 'exchange', 'derivatives');
+        $response = $this->middleware->handle($request, $next, 'exchange:derivatives');
         
         $this->assertEquals(403, $response->getStatusCode());
         
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Feature not available', $content['error']);
+        $this->assertEquals('Feature derivatives is not enabled for sub-product exchange', $content['error']);
     }
 
-    #[Test]
+    /** @test */
     public function it_handles_multiple_features_with_or_logic()
     {
-        // This test is invalid - the middleware doesn't support OR logic with pipes
-        // Commenting out for now as it tests functionality that doesn't exist
-        $this->markTestSkipped('Middleware does not support OR logic for features');
-    }
-
-    #[Test]
-    public function it_blocks_when_all_features_in_or_list_are_disabled()
-    {
-        // This test is invalid - the middleware doesn't support OR logic with pipes
-        // Commenting out for now as it tests functionality that doesn't exist
-        $this->markTestSkipped('Middleware does not support OR logic for features');
-    }
-
-    #[Test]
-    public function it_validates_parameter_format()
-    {
-        // The middleware doesn't validate empty parameters - it will just call isEnabled('')
-        $request = Request::create('/api/test');
+        $request = Request::create('/api/lending/loans');
         
         $this->subProductService
-            ->shouldReceive('isEnabled')
+            ->shouldReceive('isFeatureEnabled')
             ->once()
-            ->with('')
+            ->with('lending', 'sme_loans')
             ->andReturn(false);
+        
+        $this->subProductService
+            ->shouldReceive('isFeatureEnabled')
+            ->once()
+            ->with('lending', 'p2p_marketplace')
+            ->andReturn(true);
+        
+        $next = function ($request) {
+            return new Response('Success');
+        };
+        
+        $response = $this->middleware->handle($request, $next, 'lending:sme_loans|p2p_marketplace');
+        
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('Success', $response->getContent());
+    }
+
+    /** @test */
+    public function it_blocks_when_all_features_in_or_list_are_disabled()
+    {
+        $request = Request::create('/api/lending/loans');
+        
+        $this->subProductService
+            ->shouldReceive('isFeatureEnabled')
+            ->once()
+            ->with('lending', 'sme_loans')
+            ->andReturn(false);
+        
+        $this->subProductService
+            ->shouldReceive('isFeatureEnabled')
+            ->once()
+            ->with('lending', 'p2p_marketplace')
+            ->andReturn(false);
+        
+        $next = function ($request) {
+            return new Response('Should not reach here');
+        };
+        
+        $response = $this->middleware->handle($request, $next, 'lending:sme_loans|p2p_marketplace');
+        
+        $this->assertEquals(403, $response->getStatusCode());
+        
+        $content = json_decode($response->getContent(), true);
+        $this->assertEquals('None of the required features [sme_loans, p2p_marketplace] are enabled for sub-product lending', $content['error']);
+    }
+
+    /** @test */
+    public function it_validates_parameter_format()
+    {
+        $request = Request::create('/api/test');
         
         $next = function ($request) {
             return new Response('Should not reach here');
@@ -168,12 +188,12 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         // Test with empty parameter
         $response = $this->middleware->handle($request, $next, '');
         
-        $this->assertEquals(403, $response->getStatusCode());
+        $this->assertEquals(500, $response->getStatusCode());
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Sub-product not available', $content['error']);
+        $this->assertEquals('Sub-product parameter is required', $content['error']);
     }
 
-    #[Test]
+    /** @test */
     public function it_handles_ajax_requests()
     {
         $request = Request::create('/api/lending/loans', 'GET');
@@ -195,10 +215,10 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         $this->assertEquals('application/json', $response->headers->get('Content-Type'));
         
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Sub-product not available', $content['error']);
+        $this->assertEquals('Sub-product lending is not enabled', $content['error']);
     }
 
-    #[Test]
+    /** @test */
     public function it_handles_json_accept_header()
     {
         $request = Request::create('/api/lending/loans', 'GET');

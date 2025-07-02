@@ -173,8 +173,7 @@ class ProcessWebhookDeliveryTest extends TestCase
 
         $job = new ProcessWebhookDelivery($this->delivery);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('HTTP 408:');
+        $this->expectException(RequestException::class);
 
         $job->handle($this->webhookService);
 
@@ -194,10 +193,13 @@ class ProcessWebhookDeliveryTest extends TestCase
 
         Log::shouldReceive('info')
             ->once()
-            ->with('Webhook delivered successfully', \Mockery::type('array'));
-        
-        // Allow Log::error to be called without strict expectations
-        Log::shouldReceive('error')->andReturnTrue();
+            ->withArgs(function ($message, $context) {
+                return $message === 'Webhook delivered successfully' &&
+                       $context['webhook_id'] === $this->webhook->uuid &&
+                       $context['delivery_id'] === $this->delivery->uuid &&
+                       $context['status_code'] === 200 &&
+                       is_int($context['duration_ms']);
+            });
 
         $job = new ProcessWebhookDelivery($this->delivery);
         $job->handle($this->webhookService);
