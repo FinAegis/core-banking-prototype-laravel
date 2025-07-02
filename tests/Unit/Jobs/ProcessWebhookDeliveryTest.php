@@ -19,6 +19,11 @@ use Exception;
 class ProcessWebhookDeliveryTest extends TestCase
 {
     use RefreshDatabase;
+    
+    protected function shouldCreateDefaultAccountsInSetup(): bool
+    {
+        return false;
+    }
 
     protected Webhook $webhook;
     protected WebhookDelivery $delivery;
