@@ -389,6 +389,14 @@ Route::middleware([
         Route::get('/{batchJob}/download', [App\Http\Controllers\BatchProcessingController::class, 'download'])->name('download');
     });
     
+    // Asset Management Routes
+    Route::prefix('asset-management')->name('asset-management.')->group(function () {
+        Route::get('/', [App\Http\Controllers\AssetManagementController::class, 'index'])->name('index');
+        Route::get('/analytics', [App\Http\Controllers\AssetManagementController::class, 'analytics'])->name('analytics');
+        Route::get('/export', [App\Http\Controllers\AssetManagementController::class, 'export'])->name('export');
+        Route::get('/{asset}', [App\Http\Controllers\AssetManagementController::class, 'show'])->name('show');
+    });
+    
     // Transfer Route
     Route::get('/transfers', function () {
         return redirect()->route('wallet.transfer');
