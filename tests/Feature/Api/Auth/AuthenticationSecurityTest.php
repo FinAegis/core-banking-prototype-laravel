@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\RecoveryCode;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
