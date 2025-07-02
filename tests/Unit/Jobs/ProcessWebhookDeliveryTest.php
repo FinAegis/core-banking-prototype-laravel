@@ -13,11 +13,13 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Tests\UnitTestCase;
+use Tests\TestCase;
 use Exception;
 
-class ProcessWebhookDeliveryTest extends UnitTestCase
+class ProcessWebhookDeliveryTest extends TestCase
 {
+    use RefreshDatabase;
+    
     protected function shouldCreateDefaultAccountsInSetup(): bool
     {
         return false;

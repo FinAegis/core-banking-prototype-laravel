@@ -31,7 +31,9 @@ return new class extends Migration
             });
             
             // Copy data from old table to new table
-            DB::statement('INSERT INTO assets_temp SELECT * FROM assets');
+            // Need to specify columns explicitly as the new table has additional columns
+            DB::statement('INSERT INTO assets_temp (code, name, type, precision, is_active, metadata, created_at, updated_at) 
+                          SELECT code, name, type, precision, is_active, metadata, created_at, updated_at FROM assets');
             
             // Drop the old table
             Schema::drop('assets');

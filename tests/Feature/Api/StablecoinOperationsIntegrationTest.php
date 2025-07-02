@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Models\Account;
-use App\Models\Asset;
+use App\Domain\Asset\Models\Asset;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class StablecoinOperationsIntegrationTest extends TestCase
 {
@@ -54,17 +55,18 @@ class StablecoinOperationsIntegrationTest extends TestCase
         // Create stablecoin
         $this->stablecoin = Stablecoin::factory()->create([
             'code' => 'FUSD',
-            'name' => 'Fiat USD',
+            'name' => 'FinAegis USD',
             'symbol' => 'FUSD',
+            'peg_asset_code' => 'USD',
             'precision' => 2,
             'is_active' => true,
             'total_supply' => 0,
             'max_supply' => 1000000000, // 10M max
-            'collateral_ratio' => 150, // 150%
-            'liquidation_ratio' => 120, // 120%
-            'liquidation_penalty' => 10, // 10%
-            'stability_fee_rate' => 2, // 2% annual
-            'min_mint_amount' => 100, // $1 minimum
+            'collateral_ratio' => 1.5, // 150%
+            'min_collateral_ratio' => 1.2, // 120%
+            'liquidation_penalty' => 0.1, // 10%
+            'mint_fee' => 0.001, // 0.1%
+            'burn_fee' => 0.001, // 0.1%
         ]);
         
         // Give the account some balance for collateral
@@ -74,7 +76,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
         Sanctum::actingAs($this->user);
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_can_mint_stablecoins()
     {
         $response = $this->postJson('/api/v2/stablecoin-operations/mint', [
@@ -105,7 +108,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
         $this->assertEquals(100000, $this->account->fresh()->getBalance('FUSD')); // $1,000 minted
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_fails_to_mint_with_insufficient_collateral()
     {
         $response = $this->postJson('/api/v2/stablecoin-operations/mint', [
@@ -122,7 +126,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_can_burn_stablecoins()
     {
         // First create a position by minting
@@ -159,7 +164,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
         $this->assertEquals(50000, $this->account->fresh()->getBalance('FUSD')); // $500 remaining
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_fails_to_burn_more_than_debt_amount()
     {
         // First create a position
@@ -184,7 +190,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_can_add_collateral()
     {
         // First create a position
@@ -218,7 +225,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
         $this->assertEquals(100000, $position->debt_amount); // Debt unchanged
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_can_get_liquidation_opportunities()
     {
         // Create a position that's under-collateralized
@@ -262,7 +270,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
         $this->assertGreaterThanOrEqual(1, count($response->json('data')));
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_can_handle_empty_liquidation_opportunities()
     {
         // No positions or all healthy positions
@@ -274,7 +283,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_requires_authentication()
     {
         // Logout
@@ -291,7 +301,8 @@ class StablecoinOperationsIntegrationTest extends TestCase
         $response->assertUnauthorized();
     }
 
-    /** @test */
+    
+    #[Test]
     public function it_validates_stablecoin_sub_product_is_enabled()
     {
         // Disable stablecoins sub-product
