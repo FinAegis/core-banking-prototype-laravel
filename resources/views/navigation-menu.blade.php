@@ -32,6 +32,10 @@
                         {{ __('Voting') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('gcu.trading') }}" :active="request()->routeIs('gcu.trading')">
+                        {{ __('Trade GCU') }}
+                    </x-nav-link>
+                    
                     <x-nav-link href="{{ route('cgo') }}" :active="request()->routeIs('cgo*')">
                         {{ __('CGO') }}
                     </x-nav-link>

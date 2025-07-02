@@ -44,6 +44,16 @@ Route::prefix('gcu')->group(function () {
     Route::get('/governance/active-polls', [GCUController::class, 'activePolls']);
     Route::get('/supported-banks', [GCUController::class, 'supportedBanks']);
     
+    // Trading endpoints (authenticated)
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('/buy', [\App\Http\Controllers\Api\V2\GCUTradingController::class, 'buy'])
+            ->middleware(['transaction.rate_limit:convert']);
+        Route::post('/sell', [\App\Http\Controllers\Api\V2\GCUTradingController::class, 'sell'])
+            ->middleware(['transaction.rate_limit:convert']);
+        Route::get('/quote', [\App\Http\Controllers\Api\V2\GCUTradingController::class, 'quote']);
+        Route::get('/trading-limits', [\App\Http\Controllers\Api\V2\GCUTradingController::class, 'tradingLimits']);
+    });
+    
     // Voting endpoints
     Route::prefix('voting')->group(function () {
         Route::get('/proposals', [\App\Http\Controllers\Api\V2\VotingController::class, 'proposals']);

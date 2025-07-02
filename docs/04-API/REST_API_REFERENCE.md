@@ -10,6 +10,7 @@ This document consolidates all REST API endpoints for the FinAegis Core Banking 
 - [Transfer Operations](#transfer-operations)
 - [Exchange Rates](#exchange-rates)
 - [Governance & Voting](#governance--voting)
+- [GCU Trading](#gcu-trading)
 - [Custodian Integration](#custodian-integration)
 - [Webhooks](#webhooks)
 - [Bank Allocation](#bank-allocation)
@@ -300,6 +301,161 @@ Content-Type: application/json
   "start_date": "2025-07-01",
   "end_date": "2025-07-07",
   "voting_power_strategy": "AssetWeightedVotingStrategy"
+}
+```
+
+## GCU Trading
+
+### Buy GCU
+```http
+POST /api/v2/gcu/buy
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "amount": 1000.00,
+  "currency": "EUR",
+  "account_uuid": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "transaction_id": "550e8400-e29b-41d4-a716-446655440000",
+    "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "spent_amount": 1000.00,
+    "spent_currency": "EUR",
+    "received_amount": 912.45,
+    "received_currency": "GCU",
+    "exchange_rate": 0.91245,
+    "fee_amount": 10.00,
+    "fee_currency": "EUR",
+    "new_gcu_balance": 1912.45,
+    "timestamp": "2025-07-02T15:30:00Z"
+  },
+  "message": "Successfully purchased 912.45 GCU"
+}
+```
+
+### Sell GCU
+```http
+POST /api/v2/gcu/sell
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "amount": 100.00,
+  "currency": "EUR",
+  "account_uuid": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "transaction_id": "660e8400-e29b-41d4-a716-446655440001",
+    "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "sold_amount": 100.00,
+    "sold_currency": "GCU",
+    "received_amount": 109.00,
+    "received_currency": "EUR",
+    "exchange_rate": 1.0956,
+    "fee_amount": 1.10,
+    "fee_currency": "EUR",
+    "new_gcu_balance": 812.45,
+    "timestamp": "2025-07-02T15:35:00Z"
+  },
+  "message": "Successfully sold 100.00 GCU"
+}
+```
+
+### Get Trading Quote
+```http
+GET /api/v2/gcu/quote?operation=buy&amount=1000&currency=EUR
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "operation": "buy",
+    "input_amount": 1000.00,
+    "input_currency": "EUR",
+    "output_amount": 912.45,
+    "output_currency": "GCU",
+    "exchange_rate": 0.91245,
+    "fee_amount": 10.00,
+    "fee_currency": "EUR",
+    "fee_percentage": 1.0,
+    "quote_valid_until": "2025-07-02T15:35:00Z",
+    "minimum_amount": 100.00,
+    "maximum_amount": 1000000.00
+  }
+}
+```
+
+### Get Trading Limits
+```http
+GET /api/v2/gcu/trading-limits
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "daily_buy_limit": 10000.00,
+    "daily_sell_limit": 10000.00,
+    "daily_buy_used": 2500.00,
+    "daily_sell_used": 0.00,
+    "monthly_buy_limit": 100000.00,
+    "monthly_sell_limit": 100000.00,
+    "monthly_buy_used": 15000.00,
+    "monthly_sell_used": 5000.00,
+    "minimum_buy_amount": 100.00,
+    "minimum_sell_amount": 10.00,
+    "kyc_level": 2,
+    "limits_currency": "EUR"
+  }
+}
+```
+
+### Get GCU Info (Public)
+```http
+GET /api/v2/gcu
+```
+
+Response:
+```json
+{
+  "data": {
+    "code": "GCU",
+    "name": "Global Currency Unit",
+    "symbol": "Ǥ",
+    "current_value": 1.0975,
+    "value_currency": "USD",
+    "last_rebalanced": "2025-07-01T00:00:00Z",
+    "next_rebalance": "2025-08-01T00:00:00Z",
+    "composition": [
+      {
+        "asset_code": "USD",
+        "asset_name": "US Dollar",
+        "weight": 0.25,
+        "value_contribution": 0.2500
+      }
+    ],
+    "statistics": {
+      "total_supply": 10000000,
+      "holders_count": 1234,
+      "24h_change": 0.25,
+      "7d_change": 1.50,
+      "30d_change": 2.75
+    }
+  }
 }
 ```
 
