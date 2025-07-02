@@ -186,33 +186,33 @@ class TransactionStatusController extends Controller
      */
     private function getPendingTransactions($user, $filters)
     {
-        $query = DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+        $query = DB::table('transaction_projections')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->whereIn('transactions.status', ['pending', 'processing', 'hold']);
+            ->whereIn('transaction_projections.status', ['pending', 'processing', 'hold']);
         
         // Apply filters
         if ($filters['type'] !== 'all') {
-            $query->where('transactions.type', $filters['type']);
+            $query->where('transaction_projections.type', $filters['type']);
         }
         
         if ($filters['account'] !== 'all') {
-            $query->where('transactions.account_uuid', $filters['account']);
+            $query->where('transaction_projections.account_uuid', $filters['account']);
         }
         
         if ($filters['date_from']) {
-            $query->where('transactions.created_at', '>=', $filters['date_from']);
+            $query->where('transaction_projections.created_at', '>=', $filters['date_from']);
         }
         
         if ($filters['date_to']) {
-            $query->where('transactions.created_at', '<=', $filters['date_to']);
+            $query->where('transaction_projections.created_at', '<=', $filters['date_to']);
         }
         
         return $query->select(
-                'transactions.*',
+                'transaction_projections.*',
                 'accounts.name as account_name'
             )
-            ->orderBy('transactions.created_at', 'desc')
+            ->orderBy('transaction_projections.created_at', 'desc')
             ->limit(50)
             ->get()
             ->map(function ($transaction) {
@@ -227,37 +227,37 @@ class TransactionStatusController extends Controller
      */
     private function getCompletedTransactions($user, $filters)
     {
-        $query = DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+        $query = DB::table('transaction_projections')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->whereIn('transactions.status', ['completed', 'failed', 'cancelled']);
+            ->whereIn('transaction_projections.status', ['completed', 'failed', 'cancelled']);
         
         // Apply filters
         if ($filters['status'] !== 'all' && $filters['status'] !== 'pending') {
-            $query->where('transactions.status', $filters['status']);
+            $query->where('transaction_projections.status', $filters['status']);
         }
         
         if ($filters['type'] !== 'all') {
-            $query->where('transactions.type', $filters['type']);
+            $query->where('transaction_projections.type', $filters['type']);
         }
         
         if ($filters['account'] !== 'all') {
-            $query->where('transactions.account_uuid', $filters['account']);
+            $query->where('transaction_projections.account_uuid', $filters['account']);
         }
         
         if ($filters['date_from']) {
-            $query->where('transactions.created_at', '>=', $filters['date_from']);
+            $query->where('transaction_projections.created_at', '>=', $filters['date_from']);
         }
         
         if ($filters['date_to']) {
-            $query->where('transactions.created_at', '<=', $filters['date_to']);
+            $query->where('transaction_projections.created_at', '<=', $filters['date_to']);
         }
         
         return $query->select(
-                'transactions.*',
+                'transaction_projections.*',
                 'accounts.name as account_name'
             )
-            ->orderBy('transactions.created_at', 'desc')
+            ->orderBy('transaction_projections.created_at', 'desc')
             ->limit(100)
             ->get();
     }
@@ -267,10 +267,10 @@ class TransactionStatusController extends Controller
      */
     private function getTransactionStatistics($user)
     {
-        $stats = DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+        $stats = DB::table('transaction_projections')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->where('transactions.created_at', '>=', now()->subDays(30))
+            ->where('transaction_projections.created_at', '>=', now()->subDays(30))
             ->select(
                 DB::raw('COUNT(*) as total'),
                 DB::raw('SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed'),
@@ -299,12 +299,12 @@ class TransactionStatusController extends Controller
      */
     private function findTransaction($transactionId, $user)
     {
-        // Check main transactions table
-        $transaction = DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+        // Check main transaction_projections table
+        $transaction = DB::table('transaction_projections')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->where('transactions.id', $transactionId)
-            ->select('transactions.*', 'accounts.name as account_name')
+            ->where('transaction_projections.id', $transactionId)
+            ->select('transaction_projections.*', 'accounts.name as account_name')
             ->first();
         
         if ($transaction) {
@@ -421,7 +421,7 @@ class TransactionStatusController extends Controller
         
         // Check for reversal transactions
         if (isset($transaction->reference)) {
-            $reversals = DB::table('transactions')
+            $reversals = DB::table('transaction_projections')
                 ->where('reference', 'like', 'REV-' . $transaction->reference . '%')
                 ->limit(5)
                 ->get();
@@ -589,7 +589,7 @@ class TransactionStatusController extends Controller
         $data['parent_transaction_id'] = $originalTransaction->id;
         $data['reference'] = 'RETRY-' . $originalTransaction->reference;
         
-        return DB::table('transactions')->insertGetId($data);
+        return DB::table('transaction_projections')->insertGetId($data);
     }
     
     /**

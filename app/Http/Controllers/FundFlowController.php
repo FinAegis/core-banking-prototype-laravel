@@ -146,23 +146,23 @@ class FundFlowController extends Controller
         $flows = [];
         
         // Get all transactions for user's accounts
-        $transactions = DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+        $transactions = DB::table('transaction_projections')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->whereBetween('transactions.created_at', [$dateRange['start'], $dateRange['end']])
-            ->where('transactions.status', 'completed');
+            ->whereBetween('transaction_projections.created_at', [$dateRange['start'], $dateRange['end']])
+            ->where('transaction_projections.status', 'completed');
         
         // Apply filters
         if ($filters['account'] !== 'all') {
-            $transactions->where('transactions.account_uuid', $filters['account']);
+            $transactions->where('transaction_projections.account_uuid', $filters['account']);
         }
         
         if ($filters['flow_type'] !== 'all') {
-            $transactions->where('transactions.type', $filters['flow_type']);
+            $transactions->where('transaction_projections.type', $filters['flow_type']);
         }
         
         $transactionData = $transactions->select(
-            'transactions.*',
+            'transaction_projections.*',
             'accounts.name as account_name',
             'accounts.uuid as account_uuid'
         )->get();
@@ -202,10 +202,10 @@ class FundFlowController extends Controller
     private function getFlowStatistics($user, $dateRange, $filters)
     {
         $stats = DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->whereBetween('transactions.created_at', [$dateRange['start'], $dateRange['end']])
-            ->where('transactions.status', 'completed')
+            ->whereBetween('transaction_projections.created_at', [$dateRange['start'], $dateRange['end']])
+            ->where('transaction_projections.status', 'completed')
             ->select(
                 DB::raw('SUM(CASE WHEN type = "deposit" THEN amount ELSE 0 END) as total_inflow'),
                 DB::raw('SUM(CASE WHEN type = "withdrawal" THEN amount ELSE 0 END) as total_outflow'),
@@ -216,7 +216,7 @@ class FundFlowController extends Controller
         
         // Apply filters
         if ($filters['account'] !== 'all') {
-            $stats->where('transactions.account_uuid', $filters['account']);
+            $stats->where('transaction_projections.account_uuid', $filters['account']);
         }
         
         $result = $stats->first();
@@ -308,18 +308,18 @@ class FundFlowController extends Controller
     private function getDailyFlowData($user, $dateRange, $filters)
     {
         $query = DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->whereBetween('transactions.created_at', [$dateRange['start'], $dateRange['end']])
-            ->where('transactions.status', 'completed');
+            ->whereBetween('transaction_projections.created_at', [$dateRange['start'], $dateRange['end']])
+            ->where('transaction_projections.status', 'completed');
         
         // Apply filters
         if ($filters['account'] !== 'all') {
-            $query->where('transactions.account_uuid', $filters['account']);
+            $query->where('transaction_projections.account_uuid', $filters['account']);
         }
         
         $dailyData = $query->select(
-                DB::raw('DATE(transactions.created_at) as date'),
+                DB::raw('DATE(transaction_projections.created_at) as date'),
                 DB::raw('SUM(CASE WHEN type = "deposit" THEN amount ELSE 0 END) as inflow'),
                 DB::raw('SUM(CASE WHEN type = "withdrawal" THEN amount ELSE 0 END) as outflow'),
                 DB::raw('COUNT(*) as transaction_count')
@@ -355,7 +355,7 @@ class FundFlowController extends Controller
      */
     private function getAccountInflows($account)
     {
-        return DB::table('transactions')
+        return DB::table('transaction_projections')
             ->where('account_uuid', $account->uuid)
             ->where('type', 'deposit')
             ->where('status', 'completed')
@@ -369,7 +369,7 @@ class FundFlowController extends Controller
      */
     private function getAccountOutflows($account)
     {
-        return DB::table('transactions')
+        return DB::table('transaction_projections')
             ->where('account_uuid', $account->uuid)
             ->whereIn('type', ['withdrawal', 'transfer'])
             ->where('amount', '<', 0)
@@ -487,11 +487,11 @@ class FundFlowController extends Controller
      */
     private function getTopFlowCategories($user, $dateRange, $filters)
     {
-        return DB::table('transactions')
-            ->join('accounts', 'transactions.account_uuid', '=', 'accounts.uuid')
+        return DB::table('transaction_projections')
+            ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
-            ->whereBetween('transactions.created_at', [$dateRange['start'], $dateRange['end']])
-            ->where('transactions.status', 'completed')
+            ->whereBetween('transaction_projections.created_at', [$dateRange['start'], $dateRange['end']])
+            ->where('transaction_projections.status', 'completed')
             ->select(
                 'type',
                 DB::raw('COUNT(*) as count'),

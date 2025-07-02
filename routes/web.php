@@ -153,9 +153,7 @@ Route::prefix('gcu/voting')->name('gcu.voting.')->group(function () {
 
 // GCU Trading routes (authenticated)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/gcu/trading', function () {
-        return Inertia\Inertia::render('GCU/Trading');
-    })->name('gcu.trading');
+    Route::get('/gcu/trading', [App\Http\Controllers\GcuTradingController::class, 'index'])->name('gcu.trading');
 });
 
 Route::middleware([
