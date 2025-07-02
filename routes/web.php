@@ -371,6 +371,13 @@ Route::middleware([
         Route::get('/data', [App\Http\Controllers\FundFlowController::class, 'data'])->name('data');
     });
     
+    // Exchange Rate Viewer Routes
+    Route::prefix('exchange-rates')->name('exchange-rates.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ExchangeRateViewController::class, 'index'])->name('index');
+        Route::post('/rates', [App\Http\Controllers\ExchangeRateViewController::class, 'rates'])->name('rates');
+        Route::get('/historical', [App\Http\Controllers\ExchangeRateViewController::class, 'historical'])->name('historical');
+    });
+    
     // Transfer Route
     Route::get('/transfers', function () {
         return redirect()->route('wallet.transfer');

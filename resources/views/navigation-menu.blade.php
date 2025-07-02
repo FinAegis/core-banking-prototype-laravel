@@ -32,6 +32,10 @@
                         {{ __('Fund Flow') }}
                     </x-nav-link>
                     
+                    <x-nav-link href="{{ route('exchange-rates.index') }}" :active="request()->routeIs('exchange-rates.*')">
+                        {{ __('Exchange Rates') }}
+                    </x-nav-link>
+                    
                     <x-nav-link href="{{ route('wallet.bank-allocation') }}" :active="request()->routeIs('wallet.bank-allocation')">
                         {{ __('Banks') }}
                     </x-nav-link>
