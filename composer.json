@@ -46,6 +46,7 @@
         "meilisearch/meilisearch-php": "^1.9",
         "predis/predis": "^2.2",
         "scrivo/highlight.php": "^9.18",
+        "spatie/laravel-data": "*",
         "spatie/laravel-event-sourcing": "^7.7",
         "spatie/laravel-permission": "^6.9"
     },

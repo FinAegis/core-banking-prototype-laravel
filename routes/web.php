@@ -419,6 +419,25 @@ Route::middleware([
         Route::get('/transfer', [App\Http\Controllers\WalletController::class, 'showTransfer'])->name('transfer');
         Route::get('/convert', [App\Http\Controllers\WalletController::class, 'showConvert'])->name('convert');
         
+        // New Interface Routes
+        // Stablecoin Operations
+        Route::prefix('stablecoin-operations')->name('stablecoin-operations.')->group(function () {
+            Route::get('/', [App\Http\Controllers\StablecoinOperationsController::class, 'index'])->name('index');
+            Route::get('/mint', [App\Http\Controllers\StablecoinOperationsController::class, 'mint'])->name('mint');
+            Route::post('/mint', [App\Http\Controllers\StablecoinOperationsController::class, 'processMint'])->name('mint.process');
+            Route::get('/burn', [App\Http\Controllers\StablecoinOperationsController::class, 'burn'])->name('burn');
+            Route::post('/burn', [App\Http\Controllers\StablecoinOperationsController::class, 'processBurn'])->name('burn.process');
+            Route::get('/history', [App\Http\Controllers\StablecoinOperationsController::class, 'history'])->name('history');
+        });
+        
+        // Custodian Integration Status
+        Route::prefix('custodian-integration')->name('custodian-integration.')->group(function () {
+            Route::get('/', [App\Http\Controllers\CustodianIntegrationController::class, 'index'])->name('index');
+            Route::get('/{custodianCode}', [App\Http\Controllers\CustodianIntegrationController::class, 'show'])->name('show');
+            Route::post('/{custodianCode}/test-connection', [App\Http\Controllers\CustodianIntegrationController::class, 'testConnection'])->name('test-connection');
+            Route::post('/{custodianCode}/synchronize', [App\Http\Controllers\CustodianIntegrationController::class, 'synchronize'])->name('synchronize');
+        });
+        
         // Deposit routes
         Route::prefix('deposit')->name('deposit.')->group(function () {
             // Card deposits (Stripe integration)
