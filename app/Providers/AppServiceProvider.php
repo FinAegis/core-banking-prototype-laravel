@@ -26,6 +26,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Treat 'demo' environment as production
+        if ($this->app->environment('demo')) {
+            // Force production-like settings
+            config(['app.debug' => config('demo.debug', false)]);
+            config(['app.debug_blacklist' => config('demo.debug_blacklist')]);
+            
+            // Force HTTPS in demo environment
+            if (request()->getHost() !== 'localhost' && request()->getHost() !== '127.0.0.1') {
+                \URL::forceScheme('https');
+            }
+            
+            // Apply demo-specific rate limits
+            config(['app.rate_limits.api' => config('demo.rate_limits.api', 60)]);
+            config(['app.rate_limits.transactions' => config('demo.rate_limits.transactions', 10)]);
+        }
     }
 }

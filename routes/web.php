@@ -69,15 +69,11 @@ Route::get('/subproducts/treasury', function () {
 })->name('subproducts.treasury');
 
 // Financial institutions routes
-Route::get('/financial-institutions/apply', function () {
-    return view('financial-institutions.apply');
-})->name('financial-institutions.apply');
+Route::get('/financial-institutions/apply', [App\Http\Controllers\FinancialInstitutionApplicationController::class, 'show'])
+    ->name('financial-institutions.apply');
 
-Route::post('/financial-institutions/submit', function () {
-    // For now, just redirect back with success message
-    return redirect()->route('financial-institutions.apply')
-        ->with('success', 'Thank you for your application. We will review it and contact you soon.');
-})->name('financial-institutions.submit');
+Route::post('/financial-institutions/submit', [App\Http\Controllers\FinancialInstitutionApplicationController::class, 'submit'])
+    ->name('financial-institutions.submit');
 
 Route::get('/support', function () {
     return view('support.index');

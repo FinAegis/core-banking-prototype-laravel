@@ -37,5 +37,21 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Treat 'demo' environment as production for error handling
+        $exceptions->shouldRenderJsonWhen(function ($request, $e) {
+            if ($request->is('api/*')) {
+                return true;
+            }
+            
+            return $request->expectsJson();
+        });
+        
+        // Don't report certain exceptions in demo environment
+        $exceptions->dontReport([
+            \Illuminate\Auth\AuthenticationException::class,
+            \Illuminate\Auth\Access\AuthorizationException::class,
+            \Symfony\Component\HttpKernel\Exception\HttpException::class,
+            \Illuminate\Database\Eloquent\ModelNotFoundException::class,
+            \Illuminate\Validation\ValidationException::class,
+        ]);
     })->create();

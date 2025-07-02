@@ -6,11 +6,26 @@ default:
             contexts:
                 - FeatureContext
                 - LaravelFeatureContext
+                - WebContext
         api:
             paths:
                 features: features/api
             contexts:
                 - ApiContext
+        web:
+            paths:
+                features: features
+            contexts:
+                - WebContext
+            filters:
+                tags: "@web"
+
+    extensions:
+        Behat\MinkExtension:
+            base_url: 'http://finaegis.local'
+            sessions:
+                default:
+                    laravel: ~
 
     formatters:
         pretty:
