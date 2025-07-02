@@ -40,7 +40,7 @@ class WalletController extends Controller
         $account = Auth::user()->accounts()->first();
         $balances = $account ? $account->balances()->with('asset')->where('balance', '>', 0)->get() : collect();
         
-        return view('wallet.withdraw', compact('account', 'balances'));
+        return view('wallet.withdraw-options', compact('account', 'balances'));
     }
 
 

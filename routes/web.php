@@ -436,6 +436,13 @@ Route::middleware([
             Route::post('/bank', [App\Http\Controllers\WithdrawalController::class, 'store'])->name('store');
             Route::post('/bank-account', [App\Http\Controllers\WithdrawalController::class, 'addBankAccount'])->name('bank-account.add');
             Route::delete('/bank-account/{bankAccount}', [App\Http\Controllers\WithdrawalController::class, 'removeBankAccount'])->name('bank-account.remove');
+            
+            // OpenBanking withdrawal routes
+            Route::get('/openbanking', [App\Http\Controllers\OpenBankingWithdrawalController::class, 'create'])->name('openbanking');
+            Route::post('/openbanking/initiate', [App\Http\Controllers\OpenBankingWithdrawalController::class, 'initiate'])->name('openbanking.initiate');
+            Route::get('/openbanking/callback', [App\Http\Controllers\OpenBankingWithdrawalController::class, 'callback'])->name('openbanking.callback');
+            Route::post('/openbanking/select-account', [App\Http\Controllers\OpenBankingWithdrawalController::class, 'selectAccount'])->name('openbanking.select-account');
+            Route::post('/openbanking/process', [App\Http\Controllers\OpenBankingWithdrawalController::class, 'processWithAccount'])->name('openbanking.process');
         });
     });
 });
