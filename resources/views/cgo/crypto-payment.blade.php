@@ -17,13 +17,13 @@
                     <div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-lg p-4 mb-6">
                         <h4 class="font-bold text-red-800 dark:text-red-200 mb-2 flex items-center">
                             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                             </svg>
                             WARNING: TEST MODE - DO NOT SEND REAL CRYPTO
                         </h4>
                         <p class="text-red-700 dark:text-red-300">
-                            This is a test environment. Do not send actual cryptocurrency to these addresses.
-                            For testing, you can simulate the payment process without making real transactions.
+                            This is a TEST ENVIRONMENT. The addresses shown are EXAMPLE addresses only. 
+                            <strong>DO NOT send real cryptocurrency to these addresses or you will lose your funds!</strong>
                         </p>
                     </div>
                     @endif
@@ -62,7 +62,15 @@
                                         ->build();
                                     echo '<img src="' . $qrCode->getDataUri() . '" alt="QR Code">';
                                 } catch (\Exception $e) {
-                                    echo '<div class="text-gray-500 p-4">QR Code generation unavailable</div>';
+                                    // Fallback if endroid/qr-code is not available
+                                    echo '<div class="w-[200px] h-[200px] bg-gray-200 flex items-center justify-center text-gray-500">';
+                                    echo '<div class="text-center">';
+                                    echo '<svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
+                                    echo '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>';
+                                    echo '</svg>';
+                                    echo '<p class="text-sm">QR Code</p>';
+                                    echo '</div>';
+                                    echo '</div>';
                                 }
                             @endphp
                         </div>
