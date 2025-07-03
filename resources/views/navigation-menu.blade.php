@@ -433,20 +433,20 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             
-            <x-responsive-nav-link href="{{ route('wallet') }}" :active="request()->routeIs('wallet')">
+            <x-responsive-nav-link href="{{ route('wallet.index') }}" :active="request()->routeIs('wallet.*')">
                 {{ __('Wallet') }}
             </x-responsive-nav-link>
             
             <!-- Banking Section -->
             <div class="border-t border-gray-200 dark:border-gray-600"></div>
             <div class="block px-4 py-2 text-xs text-gray-400">{{ __('Banking') }}</div>
-            <x-responsive-nav-link href="{{ route('transactions.index') }}" :active="request()->routeIs('transactions.*')">
+            <x-responsive-nav-link href="{{ route('wallet.transactions') }}" :active="request()->routeIs('wallet.transactions')">
                 {{ __('Transactions') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('transaction.status') }}" :active="request()->routeIs('transaction.status')">
+            <x-responsive-nav-link href="{{ route('transactions.status') }}" :active="request()->routeIs('transactions.status.*')">
                 {{ __('Track Status') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('fund-flow') }}" :active="request()->routeIs('fund-flow')">
+            <x-responsive-nav-link href="{{ route('fund-flow.index') }}" :active="request()->routeIs('fund-flow.*')">
                 {{ __('Fund Flow') }}
             </x-responsive-nav-link>
             
