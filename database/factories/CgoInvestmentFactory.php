@@ -35,6 +35,7 @@ class CgoInvestmentFactory extends Factory
             'status' => 'pending',
             'payment_method' => $this->faker->randomElement(['card', 'crypto', 'bank_transfer']),
             'payment_status' => 'pending',
+            'email' => $this->faker->safeEmail(),
             'metadata' => [],
         ];
     }

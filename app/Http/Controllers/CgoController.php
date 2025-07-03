@@ -15,6 +15,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Services\Email\SubscriberEmailService;
 use App\Services\Cgo\StripePaymentService;
 use App\Services\Cgo\CoinbaseCommerceService;
+use App\Jobs\VerifyCgoPayment;
 
 class CgoController extends Controller
 {
@@ -218,6 +219,15 @@ class CgoController extends Controller
         
         // Generate unique account number if not configured
         $accountNumber = $bankConfig['account_number'] ?: 'CGO-' . str_pad($investment->id, 8, '0', STR_PAD_LEFT);
+        
+        // Store the bank transfer reference
+        $investment->update([
+            'bank_transfer_reference' => 'CGO-' . $investment->uuid,
+        ]);
+        
+        // Schedule payment verification job for bank transfers
+        // Check after 1 hour, then every 6 hours
+        VerifyCgoPayment::dispatch($investment)->delay(now()->addHour());
         
         return view('cgo.bank-transfer', [
             'investment' => $investment,

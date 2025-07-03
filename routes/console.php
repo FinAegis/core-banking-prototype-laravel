@@ -110,3 +110,17 @@ Schedule::command('system:health-check')
     ->onFailure(function () {
         \Log::critical('System health check failed to run');
     });
+
+// CGO Payment Verification
+Schedule::command('cgo:verify-payments')
+    ->everyThirtyMinutes()
+    ->description('Verify pending CGO investment payments')
+    ->appendOutputTo(storage_path('logs/cgo-payment-verification.log'))
+    ->withoutOverlapping();
+
+// CGO Expired Payment Handling
+Schedule::command('cgo:verify-payments --expired')
+    ->everyTwoHours()
+    ->description('Handle expired CGO investment payments')
+    ->appendOutputTo(storage_path('logs/cgo-expired-payments.log'))
+    ->withoutOverlapping();
