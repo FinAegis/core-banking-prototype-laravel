@@ -1680,6 +1680,20 @@ $user->assignRole('customer_business');
 - CGO views: `resources/views/cgo/`
 - Payment confirmation views: `resources/views/cgo/crypto-payment.blade.php`, `bank-transfer.blade.php`, `card-payment.blade.php`
 - CGO routes: Added to authenticated navigation in `resources/views/navigation-menu.blade.php`
+- **Payment Integration**: 
+  - Stripe payments: `app/Services/Cgo/StripePaymentService.php`
+  - Coinbase Commerce: `app/Services/Cgo/CoinbaseCommerceService.php`
+  - Payment verification: `app/Services/Cgo/PaymentVerificationService.php`
+- **KYC/AML Implementation**:
+  - KYC service: `app/Services/Cgo/CgoKycService.php`
+  - KYC controller: `app/Http/Controllers/CgoKycController.php`
+  - Documentation: `docs/06-DEVELOPMENT/CGO_KYC_AML.md`
+  - Tiered KYC levels: Basic ($1k), Enhanced ($10k), Full ($50k+)
+  - AML checks: PEP screening, sanctions screening, transaction patterns
+- **Database Tables**:
+  - `cgo_investments`: Investment records with KYC/AML fields
+  - `cgo_pricing_rounds`: Pricing round management
+  - KYC status tracking in users and investments tables
 
 ### Frontend Interfaces - Fund Flow Visualization ✅ Completed
 - Fund flow controller: `app/Http/Controllers/FundFlowController.php`

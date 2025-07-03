@@ -227,6 +227,7 @@ class CgoKycService
         
         // Check sanctions
         $sanctionsCheck = $this->checkSanctions($user);
+        
         if (!$sanctionsCheck['clear']) {
             $flags[] = 'sanctions_hit';
             $passed = false;
@@ -271,7 +272,10 @@ class CgoKycService
         
         $sanctionedCountries = ['IR', 'KP', 'SY', 'CU']; // Iran, North Korea, Syria, Cuba
         
-        if (in_array($user->country_code, $sanctionedCountries)) {
+        // Check if user has country_code attribute and if it's sanctioned
+        $countryCode = $user->country_code ?? null;
+        
+        if ($countryCode && in_array($countryCode, $sanctionedCountries)) {
             return ['clear' => false, 'reason' => 'sanctioned_country'];
         }
         

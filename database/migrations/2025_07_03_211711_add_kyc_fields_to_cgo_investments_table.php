@@ -30,9 +30,10 @@ return new class extends Migration
             }
             
             // Add indexes for performance
-            $indexes = \DB::select("SHOW INDEX FROM cgo_investments WHERE Key_name = 'cgo_investments_kyc_verified_at_index'");
-            if (empty($indexes)) {
+            try {
                 $table->index('kyc_verified_at');
+            } catch (\Exception $e) {
+                // Index might already exist, ignore
             }
         });
     }
@@ -43,9 +44,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('cgo_investments', function (Blueprint $table) {
-            $indexes = \DB::select("SHOW INDEX FROM cgo_investments WHERE Key_name = 'cgo_investments_kyc_verified_at_index'");
-            if (!empty($indexes)) {
+            try {
                 $table->dropIndex(['kyc_verified_at']);
+            } catch (\Exception $e) {
+                // Index might not exist, ignore
             }
             
             $table->dropColumn([
