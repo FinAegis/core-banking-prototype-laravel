@@ -7,6 +7,22 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @if(app()->environment(['local', 'staging']))
+            <!-- Test Environment Warning -->
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 rounded-lg p-4 mb-8">
+                <h4 class="font-bold text-yellow-800 dark:text-yellow-200 mb-2 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    TEST ENVIRONMENT - Not for Real Investments
+                </h4>
+                <p class="text-yellow-700 dark:text-yellow-300">
+                    This is a test environment. Any investments made here are for testing purposes only. 
+                    <strong>Do not send real money or cryptocurrency.</strong> Production deployment requires proper payment integration and regulatory compliance.
+                </p>
+            </div>
+            @endif
+            
             <!-- Current Round Info -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg mb-8">
                 <div class="p-6">

@@ -149,12 +149,20 @@ class CgoController extends Controller
     
     private function processCryptoPayment($investment, $cryptoCurrency)
     {
-        // Generate crypto address (in production, this would use a real crypto payment processor)
+        // CRITICAL: These are TEST addresses only. In production, use a real crypto payment processor
+        // like Coinbase Commerce, BitPay, or generate unique addresses per transaction
+        
+        if (app()->environment('production')) {
+            // Production should NEVER use static addresses
+            throw new \Exception('Crypto payment processor not configured for production');
+        }
+        
+        // TEST ADDRESSES ONLY - DO NOT USE IN PRODUCTION
         $cryptoAddresses = [
-            'BTC' => '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', // Example address
-            'ETH' => '0x742d35Cc6634C0532925a3b844Bc9e7595f6C123', // Example address  
-            'USDT' => '0x742d35Cc6634C0532925a3b844Bc9e7595f6C456', // Example address
-            'USDC' => '0x742d35Cc6634C0532925a3b844Bc9e7595f6C789', // Example address
+            'BTC' => 'TEST-BTC-ADDRESS-DO-NOT-USE', // Example address
+            'ETH' => 'TEST-ETH-ADDRESS-DO-NOT-USE', // Example address  
+            'USDT' => 'TEST-USDT-ADDRESS-DO-NOT-USE', // Example address
+            'USDC' => 'TEST-USDC-ADDRESS-DO-NOT-USE', // Example address
         ];
         
         $cryptoAddress = $cryptoAddresses[$cryptoCurrency];
