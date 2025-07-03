@@ -407,7 +407,7 @@
                     For regulatory inquiries, compliance documentation, or to report concerns, contact our dedicated compliance team.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="mailto:compliance@finaegis.org" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200">
+                    <a href="mailto:info@finaegis.org" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200">
                         Contact Compliance Team
                     </a>
                     <a href="{{ route('developers.show', 'api-docs') }}" class="border border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition duration-200">
