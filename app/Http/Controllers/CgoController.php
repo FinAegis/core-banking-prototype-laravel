@@ -15,6 +15,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Services\Email\SubscriberEmailService;
 use App\Services\Cgo\StripePaymentService;
 use App\Services\Cgo\CoinbaseCommerceService;
+use App\Services\Cgo\CgoKycService;
 use App\Jobs\VerifyCgoPayment;
 
 class CgoController extends Controller
@@ -64,7 +65,7 @@ class CgoController extends Controller
         return view('cgo.notify-success');
     }
     
-    public function invest()
+    public function invest(CgoKycService $kycService)
     {
         $currentRound = CgoPricingRound::where('is_active', true)->first();
         
@@ -72,13 +73,35 @@ class CgoController extends Controller
             return view('cgo.closed');
         }
         
+        $user = auth()->user();
+        $kycStatus = null;
+        
+        if ($user) {
+            // Create temporary investment to check KYC requirements for each package
+            $kycRequirements = [];
+            foreach (config('cgo.packages', []) as $key => $package) {
+                $tempInvestment = new CgoInvestment([
+                    'user_id' => $user->id,
+                    'amount' => $package['amount'],
+                ]);
+                $kycRequirements[$key] = $kycService->checkKycRequirements($tempInvestment);
+            }
+            
+            $kycStatus = [
+                'user_kyc_status' => $user->kyc_status,
+                'user_kyc_level' => $user->kyc_level,
+                'requirements_by_package' => $kycRequirements,
+            ];
+        }
+        
         return view('cgo.invest', [
             'currentRound' => $currentRound,
             'packages' => config('cgo.packages', []),
+            'kycStatus' => $kycStatus,
         ]);
     }
     
-    public function processInvestment(Request $request)
+    public function processInvestment(Request $request, CgoKycService $kycService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -89,6 +112,12 @@ class CgoController extends Controller
             'crypto_currency' => 'required_if:payment_method,crypto|in:BTC,ETH,USDT,USDC',
             'terms_accepted' => 'required|accepted',
         ]);
+        
+        $user = auth()->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('message', 'Please login to continue with your investment.');
+        }
         
         $currentRound = CgoPricingRound::where('is_active', true)->first();
         
@@ -114,20 +143,38 @@ class CgoController extends Controller
         try {
             // Create investment record
             $investment = CgoInvestment::create([
-                'pricing_round_id' => $currentRound->id,
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'package' => $validated['package'],
+                'user_id' => $user->id,
+                'round_id' => $currentRound->id,
+                'tier' => $validated['package'],
                 'amount' => $packageAmount,
-                'tokens' => $packageAmount / $currentRound->token_price,
+                'currency' => 'USD',
+                'share_price' => $currentRound->share_price,
+                'shares_purchased' => $packageAmount / $currentRound->share_price,
+                'ownership_percentage' => ($packageAmount / $currentRound->share_price) / $currentRound->max_shares_available * 100,
+                'email' => $validated['email'],
                 'payment_method' => $validated['payment_method'],
                 'crypto_currency' => $validated['crypto_currency'] ?? null,
                 'status' => 'pending',
-                'terms_accepted_at' => now(),
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
+                'metadata' => [
+                    'name' => $validated['name'],
+                    'phone' => $validated['phone'],
+                    'terms_accepted_at' => now(),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ],
             ]);
+            
+            // Verify KYC requirements
+            $kycVerified = $kycService->verifyInvestor($investment);
+            
+            if (!$kycVerified) {
+                DB::commit(); // Keep the investment record but mark it as requiring KYC
+                
+                return redirect()->route('cgo.kyc.status')->withErrors([
+                    'kyc_required' => 'KYC verification is required for this investment amount. Please complete the verification process to continue.',
+                    'investment_id' => $investment->uuid,
+                ]);
+            }
             
             DB::commit();
             

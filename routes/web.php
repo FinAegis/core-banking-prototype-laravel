@@ -143,6 +143,15 @@ Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(func
     Route::get('/payment/success/{investment}', [App\Http\Controllers\CgoController::class, 'paymentSuccess'])->name('payment.success');
     Route::get('/payment/cancel/{investment}', [App\Http\Controllers\CgoController::class, 'paymentCancel'])->name('payment.cancel');
     Route::get('/certificate/{uuid}', [App\Http\Controllers\CgoController::class, 'downloadCertificate'])->name('certificate');
+    
+    // KYC routes for CGO
+    Route::prefix('kyc')->name('kyc.')->group(function () {
+        Route::get('/status', [App\Http\Controllers\CgoKycController::class, 'status'])->name('status');
+        Route::post('/check-requirements', [App\Http\Controllers\CgoKycController::class, 'checkRequirements'])->name('check-requirements');
+        Route::get('/documents', [App\Http\Controllers\CgoKycController::class, 'documents'])->name('documents');
+        Route::post('/submit', [App\Http\Controllers\CgoKycController::class, 'submitDocuments'])->name('submit');
+        Route::post('/verify/{investment}', [App\Http\Controllers\CgoKycController::class, 'verifyInvestment'])->name('verify');
+    });
 });
 
 // GCU Voting routes (public and authenticated)
