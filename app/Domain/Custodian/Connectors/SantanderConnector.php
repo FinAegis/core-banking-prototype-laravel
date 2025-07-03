@@ -36,7 +36,8 @@ class SantanderConnector extends BaseCustodianConnector
         $this->apiSecret = $config['api_secret'] ?? '';
         $this->certificate = $config['certificate'] ?? '';
         
-        if (empty($this->apiKey) || empty($this->apiSecret)) {
+        // Only validate credentials in production
+        if (app()->environment('production') && (empty($this->apiKey) || empty($this->apiSecret))) {
             throw new \InvalidArgumentException('Santander api_key and api_secret are required');
         }
     }

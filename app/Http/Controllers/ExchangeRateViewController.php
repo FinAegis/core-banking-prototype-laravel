@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Asset;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Exchange\Models\ExchangeRate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

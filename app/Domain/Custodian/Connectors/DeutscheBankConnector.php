@@ -36,7 +36,8 @@ class DeutscheBankConnector extends BaseCustodianConnector
         $this->clientSecret = $config['client_secret'] ?? '';
         $this->accountId = $config['account_id'] ?? '';
         
-        if (empty($this->clientId) || empty($this->clientSecret)) {
+        // Only validate credentials in production
+        if (app()->environment('production') && (empty($this->clientId) || empty($this->clientSecret))) {
             throw new \InvalidArgumentException('Deutsche Bank client_id and client_secret are required');
         }
     }

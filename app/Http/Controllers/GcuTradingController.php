@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
-use App\Models\Asset;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Basket\Models\BasketPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

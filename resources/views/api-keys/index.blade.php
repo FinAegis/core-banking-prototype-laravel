@@ -1,13 +1,16 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('API Keys') }}
+        </h2>
+    </x-slot>
 
-@section('content')
-<div class="py-12">
+    <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8 flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">API Keys</h1>
-                <p class="mt-2 text-gray-600">Manage your API keys for programmatic access</p>
+                <p class="text-gray-600 dark:text-gray-400">Manage your API keys for programmatic access</p>
             </div>
             <a href="{{ route('api-keys.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
                 Create New Key
@@ -137,5 +140,4 @@
             </a>
         </div>
     </div>
-</div>
-@endsection
+</x-app-layout>

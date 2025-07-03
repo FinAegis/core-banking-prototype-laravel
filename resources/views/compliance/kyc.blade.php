@@ -118,6 +118,14 @@
                                         </p>
                                     </div>
                                 </div>
+                                
+                                <!-- Uploaded Files List -->
+                                <div id="uploaded-files-list" class="mt-4 hidden">
+                                    <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Uploaded Documents</h5>
+                                    <ul id="files-list" class="space-y-2">
+                                        <!-- Files will be added here dynamically -->
+                                    </ul>
+                                </div>
                             </div>
 
                             <!-- Submit Button -->
@@ -165,7 +173,54 @@
                 }
                 
                 uploadedFiles.push(file);
-                alert('File "' + file.name + '" uploaded successfully. In production, this would upload to secure storage.');
+                displayUploadedFile(file);
+                
+                // Reset file input
+                event.target.value = '';
+            }
+        }
+        
+        function displayUploadedFile(file) {
+            const filesList = document.getElementById('files-list');
+            const uploadedFilesContainer = document.getElementById('uploaded-files-list');
+            
+            // Show the container
+            uploadedFilesContainer.classList.remove('hidden');
+            
+            // Create file item
+            const fileItem = document.createElement('li');
+            fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg';
+            fileItem.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${file.name}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                </div>
+                <button onclick="removeFile('${file.name}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            `;
+            
+            filesList.appendChild(fileItem);
+        }
+        
+        function removeFile(fileName) {
+            uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+            
+            // Rebuild the file list
+            const filesList = document.getElementById('files-list');
+            filesList.innerHTML = '';
+            
+            if (uploadedFiles.length === 0) {
+                document.getElementById('uploaded-files-list').classList.add('hidden');
+            } else {
+                uploadedFiles.forEach(file => displayUploadedFile(file));
             }
         }
 
@@ -231,8 +286,14 @@
                 dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/10');
                 
                 const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleFileUpload({ target: { files: [files[0]] } });
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.size <= 10 * 1024 * 1024) {
+                        uploadedFiles.push(file);
+                        displayUploadedFile(file);
+                    } else {
+                        alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+                    }
                 }
             });
         }
