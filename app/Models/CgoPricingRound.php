@@ -12,10 +12,13 @@ class CgoPricingRound extends Model
 
     protected $fillable = [
         'round_number',
+        'name',
         'share_price',
         'max_shares_available',
         'shares_sold',
         'total_raised',
+        'pre_money_valuation',
+        'post_money_valuation',
         'started_at',
         'ended_at',
         'is_active',
@@ -26,6 +29,8 @@ class CgoPricingRound extends Model
         'max_shares_available' => 'decimal:4',
         'shares_sold' => 'decimal:4',
         'total_raised' => 'decimal:2',
+        'pre_money_valuation' => 'decimal:2',
+        'post_money_valuation' => 'decimal:2',
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
         'is_active' => 'boolean',

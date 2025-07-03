@@ -138,11 +138,20 @@ Route::post('/subscriber/{source}', [App\Http\Controllers\SubscriberController::
 
 // Authenticated CGO routes
 Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(function () {
+    Route::get('/investments', [App\Http\Controllers\CgoController::class, 'myInvestments'])->name('investments');
     Route::get('/invest', [App\Http\Controllers\CgoController::class, 'showInvest'])->name('invest');
     Route::post('/invest', [App\Http\Controllers\CgoController::class, 'invest']);
     Route::get('/payment/success/{investment}', [App\Http\Controllers\CgoController::class, 'paymentSuccess'])->name('payment.success');
     Route::get('/payment/cancel/{investment}', [App\Http\Controllers\CgoController::class, 'paymentCancel'])->name('payment.cancel');
     Route::get('/certificate/{uuid}', [App\Http\Controllers\CgoController::class, 'downloadCertificate'])->name('certificate');
+    
+    // Agreement routes
+    Route::post('/agreement/{investment}/generate', [App\Http\Controllers\CgoAgreementController::class, 'generateAgreement'])->name('agreement.generate');
+    Route::get('/agreement/{investment}/download', [App\Http\Controllers\CgoAgreementController::class, 'downloadAgreement'])->name('agreement.download');
+    Route::post('/agreement/{investment}/sign', [App\Http\Controllers\CgoAgreementController::class, 'markAsSigned'])->name('agreement.sign');
+    Route::post('/certificate/{investment}/generate', [App\Http\Controllers\CgoAgreementController::class, 'generateCertificate'])->name('certificate.generate');
+    Route::get('/certificate/{investment}/download', [App\Http\Controllers\CgoAgreementController::class, 'downloadCertificate'])->name('certificate.download');
+    Route::get('/agreement/{investment}/preview', [App\Http\Controllers\CgoAgreementController::class, 'previewAgreement'])->name('agreement.preview');
 });
 
 // GCU Voting routes (public and authenticated)

@@ -19,6 +19,32 @@ use App\Jobs\VerifyCgoPayment;
 
 class CgoController extends Controller
 {
+    /**
+     * Display user's investments
+     */
+    public function myInvestments()
+    {
+        $investments = CgoInvestment::where('user_id', auth()->id())
+            ->with('round')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
+        $summary = [
+            'total_invested' => CgoInvestment::where('user_id', auth()->id())
+                ->whereIn('status', ['confirmed', 'pending'])
+                ->sum('amount'),
+            'total_shares' => CgoInvestment::where('user_id', auth()->id())
+                ->where('status', 'confirmed')
+                ->sum('shares_purchased'),
+            'total_ownership' => CgoInvestment::where('user_id', auth()->id())
+                ->where('status', 'confirmed')
+                ->sum('ownership_percentage'),
+            'currency' => 'USD',
+        ];
+        
+        return view('cgo.investments', compact('investments', 'summary'));
+    }
+    
     public function notify(Request $request, SubscriberEmailService $emailService)
     {
         $validated = $request->validate([
