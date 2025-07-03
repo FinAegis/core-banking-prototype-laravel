@@ -136,13 +136,13 @@ sudo systemctl restart redis-server
 ## 6. Setup Application Directory
 
 ```bash
-sudo mkdir -p /var/www/finaegis/{releases,storage}
-sudo chown -R deploy:deploy /var/www/finaegis
+sudo mkdir -p /srv/finaegis/{releases,storage}
+sudo chown -R deploy:deploy /srv/finaegis
 ```
 
 Create storage structure:
 ```bash
-cd /var/www/finaegis/storage
+cd /srv/finaegis/storage
 mkdir -p app/{public,private} framework/{cache,sessions,views,testing} logs
 chmod -R 775 .
 ```
@@ -164,7 +164,7 @@ server {
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
-    root /var/www/finaegis/current/public;
+    root /srv/finaegis/current/public;
 
     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
@@ -228,7 +228,7 @@ sudo nano /etc/supervisor/conf.d/finaegis-workers.conf
 ```ini
 [program:finaegis-default]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/finaegis/current/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+command=php /srv/finaegis/current/artisan queue:work --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -236,12 +236,12 @@ killasgroup=true
 user=deploy
 numprocs=2
 redirect_stderr=true
-stdout_logfile=/var/www/finaegis/storage/logs/worker.log
+stdout_logfile=/srv/finaegis/storage/logs/worker.log
 stopwaitsecs=3600
 
 [program:finaegis-events]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/finaegis/current/artisan queue:work --queue=events --sleep=3 --tries=3 --max-time=3600
+command=php /srv/finaegis/current/artisan queue:work --queue=events --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -249,12 +249,12 @@ killasgroup=true
 user=deploy
 numprocs=1
 redirect_stderr=true
-stdout_logfile=/var/www/finaegis/storage/logs/events-worker.log
+stdout_logfile=/srv/finaegis/storage/logs/events-worker.log
 stopwaitsecs=3600
 
 [program:finaegis-ledger]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/finaegis/current/artisan queue:work --queue=ledger --sleep=3 --tries=3 --max-time=3600
+command=php /srv/finaegis/current/artisan queue:work --queue=ledger --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -262,17 +262,17 @@ killasgroup=true
 user=deploy
 numprocs=2
 redirect_stderr=true
-stdout_logfile=/var/www/finaegis/storage/logs/ledger-worker.log
+stdout_logfile=/srv/finaegis/storage/logs/ledger-worker.log
 stopwaitsecs=3600
 
 [program:finaegis-horizon]
 process_name=%(program_name)s
-command=php /var/www/finaegis/current/artisan horizon
+command=php /srv/finaegis/current/artisan horizon
 autostart=true
 autorestart=true
 user=deploy
 redirect_stderr=true
-stdout_logfile=/var/www/finaegis/storage/logs/horizon.log
+stdout_logfile=/srv/finaegis/storage/logs/horizon.log
 stopwaitsecs=3600
 ```
 
@@ -285,7 +285,7 @@ sudo supervisorctl update
 ## 10. Create Environment File
 
 ```bash
-cd /var/www/finaegis
+cd /srv/finaegis
 nano .env
 ```
 
@@ -338,7 +338,7 @@ crontab -e
 
 Add:
 ```cron
-* * * * * cd /var/www/finaegis/current && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /srv/finaegis/current && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ## 12. Firewall Configuration
@@ -356,14 +356,14 @@ In your GitHub repository settings, add these secrets:
 
 - `STAGING_SERVER`: staging server IP/hostname
 - `STAGING_USER`: deploy
-- `STAGING_PATH`: /var/www/finaegis
+- `STAGING_PATH`: /srv/finaegis
 - `STAGING_URL`: https://staging.your-domain.com
 - `STAGING_SSH_PRIVATE_KEY`: Private SSH key for deploy user
 - `STAGING_SSH_KNOWN_HOSTS`: Output of `ssh-keyscan staging.your-domain.com`
 
 - `PRODUCTION_SERVER`: production server IP/hostname
 - `PRODUCTION_USER`: deploy
-- `PRODUCTION_PATH`: /var/www/finaegis
+- `PRODUCTION_PATH`: /srv/finaegis
 - `PRODUCTION_URL`: https://your-domain.com
 - `PRODUCTION_SSH_PRIVATE_KEY`: Private SSH key for deploy user
 - `PRODUCTION_SSH_KNOWN_HOSTS`: Output of `ssh-keyscan your-domain.com`
@@ -373,7 +373,7 @@ In your GitHub repository settings, add these secrets:
 1. SSH into server as deploy user
 2. Clone repository manually for first time:
 ```bash
-cd /var/www/finaegis
+cd /srv/finaegis
 git clone git@github.com:YOzaz/finaegis.git current
 cd current
 composer install --no-dev --optimize-autoloader
@@ -386,8 +386,8 @@ php artisan storage:link
 
 3. Set proper permissions:
 ```bash
-chmod -R 755 /var/www/finaegis/current
-chmod -R 775 /var/www/finaegis/storage
+chmod -R 755 /srv/finaegis/current
+chmod -R 775 /srv/finaegis/storage
 ```
 
 4. Test the deployment:
@@ -398,7 +398,7 @@ curl https://your-domain.com/health
 ## Monitoring & Maintenance
 
 ### Log Files
-- Application logs: `/var/www/finaegis/storage/logs/`
+- Application logs: `/srv/finaegis/storage/logs/`
 - Nginx logs: `/var/log/nginx/`
 - PHP-FPM logs: `/var/log/php8.3-fpm.log`
 
@@ -411,14 +411,14 @@ sudo supervisorctl status
 sudo supervisorctl restart all
 
 # Clear application cache
-cd /var/www/finaegis/current
+cd /srv/finaegis/current
 php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
 # Monitor logs
-tail -f /var/www/finaegis/storage/logs/laravel.log
+tail -f /srv/finaegis/storage/logs/laravel.log
 ```
 
 ### Backup Strategy
@@ -432,6 +432,6 @@ tail -f /var/www/finaegis/storage/logs/laravel.log
 sudo apt update && sudo apt upgrade -y
 
 # Check for composer vulnerabilities
-cd /var/www/finaegis/current
+cd /srv/finaegis/current
 composer audit
 ```

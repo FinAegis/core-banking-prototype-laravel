@@ -72,7 +72,7 @@ envoy run rollback --on=production
 ## Server Requirements
 
 - PHP 8.3+
-- PostgreSQL 15+
+- MariaDB 10.11+
 - Redis 7+
 - Node.js 20+
 - Nginx
@@ -89,7 +89,7 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://your-domain.com
 
-DB_CONNECTION=pgsql
+DB_CONNECTION=mysql
 QUEUE_CONNECTION=redis
 CACHE_DRIVER=redis
 SESSION_DRIVER=redis
@@ -120,7 +120,7 @@ If deployment fails:
 After deployment:
 
 - Check application health: `https://your-domain.com/health`
-- Monitor error logs: `/var/www/finaegis/storage/logs/`
+- Monitor error logs: `/srv/finaegis/storage/logs/`
 - Check queue workers: `sudo supervisorctl status`
 - Verify scheduled tasks: `crontab -l`
 
@@ -133,4 +133,4 @@ Common issues:
 3. **Assets not loading**: Run `php artisan storage:link`
 4. **Database errors**: Verify migrations ran successfully
 
-For detailed troubleshooting, check the logs in `/var/www/finaegis/storage/logs/`.
+For detailed troubleshooting, check the logs in `/srv/finaegis/storage/logs/`.
