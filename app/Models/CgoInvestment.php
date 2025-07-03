@@ -23,10 +23,19 @@ class CgoInvestment extends Model
         'tier',
         'status',
         'payment_method',
+        'stripe_session_id',
+        'stripe_payment_intent_id',
+        'payment_status',
+        'payment_completed_at',
+        'payment_failed_at',
+        'payment_failure_reason',
+        'coinbase_charge_id',
+        'bank_transfer_reference',
         'crypto_address',
         'crypto_tx_hash',
         'certificate_number',
         'certificate_issued_at',
+        'cancelled_at',
         'metadata',
     ];
 
@@ -36,6 +45,9 @@ class CgoInvestment extends Model
         'shares_purchased' => 'decimal:4',
         'ownership_percentage' => 'decimal:6',
         'certificate_issued_at' => 'datetime',
+        'payment_completed_at' => 'datetime',
+        'payment_failed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
         'metadata' => 'array',
     ];
 

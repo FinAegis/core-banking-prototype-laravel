@@ -13,6 +13,7 @@ use App\Mail\CgoNotificationReceived;
 use App\Mail\CgoInvestmentReceived;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Services\Email\SubscriberEmailService;
+use App\Services\Cgo\StripePaymentService;
 
 class CgoController extends Controller
 {
@@ -149,27 +150,46 @@ class CgoController extends Controller
     
     private function processCryptoPayment($investment, $cryptoCurrency)
     {
-        // Generate crypto address (in production, this would use a real crypto payment processor)
+        // Get crypto addresses from configuration
         $cryptoAddresses = [
-            'BTC' => '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', // Example address
-            'ETH' => '0x742d35Cc6634C0532925a3b844Bc9e7595f6C123', // Example address  
-            'USDT' => '0x742d35Cc6634C0532925a3b844Bc9e7595f6C456', // Example address
-            'USDC' => '0x742d35Cc6634C0532925a3b844Bc9e7595f6C789', // Example address
+            'BTC' => config('cgo.crypto_addresses.btc', 'NOT-CONFIGURED'),
+            'ETH' => config('cgo.crypto_addresses.eth', 'NOT-CONFIGURED'),
+            'USDT' => config('cgo.crypto_addresses.usdt', 'NOT-CONFIGURED'),
+            'USDC' => config('cgo.crypto_addresses.usdc', 'NOT-CONFIGURED'),
         ];
         
         $cryptoAddress = $cryptoAddresses[$cryptoCurrency];
+        
+        // Check if crypto is properly configured
+        if ($cryptoAddress === 'NOT-CONFIGURED' || empty($cryptoAddress)) {
+            if (!config('cgo.production_crypto_enabled') && app()->environment('production')) {
+                throw new \Exception("Crypto payments are not enabled in production.");
+            }
+            // In test environments, use test addresses
+            if (app()->environment(['local', 'staging'])) {
+                $testAddresses = [
+                    'BTC' => 'TEST-BTC-ADDRESS-DO-NOT-USE',
+                    'ETH' => 'TEST-ETH-ADDRESS-DO-NOT-USE',
+                    'USDT' => 'TEST-USDT-ADDRESS-DO-NOT-USE',
+                    'USDC' => 'TEST-USDC-ADDRESS-DO-NOT-USE',
+                ];
+                $cryptoAddress = $testAddresses[$cryptoCurrency];
+            } else {
+                throw new \Exception("Crypto address for {$cryptoCurrency} is not configured.");
+            }
+        }
         
         $investment->update([
             'crypto_address' => $cryptoAddress,
         ]);
         
-        // In production, we'd monitor the blockchain for payment confirmation
+        // TODO: Integrate with Coinbase Commerce or similar for real crypto payments
         
         return view('cgo.crypto-payment', [
             'investment' => $investment,
             'cryptoCurrency' => $cryptoCurrency,
             'cryptoAddress' => $cryptoAddress,
-            'amount' => $investment->amount, // In production, convert to crypto amount
+            'amount' => $investment->amount, // TODO: Convert to crypto amount based on current rates
         ]);
     }
     
@@ -189,12 +209,62 @@ class CgoController extends Controller
     
     private function processCardPayment($investment)
     {
-        // In production, this would integrate with Stripe or similar
-        // For now, show a simple payment confirmation page
-        return view('cgo.card-payment', [
+        try {
+            $stripeService = new StripePaymentService();
+            $session = $stripeService->createCheckoutSession($investment);
+            
+            return redirect($session->url);
+        } catch (\Exception $e) {
+            \Log::error('Error creating Stripe checkout session: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Unable to process card payment. Please try another payment method.']);
+        }
+    }
+    
+    public function paymentSuccess(Request $request, $investmentUuid)
+    {
+        $investment = CgoInvestment::where('uuid', $investmentUuid)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+        
+        // Verify payment with Stripe
+        $stripeService = new StripePaymentService();
+        $paymentVerified = $stripeService->verifyPayment($investment);
+        
+        if ($paymentVerified) {
+            // Send confirmation email
+            try {
+                Mail::to($investment->user->email)->send(new CgoInvestmentReceived($investment));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send investment confirmation email: ' . $e->getMessage());
+            }
+            
+            return view('cgo.payment-success', [
+                'investment' => $investment,
+                'message' => 'Your investment has been successfully processed!',
+            ]);
+        }
+        
+        return view('cgo.payment-pending', [
             'investment' => $investment,
-            'amount' => $investment->amount,
+            'message' => 'Your payment is being processed. You will receive a confirmation email once completed.',
         ]);
+    }
+    
+    public function paymentCancel(Request $request, $investmentUuid)
+    {
+        $investment = CgoInvestment::where('uuid', $investmentUuid)
+            ->where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->firstOrFail();
+        
+        // Update investment status
+        $investment->update([
+            'status' => 'cancelled',
+            'payment_status' => 'cancelled',
+            'cancelled_at' => now(),
+        ]);
+        
+        return redirect()->route('cgo.invest')->with('info', 'Your investment has been cancelled.');
     }
     
     public function downloadCertificate($uuid)

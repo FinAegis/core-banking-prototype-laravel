@@ -140,6 +140,8 @@ Route::post('/subscriber/{source}', [App\Http\Controllers\SubscriberController::
 Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(function () {
     Route::get('/invest', [App\Http\Controllers\CgoController::class, 'showInvest'])->name('invest');
     Route::post('/invest', [App\Http\Controllers\CgoController::class, 'invest']);
+    Route::get('/payment/success/{investment}', [App\Http\Controllers\CgoController::class, 'paymentSuccess'])->name('payment.success');
+    Route::get('/payment/cancel/{investment}', [App\Http\Controllers\CgoController::class, 'paymentCancel'])->name('payment.cancel');
     Route::get('/certificate/{uuid}', [App\Http\Controllers\CgoController::class, 'downloadCertificate'])->name('certificate');
 });
 

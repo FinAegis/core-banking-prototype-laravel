@@ -13,6 +13,21 @@
                         Send {{ $cryptoCurrency }} Payment
                     </h3>
                     
+                    @if(app()->environment(['local', 'staging']))
+                    <div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-lg p-4 mb-6">
+                        <h4 class="font-bold text-red-800 dark:text-red-200 mb-2 flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            WARNING: TEST MODE - DO NOT SEND REAL CRYPTO
+                        </h4>
+                        <p class="text-red-700 dark:text-red-300">
+                            This is a test environment. Do not send actual cryptocurrency to these addresses.
+                            For testing, you can simulate the payment process without making real transactions.
+                        </p>
+                    </div>
+                    @endif
+                    
                     <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
                         <p class="text-blue-800 dark:text-blue-200">
                             Please send exactly <strong>${{ number_format($amount, 2) }} USD worth of {{ $cryptoCurrency }}</strong> to the address below.
@@ -38,7 +53,18 @@
                     <div class="mb-6 text-center">
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Or scan this QR code:</p>
                         <div class="inline-block p-4 bg-white rounded-lg">
-                            {!! QrCode::size(200)->generate($cryptoAddress) !!}
+                            @php
+                                try {
+                                    $qrCode = \Endroid\QrCode\Builder\Builder::create()
+                                        ->data($cryptoAddress)
+                                        ->size(200)
+                                        ->margin(10)
+                                        ->build();
+                                    echo '<img src="' . $qrCode->getDataUri() . '" alt="QR Code">';
+                                } catch (\Exception $e) {
+                                    echo '<div class="text-gray-500 p-4">QR Code generation unavailable</div>';
+                                }
+                            @endphp
                         </div>
                     </div>
                     
