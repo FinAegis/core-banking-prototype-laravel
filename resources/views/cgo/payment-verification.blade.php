@@ -10,7 +10,9 @@
             @if($investments->isEmpty())
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                     <div class="text-center py-12">
-                        <x-heroicon-o-check-circle class="mx-auto h-12 w-12 text-green-400" />
+                        <svg class="mx-auto h-12 w-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                         <h3 class="mt-2 text-sm font-medium text-gray-900">No pending payments</h3>
                         <p class="mt-1 text-sm text-gray-500">All your investments have been processed.</p>
                         <div class="mt-6">
@@ -58,7 +60,9 @@
                                             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                                 <div class="flex">
                                                     <div class="flex-shrink-0">
-                                                        <x-heroicon-o-building-library class="h-5 w-5 text-blue-400" />
+                                                        <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                                        </svg>
                                                     </div>
                                                     <div class="ml-3">
                                                         <h3 class="text-sm font-medium text-blue-800">Bank Transfer</h3>
@@ -86,7 +90,9 @@
                                             <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
                                                 <div class="flex">
                                                     <div class="flex-shrink-0">
-                                                        <x-heroicon-o-currency-bitcoin class="h-5 w-5 text-orange-400" />
+                                                        <svg class="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
                                                     </div>
                                                     <div class="ml-3">
                                                         <h3 class="text-sm font-medium text-orange-800">Cryptocurrency Payment</h3>
@@ -95,7 +101,9 @@
                                                                 <p>Complete your payment using the link below:</p>
                                                                 <a href="{{ $investment->crypto_payment_url }}" target="_blank" class="mt-2 inline-flex items-center text-orange-600 hover:text-orange-500">
                                                                     Open Payment Page
-                                                                    <x-heroicon-o-arrow-top-right-on-square class="ml-1 h-4 w-4" />
+                                                                    <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                                    </svg>
                                                                 </a>
                                                             @else
                                                                 <p>Payment details are being generated...</p>
@@ -108,7 +116,9 @@
                                             <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
                                                 <div class="flex">
                                                     <div class="flex-shrink-0">
-                                                        <x-heroicon-o-credit-card class="h-5 w-5 text-purple-400" />
+                                                        <svg class="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                                        </svg>
                                                     </div>
                                                     <div class="ml-3">
                                                         <h3 class="text-sm font-medium text-purple-800">Card Payment</h3>
@@ -132,7 +142,9 @@
                                                         <div class="relative flex space-x-3">
                                                             <div>
                                                                 <span class="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white">
-                                                                    <x-heroicon-o-currency-dollar class="h-5 w-5 text-white" />
+                                                                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
                                                                 </span>
                                                             </div>
                                                             <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
@@ -156,14 +168,18 @@
                                     <div class="flex space-x-3">
                                         <button type="button" onclick="checkPaymentStatus({{ $investment->id }})" 
                                             class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                            <x-heroicon-o-arrow-path class="-ml-0.5 mr-2 h-4 w-4" />
+                                            <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
                                             Check Status
                                         </button>
                                         
                                         @if(in_array($investment->payment_method, ['bank_transfer', 'crypto']))
                                             <button type="button" onclick="resendInstructions({{ $investment->id }})"
                                                 class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                                <x-heroicon-o-envelope class="-ml-0.5 mr-2 h-4 w-4" />
+                                                <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
                                                 Resend Instructions
                                             </button>
                                         @endif
