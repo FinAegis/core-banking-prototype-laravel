@@ -354,12 +354,12 @@ sudo ufw enable
 
 In your GitHub repository settings, add these secrets:
 
-- `STAGING_SERVER`: staging server IP/hostname
-- `STAGING_USER`: deploy
-- `STAGING_PATH`: /srv/finaegis
-- `STAGING_URL`: https://staging.your-domain.com
-- `STAGING_SSH_PRIVATE_KEY`: Private SSH key for deploy user
-- `STAGING_SSH_KNOWN_HOSTS`: Output of `ssh-keyscan staging.your-domain.com`
+- `DEMO_SERVER`: demo server IP/hostname
+- `DEMO_USER`: deploy
+- `DEMO_PATH`: /srv/finaegis
+- `DEMO_URL`: https://demo.your-domain.com
+- `DEMO_SSH_PRIVATE_KEY`: Private SSH key for deploy user
+- `DEMO_SSH_KNOWN_HOSTS`: Output of `ssh-keyscan demo.your-domain.com`
 
 - `PRODUCTION_SERVER`: production server IP/hostname
 - `PRODUCTION_USER`: deploy

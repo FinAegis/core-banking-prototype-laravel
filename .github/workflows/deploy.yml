@@ -12,9 +12,9 @@ on:
         required: true
         type: choice
         options:
-          - staging
+          - demo
           - production
-        default: staging
+        default: demo
       skip-tests:
         description: 'Skip tests (use with caution)'
         required: false
@@ -150,12 +150,12 @@ jobs:
           path: deploy-*.tar.gz
           retention-days: 7
 
-  deploy-staging:
-    name: Deploy to Staging
+  deploy-demo:
+    name: Deploy to Demo
     needs: [pre-deployment-checks, build-artifacts]
-    if: github.event.inputs.environment == 'staging' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: github.event.inputs.environment == 'demo' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
-    environment: staging
+    environment: demo
     timeout-minutes: 30
     
     steps:
@@ -167,17 +167,17 @@ jobs:
       - name: Setup SSH Keys
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.STAGING_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.DEMO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "${{ secrets.STAGING_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          echo "${{ secrets.DEMO_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           
-      - name: Deploy to Staging Environment
+      - name: Deploy to Demo Environment
         env:
-          DEPLOY_SERVER: ${{ secrets.STAGING_SERVER }}
-          DEPLOY_USER: ${{ secrets.STAGING_USER }}
-          DEPLOY_PATH: ${{ secrets.STAGING_PATH }}
+          DEPLOY_SERVER: ${{ secrets.DEMO_SERVER }}
+          DEPLOY_USER: ${{ secrets.DEMO_USER }}
+          DEPLOY_PATH: ${{ secrets.DEMO_PATH }}
         run: |
-          echo "::notice::Deploying version ${{ needs.pre-deployment-checks.outputs.deploy-version }} to staging"
+          echo "::notice::Deploying version ${{ needs.pre-deployment-checks.outputs.deploy-version }} to demo"
           
           # Transfer deployment package
           scp deploy-*.tar.gz ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/
@@ -223,31 +223,31 @@ jobs:
           
       - name: Run Post-deployment Tests
         env:
-          STAGING_URL: ${{ secrets.STAGING_URL }}
+          DEMO_URL: ${{ secrets.DEMO_URL }}
         run: |
-          echo "Running smoke tests on staging..."
+          echo "Running smoke tests on demo..."
           
           # Health check
-          curl -f ${STAGING_URL}/health || exit 1
+          curl -f ${DEMO_URL}/health || exit 1
           
           # API health check
-          curl -f ${STAGING_URL}/api/health || exit 1
+          curl -f ${DEMO_URL}/api/health || exit 1
           
           # Basic functionality test
-          curl -f ${STAGING_URL}/api/v1/status || exit 1
+          curl -f ${DEMO_URL}/api/v1/status || exit 1
           
       - name: Notify Deployment Status
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Successfully deployed to staging"
+            echo "✅ Successfully deployed to demo"
           else
-            echo "❌ Staging deployment failed"
+            echo "❌ Demo deployment failed"
           fi
 
   deploy-production:
     name: Deploy to Production
-    needs: [pre-deployment-checks, build-artifacts, deploy-staging]
+    needs: [pre-deployment-checks, build-artifacts, deploy-demo]
     if: |
       (github.event.inputs.environment == 'production' && github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))

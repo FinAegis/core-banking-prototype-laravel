@@ -1,4 +1,4 @@
-@servers(['staging' => env('STAGING_SERVER'), 'production' => env('PRODUCTION_SERVER')])
+@servers(['demo' => env('DEMO_SERVER'), 'production' => env('PRODUCTION_SERVER')])
 
 @setup
     $repository = 'git@github.com:YOzaz/finaegis.git';
@@ -8,7 +8,7 @@
     $new_release_dir = $releases_dir . '/' . $release;
 @endsetup
 
-@story('deploy', ['on' => 'staging'])
+@story('deploy', ['on' => 'demo'])
     clone_repository
     run_composer
     update_symlinks

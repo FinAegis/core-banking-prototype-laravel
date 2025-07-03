@@ -8,7 +8,7 @@ This guide explains how to deploy the Finaegis Core Banking platform.
 
 The project uses GitHub Actions for automated deployments:
 
-- **Automatic deployment to staging**: Every push to `main` branch
+- **Automatic deployment to demo**: Every push to `main` branch
 - **Manual deployment to production**: Via GitHub Actions UI or when creating a release tag
 
 #### Required GitHub Secrets
@@ -16,12 +16,12 @@ The project uses GitHub Actions for automated deployments:
 Configure these secrets in your repository settings:
 
 ```
-STAGING_SERVER
-STAGING_USER
-STAGING_PATH
-STAGING_URL
-STAGING_SSH_PRIVATE_KEY
-STAGING_SSH_KNOWN_HOSTS
+DEMO_SERVER
+DEMO_USER
+DEMO_PATH
+DEMO_URL
+DEMO_SSH_PRIVATE_KEY
+DEMO_SSH_KNOWN_HOSTS
 
 PRODUCTION_SERVER
 PRODUCTION_USER
@@ -36,7 +36,7 @@ PRODUCTION_SSH_KNOWN_HOSTS
 For manual deployments or when GitHub Actions is not available:
 
 ```bash
-# Deploy to staging
+# Deploy to demo
 envoy run deploy
 
 # Deploy to production
