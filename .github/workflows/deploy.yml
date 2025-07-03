@@ -164,23 +164,77 @@ jobs:
         with:
           name: deployment-package-${{ needs.pre-deployment-checks.outputs.deploy-version }}
           
+      - name: Setup SSH Keys
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.STAGING_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          
       - name: Deploy to Staging Environment
+        env:
+          DEPLOY_SERVER: ${{ secrets.STAGING_SERVER }}
+          DEPLOY_USER: ${{ secrets.STAGING_USER }}
+          DEPLOY_PATH: ${{ secrets.STAGING_PATH }}
         run: |
           echo "::notice::Deploying version ${{ needs.pre-deployment-checks.outputs.deploy-version }} to staging"
-          # In a real scenario, this would:
-          # 1. Connect to staging server via SSH
-          # 2. Backup current deployment
-          # 3. Extract deployment package
-          # 4. Run database migrations
-          # 5. Clear caches
-          # 6. Restart services
-          # 7. Run smoke tests
+          
+          # Transfer deployment package
+          scp deploy-*.tar.gz ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/
+          
+          # Execute deployment commands
+          ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+            
+            # Enable maintenance mode
+            php artisan down --render="maintenance" --retry=60
+            
+            # Backup current deployment
+            if [ -d current ]; then
+              rm -rf previous
+              mv current previous
+            fi
+            
+            # Extract new deployment
+            mkdir current
+            tar -xzf deploy-*.tar.gz -C current
+            rm deploy-*.tar.gz
+            
+            # Copy environment file and storage symlinks
+            cp .env current/.env
+            ln -nfs ../../storage/app/public current/public/storage
+            
+            # Set permissions
+            chmod -R 755 current/storage current/bootstrap/cache
+            
+            # Run deployment tasks
+            cd current
+            php artisan migrate --force
+            php artisan db:seed --class=ProductionSeeder --force || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            php artisan queue:restart
+            
+            # Disable maintenance mode
+            php artisan up
+          ENDSSH
           
       - name: Run Post-deployment Tests
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
         run: |
           echo "Running smoke tests on staging..."
-          # curl https://staging.example.com/health
-          # Run E2E tests against staging
+          
+          # Health check
+          curl -f ${STAGING_URL}/health || exit 1
+          
+          # API health check
+          curl -f ${STAGING_URL}/api/health || exit 1
+          
+          # Basic functionality test
+          curl -f ${STAGING_URL}/api/v1/status || exit 1
           
       - name: Notify Deployment Status
         if: always()
@@ -224,20 +278,78 @@ jobs:
             
             core.setOutput('deployment_id', deployment.data.id);
             
+      - name: Setup SSH Keys
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          
       - name: Deploy to Production
         id: deploy
+        env:
+          DEPLOY_SERVER: ${{ secrets.PRODUCTION_SERVER }}
+          DEPLOY_USER: ${{ secrets.PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ secrets.PRODUCTION_PATH }}
         run: |
           echo "::notice::Deploying version ${{ needs.pre-deployment-checks.outputs.deploy-version }} to production"
           
-          # Production deployment steps:
-          # 1. Enable maintenance mode
-          # 2. Backup database and files
-          # 3. Deploy new code
-          # 4. Run migrations with backup
-          # 5. Clear all caches
-          # 6. Warm up caches
-          # 7. Disable maintenance mode
-          # 8. Verify deployment
+          # Transfer deployment package
+          scp deploy-*.tar.gz ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/
+          
+          # Execute deployment commands
+          ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+            
+            # Enable maintenance mode
+            php artisan down --render="maintenance" --retry=60
+            
+            # Backup database
+            php artisan backup:run --only-db
+            
+            # Backup current deployment
+            if [ -d current ]; then
+              rm -rf previous
+              mv current previous
+            fi
+            
+            # Extract new deployment
+            mkdir current
+            tar -xzf deploy-*.tar.gz -C current
+            rm deploy-*.tar.gz
+            
+            # Copy environment file and storage symlinks
+            cp .env current/.env
+            ln -nfs ../../storage/app/public current/public/storage
+            
+            # Set permissions
+            chmod -R 755 current/storage current/bootstrap/cache
+            
+            # Run deployment tasks
+            cd current
+            
+            # Run migrations with safety check
+            php artisan migrate:status
+            php artisan migrate --force
+            
+            # Clear and rebuild caches
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            
+            # Optimize application
+            php artisan optimize
+            
+            # Restart queue workers gracefully
+            php artisan queue:restart
+            
+            # Warm up caches
+            php artisan schedule:run
+            
+            # Disable maintenance mode
+            php artisan up
+          ENDSSH
           
           echo "deploy_status=success" >> $GITHUB_OUTPUT
           
@@ -258,18 +370,52 @@ jobs:
             
       - name: Run Production Smoke Tests
         if: success()
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
         run: |
           echo "Running production smoke tests..."
-          # Verify critical endpoints
-          # Check database connectivity
-          # Verify queue workers
-          # Test payment processing (in test mode)
+          
+          # Health check
+          curl -f ${PRODUCTION_URL}/health || exit 1
+          
+          # API health check
+          curl -f ${PRODUCTION_URL}/api/health || exit 1
+          
+          # Database connectivity
+          curl -f ${PRODUCTION_URL}/api/v1/status || exit 1
+          
+          # Queue worker status
+          curl -f ${PRODUCTION_URL}/api/v1/queue/status || exit 1
           
       - name: Rollback on Failure
         if: failure()
+        env:
+          DEPLOY_SERVER: ${{ secrets.PRODUCTION_SERVER }}
+          DEPLOY_USER: ${{ secrets.PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ secrets.PRODUCTION_PATH }}
         run: |
           echo "::error::Production deployment failed! Initiating rollback..."
-          # Rollback steps would go here
+          
+          ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+            
+            # Enable maintenance mode
+            php artisan down --render="maintenance"
+            
+            # Rollback to previous version
+            if [ -d previous ]; then
+              rm -rf current
+              mv previous current
+              
+              cd current
+              php artisan up
+              
+              echo "Rollback completed successfully"
+            else
+              echo "No previous version available for rollback!"
+              exit 1
+            fi
+          ENDSSH
 
   post-deployment:
     name: Post-deployment Tasks
