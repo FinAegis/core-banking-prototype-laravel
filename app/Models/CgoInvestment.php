@@ -53,6 +53,10 @@ class CgoInvestment extends Model
         'risk_assessment',
         'aml_checked_at',
         'aml_flags',
+        'agreement_path',
+        'agreement_generated_at',
+        'agreement_signed_at',
+        'certificate_path',
     ];
 
     protected $casts = [
@@ -73,6 +77,8 @@ class CgoInvestment extends Model
         'aml_checked_at' => 'datetime',
         'aml_flags' => 'array',
         'risk_assessment' => 'decimal:2',
+        'agreement_generated_at' => 'datetime',
+        'agreement_signed_at' => 'datetime',
     ];
 
     protected static function boot()
