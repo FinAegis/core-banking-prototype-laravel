@@ -289,16 +289,73 @@
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-white mb-4">Stay Updated</h2>
                 <p class="text-xl text-blue-100 mb-8">Get the latest insights and updates delivered to your inbox.</p>
-                <form class="max-w-md mx-auto">
+                <form id="newsletter-form" class="max-w-md mx-auto" onsubmit="handleSubscribe(event)">
+                    @csrf
                     <div class="flex">
-                        <input type="email" placeholder="Enter your email" class="flex-1 px-4 py-3 rounded-l-lg border-0 focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-r-lg font-semibold hover:bg-blue-700 transition duration-200">
+                        <input type="email" name="email" id="newsletter-email" placeholder="Enter your email" required
+                               class="flex-1 px-4 py-3 rounded-l-lg border-0 focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" id="subscribe-button" 
+                                class="bg-blue-600 text-white px-6 py-3 rounded-r-lg font-semibold hover:bg-blue-700 transition duration-200">
                             Subscribe
                         </button>
                     </div>
                     <p class="text-blue-200 text-sm mt-3">We respect your privacy. Unsubscribe at any time.</p>
+                    <div id="newsletter-message" class="mt-3 text-sm hidden"></div>
                 </form>
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function handleSubscribe(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('newsletter-form');
+            const email = document.getElementById('newsletter-email').value;
+            const button = document.getElementById('subscribe-button');
+            const messageDiv = document.getElementById('newsletter-message');
+            
+            // Disable button and show loading state
+            button.disabled = true;
+            button.textContent = 'Subscribing...';
+            messageDiv.classList.add('hidden');
+            
+            // Send subscription request
+            fetch('{{ route('blog.subscribe') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                messageDiv.classList.remove('hidden');
+                
+                if (data.success) {
+                    messageDiv.classList.remove('text-red-300');
+                    messageDiv.classList.add('text-green-300');
+                    messageDiv.textContent = data.message;
+                    form.reset();
+                } else {
+                    messageDiv.classList.remove('text-green-300');
+                    messageDiv.classList.add('text-red-300');
+                    messageDiv.textContent = data.message || 'Subscription failed. Please try again.';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.classList.remove('hidden', 'text-green-300');
+                messageDiv.classList.add('text-red-300');
+                messageDiv.textContent = 'An error occurred. Please try again later.';
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = 'Subscribe';
+            });
+        }
+    </script>
+    @endpush
 </x-guest-layout>

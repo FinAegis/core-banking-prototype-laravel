@@ -100,9 +100,8 @@ Route::get('/support/guides', function () {
     return view('support.guides');
 })->name('support.guides');
 
-Route::get('/blog', function () {
-    return view('blog.index');
-})->name('blog');
+Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog');
+Route::post('/blog/subscribe', [App\Http\Controllers\BlogController::class, 'subscribe'])->name('blog.subscribe');
 
 Route::get('/partners', function () {
     return view('partners');
