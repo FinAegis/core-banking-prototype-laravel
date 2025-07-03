@@ -12,9 +12,9 @@ on:
         required: true
         type: choice
         options:
-          - staging
+          - demo
           - production
-        default: staging
+        default: demo
       skip-tests:
         description: 'Skip tests (use with caution)'
         required: false
@@ -150,58 +150,132 @@ jobs:
           path: deploy-*.tar.gz
           retention-days: 7
 
-  deploy-staging:
-    name: Deploy to Staging
+  deploy-demo:
+    name: Deploy to Demo
     needs: [pre-deployment-checks, build-artifacts]
-    if: github.event.inputs.environment == 'staging' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: |
+      (github.event.inputs.environment == 'demo' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) &&
+      vars.DEMO_SERVER != ''
     runs-on: ubuntu-latest
-    environment: staging
+    environment: demo
     timeout-minutes: 30
     
     steps:
+      - name: Check Demo Server Configuration
+        run: |
+          if [ -z "${{ secrets.DEMO_SERVER }}" ]; then
+            echo "::warning::Demo server not configured. Skipping deployment."
+            exit 0
+          fi
+          echo "Demo server configured. Proceeding with deployment."
+          
       - name: Download Deployment Package
         uses: actions/download-artifact@v4
         with:
           name: deployment-package-${{ needs.pre-deployment-checks.outputs.deploy-version }}
           
-      - name: Deploy to Staging Environment
+      - name: Setup SSH Keys
         run: |
-          echo "::notice::Deploying version ${{ needs.pre-deployment-checks.outputs.deploy-version }} to staging"
-          # In a real scenario, this would:
-          # 1. Connect to staging server via SSH
-          # 2. Backup current deployment
-          # 3. Extract deployment package
-          # 4. Run database migrations
-          # 5. Clear caches
-          # 6. Restart services
-          # 7. Run smoke tests
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEMO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.DEMO_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          
+      - name: Deploy to Demo Environment
+        env:
+          DEPLOY_SERVER: ${{ secrets.DEMO_SERVER }}
+          DEPLOY_USER: ${{ secrets.DEMO_USER }}
+          DEPLOY_PATH: ${{ secrets.DEMO_PATH }}
+        run: |
+          echo "::notice::Deploying version ${{ needs.pre-deployment-checks.outputs.deploy-version }} to demo"
+          
+          # Transfer deployment package
+          scp deploy-*.tar.gz ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/
+          
+          # Execute deployment commands
+          ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+            
+            # Enable maintenance mode
+            php artisan down --render="maintenance" --retry=60
+            
+            # Backup current deployment
+            if [ -d current ]; then
+              rm -rf previous
+              mv current previous
+            fi
+            
+            # Extract new deployment
+            mkdir current
+            tar -xzf deploy-*.tar.gz -C current
+            rm deploy-*.tar.gz
+            
+            # Copy environment file and storage symlinks
+            cp .env current/.env
+            ln -nfs ../../storage/app/public current/public/storage
+            
+            # Set permissions
+            chmod -R 755 current/storage current/bootstrap/cache
+            
+            # Run deployment tasks
+            cd current
+            php artisan migrate --force
+            php artisan db:seed --class=ProductionSeeder --force || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            php artisan queue:restart
+            
+            # Disable maintenance mode
+            php artisan up
+          ENDSSH
           
       - name: Run Post-deployment Tests
+        env:
+          DEMO_URL: ${{ secrets.DEMO_URL }}
         run: |
-          echo "Running smoke tests on staging..."
-          # curl https://staging.example.com/health
-          # Run E2E tests against staging
+          echo "Running smoke tests on demo..."
+          
+          # Health check
+          curl -f ${DEMO_URL}/health || exit 1
+          
+          # API health check
+          curl -f ${DEMO_URL}/api/health || exit 1
+          
+          # Basic functionality test
+          curl -f ${DEMO_URL}/api/v1/status || exit 1
           
       - name: Notify Deployment Status
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Successfully deployed to staging"
+            echo "✅ Successfully deployed to demo"
           else
-            echo "❌ Staging deployment failed"
+            echo "❌ Demo deployment failed"
           fi
 
   deploy-production:
     name: Deploy to Production
-    needs: [pre-deployment-checks, build-artifacts, deploy-staging]
+    needs: [pre-deployment-checks, build-artifacts]
+    # Note: We don't depend on deploy-demo since it might be skipped
     if: |
-      (github.event.inputs.environment == 'production' && github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+      ((github.event.inputs.environment == 'production' && github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))) &&
+      vars.PRODUCTION_SERVER != ''
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 45
     
     steps:
+      - name: Check Production Server Configuration
+        run: |
+          if [ -z "${{ secrets.PRODUCTION_SERVER }}" ]; then
+            echo "::warning::Production server not configured. Skipping deployment."
+            exit 0
+          fi
+          echo "Production server configured. Proceeding with deployment."
+          
       - name: Download Deployment Package
         uses: actions/download-artifact@v4
         with:
@@ -224,20 +298,78 @@ jobs:
             
             core.setOutput('deployment_id', deployment.data.id);
             
+      - name: Setup SSH Keys
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          
       - name: Deploy to Production
         id: deploy
+        env:
+          DEPLOY_SERVER: ${{ secrets.PRODUCTION_SERVER }}
+          DEPLOY_USER: ${{ secrets.PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ secrets.PRODUCTION_PATH }}
         run: |
           echo "::notice::Deploying version ${{ needs.pre-deployment-checks.outputs.deploy-version }} to production"
           
-          # Production deployment steps:
-          # 1. Enable maintenance mode
-          # 2. Backup database and files
-          # 3. Deploy new code
-          # 4. Run migrations with backup
-          # 5. Clear all caches
-          # 6. Warm up caches
-          # 7. Disable maintenance mode
-          # 8. Verify deployment
+          # Transfer deployment package
+          scp deploy-*.tar.gz ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/
+          
+          # Execute deployment commands
+          ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+            
+            # Enable maintenance mode
+            php artisan down --render="maintenance" --retry=60
+            
+            # Backup database
+            php artisan backup:run --only-db
+            
+            # Backup current deployment
+            if [ -d current ]; then
+              rm -rf previous
+              mv current previous
+            fi
+            
+            # Extract new deployment
+            mkdir current
+            tar -xzf deploy-*.tar.gz -C current
+            rm deploy-*.tar.gz
+            
+            # Copy environment file and storage symlinks
+            cp .env current/.env
+            ln -nfs ../../storage/app/public current/public/storage
+            
+            # Set permissions
+            chmod -R 755 current/storage current/bootstrap/cache
+            
+            # Run deployment tasks
+            cd current
+            
+            # Run migrations with safety check
+            php artisan migrate:status
+            php artisan migrate --force
+            
+            # Clear and rebuild caches
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            
+            # Optimize application
+            php artisan optimize
+            
+            # Restart queue workers gracefully
+            php artisan queue:restart
+            
+            # Warm up caches
+            php artisan schedule:run
+            
+            # Disable maintenance mode
+            php artisan up
+          ENDSSH
           
           echo "deploy_status=success" >> $GITHUB_OUTPUT
           
@@ -258,23 +390,59 @@ jobs:
             
       - name: Run Production Smoke Tests
         if: success()
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
         run: |
           echo "Running production smoke tests..."
-          # Verify critical endpoints
-          # Check database connectivity
-          # Verify queue workers
-          # Test payment processing (in test mode)
+          
+          # Health check
+          curl -f ${PRODUCTION_URL}/health || exit 1
+          
+          # API health check
+          curl -f ${PRODUCTION_URL}/api/health || exit 1
+          
+          # Database connectivity
+          curl -f ${PRODUCTION_URL}/api/v1/status || exit 1
+          
+          # Queue worker status
+          curl -f ${PRODUCTION_URL}/api/v1/queue/status || exit 1
           
       - name: Rollback on Failure
         if: failure()
+        env:
+          DEPLOY_SERVER: ${{ secrets.PRODUCTION_SERVER }}
+          DEPLOY_USER: ${{ secrets.PRODUCTION_USER }}
+          DEPLOY_PATH: ${{ secrets.PRODUCTION_PATH }}
         run: |
           echo "::error::Production deployment failed! Initiating rollback..."
-          # Rollback steps would go here
+          
+          ssh ${DEPLOY_USER}@${DEPLOY_SERVER} << 'ENDSSH'
+            cd ${DEPLOY_PATH}
+            
+            # Enable maintenance mode
+            php artisan down --render="maintenance"
+            
+            # Rollback to previous version
+            if [ -d previous ]; then
+              rm -rf current
+              mv previous current
+              
+              cd current
+              php artisan up
+              
+              echo "Rollback completed successfully"
+            else
+              echo "No previous version available for rollback!"
+              exit 1
+            fi
+          ENDSSH
 
   post-deployment:
     name: Post-deployment Tasks
     needs: [pre-deployment-checks, deploy-production]
-    if: success()
+    if: |
+      success() &&
+      needs.deploy-production.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     
@@ -310,3 +478,33 @@ jobs:
               draft: false,
               prerelease: false
             });
+
+  deployment-summary:
+    name: Deployment Summary
+    needs: [deploy-demo, deploy-production]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Deployment Status
+        run: |
+          echo "## Deployment Summary"
+          echo ""
+          
+          # Check demo deployment
+          if [[ "${{ needs.deploy-demo.result }}" == "success" ]]; then
+            echo "✅ Demo deployment: Success"
+          elif [[ "${{ needs.deploy-demo.result }}" == "skipped" ]]; then
+            echo "⏭️ Demo deployment: Skipped (server not configured)"
+          else
+            echo "❌ Demo deployment: Failed"
+          fi
+          
+          # Check production deployment
+          if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+            echo "✅ Production deployment: Success"
+          elif [[ "${{ needs.deploy-production.result }}" == "skipped" ]]; then
+            echo "⏭️ Production deployment: Skipped (server not configured or not triggered)"
+          else
+            echo "❌ Production deployment: Failed"
+          fi

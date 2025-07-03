@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d36759fec7864f53c86f0bbcc486fc20",
+    "content-hash": "f8c03f2e46754945b786547d291500f2",
     "packages": [
         {
             "name": "amphp/amp",
@@ -14308,6 +14308,69 @@
                 "source": "https://github.com/laravel/dusk/tree/v8.3.3"
             },
             "time": "2025-06-10T13:59:27+00:00"
+        },
+        {
+            "name": "laravel/envoy",
+            "version": "v2.10.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/envoy.git",
+                "reference": "819a519e3d86b056c7aa3bd5d0801952a6fc14fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/envoy/zipball/819a519e3d86b056c7aa3bd5d0801952a6fc14fd",
+                "reference": "819a519e3d86b056c7aa3bd5d0801952a6fc14fd",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.0|^7.0",
+                "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
+                "php": "^7.2|^8.0",
+                "symfony/console": "^4.3|^5.0|^6.0|^7.0",
+                "symfony/process": "^4.3|^5.0|^6.0|^7.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^8.0|^9.0|^10.4"
+            },
+            "suggest": {
+                "ext-posix": "Required to determine the System user on Unix systems."
+            },
+            "bin": [
+                "bin/envoy"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Envoy\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Elegant SSH tasks for PHP.",
+            "keywords": [
+                "laravel",
+                "ssh"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/envoy/issues",
+                "source": "https://github.com/laravel/envoy/tree/v2.10.2"
+            },
+            "time": "2025-01-28T15:47:18+00:00"
         },
         {
             "name": "laravel/pint",

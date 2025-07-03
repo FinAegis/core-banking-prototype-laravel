@@ -38,6 +38,9 @@
                 {{ $slot }}
             </main>
         </div>
+        
+        <!-- Floating Investment CTA -->
+        <x-floating-invest-cta />
 
         @stack('modals')
 

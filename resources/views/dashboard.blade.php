@@ -104,6 +104,13 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Investment Banner -->
+            @if(!session('hide_invest_banner') && !auth()->user()->cgoInvestments()->exists())
+                <div class="invest-banner-container mb-8">
+                    <x-invest-banner />
+                </div>
+            @endif
+            
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <!-- Total Balance -->
