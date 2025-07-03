@@ -106,15 +106,15 @@ class ExchangeRateViewController extends Controller
                 $rates[$asset] = $cachedRate;
             } else {
                 // Get from database
-                $latestRate = ExchangeRate::where('base_asset_code', $baseCurrency)
-                    ->where('target_asset_code', $asset)
+                $latestRate = ExchangeRate::where('from_asset_code', $baseCurrency)
+                    ->where('to_asset_code', $asset)
                     ->orderBy('created_at', 'desc')
                     ->first();
                 
                 if (!$latestRate) {
                     // Try reverse pair
-                    $reverseRate = ExchangeRate::where('base_asset_code', $asset)
-                        ->where('target_asset_code', $baseCurrency)
+                    $reverseRate = ExchangeRate::where('from_asset_code', $asset)
+                        ->where('to_asset_code', $baseCurrency)
                         ->orderBy('created_at', 'desc')
                         ->first();
                     
@@ -179,8 +179,8 @@ class ExchangeRateViewController extends Controller
             default => now()->subDays(7),
         };
         
-        $rates = ExchangeRate::where('base_asset_code', $base)
-            ->where('target_asset_code', $target)
+        $rates = ExchangeRate::where('from_asset_code', $base)
+            ->where('to_asset_code', $target)
             ->where('created_at', '>=', $startDate)
             ->orderBy('created_at')
             ->get()
@@ -193,8 +193,8 @@ class ExchangeRateViewController extends Controller
         
         // If no direct rates, try reverse
         if ($rates->isEmpty()) {
-            $rates = ExchangeRate::where('base_asset_code', $target)
-                ->where('target_asset_code', $base)
+            $rates = ExchangeRate::where('from_asset_code', $target)
+                ->where('to_asset_code', $base)
                 ->where('created_at', '>=', $startDate)
                 ->orderBy('created_at')
                 ->get()
@@ -216,21 +216,21 @@ class ExchangeRateViewController extends Controller
     {
         return Cache::remember("rate_stats:{$baseCurrency}", 300, function () use ($baseCurrency) {
             $stats = DB::table('exchange_rates')
-                ->where('base_asset_code', $baseCurrency)
+                ->where('from_asset_code', $baseCurrency)
                 ->where('created_at', '>=', now()->subDay())
                 ->select(
                     DB::raw('COUNT(*) as total_updates'),
-                    DB::raw('COUNT(DISTINCT target_asset_code) as pairs_tracked'),
+                    DB::raw('COUNT(DISTINCT to_asset_code) as pairs_tracked'),
                     DB::raw('AVG(rate) as avg_rate'),
                     DB::raw('MAX(created_at) as last_update')
                 )
                 ->first();
             
             $providers = DB::table('exchange_rates')
-                ->where('base_asset_code', $baseCurrency)
+                ->where('from_asset_code', $baseCurrency)
                 ->where('created_at', '>=', now()->subDay())
-                ->select('provider', DB::raw('COUNT(*) as count'))
-                ->groupBy('provider')
+                ->select('source', DB::raw('COUNT(*) as count'))
+                ->groupBy('source')
                 ->get();
             
             return [
@@ -247,16 +247,16 @@ class ExchangeRateViewController extends Controller
      */
     private function get24hAgoRate($base, $target)
     {
-        $rate = ExchangeRate::where('base_asset_code', $base)
-            ->where('target_asset_code', $target)
+        $rate = ExchangeRate::where('from_asset_code', $base)
+            ->where('to_asset_code', $target)
             ->where('created_at', '<=', now()->subDay())
             ->orderBy('created_at', 'desc')
             ->first();
         
         if (!$rate) {
             // Try reverse
-            $reverseRate = ExchangeRate::where('base_asset_code', $target)
-                ->where('target_asset_code', $base)
+            $reverseRate = ExchangeRate::where('from_asset_code', $target)
+                ->where('to_asset_code', $base)
                 ->where('created_at', '<=', now()->subDay())
                 ->orderBy('created_at', 'desc')
                 ->first();
