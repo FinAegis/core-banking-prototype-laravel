@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Domain\Cgo\Actions\RequestRefundAction;
 use App\Filament\Resources\CgoInvestmentResource\Pages;
 use App\Models\CgoInvestment;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -332,6 +334,50 @@ class CgoInvestmentResource extends Resource
                     ->url(fn (CgoInvestment $record) => route('cgo.certificate', $record->uuid))
                     ->openUrlInNewTab()
                     ->visible(fn (CgoInvestment $record) => !empty($record->certificate_number)),
+                Tables\Actions\Action::make('request_refund')
+                    ->label('Request Refund')
+                    ->icon('heroicon-o-receipt-refund')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\Select::make('reason')
+                            ->label('Refund Reason')
+                            ->options([
+                                'customer_request' => 'Customer Request',
+                                'duplicate_payment' => 'Duplicate Payment',
+                                'payment_error' => 'Payment Error',
+                                'system_error' => 'System Error',
+                                'regulatory_requirement' => 'Regulatory Requirement',
+                                'other' => 'Other',
+                            ])
+                            ->required(),
+                        Forms\Components\Textarea::make('reason_details')
+                            ->label('Additional Details')
+                            ->rows(3)
+                            ->required(),
+                    ])
+                    ->action(function (CgoInvestment $record, array $data) {
+                        try {
+                            app(RequestRefundAction::class)->execute(
+                                investment: $record,
+                                initiator: auth()->user(),
+                                reason: $data['reason'],
+                                reasonDetails: $data['reason_details']
+                            );
+                            
+                            Notification::make()
+                                ->title('Refund request initiated')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Refund request failed')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->visible(fn (CgoInvestment $record) => $record->canBeRefunded()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

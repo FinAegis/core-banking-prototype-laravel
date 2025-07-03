@@ -261,4 +261,40 @@ class StripePaymentService
             throw $e;
         }
     }
+
+    /**
+     * Refund a payment via Stripe
+     */
+    public function refundPayment(string $paymentIntentId, int $amount, string $reason = 'requested_by_customer'): array
+    {
+        try {
+            $refund = \Stripe\Refund::create([
+                'payment_intent' => $paymentIntentId,
+                'amount' => $amount, // Amount in cents
+                'reason' => $reason,
+            ]);
+
+            Log::info('Stripe refund created', [
+                'refund_id' => $refund->id,
+                'payment_intent' => $paymentIntentId,
+                'amount' => $amount,
+                'status' => $refund->status,
+            ]);
+
+            return [
+                'id' => $refund->id,
+                'status' => $refund->status,
+                'amount' => $refund->amount,
+                'currency' => $refund->currency,
+                'created' => $refund->created,
+            ];
+        } catch (ApiErrorException $e) {
+            Log::error('Error creating Stripe refund', [
+                'payment_intent' => $paymentIntentId,
+                'amount' => $amount,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class CgoInvestment extends Model
@@ -132,5 +133,54 @@ class CgoInvestment extends Model
     public function generateCertificateNumber(): string
     {
         return 'CGO-' . strtoupper($this->tier[0]) . '-' . date('Y') . '-' . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(CgoRefund::class, 'investment_id');
+    }
+
+    public function canBeRefunded(): bool
+    {
+        // Check if investment is in a refundable state
+        if (!in_array($this->status, ['confirmed'])) {
+            return false;
+        }
+
+        // Check if payment was completed
+        if ($this->payment_status !== 'completed') {
+            return false;
+        }
+
+        // Check if not already refunded
+        if ($this->status === 'refunded') {
+            return false;
+        }
+
+        // Check time limit (e.g., 90 days)
+        if ($this->payment_completed_at && $this->payment_completed_at->diffInDays(now()) > 90) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getTotalRefundedAmount(): int
+    {
+        return $this->refunds()
+            ->where('status', 'completed')
+            ->sum('amount_refunded');
+    }
+
+    public function getRefundableAmount(): int
+    {
+        return $this->amount - $this->getTotalRefundedAmount();
+    }
+
+    public function hasActiveRefund(): bool
+    {
+        return $this->refunds()
+            ->whereIn('status', ['pending', 'approved', 'processing'])
+            ->exists();
     }
 }

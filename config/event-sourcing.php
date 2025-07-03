@@ -136,6 +136,13 @@ return [
         'batch_job_completed'           => App\Domain\Batch\Events\BatchJobCompleted::class,
         'batch_job_cancelled'           => App\Domain\Batch\Events\BatchJobCancelled::class,
         'batch_item_processed'          => App\Domain\Batch\Events\BatchItemProcessed::class,
+        'cgo_refund_requested'          => App\Domain\Cgo\Events\RefundRequested::class,
+        'cgo_refund_approved'           => App\Domain\Cgo\Events\RefundApproved::class,
+        'cgo_refund_rejected'           => App\Domain\Cgo\Events\RefundRejected::class,
+        'cgo_refund_processed'          => App\Domain\Cgo\Events\RefundProcessed::class,
+        'cgo_refund_completed'          => App\Domain\Cgo\Events\RefundCompleted::class,
+        'cgo_refund_failed'             => App\Domain\Cgo\Events\RefundFailed::class,
+        'cgo_refund_cancelled'          => App\Domain\Cgo\Events\RefundCancelled::class,
     ],
 
     /*
