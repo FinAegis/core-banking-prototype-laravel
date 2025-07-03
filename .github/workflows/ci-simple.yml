@@ -1,10 +1,8 @@
 name: Simple CI Pipeline
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  # Disabled for pull requests - use ci-pipeline.yml instead
+  # This workflow is kept for quick checks via workflow_dispatch
   workflow_dispatch:
 
 env:
@@ -44,10 +42,10 @@ jobs:
         run: composer install --prefer-dist --no-progress --optimize-autoloader
         
       - name: Run PHP Code Sniffer
-        run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/ || true
+        run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/
         
       - name: Run PHP Static Analysis
-        run: vendor/bin/phpstan analyse --memory-limit=2G || true
+        run: vendor/bin/phpstan analyse --memory-limit=2G
 
   unit-tests:
     name: Unit Tests
@@ -100,7 +98,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Unit Tests
-        run: ./vendor/bin/pest --configuration=phpunit.unit.xml --parallel || true
+        run: ./vendor/bin/pest --configuration=phpunit.unit.xml --parallel
 
   feature-tests:
     name: Feature Tests
@@ -164,7 +162,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Feature Tests
-        run: ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --parallel || true
+        run: ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --parallel
 
   behat-tests:
     name: Behat Tests
@@ -228,7 +226,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Behat Tests
-        run: vendor/bin/behat || true
+        run: vendor/bin/behat
 
   final-status:
     name: Pipeline Status

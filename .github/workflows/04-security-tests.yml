@@ -65,7 +65,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Penetration Tests
-        run: ./vendor/bin/pest tests/Security/Penetration --configuration=phpunit.security.xml --stop-on-failure || true
+        run: ./vendor/bin/pest tests/Security/Penetration --configuration=phpunit.security.xml --stop-on-failure
 
   authentication-tests:
     name: Authentication Security Tests
@@ -119,7 +119,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Authentication Security Tests
-        run: ./vendor/bin/pest tests/Security/Authentication --configuration=phpunit.security.xml --stop-on-failure || true
+        run: ./vendor/bin/pest tests/Security/Authentication --configuration=phpunit.security.xml --stop-on-failure
 
   api-security-tests:
     name: API Security Tests
@@ -173,7 +173,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run API Security Tests
-        run: ./vendor/bin/pest tests/Security/API --configuration=phpunit.security.xml --stop-on-failure || true
+        run: ./vendor/bin/pest tests/Security/API --configuration=phpunit.security.xml --stop-on-failure
 
   vulnerability-tests:
     name: Vulnerability Tests
@@ -227,4 +227,4 @@ jobs:
           php artisan migrate --force
           
       - name: Run Vulnerability Tests
-        run: ./vendor/bin/pest tests/Security/Vulnerabilities --configuration=phpunit.security.xml --stop-on-failure || true
+        run: ./vendor/bin/pest tests/Security/Vulnerabilities --configuration=phpunit.security.xml --stop-on-failure

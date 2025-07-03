@@ -53,13 +53,13 @@ jobs:
         run: composer install --prefer-dist --no-progress --optimize-autoloader
         
       - name: Run PHP Code Sniffer
-        run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/ || true
+        run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/
         
       - name: Run PHP Static Analysis
-        run: vendor/bin/phpstan analyse --memory-limit=2G || true
+        run: vendor/bin/phpstan analyse --memory-limit=2G
         
       - name: Check PHP Code Style
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff || true
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
   dependency-security:
     name: Dependency Security Audit

@@ -304,11 +304,11 @@ jobs:
           php artisan config:cache
           php artisan route:cache
           php artisan migrate --force
-          php artisan db:seed --class=TestSeeder || true
+          php artisan db:seed --class=TestSeeder
           
       - name: Run Behat Tests
         run: |
-          vendor/bin/behat --format=pretty --format=junit --out=std --out=tests-results || true
+          vendor/bin/behat --format=pretty --format=junit --out=std --out=tests-results
           
       - name: Upload Behat Results
         if: always()
