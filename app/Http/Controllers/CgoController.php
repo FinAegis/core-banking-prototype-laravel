@@ -5,22 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\CgoNotification;
 use App\Models\CgoInvestment;
 use App\Models\CgoPricingRound;
+use App\Models\Subscriber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use App\Mail\CgoNotificationReceived;
 use App\Mail\CgoInvestmentReceived;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Services\Email\SubscriberEmailService;
 
 class CgoController extends Controller
 {
-    public function notify(Request $request)
+    public function notify(Request $request, SubscriberEmailService $emailService)
     {
         $validated = $request->validate([
             'email' => 'required|email|max:255',
         ]);
         
-        // Check if email already exists
+        // Check if email already exists in CGO notifications
         $existing = CgoNotification::where('email', $validated['email'])->first();
         
         if (!$existing) {
@@ -30,7 +32,20 @@ class CgoController extends Controller
                 'user_agent' => $request->userAgent(),
             ]);
             
-            // Send confirmation email
+            // Also add to subscriber list
+            try {
+                $emailService->subscribe(
+                    $validated['email'],
+                    Subscriber::SOURCE_CGO,
+                    ['cgo_early_access', 'investment_opportunities'],
+                    $request->ip(),
+                    $request->userAgent()
+                );
+            } catch (\Exception $e) {
+                \Log::error('Failed to add CGO subscriber: ' . $e->getMessage());
+            }
+            
+            // Send confirmation email (keep existing functionality)
             try {
                 Mail::to($validated['email'])->send(new CgoNotificationReceived($validated['email']));
             } catch (\Exception $e) {

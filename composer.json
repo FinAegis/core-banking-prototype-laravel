@@ -24,6 +24,7 @@
         "ext-intl": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
+        "aws/aws-sdk-php": "^3.349",
         "darkaonline/l5-swagger": "^9.0",
         "filament/filament": "^3.0",
         "http-interop/http-factory-guzzle": "^1.2",

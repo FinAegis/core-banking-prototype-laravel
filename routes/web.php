@@ -132,6 +132,10 @@ Route::get('/cgo/terms', function () {
 
 Route::post('/cgo/notify', [App\Http\Controllers\CgoController::class, 'notify'])->name('cgo.notify');
 
+// Subscriber routes
+Route::get('/subscriber/unsubscribe/{email}', [App\Http\Controllers\SubscriberController::class, 'unsubscribe'])->name('subscriber.unsubscribe');
+Route::post('/subscriber/{source}', [App\Http\Controllers\SubscriberController::class, 'subscribe'])->name('subscriber.subscribe');
+
 // Authenticated CGO routes
 Route::middleware(['auth', 'verified'])->prefix('cgo')->name('cgo.')->group(function () {
     Route::get('/invest', [App\Http\Controllers\CgoController::class, 'showInvest'])->name('invest');
