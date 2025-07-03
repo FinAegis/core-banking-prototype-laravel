@@ -16,15 +16,17 @@ The CGO investment feature is **partially functional** but has several critical 
 
 ### 2. Payment Integration Issues
 
-#### Crypto Payments (⚠️ High Risk)
-- Using **static example addresses** for all crypto payments:
-  ```php
-  'BTC' => '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
-  'ETH' => '0x742d35Cc6634C0532925a3b844Bc9e7595f82b2d',
+#### Crypto Payments (✅ Now Configurable)
+- **UPDATE**: Crypto addresses are now configurable via .env:
   ```
-- **No blockchain monitoring** - payments won't be detected
-- **No payment verification** - manual process only
-- Risk: Users could lose funds sending to example addresses
+  CGO_BTC_ADDRESS=your-btc-address
+  CGO_ETH_ADDRESS=your-eth-address
+  CGO_USDT_ADDRESS=your-usdt-address
+  CGO_USDC_ADDRESS=your-usdc-address
+  ```
+- **Production safety**: Requires `CGO_PRODUCTION_CRYPTO_ENABLED=true`
+- **Still missing**: Blockchain monitoring for payment detection
+- **Still missing**: Automated payment verification
 
 #### Bank Transfer (✅ Functional but Basic)
 - Shows bank details correctly

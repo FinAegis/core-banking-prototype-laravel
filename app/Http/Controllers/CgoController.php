@@ -149,47 +149,59 @@ class CgoController extends Controller
     
     private function processCryptoPayment($investment, $cryptoCurrency)
     {
-        // CRITICAL: These are TEST addresses only. In production, use a real crypto payment processor
-        // like Coinbase Commerce, BitPay, or generate unique addresses per transaction
-        
-        if (app()->environment('production')) {
-            // Production should NEVER use static addresses
-            throw new \Exception('Crypto payment processor not configured for production');
-        }
-        
-        // TEST ADDRESSES ONLY - DO NOT USE IN PRODUCTION
+        // Get crypto addresses from environment configuration
+        // In production, these should be addresses from a payment processor like Coinbase Commerce
         $cryptoAddresses = [
-            'BTC' => 'TEST-BTC-ADDRESS-DO-NOT-USE', // Example address
-            'ETH' => 'TEST-ETH-ADDRESS-DO-NOT-USE', // Example address  
-            'USDT' => 'TEST-USDT-ADDRESS-DO-NOT-USE', // Example address
-            'USDC' => 'TEST-USDC-ADDRESS-DO-NOT-USE', // Example address
+            'BTC' => config('cgo.crypto_addresses.btc', 'NOT-CONFIGURED'),
+            'ETH' => config('cgo.crypto_addresses.eth', 'NOT-CONFIGURED'),
+            'USDT' => config('cgo.crypto_addresses.usdt', 'NOT-CONFIGURED'),
+            'USDC' => config('cgo.crypto_addresses.usdc', 'NOT-CONFIGURED'),
         ];
         
-        $cryptoAddress = $cryptoAddresses[$cryptoCurrency];
+        $cryptoAddress = $cryptoAddresses[$cryptoCurrency] ?? 'NOT-CONFIGURED';
+        
+        // Safety check - prevent using unconfigured addresses
+        if ($cryptoAddress === 'NOT-CONFIGURED' || empty($cryptoAddress)) {
+            throw new \Exception("Crypto address for {$cryptoCurrency} is not configured. Please set CGO_{$cryptoCurrency}_ADDRESS in your .env file.");
+        }
+        
+        // Additional safety for production
+        if (app()->environment('production') && !config('cgo.production_crypto_enabled', false)) {
+            throw new \Exception('Crypto payments are not enabled for production. Set CGO_PRODUCTION_CRYPTO_ENABLED=true after proper payment processor integration.');
+        }
         
         $investment->update([
             'crypto_address' => $cryptoAddress,
         ]);
         
-        // In production, we'd monitor the blockchain for payment confirmation
+        // In production, implement blockchain monitoring for payment confirmation
         
         return view('cgo.crypto-payment', [
             'investment' => $investment,
             'cryptoCurrency' => $cryptoCurrency,
             'cryptoAddress' => $cryptoAddress,
-            'amount' => $investment->amount, // In production, convert to crypto amount
+            'amount' => $investment->amount, // In production, convert to crypto amount based on current rates
         ]);
     }
     
     private function processBankTransfer($investment)
     {
+        // Get bank details from configuration
+        $bankConfig = config('cgo.bank_details');
+        
+        // Generate unique account number if not configured
+        $accountNumber = $bankConfig['account_number'] ?: 'CGO-' . str_pad($investment->id, 8, '0', STR_PAD_LEFT);
+        
         return view('cgo.bank-transfer', [
             'investment' => $investment,
             'bankDetails' => [
-                'bank_name' => 'FinAegis Holdings Bank',
-                'account_name' => 'FinAegis CGO Investment Account',
-                'account_number' => 'CGO-' . str_pad($investment->id, 8, '0', STR_PAD_LEFT),
-                'swift_code' => 'FINAGCGO',
+                'bank_name' => $bankConfig['bank_name'],
+                'account_name' => $bankConfig['account_name'],
+                'account_number' => $accountNumber,
+                'routing_number' => $bankConfig['routing_number'],
+                'swift_code' => $bankConfig['swift_code'],
+                'iban' => $bankConfig['iban'],
+                'address' => $bankConfig['address'],
                 'reference' => 'CGO-' . $investment->uuid,
             ],
         ]);

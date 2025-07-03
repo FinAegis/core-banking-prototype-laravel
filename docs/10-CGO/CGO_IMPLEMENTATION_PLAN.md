@@ -91,9 +91,20 @@ The CGO feature is currently in development mode with critical security measures
 # Install QR code package for testing
 composer require simplesoftwareio/simple-qrcode --dev
 
-# Use testnet addresses in .env
-CRYPTO_TESTNET=true
-BITCOIN_TESTNET_ADDRESS=tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx
+# Configure crypto addresses in .env
+CGO_BTC_ADDRESS=tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx
+CGO_ETH_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f82b2d
+CGO_USDT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f82b2d
+CGO_USDC_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f82b2d
+
+# Configure bank details
+CGO_BANK_NAME="Test Bank Ltd."
+CGO_BANK_ACCOUNT_NAME="FinAegis Test Account"
+CGO_BANK_ACCOUNT_NUMBER="TEST123456"
+CGO_BANK_SWIFT_CODE="TESTSWIFT"
+
+# Keep production safety enabled
+CGO_PRODUCTION_CRYPTO_ENABLED=false
 ```
 
 ### 2. Test Payment Flows
