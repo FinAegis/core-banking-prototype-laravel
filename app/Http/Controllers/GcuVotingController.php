@@ -69,11 +69,12 @@ class GcuVotingController extends Controller
                 ->first();
                 
             $account = Auth::user()->accounts()->first();
-            $gcuBalance = 0;
             if ($account) {
                 $gcuBalance = $account->balances()
                     ->where('asset_code', 'GCU')
                     ->first()?->balance ?? 0;
+            } else {
+                $gcuBalance = 0;
             }
         }
         
