@@ -100,3 +100,13 @@ Schedule::command('basket:calculate-performance --period=day')
     ->dailyAt('00:30')
     ->description('Calculate daily performance metrics for all baskets')
     ->appendOutputTo(storage_path('logs/basket-performance-daily.log'));
+
+// System Health Monitoring
+Schedule::command('system:health-check')
+    ->everyMinute()
+    ->description('Perform system health checks')
+    ->appendOutputTo(storage_path('logs/system-health.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        \Log::critical('System health check failed to run');
+    });
