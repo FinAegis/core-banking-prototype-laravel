@@ -173,7 +173,7 @@
             @if($recentPosts->count() == 6)
             <!-- Load More -->
             <div class="text-center mt-12">
-                <a href="{{ route('blog.index') }}?page=2" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 inline-block">
+                <a href="{{ route('blog') }}?page=2" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 inline-block">
                     View All Posts
                 </a>
             </div>
