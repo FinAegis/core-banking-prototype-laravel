@@ -13,7 +13,45 @@ class BlogController extends Controller
      */
     public function index()
     {
-        return view('blog.index');
+        $featuredPost = \App\Models\BlogPost::published()
+            ->featured()
+            ->latest('published_at')
+            ->first();
+            
+        $recentPosts = \App\Models\BlogPost::published()
+            ->where('is_featured', false)
+            ->latest('published_at')
+            ->take(6)
+            ->get();
+            
+        $categories = [
+            'platform' => \App\Models\BlogPost::published()->category('platform')->count(),
+            'security' => \App\Models\BlogPost::published()->category('security')->count(),
+            'developer' => \App\Models\BlogPost::published()->category('developer')->count(),
+            'industry' => \App\Models\BlogPost::published()->category('industry')->count(),
+            'compliance' => \App\Models\BlogPost::published()->category('compliance')->count(),
+        ];
+        
+        return view('blog.index', compact('featuredPost', 'recentPosts', 'categories'));
+    }
+    
+    /**
+     * Display a single blog post
+     */
+    public function show($slug)
+    {
+        $post = \App\Models\BlogPost::published()
+            ->where('slug', $slug)
+            ->firstOrFail();
+            
+        $relatedPosts = \App\Models\BlogPost::published()
+            ->where('category', $post->category)
+            ->where('id', '!=', $post->id)
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+            
+        return view('blog.show', compact('post', 'relatedPosts'));
     }
     
     /**

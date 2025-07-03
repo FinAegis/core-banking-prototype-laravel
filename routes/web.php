@@ -101,6 +101,7 @@ Route::get('/support/guides', function () {
 })->name('support.guides');
 
 Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog');
+Route::get('/blog/{slug}', [App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 Route::post('/blog/subscribe', [App\Http\Controllers\BlogController::class, 'subscribe'])->name('blog.subscribe');
 
 Route::get('/partners', function () {
