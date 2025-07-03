@@ -131,6 +131,11 @@ return [
         'withdrawal_initiated'          => App\Domain\Payment\Events\WithdrawalInitiated::class,
         'withdrawal_completed'          => App\Domain\Payment\Events\WithdrawalCompleted::class,
         'withdrawal_failed'             => App\Domain\Payment\Events\WithdrawalFailed::class,
+        'batch_job_created'             => App\Domain\Batch\Events\BatchJobCreated::class,
+        'batch_job_started'             => App\Domain\Batch\Events\BatchJobStarted::class,
+        'batch_job_completed'           => App\Domain\Batch\Events\BatchJobCompleted::class,
+        'batch_job_cancelled'           => App\Domain\Batch\Events\BatchJobCancelled::class,
+        'batch_item_processed'          => App\Domain\Batch\Events\BatchItemProcessed::class,
     ],
 
     /*
