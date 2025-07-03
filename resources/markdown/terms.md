@@ -68,7 +68,7 @@ These terms and conditions are governed by and construed in accordance with the 
 ## Contact Information
 
 For questions about these Terms of Service, please contact:
-- Email: legal@finaegis.com
+- Email: info@finaegis.org
 - Address: FinAegis Demo Platform, EU
 
 ## CGO Investment Terms

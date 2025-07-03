@@ -60,7 +60,7 @@ You have the right to:
 - **Portability**: Receive your data in a portable format
 - **Object**: Object to certain processing activities
 
-To exercise these rights, contact: privacy@finaegis.com
+To exercise these rights, contact: info@finaegis.org
 
 ## Data Storage and Retention
 
@@ -101,8 +101,8 @@ We may update this privacy policy periodically. Changes will be posted on this p
 ## Contact Information
 
 For privacy-related questions or concerns:
-- **Data Protection Officer**: dpo@finaegis.com
-- **General Inquiries**: privacy@finaegis.com
+- **Data Protection Officer**: info@finaegis.org
+- **General Inquiries**: info@finaegis.org
 - **Address**: FinAegis Demo Platform, EU
 
 ## Supervisory Authority
