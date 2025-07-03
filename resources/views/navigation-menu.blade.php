@@ -339,7 +339,7 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             
-            <x-responsive-nav-link href="{{ route('wallet.index') }}" :active="request()->routeIs('wallet.index')">
+            <x-responsive-nav-link href="{{ route('wallet.index') }}" :active="request()->routeIs('wallet.*')">
                 {{ __('Wallet') }}
             </x-responsive-nav-link>
             
