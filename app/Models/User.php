@@ -68,6 +68,7 @@ class User extends Authenticatable implements FilamentUser
         'data_retention_consent',
         'has_completed_onboarding',
         'onboarding_completed_at',
+        'country_code', // Added for testing KYC/AML
     ];
 
     /**

@@ -52,6 +52,11 @@ class CgoInvestment extends Model
         'cancelled_at',
         'metadata',
         'email',
+        'kyc_verified_at',
+        'kyc_level',
+        'risk_assessment',
+        'aml_checked_at',
+        'aml_flags',
     ];
 
     protected $casts = [
@@ -70,6 +75,10 @@ class CgoInvestment extends Model
         'failed_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'metadata' => 'array',
+        'kyc_verified_at' => 'datetime',
+        'aml_checked_at' => 'datetime',
+        'aml_flags' => 'array',
+        'risk_assessment' => 'decimal:2',
     ];
 
     protected static function boot()
