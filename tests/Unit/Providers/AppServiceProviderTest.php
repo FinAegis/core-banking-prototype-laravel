@@ -10,6 +10,9 @@ uses(UnitTestCase::class);
 beforeEach(function () {
     $this->app = Mockery::mock(Application::class);
     $this->provider = new AppServiceProvider($this->app);
+    
+    // Add flush method expectation for tearDown
+    $this->app->shouldReceive('flush')->andReturnNull();
 });
 
 it('can instantiate app service provider', function () {
@@ -43,6 +46,9 @@ it('does not register WaterlineServiceProvider in testing environment', function
 });
 
 it('has boot method that can be called', function () {
+    // Mock environment check
+    $this->app->shouldReceive('environment')->with('demo')->andReturn(false);
+    
     // Test that boot method exists and can be called without errors
     expect(function () {
         $this->provider->boot();

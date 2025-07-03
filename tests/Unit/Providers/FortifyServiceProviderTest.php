@@ -9,6 +9,9 @@ uses(UnitTestCase::class);
 beforeEach(function () {
     $this->app = Mockery::mock(Application::class);
     $this->provider = new FortifyServiceProvider($this->app);
+    
+    // Add flush method expectation for tearDown
+    $this->app->shouldReceive('flush')->andReturnNull();
 });
 
 it('can instantiate fortify service provider', function () {

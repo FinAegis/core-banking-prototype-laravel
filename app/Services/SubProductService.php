@@ -307,4 +307,54 @@ class SubProductService
         
         return $status;
     }
+
+    /**
+     * Get sub-product config
+     */
+    public function getSubProductConfig(string $subProduct): ?array
+    {
+        $config = config("sub_products.{$subProduct}");
+        return $config ?: null;
+    }
+
+    /**
+     * Get features for sub-product
+     */
+    public function getFeatures(string $subProduct): array
+    {
+        return config("sub_products.{$subProduct}.features", []);
+    }
+
+    /**
+     * Get required licenses
+     */
+    public function getRequiredLicenses(string $subProduct): array
+    {
+        return config("sub_products.{$subProduct}.licenses", []);
+    }
+
+    /**
+     * Get metadata
+     */
+    public function getMetadata(string $subProduct): array
+    {
+        return config("sub_products.{$subProduct}.metadata", []);
+    }
+
+    /**
+     * Validate sub-product access
+     */
+    public function validateAccess(string $subProduct, array $context = []): bool
+    {
+        if (!$this->isEnabled($subProduct)) {
+            return false;
+        }
+        
+        // Check licenses if provided in context
+        if (isset($context['user_licenses'])) {
+            return $this->hasRequiredLicenses($subProduct, $context['user_licenses']);
+        }
+        
+        return true;
+    }
 }

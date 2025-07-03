@@ -62,24 +62,23 @@ class ProcessWebhookDelivery implements ShouldQueue
 
             $duration = round((microtime(true) - $startTime) * 1000); // Convert to milliseconds
 
-            // Check if response is successful (2xx status code)
-            if ($response->successful()) {
-                $this->delivery->markAsDelivered(
-                    statusCode: $response->status(),
-                    responseBody: $response->body(),
-                    responseHeaders: $response->headers(),
-                    durationMs: $duration
-                );
+            // Throw exception for non-successful responses
+            $response->throw();
 
-                Log::info("Webhook delivered successfully", [
-                    'webhook_id' => $webhook->uuid,
-                    'delivery_id' => $this->delivery->uuid,
-                    'status_code' => $response->status(),
-                    'duration_ms' => $duration,
-                ]);
-            } else {
-                throw new \Exception("HTTP {$response->status()}: {$response->body()}");
-            }
+            // If we get here, response is successful
+            $this->delivery->markAsDelivered(
+                statusCode: $response->status(),
+                responseBody: $response->body(),
+                responseHeaders: $response->headers(),
+                durationMs: $duration
+            );
+
+            Log::info("Webhook delivered successfully", [
+                'webhook_id' => $webhook->uuid,
+                'delivery_id' => $this->delivery->uuid,
+                'status_code' => $response->status(),
+                'duration_ms' => $duration,
+            ]);
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
             $statusCode = $e instanceof \Illuminate\Http\Client\RequestException 

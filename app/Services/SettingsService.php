@@ -327,6 +327,103 @@ class SettingsService
         return true;
     }
 
+    /**
+     * Get a setting value
+     */
+    public function get(string $key, $default = null)
+    {
+        return Setting::get($key, $default);
+    }
+
+    /**
+     * Set a setting value
+     */
+    public function set(string $key, $value, string $type = 'string', bool $encrypted = false, ?string $description = null): void
+    {
+        $attributes = [
+            'type' => $type,
+            'is_encrypted' => $encrypted,
+            'description' => $description,
+            'label' => ucwords(str_replace(['_', '.', '-'], ' ', $key)), // Default label from key
+            'group' => 'general', // Default group
+        ];
+        
+        // Get config to determine additional attributes
+        $config = $this->getSettingConfig($key);
+        if (!empty($config)) {
+            $attributes['label'] = $config['label'] ?? $attributes['label'];
+            $attributes['group'] = $config['group'] ?? $attributes['group'];
+        }
+        
+        Setting::updateOrCreate(
+            ['key' => $key],
+            array_merge(['value' => $value], $attributes)
+        );
+        
+        Cache::forget("settings.{$key}");
+    }
+
+    /**
+     * Delete a setting
+     */
+    public function delete(string $key): bool
+    {
+        $result = Setting::where('key', $key)->delete();
+        Cache::forget("settings.{$key}");
+        return $result > 0;
+    }
+
+    /**
+     * Check if a setting exists
+     */
+    public function has(string $key): bool
+    {
+        return Setting::where('key', $key)->exists();
+    }
+
+    /**
+     * Get multiple settings
+     */
+    public function getMultiple(array $keys): array
+    {
+        $result = [];
+        foreach ($keys as $key) {
+            $result[$key] = $this->get($key);
+        }
+        return $result;
+    }
+
+    /**
+     * Set multiple settings
+     */
+    public function setMultiple(array $settings): void
+    {
+        foreach ($settings as $key => $value) {
+            $this->set($key, $value);
+        }
+    }
+
+    /**
+     * Get all settings
+     */
+    public function all(): array
+    {
+        return Setting::all()
+            ->mapWithKeys(fn ($setting) => [$setting->key => $setting->value])
+            ->toArray();
+    }
+
+    /**
+     * Get settings by prefix
+     */
+    public function getByPrefix(string $prefix): array
+    {
+        return Setting::where('key', 'like', $prefix . '%')
+            ->get()
+            ->mapWithKeys(fn ($setting) => [$setting->key => $setting->value])
+            ->toArray();
+    }
+
     public function exportSettings(): array
     {
         return Setting::all()
