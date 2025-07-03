@@ -289,6 +289,15 @@ app/Domain/
 - **Payment Confirmation Views**: Dedicated views for each payment method
 - **Investment Management**: Track investment status and history
 
+#### Phase 8: Enhanced Features (Q1 2025) ✅
+- **GCU Voting System**: Complete implementation of democratic voting for GCU composition
+- **Subscriber Management**: Comprehensive newsletter and marketing system
+- **Enhanced Authentication**: Two-factor authentication, OAuth2, and password reset
+- **GCU Trading Operations**: Buy/sell functionality for Global Currency Unit
+- **Advanced Fraud Detection**: Real-time transaction monitoring and alerting
+- **Regulatory Reporting**: Automated CTR and SAR report generation
+- **Browser Testing**: Critical path testing for navigation and core features
+
 ## 🔧 Usage Examples
 
 ### Account Operations
