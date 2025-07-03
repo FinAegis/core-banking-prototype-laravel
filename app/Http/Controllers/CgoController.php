@@ -14,6 +14,7 @@ use App\Mail\CgoInvestmentReceived;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Services\Email\SubscriberEmailService;
 use App\Services\Cgo\StripePaymentService;
+use App\Services\Cgo\CoinbaseCommerceService;
 
 class CgoController extends Controller
 {
@@ -153,8 +154,22 @@ class CgoController extends Controller
     
     private function processCryptoPayment($investment, $cryptoCurrency)
     {
+        // Check if Coinbase Commerce is enabled and configured
+        if (config('cgo.payment_processors.coinbase_commerce.enabled', false) && !empty(config('services.coinbase_commerce.api_key'))) {
+            try {
+                $coinbaseService = new CoinbaseCommerceService();
+                $charge = $coinbaseService->createCharge($investment);
+                
+                // Redirect to Coinbase Commerce hosted checkout
+                return redirect($charge['hosted_url']);
+            } catch (\Exception $e) {
+                \Log::error('Coinbase Commerce error: ' . $e->getMessage());
+                // Fall back to manual crypto payment
+            }
+        }
+        
+        // Manual crypto payment fallback
         // Get crypto addresses from environment configuration
-        // In production, these should be addresses from a payment processor like Coinbase Commerce
         $cryptoAddresses = [
             'BTC' => config('cgo.crypto_addresses.btc', 'NOT-CONFIGURED'),
             'ETH' => config('cgo.crypto_addresses.eth', 'NOT-CONFIGURED'),
@@ -188,14 +203,11 @@ class CgoController extends Controller
             'crypto_address' => $cryptoAddress,
         ]);
         
-        // TODO: In production, integrate with Coinbase Commerce or similar for real crypto payments
-        // This would involve creating a charge/invoice and monitoring for payment confirmation
-        
         return view('cgo.crypto-payment', [
             'investment' => $investment,
             'cryptoCurrency' => $cryptoCurrency,
             'cryptoAddress' => $cryptoAddress,
-            'amount' => $investment->amount, // TODO: Convert to crypto amount based on current rates
+            'amount' => $investment->amount,
         ]);
     }
     

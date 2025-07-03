@@ -40,6 +40,11 @@ return [
         'list_id' => env('MAILCHIMP_LIST_ID'),
     ],
     
+    'coinbase_commerce' => [
+        'api_key' => env('COINBASE_COMMERCE_API_KEY'),
+        'webhook_secret' => env('COINBASE_COMMERCE_WEBHOOK_SECRET'),
+    ],
+    
     /*
     |--------------------------------------------------------------------------
     | OAuth Services Configuration

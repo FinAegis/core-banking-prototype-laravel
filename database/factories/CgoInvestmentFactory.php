@@ -2,89 +2,78 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Models\CgoInvestment;
 use App\Models\CgoPricingRound;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CgoInvestment>
- */
 class CgoInvestmentFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = CgoInvestment::class;
+
     public function definition(): array
     {
-        $amount = $this->faker->randomElement([100, 500, 1000, 5000, 10000, 25000]);
-        $sharePrice = 10.00; // Default share price
-        $shares = $amount / $sharePrice;
-        $ownershipPercentage = ($shares / 1000000) * 100; // 1M total shares
-        
-        // Determine tier based on amount
-        $tier = 'bronze';
-        if ($amount >= 10000) {
-            $tier = 'gold';
-        } elseif ($amount >= 1000) {
-            $tier = 'silver';
-        }
-        
+        $tiers = ['bronze', 'silver', 'gold'];
+        $tier = $this->faker->randomElement($tiers);
+        $amounts = [
+            'bronze' => 1000,
+            'silver' => 5000,
+            'gold' => 10000,
+        ];
+
         return [
-            'uuid' => (string) Str::uuid(),
+            'uuid' => Str::uuid(),
             'user_id' => User::factory(),
             'round_id' => CgoPricingRound::factory(),
-            'amount' => $amount,
+            'amount' => $amounts[$tier],
             'currency' => 'USD',
-            'share_price' => $sharePrice,
-            'shares_purchased' => $shares,
-            'ownership_percentage' => $ownershipPercentage,
+            'share_price' => 10.00,
+            'shares_purchased' => $amounts[$tier] / 10,
+            'ownership_percentage' => ($amounts[$tier] / 10) / 1000000 * 100, // Assuming 1M total shares
             'tier' => $tier,
-            'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled']),
-            'payment_method' => $this->faker->randomElement(['crypto', 'bank_transfer', 'card']),
-            'crypto_address' => null,
-            'crypto_tx_hash' => null,
-            'certificate_number' => null,
-            'certificate_issued_at' => null,
+            'status' => 'pending',
+            'payment_method' => $this->faker->randomElement(['card', 'crypto', 'bank_transfer']),
+            'payment_status' => 'pending',
             'metadata' => [],
         ];
     }
-    
-    /**
-     * Indicate that the investment is pending.
-     */
-    public function pending(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'pending',
-        ]);
-    }
-    
-    /**
-     * Indicate that the investment is confirmed.
-     */
+
     public function confirmed(): static
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'confirmed',
-            'certificate_number' => 'CGO-' . strtoupper($attributes['tier'][0]) . '-' . date('Y') . '-' . str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT),
-            'certificate_issued_at' => now(),
+            'payment_status' => 'completed',
+            'payment_completed_at' => now(),
         ]);
     }
-    
-    /**
-     * Indicate that the investment was made with crypto.
-     */
-    public function crypto(): static
+
+    public function withStripePayment(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'payment_method' => 'card',
+            'stripe_session_id' => 'cs_test_' . Str::random(24),
+            'stripe_payment_intent_id' => 'pi_test_' . Str::random(24),
+        ]);
+    }
+
+    public function withCoinbasePayment(): static
     {
         return $this->state(fn (array $attributes) => [
             'payment_method' => 'crypto',
-            'crypto_address' => '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
-            'metadata' => array_merge($attributes['metadata'] ?? [], [
-                'crypto_currency' => $this->faker->randomElement(['BTC', 'ETH', 'USDT', 'USDC'])
-            ]),
+            'coinbase_charge_id' => 'charge_' . Str::random(8),
+            'coinbase_charge_code' => strtoupper(Str::random(8)),
+            'crypto_payment_url' => 'https://commerce.coinbase.com/charges/' . strtoupper(Str::random(8)),
         ]);
+    }
+
+    public function withCertificate(): static
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'certificate_number' => 'CGO-' . strtoupper($attributes['tier'][0]) . '-' . date('Y') . '-' . str_pad($this->faker->numberBetween(1, 999999), 6, '0', STR_PAD_LEFT),
+                'certificate_issued_at' => now(),
+            ];
+        });
     }
 }

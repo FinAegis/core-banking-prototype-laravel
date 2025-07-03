@@ -380,6 +380,11 @@ Route::prefix('webhooks/custodian')->middleware('api.rate_limit:webhook')->group
     Route::post('/mock', [\App\Http\Controllers\Api\CustodianWebhookController::class, 'mock']);
 });
 
+// Payment processor webhook endpoints
+Route::prefix('webhooks')->middleware('api.rate_limit:webhook')->group(function () {
+    Route::post('/coinbase-commerce', [\App\Http\Controllers\CoinbaseWebhookController::class, 'handleWebhook']);
+});
+
 // Include BIAN-compliant routes
 require __DIR__.'/api-bian.php';
 
