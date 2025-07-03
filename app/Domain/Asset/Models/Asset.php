@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\AccountBalance;
+use App\Domain\Exchange\Models\ExchangeRate;
 
 class Asset extends Model
 {

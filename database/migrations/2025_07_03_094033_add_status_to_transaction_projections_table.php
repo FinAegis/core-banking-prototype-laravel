@@ -11,20 +11,45 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('transaction_projections')) {
+            return;
+        }
+        
         Schema::table('transaction_projections', function (Blueprint $table) {
-            $table->string('status')->default('completed')->after('metadata');
-            $table->string('subtype')->nullable()->after('type');
-            $table->uuid('parent_transaction_id')->nullable()->after('status');
-            $table->string('external_reference')->nullable()->after('reference');
-            $table->timestamp('cancelled_at')->nullable();
-            $table->uuid('cancelled_by')->nullable();
-            $table->timestamp('retried_at')->nullable();
-            $table->uuid('retry_transaction_id')->nullable();
+            if (!Schema::hasColumn('transaction_projections', 'status')) {
+                $table->string('status')->default('completed')->after('metadata');
+            }
+            if (!Schema::hasColumn('transaction_projections', 'subtype')) {
+                $table->string('subtype')->nullable()->after('type');
+            }
+            if (!Schema::hasColumn('transaction_projections', 'parent_transaction_id')) {
+                $table->uuid('parent_transaction_id')->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('transaction_projections', 'external_reference')) {
+                $table->string('external_reference')->nullable()->after('reference');
+            }
+            if (!Schema::hasColumn('transaction_projections', 'cancelled_at')) {
+                $table->timestamp('cancelled_at')->nullable();
+            }
+            if (!Schema::hasColumn('transaction_projections', 'cancelled_by')) {
+                $table->uuid('cancelled_by')->nullable();
+            }
+            if (!Schema::hasColumn('transaction_projections', 'retried_at')) {
+                $table->timestamp('retried_at')->nullable();
+            }
+            if (!Schema::hasColumn('transaction_projections', 'retry_transaction_id')) {
+                $table->uuid('retry_transaction_id')->nullable();
+            }
             
-            // Add indexes for performance
-            $table->index('status');
-            $table->index(['account_uuid', 'status']);
         });
+        
+        // Add indexes for performance (outside the table modification for SQLite compatibility)
+        if (Schema::hasColumn('transaction_projections', 'status')) {
+            Schema::table('transaction_projections', function (Blueprint $table) {
+                $table->index('status');
+                $table->index(['account_uuid', 'status']);
+            });
+        }
     }
 
     /**
