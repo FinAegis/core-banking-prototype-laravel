@@ -7,6 +7,13 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Investment Banner -->
+            @if(!session('hide_invest_banner_wallet') && !auth()->user()->cgoInvestments()->exists())
+                <div class="invest-banner-container mb-8">
+                    <x-invest-banner class="mb-0" />
+                </div>
+            @endif
+            
             <!-- Account Status Alert -->
             @if(!auth()->user()->accounts->first())
                 <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 text-yellow-800 dark:text-yellow-200 px-6 py-4 rounded-lg">
