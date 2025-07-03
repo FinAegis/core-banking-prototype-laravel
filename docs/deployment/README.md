@@ -8,8 +8,10 @@ This guide explains how to deploy the Finaegis Core Banking platform.
 
 The project uses GitHub Actions for automated deployments:
 
-- **Automatic deployment to demo**: Every push to `main` branch
-- **Manual deployment to production**: Via GitHub Actions UI or when creating a release tag
+- **Automatic deployment to demo**: Every push to `main` branch (if demo server is configured)
+- **Manual deployment to production**: Via GitHub Actions UI or when creating a release tag (if production server is configured)
+
+**Note**: Deployments will be automatically skipped if the corresponding server variables are not configured in GitHub. This allows you to use the same workflow even if you haven't set up all environments yet.
 
 #### Required GitHub Secrets
 
