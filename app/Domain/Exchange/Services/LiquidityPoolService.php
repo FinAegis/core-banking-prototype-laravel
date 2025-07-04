@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\Services;
 
 use App\Domain\Exchange\Aggregates\LiquidityPool;
+use App\Domain\Exchange\Contracts\LiquidityPoolServiceInterface;
 use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\Projections\LiquidityProvider;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
@@ -13,7 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Workflow\WorkflowStub;
 
-class LiquidityPoolService
+class LiquidityPoolService implements LiquidityPoolServiceInterface
 {
     public function __construct(
         private readonly ExchangeService $exchangeService

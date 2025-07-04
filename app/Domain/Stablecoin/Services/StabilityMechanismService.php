@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Stablecoin\Services;
 
 use App\Domain\Asset\Services\ExchangeRateService;
+use App\Domain\Stablecoin\Contracts\StabilityMechanismServiceInterface;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-class StabilityMechanismService
+class StabilityMechanismService implements StabilityMechanismServiceInterface
 {
     public function __construct(
         private readonly ExchangeRateService $exchangeRateService,

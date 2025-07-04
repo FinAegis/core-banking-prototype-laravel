@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\Services;
 
 use App\Domain\Exchange\Aggregates\Order as OrderAggregate;
+use App\Domain\Exchange\Contracts\ExternalLiquidityServiceInterface;
 use App\Domain\Exchange\Events\ExternalLiquidityProvided;
 use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\OrderBook;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class ExternalLiquidityService
+class ExternalLiquidityService implements ExternalLiquidityServiceInterface
 {
     public function __construct(
         private readonly ExternalExchangeConnectorRegistry $connectorRegistry,

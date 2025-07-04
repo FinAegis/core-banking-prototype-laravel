@@ -2,88 +2,32 @@
 
 namespace App\Domain\Exchange\Contracts;
 
-use App\Domain\Account\DataObjects\Money;
+use Brick\Math\BigDecimal;
 
 interface FeeCalculatorInterface
 {
     /**
-     * Calculate trading fee for an order
+     * Calculate trading fees for both maker and taker
      *
-     * @param string $orderType
-     * @param string $baseCurrency
-     * @param string $quoteCurrency
-     * @param string $amount
-     * @param string $price
-     * @param array $accountTier
-     * @return array
+     * @param BigDecimal $amount
+     * @param BigDecimal $price
+     * @param string $takerAccountId
+     * @param string $makerAccountId
+     * @return object
      */
-    public function calculateTradingFee(
-        string $orderType,
-        string $baseCurrency,
-        string $quoteCurrency,
-        string $amount,
-        string $price,
-        array $accountTier = []
-    ): array;
-
-    /**
-     * Calculate withdrawal fee
-     *
-     * @param string $currency
-     * @param string $amount
-     * @param string $method
-     * @return Money
-     */
-    public function calculateWithdrawalFee(
-        string $currency,
-        string $amount,
-        string $method
-    ): Money;
-
-    /**
-     * Calculate deposit fee
-     *
-     * @param string $currency
-     * @param string $amount
-     * @param string $method
-     * @return Money
-     */
-    public function calculateDepositFee(
-        string $currency,
-        string $amount,
-        string $method
-    ): Money;
-
-    /**
-     * Calculate liquidity provider fee share
-     *
-     * @param string $poolId
-     * @param string $tradingFee
-     * @return array
-     */
-    public function calculateLPFeeShare(string $poolId, string $tradingFee): array;
+    public function calculateFees(
+        BigDecimal $amount,
+        BigDecimal $price,
+        string $takerAccountId,
+        string $makerAccountId
+    ): object;
 
     /**
      * Calculate minimum order value
      *
      * @param string $baseCurrency
      * @param string $quoteCurrency
-     * @return Money
+     * @return BigDecimal
      */
-    public function calculateMinimumOrderValue(string $baseCurrency, string $quoteCurrency): Money;
-
-    /**
-     * Get fee tiers
-     *
-     * @return array
-     */
-    public function getFeeTiers(): array;
-
-    /**
-     * Get account fee tier
-     *
-     * @param string $accountId
-     * @return array
-     */
-    public function getAccountFeeTier(string $accountId): array;
+    public function calculateMinimumOrderValue(string $baseCurrency, string $quoteCurrency): BigDecimal;
 }

@@ -2,57 +2,44 @@
 
 namespace App\Domain\Exchange\Contracts;
 
+use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
+use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
+use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
+use Illuminate\Support\Collection;
+
 interface LiquidityPoolServiceInterface
 {
     /**
      * Create a new liquidity pool
      *
-     * @param string $accountId
      * @param string $baseCurrency
      * @param string $quoteCurrency
-     * @param string $baseAmount
-     * @param string $quoteAmount
-     * @param array $config
-     * @return array
+     * @param string $feeRate
+     * @param array $metadata
+     * @return string
      */
     public function createPool(
-        string $accountId,
         string $baseCurrency,
         string $quoteCurrency,
-        string $baseAmount,
-        string $quoteAmount,
-        array $config = []
-    ): array;
+        string $feeRate = '0.003',
+        array $metadata = []
+    ): string;
 
     /**
      * Add liquidity to a pool
      *
-     * @param string $poolId
-     * @param string $accountId
-     * @param string $baseAmount
-     * @param string $quoteAmount
+     * @param LiquidityAdditionInput $input
      * @return array
      */
-    public function addLiquidity(
-        string $poolId,
-        string $accountId,
-        string $baseAmount,
-        string $quoteAmount
-    ): array;
+    public function addLiquidity(LiquidityAdditionInput $input): array;
 
     /**
      * Remove liquidity from a pool
      *
-     * @param string $poolId
-     * @param string $accountId
-     * @param string $lpTokenAmount
+     * @param LiquidityRemovalInput $input
      * @return array
      */
-    public function removeLiquidity(
-        string $poolId,
-        string $accountId,
-        string $lpTokenAmount
-    ): array;
+    public function removeLiquidity(LiquidityRemovalInput $input): array;
 
     /**
      * Execute a swap through a liquidity pool
@@ -73,34 +60,36 @@ interface LiquidityPoolServiceInterface
     ): array;
 
     /**
-     * Get pool information
+     * Get pool details
      *
      * @param string $poolId
-     * @return array
+     * @return PoolProjection|null
      */
-    public function getPoolInfo(string $poolId): array;
+    public function getPool(string $poolId): ?PoolProjection;
 
     /**
-     * Calculate output amount for a swap
+     * Get pool by currency pair
      *
-     * @param string $poolId
-     * @param string $inputCurrency
-     * @param string $inputAmount
-     * @return array
+     * @param string $baseCurrency
+     * @param string $quoteCurrency
+     * @return PoolProjection|null
      */
-    public function calculateSwapOutput(
-        string $poolId,
-        string $inputCurrency,
-        string $inputAmount
-    ): array;
+    public function getPoolByPair(string $baseCurrency, string $quoteCurrency): ?PoolProjection;
 
     /**
-     * Get user's liquidity positions
+     * Get all active pools
      *
-     * @param string $accountId
-     * @return array
+     * @return Collection
      */
-    public function getUserPositions(string $accountId): array;
+    public function getActivePools(): Collection;
+
+    /**
+     * Get provider's positions
+     *
+     * @param string $providerId
+     * @return Collection
+     */
+    public function getProviderPositions(string $providerId): Collection;
 
     /**
      * Get pool metrics and analytics

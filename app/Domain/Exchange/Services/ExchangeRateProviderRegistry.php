@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Exchange\Services;
 
+use App\Domain\Exchange\Contracts\ExchangeRateProviderRegistryInterface;
 use App\Domain\Exchange\Contracts\IExchangeRateProvider;
+use App\Domain\Exchange\Contracts\ExchangeRateProviderInterface;
 use App\Domain\Exchange\Exceptions\RateProviderException;
 use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
+use Brick\Math\BigDecimal;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
-class ExchangeRateProviderRegistry
+class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterface
 {
     private array $providers = [];
     private ?string $defaultProvider = null;

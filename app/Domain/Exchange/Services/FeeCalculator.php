@@ -2,12 +2,13 @@
 
 namespace App\Domain\Exchange\Services;
 
+use App\Domain\Exchange\Contracts\FeeCalculatorInterface;
 use App\Domain\Exchange\Projections\Trade;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Illuminate\Support\Facades\Cache;
 
-class FeeCalculator
+class FeeCalculator implements FeeCalculatorInterface
 {
     private const DEFAULT_MAKER_FEE_PERCENT = '0.001'; // 0.1%
     private const DEFAULT_TAKER_FEE_PERCENT = '0.002'; // 0.2%

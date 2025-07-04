@@ -2,6 +2,7 @@
 
 namespace App\Domain\Wallet\Services;
 
+use App\Domain\Wallet\Contracts\KeyManagementServiceInterface;
 use App\Domain\Wallet\Exceptions\KeyManagementException;
 use BitWasp\Bitcoin\Bitcoin;
 use BitWasp\Bitcoin\Key\Factory\HierarchicalKeyFactory;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Cache;
 use kornrunner\Keccak;
 
-class KeyManagementService
+class KeyManagementService implements KeyManagementServiceInterface
 {
     protected EC $ec;
     protected string $encryptionKey;
