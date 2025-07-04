@@ -143,6 +143,36 @@ return [
         'cgo_refund_completed'          => App\Domain\Cgo\Events\RefundCompleted::class,
         'cgo_refund_failed'             => App\Domain\Cgo\Events\RefundFailed::class,
         'cgo_refund_cancelled'          => App\Domain\Cgo\Events\RefundCancelled::class,
+        
+        // Exchange events
+        'order_book_created'            => App\Domain\Exchange\Events\OrderBookCreated::class,
+        'order_placed'                  => App\Domain\Exchange\Events\OrderPlaced::class,
+        'order_cancelled'               => App\Domain\Exchange\Events\OrderCancelled::class,
+        'order_filled'                  => App\Domain\Exchange\Events\OrderFilled::class,
+        'order_partially_filled'        => App\Domain\Exchange\Events\OrderPartiallyFilled::class,
+        'order_matched'                 => App\Domain\Exchange\Events\OrderMatched::class,
+        'market_depth_updated'          => App\Domain\Exchange\Events\MarketDepthUpdated::class,
+        'liquidity_pool_created'        => App\Domain\Exchange\Events\LiquidityPoolCreated::class,
+        'liquidity_added'               => App\Domain\Exchange\Events\LiquidityAdded::class,
+        'liquidity_removed'             => App\Domain\Exchange\Events\LiquidityRemoved::class,
+        'swap_executed'                 => App\Domain\Exchange\Events\SwapExecuted::class,
+        'fee_collected'                 => App\Domain\Exchange\Events\FeeCollected::class,
+        'pool_ratio_updated'            => App\Domain\Exchange\Events\PoolRatioUpdated::class,
+        
+        // Stablecoin framework events
+        'oracle_deviation_detected'     => App\Domain\Stablecoin\Events\OracleDeviationDetected::class,
+        'reserve_pool_created'          => App\Domain\Stablecoin\Events\ReservePoolCreated::class,
+        'reserve_deposited'             => App\Domain\Stablecoin\Events\ReserveDeposited::class,
+        'reserve_withdrawn'             => App\Domain\Stablecoin\Events\ReserveWithdrawn::class,
+        'reserve_rebalanced'            => App\Domain\Stablecoin\Events\ReserveRebalanced::class,
+        'custodian_added'               => App\Domain\Stablecoin\Events\CustodianAdded::class,
+        'custodian_removed'             => App\Domain\Stablecoin\Events\CustodianRemoved::class,
+        'collateralization_ratio_updated' => App\Domain\Stablecoin\Events\CollateralizationRatioUpdated::class,
+        'proposal_created'              => App\Domain\Stablecoin\Events\ProposalCreated::class,
+        'proposal_vote_cast'            => App\Domain\Stablecoin\Events\ProposalVoteCast::class,
+        'proposal_executed'             => App\Domain\Stablecoin\Events\ProposalExecuted::class,
+        'proposal_cancelled'            => App\Domain\Stablecoin\Events\ProposalCancelled::class,
+        'proposal_finalized'            => App\Domain\Stablecoin\Events\ProposalFinalized::class,
     ],
 
     /*
