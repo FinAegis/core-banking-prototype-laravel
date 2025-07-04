@@ -180,6 +180,15 @@ return [
         'proposal_executed'             => App\Domain\Stablecoin\Events\ProposalExecuted::class,
         'proposal_cancelled'            => App\Domain\Stablecoin\Events\ProposalCancelled::class,
         'proposal_finalized'            => App\Domain\Stablecoin\Events\ProposalFinalized::class,
+        
+        // Blockchain wallet events
+        'blockchain_wallet_created'     => App\Domain\Wallet\Events\BlockchainWalletCreated::class,
+        'wallet_address_generated'      => App\Domain\Wallet\Events\WalletAddressGenerated::class,
+        'wallet_settings_updated'       => App\Domain\Wallet\Events\WalletSettingsUpdated::class,
+        'wallet_frozen'                 => App\Domain\Wallet\Events\WalletFrozen::class,
+        'wallet_unfrozen'              => App\Domain\Wallet\Events\WalletUnfrozen::class,
+        'wallet_key_rotated'           => App\Domain\Wallet\Events\WalletKeyRotated::class,
+        'wallet_backup_created'        => App\Domain\Wallet\Events\WalletBackupCreated::class,
     ],
 
     /*

@@ -444,3 +444,22 @@ require __DIR__.'/api/fraud.php';
 
 // Include enhanced regulatory routes
 require __DIR__.'/api/regulatory.php';
+
+// Blockchain wallet endpoints
+Route::prefix('blockchain-wallets')->middleware(['auth:sanctum', 'sub_product:blockchain'])->group(function () {
+    Route::middleware('api.rate_limit:query')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\BlockchainWalletController::class, 'index']);
+        Route::get('/{walletId}', [App\Http\Controllers\Api\BlockchainWalletController::class, 'show']);
+        Route::get('/{walletId}/addresses', [App\Http\Controllers\Api\BlockchainWalletController::class, 'addresses']);
+        Route::get('/{walletId}/transactions', [App\Http\Controllers\Api\BlockchainWalletController::class, 'transactions']);
+    });
+    
+    Route::middleware('transaction.rate_limit:blockchain')->group(function () {
+        Route::post('/', [App\Http\Controllers\Api\BlockchainWalletController::class, 'store']);
+        Route::put('/{walletId}', [App\Http\Controllers\Api\BlockchainWalletController::class, 'update']);
+        Route::post('/{walletId}/addresses', [App\Http\Controllers\Api\BlockchainWalletController::class, 'generateAddress']);
+        Route::post('/{walletId}/backup', [App\Http\Controllers\Api\BlockchainWalletController::class, 'createBackup']);
+    });
+    
+    Route::post('/generate-mnemonic', [App\Http\Controllers\Api\BlockchainWalletController::class, 'generateMnemonic']);
+});

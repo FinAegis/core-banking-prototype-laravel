@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('asset_weighted_vote', \App\Domain\Governance\Strategies\AssetWeightedVoteStrategy::class);
         $this->app->bind('one_user_one_vote', \App\Domain\Governance\Strategies\OneUserOneVoteStrategy::class);
         $this->app->bind(\App\Domain\Governance\Strategies\AssetWeightedVotingStrategy::class, \App\Domain\Governance\Strategies\AssetWeightedVotingStrategy::class);
+        
+        // Register blockchain service provider
+        $this->app->register(BlockchainServiceProvider::class);
     }
 
     /**
