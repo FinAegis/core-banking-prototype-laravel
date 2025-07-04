@@ -10,20 +10,27 @@ use App\Domain\Exchange\Contracts\ExchangeRateProviderInterface;
 use App\Domain\Exchange\Exceptions\RateProviderException;
 use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterface
 {
     private array $providers = [];
+    private array $priorities = [];
     private ?string $defaultProvider = null;
 
     /**
      * Register a provider
      */
-    public function register(string $name, IExchangeRateProvider $provider): void
+    public function register(string $name, mixed $provider): void
     {
+        if (!$provider instanceof IExchangeRateProvider && !$provider instanceof ExchangeRateProviderInterface) {
+            throw new RateProviderException('Provider must implement IExchangeRateProvider or ExchangeRateProviderInterface');
+        }
+        
         $this->providers[$name] = $provider;
+        $this->priorities[$name] = 100; // Default priority
         
         // Set as default if it's the first one
         if ($this->defaultProvider === null) {
@@ -36,7 +43,7 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
     /**
      * Get a provider by name
      */
-    public function get(string $name): IExchangeRateProvider
+    public function get(string $name): IExchangeRateProvider|ExchangeRateProviderInterface
     {
         if (!isset($this->providers[$name])) {
             throw new RateProviderException("Exchange rate provider '{$name}' not found");
@@ -48,7 +55,7 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
     /**
      * Get the default provider
      */
-    public function getDefault(): IExchangeRateProvider
+    public function getDefault(): IExchangeRateProvider|ExchangeRateProviderInterface
     {
         if ($this->defaultProvider === null) {
             throw new RateProviderException("No default exchange rate provider configured");
@@ -78,6 +85,14 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
     }
 
     /**
+     * Get all registered providers (interface method)
+     */
+    public function getProviders(): array
+    {
+        return $this->providers;
+    }
+
+    /**
      * Get available providers (those that pass health check)
      */
     public function available(): array
@@ -91,7 +106,7 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
     public function byPriority(): Collection
     {
         return collect($this->providers)
-            ->sortByDesc(fn($provider) => $provider->getPriority());
+            ->sortByDesc(fn($provider, $name) => $this->priorities[$name] ?? 0);
     }
 
     /**
@@ -107,30 +122,36 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
     /**
      * Get rate from the first available provider
      */
-    public function getRate(string $fromCurrency, string $toCurrency): ExchangeRateQuote
+    public function getRate(string $fromCurrency, string $toCurrency): ?BigDecimal
     {
         $availableProviders = $this->findByCurrencyPair($fromCurrency, $toCurrency);
         
         if (empty($availableProviders)) {
-            throw new RateProviderException(
-                "No providers available for currency pair {$fromCurrency}/{$toCurrency}"
-            );
+            Log::warning("No providers available for currency pair {$fromCurrency}/{$toCurrency}");
+            return null;
         }
 
         // Sort by priority and try each one
         $sorted = collect($availableProviders)
-            ->sortByDesc(fn($provider) => $provider->getPriority());
+            ->sortByDesc(fn($provider, $name) => $this->priorities[$name] ?? 0);
 
         $lastException = null;
 
-        foreach ($sorted as $provider) {
+        foreach ($sorted as $name => $provider) {
             try {
                 if ($provider->isAvailable()) {
-                    return $provider->getRate($fromCurrency, $toCurrency);
+                    $quote = $provider->getRate($fromCurrency, $toCurrency);
+                    if ($quote instanceof ExchangeRateQuote) {
+                        return BigDecimal::of((string)$quote->rate);
+                    } elseif ($quote instanceof BigDecimal) {
+                        return $quote;
+                    } else {
+                        return BigDecimal::of((string)$quote);
+                    }
                 }
             } catch (\Exception $e) {
                 $lastException = $e;
-                Log::warning("Provider {$provider->getName()} failed to get rate", [
+                Log::warning("Provider {$name} failed to get rate", [
                     'error' => $e->getMessage(),
                     'from' => $fromCurrency,
                     'to' => $toCurrency,
@@ -138,11 +159,13 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
             }
         }
 
-        throw new RateProviderException(
-            "Failed to get rate from any provider for {$fromCurrency}/{$toCurrency}",
-            500,
-            $lastException
-        );
+        if ($lastException) {
+            Log::error("Failed to get rate from any provider for {$fromCurrency}/{$toCurrency}", [
+                'error' => $lastException->getMessage()
+            ]);
+        }
+
+        return null;
     }
 
     /**
@@ -155,7 +178,8 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
         foreach ($this->providers as $name => $provider) {
             try {
                 if ($provider->isAvailable() && $provider->supportsPair($fromCurrency, $toCurrency)) {
-                    $results[$name] = $provider->getRate($fromCurrency, $toCurrency);
+                    $quote = $provider->getRate($fromCurrency, $toCurrency);
+                    $results[$name] = $quote;
                 }
             } catch (\Exception $e) {
                 Log::debug("Provider {$name} failed to get rate", [
@@ -170,46 +194,61 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
     /**
      * Get aggregated rate (average of available providers)
      */
-    public function getAggregatedRate(string $fromCurrency, string $toCurrency): ExchangeRateQuote
-    {
+    public function getAggregatedRate(
+        string $fromCurrency,
+        string $toCurrency,
+        string $aggregationMethod = 'median'
+    ): ?BigDecimal {
         $rates = $this->getRatesFromAll($fromCurrency, $toCurrency);
         
         if (empty($rates)) {
-            throw new RateProviderException(
-                "No providers could fetch rate for {$fromCurrency}/{$toCurrency}"
-            );
+            Log::warning("No providers could fetch rate for {$fromCurrency}/{$toCurrency}");
+            return null;
         }
 
-        // Calculate averages
-        $sumRate = 0;
-        $sumBid = 0;
-        $sumAsk = 0;
-        $count = count($rates);
-
+        // Extract numeric rates
+        $numericRates = [];
         foreach ($rates as $quote) {
-            $sumRate += $quote->rate;
-            $sumBid += $quote->bid;
-            $sumAsk += $quote->ask;
+            if ($quote instanceof ExchangeRateQuote) {
+                $numericRates[] = BigDecimal::of((string)$quote->rate);
+            } elseif ($quote instanceof BigDecimal) {
+                $numericRates[] = $quote;
+            } else {
+                $numericRates[] = BigDecimal::of((string)$quote);
+            }
         }
 
-        // Use the most recent timestamp
-        $latestTimestamp = collect($rates)
-            ->map(fn($quote) => $quote->timestamp)
-            ->max();
-
-        return new ExchangeRateQuote(
-            fromCurrency: $fromCurrency,
-            toCurrency: $toCurrency,
-            rate: $sumRate / $count,
-            bid: $sumBid / $count,
-            ask: $sumAsk / $count,
-            provider: 'aggregated',
-            timestamp: $latestTimestamp,
-            metadata: [
-                'providers' => array_keys($rates),
-                'count' => $count,
-            ]
-        );
+        switch ($aggregationMethod) {
+            case 'mean':
+            case 'average':
+                $sum = BigDecimal::of('0');
+                foreach ($numericRates as $rate) {
+                    $sum = $sum->plus($rate);
+                }
+                return $sum->dividedBy(count($numericRates), 8, RoundingMode::HALF_UP);
+                
+            case 'median':
+                sort($numericRates);
+                $count = count($numericRates);
+                if ($count % 2 === 0) {
+                    // Even number of rates - average the two middle values
+                    $mid1 = $numericRates[$count / 2 - 1];
+                    $mid2 = $numericRates[$count / 2];
+                    return $mid1->plus($mid2)->dividedBy('2', 8, RoundingMode::HALF_UP);
+                } else {
+                    // Odd number of rates - return the middle value
+                    return $numericRates[floor($count / 2)];
+                }
+                
+            case 'min':
+                return min($numericRates);
+                
+            case 'max':
+                return max($numericRates);
+                
+            default:
+                throw new RateProviderException("Unknown aggregation method: {$aggregationMethod}");
+        }
     }
 
     /**
@@ -226,10 +265,70 @@ class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterf
     public function remove(string $name): void
     {
         unset($this->providers[$name]);
+        unset($this->priorities[$name]);
         
         if ($this->defaultProvider === $name) {
             $this->defaultProvider = null;
         }
+    }
+
+    /**
+     * Update provider priority
+     */
+    public function setPriority(string $name, int $priority): void
+    {
+        if (!isset($this->providers[$name])) {
+            throw new RateProviderException("Exchange rate provider '{$name}' not found");
+        }
+
+        $this->priorities[$name] = $priority;
+    }
+
+    /**
+     * Check provider health
+     */
+    public function checkProviderHealth(string $name): array
+    {
+        if (!isset($this->providers[$name])) {
+            throw new RateProviderException("Exchange rate provider '{$name}' not found");
+        }
+
+        $provider = $this->providers[$name];
+        $health = [
+            'name' => $name,
+            'available' => false,
+            'response_time' => null,
+            'last_error' => null,
+            'supported_pairs' => []
+        ];
+
+        try {
+            $start = microtime(true);
+            $available = $provider->isAvailable();
+            $responseTime = (microtime(true) - $start) * 1000; // Convert to milliseconds
+            
+            $health['available'] = $available;
+            $health['response_time'] = round($responseTime, 2);
+            
+            // Test a common currency pair if available
+            if ($available && method_exists($provider, 'supportsPair')) {
+                if ($provider->supportsPair('USD', 'EUR')) {
+                    try {
+                        $testStart = microtime(true);
+                        $provider->getRate('USD', 'EUR');
+                        $health['test_response_time'] = round((microtime(true) - $testStart) * 1000, 2);
+                    } catch (\Exception $e) {
+                        $health['test_error'] = $e->getMessage();
+                    }
+                }
+            }
+            
+        } catch (\Exception $e) {
+            $health['available'] = false;
+            $health['last_error'] = $e->getMessage();
+        }
+
+        return $health;
     }
 
     /**
