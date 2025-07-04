@@ -15,5 +15,6 @@ return [
     App\Providers\HelperServiceProvider::class,
     App\Providers\HorizonServiceProvider::class,
     App\Providers\JetstreamServiceProvider::class,
+    App\Providers\LendingServiceProvider::class,
     App\Providers\TelescopeServiceProvider::class,
 ];

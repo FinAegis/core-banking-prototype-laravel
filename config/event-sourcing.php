@@ -189,6 +189,22 @@ return [
         'wallet_unfrozen'              => App\Domain\Wallet\Events\WalletUnfrozen::class,
         'wallet_key_rotated'           => App\Domain\Wallet\Events\WalletKeyRotated::class,
         'wallet_backup_created'        => App\Domain\Wallet\Events\WalletBackupCreated::class,
+        
+        // Lending events
+        'loan_application_submitted'    => App\Domain\Lending\Events\LoanApplicationSubmitted::class,
+        'loan_application_credit_check_completed' => App\Domain\Lending\Events\LoanApplicationCreditCheckCompleted::class,
+        'loan_application_risk_assessment_completed' => App\Domain\Lending\Events\LoanApplicationRiskAssessmentCompleted::class,
+        'loan_application_approved'     => App\Domain\Lending\Events\LoanApplicationApproved::class,
+        'loan_application_rejected'     => App\Domain\Lending\Events\LoanApplicationRejected::class,
+        'loan_application_withdrawn'    => App\Domain\Lending\Events\LoanApplicationWithdrawn::class,
+        'loan_created'                  => App\Domain\Lending\Events\LoanCreated::class,
+        'loan_funded'                   => App\Domain\Lending\Events\LoanFunded::class,
+        'loan_disbursed'               => App\Domain\Lending\Events\LoanDisbursed::class,
+        'loan_repayment_made'          => App\Domain\Lending\Events\LoanRepaymentMade::class,
+        'loan_payment_missed'          => App\Domain\Lending\Events\LoanPaymentMissed::class,
+        'loan_defaulted'               => App\Domain\Lending\Events\LoanDefaulted::class,
+        'loan_completed'               => App\Domain\Lending\Events\LoanCompleted::class,
+        'loan_settled_early'           => App\Domain\Lending\Events\LoanSettledEarly::class,
     ],
 
     /*

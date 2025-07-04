@@ -463,3 +463,29 @@ Route::prefix('blockchain-wallets')->middleware(['auth:sanctum', 'sub_product:bl
     
     Route::post('/generate-mnemonic', [App\Http\Controllers\Api\BlockchainWalletController::class, 'generateMnemonic']);
 });
+
+// P2P Lending endpoints
+Route::prefix('lending')->middleware(['auth:sanctum', 'sub_product:lending'])->group(function () {
+    // Loan applications
+    Route::middleware('api.rate_limit:query')->group(function () {
+        Route::get('/applications', [App\Http\Controllers\Api\LoanApplicationController::class, 'index']);
+        Route::get('/applications/{id}', [App\Http\Controllers\Api\LoanApplicationController::class, 'show']);
+    });
+    
+    Route::middleware('transaction.rate_limit:lending')->group(function () {
+        Route::post('/applications', [App\Http\Controllers\Api\LoanApplicationController::class, 'store']);
+        Route::post('/applications/{id}/cancel', [App\Http\Controllers\Api\LoanApplicationController::class, 'cancel']);
+    });
+    
+    // Loans
+    Route::middleware('api.rate_limit:query')->group(function () {
+        Route::get('/loans', [App\Http\Controllers\Api\LoanController::class, 'index']);
+        Route::get('/loans/{id}', [App\Http\Controllers\Api\LoanController::class, 'show']);
+        Route::get('/loans/{id}/settlement-quote', [App\Http\Controllers\Api\LoanController::class, 'settleEarly']);
+    });
+    
+    Route::middleware('transaction.rate_limit:lending')->group(function () {
+        Route::post('/loans/{id}/payments', [App\Http\Controllers\Api\LoanController::class, 'makePayment']);
+        Route::post('/loans/{id}/settle', [App\Http\Controllers\Api\LoanController::class, 'confirmSettlement'])->name('api.loans.confirm-settlement');
+    });
+});
