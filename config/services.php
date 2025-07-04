@@ -111,5 +111,23 @@ return [
             'base_url' => env('BANK_WISE_BASE_URL', 'https://api.wise.com/v2'),
         ],
     ],
+    
+    /*
+    |--------------------------------------------------------------------------
+    | External Exchange Services Configuration
+    |--------------------------------------------------------------------------
+    */
+    
+    'binance' => [
+        'api_key' => env('BINANCE_API_KEY'),
+        'api_secret' => env('BINANCE_API_SECRET'),
+        'is_us' => env('BINANCE_IS_US', false),
+        'is_testnet' => env('BINANCE_IS_TESTNET', false),
+    ],
+    
+    'kraken' => [
+        'api_key' => env('KRAKEN_API_KEY'),
+        'api_secret' => env('KRAKEN_API_SECRET'),
+    ],
 
 ];

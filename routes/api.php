@@ -273,6 +273,19 @@ Route::middleware('api.rate_limit:public')->group(function () {
             Route::get('/trades', [App\Http\Controllers\Api\ExchangeController::class, 'getTrades']);
         });
     });
+    
+    // External Exchange endpoints
+    Route::prefix('external-exchange')->name('api.external-exchange.')->group(function () {
+        // Public routes
+        Route::get('/connectors', [App\Http\Controllers\Api\ExternalExchangeController::class, 'connectors']);
+        Route::get('/ticker/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'ticker']);
+        Route::get('/orderbook/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'orderBook']);
+        
+        // Authenticated routes
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('/arbitrage/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'arbitrage']);
+        });
+    });
 });
 
 Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
