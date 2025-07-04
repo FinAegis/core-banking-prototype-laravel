@@ -203,6 +203,20 @@ Route::prefix('exchange')->name('exchange.')->group(function () {
     });
 });
 
+// Liquidity pool routes
+Route::prefix('liquidity')->name('liquidity.')->group(function () {
+    // Public routes
+    Route::get('/', [App\Http\Controllers\LiquidityController::class, 'index'])->name('index');
+    Route::get('/pool/{poolId}', [App\Http\Controllers\LiquidityController::class, 'pool'])->name('pool');
+    
+    // Authenticated routes
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::post('/add', [App\Http\Controllers\LiquidityController::class, 'addLiquidity'])->name('add');
+        Route::post('/remove', [App\Http\Controllers\LiquidityController::class, 'removeLiquidity'])->name('remove');
+        Route::post('/claim-rewards', [App\Http\Controllers\LiquidityController::class, 'claimRewards'])->name('claim-rewards');
+    });
+});
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

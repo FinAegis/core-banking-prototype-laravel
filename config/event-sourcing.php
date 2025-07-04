@@ -143,6 +143,14 @@ return [
         'cgo_refund_completed'          => App\Domain\Cgo\Events\RefundCompleted::class,
         'cgo_refund_failed'             => App\Domain\Cgo\Events\RefundFailed::class,
         'cgo_refund_cancelled'          => App\Domain\Cgo\Events\RefundCancelled::class,
+        'liquidity_pool_created'        => App\Domain\Exchange\Events\LiquidityPoolCreated::class,
+        'liquidity_added'               => App\Domain\Exchange\Events\LiquidityAdded::class,
+        'liquidity_removed'             => App\Domain\Exchange\Events\LiquidityRemoved::class,
+        'pool_fee_collected'            => App\Domain\Exchange\Events\PoolFeeCollected::class,
+        'liquidity_rewards_distributed' => App\Domain\Exchange\Events\LiquidityRewardsDistributed::class,
+        'liquidity_rewards_claimed'     => App\Domain\Exchange\Events\LiquidityRewardsClaimed::class,
+        'pool_parameters_updated'       => App\Domain\Exchange\Events\PoolParametersUpdated::class,
+        'liquidity_pool_rebalanced'     => App\Domain\Exchange\Events\LiquidityPoolRebalanced::class,
     ],
 
     /*

@@ -286,6 +286,23 @@ Route::middleware('api.rate_limit:public')->group(function () {
             Route::get('/arbitrage/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'arbitrage']);
         });
     });
+    
+    // Liquidity Pool endpoints
+    Route::prefix('liquidity')->name('api.liquidity.')->group(function () {
+        // Public routes
+        Route::get('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'index']);
+        Route::get('/pools/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'show']);
+        
+        // Authenticated routes
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'create']);
+            Route::post('/add', [App\Http\Controllers\Api\LiquidityPoolController::class, 'addLiquidity']);
+            Route::post('/remove', [App\Http\Controllers\Api\LiquidityPoolController::class, 'removeLiquidity']);
+            Route::post('/swap', [App\Http\Controllers\Api\LiquidityPoolController::class, 'swap']);
+            Route::get('/positions', [App\Http\Controllers\Api\LiquidityPoolController::class, 'positions']);
+            Route::post('/claim-rewards', [App\Http\Controllers\Api\LiquidityPoolController::class, 'claimRewards']);
+        });
+    });
 });
 
 Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
