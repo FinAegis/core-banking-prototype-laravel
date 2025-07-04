@@ -403,7 +403,7 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
     /**
      * Rebalance system parameters based on market conditions.
      */
-    public function rebalanceSystemParameters(): array
+    public function rebalanceSystemParameters(array $targetMetrics = []): array
     {
         $rebalanceActions = [];
         $stablecoins = Stablecoin::active()->get();
@@ -467,9 +467,8 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
     /**
      * Check the peg deviation for a stablecoin.
      */
-    public function checkPegDeviation(string $stablecoinCode): array
+    public function checkPegDeviation(Stablecoin $stablecoin): array
     {
-        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
         $rateObject = $this->exchangeRateService->getRate($stablecoin->code, $stablecoin->peg_asset_code);
         
         if (!$rateObject) {
@@ -495,10 +494,9 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
     /**
      * Apply stability mechanism based on the stablecoin type.
      */
-    public function applyStabilityMechanism(string $stablecoinCode): array
+    public function applyStabilityMechanism(Stablecoin $stablecoin, array $mechanism, bool $dryRun = false): array
     {
-        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
-        $deviation = $this->checkPegDeviation($stablecoinCode);
+        $deviation = $this->checkPegDeviation($stablecoin);
         $actions = [];
         
         if (abs($deviation['percentage']) <= 1.0) {
@@ -520,12 +518,14 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
                 break;
         }
         
-        // Fire event
-        event('stability.mechanism.applied', [
-            'stablecoin_code' => $stablecoinCode,
-            'deviation' => $deviation,
-            'actions' => $actions,
-        ]);
+        // Fire event if not dry run
+        if (!$dryRun) {
+            event('stability.mechanism.applied', [
+                'stablecoin_code' => $stablecoin->code,
+                'deviation' => $deviation,
+                'actions' => $actions,
+            ]);
+        }
         
         return $actions;
     }
@@ -599,22 +599,19 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
     /**
      * Calculate fee adjustments based on price deviation.
      */
-    public function calculateFeeAdjustment(string $stablecoinCode): array
+    public function calculateFeeAdjustment(float $deviation, array $currentFees): array
     {
-        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
-        $deviation = $this->checkPegDeviation($stablecoinCode);
-        
-        $baseMintFee = $stablecoin->mint_fee;
-        $baseBurnFee = $stablecoin->burn_fee;
+        $baseMintFee = $currentFees['mint_fee'] ?? 0.01;
+        $baseBurnFee = $currentFees['burn_fee'] ?? 0.01;
         
         // If price is above peg, increase mint fees and decrease burn fees
         // If price is below peg, decrease mint fees and increase burn fees
-        $adjustmentFactor = min(abs($deviation['percentage']) / 10, 1.0); // Cap at 100% adjustment
+        $adjustmentFactor = min(abs($deviation) / 10, 1.0); // Cap at 100% adjustment
         
-        if ($deviation['direction'] === 'above') {
+        if ($deviation > 0) {
             $newMintFee = min(0.1, $baseMintFee * (1 + $adjustmentFactor));
             $newBurnFee = max(0, $baseBurnFee * (1 - $adjustmentFactor));
-        } elseif ($deviation['direction'] === 'below') {
+        } elseif ($deviation < 0) {
             $newMintFee = max(0, $baseMintFee * (1 - $adjustmentFactor));
             $newBurnFee = min(0.1, $baseBurnFee * (1 + $adjustmentFactor));
         } else {
@@ -625,30 +622,27 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
         return [
             'new_mint_fee' => round($newMintFee, 6),
             'new_burn_fee' => round($newBurnFee, 6),
-            'adjustment_reason' => "Price {$deviation['direction']} peg by {$deviation['percentage']}%",
+            'adjustment_reason' => sprintf("Price %s peg by %.2f%%", $deviation > 0 ? 'above' : 'below', abs($deviation)),
         ];
     }
     
     /**
      * Calculate supply incentives for algorithmic stablecoins.
      */
-    public function calculateSupplyIncentives(string $stablecoinCode): array
+    public function calculateSupplyIncentives(float $deviation, float $currentSupply, float $targetSupply): array
     {
-        $stablecoin = Stablecoin::findOrFail($stablecoinCode);
-        $deviation = $this->checkPegDeviation($stablecoinCode);
-        
-        if ($deviation['direction'] === 'below') {
+        if ($deviation < 0) {
             // Need to reduce supply - incentivize burning
             return [
                 'recommended_action' => 'burn',
-                'burn_reward' => min(0.1, abs($deviation['percentage']) * 0.01),
+                'burn_reward' => min(0.1, abs($deviation) * 0.01),
                 'mint_penalty' => 0,
             ];
-        } elseif ($deviation['direction'] === 'above') {
+        } elseif ($deviation > 0) {
             // Need to increase supply - incentivize minting
             return [
                 'recommended_action' => 'mint',
-                'mint_reward' => min(0.1, abs($deviation['percentage']) * 0.01),
+                'mint_reward' => min(0.1, abs($deviation) * 0.01),
                 'burn_penalty' => 0,
             ];
         }
@@ -672,7 +666,7 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
         
         foreach ($stablecoins as $stablecoin) {
             try {
-                $deviation = $this->checkPegDeviation($stablecoin->code);
+                $deviation = $this->checkPegDeviation($stablecoin);
                 
                 $monitoring[] = [
                     'stablecoin_code' => $stablecoin->code,
@@ -697,10 +691,15 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
     /**
      * Execute emergency actions for extreme deviations.
      */
-    public function executeEmergencyActions(string $stablecoinCode): array
+    public function executeEmergencyActions(string $action, array $params = []): array
     {
+        $stablecoinCode = $params['stablecoin_code'] ?? null;
+        if (!$stablecoinCode) {
+            throw new \InvalidArgumentException('stablecoin_code is required in params');
+        }
+        
         $stablecoin = Stablecoin::findOrFail($stablecoinCode);
-        $deviation = $this->checkPegDeviation($stablecoinCode);
+        $deviation = $this->checkPegDeviation($stablecoin);
         $actions = [];
         
         if (abs($deviation['percentage']) > 10.0) {
