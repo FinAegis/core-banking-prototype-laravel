@@ -257,6 +257,22 @@ Route::middleware('api.rate_limit:public')->group(function () {
     
     // Public status endpoint
     Route::get('/status', [StatusController::class, 'api'])->name('status.api');
+    
+    // Exchange endpoints
+    Route::prefix('exchange')->name('api.exchange.')->group(function () {
+        // Public routes
+        Route::get('/orderbook/{baseCurrency}/{quoteCurrency}', [App\Http\Controllers\Api\ExchangeController::class, 'getOrderBook']);
+        Route::get('/markets', [App\Http\Controllers\Api\ExchangeController::class, 'getMarkets']);
+        
+        // Authenticated routes
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'placeOrder'])
+                ->middleware('transaction.rate_limit:exchange_order');
+            Route::delete('/orders/{orderId}', [App\Http\Controllers\Api\ExchangeController::class, 'cancelOrder']);
+            Route::get('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'getOrders']);
+            Route::get('/trades', [App\Http\Controllers\Api\ExchangeController::class, 'getTrades']);
+        });
+    });
 });
 
 Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {

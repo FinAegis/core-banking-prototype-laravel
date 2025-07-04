@@ -404,17 +404,18 @@
                     </div>
                     
                     <!-- Exchange -->
-                    <div class="hover-lift bg-gray-100 rounded-xl p-6 relative overflow-hidden">
+                    <div class="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-6 text-white relative overflow-hidden">
                         <div class="absolute top-2 right-2">
-                            <span class="px-2 py-1 bg-gray-300 text-gray-700 rounded-full text-xs font-bold">SOON</span>
+                            <span class="px-2 py-1 bg-green-400 text-green-900 rounded-full text-xs font-bold">LIVE</span>
                         </div>
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                             </svg>
                         </div>
                         <h3 class="text-xl font-bold mb-2">Exchange</h3>
-                        <p class="text-gray-600 text-sm">Multi-asset trading platform</p>
+                        <p class="text-blue-100 text-sm mb-4">Multi-asset trading with BTC, ETH, and fiat pairs</p>
+                        <a href="{{ route('exchange.index') }}" class="text-white font-semibold hover:underline">Start Trading →</a>
                     </div>
                     
                     <!-- Lending -->

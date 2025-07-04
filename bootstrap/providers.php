@@ -8,6 +8,7 @@ return [
     App\Providers\CustodianServiceProvider::class,
     App\Providers\EventServiceProvider::class,
     App\Providers\ExchangeRateProviderServiceProvider::class,
+    App\Providers\ExchangeServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
     App\Providers\FortifyServiceProvider::class,
     App\Providers\HelperServiceProvider::class,

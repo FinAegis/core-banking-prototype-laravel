@@ -188,6 +188,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/gcu/trading', [App\Http\Controllers\GcuTradingController::class, 'index'])->name('gcu.trading');
 });
 
+// Exchange routes (public and authenticated)
+Route::prefix('exchange')->name('exchange.')->group(function () {
+    // Public routes
+    Route::get('/', [App\Http\Controllers\ExchangeController::class, 'index'])->name('index');
+    
+    // Authenticated routes
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::get('/orders', [App\Http\Controllers\ExchangeController::class, 'orders'])->name('orders');
+        Route::get('/trades', [App\Http\Controllers\ExchangeController::class, 'trades'])->name('trades');
+        Route::post('/place-order', [App\Http\Controllers\ExchangeController::class, 'placeOrder'])->name('place-order');
+        Route::delete('/cancel-order/{orderId}', [App\Http\Controllers\ExchangeController::class, 'cancelOrder'])->name('cancel-order');
+        Route::get('/export-trades', [App\Http\Controllers\ExchangeController::class, 'exportTrades'])->name('export-trades');
+    });
+});
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
