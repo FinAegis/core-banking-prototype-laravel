@@ -9,7 +9,7 @@ use App\Domain\Stablecoin\Oracles\ChainlinkOracle;
 use App\Domain\Stablecoin\Oracles\BinanceOracle;
 use App\Domain\Stablecoin\Oracles\InternalAMMOracle;
 use App\Models\Asset;
-use App\Models\LiquidityPool;
+use App\Domain\Exchange\Projections\LiquidityPool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Carbon\Carbon;
@@ -287,14 +287,16 @@ class StablecoinFrameworkTest extends TestCase
         // Create a liquidity pool
         LiquidityPool::create([
             'pool_id' => 'pool-test',
-            'base_asset' => 'ETH',
-            'quote_asset' => 'USDC',
-            'base_balance' => '100',
-            'quote_balance' => '320000',
+            'account_id' => 1,
+            'base_currency' => 'ETH',
+            'quote_currency' => 'USDC',
+            'base_reserve' => '100',
+            'quote_reserve' => '320000',
             'total_shares' => '1000',
-            'status' => 'active',
-            'total_liquidity' => '640000',
-            'volume_24h' => '50000'
+            'is_active' => true,
+            'fee_rate' => '0.003',
+            'volume_24h' => '50000',
+            'fees_collected_24h' => '150'
         ]);
         
         $oracle = new InternalAMMOracle();

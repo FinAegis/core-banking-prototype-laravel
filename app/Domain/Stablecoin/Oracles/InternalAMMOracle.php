@@ -4,7 +4,7 @@ namespace App\Domain\Stablecoin\Oracles;
 
 use App\Domain\Stablecoin\Contracts\OracleConnector;
 use App\Domain\Stablecoin\ValueObjects\PriceData;
-use App\Models\LiquidityPool;
+use App\Domain\Exchange\Projections\LiquidityPool;
 use Brick\Math\BigDecimal;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -16,9 +16,9 @@ class InternalAMMOracle implements OracleConnector
         try {
             // Find liquidity pool for this pair
             $pool = LiquidityPool::where(function ($query) use ($base, $quote) {
-                $query->where('base_asset', $base)->where('quote_asset', $quote);
+                $query->where('base_currency', $base)->where('quote_currency', $quote);
             })->orWhere(function ($query) use ($base, $quote) {
-                $query->where('base_asset', $quote)->where('quote_asset', $base);
+                $query->where('base_currency', $quote)->where('quote_currency', $base);
             })->first();
             
             if (!$pool) {
@@ -38,10 +38,10 @@ class InternalAMMOracle implements OracleConnector
                 changePercent24h: null,
                 metadata: [
                     'pool_id' => $pool->pool_id,
-                    'liquidity' => $pool->total_liquidity,
+                    'liquidity' => $pool->base_reserve + $pool->quote_reserve,
                     'total_shares' => $pool->total_shares,
-                    'k_value' => BigDecimal::of($pool->base_balance)
-                        ->multipliedBy($pool->quote_balance)
+                    'k_value' => BigDecimal::of($pool->base_reserve)
+                        ->multipliedBy($pool->quote_reserve)
                         ->__toString()
                 ]
             );
@@ -77,7 +77,7 @@ class InternalAMMOracle implements OracleConnector
     {
         try {
             // Check if we have active pools
-            return LiquidityPool::where('status', 'active')->exists();
+            return LiquidityPool::where('is_active', true)->exists();
         } catch (\Exception $e) {
             return false;
         }
@@ -98,15 +98,15 @@ class InternalAMMOracle implements OracleConnector
      */
     private function calculatePrice(LiquidityPool $pool, string $base, string $quote): string
     {
-        $baseBalance = BigDecimal::of($pool->base_balance);
-        $quoteBalance = BigDecimal::of($pool->quote_balance);
+        $baseReserve = BigDecimal::of($pool->base_reserve);
+        $quoteReserve = BigDecimal::of($pool->quote_reserve);
         
-        if ($pool->base_asset === $base) {
-            // Price = quote_balance / base_balance
-            return $quoteBalance->dividedBy($baseBalance, 8, \Brick\Math\RoundingMode::HALF_UP)->__toString();
+        if ($pool->base_currency === $base) {
+            // Price = quote_reserve / base_reserve
+            return $quoteReserve->dividedBy($baseReserve, 8, \Brick\Math\RoundingMode::HALF_UP)->__toString();
         } else {
-            // Inverted pair, price = base_balance / quote_balance
-            return $baseBalance->dividedBy($quoteBalance, 8, \Brick\Math\RoundingMode::HALF_UP)->__toString();
+            // Inverted pair, price = base_reserve / quote_reserve
+            return $baseReserve->dividedBy($quoteReserve, 8, \Brick\Math\RoundingMode::HALF_UP)->__toString();
         }
     }
 }

@@ -152,12 +152,19 @@ return [
         'order_partially_filled'        => App\Domain\Exchange\Events\OrderPartiallyFilled::class,
         'order_matched'                 => App\Domain\Exchange\Events\OrderMatched::class,
         'market_depth_updated'          => App\Domain\Exchange\Events\MarketDepthUpdated::class,
+        
+        // Liquidity pool events
         'liquidity_pool_created'        => App\Domain\Exchange\Events\LiquidityPoolCreated::class,
         'liquidity_added'               => App\Domain\Exchange\Events\LiquidityAdded::class,
         'liquidity_removed'             => App\Domain\Exchange\Events\LiquidityRemoved::class,
         'swap_executed'                 => App\Domain\Exchange\Events\SwapExecuted::class,
         'fee_collected'                 => App\Domain\Exchange\Events\FeeCollected::class,
         'pool_ratio_updated'            => App\Domain\Exchange\Events\PoolRatioUpdated::class,
+        'pool_fee_collected'            => App\Domain\Exchange\Events\PoolFeeCollected::class,
+        'liquidity_rewards_distributed' => App\Domain\Exchange\Events\LiquidityRewardsDistributed::class,
+        'liquidity_rewards_claimed'     => App\Domain\Exchange\Events\LiquidityRewardsClaimed::class,
+        'pool_parameters_updated'       => App\Domain\Exchange\Events\PoolParametersUpdated::class,
+        'liquidity_pool_rebalanced'     => App\Domain\Exchange\Events\LiquidityPoolRebalanced::class,
         
         // Stablecoin framework events
         'oracle_deviation_detected'     => App\Domain\Stablecoin\Events\OracleDeviationDetected::class,
