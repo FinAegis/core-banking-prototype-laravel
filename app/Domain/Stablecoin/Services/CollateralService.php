@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Stablecoin\Services;
 
 use App\Domain\Asset\Services\ExchangeRateService;
+use App\Domain\Stablecoin\Contracts\CollateralServiceInterface;
 use App\Models\StablecoinCollateralPosition;
 use App\Models\Stablecoin;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
-class CollateralService
+class CollateralService implements CollateralServiceInterface
 {
     public function __construct(
         private readonly ExchangeRateService $exchangeRateService

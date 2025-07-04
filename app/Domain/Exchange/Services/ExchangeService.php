@@ -4,6 +4,7 @@ namespace App\Domain\Exchange\Services;
 
 use App\Domain\Exchange\Aggregates\Order;
 use App\Domain\Exchange\Aggregates\OrderBook;
+use App\Domain\Exchange\Contracts\ExchangeServiceInterface;
 use App\Domain\Exchange\Projections\OrderBook as OrderBookProjection;
 use App\Domain\Exchange\ValueObjects\OrderMatchingInput;
 use App\Domain\Exchange\Workflows\OrderMatchingWorkflow;
@@ -12,7 +13,7 @@ use App\Models\Asset;
 use Illuminate\Support\Str;
 use Workflow\WorkflowStub;
 
-class ExchangeService
+class ExchangeService implements ExchangeServiceInterface
 {
     private FeeCalculator $feeCalculator;
     
@@ -167,20 +168,29 @@ class ExchangeService
         ];
     }
     
-    public function getMarketData(): array
+    public function getMarketData(string $baseCurrency, string $quoteCurrency): array
     {
-        $orderBooks = OrderBookProjection::all();
+        $orderBook = OrderBookProjection::forPair($baseCurrency, $quoteCurrency)->first();
         
-        return $orderBooks->map(function ($orderBook) {
+        if (!$orderBook) {
             return [
-                'pair' => $orderBook->pair,
-                'last_price' => $orderBook->last_price,
-                'volume_24h' => $orderBook->volume_24h,
-                'change_24h_percentage' => $orderBook->change_24h_percentage,
-                'high_24h' => $orderBook->high_24h,
-                'low_24h' => $orderBook->low_24h,
+                'pair' => "{$baseCurrency}/{$quoteCurrency}",
+                'last_price' => null,
+                'volume_24h' => null,
+                'change_24h_percentage' => null,
+                'high_24h' => null,
+                'low_24h' => null,
             ];
-        })->toArray();
+        }
+        
+        return [
+            'pair' => $orderBook->pair,
+            'last_price' => $orderBook->last_price,
+            'volume_24h' => $orderBook->volume_24h,
+            'change_24h_percentage' => $orderBook->change_24h_percentage,
+            'high_24h' => $orderBook->high_24h,
+            'low_24h' => $orderBook->low_24h,
+        ];
     }
     
     private function ensureOrderBookExists(string $baseCurrency, string $quoteCurrency): void

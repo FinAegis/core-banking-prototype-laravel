@@ -3,6 +3,7 @@
 namespace App\Domain\Wallet\Services;
 
 use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Wallet\Contracts\WalletServiceInterface;
 use App\Domain\Wallet\Workflows\WalletDepositWorkflow;
 use App\Domain\Wallet\Workflows\WalletWithdrawWorkflow;
 use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
@@ -10,7 +11,7 @@ use App\Domain\Wallet\Workflows\WalletConvertWorkflow;
 use App\Models\Account;
 use Workflow\WorkflowStub;
 
-class WalletService
+class WalletService implements WalletServiceInterface
 {
     /**
      * Deposit funds to an account for a specific asset

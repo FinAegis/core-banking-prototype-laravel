@@ -7,6 +7,7 @@ namespace App\Domain\Stablecoin\Services;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Wallet\Services\WalletService;
 use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Stablecoin\Contracts\LiquidationServiceInterface;
 use App\Models\Account;
 use App\Models\Stablecoin;
 use App\Models\StablecoinCollateralPosition;
@@ -15,7 +16,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class LiquidationService
+class LiquidationService implements LiquidationServiceInterface
 {
     use HandlesNestedTransactions;
     public function __construct(

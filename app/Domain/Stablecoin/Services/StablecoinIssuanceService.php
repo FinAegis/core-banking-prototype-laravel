@@ -8,6 +8,7 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Wallet\Services\WalletService;
 use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Stablecoin\Contracts\StablecoinIssuanceServiceInterface;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\AddCollateralWorkflow;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Workflow\WorkflowStub;
 
-class StablecoinIssuanceService
+class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
 {
     public function __construct(
         private readonly ExchangeRateService $exchangeRateService,
