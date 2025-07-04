@@ -16,5 +16,7 @@ return [
     App\Providers\HorizonServiceProvider::class,
     App\Providers\JetstreamServiceProvider::class,
     App\Providers\LendingServiceProvider::class,
+    App\Providers\StablecoinServiceProvider::class,
     App\Providers\TelescopeServiceProvider::class,
+    App\Providers\WalletServiceProvider::class,
 ];
