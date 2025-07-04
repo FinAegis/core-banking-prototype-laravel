@@ -1,261 +1,303 @@
-# Continuous Growth Offering (CGO)
+# Continuous Growth Offering (CGO) Documentation
+
+**Last Updated:** January 2025  
+**Status:** ✅ COMPLETED - Production Ready
 
 ## Overview
 
-The Continuous Growth Offering (CGO) is FinAegis's innovative funding mechanism that allows continuous investment in the platform's development. Unlike traditional ICOs or IPOs with fixed end dates, the CGO continues indefinitely, enabling investors to participate in the platform's growth at any time.
+The Continuous Growth Offering (CGO) is FinAegis's innovative investment platform that allows continuous participation in the platform's growth. Built with event sourcing, comprehensive payment integration, and tiered KYC/AML compliance, the CGO provides a secure and scalable investment mechanism.
+
+## Contents
+
+- **[CGO_IMPLEMENTATION_PLAN.md](CGO_IMPLEMENTATION_PLAN.md)** - Original implementation planning document
+- **[CGO_REFUND_PROCESSING.md](CGO_REFUND_PROCESSING.md)** - Refund system technical documentation
 
 ## Key Features
 
 ### 1. Investment Tiers
-- **Bronze Tier** ($100 - $999)
-  - Digital ownership certificate
-  - Early access to new features
-  - Monthly investor updates
-  
-- **Silver Tier** ($1,000 - $9,999)
-  - Everything in Bronze
-  - Physical certificate option
-  - Voting rights on platform decisions
-  - Quarterly investor calls
-  
-- **Gold Tier** ($10,000+)
-  - Everything in Silver
-  - Direct access to founding team
-  - Advisory board consideration
-  - Lifetime premium features
 
-### 2. Ownership Limits
-- Maximum 1% ownership per investment round
-- Ensures fair distribution among investors
-- Prevents concentration of ownership
+#### Explorer Tier ($1,000 - $9,999)
+- Digital ownership certificate
+- Early access to new features
+- Quarterly investor updates
+- Basic KYC verification required
 
-### 3. Payment Methods
-- **Cryptocurrency**: BTC, ETH, USDT, USDC
-- **Bank Transfer**: Wire transfer with reference number
-- **Card Payment**: Coming soon via Stripe integration
+#### Innovator Tier ($10,000 - $49,999)
+- Everything in Explorer tier
+- Monthly investor updates
+- Priority support access
+- Enhanced KYC verification required
 
-## Technical Implementation
+#### Visionary Tier ($50,000+)
+- Everything in Innovator tier
+- Weekly updates and reports
+- Direct access to founding team
+- Advisory board consideration
+- Full KYC verification required
+
+### 2. Payment Methods
+
+#### Stripe (Card Payments)
+- Secure checkout sessions
+- 3D Secure authentication
+- Automated payment verification
+- Webhook-based status updates
+
+#### Coinbase Commerce (Cryptocurrency)
+- BTC, ETH, USDC support
+- Real-time exchange rates
+- QR code generation
+- Blockchain confirmation tracking
+
+#### Bank Transfer
+- SEPA/SWIFT support
+- Unique reference generation
+- Manual reconciliation interface
+- Multi-currency support
+
+### 3. KYC/AML Compliance
+
+#### Tiered Verification System
+- **Basic KYC** (up to $1,000): Identity verification
+- **Enhanced KYC** (up to $10,000): Identity + address verification
+- **Full KYC** ($50,000+): Complete due diligence
+
+#### AML Features
+- Sanctions list screening
+- PEP (Politically Exposed Person) checks
+- Adverse media screening
+- Transaction pattern analysis
+- Risk scoring algorithm
+
+### 4. Investment Management
+
+#### Agreement Generation
+- Automated PDF generation
+- Tier-specific terms
+- Digital signatures
+- Secure storage
+
+#### Certificate Creation
+- Unique certificate numbers
+- QR verification codes
+- Professional design templates
+- Download functionality
+
+### 5. Refund Processing
+
+#### Event-Sourced Architecture
+- Complete audit trail
+- Refund aggregates
+- Custom event repository
+- Projectors for read models
+
+#### Refund Workflow
+- User-initiated requests
+- Admin approval process
+- Automated processing
+- Payment provider integration
+
+## Technical Architecture
+
+### Domain Structure
+```
+app/Domain/Cgo/
+├── Models/
+│   ├── CgoInvestment.php
+│   ├── CgoPricingRound.php
+│   └── CgoRefund.php
+├── Events/
+│   ├── InvestmentCreated.php
+│   ├── PaymentCompleted.php
+│   ├── RefundRequested.php
+│   ├── RefundProcessed.php
+│   └── RefundFailed.php
+├── Aggregates/
+│   └── CgoRefundAggregate.php
+├── Projectors/
+│   └── RefundProjector.php
+├── Repositories/
+│   └── CgoEventRepository.php
+└── Services/
+    ├── StripePaymentService.php
+    ├── CoinbaseCommerceService.php
+    ├── CgoKycService.php
+    ├── InvestmentAgreementService.php
+    └── PaymentVerificationService.php
+```
 
 ### Database Schema
 
-#### cgo_pricing_rounds
-```sql
-- id
-- round_number (unique)
-- share_price
-- max_shares_available
-- shares_sold
-- total_raised
-- started_at
-- ended_at
-- is_active
-- timestamps
-```
-
 #### cgo_investments
-```sql
-- id
-- uuid
-- user_id
-- round_id
-- amount
-- currency
-- share_price
-- shares_purchased
-- ownership_percentage
-- tier
-- status (pending, confirmed, cancelled, refunded)
-- payment_method
-- crypto_address
-- crypto_tx_hash
-- certificate_number
-- certificate_issued_at
-- metadata (JSON)
-- timestamps
+- UUID-based identification
+- Payment provider references
+- KYC status tracking
+- Agreement/certificate paths
+- Comprehensive status management
+
+#### cgo_pricing_rounds
+- Round configuration
+- Target/raised amounts
+- Active status management
+- Investment limits
+
+#### cgo_refunds
+- Event-sourced design
+- Status workflow
+- Transaction references
+- Audit metadata
+
+#### cgo_events
+- Event store table
+- Aggregate versioning
+- Event properties
+- Metadata storage
+
+## API Integration
+
+### Investment Endpoints
+```
+POST   /api/cgo/investments              - Create investment
+GET    /api/cgo/investments/{uuid}       - Get investment details
+GET    /api/cgo/investments              - List user investments
+POST   /api/cgo/investments/{uuid}/cancel - Cancel investment
 ```
 
-#### cgo_notifications
-```sql
-- id
-- email
-- ip_address
-- user_agent
-- timestamps
+### Payment Endpoints
+```
+POST   /api/cgo/payments/stripe/checkout    - Create Stripe session
+POST   /api/cgo/payments/coinbase/charge   - Create Coinbase charge
+POST   /api/cgo/payments/verify            - Verify payment
+GET    /api/cgo/payments/{uuid}/status     - Get payment status
 ```
 
-### Models
+### Document Endpoints
+```
+GET    /api/cgo/investments/{uuid}/agreement   - Download agreement
+GET    /api/cgo/investments/{uuid}/certificate - Download certificate
+```
 
-#### CgoPricingRound
-- Manages investment rounds
-- Tracks share availability and pricing
-- Calculates progress and remaining shares
+### Refund Endpoints
+```
+POST   /api/cgo/investments/{uuid}/refund - Request refund
+GET    /api/cgo/refunds/{refund_id}       - Get refund status
+```
 
-#### CgoInvestment
-- Records individual investments
-- Manages payment processing
-- Generates ownership certificates
+### Webhook Endpoints
+```
+POST   /api/cgo/webhooks/stripe    - Stripe webhook handler
+POST   /api/cgo/webhooks/coinbase  - Coinbase webhook handler
+```
 
-#### CgoNotification
-- Stores early access notification requests
-- Used for marketing and investor communications
+## Admin Interface
 
-### Controllers
+### Filament Resources
 
-#### CgoController
-- `notify()`: Handles early access notifications
-- `showInvest()`: Displays investment page
-- `invest()`: Processes new investments
-- `downloadCertificate()`: Generates ownership certificates
+#### CgoInvestmentResource
+- Comprehensive investment management
+- Advanced filtering and search
+- Bulk operations support
+- Payment verification actions
+- Export functionality
 
-### Views
+#### CgoPricingRoundResource
+- Round configuration
+- Progress tracking
+- Target management
+- Round closure
 
-#### Public Views
-- `cgo.blade.php`: Main CGO landing page
-- Shows countdown timer
-- Investment tiers information
-- Early access form for non-authenticated users
+### Payment Verification Dashboard
+- Real-time payment status
+- Pending verification queue
+- Failed payment tracking
+- Manual verification tools
+- Auto-refresh capability
 
-#### Authenticated Views
-- `cgo/invest.blade.php`: Investment form
-- `cgo/crypto-payment.blade.php`: Crypto payment instructions
-- `cgo/bank-transfer.blade.php`: Bank transfer details
-- `cgo/card-payment.blade.php`: Card payment (placeholder)
+## Security Features
 
-## User Flows
+### Payment Security
+- Webhook signature verification
+- HTTPS-only communication
+- No sensitive data storage
+- UUID-based references
+- Rate limiting
 
-### 1. Unauthenticated User Flow
-1. User visits `/cgo`
-2. Views CGO information and investment tiers
-3. Can submit email for early access notifications
-4. Must register/login to invest
-
-### 2. Authenticated User Flow
-1. User visits `/cgo` or clicks CGO in navigation
-2. Clicks "Invest Now" button
-3. Redirected to `/cgo/invest`
-4. Fills out investment form:
-   - Amount (minimum $100)
-   - Payment method selection
-   - Terms acceptance
-5. Based on payment method:
-   - **Crypto**: Shows wallet address and QR code
-   - **Bank Transfer**: Shows bank details and reference
-   - **Card**: Placeholder for Stripe integration
-
-### 3. Investment Processing
-1. Investment record created with 'pending' status
-2. Payment instructions displayed
-3. Manual verification by admin (automated in production)
-4. Status updated to 'confirmed'
-5. Certificate number generated
-6. Certificate available for download
-
-## Security Considerations
-
-1. **Investment Limits**
-   - 1% maximum ownership per round enforced
-   - Minimum investment amount validation
-   - Available shares verification
-
-2. **Payment Security**
-   - Unique reference numbers for tracking
-   - Crypto addresses stored securely
-   - Transaction verification required
-
-3. **Data Protection**
-   - IP address and user agent logging
-   - Secure certificate generation
-   - Investment history access control
-
-## Testing
-
-### Feature Tests
-- `CgoInvestmentTest.php`: Comprehensive test coverage
-  - Public page access
-  - Authentication requirements
-  - Investment flow validation
-  - Tier calculation
-  - Ownership limits
-  - Payment method handling
-
-### Test Scenarios Covered
-1. Unauthenticated access to CGO page
-2. Authenticated user investment flow
-3. Investment tier calculations
-4. Ownership percentage limits
-5. Share availability checks
-6. Minimum investment validation
-7. Terms acceptance requirement
-8. Payment method validations
-
-## Future Enhancements
-
-1. **Automated Payment Processing**
-   - Stripe integration for card payments
-   - Blockchain monitoring for crypto payments
-   - Bank API integration for wire transfers
-
-2. **Certificate Generation**
-   - PDF certificate generation with QR codes
-   - Blockchain-based ownership verification
-   - NFT certificates on Ethereum/Polygon
-
-3. **Investment Dashboard**
-   - Real-time portfolio valuation
-   - Secondary market for share trading
-   - Dividend distribution system
-
-4. **Regulatory Compliance**
-   - KYC/AML integration
-   - Accredited investor verification
-   - Geographic restrictions handling
+### Data Protection
+- Encrypted storage
+- Access control
+- Audit logging
+- GDPR compliance
+- Data retention policies
 
 ## Configuration
 
 ### Environment Variables
 ```env
+# Stripe
+STRIPE_KEY=pk_test_xxx
+STRIPE_SECRET=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+
+# Coinbase Commerce
+COINBASE_COMMERCE_API_KEY=xxx
+COINBASE_COMMERCE_WEBHOOK_SECRET=xxx
+
 # CGO Settings
-CGO_MIN_INVESTMENT=100
-CGO_MAX_OWNERSHIP_PERCENTAGE=1.0
-CGO_TOTAL_SHARES=1000000
-CGO_LAUNCH_DATE="2025-07-21 00:00:00"
+CGO_MINIMUM_INVESTMENT=1000
+CGO_MAXIMUM_INVESTMENT=1000000
+CGO_CRYPTO_BTC_ADDRESS=test_btc_address
+CGO_CRYPTO_ETH_ADDRESS=test_eth_address
+CGO_CRYPTO_USDT_ADDRESS=test_usdt_address
+CGO_BANK_NAME="Test Bank"
+CGO_BANK_IBAN="TEST1234567890"
+CGO_BANK_SWIFT="TESTSWIFT"
 ```
 
-### Seeding Data
-```bash
-# Create initial pricing round
-php artisan db:seed --class=CgoPricingRoundSeeder
+## Testing
+
+### Test Coverage
+- Unit tests for all services
+- Feature tests for workflows
+- Integration tests for payments
+- Browser tests for UI flows
+
+### Key Test Files
+- `tests/Feature/Cgo/CgoInvestmentTest.php`
+- `tests/Feature/Cgo/PaymentVerificationTest.php`
+- `tests/Feature/Cgo/RefundProcessingTest.php`
+- `tests/Unit/Services/Cgo/CgoKycServiceTest.php`
+
+## Monitoring & Operations
+
+### Scheduled Tasks
+```php
+$schedule->command('cgo:verify-payments')->everyTenMinutes();
+$schedule->command('cgo:process-refunds')->everyFifteenMinutes();
+$schedule->command('cgo:sync-payment-status')->hourly();
 ```
-
-## API Endpoints (Future)
-
-### Public Endpoints
-- `GET /api/cgo/current-round`: Current round information
-- `GET /api/cgo/tiers`: Investment tier details
-
-### Authenticated Endpoints
-- `POST /api/cgo/invest`: Submit investment
-- `GET /api/cgo/investments`: User's investment history
-- `GET /api/cgo/certificate/{uuid}`: Download certificate
-
-## Monitoring
 
 ### Key Metrics
-- Total investments per round
-- Average investment size
-- Tier distribution
-- Payment method preferences
-- Conversion rate (visitors to investors)
+- Total investments by tier
+- Payment success rate
+- KYC approval rate
+- Average processing time
+- Refund rate
 
-### Admin Dashboard (Future)
-- Real-time investment tracking
-- Payment verification queue
-- Certificate generation status
-- Investor analytics
+### Alerts
+- Failed payments
+- KYC rejections
+- Webhook failures
+- System errors
 
-## Support
+## Development Resources
 
-For CGO-related inquiries:
-- Email: invest@finaegis.com
-- Support: /support/contact
-- FAQ: /support/faq#cgo
+### Related Documentation
+- [Technical Implementation](../05-TECHNICAL/CGO_DOCUMENTATION.md)
+- [KYC/AML Implementation](../06-DEVELOPMENT/CGO_KYC_AML.md)
+- [Payment Verification](../06-DEVELOPMENT/CGO_PAYMENT_VERIFICATION.md)
+- [Investment Agreements](../06-DEVELOPMENT/CGO_INVESTMENT_AGREEMENTS.md)
+
+### Support
+- Technical Issues: GitHub Issues
+- Security Concerns: security@finaegis.com
+- Integration Support: developers@finaegis.com
