@@ -2,8 +2,7 @@
 
 namespace App\Providers;
 
-use App\Domain\Wallet\Connectors\BitcoinConnector;
-use App\Domain\Wallet\Connectors\BlockchainConnectorInterface;
+use App\Domain\Wallet\Connectors\SimpleBitcoinConnector;
 use App\Domain\Wallet\Connectors\EthereumConnector;
 use App\Domain\Wallet\Connectors\PolygonConnector;
 use App\Domain\Wallet\Services\KeyManagementService;
@@ -39,7 +38,7 @@ class BlockchainServiceProvider extends ServiceProvider
                     'rpc_url' => config('blockchain.bsc.rpc_url'),
                     'chain_id' => config('blockchain.bsc.chain_id'),
                 ]),
-                'bitcoin' => new BitcoinConnector([
+                'bitcoin' => new SimpleBitcoinConnector([
                     'network' => config('blockchain.bitcoin.network'),
                     'api_url' => config('blockchain.bitcoin.api_url'),
                     'api_key' => config('blockchain.bitcoin.api_key'),

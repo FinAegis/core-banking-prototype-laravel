@@ -53,14 +53,6 @@ class PolygonConnector extends EthereumConnector
         return $transaction;
     }
     
-    public function estimateGas(string $from, string $to, string $amount): string
-    {
-        // Polygon transactions typically use less gas than Ethereum
-        $baseEstimate = parent::estimateGas($from, $to, $amount);
-        
-        // Apply Polygon-specific adjustments
-        return (string) (intval($baseEstimate) * 0.8); // 20% less gas typically
-    }
     
     private function getPolygonGasPrice(): string
     {
@@ -87,16 +79,6 @@ class PolygonConnector extends EthereumConnector
         }
     }
     
-    public function getTransaction(string $transactionHash): array
-    {
-        $transaction = parent::getTransaction($transactionHash);
-        
-        // Add Polygon-specific metadata
-        $transaction['chain'] = 'polygon';
-        $transaction['chainId'] = $this->chainId;
-        
-        return $transaction;
-    }
     
     public function getCurrentBlockNumber(): int
     {
