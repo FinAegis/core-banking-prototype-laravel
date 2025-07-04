@@ -41,6 +41,7 @@ This document provides a comprehensive overview of the FinAegis Platform archite
 ├─────────────────────────────────────────────────────────────────────┤
 │  Account   │  Payment   │  Asset   │  Governance  │  Custodian      │
 │  Domain    │  Domain    │ Domain   │   Domain     │   Domain        │
+│            │            │          │              │  CGO Domain     │
 ├─────────────────────────────────────────────────────────────────────┤
 │                    Sub-Product Domain Layer                         │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -95,9 +96,17 @@ app/Domain/
 │   ├── Services/           # GovernanceService
 │   ├── Enums/              # PollType, PollStatus
 │   └── Strategies/         # VotingPowerStrategies
-└── Custodian/
-    ├── Connectors/         # ICustodianConnector, MockBank
-    ├── Services/           # CustodianRegistry
+├── Custodian/
+│   ├── Connectors/         # ICustodianConnector, MockBank
+│   ├── Services/           # CustodianRegistry
+│   └── Events/             # CustodianEvents
+└── Cgo/
+    ├── Models/             # CgoInvestment, CgoPricingRound
+    ├── Events/             # InvestmentCreated, RefundRequested
+    ├── Aggregates/         # CgoRefundAggregate
+    ├── Projectors/         # RefundProjector
+    ├── Repositories/       # CgoEventRepository
+    └── Services/           # CgoKycService, InvestmentAgreementService
     ├── ValueObjects/       # TransactionReceipt
     └── Workflows/          # CustodianTransferWorkflow
 ```

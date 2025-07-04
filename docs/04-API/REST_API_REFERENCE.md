@@ -11,6 +11,7 @@ This document consolidates all REST API endpoints for the FinAegis Core Banking 
 - [Exchange Rates](#exchange-rates)
 - [Governance & Voting](#governance--voting)
 - [GCU Trading](#gcu-trading)
+- [CGO Investment Platform](#cgo-investment-platform)
 - [Custodian Integration](#custodian-integration)
 - [Webhooks](#webhooks)
 - [Bank Allocation](#bank-allocation)
@@ -457,6 +458,217 @@ Response:
     }
   }
 }
+```
+
+## CGO Investment Platform
+
+### Create Investment
+```http
+POST /api/cgo/investments
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "tier": "explorer",
+  "amount": 10000,
+  "payment_method": "stripe"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "user_id": 1,
+    "tier": "explorer",
+    "amount": 10000,
+    "currency": "USD",
+    "payment_method": "stripe",
+    "payment_status": "pending",
+    "kyc_status": "pending",
+    "status": "pending",
+    "round_id": 1,
+    "created_at": "2025-01-07T10:00:00Z"
+  },
+  "message": "Investment created successfully"
+}
+```
+
+### Get Investment Details
+```http
+GET /api/cgo/investments/{uuid}
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "user_id": 1,
+    "tier": "explorer",
+    "amount": 10000,
+    "currency": "USD",
+    "payment_method": "stripe",
+    "payment_status": "completed",
+    "payment_reference": "pi_1234567890",
+    "kyc_status": "approved",
+    "kyc_level": "enhanced",
+    "status": "active",
+    "round": {
+      "id": 1,
+      "name": "Seed Round",
+      "start_date": "2025-01-01",
+      "end_date": "2025-03-31",
+      "target_amount": 5000000,
+      "raised_amount": 1250000
+    },
+    "agreement_path": "cgo/agreements/investment-550e8400.pdf",
+    "certificate_path": "cgo/certificates/certificate-550e8400.pdf",
+    "created_at": "2025-01-07T10:00:00Z",
+    "updated_at": "2025-01-07T10:30:00Z"
+  }
+}
+```
+
+### Create Stripe Checkout Session
+```http
+POST /api/cgo/payments/stripe/checkout
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "investment_uuid": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "checkout_url": "https://checkout.stripe.com/pay/cs_test_a1b2c3d4e5",
+    "session_id": "cs_test_a1b2c3d4e5",
+    "expires_at": "2025-01-07T11:00:00Z"
+  }
+}
+```
+
+### Create Coinbase Commerce Charge
+```http
+POST /api/cgo/payments/coinbase/charge
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "investment_uuid": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "charge_id": "66BEOV2A",
+    "hosted_url": "https://commerce.coinbase.com/charges/66BEOV2A",
+    "code": "66BEOV2A",
+    "pricing": {
+      "bitcoin": {
+        "amount": "0.00236000",
+        "currency": "BTC"
+      },
+      "ethereum": {
+        "amount": "0.039000",
+        "currency": "ETH"
+      },
+      "usdc": {
+        "amount": "10000.000000",
+        "currency": "USDC"
+      }
+    },
+    "expires_at": "2025-01-07T11:00:00Z"
+  }
+}
+```
+
+### Verify Payment
+```http
+POST /api/cgo/payments/verify
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "investment_uuid": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### Get Investment Agreement
+```http
+GET /api/cgo/investments/{uuid}/agreement
+Authorization: Bearer {token}
+```
+
+Returns PDF file of the investment agreement.
+
+### Get Investment Certificate
+```http
+GET /api/cgo/investments/{uuid}/certificate
+Authorization: Bearer {token}
+```
+
+Returns PDF file of the investment certificate.
+
+### Request Refund
+```http
+POST /api/cgo/investments/{uuid}/refund
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "reason": "changed_mind",
+  "reason_details": "I've decided to invest in a different tier"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "refund_id": "770e8400-e29b-41d4-a716-446655440000",
+    "investment_uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "amount": 10000,
+    "currency": "USD",
+    "status": "pending",
+    "reason": "changed_mind",
+    "reason_details": "I've decided to invest in a different tier",
+    "requested_at": "2025-01-07T12:00:00Z"
+  },
+  "message": "Refund request submitted successfully"
+}
+```
+
+### Get Refund Status
+```http
+GET /api/cgo/refunds/{refund_id}
+Authorization: Bearer {token}
+```
+
+### Stripe Webhook Handler
+```http
+POST /api/cgo/webhooks/stripe
+Content-Type: application/json
+Stripe-Signature: {webhook_signature}
+
+{webhook_payload}
+```
+
+### Coinbase Commerce Webhook Handler
+```http
+POST /api/cgo/webhooks/coinbase
+Content-Type: application/json
+X-CC-Webhook-Signature: {webhook_signature}
+
+{webhook_payload}
 ```
 
 ## Custodian Integration
