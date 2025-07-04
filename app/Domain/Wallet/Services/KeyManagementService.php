@@ -35,8 +35,10 @@ class KeyManagementService implements KeyManagementServiceInterface
     /**
      * Generate a new mnemonic phrase
      */
-    public function generateMnemonic(int $strength = 128): string
+    public function generateMnemonic(int $wordCount = 12): string
     {
+        // Convert word count to entropy bits (12 words = 128 bits, 24 words = 256 bits)
+        $strength = $wordCount === 24 ? 256 : 128;
         $mnemonic = MnemonicFactory::bip39();
         return $mnemonic->create($strength);
     }
@@ -44,10 +46,10 @@ class KeyManagementService implements KeyManagementServiceInterface
     /**
      * Generate HD wallet from mnemonic
      */
-    public function generateHDWallet(string $mnemonic, string $passphrase = ''): array
+    public function generateHDWallet(string $mnemonic, ?string $passphrase = null): array
     {
         $seedGenerator = new Bip39SeedGenerator();
-        $seed = $seedGenerator->getSeed($mnemonic, $passphrase);
+        $seed = $seedGenerator->getSeed($mnemonic, $passphrase ?? '');
         
         $hdFactory = new HierarchicalKeyFactory();
         $masterKey = $hdFactory->fromEntropy($seed);
