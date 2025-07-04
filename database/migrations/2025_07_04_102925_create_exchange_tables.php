@@ -25,8 +25,8 @@ return new class extends Migration
             $table->decimal('stop_price', 36, 18)->nullable();
             $table->decimal('average_price', 36, 18)->nullable();
             $table->string('status', 20);
-            $table->jsonb('trades')->default('[]');
-            $table->jsonb('metadata')->default('{}');
+            $table->jsonb('trades')->nullable();
+            $table->jsonb('metadata')->nullable();
             $table->timestamps();
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamp('filled_at')->nullable();
@@ -43,15 +43,15 @@ return new class extends Migration
             $table->uuid('order_book_id')->unique();
             $table->string('base_currency', 10);
             $table->string('quote_currency', 10);
-            $table->jsonb('buy_orders')->default('[]');
-            $table->jsonb('sell_orders')->default('[]');
+            $table->jsonb('buy_orders')->nullable();
+            $table->jsonb('sell_orders')->nullable();
             $table->decimal('best_bid', 36, 18)->nullable();
             $table->decimal('best_ask', 36, 18)->nullable();
             $table->decimal('last_price', 36, 18)->nullable();
             $table->decimal('volume_24h', 36, 18)->default(0);
             $table->decimal('high_24h', 36, 18)->nullable();
             $table->decimal('low_24h', 36, 18)->nullable();
-            $table->jsonb('metadata')->default('{}');
+            $table->jsonb('metadata')->nullable();
             $table->timestamps();
             
             // Indexes
@@ -74,7 +74,7 @@ return new class extends Migration
             $table->decimal('maker_fee', 36, 18);
             $table->decimal('taker_fee', 36, 18);
             $table->enum('maker_side', ['buy', 'sell']);
-            $table->jsonb('metadata')->default('{}');
+            $table->jsonb('metadata')->nullable();
             $table->timestamps();
             
             // Indexes
@@ -89,7 +89,7 @@ return new class extends Migration
             $table->string('fee_type', 50);
             $table->decimal('maker_fee_percent', 5, 4)->default(0.1); // 0.1%
             $table->decimal('taker_fee_percent', 5, 4)->default(0.2); // 0.2%
-            $table->jsonb('volume_discounts')->default('[]');
+            $table->jsonb('volume_discounts')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             

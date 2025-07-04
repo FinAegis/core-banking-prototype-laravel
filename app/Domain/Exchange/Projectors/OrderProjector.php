@@ -28,8 +28,8 @@ class OrderProjector extends Projector
             'price' => $event->price,
             'stop_price' => $event->stopPrice,
             'status' => 'pending',
-            'trades' => [],
-            'metadata' => $event->metadata,
+            'trades' => json_encode([]),
+            'metadata' => $event->metadata ? json_encode($event->metadata) : null,
         ]);
     }
 
@@ -38,7 +38,7 @@ class OrderProjector extends Projector
         $order = Order::where('order_id', $event->orderId)->firstOrFail();
         
         // Update order with trade information
-        $trades = $order->trades;
+        $trades = $order->trades ?? [];
         $trades[] = [
             'trade_id' => $event->tradeId,
             'matched_order_id' => $event->matchedOrderId,
@@ -108,10 +108,10 @@ class OrderProjector extends Projector
         Order::where('order_id', $event->orderId)->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),
-            'metadata' => array_merge(
+            'metadata' => json_encode(array_merge(
                 Order::where('order_id', $event->orderId)->value('metadata') ?? [],
                 ['cancellation_reason' => $event->reason]
-            ),
+            )),
         ]);
     }
 }

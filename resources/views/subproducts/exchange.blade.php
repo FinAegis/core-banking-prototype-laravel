@@ -66,9 +66,9 @@
         <section class="py-20 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What's Coming</h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Trading Features</h2>
                     <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                        A comprehensive trading platform built on FinAegis infrastructure
+                        Professional trading platform with institutional-grade infrastructure
                     </p>
                 </div>
 
@@ -166,18 +166,18 @@
         <!-- CTA Section -->
         <section class="py-20 bg-gray-50">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-6">Be First to Trade</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">Start Trading Today</h2>
                 <p class="text-xl text-gray-600 mb-8">
-                    Join the waitlist to get early access when FinAegis Exchange launches
+                    Experience professional trading with institutional-grade infrastructure
                 </p>
-                <div class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold">
+                <a href="{{ route('exchange.index') }}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                     </svg>
-                    Coming Soon
-                </div>
+                    Start Trading Now
+                </a>
                 <p class="text-gray-500 mt-4">
-                    In the meantime, explore <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a>
+                    Trade with <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a> and other major assets
                 </p>
             </div>
         </section>

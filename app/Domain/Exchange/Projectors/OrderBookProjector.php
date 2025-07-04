@@ -20,9 +20,9 @@ class OrderBookProjector extends Projector
             'order_book_id' => $event->orderBookId,
             'base_currency' => $event->baseCurrency,
             'quote_currency' => $event->quoteCurrency,
-            'buy_orders' => [],
-            'sell_orders' => [],
-            'metadata' => $event->metadata,
+            'buy_orders' => json_encode([]),
+            'sell_orders' => json_encode([]),
+            'metadata' => $event->metadata ? json_encode($event->metadata) : null,
         ]);
     }
 
@@ -38,7 +38,7 @@ class OrderBookProjector extends Projector
         ];
         
         if ($event->type === 'buy') {
-            $buyOrders = collect($orderBook->buy_orders);
+            $buyOrders = collect($orderBook->buy_orders ?? []);
             $buyOrders->push($order);
             
             // Sort buy orders by price descending (highest first)
@@ -49,7 +49,7 @@ class OrderBookProjector extends Projector
                 'best_bid' => $buyOrders->first()['price'] ?? null,
             ]);
         } else {
-            $sellOrders = collect($orderBook->sell_orders);
+            $sellOrders = collect($orderBook->sell_orders ?? []);
             $sellOrders->push($order);
             
             // Sort sell orders by price ascending (lowest first)
@@ -66,11 +66,11 @@ class OrderBookProjector extends Projector
     {
         $orderBook = OrderBook::where('order_book_id', $event->orderBookId)->firstOrFail();
         
-        $buyOrders = collect($orderBook->buy_orders)->reject(function ($order) use ($event) {
+        $buyOrders = collect($orderBook->buy_orders ?? [])->reject(function ($order) use ($event) {
             return $order['order_id'] === $event->orderId;
         })->values();
         
-        $sellOrders = collect($orderBook->sell_orders)->reject(function ($order) use ($event) {
+        $sellOrders = collect($orderBook->sell_orders ?? [])->reject(function ($order) use ($event) {
             return $order['order_id'] === $event->orderId;
         })->values();
         
@@ -118,7 +118,7 @@ class OrderBookProjector extends Projector
             
             // Store open price for change calculation
             $oldestTrade = $trades24h->sortBy('created_at')->first();
-            $metadata = $orderBook->metadata;
+            $metadata = $orderBook->metadata ?? [];
             $metadata['open_24h'] = $oldestTrade->price;
             $orderBook->metadata = $metadata;
         }
