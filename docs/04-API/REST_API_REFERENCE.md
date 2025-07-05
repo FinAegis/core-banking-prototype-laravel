@@ -25,6 +25,11 @@ This document consolidates all REST API endpoints for the FinAegis Core Banking 
 - [User Voting](#user-voting)
 - [KYC Management](#kyc-management)
 - [GDPR Compliance](#gdpr-compliance)
+- [Exchange & Trading](#exchange--trading)
+- [Liquidity Pools](#liquidity-pools)
+- [P2P Lending](#p2p-lending)
+- [Blockchain Wallets](#blockchain-wallets)
+- [External Exchange Integration](#external-exchange-integration)
 
 ## Authentication
 
@@ -1786,4 +1791,322 @@ Authorization: Bearer {token}
 ```http
 GET /api/gdpr/privacy-settings
 Authorization: Bearer {token}
+```
+
+## Exchange & Trading
+
+### List Trading Pairs
+```http
+GET /api/exchange/markets
+Authorization: Bearer {token}
+```
+
+### Get Order Book
+```http
+GET /api/exchange/orderbook?base=BTC&quote=USD&depth=20
+Authorization: Bearer {token}
+```
+
+### Place Order
+```http
+POST /api/exchange/orders
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "type": "buy",
+  "order_type": "limit",
+  "base_currency": "BTC",
+  "quote_currency": "USD",
+  "amount": "0.5",
+  "price": "45000"
+}
+```
+
+### Cancel Order
+```http
+DELETE /api/exchange/orders/{order_id}
+Authorization: Bearer {token}
+```
+
+### Get Order Status
+```http
+GET /api/exchange/orders/{order_id}
+Authorization: Bearer {token}
+```
+
+### Get Trade History
+```http
+GET /api/exchange/trades?base=BTC&quote=USD&limit=100
+Authorization: Bearer {token}
+```
+
+## Liquidity Pools
+
+### List Liquidity Pools
+```http
+GET /api/pools
+Authorization: Bearer {token}
+```
+
+### Create Pool
+```http
+POST /api/pools
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "token_a": "USDC",
+  "token_b": "ETH",
+  "amount_a": "10000",
+  "amount_b": "5"
+}
+```
+
+### Add Liquidity
+```http
+POST /api/pools/{pool_id}/liquidity
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "amount_a": "1000",
+  "amount_b": "0.5"
+}
+```
+
+### Remove Liquidity
+```http
+DELETE /api/pools/{pool_id}/liquidity
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "lp_token_amount": "100"
+}
+```
+
+### Execute Swap
+```http
+POST /api/pools/{pool_id}/swap
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "token_in": "USDC",
+  "amount_in": "1000",
+  "min_amount_out": "0.45"
+}
+```
+
+## Stablecoin Operations
+
+### Mint Stablecoins
+```http
+POST /api/stablecoins/mint
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "stablecoin": "EUSD",
+  "amount": "10000",
+  "collateral": [
+    {
+      "asset": "ETH",
+      "amount": "5"
+    }
+  ]
+}
+```
+
+### Burn Stablecoins
+```http
+POST /api/stablecoins/burn
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "stablecoin": "EUSD",
+  "amount": "5000"
+}
+```
+
+### Get Collateral Positions
+```http
+GET /api/stablecoins/positions
+Authorization: Bearer {token}
+```
+
+### Add Collateral
+```http
+POST /api/stablecoins/positions/{position_id}/collateral
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "asset": "BTC",
+  "amount": "0.1"
+}
+```
+
+### Liquidate Position
+```http
+POST /api/stablecoins/liquidate/{position_id}
+Authorization: Bearer {token}
+```
+
+## P2P Lending
+
+### Apply for Loan
+```http
+POST /api/loans/apply
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "amount": "10000",
+  "currency": "USD",
+  "term_months": 12,
+  "purpose": "business_expansion",
+  "collateral": [
+    {
+      "type": "crypto",
+      "asset": "BTC",
+      "amount": "0.5"
+    }
+  ]
+}
+```
+
+### List Loans
+```http
+GET /api/loans?status=active&role=borrower
+Authorization: Bearer {token}
+```
+
+### Get Loan Details
+```http
+GET /api/loans/{loan_id}
+Authorization: Bearer {token}
+```
+
+### Approve Loan (Lender)
+```http
+POST /api/loans/{loan_id}/approve
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "amount": "10000"
+}
+```
+
+### Make Repayment
+```http
+POST /api/loans/{loan_id}/repay
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "amount": "1000"
+}
+```
+
+### Get Repayment Schedule
+```http
+GET /api/loans/{loan_id}/schedule
+Authorization: Bearer {token}
+```
+
+## Blockchain Wallets
+
+### Generate Wallet
+```http
+POST /api/wallets/generate
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "chain": "ethereum",
+  "label": "Trading Wallet"
+}
+```
+
+### Get Wallet Balance
+```http
+GET /api/wallets/{chain}/balance?address={address}
+Authorization: Bearer {token}
+```
+
+### Send Transaction
+```http
+POST /api/wallets/{chain}/send
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "from": "0x1234...",
+  "to": "0x5678...",
+  "amount": "1.5",
+  "gas_price": "fast"
+}
+```
+
+### Get Transaction History
+```http
+GET /api/wallets/{chain}/transactions?address={address}&limit=50
+Authorization: Bearer {token}
+```
+
+### Estimate Gas
+```http
+POST /api/wallets/{chain}/estimate-gas
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "from": "0x1234...",
+  "to": "0x5678...",
+  "amount": "1.5",
+  "data": "0x..."
+}
+```
+
+## External Exchange Integration
+
+### Get Arbitrage Opportunities
+```http
+GET /api/external/arbitrage?base=BTC&quote=USD
+Authorization: Bearer {token}
+```
+
+### Get External Prices
+```http
+GET /api/external/prices?base=ETH&quote=USD
+Authorization: Bearer {token}
+```
+
+### Execute Arbitrage
+```http
+POST /api/external/arbitrage/execute
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "opportunity_id": "arb_123",
+  "amount": "1000"
+}
+```
+
+### Sync External Prices
+```http
+POST /api/external/sync-prices
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "base": "BTC",
+  "quote": "USD",
+  "max_deviation": 0.01
+}
 ```

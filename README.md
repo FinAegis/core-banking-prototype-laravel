@@ -164,10 +164,18 @@ app/Domain/
 ├── Performance/      # Performance optimization
 │   ├── Services/     # Transfer optimization service
 │   └── Benchmarks/   # Performance benchmarking
-└── Stablecoin/      # Stablecoin issuance and management
-    ├── Models/       # Stablecoin and collateral models
-    ├── Services/     # Issuance and liquidation services
-    └── Workflows/    # Stablecoin lifecycle workflows
+├── Stablecoin/       # Stablecoin issuance and management
+│   ├── Models/       # Stablecoin and collateral models
+│   ├── Services/     # Issuance and liquidation services
+│   └── Workflows/    # Stablecoin lifecycle workflows
+├── Wallet/           # Blockchain wallet management
+│   ├── Services/     # Wallet and key management services
+│   ├── Connectors/   # Blockchain connectors (Bitcoin, Ethereum)
+│   └── ValueObjects/ # Address, transaction, and gas data objects
+└── Lending/          # P2P lending platform
+    ├── Models/       # Loan and credit score models
+    ├── Services/     # Credit scoring and risk assessment
+    └── Workflows/    # Loan lifecycle workflows
 ```
 
 ## 💼 Key Features
@@ -210,12 +218,24 @@ app/Domain/
 - Daily reconciliation with automated balance verification
 - Bank health monitoring with real-time alerts
 
+### Exchange & Trading
+- Order book management with event-sourced architecture
+- Automated order matching with partial fill support
+- Liquidity pool creation and management
+- AMM-based token swaps with dynamic pricing
+- External exchange integration (Binance, Kraken, Coinbase)
+- Real-time arbitrage opportunity detection
+- Price alignment with external markets
+- Trading fee calculation with maker/taker model
+
 ### Stablecoin Management
-- Stablecoin issuance and minting
-- Collateral position management
-- Automated liquidation mechanisms
-- Stability mechanism execution
-- Risk assessment and monitoring
+- Stablecoin issuance and minting with multi-collateral support
+- Collateral position management with real-time valuation
+- Automated liquidation mechanisms with configurable thresholds
+- Stability mechanism execution (DSR, liquidation, rebalancing)
+- Risk assessment and monitoring with health factor calculation
+- Oracle aggregation for accurate price feeds
+- Emergency pause and recovery mechanisms
 
 ### Bank Integration
 - Real bank connectors (Paysera, Deutsche Bank, Santander)
@@ -223,6 +243,24 @@ app/Domain/
 - Settlement processing across bank networks
 - Custodian balance synchronization
 - Webhook integration for real-time updates
+
+### Blockchain Integration
+- Multi-chain wallet support (Bitcoin, Ethereum, Polygon, BSC)
+- HD wallet generation with BIP44 compliance
+- Secure key management with encryption
+- Transaction signing and broadcasting
+- Gas estimation and optimization
+- Real-time balance monitoring
+- Address generation and validation
+
+### P2P Lending Platform
+- Loan application and approval workflows
+- Credit scoring with multiple data sources
+- Risk assessment and categorization
+- Interest rate calculation based on risk
+- Automated repayment processing
+- Default management and recovery
+- Collateralized and uncollateralized loans
 
 ### Admin Dashboard (Filament v3)
 - Comprehensive admin interface powered by Filament v3
@@ -239,6 +277,16 @@ app/Domain/
 - **User Management**: Complete user administration with role-based access
 
 ### Recent Updates (Completed Phases)
+
+#### Phase 8: Advanced Trading & DeFi Features ✅
+- **Generalized Exchange Engine**: Event-sourced order book with saga-based matching engine
+- **Liquidity Pool Management**: Automated market maker (AMM) with constant product formula
+- **External Exchange Integration**: Connectors for Binance, Kraken, and Coinbase
+- **Blockchain Wallet System**: Multi-chain support (Bitcoin, Ethereum, Polygon, BSC)
+- **P2P Lending Platform**: Credit scoring, risk assessment, and loan lifecycle management
+- **Stablecoin Framework**: Collateralized stablecoin issuance with liquidation mechanisms
+- **Arbitrage Detection**: Real-time arbitrage opportunity detection across exchanges
+- **Price Alignment**: Automated price synchronization with external markets
 
 #### Phase 4.1: User Bank Allocation ✅
 - **Enhanced User Bank Preferences**: Expanded model with 5 banks (Paysera, Deutsche Bank, Santander, Revolut, Wise)
@@ -483,6 +531,40 @@ GET    /api/v2/baskets/{code}/performance # Performance metrics
 POST   /api/v2/accounts/{uuid}/baskets/compose   # Compose basket
 POST   /api/v2/accounts/{uuid}/baskets/decompose # Decompose basket
 
+# Exchange & Trading
+GET    /api/exchange/markets           # List trading pairs
+GET    /api/exchange/orderbook         # Get order book
+POST   /api/exchange/orders            # Place order
+DELETE /api/exchange/orders/{id}       # Cancel order
+GET    /api/exchange/orders/{id}       # Get order status
+GET    /api/exchange/trades            # Trade history
+
+# Liquidity Pools
+GET    /api/pools                      # List liquidity pools
+POST   /api/pools                      # Create pool
+POST   /api/pools/{id}/liquidity       # Add liquidity
+DELETE /api/pools/{id}/liquidity       # Remove liquidity
+POST   /api/pools/{id}/swap            # Execute swap
+
+# Stablecoins
+POST   /api/stablecoins/mint           # Mint stablecoins
+POST   /api/stablecoins/burn           # Burn stablecoins
+GET    /api/stablecoins/positions      # List positions
+POST   /api/stablecoins/liquidate      # Liquidate position
+
+# P2P Lending
+POST   /api/loans/apply                # Apply for loan
+GET    /api/loans                      # List loans
+POST   /api/loans/{id}/approve         # Approve loan
+POST   /api/loans/{id}/repay           # Make repayment
+GET    /api/loans/{id}/schedule        # Repayment schedule
+
+# Blockchain Wallets
+POST   /api/wallets/generate           # Generate wallet
+GET    /api/wallets/{chain}/balance    # Get balance
+POST   /api/wallets/{chain}/send       # Send transaction
+GET    /api/wallets/{chain}/transactions # Transaction history
+
 # Governance APIs
 GET    /api/polls                       # List polls
 POST   /api/polls                       # Create poll
@@ -611,6 +693,12 @@ The FinAegis platform has completed all major technical phases and is ready for 
 - **Phase 4.3**: Compliance framework with KYC, AML, and regulatory reporting
 - **Phase 5.1**: Real bank integration with Paysera, Deutsche Bank, and Santander
 - **Phase 6**: Complete governance system with polling and voting
+- **Phase 7**: Continuous Growth Offering (CGO) platform
+- **Phase 8**: Advanced trading features including:
+  - **Phase 8.1**: Generalized exchange engine with liquidity pools
+  - **Phase 8.2**: Stablecoin framework with collateral management
+  - **Phase 8.3**: Multi-chain wallet system with key management
+  - **Phase 8.4**: P2P lending platform with credit scoring
 
 #### Technical Achievements ✅
 - **Event Sourcing**: Complete implementation with aggregates and projectors
@@ -623,6 +711,11 @@ The FinAegis platform has completed all major technical phases and is ready for 
 - **Admin Dashboard**: Comprehensive Filament v3 interface
 - **API Coverage**: Complete REST APIs with OpenAPI documentation
 - **Test Coverage**: 50%+ coverage with parallel test execution
+- **Exchange Engine**: Order book with saga-based matching
+- **DeFi Features**: AMM liquidity pools and yield farming
+- **Blockchain Support**: Multi-chain wallet infrastructure
+- **Lending Platform**: Complete loan lifecycle management
+- **External Integration**: Real-time connection to major exchanges
 
 ### Phase 5.2: Transaction Processing ✅
 - **Multi-Bank Transfers**: Route transfers across bank network
