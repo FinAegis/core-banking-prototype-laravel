@@ -2,7 +2,6 @@
 
 namespace App\Domain\Stablecoin\Services;
 
-use App\Domain\Stablecoin\Contracts\OracleAggregatorInterface;
 use App\Domain\Stablecoin\Contracts\OracleConnector;
 use App\Domain\Stablecoin\Contracts\PriceOracleInterface;
 use App\Domain\Stablecoin\ValueObjects\AggregatedPrice;
@@ -13,7 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-class OracleAggregator implements OracleAggregatorInterface
+class OracleAggregator
 {
     private Collection $oracles;
     private int $minOracles = 2;

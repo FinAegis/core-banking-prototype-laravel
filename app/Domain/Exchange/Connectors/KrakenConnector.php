@@ -24,8 +24,8 @@ class KrakenConnector implements IExternalExchangeConnector
 
     public function __construct(string $apiKey = '', string $apiSecret = '')
     {
-        $this->apiKey = $apiKey ?: config('services.kraken.api_key', '');
-        $this->apiSecret = $apiSecret ?: config('services.kraken.api_secret', '');
+        $this->apiKey = $apiKey ?: (string) config('services.kraken.api_key', '');
+        $this->apiSecret = $apiSecret ?: (string) config('services.kraken.api_secret', '');
         
         // Kraken uses different asset codes
         $this->assetMap = [

@@ -7,7 +7,6 @@ use App\Domain\Stablecoin\Contracts\LiquidationServiceInterface;
 use App\Domain\Stablecoin\Contracts\StabilityMechanismServiceInterface;
 use App\Domain\Stablecoin\Contracts\StablecoinIssuanceServiceInterface;
 use App\Domain\Stablecoin\Projectors\StablecoinProjector;
-use App\Domain\Stablecoin\Projectors\CollateralPositionProjector;
 use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Stablecoin\Services\LiquidationService;
 use App\Domain\Stablecoin\Services\OracleAggregator;
@@ -45,7 +44,6 @@ class StablecoinServiceProvider extends ServiceProvider
         // Register projectors
         Projectionist::addProjectors([
             StablecoinProjector::class,
-            CollateralPositionProjector::class,
         ]);
     }
 }

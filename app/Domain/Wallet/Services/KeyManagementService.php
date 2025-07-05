@@ -14,7 +14,7 @@ use kornrunner\Keccak;
 
 class KeyManagementService
 {
-    protected EC $ec;
+    protected ?EC $ec = null;
     protected string $encryptionKey;
     
     // BIP44 derivation paths
@@ -27,7 +27,9 @@ class KeyManagementService
     
     public function __construct()
     {
-        $this->ec = new EC('secp256k1');
+        if (class_exists(EC::class)) {
+            $this->ec = new EC('secp256k1');
+        }
         $this->encryptionKey = config('app.key');
     }
     

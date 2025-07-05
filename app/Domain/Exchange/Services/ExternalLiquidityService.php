@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 class ExternalLiquidityService implements ExternalLiquidityServiceInterface
 {
     public function __construct(
-        private ExchangeConnectorRegistry $connectorRegistry,
+        private ExternalExchangeConnectorRegistry $connectorRegistry,
         private ExchangeService $exchangeService
     ) {}
 

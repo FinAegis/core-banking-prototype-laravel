@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Exchange\Services;
 
-use App\Domain\Exchange\Contracts\ExchangeRateProviderRegistryInterface;
 use App\Domain\Exchange\Contracts\IExchangeRateProvider;
 use App\Domain\Exchange\Contracts\ExchangeRateProviderInterface;
 use App\Domain\Exchange\Exceptions\RateProviderException;
@@ -14,7 +13,7 @@ use Brick\Math\RoundingMode;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
-class ExchangeRateProviderRegistry implements ExchangeRateProviderRegistryInterface
+class ExchangeRateProviderRegistry
 {
     private array $providers = [];
     private array $priorities = [];

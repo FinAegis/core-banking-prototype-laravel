@@ -18,7 +18,7 @@ use Elliptic\EC;
 
 class EthereumConnector implements BlockchainConnector
 {
-    protected Web3 $web3;
+    protected ?Web3 $web3 = null;
     protected string $rpcUrl;
     protected string $chainId;
     protected array $eventSubscriptions = [];
@@ -27,7 +27,9 @@ class EthereumConnector implements BlockchainConnector
     {
         $this->rpcUrl = $rpcUrl;
         $this->chainId = $chainId;
-        $this->web3 = new Web3($rpcUrl);
+        if (class_exists(Web3::class)) {
+            $this->web3 = new Web3($rpcUrl);
+        }
     }
     
     public function generateAddress(string $publicKey): AddressData

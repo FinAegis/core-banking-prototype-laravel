@@ -30,8 +30,8 @@ class BinanceConnector implements IExternalExchangeConnector
         bool $isUS = false,
         bool $isTestnet = false
     ) {
-        $this->apiKey = $apiKey ?: config('services.binance.api_key', '');
-        $this->apiSecret = $apiSecret ?: config('services.binance.api_secret', '');
+        $this->apiKey = $apiKey ?: (string) config('services.binance.api_key', '');
+        $this->apiSecret = $apiSecret ?: (string) config('services.binance.api_secret', '');
         $this->baseUrl = $isUS ? self::BASE_URL_US : self::BASE_URL;
         $this->isTestnet = $isTestnet;
         
