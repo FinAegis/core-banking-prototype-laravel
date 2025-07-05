@@ -82,6 +82,15 @@
                                         {{ __('Banks') }}
                                     </div>
                                 </x-dropdown-link>
+                                <div class="border-t border-gray-200 dark:border-gray-600"></div>
+                                <x-dropdown-link href="{{ route('wallet.blockchain.index') }}">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                        {{ __('Blockchain Wallet') }}
+                                    </div>
+                                </x-dropdown-link>
                             </x-slot>
                         </x-dropdown>
                     </div>
@@ -103,6 +112,26 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                             </svg>
                             {{ __('Exchange') }}
+                        </div>
+                    </x-nav-link>
+                    
+                    <!-- Liquidity Pools -->
+                    <x-nav-link href="{{ route('liquidity.index') }}" :active="request()->routeIs('liquidity.*')">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                            {{ __('Liquidity') }}
+                        </div>
+                    </x-nav-link>
+                    
+                    <!-- Lending -->
+                    <x-nav-link href="{{ route('lending.index') }}" :active="request()->routeIs('lending.*')">
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ __('Lending') }}
                         </div>
                     </x-nav-link>
                     

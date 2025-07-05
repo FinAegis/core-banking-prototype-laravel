@@ -236,4 +236,31 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
             ->updateParameters($feeRate, $isActive, $metadata)
             ->persist();
     }
+
+    /**
+     * Get all liquidity pools
+     */
+    public function getAllPools(): Collection
+    {
+        $pools = PoolProjection::with(['providers'])
+            ->where('is_active', true)
+            ->get();
+
+        return $pools->map(function ($pool) {
+            $metrics = $this->getPoolMetrics($pool->pool_id);
+            
+            return [
+                'id' => $pool->pool_id,
+                'base_currency' => $pool->base_currency,
+                'quote_currency' => $pool->quote_currency,
+                'fee_rate' => $pool->fee_rate,
+                'tvl' => $metrics['tvl'] ?? 0,
+                'volume_24h' => $metrics['volume_24h'] ?? 0,
+                'apy' => $metrics['fee_apy'] ?? 0,
+                'provider_count' => $pool->providers->count(),
+                'is_active' => $pool->is_active,
+            ];
+        });
+    }
+
 }

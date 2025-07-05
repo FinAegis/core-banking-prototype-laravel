@@ -36,6 +36,15 @@
                             {{ number_format($orderBook['volume_24h'] ?? 0, 2) }} {{ $baseCurrency }}
                         </p>
                     </div>
+                    
+                    @auth
+                    <div>
+                        <a href="{{ route('exchange.external.index') }}" 
+                           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                            External Exchanges
+                        </a>
+                    </div>
+                    @endauth
                 </div>
             </div>
         </div>

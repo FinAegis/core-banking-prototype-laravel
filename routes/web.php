@@ -200,21 +200,56 @@ Route::prefix('exchange')->name('exchange.')->group(function () {
         Route::post('/place-order', [App\Http\Controllers\ExchangeController::class, 'placeOrder'])->name('place-order');
         Route::delete('/cancel-order/{orderId}', [App\Http\Controllers\ExchangeController::class, 'cancelOrder'])->name('cancel-order');
         Route::get('/export-trades', [App\Http\Controllers\ExchangeController::class, 'exportTrades'])->name('export-trades');
+        
+        // External exchange integration routes
+        Route::prefix('external')->name('external.')->group(function () {
+            Route::get('/', [App\Http\Controllers\ExternalExchangeController::class, 'index'])->name('index');
+            Route::get('/arbitrage', [App\Http\Controllers\ExternalExchangeController::class, 'arbitrage'])->name('arbitrage');
+            Route::post('/arbitrage/execute', [App\Http\Controllers\ExternalExchangeController::class, 'executeArbitrage'])->name('arbitrage.execute');
+            Route::get('/price-alignment', [App\Http\Controllers\ExternalExchangeController::class, 'priceAlignment'])->name('price-alignment');
+            Route::put('/price-alignment', [App\Http\Controllers\ExternalExchangeController::class, 'updatePriceAlignment'])->name('price-alignment.update');
+            Route::post('/connect', [App\Http\Controllers\ExternalExchangeController::class, 'connect'])->name('connect');
+            Route::delete('/disconnect/{exchange}', [App\Http\Controllers\ExternalExchangeController::class, 'disconnect'])->name('disconnect');
+        });
     });
 });
 
 // Liquidity pool routes
 Route::prefix('liquidity')->name('liquidity.')->group(function () {
     // Public routes
-    Route::get('/', [App\Http\Controllers\LiquidityController::class, 'index'])->name('index');
-    Route::get('/pool/{poolId}', [App\Http\Controllers\LiquidityController::class, 'pool'])->name('pool');
+    Route::get('/', [App\Http\Controllers\LiquidityPoolController::class, 'index'])->name('index');
+    Route::get('/{poolId}', [App\Http\Controllers\LiquidityPoolController::class, 'show'])->name('show');
     
     // Authenticated routes
     Route::middleware(['auth', 'verified'])->group(function () {
-        Route::post('/add', [App\Http\Controllers\LiquidityController::class, 'addLiquidity'])->name('add');
-        Route::post('/remove', [App\Http\Controllers\LiquidityController::class, 'removeLiquidity'])->name('remove');
-        Route::post('/claim-rewards', [App\Http\Controllers\LiquidityController::class, 'claimRewards'])->name('claim-rewards');
+        Route::get('/{poolId}/add', [App\Http\Controllers\LiquidityPoolController::class, 'create'])->name('create');
+        Route::post('/{poolId}/add', [App\Http\Controllers\LiquidityPoolController::class, 'store'])->name('store');
+        Route::get('/{poolId}/remove', [App\Http\Controllers\LiquidityPoolController::class, 'remove'])->name('remove');
+        Route::delete('/{poolId}/remove', [App\Http\Controllers\LiquidityPoolController::class, 'destroy'])->name('destroy');
     });
+});
+
+// Lending platform routes
+Route::middleware(['auth', 'verified'])->prefix('lending')->name('lending.')->group(function () {
+    Route::get('/', [App\Http\Controllers\LendingController::class, 'index'])->name('index');
+    Route::get('/apply', [App\Http\Controllers\LendingController::class, 'apply'])->name('apply');
+    Route::post('/apply', [App\Http\Controllers\LendingController::class, 'submitApplication'])->name('apply.submit');
+    Route::get('/application/{applicationId}', [App\Http\Controllers\LendingController::class, 'showApplication'])->name('application');
+    Route::get('/loan/{loanId}', [App\Http\Controllers\LendingController::class, 'showLoan'])->name('loan');
+    Route::get('/loan/{loanId}/repay', [App\Http\Controllers\LendingController::class, 'repay'])->name('repay');
+    Route::post('/loan/{loanId}/repay', [App\Http\Controllers\LendingController::class, 'processRepayment'])->name('repay.process');
+});
+
+// Blockchain wallet routes
+Route::middleware(['auth', 'verified'])->prefix('wallet/blockchain')->name('wallet.blockchain.')->group(function () {
+    Route::get('/', [App\Http\Controllers\BlockchainWalletController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\BlockchainWalletController::class, 'createAddress'])->name('create');
+    Route::post('/generate', [App\Http\Controllers\BlockchainWalletController::class, 'generateAddress'])->name('generate');
+    Route::get('/address/{addressId}', [App\Http\Controllers\BlockchainWalletController::class, 'showAddress'])->name('show');
+    Route::get('/address/{addressId}/send', [App\Http\Controllers\BlockchainWalletController::class, 'sendForm'])->name('send');
+    Route::post('/address/{addressId}/send', [App\Http\Controllers\BlockchainWalletController::class, 'send'])->name('send.process');
+    Route::get('/transaction/{transactionId}', [App\Http\Controllers\BlockchainWalletController::class, 'showTransaction'])->name('transaction');
+    Route::post('/backup', [App\Http\Controllers\BlockchainWalletController::class, 'exportBackup'])->name('backup');
 });
 
 Route::middleware([
