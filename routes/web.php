@@ -498,10 +498,7 @@ Route::middleware([
         return redirect()->route('wallet.transfer');
     })->name('transfers');
     
-    // Exchange Route
-    Route::get('/exchange', function () {
-        return redirect()->route('wallet.convert');
-    })->name('exchange');
+    // Removed conflicting exchange route - now handled by ExchangeController
     
     // GCU Wallet Routes
     Route::prefix('wallet')->name('wallet.')->group(function () {
