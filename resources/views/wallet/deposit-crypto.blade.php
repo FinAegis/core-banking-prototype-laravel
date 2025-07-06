@@ -83,6 +83,10 @@
         </div>
     </div>
 
+    @push('scripts')
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    
     <script>
         function selectCrypto(crypto) {
             // Remove active state from all options
@@ -115,32 +119,90 @@
                 'USDT': '20'
             };
             
-            document.getElementById('cryptoAddress').value = addresses[crypto];
+            const address = addresses[crypto];
+            document.getElementById('cryptoAddress').value = address;
             document.getElementById('selectedCrypto').textContent = crypto;
             document.getElementById('minDeposit').textContent = minDeposits[crypto];
             document.getElementById('confirmations').textContent = confirmations[crypto];
             
-            // Note: In production, you would generate a real QR code here
-            document.getElementById('qrcode').innerHTML = '<div class="text-gray-500 text-sm">QR Code Placeholder</div>';
+            // Generate QR code
+            generateQRCode(address, crypto);
+        }
+        
+        function generateQRCode(address, crypto) {
+            const qrcodeContainer = document.getElementById('qrcode');
+            qrcodeContainer.innerHTML = ''; // Clear existing content
+            
+            // Create canvas element
+            const canvas = document.createElement('canvas');
+            canvas.style.display = 'block';
+            qrcodeContainer.appendChild(canvas);
+            
+            // Generate QR code
+            QRCode.toCanvas(canvas, address, {
+                width: 200,
+                height: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                },
+                errorCorrectionLevel: 'H'
+            }, function (error) {
+                if (error) {
+                    console.error('QR Code generation error:', error);
+                    qrcodeContainer.innerHTML = '<div class="text-red-500 text-sm">Error generating QR code</div>';
+                }
+            });
+            
+            // Add address text below QR code
+            const addressText = document.createElement('div');
+            addressText.className = 'mt-2 text-xs text-gray-600 dark:text-gray-400 break-all text-center max-w-[200px]';
+            addressText.textContent = address;
+            qrcodeContainer.appendChild(addressText);
         }
         
         function copyAddress() {
             const addressInput = document.getElementById('cryptoAddress');
-            addressInput.select();
-            document.execCommand('copy');
             
-            // Show feedback
+            // Use modern clipboard API if available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(addressInput.value).then(() => {
+                    showCopyFeedback();
+                }).catch(() => {
+                    fallbackCopy();
+                });
+            } else {
+                fallbackCopy();
+            }
+        }
+        
+        function fallbackCopy() {
+            const addressInput = document.getElementById('cryptoAddress');
+            addressInput.select();
+            addressInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                document.execCommand('copy');
+                showCopyFeedback();
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        }
+        
+        function showCopyFeedback() {
             const button = event.target;
             const originalText = button.textContent;
             button.textContent = 'Copied!';
-            button.classList.add('bg-green-600');
-            button.classList.remove('bg-blue-600');
+            button.classList.add('bg-green-600', 'hover:bg-green-700');
+            button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
             
             setTimeout(() => {
                 button.textContent = originalText;
-                button.classList.remove('bg-green-600');
-                button.classList.add('bg-blue-600');
+                button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                button.classList.add('bg-blue-600', 'hover:bg-blue-700');
             }, 2000);
         }
     </script>
+    @endpush
 </x-app-layout>
