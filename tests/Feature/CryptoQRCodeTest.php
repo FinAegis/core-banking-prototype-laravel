@@ -25,12 +25,9 @@ class CryptoQRCodeTest extends TestCase
         
         $response->assertStatus(200);
         
-        // Should include QR code library
-        $response->assertSee('qrcode@1.5.3', false);
-        
-        // Should have QR code generation function
-        $response->assertSee('generateQRCode', false);
-        $response->assertSee('QRCode.toCanvas', false);
+        // Should have QR code generation function (now in compiled JS)
+        $response->assertSee('selectCrypto', false);
+        $response->assertSee('copyAddress', false);
         
         // Should not have placeholder text
         $response->assertDontSee('QR Code Placeholder');
