@@ -14,8 +14,8 @@ class CoinbaseCommerceService
 
     public function __construct()
     {
-        $this->apiKey = config('services.coinbase_commerce.api_key', '');
-        $this->webhookSecret = config('services.coinbase_commerce.webhook_secret', '');
+        $this->apiKey = config('services.coinbase_commerce.api_key') ?? '';
+        $this->webhookSecret = config('services.coinbase_commerce.webhook_secret') ?? '';
     }
 
     /**

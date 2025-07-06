@@ -177,4 +177,9 @@ class OrderBook extends AggregateRoot
     {
         return $this->sellOrders;
     }
+    
+    public static function generateId(string $baseAsset, string $quoteAsset): string
+    {
+        return sprintf('orderbook-%s-%s', strtolower($baseAsset), strtolower($quoteAsset));
+    }
 }
