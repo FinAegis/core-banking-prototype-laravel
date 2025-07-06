@@ -82,6 +82,10 @@
         </div>
     </div>
 
+    @push('scripts')
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    
     <script>
         function selectCrypto(crypto) {
             // Remove active state from all options
@@ -200,9 +204,5 @@
             }, 2000);
         }
     </script>
-    
-    @push('scripts')
-    <!-- QR Code Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     @endpush
 </x-app-layout>
