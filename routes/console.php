@@ -124,3 +124,9 @@ Schedule::command('cgo:verify-payments --expired')
     ->description('Handle expired CGO investment payments')
     ->appendOutputTo(storage_path('logs/cgo-expired-payments.log'))
     ->withoutOverlapping();
+
+// Sitemap Generation
+Schedule::command('sitemap:generate')
+    ->daily()
+    ->description('Generate sitemap.xml and robots.txt for SEO')
+    ->appendOutputTo(storage_path('logs/sitemap-generation.log'));

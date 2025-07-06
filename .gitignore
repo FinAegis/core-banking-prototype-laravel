@@ -21,3 +21,7 @@ yarn-error.log
 *.code-workspace
 coverage-html/
 work/
+
+# Generated SEO files
+/public/sitemap.xml
+/public/robots.txt

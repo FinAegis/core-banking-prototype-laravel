@@ -1,2 +1,20 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /user/
+Disallow: /wallet/
+Disallow: /exchange/
+Disallow: /lending/
+Disallow: /liquidity/
+Disallow: /compliance/
+Disallow: /audit/
+Disallow: /risk/
+Disallow: /monitoring/
+Disallow: /api-keys/
+Disallow: /profile/
+Disallow: /teams/
+Disallow: /subscriber/unsubscribe/
+
+Sitemap: http://finaegis.local/sitemap.xml

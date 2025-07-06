@@ -607,3 +607,7 @@ Route::get('/docs/api-docs.json', function () {
     }
     return response()->json(json_decode(file_get_contents($path), true));
 });
+
+// SEO routes - Sitemap and Robots.txt
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', [App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
