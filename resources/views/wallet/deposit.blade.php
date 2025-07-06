@@ -64,10 +64,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                             </svg>
                             <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Account Setup Required</h4>
-                            <p class="text-gray-600 dark:text-gray-400 mb-4">Your account is being set up. Please refresh the page in a moment.</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-500 mb-4">If this message persists, please contact support.</p>
-                            <button onclick="window.location.reload()" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
-                                Refresh Page
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">You need to create an account before you can deposit funds.</p>
+                            <button onclick="window.createAccount()" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition">
+                                Create Account Now
                             </button>
                         </div>
                     @else
@@ -94,4 +93,117 @@
             </div>
         </div>
     </div>
+
+    <!-- Account Creation Modal -->
+    <div id="accountModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form id="accountForm" onsubmit="window.submitAccountForm(event)">
+                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+                                    Create Your Account
+                                </h3>
+                                <div class="mt-4">
+                                    <label for="accountName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Account Name
+                                    </label>
+                                    <input type="text" 
+                                           name="accountName" 
+                                           id="accountName" 
+                                           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md dark:bg-gray-900 dark:border-gray-700 dark:text-white" 
+                                           placeholder="e.g., Personal Account"
+                                           value="Personal Account"
+                                           required>
+                                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                        This will create a multi-currency account that supports USD, EUR, GBP, and GCU.
+                                    </p>
+                                </div>
+                                <div id="accountError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" 
+                                id="createAccountBtn"
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Create Account
+                        </button>
+                        <button type="button" 
+                                onclick="window.closeAccountModal()"
+                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.createAccount = function() {
+            document.getElementById('accountModal').classList.remove('hidden');
+        }
+
+        window.closeAccountModal = function() {
+            document.getElementById('accountModal').classList.add('hidden');
+            document.getElementById('accountError').classList.add('hidden');
+        }
+
+        window.submitAccountForm = async function(event) {
+            event.preventDefault();
+            
+            const accountName = document.getElementById('accountName').value;
+            const errorDiv = document.getElementById('accountError');
+            const submitBtn = document.getElementById('createAccountBtn');
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+            errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/accounts/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: accountName
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Account created successfully - reload the page
+                    window.location.reload();
+                } else {
+                    // Show error
+                    errorDiv.textContent = data.message || 'Failed to create account. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                // Show error
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('hidden');
+                console.error('Account creation error:', error);
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        }
+    </script>
 </x-app-layout>
