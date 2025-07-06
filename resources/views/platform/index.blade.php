@@ -3,12 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="FinAegis Platform - Open-source banking infrastructure for developers. Build, deploy, and scale financial services with our MIT-licensed platform.">
-        <meta name="keywords" content="FinAegis, platform, banking infrastructure, open source, developer, API, MIT license">
         
         <title>FinAegis Platform - Open Banking for Developers</title>
 
         @include('partials.favicon')
+        
+        @include('partials.seo', [
+            'title' => 'FinAegis Platform - Open Banking for Developers',
+            'description' => 'FinAegis Platform - Open-source banking infrastructure for developers. Build, deploy, and scale financial services with our MIT-licensed platform.',
+            'keywords' => 'FinAegis platform, banking infrastructure, open source banking, developer API, MIT license, core banking API, fintech development',
+        ])
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

@@ -3,18 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="FinAegis - The Enterprise Financial Platform Powering the Future of Banking. Experience the Global Currency Unit (GCU) with democratic governance and real bank integration.">
-        <meta name="keywords" content="FinAegis, banking platform, GCU, global currency unit, democratic banking, fintech, multi-asset, enterprise banking">
-        
-        <!-- Open Graph -->
-        <meta property="og:title" content="FinAegis - Enterprise Financial Platform">
-        <meta property="og:description" content="Experience the Global Currency Unit (GCU) with democratic governance. One platform, multiple financial solutions - all optional, all integrated.">
-        <meta property="og:type" content="website">
-        <meta property="og:url" content="{{ url('/') }}">
 
         <title>FinAegis - The Enterprise Financial Platform</title>
 
         @include('partials.favicon')
+        
+        @include('partials.seo', [
+            'title' => 'FinAegis - The Enterprise Financial Platform',
+            'description' => 'FinAegis - The Enterprise Financial Platform Powering the Future of Banking. Experience the Global Currency Unit (GCU) with democratic governance and real bank integration.',
+            'keywords' => 'FinAegis, banking platform, GCU, global currency unit, democratic banking, fintech, multi-asset, enterprise banking, core banking system',
+        ])
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

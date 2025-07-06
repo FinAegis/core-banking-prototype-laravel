@@ -3,12 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Global Currency Unit (GCU) - The world's first democratically governed basket currency. Real bank backing, government insurance, community control.">
-        <meta name="keywords" content="GCU, global currency unit, democratic banking, basket currency, FinAegis">
         
         <title>Global Currency Unit (GCU) - FinAegis</title>
 
         @include('partials.favicon')
+        
+        @include('partials.seo', [
+            'title' => 'Global Currency Unit (GCU)',
+            'description' => 'Global Currency Unit (GCU) - The world\'s first democratically governed basket currency. Real bank backing, government insurance, community control.',
+            'keywords' => 'GCU, global currency unit, democratic banking, basket currency, FinAegis, stable currency, digital currency, community governance',
+        ])
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

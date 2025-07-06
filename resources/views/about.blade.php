@@ -3,11 +3,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Learn about FinAegis - revolutionizing banking with democratic governance and the Global Currency Unit. Our mission, team, and journey.">
     
     <title>About FinAegis - Our Mission & Team</title>
 
     @include('partials.favicon')
+    
+    @include('partials.seo', [
+        'title' => 'About FinAegis - Our Mission & Team',
+        'description' => 'Learn about FinAegis - revolutionizing banking with democratic governance and the Global Currency Unit. Our mission, team, and journey.',
+        'keywords' => 'FinAegis about, mission, team, democratic banking, financial revolution, open banking platform, core banking solution',
+    ])
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
