@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Lending\Services\LoanApplicationService;
+use App\Services\Lending\LoanApplicationService;
 use App\Domain\Lending\Services\CreditScoringService;
 use App\Domain\Lending\Services\RiskAssessmentService;
 use App\Domain\Lending\Services\CollateralManagementService;

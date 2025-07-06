@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Services\Lending\LoanApplicationService;
 use App\Domain\Lending\Services\CreditScoringService;
 use App\Domain\Lending\Services\RiskAssessmentService;
 use App\Domain\Lending\Services\CollateralManagementService;
@@ -14,6 +15,14 @@ class LendingServiceProvider extends ServiceProvider
 {
     public function register()
     {
+        // Register loan application service
+        $this->app->singleton(LoanApplicationService::class, function ($app) {
+            return new LoanApplicationService(
+                $app->make(CreditScoringService::class),
+                $app->make(RiskAssessmentService::class)
+            );
+        });
+        
         // Register credit scoring service
         $this->app->bind(CreditScoringService::class, function ($app) {
             return new MockCreditScoringService();
