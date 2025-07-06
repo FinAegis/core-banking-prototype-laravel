@@ -6,7 +6,7 @@
         <meta name="description" content="FinAegis Lending - P2P lending marketplace connecting capital with opportunity. Automated credit scoring and smart contract collateral.">
         <meta name="keywords" content="FinAegis Lending, P2P lending, business loans, investment platform">
         
-        <title>FinAegis Lending - Coming Soon</title>
+        <title>FinAegis Lending - P2P Lending Platform</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -31,8 +31,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
-                        <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>Coming Soon</span>
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                        <span>Now Live</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
                         FinAegis Lending
@@ -159,14 +159,14 @@
                 <p class="text-xl text-gray-600 mb-8">
                     Be among the first to access FinAegis Lending when it launches
                 </p>
-                <div class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold">
+                <a href="{{ route('loans.index') }}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    Coming Soon
-                </div>
+                    Start Lending or Borrowing
+                </a>
                 <p class="text-gray-500 mt-4">
-                    In the meantime, explore <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a>
+                    Powered by <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a> for stable lending
                 </p>
             </div>
         </section>

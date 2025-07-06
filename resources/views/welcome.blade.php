@@ -274,7 +274,7 @@
                                 </div>
                                 <h5 class="font-semibold text-gray-900 mb-2">FinAegis Exchange</h5>
                                 <p class="text-sm text-gray-600 mb-3">Trade crypto and fiat currencies</p>
-                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Soon</span>
+                                <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Live</span>
                             </div>
 
                             <!-- Lending -->
@@ -286,7 +286,7 @@
                                 </div>
                                 <h5 class="font-semibold text-gray-900 mb-2">FinAegis Lending</h5>
                                 <p class="text-sm text-gray-600 mb-3">P2P lending marketplace</p>
-                                <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Soon</span>
+                                <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Live</span>
                             </div>
 
                             <!-- Stablecoins -->
@@ -298,7 +298,7 @@
                                 </div>
                                 <h5 class="font-semibold text-gray-900 mb-2">FinAegis Stablecoins</h5>
                                 <p class="text-sm text-gray-600 mb-3">EUR-pegged stable tokens</p>
-                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">Coming Soon</span>
+                                <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Live</span>
                             </div>
 
                             <!-- Treasury -->

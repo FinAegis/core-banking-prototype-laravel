@@ -93,9 +93,9 @@
                                     <span>USD</span>
                                     <div class="flex items-center">
                                         <div class="bg-white/20 rounded-full h-2 w-32 mr-3">
-                                            <div class="bg-white rounded-full h-2 w-10"></div>
+                                            <div class="bg-white rounded-full h-2 w-12"></div>
                                         </div>
-                                        <span>35%</span>
+                                        <span>40%</span>
                                     </div>
                                 </div>
                                 <div class="flex justify-between items-center">
@@ -111,9 +111,9 @@
                                     <span>GBP</span>
                                     <div class="flex items-center">
                                         <div class="bg-white/20 rounded-full h-2 w-32 mr-3">
-                                            <div class="bg-white rounded-full h-2 w-6"></div>
+                                            <div class="bg-white rounded-full h-2 w-5"></div>
                                         </div>
-                                        <span>20%</span>
+                                        <span>15%</span>
                                     </div>
                                 </div>
                                 <div class="flex justify-between items-center">

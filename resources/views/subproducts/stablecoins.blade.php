@@ -6,7 +6,7 @@
         <meta name="description" content="FinAegis Stablecoins - Issue and manage stable digital currencies with transparent reserves and regulatory compliance.">
         <meta name="keywords" content="FinAegis Stablecoins, EUR stablecoin, digital currency, asset-backed tokens">
         
-        <title>FinAegis Stablecoins - Coming Soon</title>
+        <title>FinAegis Stablecoins - EUR-Pegged Digital Currency</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -31,8 +31,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
-                        <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>Coming Soon</span>
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                        <span>Now Live</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
                         FinAegis Stablecoins
@@ -155,18 +155,18 @@
         <!-- CTA Section -->
         <section class="py-20 bg-gray-50">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-6">Be Part of the Stable Future</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">Start Using EUR Stablecoins</h2>
                 <p class="text-xl text-gray-600 mb-8">
-                    Join the waitlist for early access to FinAegis Stablecoins
+                    Experience transparent, asset-backed digital currency today
                 </p>
-                <div class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold">
+                <a href="{{ route('stablecoins.index') }}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Coming Soon
-                </div>
+                    Get Started with EURS
+                </a>
                 <p class="text-gray-500 mt-4">
-                    In the meantime, explore <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a>
+                    Powered by <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a> technology
                 </p>
             </div>
         </section>
