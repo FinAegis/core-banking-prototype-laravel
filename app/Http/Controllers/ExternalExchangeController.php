@@ -31,7 +31,7 @@ class ExternalExchangeController extends Controller
         $priceComparisons = $this->getPriceComparisons();
         
         // Get recent arbitrage opportunities
-        $arbitrageOpportunities = $this->arbitrageService->findOpportunities();
+        $arbitrageOpportunities = collect($this->arbitrageService->findOpportunities('BTC/USD'));
         
         // Get user's external exchange balances
         $externalBalances = $this->getExternalBalances();
@@ -225,19 +225,24 @@ class ExternalExchangeController extends Controller
      */
     private function getConnectedExchanges()
     {
-        return DB::table('external_exchange_connections')
-            ->where('user_uuid', Auth::user()->uuid)
-            ->where('is_active', true)
-            ->get()
-            ->map(function ($connection) {
-                return [
-                    'exchange' => $connection->exchange,
-                    'connected_at' => $connection->created_at,
-                    'testnet' => $connection->testnet,
-                    'last_sync' => $connection->last_sync_at,
-                    'status' => $connection->status,
-                ];
-            });
+        try {
+            return DB::table('external_exchange_connections')
+                ->where('user_uuid', Auth::user()->uuid)
+                ->where('is_active', true)
+                ->get()
+                ->map(function ($connection) {
+                    return [
+                        'exchange' => $connection->exchange,
+                        'connected_at' => $connection->created_at,
+                        'testnet' => $connection->testnet,
+                        'last_sync' => $connection->last_sync_at,
+                        'status' => $connection->status,
+                    ];
+                });
+        } catch (\Exception $e) {
+            // Return empty collection if table doesn't exist
+            return collect();
+        }
     }
 
     /**
@@ -260,7 +265,7 @@ class ExternalExchangeController extends Controller
             ];
         }
         
-        return $comparisons;
+        return collect($comparisons);
     }
 
     /**
@@ -283,7 +288,7 @@ class ExternalExchangeController extends Controller
             }
         }
         
-        return $balances;
+        return collect($balances);
     }
 
     /**
@@ -291,11 +296,15 @@ class ExternalExchangeController extends Controller
      */
     private function getRecentExternalTrades()
     {
-        return DB::table('external_exchange_trades')
-            ->where('user_uuid', Auth::user()->uuid)
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get();
+        try {
+            return DB::table('external_exchange_trades')
+                ->where('user_uuid', Auth::user()->uuid)
+                ->orderBy('created_at', 'desc')
+                ->limit(20)
+                ->get();
+        } catch (\Exception $e) {
+            return collect([]);
+        }
     }
 
     /**

@@ -145,7 +145,15 @@ class ExchangeService implements ExchangeServiceInterface
                 'bids' => [],
                 'asks' => [],
                 'spread' => null,
+                'spread_percentage' => null,
+                'mid_price' => null,
                 'last_price' => null,
+                'volume_24h' => null,
+                'high_24h' => null,
+                'low_24h' => null,
+                'change_24h' => null,
+                'change_24h_percentage' => null,
+                'updated_at' => now()->toIso8601String(),
             ];
         }
         

@@ -62,9 +62,18 @@ class ExchangeController extends Controller
             'stop_price' => ['nullable', 'numeric', 'gt:0'],
         ]);
         
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Account not found. Please complete your account setup.',
+            ], 400);
+        }
+        
         try {
             $result = $this->exchangeService->placeOrder(
-                accountId: Auth::user()->account->id,
+                accountId: $account->id,
                 type: $validated['type'],
                 orderType: $validated['order_type'],
                 baseCurrency: $validated['base_currency'],
@@ -107,9 +116,18 @@ class ExchangeController extends Controller
      */
     public function cancelOrder(string $orderId): JsonResponse
     {
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Account not found. Please complete your account setup.',
+            ], 400);
+        }
+        
         // Verify order belongs to user
         $order = Order::where('order_id', $orderId)
-            ->where('account_id', Auth::user()->account->id)
+            ->where('account_id', $account->id)
             ->first();
         
         if (!$order) {
@@ -159,7 +177,16 @@ class ExchangeController extends Controller
      */
     public function getOrders(Request $request): JsonResponse
     {
-        $query = Order::forAccount(Auth::user()->account->id);
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Account not found. Please complete your account setup.',
+            ], 400);
+        }
+        
+        $query = Order::forAccount($account->id);
         
         if ($request->status && $request->status !== 'all') {
             if ($request->status === 'open') {
@@ -203,7 +230,16 @@ class ExchangeController extends Controller
      */
     public function getTrades(Request $request): JsonResponse
     {
-        $query = Trade::forAccount(Auth::user()->account->id);
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Account not found. Please complete your account setup.',
+            ], 400);
+        }
+        
+        $query = Trade::forAccount($account->id);
         
         if ($request->base_currency && $request->quote_currency) {
             $query->forPair($request->base_currency, $request->quote_currency);

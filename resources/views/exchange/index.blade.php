@@ -1,8 +1,9 @@
-@extends('layouts.app')
-
-@section('title', 'FinAegis Exchange - Trade Digital Assets')
-
-@section('content')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Exchange') }}
+        </h2>
+    </x-slot>
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <div class="container mx-auto px-4 py-8">
         <!-- Market Header -->
@@ -323,4 +324,4 @@ function togglePriceInput() {
 // Initialize
 setOrderType('buy');
 </script>
-@endsection
+</x-app-layout>

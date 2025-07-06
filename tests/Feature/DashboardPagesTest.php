@@ -28,6 +28,12 @@ class DashboardPagesTest extends TestCase
         $this->user->current_team_id = $team->id;
         $this->user->save();
         
+        // Create an account for the user
+        \App\Models\Account::factory()->create([
+            'user_uuid' => $this->user->uuid,
+            'name' => $this->user->name . "'s Account",
+        ]);
+        
         // Create some basic assets for exchange
         \App\Models\Asset::firstOrCreate(['code' => 'EUR'], [
             'name' => 'Euro',

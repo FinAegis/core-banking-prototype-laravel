@@ -64,7 +64,8 @@
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($trades as $trade)
                             @php
-                                $isBuyer = $trade->buyer_account_id === Auth::user()->account->id;
+                                $account = Auth::user()->account;
+                                $isBuyer = $account && $trade->buyer_account_id === $account->id;
                                 $side = $isBuyer ? 'buy' : 'sell';
                                 $fee = $isBuyer ? $trade->buyer_fee : $trade->seller_fee;
                                 $role = ($isBuyer && $trade->maker_side === 'buy') || (!$isBuyer && $trade->maker_side === 'sell') ? 'maker' : 'taker';

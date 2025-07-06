@@ -142,6 +142,15 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Get the primary account for the user.
+     * This returns the first account which is typically the default one created on registration.
+     */
+    public function account()
+    {
+        return $this->hasOne(Account::class, 'user_uuid', 'uuid')->orderBy('created_at', 'asc');
+    }
+
+    /**
      * Get the bank preferences for the user.
      */
     public function bankPreferences()

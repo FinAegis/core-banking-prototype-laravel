@@ -33,8 +33,8 @@ class ExchangeController extends Controller
         $orderBook = $this->exchangeService->getOrderBook($baseCurrency, $quoteCurrency, 20);
         
         // Get user's open orders
-        $userOrders = [];
-        if (Auth::check()) {
+        $userOrders = collect();
+        if (Auth::check() && Auth::user()->account) {
             $userOrders = Order::forAccount(Auth::user()->account->id)
                 ->open()
                 ->forPair($baseCurrency, $quoteCurrency)
@@ -48,8 +48,8 @@ class ExchangeController extends Controller
             ->limit(50)
             ->get();
         
-        // Get market data
-        $markets = $this->exchangeService->getMarketData();
+        // Get market data for various pairs
+        $markets = $this->getMarketPairs();
         
         return view('exchange.index', [
             'baseCurrency' => $baseCurrency,
@@ -64,7 +64,13 @@ class ExchangeController extends Controller
     
     public function orders()
     {
-        $orders = Order::forAccount(Auth::user()->account->id)
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return redirect()->route('dashboard')->with('error', 'Please complete your account setup first.');
+        }
+        
+        $orders = Order::forAccount($account->id)
             ->with(['relatedTrades'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -76,18 +82,24 @@ class ExchangeController extends Controller
     
     public function trades()
     {
-        $trades = Trade::forAccount(Auth::user()->account->id)
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return redirect()->route('dashboard')->with('error', 'Please complete your account setup first.');
+        }
+        
+        $trades = Trade::forAccount($account->id)
             ->with(['buyOrder', 'sellOrder'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
         // Calculate total fees
-        $totalFees = Trade::forAccount(Auth::user()->account->id)
+        $totalFees = Trade::forAccount($account->id)
             ->selectRaw('SUM(CASE WHEN buyer_account_id = ? THEN 
                            CASE WHEN maker_side = \'buy\' THEN maker_fee ELSE taker_fee END
                          ELSE 
                            CASE WHEN maker_side = \'sell\' THEN maker_fee ELSE taker_fee END
-                         END) as total_fees', [Auth::user()->account->id])
+                         END) as total_fees', [$account->id])
             ->value('total_fees') ?? '0';
         
         return view('exchange.trades', [
@@ -107,9 +119,15 @@ class ExchangeController extends Controller
             'price' => ['required_if:order_type,limit', 'nullable', 'numeric', 'gt:0'],
         ]);
         
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return redirect()->back()->with('error', 'Please complete your account setup first.');
+        }
+        
         try {
             $result = $this->exchangeService->placeOrder(
-                accountId: Auth::user()->account->id,
+                accountId: $account->id,
                 type: $validated['type'],
                 orderType: $validated['order_type'],
                 baseCurrency: $validated['base_currency'],
@@ -136,9 +154,15 @@ class ExchangeController extends Controller
     
     public function cancelOrder(string $orderId)
     {
+        $account = Auth::user()->account;
+        
+        if (!$account) {
+            return redirect()->back()->with('error', 'Please complete your account setup first.');
+        }
+        
         // Verify order belongs to user
         $order = Order::where('order_id', $orderId)
-            ->where('account_id', Auth::user()->account->id)
+            ->where('account_id', $account->id)
             ->first();
         
         if (!$order) {
@@ -151,5 +175,26 @@ class ExchangeController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+    
+    /**
+     * Get market pairs data
+     */
+    private function getMarketPairs(): array
+    {
+        $pairs = [
+            ['base' => 'BTC', 'quote' => 'EUR'],
+            ['base' => 'ETH', 'quote' => 'EUR'],
+            ['base' => 'BTC', 'quote' => 'USD'],
+            ['base' => 'ETH', 'quote' => 'USD'],
+        ];
+        
+        $markets = [];
+        foreach ($pairs as $pair) {
+            $marketData = $this->exchangeService->getMarketData($pair['base'], $pair['quote']);
+            $markets[] = $marketData;
+        }
+        
+        return $markets;
     }
 }
