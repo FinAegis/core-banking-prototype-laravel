@@ -38,7 +38,7 @@ Feature documentation and release information
 
 ### [04-API](04-API/)
 API documentation and integration guides
-- **[REST_API_REFERENCE.md](04-API/REST_API_REFERENCE.md)** - REST API endpoints
+- **[REST_API_REFERENCE.md](04-API/REST_API_REFERENCE.md)** - Complete REST API endpoints (v2.0)
 - **[BIAN_API_DOCUMENTATION.md](04-API/BIAN_API_DOCUMENTATION.md)** - BIAN-compliant API
 - **[API_VOTING_ENDPOINTS.md](04-API/API_VOTING_ENDPOINTS.md)** - Governance API
 - **[WEBHOOK_INTEGRATION.md](04-API/WEBHOOK_INTEGRATION.md)** - Webhook system
@@ -62,10 +62,18 @@ Technical specifications and implementation details
 - **[BASKET_ASSETS_DESIGN.md](05-TECHNICAL/BASKET_ASSETS_DESIGN.md)** - Basket implementation
 - **[CUSTODIAN_INTEGRATION.md](05-TECHNICAL/CUSTODIAN_INTEGRATION.md)** - Bank connectors
 
+### [05-USER-GUIDES](05-USER-GUIDES/)
+End-user documentation and guides
+- **[README.md](05-USER-GUIDES/README.md)** - User guide index
+- **[LIQUIDITY_POOLS_GUIDE.md](05-USER-GUIDES/LIQUIDITY_POOLS_GUIDE.md)** - Liquidity pool management
+- **[P2P_LENDING_GUIDE.md](05-USER-GUIDES/P2P_LENDING_GUIDE.md)** - P2P lending platform guide
+- **[STABLECOIN_GUIDE.md](05-USER-GUIDES/STABLECOIN_GUIDE.md)** - Stablecoin minting and management
+
 ### [06-DEVELOPMENT](06-DEVELOPMENT/)
 Development guides and tools
 - **[DEVELOPMENT.md](06-DEVELOPMENT/DEVELOPMENT.md)** - Developer setup guide
-- **[CLAUDE.md](06-DEVELOPMENT/CLAUDE.md)** - AI assistant development guide
+- **[CLAUDE.md](06-DEVELOPMENT/CLAUDE.md)** - AI assistant development guide (v8.0)
+- **[TESTING_GUIDE.md](06-DEVELOPMENT/TESTING_GUIDE.md)** - Comprehensive testing guide
 - **[BEHAT.md](06-DEVELOPMENT/BEHAT.md)** - BDD testing guide
 - **[DEMO.md](06-DEVELOPMENT/DEMO.md)** - Demo environment setup
 
@@ -88,6 +96,9 @@ Operational procedures
 - Monitoring setup (coming soon)
 - Backup procedures (coming soon)
 
+### [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+Common issues and solutions guide
+
 ### [archive](archive/)
 Historical and deprecated documentation
 
@@ -96,16 +107,20 @@ Historical and deprecated documentation
 ### For Developers
 1. Start with [DEVELOPMENT.md](06-DEVELOPMENT/DEVELOPMENT.md) for setup
 2. Review [ARCHITECTURE.md](02-ARCHITECTURE/ARCHITECTURE.md) for system design
-3. Check [API-INTEGRATION-GUIDE.md](04-DEVELOPER/API-INTEGRATION-GUIDE.md) for API usage
+3. Check [API-INTEGRATION-GUIDE.md](09-DEVELOPER/API-INTEGRATION-GUIDE.md) for API usage
+4. Read [TESTING_GUIDE.md](06-DEVELOPMENT/TESTING_GUIDE.md) for test patterns
 
 ### For Users
-1. Begin with [GETTING-STARTED.md](11-USER-GUIDES/GETTING-STARTED.md)
-2. Learn about GCU in [GCU-USER-GUIDE.md](11-USER-GUIDES/GCU-USER-GUIDE.md)
-3. Explore sub-products in [UNIFIED_PLATFORM_VISION.md](01-VISION/UNIFIED_PLATFORM_VISION.md)
+1. Begin with [User Guide Index](05-USER-GUIDES/README.md)
+2. Learn about [Liquidity Pools](05-USER-GUIDES/LIQUIDITY_POOLS_GUIDE.md)
+3. Explore [P2P Lending](05-USER-GUIDES/P2P_LENDING_GUIDE.md)
+4. Understand [Stablecoins](05-USER-GUIDES/STABLECOIN_GUIDE.md)
+5. Review platform vision in [UNIFIED_PLATFORM_VISION.md](01-VISION/UNIFIED_PLATFORM_VISION.md)
 
 ### For AI Assistants
-1. Use [CLAUDE.md](06-DEVELOPMENT/CLAUDE.md) for development guidance
-2. Reference [FEATURES.md](03-FEATURES/FEATURES.md) for capabilities
+1. Use [CLAUDE.md](06-DEVELOPMENT/CLAUDE.md) for development guidance (v8.0)
+2. Reference [FEATURES.md](03-FEATURES/FEATURES.md) for all Phase 8 capabilities
+3. Check [TESTING_GUIDE.md](06-DEVELOPMENT/TESTING_GUIDE.md) for test requirements
 
 ### For Banking Partners
 1. Review [FINANCIAL_INSTITUTION_REQUIREMENTS.md](01-VISION/FINANCIAL_INSTITUTION_REQUIREMENTS.md)
@@ -113,9 +128,10 @@ Historical and deprecated documentation
 
 ## 📋 Documentation Status
 
-- ✅ **Current**: As of Version 6.1.0 (June 2025)
-- 📝 **Last Updated**: Platform restructuring (June 26, 2025)
-- 🔄 **Next Update**: Sub-product documentation and implementation
+- ✅ **Current**: As of Version 8.0 (July 2025)
+- 📝 **Last Updated**: Phase 8 implementation complete (July 7, 2025)
+- 🎯 **Coverage**: All features documented including liquidity pools, P2P lending, stablecoins
+- 🔄 **Next Update**: Performance optimization guides and advanced trading strategies
 
 ## 🤝 Contributing
 

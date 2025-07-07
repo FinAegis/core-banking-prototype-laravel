@@ -1,6 +1,10 @@
 # FinAegis REST API Reference
 
-This document consolidates all REST API endpoints for the FinAegis Core Banking Platform.
+**Version:** 2.0  
+**Last Updated:** 2025-07-07  
+**Status:** Production Ready - All Phase 8 Features Implemented
+
+This document consolidates all REST API endpoints for the FinAegis Core Banking Platform, including the complete Phase 8 unified platform features.
 
 ## Table of Contents
 - [Authentication](#authentication)
@@ -1801,10 +1805,50 @@ GET /api/exchange/markets
 Authorization: Bearer {token}
 ```
 
+Response:
+```json
+{
+  "data": [
+    {
+      "symbol": "BTC/USD",
+      "base_currency": "BTC",
+      "quote_currency": "USD",
+      "status": "active",
+      "min_order_size": "0.0001",
+      "max_order_size": "100",
+      "price_precision": 2,
+      "volume_precision": 8,
+      "volume_24h": "125.5",
+      "last_price": "45678.90"
+    }
+  ]
+}
+```
+
 ### Get Order Book
 ```http
 GET /api/exchange/orderbook?base=BTC&quote=USD&depth=20
 Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "base": "BTC",
+    "quote": "USD",
+    "bids": [
+      {"price": "45600.00", "amount": "0.5", "total": "22800.00"},
+      {"price": "45595.00", "amount": "1.2", "total": "54714.00"}
+    ],
+    "asks": [
+      {"price": "45610.00", "amount": "0.3", "total": "13683.00"},
+      {"price": "45615.00", "amount": "0.8", "total": "36492.00"}
+    ],
+    "spread": "10.00",
+    "timestamp": "2025-07-07T10:00:00Z"
+  }
+}
 ```
 
 ### Place Order
@@ -1819,7 +1863,42 @@ Content-Type: application/json
   "base_currency": "BTC",
   "quote_currency": "USD",
   "amount": "0.5",
-  "price": "45000"
+  "price": "45000",
+  "time_in_force": "GTC"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "order_id": "ord_123456",
+    "type": "buy",
+    "order_type": "limit",
+    "status": "open",
+    "base_currency": "BTC",
+    "quote_currency": "USD",
+    "amount": "0.5",
+    "price": "45000",
+    "filled": "0",
+    "remaining": "0.5",
+    "created_at": "2025-07-07T10:00:00Z"
+  }
+}
+```
+
+### Place Market Order
+```http
+POST /api/exchange/orders
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "type": "sell",
+  "order_type": "market",
+  "base_currency": "BTC",
+  "quote_currency": "USD",
+  "amount": "0.1"
 }
 ```
 
@@ -1829,9 +1908,54 @@ DELETE /api/exchange/orders/{order_id}
 Authorization: Bearer {token}
 ```
 
+Response:
+```json
+{
+  "data": {
+    "order_id": "ord_123456",
+    "status": "cancelled",
+    "cancelled_at": "2025-07-07T10:05:00Z"
+  }
+}
+```
+
 ### Get Order Status
 ```http
 GET /api/exchange/orders/{order_id}
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "order_id": "ord_123456",
+    "type": "buy",
+    "order_type": "limit",
+    "status": "partially_filled",
+    "base_currency": "BTC",
+    "quote_currency": "USD",
+    "amount": "0.5",
+    "price": "45000",
+    "filled": "0.3",
+    "remaining": "0.2",
+    "trades": [
+      {
+        "trade_id": "trd_789",
+        "amount": "0.3",
+        "price": "45000",
+        "timestamp": "2025-07-07T10:02:00Z"
+      }
+    ],
+    "created_at": "2025-07-07T10:00:00Z",
+    "updated_at": "2025-07-07T10:02:00Z"
+  }
+}
+```
+
+### List Open Orders
+```http
+GET /api/exchange/orders?status=open&base=BTC&quote=USD
 Authorization: Bearer {token}
 ```
 
@@ -1841,61 +1965,389 @@ GET /api/exchange/trades?base=BTC&quote=USD&limit=100
 Authorization: Bearer {token}
 ```
 
+Response:
+```json
+{
+  "data": [
+    {
+      "trade_id": "trd_789",
+      "order_id": "ord_123456",
+      "type": "buy",
+      "base_currency": "BTC",
+      "quote_currency": "USD",
+      "amount": "0.3",
+      "price": "45000",
+      "total": "13500",
+      "fee": "13.50",
+      "fee_currency": "USD",
+      "timestamp": "2025-07-07T10:02:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 256,
+    "per_page": 100,
+    "current_page": 1
+  }
+}
+```
+
+### Get Market Statistics
+```http
+GET /api/exchange/stats?base=BTC&quote=USD&period=24h
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "symbol": "BTC/USD",
+    "period": "24h",
+    "open": "44500.00",
+    "high": "46200.00",
+    "low": "44100.00",
+    "close": "45678.90",
+    "volume": "125.5",
+    "volume_quote": "5734572.50",
+    "change": "1178.90",
+    "change_percent": "2.65",
+    "trades_count": 3456
+  }
+}
+```
+
+### Get Price Chart Data
+```http
+GET /api/exchange/candles?base=BTC&quote=USD&interval=1h&limit=24
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": [
+    {
+      "timestamp": "2025-07-07T10:00:00Z",
+      "open": "45600.00",
+      "high": "45750.00",
+      "low": "45550.00",
+      "close": "45700.00",
+      "volume": "5.25"
+    }
+  ]
+}
+```
+
 ## Liquidity Pools
 
-### List Liquidity Pools
+### List All Pools
 ```http
-GET /api/pools
+GET /api/v2/liquidity/pools
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": [
+    {
+      "id": "pool-uuid",
+      "base_currency": "BTC",
+      "quote_currency": "USD",
+      "fee_rate": "0.003",
+      "tvl": "800000",
+      "volume_24h": "150000",
+      "apy": "12.5",
+      "provider_count": 45,
+      "is_active": true
+    }
+  ]
+}
+```
+
+### Get Pool Details
+```http
+GET /api/v2/liquidity/pools/{pool_id}
 Authorization: Bearer {token}
 ```
 
 ### Create Pool
 ```http
-POST /api/pools
+POST /api/v2/liquidity/pools
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "token_a": "USDC",
-  "token_b": "ETH",
-  "amount_a": "10000",
-  "amount_b": "5"
+  "base_currency": "ETH",
+  "quote_currency": "USD",
+  "fee_rate": "0.003",
+  "initial_base_amount": "10",
+  "initial_quote_amount": "20000"
 }
 ```
 
 ### Add Liquidity
 ```http
-POST /api/pools/{pool_id}/liquidity
+POST /api/v2/liquidity/pools/{pool_id}/add
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "amount_a": "1000",
-  "amount_b": "0.5"
+  "base_amount": "1.5",
+  "quote_amount": "3000",
+  "min_shares": "100"
 }
 ```
 
 ### Remove Liquidity
 ```http
-DELETE /api/pools/{pool_id}/liquidity
+POST /api/v2/liquidity/pools/{pool_id}/remove
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "lp_token_amount": "100"
+  "shares": "250",
+  "min_base_amount": "0.5",
+  "min_quote_amount": "1000"
 }
 ```
 
 ### Execute Swap
 ```http
-POST /api/pools/{pool_id}/swap
+POST /api/v2/liquidity/pools/{pool_id}/swap
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "token_in": "USDC",
-  "amount_in": "1000",
-  "min_amount_out": "0.45"
+  "input_currency": "USD",
+  "input_amount": "1000",
+  "min_output_amount": "0.45"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "output_amount": "0.48523",
+    "output_currency": "ETH",
+    "fee_amount": "3.00",
+    "price_impact": "0.25",
+    "execution_price": "2062.15"
+  }
+}
+```
+
+### Get Pool Metrics
+```http
+GET /api/v2/liquidity/pools/{pool_id}/metrics
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "pool_id": "pool-uuid",
+    "base_currency": "ETH",
+    "quote_currency": "USD",
+    "base_reserve": "100.5",
+    "quote_reserve": "205000",
+    "total_shares": "10000",
+    "spot_price": "2039.80",
+    "tvl": "410000",
+    "volume_24h": "85000",
+    "fees_24h": "255",
+    "apy": "22.7",
+    "provider_count": 32
+  }
+}
+```
+
+### Get Provider Positions
+```http
+GET /api/v2/liquidity/providers/{provider_id}/positions
+Authorization: Bearer {token}
+```
+
+### Calculate Provider APY
+```http
+GET /api/v2/liquidity/pools/{pool_id}/providers/{provider_id}/apy
+Authorization: Bearer {token}
+```
+
+### Claim Rewards
+```http
+POST /api/v2/liquidity/pools/{pool_id}/rewards/claim
+Authorization: Bearer {token}
+```
+
+### Generate Market Making Orders
+```http
+POST /api/v2/liquidity/pools/{pool_id}/market-make
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "depth": 5,
+  "spread_factor": 1.0,
+  "order_size_multiplier": 1.2,
+  "max_order_value": "10000"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "orders_generated": 10,
+    "buy_orders": [
+      {"price": "2045.00", "quantity": "0.5", "value": "1022.50"},
+      {"price": "2040.00", "quantity": "0.6", "value": "1224.00"}
+    ],
+    "sell_orders": [
+      {"price": "2055.00", "quantity": "0.5", "value": "1027.50"},
+      {"price": "2060.00", "quantity": "0.6", "value": "1236.00"}
+    ],
+    "total_buy_value": "5213.50",
+    "total_sell_value": "5287.50",
+    "spread": "0.0049"
+  }
+}
+```
+
+### Rebalance Pool
+```http
+POST /api/v2/liquidity/pools/{pool_id}/rebalance
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "strategy": "conservative",
+  "threshold": 0.05,
+  "max_slippage": 0.02
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "rebalance_needed": true,
+    "current_ratio": "0.0489",
+    "target_ratio": "0.0500",
+    "deviation": "0.022",
+    "trades_executed": [
+      {
+        "direction": "buy",
+        "asset": "ETH",
+        "amount": "0.25",
+        "price": "2050.00"
+      }
+    ],
+    "new_ratio": "0.0498",
+    "gas_used": "0.25",
+    "timestamp": "2025-07-07T15:00:00Z"
+  }
+}
+```
+
+### Get Liquidity Provider Position
+```http
+GET /api/v2/liquidity/pools/{pool_id}/position
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "pool_id": "pool-uuid",
+    "shares": "250.00",
+    "share_percent": "2.5",
+    "value": {
+      "base_amount": "2.51",
+      "quote_amount": "5125.50",
+      "total_usd": "10251.00"
+    },
+    "rewards": {
+      "pending": "125.50",
+      "claimed": "250.00",
+      "currency": "USD"
+    },
+    "impermanent_loss": {
+      "amount": "-45.23",
+      "percent": "-0.44"
+    },
+    "position_opened": "2025-07-01T10:00:00Z"
+  }
+}
+```
+
+### Get Pool Analytics
+```http
+GET /api/v2/liquidity/pools/{pool_id}/analytics?period=7d
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "pool_id": "pool-uuid",
+    "period": "7d",
+    "metrics": {
+      "volume": "175000",
+      "fees_collected": "525",
+      "unique_traders": 234,
+      "transactions": 1567,
+      "average_trade_size": "111.66",
+      "tvl_change": "+12.5%",
+      "apy": "22.7%"
+    },
+    "liquidity_changes": [
+      {
+        "date": "2025-07-01",
+        "adds": "25000",
+        "removes": "10000",
+        "net_change": "+15000"
+      }
+    ],
+    "price_history": [
+      {
+        "timestamp": "2025-07-01T00:00:00Z",
+        "price": "2039.80",
+        "volume": "25000"
+      }
+    ]
+  }
+}
+```
+
+### Distribute Rewards (Admin)
+```http
+POST /api/v2/liquidity/pools/{pool_id}/rewards/distribute
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "reward_amount": "1000",
+  "reward_currency": "USD",
+  "distribution_type": "proportional"
+}
+```
+
+### Update Pool Parameters (Admin)
+```http
+PATCH /api/v2/liquidity/pools/{pool_id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "fee_rate": "0.002",
+  "is_active": true,
+  "min_liquidity": "1000",
+  "max_price_impact": "0.05"
 }
 ```
 
@@ -1968,6 +2420,7 @@ Content-Type: application/json
   "currency": "USD",
   "term_months": 12,
   "purpose": "business_expansion",
+  "interest_rate": "10.5",
   "collateral": [
     {
       "type": "crypto",
@@ -1978,10 +2431,79 @@ Content-Type: application/json
 }
 ```
 
-### List Loans
+Response:
+```json
+{
+  "data": {
+    "application_id": "app_123456",
+    "status": "pending",
+    "amount": "10000",
+    "currency": "USD",
+    "term_months": 12,
+    "interest_rate": "10.5",
+    "monthly_payment": "877.84",
+    "total_interest": "534.08",
+    "created_at": "2025-07-07T10:00:00Z"
+  }
+}
+```
+
+### List Available Loans (For Lenders)
+```http
+GET /api/loans/marketplace?min_rate=8&max_term=24&currency=USD
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": [
+    {
+      "application_id": "app_123456",
+      "borrower_rating": "A",
+      "amount": "10000",
+      "currency": "USD",
+      "term_months": 12,
+      "interest_rate": "10.5",
+      "purpose": "business_expansion",
+      "collateral_ratio": "150%",
+      "credit_score": 750,
+      "funding_progress": "60%",
+      "days_remaining": 5
+    }
+  ]
+}
+```
+
+### List My Loans
 ```http
 GET /api/loans?status=active&role=borrower
 Authorization: Bearer {token}
+```
+
+Query parameters:
+- `status`: Filter by loan status (pending, active, completed, defaulted)
+- `role`: Your role in the loan (borrower, lender)
+- `page`: Page number
+- `per_page`: Items per page
+
+Response:
+```json
+{
+  "data": [
+    {
+      "loan_id": "loan_789",
+      "role": "borrower",
+      "status": "active",
+      "principal_amount": "10000",
+      "outstanding_balance": "8234.56",
+      "next_payment_due": "2025-08-01",
+      "next_payment_amount": "877.84",
+      "payments_made": 2,
+      "payments_remaining": 10
+    }
+  ]
+}
 ```
 
 ### Get Loan Details
@@ -1990,14 +2512,76 @@ GET /api/loans/{loan_id}
 Authorization: Bearer {token}
 ```
 
-### Approve Loan (Lender)
+Response:
+```json
+{
+  "data": {
+    "loan_id": "loan_789",
+    "application_id": "app_123456",
+    "status": "active",
+    "borrower": {
+      "id": "user_123",
+      "rating": "A",
+      "loans_completed": 5,
+      "default_rate": "0%"
+    },
+    "lender": {
+      "id": "user_456",
+      "total_funded": "250000",
+      "active_loans": 12
+    },
+    "terms": {
+      "principal_amount": "10000",
+      "currency": "USD",
+      "interest_rate": "10.5",
+      "term_months": 12,
+      "monthly_payment": "877.84"
+    },
+    "balance": {
+      "outstanding_principal": "8234.56",
+      "outstanding_interest": "123.44",
+      "total_outstanding": "8358.00",
+      "paid_principal": "1765.44",
+      "paid_interest": "290.24"
+    },
+    "collateral": [
+      {
+        "type": "crypto",
+        "asset": "BTC",
+        "amount": "0.5",
+        "current_value": "22839.45",
+        "ltv_ratio": "43.8%"
+      }
+    ],
+    "created_at": "2025-06-01T10:00:00Z",
+    "funded_at": "2025-06-05T14:30:00Z"
+  }
+}
+```
+
+### Fund Loan (Lender)
 ```http
-POST /api/loans/{loan_id}/approve
+POST /api/loans/{application_id}/fund
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "amount": "10000"
+  "amount": "10000",
+  "accept_terms": true
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "loan_id": "loan_789",
+    "status": "active",
+    "funded_amount": "10000",
+    "expected_return": "10534.08",
+    "first_payment_date": "2025-08-01",
+    "maturity_date": "2026-07-01"
+  }
 }
 ```
 
@@ -2008,7 +2592,25 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "amount": "1000"
+  "amount": "1000",
+  "payment_method": "account_balance"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "payment_id": "pay_321",
+    "loan_id": "loan_789",
+    "amount": "1000",
+    "principal_paid": "877.84",
+    "interest_paid": "122.16",
+    "remaining_balance": "7356.72",
+    "next_payment_due": "2025-09-01",
+    "status": "completed",
+    "timestamp": "2025-07-07T10:00:00Z"
+  }
 }
 ```
 
@@ -2016,6 +2618,112 @@ Content-Type: application/json
 ```http
 GET /api/loans/{loan_id}/schedule
 Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "loan_id": "loan_789",
+    "schedule": [
+      {
+        "payment_number": 1,
+        "due_date": "2025-07-01",
+        "payment_amount": "877.84",
+        "principal": "794.51",
+        "interest": "83.33",
+        "balance": "9205.49",
+        "status": "paid"
+      },
+      {
+        "payment_number": 2,
+        "due_date": "2025-08-01",
+        "payment_amount": "877.84",
+        "principal": "801.13",
+        "interest": "76.71",
+        "balance": "8404.36",
+        "status": "pending"
+      }
+    ],
+    "total_payments": "10534.08",
+    "total_interest": "534.08"
+  }
+}
+```
+
+### Calculate Early Repayment
+```http
+GET /api/loans/{loan_id}/early-repayment
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "outstanding_principal": "8234.56",
+    "accrued_interest": "45.67",
+    "prepayment_penalty": "82.35",
+    "total_payoff_amount": "8362.58",
+    "savings": "171.42",
+    "penalty_rate": "1%"
+  }
+}
+```
+
+### Request Loan Refinancing
+```http
+POST /api/loans/{loan_id}/refinance
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "new_interest_rate": "8.5",
+  "new_term_months": 18,
+  "reason": "lower_rate"
+}
+```
+
+### Get Credit Score
+```http
+GET /api/loans/credit-score
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "score": 750,
+    "rating": "A",
+    "factors": {
+      "payment_history": 35,
+      "credit_utilization": 25,
+      "account_age": 15,
+      "loan_diversity": 10,
+      "recent_inquiries": 15
+    },
+    "loan_eligibility": {
+      "max_amount": "50000",
+      "min_interest_rate": "8.5%",
+      "max_term_months": 60
+    },
+    "last_updated": "2025-07-01T00:00:00Z"
+  }
+}
+```
+
+### Report Default (Admin)
+```http
+POST /api/loans/{loan_id}/default
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "reason": "missed_payments",
+  "missed_payment_count": 3,
+  "recovery_action": "liquidate_collateral"
+}
 ```
 
 ## Blockchain Wallets
@@ -2110,3 +2818,142 @@ Content-Type: application/json
   "max_deviation": 0.01
 }
 ```
+
+Response:
+```json
+{
+  "data": {
+    "synced": true,
+    "internal_price": "45678.90",
+    "external_prices": {
+      "binance": "45680.00",
+      "kraken": "45677.50",
+      "coinbase": "45679.25"
+    },
+    "average_external": "45678.92",
+    "deviation": "0.00004",
+    "adjustments_made": false
+  }
+}
+```
+
+### Get Exchange Status
+```http
+GET /api/external/exchanges/status
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+{
+  "data": {
+    "exchanges": [
+      {
+        "name": "binance",
+        "status": "connected",
+        "last_sync": "2025-07-07T10:00:00Z",
+        "rate_limit_remaining": 1180,
+        "active_pairs": 125
+      },
+      {
+        "name": "kraken",
+        "status": "connected",
+        "last_sync": "2025-07-07T09:59:45Z",
+        "rate_limit_remaining": 295,
+        "active_pairs": 89
+      },
+      {
+        "name": "coinbase",
+        "status": "rate_limited",
+        "last_sync": "2025-07-07T09:55:00Z",
+        "rate_limit_remaining": 0,
+        "reset_at": "2025-07-07T10:05:00Z",
+        "active_pairs": 67
+      }
+    ]
+  }
+}
+```
+
+## Error Responses
+
+All API endpoints follow a consistent error response format:
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_FUNDS",
+    "message": "Insufficient balance in account",
+    "details": {
+      "required": "1000.00",
+      "available": "750.00",
+      "currency": "USD"
+    }
+  }
+}
+```
+
+### Common Error Codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `UNAUTHORIZED` | 401 | Authentication required or invalid token |
+| `FORBIDDEN` | 403 | Insufficient permissions |
+| `NOT_FOUND` | 404 | Resource not found |
+| `VALIDATION_ERROR` | 422 | Request validation failed |
+| `INSUFFICIENT_FUNDS` | 422 | Not enough balance |
+| `RATE_LIMITED` | 429 | Too many requests |
+| `INTERNAL_ERROR` | 500 | Server error |
+
+## Rate Limiting
+
+API requests are rate limited based on your account tier:
+
+- **Basic**: 100 requests per minute
+- **Pro**: 1,000 requests per minute
+- **Enterprise**: 10,000 requests per minute
+
+Rate limit information is included in response headers:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1625097600
+```
+
+## Pagination
+
+List endpoints support pagination with the following parameters:
+
+- `page`: Page number (default: 1)
+- `per_page`: Items per page (default: 20, max: 100)
+
+Pagination metadata is included in responses:
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "total": 256,
+    "per_page": 20,
+    "current_page": 1,
+    "last_page": 13,
+    "from": 1,
+    "to": 20
+  }
+}
+```
+
+## Webhooks
+
+Webhooks can be configured to receive real-time notifications for events. See the [Webhooks](#webhooks) section for available events and payload formats.
+
+## API Versioning
+
+The API uses URL-based versioning. The current version is `v2`. Version 1 endpoints are deprecated but still available at `/api/v1/*`.
+
+---
+
+**Last Updated**: 2025-07-07  
+**API Version**: 2.0  
+**Documentation Version**: 8.0
