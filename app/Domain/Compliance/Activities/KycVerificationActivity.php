@@ -26,10 +26,6 @@ class KycVerificationActivity extends Activity
      */
     public function execute(array $input): array
     {
-        /** @var mixed|null $user */
-        $user = null;
-        /** @var mixed|null $user */
-        $user = null;
         $userUuid = $input['user_uuid'] ?? null;
         $action = $input['action'] ?? null;
         $verifiedBy = $input['verified_by'] ?? null;
@@ -42,8 +38,12 @@ class KycVerificationActivity extends Activity
             throw new \InvalidArgumentException('Action must be either "approve" or "reject"');
         }
 
-        /** @var User $$user */
-        $$user = User::where()->firstOrFail();
+        if ($action === 'reject' && empty($input['reason'])) {
+            throw new \InvalidArgumentException('Reason is required for rejection');
+        }
+
+        /** @var User $user */
+        $user = User::where('uuid', $userUuid)->firstOrFail();
 
         if ($action === 'approve') {
             $options = $input['options'] ?? [];

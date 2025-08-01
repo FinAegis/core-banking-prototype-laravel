@@ -211,7 +211,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
             ->once()
             ->andReturn($this->createMockRate(1.05));
 
-        $actions = $this->service->applyStabilityMechanism('CUSD');
+        $actions = $this->service->applyStabilityMechanism($this->collateralizedStablecoin);
 
         $this->assertContains('adjust_fees', array_column($actions, 'action'));
         $feeAction = collect($actions)->firstWhere('action', 'adjust_fees');
@@ -233,7 +233,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
             ->once()
             ->andReturn($this->createMockRate(0.95));
 
-        $actions = $this->service->applyStabilityMechanism('AUSD');
+        $actions = $this->service->applyStabilityMechanism($this->algorithmicStablecoin);
 
         $this->assertContains('adjust_supply', array_column($actions, 'action'));
         $supplyAction = collect($actions)->firstWhere('action', 'adjust_supply');
@@ -267,7 +267,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
             ->once()
             ->andReturn($this->createMockRate(1.03));
 
-        $actions = $this->service->applyStabilityMechanism('HUSD');
+        $actions = $this->service->applyStabilityMechanism($this->hybridStablecoin);
 
         // Should apply both fee adjustments and supply incentives
         $this->assertContains('adjust_fees', array_column($actions, 'action'));
@@ -457,7 +457,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
 
         Event::fake();
 
-        $actions = $this->service->applyStabilityMechanism('CUSD');
+        $actions = $this->service->applyStabilityMechanism($this->collateralizedStablecoin);
 
         Event::assertDispatched('stability.mechanism.applied');
 

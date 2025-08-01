@@ -19,9 +19,15 @@ beforeEach(function () {
     ]);
 });
 
-it('throws exception when client credentials are missing', function () {
+it('throws exception when client credentials are missing in production', function () {
+    // Set environment to production for this test
+    app()->detectEnvironment(fn () => 'production');
+    
     expect(fn () => new DeutscheBankConnector([]))
         ->toThrow(InvalidArgumentException::class, 'Deutsche Bank client_id and client_secret are required');
+    
+    // Reset environment
+    app()->detectEnvironment(fn () => 'testing');
 });
 
 it('can be instantiated with valid config', function () {
