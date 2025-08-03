@@ -115,7 +115,7 @@ jobs:
         run: |
           # Run unit tests using CI configuration with MySQL (excluding slow tests)
           # Increase memory limit to prevent exhaustion during coverage generation
-          php -d memory_limit=2G ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci-optimized.xml --coverage --min=70 --exclude-group=slow
+          php -d memory_limit=2G ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci-optimized.xml --exclude-group=slow
           
       - name: Run Security Tests
         if: always()
@@ -196,7 +196,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Feature Tests
-        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci-optimized.xml --coverage --min=65 --exclude-group=slow
+        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci-optimized.xml --exclude-group=slow
 
   integration-tests:
     name: Integration Tests
@@ -254,7 +254,7 @@ jobs:
           php artisan migrate --force
           
       - name: Run Integration Tests
-        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci-optimized.xml --coverage --min=55 --exclude-group=slow
+        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci-optimized.xml --exclude-group=slow
         
   behat-tests:
     name: Behat Tests

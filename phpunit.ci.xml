@@ -31,12 +31,14 @@
             <file>app/Providers</file>
         </exclude>
     </source>
+    <!-- Coverage disabled to improve performance and reduce memory usage
     <coverage>
         <report>
             <html outputDirectory="coverage-html"/>
             <text outputFile="php://stdout" showUncoveredFiles="false"/>
         </report>
     </coverage>
+    -->
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

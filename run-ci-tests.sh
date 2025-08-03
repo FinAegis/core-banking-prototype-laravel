@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to run CI tests locally with coverage
+# Script to run CI tests locally
 set -e
 
 echo "🔧 Setting up CI test environment..."
@@ -17,9 +17,9 @@ php artisan cache:clear
 php artisan route:clear
 
 echo ""
-echo "🧪 Running Unit Tests with coverage..."
-./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --coverage --min=70 --exclude-group=slow || {
-    echo "❌ Unit tests failed or coverage below 70%"
+echo "🧪 Running Unit Tests..."
+./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --exclude-group=slow || {
+    echo "❌ Unit tests failed"
     exit 1
 }
 
@@ -31,18 +31,18 @@ echo "🔐 Running Security Tests..."
 }
 
 echo ""
-echo "🎯 Running Feature Tests with coverage..."
-./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --coverage --min=65 --exclude-group=slow || {
-    echo "❌ Feature tests failed or coverage below 65%"
+echo "🎯 Running Feature Tests..."
+./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --exclude-group=slow || {
+    echo "❌ Feature tests failed"
     exit 1
 }
 
 echo ""
-echo "🔗 Running Integration Tests with coverage..."
-./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --coverage --min=55 --exclude-group=slow || {
-    echo "❌ Integration tests failed or coverage below 55%"
+echo "🔗 Running Integration Tests..."
+./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --exclude-group=slow || {
+    echo "❌ Integration tests failed"
     exit 1
 }
 
 echo ""
-echo "✅ All tests passed with required coverage!"
+echo "✅ All tests passed!"

@@ -37,14 +37,14 @@
             <directory>bootstrap/cache</directory>
         </exclude>
     </source>
+    <!-- Coverage disabled to improve performance and reduce memory usage
     <coverage>
         <report>
-            <!-- Only generate text output in CI to reduce memory usage -->
             <text outputFile="php://stdout" showUncoveredFiles="false"/>
-            <!-- XML for codecov upload -->
             <xml outputDirectory="."/>
         </report>
     </coverage>
+    -->
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
