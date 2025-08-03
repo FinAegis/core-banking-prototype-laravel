@@ -84,14 +84,14 @@ class LoadTest extends DomainTestCase
         // Create accounts with balance
         foreach ($users as $user) {
             $account = Account::factory()->forUser($user)->create();
-            
+
             // Create account balance directly for performance test
             \App\Domain\Account\Models\AccountBalance::factory()->create([
                 'account_uuid' => $account->uuid,
                 'asset_code'   => 'USD',
                 'balance'      => 1000000, // $10,000 in cents
             ]);
-            
+
             $accounts[] = $account;
         }
 
@@ -148,7 +148,7 @@ class LoadTest extends DomainTestCase
             'CHF' => ['USD' => 1.09, 'EUR' => 0.93, 'GBP' => 0.79, 'JPY' => 119.6],
             'JPY' => ['USD' => 0.0091, 'EUR' => 0.0077, 'GBP' => 0.0066, 'CHF' => 0.0084],
         ];
-        
+
         foreach ($rates as $from => $toRates) {
             foreach ($toRates as $to => $rate) {
                 \App\Domain\Asset\Models\ExchangeRate::factory()->create([
@@ -162,7 +162,7 @@ class LoadTest extends DomainTestCase
                 ]);
             }
         }
-        
+
         $iterations = 100;
         $startTime = microtime(true);
 
