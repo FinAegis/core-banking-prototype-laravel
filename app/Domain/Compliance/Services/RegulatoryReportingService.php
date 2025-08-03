@@ -52,8 +52,8 @@ class RegulatoryReportingService
 
         foreach ($largeTransactions as $event) {
             $properties = json_decode($event->event_properties, true);
-            /** @var \Illuminate\Database\Eloquent\Model|null $$account */
-            $$account = Account::where('uuid', $event->aggregate_uuid)->first();
+            /** @var \Illuminate\Database\Eloquent\Model|null $account */
+            $account = Account::where('uuid', $event->aggregate_uuid)->first();
             $user = $account ? User::where('uuid', $account->user_uuid)->first() : null;
 
             $report['transactions'][] = [

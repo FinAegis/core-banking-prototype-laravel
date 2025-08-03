@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Regulatory\Console\Commands;
+namespace App\Console\Commands;
 
 use App\Domain\Compliance\Services\RegulatoryReportingService;
 use Carbon\Carbon;
