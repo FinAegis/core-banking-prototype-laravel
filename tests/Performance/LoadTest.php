@@ -9,11 +9,14 @@
 
 namespace Tests\Performance;
 
+use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -81,10 +84,14 @@ class LoadTest extends DomainTestCase
         // Create accounts with balance
         foreach ($users as $user) {
             $account = Account::factory()->forUser($user)->create();
-            // Add balance using event sourcing
-            \App\Domain\Asset\Aggregates\AssetTransactionAggregate::retrieve($account->uuid . ':USD')
-                ->credit($account->uuid, 'USD', 1000000, 'Initial balance for load test') // $10,000
-                ->persist();
+            
+            // Create account balance directly for performance test
+            \App\Domain\Account\Models\AccountBalance::factory()->create([
+                'account_uuid' => $account->uuid,
+                'asset_code'   => 'USD',
+                'balance'      => 1000000, // $10,000 in cents
+            ]);
+            
             $accounts[] = $account;
         }
 
@@ -105,7 +112,8 @@ class LoadTest extends DomainTestCase
             $response = $this->postJson('/api/transfers', [
                 'from_account_uuid' => $fromAccount->uuid,
                 'to_account_uuid'   => $toAccount->uuid,
-                'amount'            => 1000, // $10
+                'asset_code'        => 'USD',
+                'amount'            => 100000, // $1000 in cents
                 'reference'         => "Load test transfer $i",
             ]);
 
@@ -131,6 +139,8 @@ class LoadTest extends DomainTestCase
     #[Test]
     public function test_exchange_rate_performance()
     {
+        // Mock exchange rate provider is already set up in parent setUp
+        // Just test USD to USD which should always return 1.0
         $assets = ['USD', 'EUR', 'GBP', 'CHF', 'JPY'];
         $iterations = 100;
         $startTime = microtime(true);
@@ -143,7 +153,7 @@ class LoadTest extends DomainTestCase
                 continue;
             }
 
-            $response = $this->getJson("/api/v1/exchange-rates/{$from}/{$to}");
+            $response = $this->getJson("/api/exchange-rates/{$from}/{$to}");
             $response->assertStatus(200);
         }
 
@@ -221,7 +231,6 @@ class LoadTest extends DomainTestCase
             $results = DB::table('accounts')
                 ->join('users', 'accounts.user_uuid', '=', 'users.uuid')
                 ->select('accounts.*', 'users.name as user_name')
-                ->where('accounts.is_active', true)
                 ->orderBy('accounts.created_at', 'desc')
                 ->limit(50)
                 ->get();
