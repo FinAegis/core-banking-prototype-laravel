@@ -6,7 +6,7 @@ use App\Domain\Stablecoin\Models\Stablecoin;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Stablecoin>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Stablecoin\Models\Stablecoin>
  */
 class StablecoinFactory extends Factory
 {

@@ -7,7 +7,7 @@ use App\Domain\Account\Models\Turnover;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Turnover>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Account\Models\Turnover>
  */
 class TurnoverFactory extends Factory
 {

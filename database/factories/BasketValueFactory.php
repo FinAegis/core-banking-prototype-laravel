@@ -7,7 +7,7 @@ use App\Domain\Basket\Models\BasketValue;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\BasketValue>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Basket\Models\BasketValue>
  */
 class BasketValueFactory extends Factory
 {
