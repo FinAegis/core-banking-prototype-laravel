@@ -9,8 +9,6 @@
 
 namespace Tests\Performance;
 
-use App\Domain\Account\DataObjects\AccountUuid;
-use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;

@@ -8,7 +8,7 @@ use App\Domain\Asset\Models\Asset;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AccountBalance>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Account\Models\AccountBalance>
  */
 class AccountBalanceFactory extends Factory
 {
