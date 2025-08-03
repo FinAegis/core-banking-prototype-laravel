@@ -7,7 +7,7 @@ use App\Domain\Fraud\Models\FraudCase;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FraudCase>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Fraud\Models\FraudCase>
  */
 class FraudCaseFactory extends Factory
 {

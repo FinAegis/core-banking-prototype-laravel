@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FraudScore>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Fraud\Models\FraudScore>
  */
 class FraudScoreFactory extends Factory
 {

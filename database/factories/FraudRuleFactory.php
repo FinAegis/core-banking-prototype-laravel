@@ -6,7 +6,7 @@ use App\Domain\Fraud\Models\FraudRule;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FraudRule>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Fraud\Models\FraudRule>
  */
 class FraudRuleFactory extends Factory
 {
