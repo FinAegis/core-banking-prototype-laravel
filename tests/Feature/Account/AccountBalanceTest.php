@@ -23,6 +23,7 @@ class AccountBalanceTest extends TestCase
         $account = Account::factory()->create();
         $asset = Asset::where('code', 'USD')->first();
 
+        /** @var AccountBalance $balance */
         $balance = AccountBalanceFactory::new()
             ->forAccount($account)
             ->forAsset($asset)
@@ -44,6 +45,7 @@ class AccountBalanceTest extends TestCase
         $account = Account::factory()->create();
         $asset = Asset::where('code', 'USD')->first();
 
+        /** @var AccountBalance $balance */
         $balance = AccountBalanceFactory::new()
             ->forAccount($account)
             ->forAsset($asset)
@@ -65,6 +67,7 @@ class AccountBalanceTest extends TestCase
         $account = Account::factory()->create();
         $asset = Asset::where('code', 'USD')->first();
 
+        /** @var AccountBalance $balance */
         $balance = AccountBalanceFactory::new()
             ->forAccount($account)
             ->forAsset($asset)
@@ -83,6 +86,7 @@ class AccountBalanceTest extends TestCase
         $account = Account::factory()->create();
         $asset = Asset::where('code', 'USD')->first();
 
+        /** @var AccountBalance $balance */
         $balance = AccountBalanceFactory::new()
             ->forAccount($account)
             ->forAsset($asset)
@@ -100,6 +104,7 @@ class AccountBalanceTest extends TestCase
         $account = Account::factory()->create();
         $usd = Asset::where('code', 'USD')->first();
 
+        /** @var AccountBalance $balance */
         $balance = AccountBalanceFactory::new()
             ->forAccount($account)
             ->forAsset($usd)
@@ -119,6 +124,7 @@ class AccountBalanceTest extends TestCase
         $account = Account::factory()->create();
         $asset = Asset::where('code', 'USD')->first();
 
+        /** @var AccountBalance $balance */
         $balance = AccountBalanceFactory::new()
             ->forAccount($account)
             ->forAsset($asset)
@@ -133,6 +139,7 @@ class AccountBalanceTest extends TestCase
     {
         $account = Account::factory()->create();
         $asset = Asset::where('code', 'EUR')->first();
+        /** @var AccountBalance $balance */
         $balance = AccountBalanceFactory::new()
             ->forAccount($account)
             ->forAsset($asset)
