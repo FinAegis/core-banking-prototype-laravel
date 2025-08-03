@@ -552,7 +552,11 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
         $actions = [];
 
         // Adjust fees based on deviation
-        $feeAdjustment = $this->calculateFeeAdjustment($stablecoin->code);
+        $currentFees = [
+            'mint_fee' => $stablecoin->mint_fee,
+            'burn_fee' => $stablecoin->burn_fee,
+        ];
+        $feeAdjustment = $this->calculateFeeAdjustment($deviation['deviation'], $currentFees);
 
         if (
             $feeAdjustment['new_mint_fee'] !== $stablecoin->mint_fee
@@ -580,18 +584,24 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
     private function applyAlgorithmicMechanism(Stablecoin $stablecoin, array $deviation): array
     {
         $actions = [];
-        $incentives = $this->calculateSupplyIncentives($stablecoin->code);
+        $incentives = $this->calculateSupplyIncentives(
+            $deviation['deviation'],
+            $stablecoin->total_supply,
+            $stablecoin->target_price * $stablecoin->total_supply
+        );
 
         // Update algorithmic rewards/penalties
-        if ($incentives['recommended_action'] === 'burn') {
-            $stablecoin->algo_burn_penalty = $incentives['burn_reward'];
-            $stablecoin->algo_mint_reward = 0;
-        } else {
-            $stablecoin->algo_mint_reward = $incentives['mint_reward'];
-            $stablecoin->algo_burn_penalty = 0;
-        }
+        // NOTE: algo_burn_penalty and algo_mint_reward columns don't exist in the database
+        // These would need to be added via migration if algorithmic stablecoins are to be supported
+        // if ($incentives['recommended_action'] === 'burn') {
+        //     $stablecoin->algo_burn_penalty = $incentives['burn_reward'];
+        //     $stablecoin->algo_mint_reward = 0;
+        // } else {
+        //     $stablecoin->algo_mint_reward = $incentives['mint_reward'];
+        //     $stablecoin->algo_burn_penalty = 0;
+        // }
 
-        $stablecoin->save();
+        // $stablecoin->save();
 
         $actions[] = [
             'action'         => 'adjust_supply',
@@ -651,13 +661,17 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
             return [
                 'recommended_action' => 'burn',
                 'burn_reward'        => min(0.1, abs($deviation) * 0.01),
+                'mint_reward'        => 0,
                 'mint_penalty'       => 0,
+                'burn_penalty'       => 0,
             ];
         } elseif ($deviation > 0) {
             // Need to increase supply - incentivize minting
             return [
                 'recommended_action' => 'mint',
                 'mint_reward'        => min(0.1, abs($deviation) * 0.01),
+                'burn_reward'        => 0,
+                'mint_penalty'       => 0,
                 'burn_penalty'       => 0,
             ];
         }
