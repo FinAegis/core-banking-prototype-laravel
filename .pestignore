@@ -1,0 +1,15 @@
+vendor/
+node_modules/
+storage/
+public/
+coverage-html/
+bootstrap/cache/
+.git/
+.github/
+docs/
+resources/
+database/migrations/
+database/factories/
+work/
+.venv/
+sdks/

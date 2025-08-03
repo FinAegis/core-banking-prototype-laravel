@@ -28,7 +28,13 @@
         <exclude>
             <directory>app/Console/Commands</directory>
             <file>app/Http/Kernel.php</file>
-            <file>app/Providers</file>
+            <directory>app/Providers</directory>
+            <!-- Exclude vendor and other large directories from coverage -->
+            <directory>vendor</directory>
+            <directory>node_modules</directory>
+            <directory>storage</directory>
+            <directory>public</directory>
+            <directory>bootstrap/cache</directory>
         </exclude>
     </source>
     <coverage>
@@ -52,7 +58,8 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <!-- Parallel testing configuration -->
-        <env name="PEST_PARALLEL" value="true"/>
+        <!-- Temporarily disabled due to memory issues -->
+        <env name="PEST_PARALLEL" value="false"/>
         <!-- Redis configuration for parallel testing -->
         <env name="REDIS_CLIENT" value="phpredis"/>
         <env name="REDIS_HOST" value="127.0.0.1"/>
