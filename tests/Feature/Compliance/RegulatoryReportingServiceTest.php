@@ -37,11 +37,12 @@ test('generates currency transaction report for large transactions', function ()
     $largeEvent->aggregate_version = 1;
     $largeEvent->event_version = 1;
     $largeEvent->event_class = MoneyAdded::class;
-    $largeEvent->event_properties = json_encode([
+    $largeEvent->event_properties = [
         'money' => ['amount' => 1500000, 'currency' => 'USD'], // $15,000
         'hash'  => ['value' => hash('sha3-512', 'test')],
-    ]);
-    $largeEvent->meta_data = json_encode([]);
+    ];
+    /** @phpstan-ignore-next-line */
+    $largeEvent->meta_data = [];
     $largeEvent->created_at = $date;
     $largeEvent->save();
 
@@ -51,11 +52,12 @@ test('generates currency transaction report for large transactions', function ()
     $smallEvent->aggregate_version = 2;
     $smallEvent->event_version = 1;
     $smallEvent->event_class = MoneyAdded::class;
-    $smallEvent->event_properties = json_encode([
+    $smallEvent->event_properties = [
         'money' => ['amount' => 50000, 'currency' => 'USD'], // $500
         'hash'  => ['value' => hash('sha3-512', 'test2')],
-    ]);
-    $smallEvent->meta_data = json_encode([]);
+    ];
+    /** @phpstan-ignore-next-line */
+    $smallEvent->meta_data = [];
     $smallEvent->created_at = $date;
     $smallEvent->save();
 

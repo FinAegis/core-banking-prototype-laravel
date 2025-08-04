@@ -1,7 +1,7 @@
 <?php
 
+use App\Domain\Banking\Models\UserBankPreference;
 use App\Models\User;
-use App\Models\UserBankPreference;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

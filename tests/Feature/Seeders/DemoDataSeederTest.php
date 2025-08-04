@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Banking\Models\UserBankPreference;
 use App\Domain\Governance\Enums\PollStatus;
 use App\Domain\Governance\Models\Poll;
 use App\Domain\Governance\Models\Vote;
 use App\Models\User;
-use App\Models\UserBankPreference;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;

@@ -152,6 +152,10 @@ class OpenBankingWithdrawalTest extends DomainTestCase
     {
         $this->actingAs($this->user);
 
+        // Set the CSRF token in session first
+        $csrfToken = 'test-csrf-token';
+        Session::put('_token', $csrfToken);
+
         // Set up session
         Session::put('openbanking_withdrawal', [
             'amount'       => 10000,
@@ -203,7 +207,7 @@ class OpenBankingWithdrawalTest extends DomainTestCase
 
         $response = $this->get(route('wallet.withdraw.openbanking.callback', [
             'code'  => 'authorization-code',
-            'state' => csrf_token(),
+            'state' => $csrfToken,
         ]));
 
         // Debug: Check session error

@@ -32,7 +32,7 @@ class NavigationTest extends TestCase
             '/accounts'                => 200,
             '/transactions'            => 302, // Redirects to /wallet/transactions
             '/transfers'               => 302, // Redirects to /wallet/transfers
-            '/exchange'                => 302, // Redirects to /wallet/exchange
+            '/exchange'                => 200, // Public exchange page
             '/user/profile'            => 200, // Jetstream profile route
             '/gcu/voting'              => 200,
             '/fraud/alerts'            => 200,

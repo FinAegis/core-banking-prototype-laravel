@@ -24,8 +24,8 @@ test('new users can register', function () {
         'name'                  => 'Test User',
         'email'                 => 'test@example.com',
         'is_business_customer'  => false,
-        'password'              => 'password',
-        'password_confirmation' => 'password',
+        'password'              => 'ComplexP@ssw0rd2024!',
+        'password_confirmation' => 'ComplexP@ssw0rd2024!',
         'terms'                 => Jetstream::hasTermsAndPrivacyPolicyFeature(),
     ]);
 
@@ -47,8 +47,8 @@ test('new business users can register', function () {
         'name'                  => 'Test Business User',
         'email'                 => 'business@example.com',
         'is_business_customer'  => true,
-        'password'              => 'password',
-        'password_confirmation' => 'password',
+        'password'              => 'ComplexP@ssw0rd2024!',
+        'password_confirmation' => 'ComplexP@ssw0rd2024!',
         'terms'                 => Jetstream::hasTermsAndPrivacyPolicyFeature(),
     ]);
 
