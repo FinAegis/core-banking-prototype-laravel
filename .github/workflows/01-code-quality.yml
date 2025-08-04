@@ -55,7 +55,24 @@ jobs:
           echo "APP_KEY set for composer install"
           
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --optimize-autoloader
+        run: |
+          # Try composer install with retry logic for flaky downloads
+          for i in 1 2 3; do
+            if composer install --prefer-dist --no-progress --optimize-autoloader; then
+              echo "Composer install succeeded on attempt $i"
+              break
+            else
+              echo "Composer install failed on attempt $i"
+              if [ $i -eq 3 ]; then
+                echo "All attempts failed"
+                exit 1
+              fi
+              echo "Retrying in 5 seconds..."
+              sleep 5
+              # Clear composer cache for problematic packages
+              composer clear-cache
+            fi
+          done
         
       - name: Run PHP Code Sniffer
         run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/

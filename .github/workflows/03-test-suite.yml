@@ -97,7 +97,23 @@ jobs:
           
       - name: Install PHP Dependencies
         run: |
-          composer install --prefer-dist --no-progress --optimize-autoloader
+          # Try composer install with retry logic for flaky downloads
+          for i in 1 2 3; do
+            if composer install --prefer-dist --no-progress --optimize-autoloader; then
+              echo "Composer install succeeded on attempt $i"
+              break
+            else
+              echo "Composer install failed on attempt $i"
+              if [ $i -eq 3 ]; then
+                echo "All attempts failed"
+                exit 1
+              fi
+              echo "Retrying in 5 seconds..."
+              sleep 5
+              # Clear composer cache for problematic packages
+              composer clear-cache
+            fi
+          done
           composer dump-autoload
           
       - name: Install Node Dependencies
@@ -207,7 +223,23 @@ jobs:
           
       - name: Install Dependencies
         run: |
-          composer install --prefer-dist --no-progress --optimize-autoloader
+          # Try composer install with retry logic for flaky downloads
+          for i in 1 2 3; do
+            if composer install --prefer-dist --no-progress --optimize-autoloader; then
+              echo "Composer install succeeded on attempt $i"
+              break
+            else
+              echo "Composer install failed on attempt $i"
+              if [ $i -eq 3 ]; then
+                echo "All attempts failed"
+                exit 1
+              fi
+              echo "Retrying in 5 seconds..."
+              sleep 5
+              # Clear composer cache for problematic packages
+              composer clear-cache
+            fi
+          done
           npm ci --prefer-offline --no-audit
           npm run build
           
@@ -282,7 +314,24 @@ jobs:
           echo "APP_KEY set for composer install"
           
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --optimize-autoloader
+        run: |
+          # Try composer install with retry logic for flaky downloads
+          for i in 1 2 3; do
+            if composer install --prefer-dist --no-progress --optimize-autoloader; then
+              echo "Composer install succeeded on attempt $i"
+              break
+            else
+              echo "Composer install failed on attempt $i"
+              if [ $i -eq 3 ]; then
+                echo "All attempts failed"
+                exit 1
+              fi
+              echo "Retrying in 5 seconds..."
+              sleep 5
+              # Clear composer cache for problematic packages
+              composer clear-cache
+            fi
+          done
           
       - name: Prepare Laravel Application
         run: |
@@ -363,7 +412,23 @@ jobs:
           
       - name: Install Dependencies
         run: |
-          composer install --prefer-dist --no-progress --optimize-autoloader
+          # Try composer install with retry logic for flaky downloads
+          for i in 1 2 3; do
+            if composer install --prefer-dist --no-progress --optimize-autoloader; then
+              echo "Composer install succeeded on attempt $i"
+              break
+            else
+              echo "Composer install failed on attempt $i"
+              if [ $i -eq 3 ]; then
+                echo "All attempts failed"
+                exit 1
+              fi
+              echo "Retrying in 5 seconds..."
+              sleep 5
+              # Clear composer cache for problematic packages
+              composer clear-cache
+            fi
+          done
           npm ci --prefer-offline --no-audit
           npm run build
           
