@@ -135,17 +135,17 @@ class TransactionRateLimitMiddleware
 
             // Calculate retry after seconds
             $retryAfter = $window - (time() % $window);
-            
+
             // Track how many times this user has hit rate limits for progressive delay
             $attemptKey = "tx_rate_limit_attempts:{$userId}:{$transactionType}";
             $attempts = Cache::get($attemptKey, 0);
             Cache::put($attemptKey, $attempts + 1, 300); // Track for 5 minutes
-            
+
             // Apply progressive delay to retry_after
             if ($attempts > 0) {
                 $retryAfter = $retryAfter + ($attempts * 10); // Add 10 seconds for each attempt
             }
-            
+
             $responseData = [
                 'error'         => 'Transaction rate limit exceeded',
                 'message'       => "You have exceeded the {$period} limit of {$limit} {$transactionType} transactions.",
@@ -156,12 +156,12 @@ class TransactionRateLimitMiddleware
                 'current_count' => $currentCount,
                 'reset_time'    => now()->addSeconds($window)->toISOString(),
             ];
-            
+
             // Add security notice if suspicious activity detected
             if ($attempts > 5) {
                 $responseData['security_notice'] = 'Multiple rate limit violations detected. Your activity has been logged for security review.';
             }
-            
+
             return response()->json(
                 $responseData,
                 429,
@@ -204,14 +204,14 @@ class TransactionRateLimitMiddleware
 
             // Calculate retry after seconds
             $retryAfter = $config['window'] - (time() % $config['window']);
-            
+
             return response()->json(
                 [
-                    'error'            => 'Transaction amount limit exceeded',
-                    'message'          => 'This transaction would exceed your hourly amount limit.',
-                    'retry_after'      => $retryAfter,
-                    'limit_type'       => 'hourly_amount',
-                    'limit_details'    => [
+                    'error'         => 'Transaction amount limit exceeded',
+                    'message'       => 'This transaction would exceed your hourly amount limit.',
+                    'retry_after'   => $retryAfter,
+                    'limit_type'    => 'hourly_amount',
+                    'limit_details' => [
                         'limit'            => $config['amount_limit'],
                         'current_amount'   => $currentAmount,
                         'requested_amount' => $amount,
@@ -331,7 +331,7 @@ class TransactionRateLimitMiddleware
         $response->headers->set('X-RateLimit-Transaction-Limit', $config['limit']);
         $response->headers->set('X-RateLimit-Transaction-Remaining', max(0, $config['limit'] - $hourlyCount));
         $response->headers->set('X-RateLimit-Transaction-Reset', now()->addSeconds($config['window'])->timestamp);
-        
+
         // Also set detailed headers
         $response->headers->set('X-Transaction-Hourly-Limit', $config['limit']);
         $response->headers->set('X-Transaction-Hourly-Remaining', max(0, $config['limit'] - $hourlyCount));

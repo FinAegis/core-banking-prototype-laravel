@@ -16,6 +16,7 @@ class SubscriberFactory extends Factory
      * @var string
      */
     protected $model = Subscriber::class;
+
     /**
      * Define the model's default state.
      *

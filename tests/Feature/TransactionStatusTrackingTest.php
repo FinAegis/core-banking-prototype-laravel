@@ -8,7 +8,6 @@ use App\Domain\Account\Models\Transaction;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -58,15 +57,12 @@ class TransactionStatusTrackingTest extends DomainTestCase
         $response = $this->get(route('transactions.status'));
 
         $response->assertStatus(200);
-        $response->assertInertia(
-            fn (Assert $page) => $page
-                ->component('Transactions/StatusTracking')
-                ->has('accounts')
-                ->has('pendingTransactions')
-                ->has('completedTransactions')
-                ->has('statistics')
-                ->has('filters')
-        );
+        $response->assertViewIs('transactions.status-tracking');
+        $response->assertViewHas('accounts');
+        $response->assertViewHas('pendingTransactions');
+        $response->assertViewHas('completedTransactions');
+        $response->assertViewHas('statistics');
+        $response->assertViewHas('filters');
     }
 
     #[Test]
@@ -82,10 +78,10 @@ class TransactionStatusTrackingTest extends DomainTestCase
         $response = $this->get(route('transactions.status', ['status' => 'pending']));
 
         $response->assertStatus(200);
-        $response->assertInertia(
-            fn (Assert $page) => $page
-                ->where('filters.status', 'pending')
-        );
+        $response->assertViewIs('transactions.status-tracking');
+        $response->assertViewHas('filters', function ($filters) {
+            return $filters['status'] === 'pending';
+        });
     }
 
     #[Test]
@@ -98,13 +94,10 @@ class TransactionStatusTrackingTest extends DomainTestCase
         $response = $this->get(route('transactions.status.show', $transaction->id));
 
         $response->assertStatus(200);
-        $response->assertInertia(
-            fn (Assert $page) => $page
-                ->component('Transactions/StatusDetail')
-                ->has('transaction')
-                ->has('timeline')
-                ->has('relatedTransactions')
-        );
+        $response->assertViewIs('transactions.status-detail');
+        $response->assertViewHas('transaction');
+        $response->assertViewHas('timeline');
+        $response->assertViewHas('relatedTransactions');
     }
 
     #[Test]
@@ -136,7 +129,8 @@ class TransactionStatusTrackingTest extends DomainTestCase
     {
         $this->actingAs($this->user);
 
-        $transaction = $this->createTestTransaction('pending');
+        // Create a withdrawal transaction (which can be cancelled)
+        $transaction = $this->createTestTransaction('pending', 'withdrawal');
 
         $response = $this->post(route('transactions.status.cancel', $transaction->id));
 
@@ -209,15 +203,11 @@ class TransactionStatusTrackingTest extends DomainTestCase
         ]));
 
         $response->assertStatus(200);
-        $response->assertInertia(
-            fn (Assert $page) => $page
-                ->has(
-                    'filters',
-                    fn (Assert $filters) => $filters
-                        ->where('date_from', now()->subDays(7)->format('Y-m-d'))
-                        ->where('date_to', now()->format('Y-m-d'))
-                )
-        );
+        $response->assertViewIs('transactions.status-tracking');
+        $response->assertViewHas('filters', function ($filters) {
+            return $filters['date_from'] === now()->subDays(7)->format('Y-m-d')
+                && $filters['date_to'] === now()->format('Y-m-d');
+        });
     }
 
     #[Test]
@@ -234,18 +224,17 @@ class TransactionStatusTrackingTest extends DomainTestCase
         $response = $this->get(route('transactions.status'));
 
         $response->assertStatus(200);
-        $response->assertInertia(
-            fn (Assert $page) => $page
-                ->has(
-                    'statistics',
-                    fn (Assert $stats) => $stats
-                        ->where('total', 4)
-                        ->where('completed', 2)
-                        ->where('pending', 1)
-                        ->where('failed', 1)
-                        ->where('success_rate', 50.0)
-                )
-        );
+        $response->assertViewIs('transactions.status-tracking');
+        $response->assertViewHas('statistics', function ($stats) {
+            // Handle both array and object formats
+            $stats = (array) $stats;
+
+            return $stats['total'] === 4
+                && $stats['completed'] === 2
+                && $stats['pending'] === 1
+                && $stats['failed'] === 1
+                && $stats['success_rate'] === 50.0;
+        });
     }
 
     #[Test]

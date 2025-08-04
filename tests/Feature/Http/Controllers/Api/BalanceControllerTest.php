@@ -42,9 +42,9 @@ class BalanceControllerTest extends ControllerTestCase
         Asset::firstOrCreate(
             ['code' => 'USD'],
             [
-                'name' => 'US Dollar',
-                'symbol' => '$',
-                'type' => 'fiat',
+                'name'      => 'US Dollar',
+                'symbol'    => '$',
+                'type'      => 'fiat',
                 'precision' => 2,
                 'is_active' => true,
             ]
@@ -53,8 +53,8 @@ class BalanceControllerTest extends ControllerTestCase
         // Create AccountBalance for USD
         AccountBalance::create([
             'account_uuid' => $this->account->uuid,
-            'asset_code' => 'USD',
-            'balance' => 50000, // 500.00
+            'asset_code'   => 'USD',
+            'balance'      => 50000, // 500.00
         ]);
 
         $this->accountCache = $this->app->make(AccountCacheService::class);
@@ -170,8 +170,8 @@ class BalanceControllerTest extends ControllerTestCase
         // Create AccountBalance for the frozen account
         AccountBalance::create([
             'account_uuid' => $frozenAccount->uuid,
-            'asset_code' => 'USD',
-            'balance' => 25000,
+            'asset_code'   => 'USD',
+            'balance'      => 25000,
         ]);
 
         $response = $this->getJson("/api/accounts/{$frozenAccount->uuid}/balance");

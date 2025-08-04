@@ -30,6 +30,17 @@ class CgoInvestment extends Model
 {
     use HasFactory;
 
+    // Status constants
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_COMPLETED = 'completed';
+
+    public const STATUS_FAILED = 'failed';
+
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public const STATUS_PROCESSING = 'processing';
+
     protected $fillable = [
         'uuid',
         'user_id',

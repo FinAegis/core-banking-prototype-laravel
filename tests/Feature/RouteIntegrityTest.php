@@ -85,7 +85,7 @@ class RouteIntegrityTest extends TestCase
         // This test is now simplified - just ensure no critical issues
         $routes = Route::getRoutes()->getRoutes();
         $this->assertNotEmpty($routes);
-        
+
         // Just verify we have some named routes
         $namedRoutes = 0;
         foreach ($routes as $route) {
@@ -93,7 +93,7 @@ class RouteIntegrityTest extends TestCase
                 $namedRoutes++;
             }
         }
-        
+
         $this->assertGreaterThan(50, $namedRoutes, 'Should have at least 50 named routes');
     }
 

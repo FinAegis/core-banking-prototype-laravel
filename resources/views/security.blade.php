@@ -36,20 +36,6 @@
 @endpush
 
 @section('content')
-    <!-- Conceptual Guidelines Notice -->
-    <div class="bg-amber-50 border-b border-amber-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 text-amber-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="text-amber-800">
-                    <strong>Note:</strong> This page outlines conceptual security guidelines and best practices that the FinAegis project aims to follow during development. These represent our security goals and standards, not necessarily current implementation status.
-                </p>
-            </div>
-        </div>
-    </div>
-
     <!-- Hero Section -->
     <section class="pt-16 gradient-bg text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -63,6 +49,30 @@
                 <p class="text-xl text-purple-100 max-w-3xl mx-auto">
                     Bank-grade security meets blockchain immutability. Your assets are protected by the most advanced security measures in the industry.
                 </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Development Notice -->
+    <section class="py-8 bg-amber-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-400">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-semibold text-gray-900">Project Under Active Development</h3>
+                        <p class="mt-2 text-gray-600">
+                            This project is currently under active development. The security criteria listed below are 
+                            <strong>guidelines and goals</strong> that we are working towards. Many of these features 
+                            may not be implemented in the current framework yet. This page represents our security roadmap 
+                            and the standards we aim to achieve as the platform matures.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

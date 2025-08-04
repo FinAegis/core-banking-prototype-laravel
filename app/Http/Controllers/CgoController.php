@@ -439,7 +439,7 @@ class CgoController extends Controller
     }
 
     /**
-     * Download investment certificate
+     * Download investment certificate.
      */
     public function downloadCertificate($uuid)
     {
