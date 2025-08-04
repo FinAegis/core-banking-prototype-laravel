@@ -554,8 +554,8 @@ class BankAllocationController extends Controller
                 return [
                     'bank_code'             => $bankDistribution['bank_code'],
                     'bank_name'             => $bankDistribution['bank_name'],
-                    'allocation_percentage' => $bankDistribution['allocation_percentage'],
-                    'amount'                => $bankDistribution['amount_in_cents'] / 100,
+                    'allocation_percentage' => $bankDistribution['percentage'],
+                    'amount'                => $bankDistribution['amount'] / 100,
                     'is_primary'            => $bankDistribution['is_primary'],
                 ];
             }
