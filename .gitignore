@@ -27,3 +27,5 @@ work/
 /public/sitemap.xml
 /public/robots.txt
 .php-cs-fixer.cache
+
+.serena/cache/*
