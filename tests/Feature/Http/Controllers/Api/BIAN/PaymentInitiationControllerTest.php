@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api\BIAN;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\AccountBalance;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -33,9 +34,23 @@ class PaymentInitiationControllerTest extends ControllerTestCase
             'balance'   => 100000, // 1000.00
         ]);
 
+        // Create AccountBalance for payer
+        AccountBalance::factory()->create([
+            'account_uuid' => $this->payerAccount->uuid,
+            'asset_code'   => 'USD',
+            'balance'      => 100000,
+        ]);
+
         $this->payeeAccount = Account::factory()->create([
             'user_uuid' => $this->otherUser->uuid,
             'balance'   => 50000, // 500.00
+        ]);
+
+        // Create AccountBalance for payee
+        AccountBalance::factory()->create([
+            'account_uuid' => $this->payeeAccount->uuid,
+            'asset_code'   => 'USD',
+            'balance'      => 50000,
         ]);
     }
 
