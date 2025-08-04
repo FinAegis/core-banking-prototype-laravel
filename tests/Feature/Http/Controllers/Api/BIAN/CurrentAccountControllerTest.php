@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api\BIAN;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\AccountBalance;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -136,6 +137,13 @@ class CurrentAccountControllerTest extends ControllerTestCase
             'user_uuid' => $this->user->uuid,
             'name'      => 'Test Account',
             'balance'   => 50000,
+        ]);
+
+        // Create AccountBalance for USD
+        AccountBalance::factory()->create([
+            'account_uuid' => $account->uuid,
+            'asset_code'   => 'USD',
+            'balance'      => 50000,
         ]);
 
         $response = $this->getJson("/api/bian/current-account/{$account->uuid}/retrieve");
@@ -319,6 +327,13 @@ class CurrentAccountControllerTest extends ControllerTestCase
             'balance'   => 100000, // 1000.00
         ]);
 
+        // Create AccountBalance for USD
+        AccountBalance::factory()->create([
+            'account_uuid' => $account->uuid,
+            'asset_code'   => 'USD',
+            'balance'      => 100000,
+        ]);
+
         $response = $this->postJson("/api/bian/current-account/{$account->uuid}/payment/execute", [
             'paymentAmount'      => 25000, // 250.00
             'paymentType'        => 'withdrawal',
@@ -357,6 +372,13 @@ class CurrentAccountControllerTest extends ControllerTestCase
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
             'balance'   => 10000, // 100.00
+        ]);
+
+        // Create AccountBalance for USD
+        AccountBalance::factory()->create([
+            'account_uuid' => $account->uuid,
+            'asset_code'   => 'USD',
+            'balance'      => 10000,
         ]);
 
         $response = $this->postJson("/api/bian/current-account/{$account->uuid}/payment/execute", [
@@ -457,6 +479,13 @@ class CurrentAccountControllerTest extends ControllerTestCase
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
             'balance'   => 123456, // 1234.56
+        ]);
+
+        // Create AccountBalance for USD
+        AccountBalance::factory()->create([
+            'account_uuid' => $account->uuid,
+            'asset_code'   => 'USD',
+            'balance'      => 123456,
         ]);
 
         $response = $this->getJson("/api/bian/current-account/{$account->uuid}/account-balance/retrieve");
