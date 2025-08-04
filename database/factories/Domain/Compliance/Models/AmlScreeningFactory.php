@@ -54,7 +54,6 @@ class AmlScreeningFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'completed',
             'completed_at' => now(),
-            'next_screening_date' => now()->addMonths(6),
         ]);
     }
 
@@ -64,10 +63,10 @@ class AmlScreeningFactory extends Factory
     public function lowRisk(): static
     {
         return $this->state(fn (array $attributes) => [
-            'risk_level' => 'low',
-            'matches_found' => 0,
+            'overall_risk' => 'low',
+            'total_matches' => 0,
+            'confirmed_matches' => 0,
             'false_positives' => 0,
-            'true_positives' => 0,
         ]);
     }
 
@@ -77,9 +76,9 @@ class AmlScreeningFactory extends Factory
     public function highRisk(): static
     {
         return $this->state(fn (array $attributes) => [
-            'risk_level' => 'high',
-            'matches_found' => $this->faker->numberBetween(1, 3),
-            'true_positives' => $this->faker->numberBetween(1, 2),
+            'overall_risk' => 'high',
+            'total_matches' => $this->faker->numberBetween(1, 3),
+            'confirmed_matches' => $this->faker->numberBetween(1, 2),
         ]);
     }
 

@@ -264,8 +264,8 @@ class ComplianceController extends Controller
     {
         $user = $request->user();
 
-        $screenings = AmlScreening::where('entity_id', $user->id)
-            ->where('entity_type', User::class)
+        $screenings = AmlScreening::where('entity_id', $user->uuid)
+            ->where('entity_type', 'user')
             ->orderBy('created_at', 'desc')
             ->get();
 
