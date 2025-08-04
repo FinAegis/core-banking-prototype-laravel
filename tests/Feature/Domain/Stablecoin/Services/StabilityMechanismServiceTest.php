@@ -45,8 +45,8 @@ class StabilityMechanismServiceTest extends ServiceTestCase
         Asset::firstOrCreate(
             ['code' => 'USD'],
             [
-                'name' => 'US Dollar',
-                'type' => 'fiat',
+                'name'      => 'US Dollar',
+                'type'      => 'fiat',
                 'precision' => 2,
                 'is_active' => true,
             ]
@@ -54,69 +54,69 @@ class StabilityMechanismServiceTest extends ServiceTestCase
 
         // Create different types of stablecoins
         $this->collateralizedStablecoin = Stablecoin::create([
-            'code' => 'CUSD',
-            'name' => 'Collateralized USD',
-            'symbol' => 'CUSD',
-            'peg_asset_code' => 'USD',
-            'peg_ratio' => 1.0,
-            'target_price' => 1.0,
-            'stability_mechanism' => 'collateralized',
-            'collateral_ratio' => 1.5,
-            'min_collateral_ratio' => 1.2,
-            'liquidation_penalty' => 0.1,
-            'total_supply' => 1000000,
-            'max_supply' => 10000000,
+            'code'                   => 'CUSD',
+            'name'                   => 'Collateralized USD',
+            'symbol'                 => 'CUSD',
+            'peg_asset_code'         => 'USD',
+            'peg_ratio'              => 1.0,
+            'target_price'           => 1.0,
+            'stability_mechanism'    => 'collateralized',
+            'collateral_ratio'       => 1.5,
+            'min_collateral_ratio'   => 1.2,
+            'liquidation_penalty'    => 0.1,
+            'total_supply'           => 1000000,
+            'max_supply'             => 10000000,
             'total_collateral_value' => 1500000,
-            'mint_fee' => 0.005,
-            'burn_fee' => 0.003,
-            'precision' => 2,
-            'is_active' => true,
-            'minting_enabled' => true,
-            'burning_enabled' => true,
+            'mint_fee'               => 0.005,
+            'burn_fee'               => 0.003,
+            'precision'              => 2,
+            'is_active'              => true,
+            'minting_enabled'        => true,
+            'burning_enabled'        => true,
         ]);
 
         $this->algorithmicStablecoin = Stablecoin::create([
-            'code' => 'AUSD',
-            'name' => 'Algorithmic USD',
-            'symbol' => 'AUSD',
-            'peg_asset_code' => 'USD',
-            'peg_ratio' => 1.0,
-            'target_price' => 1.0,
-            'stability_mechanism' => 'algorithmic',
-            'collateral_ratio' => 0,
-            'min_collateral_ratio' => 0,
-            'liquidation_penalty' => 0,
-            'total_supply' => 1000000,
-            'max_supply' => 50000000,
+            'code'                   => 'AUSD',
+            'name'                   => 'Algorithmic USD',
+            'symbol'                 => 'AUSD',
+            'peg_asset_code'         => 'USD',
+            'peg_ratio'              => 1.0,
+            'target_price'           => 1.0,
+            'stability_mechanism'    => 'algorithmic',
+            'collateral_ratio'       => 0,
+            'min_collateral_ratio'   => 0,
+            'liquidation_penalty'    => 0,
+            'total_supply'           => 1000000,
+            'max_supply'             => 50000000,
             'total_collateral_value' => 0,
-            'mint_fee' => 0.001,
-            'burn_fee' => 0.001,
-            'precision' => 2,
-            'is_active' => true,
-            'minting_enabled' => true,
-            'burning_enabled' => true,
+            'mint_fee'               => 0.001,
+            'burn_fee'               => 0.001,
+            'precision'              => 2,
+            'is_active'              => true,
+            'minting_enabled'        => true,
+            'burning_enabled'        => true,
         ]);
 
         $this->hybridStablecoin = Stablecoin::create([
-            'code' => 'HUSD',
-            'name' => 'Hybrid USD',
-            'symbol' => 'HUSD',
-            'peg_asset_code' => 'USD',
-            'peg_ratio' => 1.0,
-            'target_price' => 1.0,
-            'stability_mechanism' => 'hybrid',
-            'collateral_ratio' => 0.8, // 80% collateralized
-            'min_collateral_ratio' => 0.5,
-            'liquidation_penalty' => 0.08,
-            'total_supply' => 1000000,
-            'max_supply' => 20000000,
+            'code'                   => 'HUSD',
+            'name'                   => 'Hybrid USD',
+            'symbol'                 => 'HUSD',
+            'peg_asset_code'         => 'USD',
+            'peg_ratio'              => 1.0,
+            'target_price'           => 1.0,
+            'stability_mechanism'    => 'hybrid',
+            'collateral_ratio'       => 0.8, // 80% collateralized
+            'min_collateral_ratio'   => 0.5,
+            'liquidation_penalty'    => 0.08,
+            'total_supply'           => 1000000,
+            'max_supply'             => 20000000,
             'total_collateral_value' => 800000,
-            'mint_fee' => 0.003,
-            'burn_fee' => 0.002,
-            'precision' => 2,
-            'is_active' => true,
-            'minting_enabled' => true,
-            'burning_enabled' => true,
+            'mint_fee'               => 0.003,
+            'burn_fee'               => 0.002,
+            'precision'              => 2,
+            'is_active'              => true,
+            'minting_enabled'        => true,
+            'burning_enabled'        => true,
         ]);
     }
 
@@ -133,12 +133,12 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     {
         return new ExchangeRate([
             'from_asset_code' => $from,
-            'to_asset_code' => $to,
-            'rate' => $rate,
-            'source' => ExchangeRate::SOURCE_API,
-            'valid_at' => now(),
-            'expires_at' => now()->addHour(),
-            'is_active' => true,
+            'to_asset_code'   => $to,
+            'rate'            => $rate,
+            'source'          => ExchangeRate::SOURCE_API,
+            'valid_at'        => now(),
+            'expires_at'      => now()->addHour(),
+            'is_active'       => true,
         ]);
     }
 
@@ -189,13 +189,13 @@ class StabilityMechanismServiceTest extends ServiceTestCase
 
         // Create some positions
         StablecoinCollateralPosition::create([
-            'account_uuid' => $account->uuid,
-            'stablecoin_code' => 'CUSD',
+            'account_uuid'          => $account->uuid,
+            'stablecoin_code'       => 'CUSD',
             'collateral_asset_code' => 'USD',
-            'collateral_amount' => 150000,
-            'debt_amount' => 100000,
-            'collateral_ratio' => 1.5,
-            'status' => 'active',
+            'collateral_amount'     => 150000,
+            'debt_amount'           => 100000,
+            'collateral_ratio'      => 1.5,
+            'status'                => 'active',
         ]);
 
         // Price above peg - should increase fees to discourage minting
@@ -246,13 +246,13 @@ class StabilityMechanismServiceTest extends ServiceTestCase
         $account = Account::factory()->create();
 
         StablecoinCollateralPosition::create([
-            'account_uuid' => $account->uuid,
-            'stablecoin_code' => 'HUSD',
+            'account_uuid'          => $account->uuid,
+            'stablecoin_code'       => 'HUSD',
             'collateral_asset_code' => 'USD',
-            'collateral_amount' => 80000,
-            'debt_amount' => 100000,
-            'collateral_ratio' => 0.8,
-            'status' => 'active',
+            'collateral_amount'     => 80000,
+            'debt_amount'           => 100000,
+            'collateral_ratio'      => 0.8,
+            'status'                => 'active',
         ]);
 
         // Price above peg
