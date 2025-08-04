@@ -42,12 +42,17 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         $this->user = User::factory()->create();
 
         // Create mocks
-        /** @var ExchangeRateProviderRegistry&MockInterface */
-        $this->mockRegistry = \Mockery::mock(ExchangeRateProviderRegistry::class);
-        /** @var EnhancedExchangeRateService&MockInterface */
-        $this->mockService = \Mockery::mock(EnhancedExchangeRateService::class);
-        /** @var IExchangeRateProvider&MockInterface */
-        $this->mockProvider = \Mockery::mock(IExchangeRateProvider::class);
+        /** @var ExchangeRateProviderRegistry&MockInterface $mockRegistry */
+        $mockRegistry = \Mockery::mock(ExchangeRateProviderRegistry::class);
+        $this->mockRegistry = $mockRegistry;
+
+        /** @var EnhancedExchangeRateService&MockInterface $mockService */
+        $mockService = \Mockery::mock(EnhancedExchangeRateService::class);
+        $this->mockService = $mockService;
+
+        /** @var IExchangeRateProvider&MockInterface $mockProvider */
+        $mockProvider = \Mockery::mock(IExchangeRateProvider::class);
+        $this->mockProvider = $mockProvider;
 
         // Register mocks with the container
         $this->app->instance(ExchangeRateProviderRegistry::class, $this->mockRegistry);

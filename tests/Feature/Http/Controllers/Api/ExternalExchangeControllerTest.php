@@ -43,12 +43,17 @@ class ExternalExchangeControllerTest extends ControllerTestCase
         $this->user = User::factory()->create();
 
         // Create mocks
-        /** @var ExternalExchangeConnectorRegistry&MockInterface */
-        $this->mockRegistry = \Mockery::mock(ExternalExchangeConnectorRegistry::class);
-        /** @var ExternalLiquidityService&MockInterface */
-        $this->mockLiquidityService = \Mockery::mock(ExternalLiquidityService::class);
-        /** @var IExternalExchangeConnector&MockInterface */
-        $this->mockConnector = \Mockery::mock(IExternalExchangeConnector::class);
+        /** @var ExternalExchangeConnectorRegistry&MockInterface $mockRegistry */
+        $mockRegistry = \Mockery::mock(ExternalExchangeConnectorRegistry::class);
+        $this->mockRegistry = $mockRegistry;
+
+        /** @var ExternalLiquidityService&MockInterface $mockLiquidityService */
+        $mockLiquidityService = \Mockery::mock(ExternalLiquidityService::class);
+        $this->mockLiquidityService = $mockLiquidityService;
+
+        /** @var IExternalExchangeConnector&MockInterface $mockConnector */
+        $mockConnector = \Mockery::mock(IExternalExchangeConnector::class);
+        $this->mockConnector = $mockConnector;
 
         // Register mocks with the container
         $this->app->instance(ExternalExchangeConnectorRegistry::class, $this->mockRegistry);

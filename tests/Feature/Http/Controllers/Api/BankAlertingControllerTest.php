@@ -54,14 +54,21 @@ class BankAlertingControllerTest extends ControllerTestCase
         $this->regularUser = User::factory()->create();
 
         // Create mocks
-        /** @var BankAlertingService&MockInterface */
-        $this->mockAlertingService = \Mockery::mock(BankAlertingService::class);
-        /** @var CustodianHealthMonitor&MockInterface */
-        $this->mockHealthMonitor = \Mockery::mock(CustodianHealthMonitor::class);
-        /** @var CustodianRegistry&MockInterface */
-        $this->mockRegistry = \Mockery::mock(CustodianRegistry::class);
-        /** @var CircuitBreakerService&MockInterface */
-        $this->mockCircuitBreaker = \Mockery::mock(CircuitBreakerService::class);
+        /** @var BankAlertingService&MockInterface $mockAlertingService */
+        $mockAlertingService = \Mockery::mock(BankAlertingService::class);
+        $this->mockAlertingService = $mockAlertingService;
+
+        /** @var CustodianHealthMonitor&MockInterface $mockHealthMonitor */
+        $mockHealthMonitor = \Mockery::mock(CustodianHealthMonitor::class);
+        $this->mockHealthMonitor = $mockHealthMonitor;
+
+        /** @var CustodianRegistry&MockInterface $mockRegistry */
+        $mockRegistry = \Mockery::mock(CustodianRegistry::class);
+        $this->mockRegistry = $mockRegistry;
+
+        /** @var CircuitBreakerService&MockInterface $mockCircuitBreaker */
+        $mockCircuitBreaker = \Mockery::mock(CircuitBreakerService::class);
+        $this->mockCircuitBreaker = $mockCircuitBreaker;
 
         // Register mocks with the container
         $this->app->instance(BankAlertingService::class, $this->mockAlertingService);
