@@ -23,7 +23,7 @@ class EnsureSubProductEnabled
     {
         // Validate parameter
         if (empty($parameter)) {
-            return $this->errorResponse('Sub-product parameter is required', 500);
+            return $this->errorResponse('Configuration error', 'Sub-product parameter is required', 500);
         }
 
         // Parse parameter for sub-product and features
@@ -44,16 +44,20 @@ class EnsureSubProductEnabled
 
                 if (! $anyEnabled) {
                     return $this->errorResponse(
+                        'Feature not available',
                         'None of the required features [' . implode(', ', $featureList) . "] are enabled for sub-product {$subProduct}",
-                        403
+                        403,
+                        $subProduct
                     );
                 }
             } else {
                 // Single feature check
                 if (! $this->subProductService->isFeatureEnabled($subProduct, $features)) {
                     return $this->errorResponse(
-                        "Feature {$features} is not enabled for sub-product {$subProduct}",
-                        403
+                        'Feature not available',
+                        "The feature {$features} is not enabled for sub-product {$subProduct}",
+                        403,
+                        $subProduct
                     );
                 }
             }
@@ -62,26 +66,46 @@ class EnsureSubProductEnabled
             $subProduct = $parameter;
 
             if (! $this->subProductService->isEnabled($subProduct)) {
-                return $this->errorResponse("Sub-product {$subProduct} is not enabled", 403);
+                return $this->errorResponse(
+                    'Feature not available',
+                    "The {$subProduct} sub-product is not enabled",
+                    403,
+                    $subProduct
+                );
             }
         }
 
         // Add sub-product info to request for downstream use
         $request->attributes->set('sub_product', $subProduct ?? $parameter);
 
-        return $next($request);
+        $response = $next($request);
+        
+        // Add sub-product header to response
+        if ($response instanceof Response) {
+            $response->headers->set('X-SubProduct-Required', $subProduct ?? $parameter);
+        }
+        
+        return $response;
     }
 
     /**
      * Create error response.
      */
-    private function errorResponse(string $message, int $statusCode): Response
+    private function errorResponse(string $error, string $message, int $statusCode, ?string $subProduct = null): Response
     {
-        return response()->json(
+        $response = response()->json(
             [
-                'error' => $message,
+                'error'   => $error,
+                'message' => $message,
             ],
             $statusCode
         );
+        
+        // Add sub-product header if available
+        if ($subProduct) {
+            $response->headers->set('X-SubProduct-Required', $subProduct);
+        }
+        
+        return $response;
     }
 }

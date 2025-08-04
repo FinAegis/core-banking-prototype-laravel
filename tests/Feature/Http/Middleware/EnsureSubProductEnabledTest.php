@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Http\Middleware;
 
+use App\Domain\Product\Services\SubProductService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
