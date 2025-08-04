@@ -54,6 +54,7 @@ class UserBankPreference extends Model
         'bank_name',
         'allocation_percentage',
         'is_primary',
+        'is_active',
         'status',
         'metadata',
     ];
@@ -61,6 +62,7 @@ class UserBankPreference extends Model
     protected $casts = [
         'allocation_percentage' => 'decimal:2',
         'is_primary'            => 'boolean',
+        'is_active'             => 'boolean',
         'metadata'              => 'array',
     ];
 
@@ -159,6 +161,7 @@ class UserBankPreference extends Model
                 'bank_name'             => 'Paysera',
                 'allocation_percentage' => 40.0,
                 'is_primary'            => true,
+                'is_active'             => true,
                 'status'                => 'active',
                 'metadata'              => self::AVAILABLE_BANKS['PAYSERA'],
             ],
@@ -167,6 +170,7 @@ class UserBankPreference extends Model
                 'bank_name'             => 'Deutsche Bank',
                 'allocation_percentage' => 30.0,
                 'is_primary'            => false,
+                'is_active'             => true,
                 'status'                => 'active',
                 'metadata'              => self::AVAILABLE_BANKS['DEUTSCHE'],
             ],
@@ -175,6 +179,7 @@ class UserBankPreference extends Model
                 'bank_name'             => 'Santander',
                 'allocation_percentage' => 30.0,
                 'is_primary'            => false,
+                'is_active'             => true,
                 'status'                => 'active',
                 'metadata'              => self::AVAILABLE_BANKS['SANTANDER'],
             ],
