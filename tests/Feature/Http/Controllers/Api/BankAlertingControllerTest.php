@@ -2,6 +2,10 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Domain\Custodian\Services\BankAlertingService;
+use App\Domain\Custodian\Services\CircuitBreakerService;
+use App\Domain\Custodian\Services\CustodianHealthMonitor;
+use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -20,6 +24,10 @@ class BankAlertingControllerTest extends ControllerTestCase
 
     protected CustodianHealthMonitor $mockHealthMonitor;
 
+    protected CustodianRegistry $mockRegistry;
+
+    protected CircuitBreakerService $mockCircuitBreaker;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -32,11 +40,17 @@ class BankAlertingControllerTest extends ControllerTestCase
 
         $this->regularUser = User::factory()->create();
 
+        // Create mocks
         $this->mockAlertingService = \Mockery::mock(BankAlertingService::class);
         $this->mockHealthMonitor = \Mockery::mock(CustodianHealthMonitor::class);
+        $this->mockRegistry = \Mockery::mock(CustodianRegistry::class);
+        $this->mockCircuitBreaker = \Mockery::mock(CircuitBreakerService::class);
 
+        // Register mocks with the container
         $this->app->instance(BankAlertingService::class, $this->mockAlertingService);
         $this->app->instance(CustodianHealthMonitor::class, $this->mockHealthMonitor);
+        $this->app->instance(CustodianRegistry::class, $this->mockRegistry);
+        $this->app->instance(CircuitBreakerService::class, $this->mockCircuitBreaker);
     }
 
     #[Test]
