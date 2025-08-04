@@ -437,4 +437,21 @@ class CgoController extends Controller
             ]
         );
     }
+
+    /**
+     * Download investment certificate
+     */
+    public function downloadCertificate($uuid)
+    {
+        $investment = CgoInvestment::where('uuid', $uuid)
+            ->where('user_id', auth()->id())
+            ->where('status', CgoInvestment::STATUS_COMPLETED)
+            ->firstOrFail();
+
+        // For now, return a simple view or redirect
+        // In production, this would generate and download a PDF certificate
+        return redirect()
+            ->route('cgo.investments')
+            ->with('info', 'Certificate download feature coming soon.');
+    }
 }

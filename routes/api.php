@@ -317,46 +317,47 @@ Route::middleware('api.rate_limit:public')->group(function () {
     // Exchange endpoints
     Route::prefix('exchange')->name('api.exchange.')->group(function () {
         // Public routes
-        Route::get('/orderbook/{baseCurrency}/{quoteCurrency}', [App\Http\Controllers\Api\ExchangeController::class, 'getOrderBook']);
-        Route::get('/markets', [App\Http\Controllers\Api\ExchangeController::class, 'getMarkets']);
+        Route::get('/orderbook/{baseCurrency}/{quoteCurrency}', [App\Http\Controllers\Api\ExchangeController::class, 'getOrderBook'])->name('orderbook');
+        Route::get('/markets', [App\Http\Controllers\Api\ExchangeController::class, 'getMarkets'])->name('markets');
 
         // Authenticated routes
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'placeOrder'])
-                ->middleware('transaction.rate_limit:exchange_order');
-            Route::delete('/orders/{orderId}', [App\Http\Controllers\Api\ExchangeController::class, 'cancelOrder']);
-            Route::get('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'getOrders']);
-            Route::get('/trades', [App\Http\Controllers\Api\ExchangeController::class, 'getTrades']);
+                ->middleware('transaction.rate_limit:exchange_order')
+                ->name('orders.place');
+            Route::delete('/orders/{orderId}', [App\Http\Controllers\Api\ExchangeController::class, 'cancelOrder'])->name('orders.cancel');
+            Route::get('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'getOrders'])->name('orders.index');
+            Route::get('/trades', [App\Http\Controllers\Api\ExchangeController::class, 'getTrades'])->name('trades');
         });
     });
 
     // External Exchange endpoints
     Route::prefix('external-exchange')->name('api.external-exchange.')->group(function () {
         // Public routes
-        Route::get('/connectors', [App\Http\Controllers\Api\ExternalExchangeController::class, 'connectors']);
-        Route::get('/ticker/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'ticker']);
-        Route::get('/orderbook/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'orderBook']);
+        Route::get('/connectors', [App\Http\Controllers\Api\ExternalExchangeController::class, 'connectors'])->name('connectors');
+        Route::get('/ticker/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'ticker'])->name('ticker');
+        Route::get('/orderbook/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'orderBook'])->name('orderbook');
 
         // Authenticated routes
         Route::middleware('auth:sanctum')->group(function () {
-            Route::get('/arbitrage/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'arbitrage']);
+            Route::get('/arbitrage/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'arbitrage'])->name('arbitrage');
         });
     });
 
     // Liquidity Pool endpoints
     Route::prefix('liquidity')->name('api.liquidity.')->group(function () {
         // Public routes
-        Route::get('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'index']);
-        Route::get('/pools/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'show']);
+        Route::get('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'index'])->name('pools.index');
+        Route::get('/pools/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'show'])->name('pools.show');
 
         // Authenticated routes
         Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'create']);
-            Route::post('/add', [App\Http\Controllers\Api\LiquidityPoolController::class, 'addLiquidity']);
-            Route::post('/remove', [App\Http\Controllers\Api\LiquidityPoolController::class, 'removeLiquidity']);
-            Route::post('/swap', [App\Http\Controllers\Api\LiquidityPoolController::class, 'swap']);
-            Route::get('/positions', [App\Http\Controllers\Api\LiquidityPoolController::class, 'positions']);
-            Route::post('/claim-rewards', [App\Http\Controllers\Api\LiquidityPoolController::class, 'claimRewards']);
+            Route::post('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'create'])->name('pools.create');
+            Route::post('/add', [App\Http\Controllers\Api\LiquidityPoolController::class, 'addLiquidity'])->name('add');
+            Route::post('/remove', [App\Http\Controllers\Api\LiquidityPoolController::class, 'removeLiquidity'])->name('remove');
+            Route::post('/swap', [App\Http\Controllers\Api\LiquidityPoolController::class, 'swap'])->name('swap');
+            Route::get('/positions', [App\Http\Controllers\Api\LiquidityPoolController::class, 'positions'])->name('positions');
+            Route::post('/claim-rewards', [App\Http\Controllers\Api\LiquidityPoolController::class, 'claimRewards'])->name('claim-rewards');
         });
     });
 });
