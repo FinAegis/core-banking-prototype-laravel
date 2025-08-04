@@ -455,14 +455,14 @@ class BankAllocationController extends Controller
     public function getAvailableBanks(): JsonResponse
     {
         $banks = collect(UserBankPreference::AVAILABLE_BANKS)->map(
-            function ($bankInfo, $bankCode) {
+            function (array $bankInfo, string $bankCode) {
                 return [
                     'bank_code'          => $bankCode,
                     'bank_name'          => $bankInfo['name'],
                     'country'            => $bankInfo['country'],
-                    'currency'           => $bankInfo['currency'],
+                    'currency'           => 'EUR', // All banks currently operate in EUR
                     'insurance_limit'    => $bankInfo['deposit_insurance'],
-                    'supported_features' => $bankInfo['features'] ?? [],
+                    'supported_features' => $bankInfo['features'],
                 ];
             }
         )->values();
