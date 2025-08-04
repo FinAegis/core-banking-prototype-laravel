@@ -9,6 +9,7 @@ use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -20,13 +21,25 @@ class BankAlertingControllerTest extends ControllerTestCase
 
     protected User $regularUser;
 
-    protected BankAlertingService $mockAlertingService;
+    /**
+     * @var BankAlertingService&MockInterface
+     */
+    protected $mockAlertingService;
 
-    protected CustodianHealthMonitor $mockHealthMonitor;
+    /**
+     * @var CustodianHealthMonitor&MockInterface
+     */
+    protected $mockHealthMonitor;
 
-    protected CustodianRegistry $mockRegistry;
+    /**
+     * @var CustodianRegistry&MockInterface
+     */
+    protected $mockRegistry;
 
-    protected CircuitBreakerService $mockCircuitBreaker;
+    /**
+     * @var CircuitBreakerService&MockInterface
+     */
+    protected $mockCircuitBreaker;
 
     protected function setUp(): void
     {
@@ -41,9 +54,13 @@ class BankAlertingControllerTest extends ControllerTestCase
         $this->regularUser = User::factory()->create();
 
         // Create mocks
+        /** @var BankAlertingService&MockInterface */
         $this->mockAlertingService = \Mockery::mock(BankAlertingService::class);
+        /** @var CustodianHealthMonitor&MockInterface */
         $this->mockHealthMonitor = \Mockery::mock(CustodianHealthMonitor::class);
+        /** @var CustodianRegistry&MockInterface */
         $this->mockRegistry = \Mockery::mock(CustodianRegistry::class);
+        /** @var CircuitBreakerService&MockInterface */
         $this->mockCircuitBreaker = \Mockery::mock(CircuitBreakerService::class);
 
         // Register mocks with the container

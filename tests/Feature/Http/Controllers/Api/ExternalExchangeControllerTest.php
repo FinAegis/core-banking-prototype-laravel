@@ -6,11 +6,12 @@ use App\Domain\Exchange\Contracts\IExternalExchangeConnector;
 use App\Domain\Exchange\Services\ExternalExchangeConnectorRegistry;
 use App\Domain\Exchange\Services\ExternalLiquidityService;
 use App\Domain\Exchange\ValueObjects\ExternalTicker;
-use Brick\Math\BigDecimal;
 use App\Models\User;
+use Brick\Math\BigDecimal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Laravel\Sanctum\Sanctum;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -20,11 +21,20 @@ class ExternalExchangeControllerTest extends ControllerTestCase
 
     protected User $user;
 
-    protected ExternalExchangeConnectorRegistry $mockRegistry;
+    /**
+     * @var ExternalExchangeConnectorRegistry&MockInterface
+     */
+    protected $mockRegistry;
 
-    protected ExternalLiquidityService $mockLiquidityService;
+    /**
+     * @var ExternalLiquidityService&MockInterface
+     */
+    protected $mockLiquidityService;
 
-    protected IExternalExchangeConnector $mockConnector;
+    /**
+     * @var IExternalExchangeConnector&MockInterface
+     */
+    protected $mockConnector;
 
     protected function setUp(): void
     {
@@ -33,8 +43,11 @@ class ExternalExchangeControllerTest extends ControllerTestCase
         $this->user = User::factory()->create();
 
         // Create mocks
+        /** @var ExternalExchangeConnectorRegistry&MockInterface */
         $this->mockRegistry = \Mockery::mock(ExternalExchangeConnectorRegistry::class);
+        /** @var ExternalLiquidityService&MockInterface */
         $this->mockLiquidityService = \Mockery::mock(ExternalLiquidityService::class);
+        /** @var IExternalExchangeConnector&MockInterface */
         $this->mockConnector = \Mockery::mock(IExternalExchangeConnector::class);
 
         // Register mocks with the container

@@ -10,6 +10,7 @@ use App\Domain\Exchange\ValueObjects\RateProviderCapabilities;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -19,11 +20,20 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
 
     protected User $user;
 
-    protected ExchangeRateProviderRegistry $mockRegistry;
+    /**
+     * @var ExchangeRateProviderRegistry&MockInterface
+     */
+    protected $mockRegistry;
 
-    protected EnhancedExchangeRateService $mockService;
+    /**
+     * @var EnhancedExchangeRateService&MockInterface
+     */
+    protected $mockService;
 
-    protected IExchangeRateProvider $mockProvider;
+    /**
+     * @var IExchangeRateProvider&MockInterface
+     */
+    protected $mockProvider;
 
     protected function setUp(): void
     {
@@ -32,8 +42,11 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         $this->user = User::factory()->create();
 
         // Create mocks
+        /** @var ExchangeRateProviderRegistry&MockInterface */
         $this->mockRegistry = \Mockery::mock(ExchangeRateProviderRegistry::class);
+        /** @var EnhancedExchangeRateService&MockInterface */
         $this->mockService = \Mockery::mock(EnhancedExchangeRateService::class);
+        /** @var IExchangeRateProvider&MockInterface */
         $this->mockProvider = \Mockery::mock(IExchangeRateProvider::class);
 
         // Register mocks with the container
