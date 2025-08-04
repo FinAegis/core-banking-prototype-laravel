@@ -3,6 +3,8 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Exchange\Projections\Order;
+use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
