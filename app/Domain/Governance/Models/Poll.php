@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Governance\Models;
 
 use App\Domain\Governance\Database\Factories\PollFactory;
+use App\Domain\Governance\Enums\PollStatus;
+use App\Domain\Governance\Enums\PollType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

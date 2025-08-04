@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\GdprController;
 use App\Http\Controllers\Api\KycController;
 use App\Http\Controllers\Api\PollController;
 use App\Http\Controllers\Api\RegulatoryReportingController;
+use App\Http\Controllers\Api\RiskAnalysisController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StablecoinController;
 use App\Http\Controllers\Api\StablecoinOperationsController;
@@ -482,6 +483,26 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
         Route::post('/delete', [GdprController::class, 'requestDeletion']);
         Route::get('/retention-policy', [GdprController::class, 'retentionPolicy']);
     });
+});
+
+// Risk Analysis endpoints
+Route::middleware('auth:sanctum')->prefix('risk')->group(function () {
+    // User risk endpoints
+    Route::prefix('users/{userId}')->group(function () {
+        Route::get('/profile', [RiskAnalysisController::class, 'getUserRiskProfile']);
+        Route::get('/history', [RiskAnalysisController::class, 'getRiskHistory']);
+        Route::get('/devices', [RiskAnalysisController::class, 'getDeviceHistory']);
+    });
+    
+    // Transaction risk endpoints
+    Route::get('/transactions/{transactionId}/analyze', [RiskAnalysisController::class, 'analyzeTransaction']);
+    Route::post('/transactions/{transactionId}/analyze', [RiskAnalysisController::class, 'analyzeTransaction']);
+    
+    // General risk endpoints
+    Route::post('/calculate', [RiskAnalysisController::class, 'calculateRiskScore']);
+    Route::post('/device-fingerprint', [RiskAnalysisController::class, 'storeDeviceFingerprint']);
+    Route::get('/factors', [RiskAnalysisController::class, 'getRiskFactors']);
+    Route::get('/models', [RiskAnalysisController::class, 'getRiskModels']);
 });
 
 // Custodian webhook endpoints (signature verification + webhook rate limiting)

@@ -167,7 +167,7 @@ class N1QueryOptimizationTest extends TestCase
         DB::flushQueryLog();
 
         // Make the request
-        $response = $this->getJson('/api/assets/BTC');
+        $response = $this->getJson('/api/v1/assets/BTC');
 
         $response->assertSuccessful();
 
@@ -215,19 +215,18 @@ class N1QueryOptimizationTest extends TestCase
                 'end_date'               => now()->addDays(7),
                 'created_by'             => $user->uuid,
                 'required_participation' => 0,
-                'allow_multiple_votes'   => false,
-                'voting_power_strategy'  => null,
-                'execution_strategy'     => null,
+                'voting_power_strategy'  => \App\Domain\Governance\Strategies\OneUserOneVoteStrategy::class,
                 'metadata'               => [],
             ]);
 
             // Create votes for first 5 polls
             if ($i <= 5) {
                 Vote::create([
-                    'poll_uuid'        => $poll->uuid,
+                    'poll_id'          => $poll->id,
                     'user_uuid'        => $user->uuid,
                     'selected_options' => ['option1'],
                     'voting_power'     => rand(100, 1000),
+                    'voted_at'         => now(),
                 ]);
             }
         }
