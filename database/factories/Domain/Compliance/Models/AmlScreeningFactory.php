@@ -22,27 +22,27 @@ class AmlScreeningFactory extends Factory
     {
         $user = User::factory()->create();
         $status = $this->faker->randomElement(['pending', 'in_progress', 'completed', 'failed']);
-        
+
         return [
-            'entity_id' => $user->uuid,
-            'entity_type' => 'user',
-            'screening_number' => 'AML-' . date('Y') . '-' . str_pad($this->faker->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
-            'type' => $this->faker->randomElement(['sanctions', 'pep', 'adverse_media', 'comprehensive']),
-            'status' => $status,
-            'provider' => $this->faker->randomElement(['dow_jones', 'refinitiv', 'manual']),
+            'entity_id'          => $user->uuid,
+            'entity_type'        => 'user',
+            'screening_number'   => 'AML-' . date('Y') . '-' . str_pad($this->faker->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
+            'type'               => $this->faker->randomElement(['sanctions', 'pep', 'adverse_media', 'comprehensive']),
+            'status'             => $status,
+            'provider'           => $this->faker->randomElement(['dow_jones', 'refinitiv', 'manual']),
             'provider_reference' => $this->faker->uuid(),
-            'search_parameters' => [
-                'name' => $user->name,
+            'search_parameters'  => [
+                'name'          => $user->name,
                 'date_of_birth' => $this->faker->date(),
-                'countries' => [$this->faker->countryCode()],
+                'countries'     => [$this->faker->countryCode()],
             ],
-            'screening_config' => [],
-            'fuzzy_matching' => true,
-            'match_threshold' => 85,
-            'total_matches' => $this->faker->numberBetween(0, 5),
+            'screening_config'  => [],
+            'fuzzy_matching'    => true,
+            'match_threshold'   => 85,
+            'total_matches'     => $this->faker->numberBetween(0, 5),
             'confirmed_matches' => 0,
-            'false_positives' => 0,
-            'overall_risk' => $this->faker->randomElement(['low', 'medium', 'high']),
+            'false_positives'   => 0,
+            'overall_risk'      => $this->faker->randomElement(['low', 'medium', 'high']),
         ];
     }
 
@@ -52,7 +52,7 @@ class AmlScreeningFactory extends Factory
     public function completed(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'completed',
+            'status'       => 'completed',
             'completed_at' => now(),
         ]);
     }
@@ -63,10 +63,10 @@ class AmlScreeningFactory extends Factory
     public function lowRisk(): static
     {
         return $this->state(fn (array $attributes) => [
-            'overall_risk' => 'low',
-            'total_matches' => 0,
+            'overall_risk'      => 'low',
+            'total_matches'     => 0,
             'confirmed_matches' => 0,
-            'false_positives' => 0,
+            'false_positives'   => 0,
         ]);
     }
 
@@ -76,8 +76,8 @@ class AmlScreeningFactory extends Factory
     public function highRisk(): static
     {
         return $this->state(fn (array $attributes) => [
-            'overall_risk' => 'high',
-            'total_matches' => $this->faker->numberBetween(1, 3),
+            'overall_risk'      => 'high',
+            'total_matches'     => $this->faker->numberBetween(1, 3),
             'confirmed_matches' => $this->faker->numberBetween(1, 2),
         ]);
     }
@@ -88,7 +88,7 @@ class AmlScreeningFactory extends Factory
     public function pending(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'pending',
+            'status'       => 'pending',
             'completed_at' => null,
         ]);
     }

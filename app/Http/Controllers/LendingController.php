@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Account\Models\Account;
-use App\Domain\Lending\DataObjects\LoanApplication;
 use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Services\CollateralManagementService;
 use App\Domain\Lending\Services\CreditScoringService;

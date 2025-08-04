@@ -103,6 +103,4 @@ class LendingControllerTest extends ControllerTestCase
         $response = $this->get(route('lending.apply'));
         $response->assertRedirect(route('login'));
     }
-
-
 }

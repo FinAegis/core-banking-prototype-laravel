@@ -60,8 +60,8 @@ class ComplianceControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user);
 
         $kycVerification = KycVerification::factory()->verified()->create([
-            'user_id'     => $this->user->id,
-            'type'        => 'identity',
+            'user_id' => $this->user->id,
+            'type'    => 'identity',
         ]);
 
         $response = $this->getJson("{$this->apiPrefix}/compliance/kyc/status");
@@ -95,7 +95,7 @@ class ComplianceControllerTest extends ControllerTestCase
             'data' => [
                 'kyc_level'  => 'basic',
                 'kyc_status' => 'not_started',
-                'limits' => [
+                'limits'     => [
                     'daily'   => 0,
                     'monthly' => 0,
                     'single'  => 0,
@@ -195,8 +195,8 @@ class ComplianceControllerTest extends ControllerTestCase
                 'confidence_score' => 85.5,
                 'extracted_data'   => [
                     'document_number' => 'ABC123456',
-                    'first_name' => 'John',
-                    'last_name' => 'Doe',
+                    'first_name'      => 'John',
+                    'last_name'       => 'Doe',
                 ],
             ]);
 
@@ -267,9 +267,9 @@ class ComplianceControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user);
 
         $verification = KycVerification::factory()->create([
-            'user_id' => $this->user->id,
-            'type'    => 'identity',
-            'status'  => 'in_progress',
+            'user_id'          => $this->user->id,
+            'type'             => 'identity',
+            'status'           => 'in_progress',
             'confidence_score' => 85,
         ]);
 
@@ -284,7 +284,7 @@ class ComplianceControllerTest extends ControllerTestCase
                 'liveness_score'   => 95.0,
                 'face_match_score' => 88.5,
             ]);
-        
+
         $this->mockKycService
             ->shouldReceive('completeVerification')
             ->with(\Mockery::type(KycVerification::class))

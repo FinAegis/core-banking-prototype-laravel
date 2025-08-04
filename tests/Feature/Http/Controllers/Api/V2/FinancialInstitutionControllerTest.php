@@ -125,7 +125,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
             ->assertJson([
                 'data' => [
                     'application_number' => $application->application_number,
-                    'status'            => 'pending',
+                    'status'             => 'pending',
                 ],
             ]);
     }
@@ -203,7 +203,6 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
             ->assertJsonValidationErrors(['document']);
     }
 
-
     private function getValidApplicationData(): array
     {
         return [
@@ -218,21 +217,21 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
             'years_in_operation'        => 10,
             'primary_regulator'         => 'FCA',
             'regulatory_license_number' => 'FCA123456',
-            
+
             // Contact Information
             'contact_name'       => 'John Doe',
             'contact_email'      => 'john@testbank.com',
             'contact_phone'      => '+441234567890',
             'contact_position'   => 'Chief Compliance Officer',
             'contact_department' => 'Compliance',
-            
+
             // Address Information
             'headquarters_address'     => '123 Bank Street',
             'headquarters_city'        => 'London',
             'headquarters_state'       => null,
             'headquarters_postal_code' => 'EC1A 1AA',
             'headquarters_country'     => 'GB',
-            
+
             // Business Information
             'business_description'          => 'Test Bank Limited is a commercial bank providing retail and corporate banking services with over 10 years of experience in the financial sector.',
             'target_markets'                => ['GB', 'EU'],
@@ -240,14 +239,14 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
             'expected_monthly_transactions' => 10000,
             'expected_monthly_volume'       => 100000000,
             'required_currencies'           => ['EUR', 'USD', 'GBP'],
-            
+
             // Technical Requirements
             'integration_requirements' => ['API', 'Webhooks', 'Reporting'],
             'requires_api_access'      => true,
             'requires_webhooks'        => true,
             'requires_reporting'       => true,
             'security_certifications'  => ['ISO27001', 'SOC2'],
-            
+
             // Compliance Information
             'has_aml_program'            => true,
             'has_kyc_procedures'         => true,

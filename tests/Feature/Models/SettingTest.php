@@ -25,9 +25,11 @@ class SettingTest extends TestCase
             // If value starts with 'encrypted:', remove it and return JSON encoded result
             if (str_starts_with($value, 'encrypted:')) {
                 $decrypted = str_replace('encrypted:', '', $value);
+
                 // The Setting model expects the decrypted value to be JSON encoded
                 return json_encode($decrypted);
             }
+
             // Otherwise just return the value (for decrypting actual encrypted values)
             return $value;
         });
@@ -126,7 +128,7 @@ class SettingTest extends TestCase
 
         $setting->setRawAttributes(['value' => '1', 'type' => 'boolean']);
         $this->assertTrue($setting->value);
-        
+
         $setting->setRawAttributes(['value' => '0', 'type' => 'boolean']);
         $this->assertFalse($setting->value);
 
@@ -208,7 +210,7 @@ class SettingTest extends TestCase
 
         // When value is null and type is string, PHP's (string) cast converts null to empty string
         $this->assertEquals('', $setting->value);
-        
+
         // Test with json type to get actual null
         $setting->setRawAttributes(['value' => null, 'type' => 'json']);
         $this->assertNull($setting->value);
