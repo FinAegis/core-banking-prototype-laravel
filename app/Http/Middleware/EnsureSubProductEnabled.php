@@ -76,13 +76,13 @@ class EnsureSubProductEnabled
         }
 
         // Add sub-product info to request for downstream use
-        $request->attributes->set('sub_product', $subProduct ?? $parameter);
+        $request->attributes->set('sub_product', $subProduct);
 
         $response = $next($request);
 
         // Add sub-product header to response
         if ($response instanceof Response) {
-            $response->headers->set('X-SubProduct-Required', $subProduct ?? $parameter);
+            $response->headers->set('X-SubProduct-Required', $subProduct);
         }
 
         return $response;

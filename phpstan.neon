@@ -15,6 +15,9 @@ parameters:
     checkModelProperties: true
     checkUnionTypes: true
     ignoreErrors:
+        # Mockery methods
+        - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::with\(\)#'
+        - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::(once|twice|times|never|andReturn|andReturnTrue|andReturnFalse)\(\)#'
         # Eloquent model magic methods
         - '#Call to an undefined static method App\\Domain\\[a-zA-Z\\]+\\Projections\\[a-zA-Z]+::#'
         - '#Access to an undefined property App\\Domain\\[a-zA-Z\\]+\\Projections\\[a-zA-Z]+::\$#'
