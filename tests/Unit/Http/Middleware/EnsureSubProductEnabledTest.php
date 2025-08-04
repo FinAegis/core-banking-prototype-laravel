@@ -74,7 +74,8 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         $this->assertEquals(403, $response->getStatusCode());
 
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Sub-product lending is not enabled', $content['error']);
+        $this->assertEquals('Feature not available', $content['error']);
+        $this->assertEquals('The lending sub-product is not enabled', $content['message']);
     }
 
     #[Test]
@@ -118,7 +119,8 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         $this->assertEquals(403, $response->getStatusCode());
 
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Feature derivatives is not enabled for sub-product exchange', $content['error']);
+        $this->assertEquals('Feature not available', $content['error']);
+        $this->assertEquals('The feature derivatives is not enabled for sub-product exchange', $content['message']);
     }
 
     #[Test]
@@ -174,7 +176,8 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         $this->assertEquals(403, $response->getStatusCode());
 
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('None of the required features [sme_loans, p2p_marketplace] are enabled for sub-product lending', $content['error']);
+        $this->assertEquals('Feature not available', $content['error']);
+        $this->assertEquals('None of the required features [sme_loans, p2p_marketplace] are enabled for sub-product lending', $content['message']);
     }
 
     #[Test]
@@ -191,7 +194,8 @@ class EnsureSubProductEnabledTest extends UnitTestCase
 
         $this->assertEquals(500, $response->getStatusCode());
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Sub-product parameter is required', $content['error']);
+        $this->assertEquals('Configuration error', $content['error']);
+        $this->assertEquals('Sub-product parameter is required', $content['message']);
     }
 
     #[Test]
@@ -216,7 +220,8 @@ class EnsureSubProductEnabledTest extends UnitTestCase
         $this->assertEquals('application/json', $response->headers->get('Content-Type'));
 
         $content = json_decode($response->getContent(), true);
-        $this->assertEquals('Sub-product lending is not enabled', $content['error']);
+        $this->assertEquals('Feature not available', $content['error']);
+        $this->assertEquals('The lending sub-product is not enabled', $content['message']);
     }
 
     #[Test]

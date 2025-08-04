@@ -88,11 +88,12 @@ test('detects suspicious patterns for SAR candidates', function () {
         $event->aggregate_version = $i + 1;
         $event->event_version = 1;
         $event->event_class = MoneyAdded::class;
-        $event->event_properties = json_encode([
+        $event->event_properties = [
             'money' => ['amount' => 950000, 'currency' => 'USD'], // Just under $10k
             'hash'  => ['value' => hash('sha3-512', "test{$i}")],
-        ]);
-        $event->meta_data = json_encode([]);
+        ];
+        /** @phpstan-ignore-next-line */
+        $event->meta_data = [];
         $event->created_at = $startDate->copy()->addHours($i);
         $event->save();
     }
@@ -178,11 +179,12 @@ test('detects round number transaction patterns', function () {
             $event->aggregate_version = ($i * 2) + $j + 1;
             $event->event_version = 1;
             $event->event_class = MoneyAdded::class;
-            $event->event_properties = json_encode([
+            $event->event_properties = [
                 'money' => ['amount' => $amount, 'currency' => 'USD'],
                 'hash'  => ['value' => hash('sha3-512', "test{$i}{$j}")],
-            ]);
-            $event->meta_data = json_encode([]);
+            ];
+            /** @phpstan-ignore-next-line */
+            $event->meta_data = [];
             $event->created_at = $startDate->copy()->addDays($i);
             $event->save();
         }

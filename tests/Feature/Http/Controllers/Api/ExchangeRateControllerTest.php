@@ -30,9 +30,18 @@ class ExchangeRateControllerTest extends ControllerTestCase
         $this->user = User::factory()->create();
 
         // Create test assets
-        $this->usd = Asset::factory()->create(['code' => 'USD', 'precision' => 2]);
-        $this->eur = Asset::factory()->create(['code' => 'EUR', 'precision' => 2]);
-        $this->gbp = Asset::factory()->create(['code' => 'GBP', 'precision' => 2]);
+        $this->usd = Asset::firstOrCreate(
+            ['code' => 'USD'],
+            ['name' => 'US Dollar', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]
+        );
+        $this->eur = Asset::firstOrCreate(
+            ['code' => 'EUR'],
+            ['name' => 'Euro', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]
+        );
+        $this->gbp = Asset::firstOrCreate(
+            ['code' => 'GBP'],
+            ['name' => 'British Pound', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]
+        );
     }
 
     #[Test]
