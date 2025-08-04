@@ -643,10 +643,17 @@ class TransactionStatusController extends Controller
         $data = (array) $originalTransaction;
 
         // Remove fields that are not columns in the table
-        unset($data['id'], $data['created_at'], $data['updated_at'],
-               $data['cancelled_at'], $data['cancelled_by'],
-               $data['retried_at'], $data['retry_transaction_id'],
-               $data['account_name'], $data['source']); // Remove joined fields
+        unset(
+            $data['id'],
+            $data['created_at'],
+            $data['updated_at'],
+            $data['cancelled_at'],
+            $data['cancelled_by'],
+            $data['retried_at'],
+            $data['retry_transaction_id'],
+            $data['account_name'],
+            $data['source']
+        ); // Remove joined fields
 
         $data['status'] = 'pending';
         $data['parent_transaction_id'] = $originalTransaction->uuid; // Use UUID instead of ID
