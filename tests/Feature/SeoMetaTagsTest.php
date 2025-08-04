@@ -56,8 +56,9 @@ class SeoMetaTagsTest extends TestCase
 
             $response->assertStatus(200);
 
-            // Check title
-            $response->assertSee('<title>' . $expectations['title'] . '</title>', false);
+            // Check title - handle HTML entities in the title
+            $expectedTitle = htmlspecialchars($expectations['title'], ENT_QUOTES, 'UTF-8');
+            $response->assertSee('<title>' . $expectedTitle . '</title>', false);
 
             // Check meta description
             if ($expectations['hasDescription']) {

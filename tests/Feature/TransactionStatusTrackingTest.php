@@ -24,8 +24,8 @@ class TransactionStatusTrackingTest extends DomainTestCase
     {
         parent::setUp();
 
-        // Create user and account
-        $this->user = User::factory()->create();
+        // Create user with team (required for Jetstream)
+        $this->user = User::factory()->withPersonalTeam()->create();
         $this->account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
         ]);
