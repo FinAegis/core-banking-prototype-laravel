@@ -138,10 +138,8 @@ class SubscriberEmailService
      */
     public function processUnsubscribe(string $email, ?string $reason = null): bool
     {
-        /** @var mixed|null $subscriber */
-        $subscriber = null;
-        /** @var \Illuminate\Database\Eloquent\Model|null $$subscriber */
-        $$subscriber = Subscriber::where('email', $email)->first();
+        /** @var \App\Domain\Newsletter\Models\Subscriber|null $subscriber */
+        $subscriber = Subscriber::where('email', $email)->first();
 
         if ($subscriber && $subscriber->isActive()) {
             $subscriber->unsubscribe($reason);
