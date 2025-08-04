@@ -22,6 +22,9 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         $this->user = User::factory()->create();
 
+        // Enable rate limiting in tests
+        config(['rate_limiting.force_in_tests' => true]);
+
         // Clear rate limit cache
         Cache::flush();
 
@@ -49,7 +52,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         // Deposits allow 10 per hour
         for ($i = 0; $i < 10; $i++) {
-            $response = $this->postJson('/test-deposit', ['amount' => 1000]);
+            $response = $this->postJson('/test-deposit', ['amount' => 10]); // $10
             $response->assertStatus(200)
                 ->assertJson(['message' => 'deposit successful']);
         }
@@ -62,11 +65,12 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         // Make 10 deposits (the limit)
         for ($i = 0; $i < 10; $i++) {
-            $this->postJson('/test-deposit', ['amount' => 1000])->assertStatus(200);
+            $response = $this->postJson('/test-deposit', ['amount' => 10]); // $10 each
+            $response->assertStatus(200);
         }
 
         // 11th deposit should be blocked
-        $response = $this->postJson('/test-deposit', ['amount' => 1000]);
+        $response = $this->postJson('/test-deposit', ['amount' => 10]);
         $response->assertStatus(429)
             ->assertJsonStructure([
                 'error',
@@ -84,18 +88,18 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         // Withdrawals allow 5 per hour, 20 per day
         // We'll simulate reaching the daily limit by manipulating the cache
-        $userUuid = $this->user->uuid;
-        $dailyKey = "transaction_limit:withdraw:daily:{$userUuid}";
+        $userId = $this->user->id;
+        $dailyKey = "tx_rate_limit:{$userId}:withdraw:daily";
 
         // Set daily count to 19 (one below limit)
         Cache::put($dailyKey, 19, 86400);
 
         // First withdrawal should succeed (reaching daily limit)
-        $response = $this->postJson('/test-withdraw', ['amount' => 1000]);
+        $response = $this->postJson('/test-withdraw', ['amount' => 10]); // $10
         $response->assertStatus(200);
 
         // Next withdrawal should fail due to daily limit
-        $response = $this->postJson('/test-withdraw', ['amount' => 1000]);
+        $response = $this->postJson('/test-withdraw', ['amount' => 10]);
         $response->assertStatus(429)
             ->assertJsonPath('limit_type', 'daily_count');
     }
@@ -107,7 +111,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         // Deposits have $1000 per hour limit (100000 cents)
         // Make a large deposit that exceeds the hourly amount limit
-        $response = $this->postJson('/test-deposit', ['amount' => 150000]); // $1500
+        $response = $this->postJson('/test-deposit', ['amount' => 1500]); // $1500
 
         $response->assertStatus(429)
             ->assertJsonStructure([
@@ -129,12 +133,12 @@ class TransactionRateLimitMiddlewareTest extends TestCase
         // Make multiple small deposits that together exceed the amount limit
         // Amount limit is $1000 (100000 cents)
         for ($i = 0; $i < 5; $i++) {
-            $response = $this->postJson('/test-deposit', ['amount' => 15000]); // $150 each
+            $response = $this->postJson('/test-deposit', ['amount' => 150]); // $150 each
             $response->assertStatus(200);
         }
 
         // Next deposit should fail as we've used $750 of $1000 limit
-        $response = $this->postJson('/test-deposit', ['amount' => 30000]); // $300
+        $response = $this->postJson('/test-deposit', ['amount' => 300]); // $300
         $response->assertStatus(429)
             ->assertJsonPath('limit_type', 'hourly_amount');
     }
@@ -146,12 +150,12 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         // Use up deposit limit (10 per hour)
         for ($i = 0; $i < 10; $i++) {
-            $this->postJson('/test-deposit', ['amount' => 1000])->assertStatus(200);
+            $this->postJson('/test-deposit', ['amount' => 10])->assertStatus(200);
         }
-        $this->postJson('/test-deposit', ['amount' => 1000])->assertStatus(429);
+        $this->postJson('/test-deposit', ['amount' => 10])->assertStatus(429);
 
         // Withdrawals should still work (separate limit of 5 per hour)
-        $response = $this->postJson('/test-withdraw', ['amount' => 1000]);
+        $response = $this->postJson('/test-withdraw', ['amount' => 10]);
         $response->assertStatus(200)
             ->assertJson(['message' => 'withdraw successful']);
     }
@@ -161,7 +165,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
     {
         Sanctum::actingAs($this->user);
 
-        $response = $this->postJson('/test-transfer', ['amount' => 1000]);
+        $response = $this->postJson('/test-transfer', ['amount' => 10]);
 
         $response->assertStatus(200)
             ->assertHeader('X-RateLimit-Transaction-Limit', '15')
@@ -177,11 +181,11 @@ class TransactionRateLimitMiddlewareTest extends TestCase
         // Withdrawals have progressive delay enabled
         // Use up the limit (5 per hour)
         for ($i = 0; $i < 5; $i++) {
-            $this->postJson('/test-withdraw', ['amount' => 1000])->assertStatus(200);
+            $this->postJson('/test-withdraw', ['amount' => 10])->assertStatus(200);
         }
 
         // First over-limit attempt
-        $response1 = $this->postJson('/test-withdraw', ['amount' => 1000]);
+        $response1 = $this->postJson('/test-withdraw', ['amount' => 10]);
         $response1->assertStatus(429);
         $retryAfter1 = $response1->json('retry_after');
 
@@ -189,7 +193,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
         $this->travel(1)->seconds();
 
         // Second over-limit attempt should have longer delay
-        $response2 = $this->postJson('/test-withdraw', ['amount' => 1000]);
+        $response2 = $this->postJson('/test-withdraw', ['amount' => 10]);
         $response2->assertStatus(429);
         $retryAfter2 = $response2->json('retry_after');
 
@@ -201,7 +205,7 @@ class TransactionRateLimitMiddlewareTest extends TestCase
     public function test_requires_authentication(): void
     {
         // Not authenticated
-        $response = $this->postJson('/test-deposit', ['amount' => 1000]);
+        $response = $this->postJson('/test-deposit', ['amount' => 10]);
         $response->assertStatus(401);
     }
 
@@ -230,15 +234,15 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         // Use up withdrawal limit
         for ($i = 0; $i < 5; $i++) {
-            $this->postJson('/test-withdraw', ['amount' => 1000])->assertStatus(200);
+            $this->postJson('/test-withdraw', ['amount' => 10])->assertStatus(200);
         }
-        $this->postJson('/test-withdraw', ['amount' => 1000])->assertStatus(429);
+        $this->postJson('/test-withdraw', ['amount' => 10])->assertStatus(429);
 
         // Travel forward past the hourly window
         $this->travel(61)->minutes();
 
         // Should be able to withdraw again
-        $response = $this->postJson('/test-withdraw', ['amount' => 1000]);
+        $response = $this->postJson('/test-withdraw', ['amount' => 10]);
         $response->assertStatus(200)
             ->assertJson(['message' => 'withdraw successful']);
     }
@@ -250,11 +254,11 @@ class TransactionRateLimitMiddlewareTest extends TestCase
 
         // Rapidly attempt many transactions to trigger suspicious activity
         for ($i = 0; $i < 15; $i++) {
-            $this->postJson('/test-transfer', ['amount' => 1000]);
+            $this->postJson('/test-transfer', ['amount' => 10]);
         }
 
         // After hitting the limit multiple times, should see security notice
-        $response = $this->postJson('/test-transfer', ['amount' => 1000]);
+        $response = $this->postJson('/test-transfer', ['amount' => 10]);
         $response->assertStatus(429)
             ->assertJsonHasPath('security_notice');
     }
