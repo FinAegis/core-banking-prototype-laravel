@@ -70,16 +70,17 @@ class LendingController extends Controller
     {
         $validated = $request->validate(
             [
-                'account_id'        => 'required|uuid',
-                'loan_product'      => 'required|string',
-                'amount'            => 'required|numeric|min:100|max:1000000',
-                'term_months'       => 'required|integer|min:1|max:360',
-                'purpose'           => 'required|string|max:500',
-                'collateral_type'   => 'required|in:crypto,asset,none',
-                'collateral_asset'  => 'required_unless:collateral_type,none|string',
-                'collateral_amount' => 'required_unless:collateral_type,none|numeric|min:0',
-                'employment_status' => 'required|string',
-                'annual_income'     => 'required|numeric|min:0',
+                'account_id'          => 'required|uuid',
+                'loan_product'        => 'required|string',
+                'amount'              => 'required|numeric|min:100|max:1000000',
+                'term_months'         => 'required|integer|min:1|max:360',
+                'purpose'             => 'required|in:personal,business,home_improvement,debt_consolidation,education,medical,vehicle,other',
+                'purpose_description' => 'nullable|string|max:500',
+                'collateral_type'     => 'required|in:crypto,asset,none',
+                'collateral_asset'    => 'required_unless:collateral_type,none|string',
+                'collateral_amount'   => 'required_unless:collateral_type,none|numeric|min:0',
+                'employment_status'   => 'required|in:employed,self_employed,unemployed,retired,student',
+                'annual_income'       => 'required|numeric|min:0',
             ]
         );
 
@@ -92,29 +93,36 @@ class LendingController extends Controller
         }
 
         try {
-            // Create loan application
-            $application = new LoanApplication(
-                applicationUuid: Str::uuid()->toString(),
-                borrowerAccountUuid: $account->uuid,
-                loanProduct: $validated['loan_product'],
-                amount: $validated['amount'],
-                termMonths: $validated['term_months'],
-                purpose: $validated['purpose'],
-                collateralType: $validated['collateral_type'],
-                collateralDetails: $validated['collateral_type'] !== 'none' ? [
-                    'asset'  => $validated['collateral_asset'],
-                    'amount' => $validated['collateral_amount'],
-                ] : [],
-                employmentStatus: $validated['employment_status'],
-                annualIncome: $validated['annual_income'],
-                metadata: []
-            );
-
-            // Submit application
-            $result = $this->loanApplicationService->submitApplication($application);
+            // Create loan application using fromArray method
+            $applicationData = [
+                'application_id'      => Str::uuid()->toString(),
+                'borrower_id'         => Auth::user()->uuid,
+                'borrower_account_id' => $account->uuid,
+                'amount'              => $validated['amount'],
+                'requested_amount'    => $validated['amount'],
+                'term_months'         => $validated['term_months'],
+                'purpose'             => $validated['purpose'],
+                'purpose_description' => $validated['purpose_description'] ?? null,
+                'employment_status'   => $validated['employment_status'],
+                'monthly_income'      => (string) ($validated['annual_income'] / 12),
+                'monthly_expenses'    => '0', // Not collected in this form
+                'collateral'          => $validated['collateral_type'] !== 'none' ? [
+                    'type'   => $validated['collateral_type'],
+                    'asset'  => $validated['collateral_asset'] ?? null,
+                    'amount' => $validated['collateral_amount'] ?? null,
+                ] : null,
+                'documents' => [],
+                'metadata'  => [
+                    'loan_product'  => $validated['loan_product'],
+                    'annual_income' => $validated['annual_income'],
+                ],
+            ];
+            
+            // Submit application with the array data
+            $result = $this->loanApplicationService->submitApplication($applicationData);
 
             return redirect()
-                ->route('lending.application', $result['application_uuid'])
+                ->route('lending.application', $applicationData['application_id'])
                 ->with('success', 'Loan application submitted successfully');
         } catch (\Exception $e) {
             return back()
