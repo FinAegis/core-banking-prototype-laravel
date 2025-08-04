@@ -140,30 +140,8 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
      */
     public function getPoolMetrics(string $poolId): array
     {
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var \App\Domain\Liquidity\Models\LiquidityPool|null $pool */
-        $pool = null;
-        /** @var PoolProjection $$pool */
-        $$pool = PoolProjection::where()->firstOrFail();
+        /** @var PoolProjection $pool */
+        $pool = PoolProjection::where('pool_id', $poolId)->firstOrFail();
 
         $baseReserve = BigDecimal::of($pool->base_reserve);
         $quoteReserve = BigDecimal::of($pool->quote_reserve);
