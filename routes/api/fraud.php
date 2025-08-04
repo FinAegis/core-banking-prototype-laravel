@@ -11,13 +11,13 @@ Route::middleware(['auth:sanctum'])->prefix('fraud')->group(function () {
     Route::get('dashboard', [FraudDetectionController::class, 'dashboard'])
         ->name('fraud.dashboard');
     Route::get('alerts', [FraudDetectionController::class, 'getAlerts'])
-        ->name('fraud.alerts.index');
+        ->name('api.fraud.alerts.index');
     Route::get('alerts/{id}', [FraudDetectionController::class, 'getAlertDetails'])
-        ->name('fraud.alerts.show');
+        ->name('api.fraud.alerts.show');
     Route::post('alerts/{id}/acknowledge', [FraudDetectionController::class, 'acknowledgeAlert'])
-        ->name('fraud.alerts.acknowledge');
+        ->name('api.fraud.alerts.acknowledge');
     Route::post('alerts/{id}/investigate', [FraudDetectionController::class, 'investigateAlert'])
-        ->name('fraud.alerts.investigate');
+        ->name('api.fraud.alerts.investigate');
     Route::get('statistics', [FraudDetectionController::class, 'getStatistics'])
         ->name('fraud.statistics.main');
     Route::get('patterns', [FraudDetectionController::class, 'getPatterns'])
