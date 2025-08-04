@@ -117,7 +117,7 @@ class LendingController extends Controller
                     'annual_income' => $validated['annual_income'],
                 ],
             ];
-            
+
             // Submit application with the array data
             $result = $this->loanApplicationService->submitApplication($applicationData);
 

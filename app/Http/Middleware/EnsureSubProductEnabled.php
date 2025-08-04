@@ -79,12 +79,12 @@ class EnsureSubProductEnabled
         $request->attributes->set('sub_product', $subProduct ?? $parameter);
 
         $response = $next($request);
-        
+
         // Add sub-product header to response
         if ($response instanceof Response) {
             $response->headers->set('X-SubProduct-Required', $subProduct ?? $parameter);
         }
-        
+
         return $response;
     }
 
@@ -100,12 +100,12 @@ class EnsureSubProductEnabled
             ],
             $statusCode
         );
-        
+
         // Add sub-product header if available
         if ($subProduct) {
             $response->headers->set('X-SubProduct-Required', $subProduct);
         }
-        
+
         return $response;
     }
 }
