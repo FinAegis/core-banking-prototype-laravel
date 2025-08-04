@@ -35,7 +35,8 @@ class RegulatoryReportingService
             ->get()
             ->filter(
                 function ($event) use ($threshold) {
-                    $properties = json_decode($event->event_properties, true);
+                    /** @var StoredEvent $event */
+                    $properties = $event->event_properties;
 
                     return isset($properties['money']['amount']) && $properties['money']['amount'] >= $threshold;
                 }
@@ -50,8 +51,10 @@ class RegulatoryReportingService
             'transactions'       => [],
         ];
 
+        /** @var Collection<int, StoredEvent> $largeTransactions */
         foreach ($largeTransactions as $event) {
-            $properties = json_decode($event->event_properties, true);
+            /** @var StoredEvent $event */
+            $properties = $event->event_properties;
             /** @var \Illuminate\Database\Eloquent\Model|null $account */
             $account = Account::where('uuid', $event->aggregate_uuid)->first();
             $user = $account ? User::where('uuid', $account->user_uuid)->first() : null;
@@ -266,7 +269,8 @@ class RegulatoryReportingService
             ->get()
             ->filter(
                 function ($event) use ($thresholdAmount) {
-                    $properties = json_decode($event->event_properties, true);
+                    /** @var StoredEvent $event */
+                    $properties = $event->event_properties;
                     $amount = $properties['money']['amount'] ?? 0;
 
                     return $amount >= $thresholdAmount * 0.9 && $amount < $thresholdAmount;
@@ -287,7 +291,8 @@ class RegulatoryReportingService
                     'transaction_count' => $transactions->count(),
                     'transactions'      => $transactions->map(
                         function ($event) {
-                            $properties = json_decode($event->event_properties, true);
+                            /** @var StoredEvent $event */
+                            $properties = $event->event_properties;
 
                             return [
                                 'id'        => $event->id,
@@ -312,7 +317,8 @@ class RegulatoryReportingService
             ->get()
             ->filter(
                 function ($event) {
-                    $properties = json_decode($event->event_properties, true);
+                    /** @var StoredEvent $event */
+                    $properties = $event->event_properties;
                     $amount = $properties['money']['amount'] ?? 0;
 
                     // Check if amount is a round number (ends with at least 3 zeros)
@@ -334,7 +340,8 @@ class RegulatoryReportingService
                     'transaction_count' => $transactions->count(),
                     'total_amount'      => $transactions->sum(
                         function ($event) {
-                            $properties = json_decode($event->event_properties, true);
+                            /** @var StoredEvent $event */
+                            $properties = $event->event_properties;
 
                             return $properties['money']['amount'] ?? 0;
                         }
@@ -381,9 +388,11 @@ class RegulatoryReportingService
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
+        /** @var Collection<int, StoredEvent> $events */
         $totalVolume = $events->sum(
             function ($event) {
-                $properties = json_decode($event->event_properties, true);
+                /** @var StoredEvent $event */
+                $properties = $event->event_properties;
 
                 return $properties['money']['amount'] ?? 0;
             }
@@ -395,7 +404,8 @@ class RegulatoryReportingService
             'average_transaction_size' => $events->count() > 0 ? $totalVolume / $events->count() : 0,
             'large_transactions'       => $events->filter(
                 function ($event) {
-                    $properties = json_decode($event->event_properties, true);
+                    /** @var StoredEvent $event */
+                    $properties = $event->event_properties;
 
                     return ($properties['money']['amount'] ?? 0) >= 1000000; // $10,000
                 }

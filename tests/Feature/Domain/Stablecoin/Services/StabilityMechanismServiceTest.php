@@ -299,7 +299,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
             ];
             $adjustment = $this->service->calculateFeeAdjustment($deviation['deviation'], $currentFees);
 
-            if (isset($case['is_within_threshold']) && $case['is_within_threshold']) {
+            if (!empty($case['is_within_threshold'])) {
                 // For very small deviations, fees might change slightly due to floating point precision
                 $this->assertEqualsWithDelta($this->collateralizedStablecoin->mint_fee, $adjustment['new_mint_fee'], 0.00001);
                 $this->assertEqualsWithDelta($this->collateralizedStablecoin->burn_fee, $adjustment['new_burn_fee'], 0.00001);
