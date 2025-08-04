@@ -70,17 +70,29 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         );
 
         // Setup mock provider
-        $this->mockProvider->shouldReceive('getName')->andReturn('European Central Bank');
-        $this->mockProvider->shouldReceive('isAvailable')->andReturn(true);
-        $this->mockProvider->shouldReceive('getPriority')->andReturn(100);
-        $this->mockProvider->shouldReceive('getCapabilities')->andReturn($capabilities);
-        $this->mockProvider->shouldReceive('getSupportedCurrencies')->andReturn(['EUR', 'USD', 'GBP']);
+        /** @var \Mockery\Expectation $exp1 */
+        $exp1 = $this->mockProvider->shouldReceive('getName');
+        $exp1->andReturn('European Central Bank');
+        /** @var \Mockery\Expectation $exp2 */
+        $exp2 = $this->mockProvider->shouldReceive('isAvailable');
+        $exp2->andReturn(true);
+        /** @var \Mockery\Expectation $exp3 */
+        $exp3 = $this->mockProvider->shouldReceive('getPriority');
+        $exp3->andReturn(100);
+        /** @var \Mockery\Expectation $exp4 */
+        $exp4 = $this->mockProvider->shouldReceive('getCapabilities');
+        $exp4->andReturn($capabilities);
+        /** @var \Mockery\Expectation $exp5 */
+        $exp5 = $this->mockProvider->shouldReceive('getSupportedCurrencies');
+        $exp5->andReturn(['EUR', 'USD', 'GBP']);
 
         // Setup registry
-        $this->mockRegistry->shouldReceive('all')
-            ->andReturn(['ecb' => $this->mockProvider]);
-        $this->mockRegistry->shouldReceive('names')
-            ->andReturn(['ecb']);
+        /** @var \Mockery\Expectation $exp6 */
+        $exp6 = $this->mockRegistry->shouldReceive('all');
+        $exp6->andReturn(['ecb' => $this->mockProvider]);
+        /** @var \Mockery\Expectation $exp7 */
+        $exp7 = $this->mockRegistry->shouldReceive('names');
+        $exp7->andReturn(['ecb']);
 
         $response = $this->getJson('/api/v1/exchange-providers');
 
@@ -112,15 +124,17 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         );
 
         // Setup mock provider
-        $this->mockProvider->shouldReceive('isAvailable')->andReturn(true);
-        $this->mockProvider->shouldReceive('getRate')
-            ->with('EUR', 'USD')
-            ->andReturn($quote);
+        /** @var \Mockery\Expectation $exp1 */
+        $exp1 = $this->mockProvider->shouldReceive('isAvailable');
+        $exp1->andReturn(true);
+        /** @var \Mockery\Expectation $exp2 */
+        $exp2 = $this->mockProvider->shouldReceive('getRate');
+        $exp2->with('EUR', 'USD')->andReturn($quote);
 
         // Setup registry
-        $this->mockRegistry->shouldReceive('get')
-            ->with('ecb')
-            ->andReturn($this->mockProvider);
+        /** @var \Mockery\Expectation $exp3 */
+        $exp3 = $this->mockRegistry->shouldReceive('get');
+        $exp3->with('ecb')->andReturn($this->mockProvider);
 
         $response = $this->getJson('/api/v1/exchange-providers/ecb/rate?from=EUR&to=USD');
 
@@ -147,9 +161,9 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
     public function test_get_rate_validates_provider(): void
     {
         // Setup registry to throw exception for invalid provider
-        $this->mockRegistry->shouldReceive('get')
-            ->with('invalid')
-            ->andThrow(new \InvalidArgumentException('Provider not found'));
+        /** @var \Mockery\Expectation $expectation */
+        $expectation = $this->mockRegistry->shouldReceive('get');
+        $expectation->with('invalid')->andThrow(new \InvalidArgumentException('Provider not found'));
 
         $response = $this->getJson('/api/v1/exchange-providers/invalid/rate?from=EUR&to=USD');
 
@@ -160,9 +174,9 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
     public function test_compare_rates_across_providers(): void
     {
         // Mock the service for compare rates
-        $this->mockService->shouldReceive('compareRates')
-            ->with('EUR', 'USD')
-            ->andReturn([
+        /** @var \Mockery\Expectation $expectation */
+        $expectation = $this->mockService->shouldReceive('compareRates');
+        $expectation->with('EUR', 'USD')->andReturn([
                 'ecb'   => ['rate' => 1.0825, 'provider' => 'ecb'],
                 'fixer' => ['rate' => 1.0830, 'provider' => 'fixer'],
             ]);
