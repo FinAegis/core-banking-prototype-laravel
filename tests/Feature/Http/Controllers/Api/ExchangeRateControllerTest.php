@@ -115,7 +115,8 @@ class ExchangeRateControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user);
 
-        $response = $this->getJson('/api/exchange-rates/USD/JPY');
+        // Use a truly non-existent currency pair
+        $response = $this->getJson('/api/exchange-rates/USD/XXX');
 
         $response->assertStatus(404);
         $response->assertJson([
@@ -349,16 +350,16 @@ class ExchangeRateControllerTest extends ControllerTestCase
         // Mock the exchange rate service for cross rate calculation
         $service = \Mockery::mock(ExchangeRateService::class);
         $service->shouldReceive('getRate')
-            ->with('USD', 'JPY')
+            ->with('USD', 'XXX')
             ->andReturn(null); // No direct rate
 
         $service->shouldReceive('calculateCrossRate')
-            ->with('USD', 'JPY')
+            ->with('USD', 'XXX')
             ->andReturn('110.25000000');
 
         $this->app->instance(ExchangeRateService::class, $service);
 
-        $response = $this->getJson('/api/exchange-rates/USD/JPY');
+        $response = $this->getJson('/api/exchange-rates/USD/XXX');
 
         // Implementation depends on whether cross rates are supported
         $response->assertStatus(200)

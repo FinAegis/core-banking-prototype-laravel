@@ -3,9 +3,11 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\Turnover;
 use App\Domain\Account\Services\Cache\AccountCacheService;
 use App\Domain\Account\Services\Cache\TurnoverCacheService;
+use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,6 +36,25 @@ class BalanceControllerTest extends ControllerTestCase
             'user_uuid' => $this->user->uuid,
             'balance'   => 50000, // 500.00
             'frozen'    => false,
+        ]);
+
+        // Create USD asset if it doesn't exist
+        Asset::firstOrCreate(
+            ['code' => 'USD'],
+            [
+                'name' => 'US Dollar',
+                'symbol' => '$',
+                'type' => 'fiat',
+                'precision' => 2,
+                'is_active' => true,
+            ]
+        );
+
+        // Create AccountBalance for USD
+        AccountBalance::create([
+            'account_uuid' => $this->account->uuid,
+            'asset_code' => 'USD',
+            'balance' => 50000, // 500.00
         ]);
 
         $this->accountCache = $this->app->make(AccountCacheService::class);
@@ -144,6 +165,13 @@ class BalanceControllerTest extends ControllerTestCase
             'user_uuid' => $this->user->uuid,
             'balance'   => 25000,
             'frozen'    => true,
+        ]);
+
+        // Create AccountBalance for the frozen account
+        AccountBalance::create([
+            'account_uuid' => $frozenAccount->uuid,
+            'asset_code' => 'USD',
+            'balance' => 25000,
         ]);
 
         $response = $this->getJson("/api/accounts/{$frozenAccount->uuid}/balance");

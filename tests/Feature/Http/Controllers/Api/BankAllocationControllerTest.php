@@ -88,6 +88,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['PAYSERA']['name'],
             'allocation_percentage' => 50,
             'is_primary'            => true,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['PAYSERA'],
         ]);
@@ -98,6 +99,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['DEUTSCHE']['name'],
             'allocation_percentage' => 50,
             'is_primary'            => false,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['DEUTSCHE'],
         ]);
@@ -237,6 +239,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['PAYSERA']['name'],
             'allocation_percentage' => 50,
             'is_primary'            => true,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['PAYSERA'],
         ]);
@@ -247,6 +250,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['REVOLUT']['name'],
             'allocation_percentage' => 50,
             'is_primary'            => false,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['REVOLUT'],
         ]);
@@ -276,6 +280,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['PAYSERA']['name'],
             'allocation_percentage' => 100,
             'is_primary'            => true,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['PAYSERA'],
         ]);
@@ -297,6 +302,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['PAYSERA']['name'],
             'allocation_percentage' => 50,
             'is_primary'            => true,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['PAYSERA'],
         ]);
@@ -307,6 +313,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['DEUTSCHE']['name'],
             'allocation_percentage' => 50,
             'is_primary'            => false,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['DEUTSCHE'],
         ]);
@@ -374,6 +381,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['PAYSERA']['name'],
             'allocation_percentage' => 40,
             'is_primary'            => true,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['PAYSERA'],
         ]);
@@ -384,6 +392,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['DEUTSCHE']['name'],
             'allocation_percentage' => 30,
             'is_primary'            => false,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['DEUTSCHE'],
         ]);
@@ -394,6 +403,7 @@ class BankAllocationControllerTest extends ControllerTestCase
             'bank_name'             => UserBankPreference::AVAILABLE_BANKS['SANTANDER']['name'],
             'allocation_percentage' => 30,
             'is_primary'            => false,
+            'is_active'             => true,
             'status'                => 'active',
             'metadata'              => UserBankPreference::AVAILABLE_BANKS['SANTANDER'],
         ]);
