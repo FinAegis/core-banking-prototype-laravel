@@ -48,7 +48,7 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
                                 <select name="type" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <option value="">All Types</option>
-                                    @foreach(\App\Models\FraudCase::FRAUD_TYPES as $key => $label)
+                                    @foreach(\App\Domain\Fraud\Models\FraudCase::FRAUD_TYPES as $key => $label)
                                         <option value="{{ $key }}" {{ request('type') == $key ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>

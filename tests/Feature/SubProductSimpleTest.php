@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Product\Services\SubProductService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;

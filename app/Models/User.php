@@ -195,10 +195,12 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Get active bank preferences for the user.
+     *
+     * @return HasMany
      */
-    public function activeBankPreferences()
+    public function activeBankPreferences(): HasMany
     {
-        return $this->bankPreferences()->getQuery()->where('is_active', true);
+        return $this->bankPreferences()->where('is_active', true);
     }
 
     /**

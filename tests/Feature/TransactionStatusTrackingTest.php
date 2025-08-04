@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Account\Models\Transaction;
 use App\Domain\Asset\Models\Asset;
-use App\Domain\Transaction\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -257,17 +257,21 @@ class TransactionStatusTrackingTest extends DomainTestCase
         ]);
 
         // Create transaction for other user
-        $transaction = Transaction::forceCreate([
-            'id'           => \Str::uuid(),
+        $transactionUuid = \Str::uuid();
+        $transactionId = \DB::table('transaction_projections')->insertGetId([
+            'uuid'         => $transactionUuid,
             'account_uuid' => $otherAccount->uuid,
+            'asset_code'   => 'USD',
             'type'         => 'deposit',
             'amount'       => 10000,
-            'currency'     => 'USD',
             'status'       => 'pending',
             'reference'    => 'TEST-' . uniqid(),
+            'hash'         => hash('sha3-512', $transactionUuid . $otherAccount->uuid . time()),
+            'metadata'     => json_encode(['test' => true]),
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
+        $transaction = (object) ['id' => $transactionId];
 
         $this->actingAs($this->user);
 
@@ -281,20 +285,24 @@ class TransactionStatusTrackingTest extends DomainTestCase
      */
     private function createTestTransaction($status = 'pending', $type = 'deposit')
     {
-        return Transaction::forceCreate([
-            'id'           => \Str::uuid(),
+        $uuid = \Str::uuid();
+        $id = \DB::table('transaction_projections')->insertGetId([
+            'uuid'         => $uuid,
             'account_uuid' => $this->account->uuid,
+            'asset_code'   => 'USD',
             'type'         => $type,
             'amount'       => rand(1000, 50000),
-            'currency'     => 'USD',
             'status'       => $status,
             'reference'    => 'TEST-' . uniqid(),
+            'hash'         => hash('sha3-512', $uuid . $this->account->uuid . time()),
             'metadata'     => json_encode([
                 'description' => 'Test transaction',
                 'source'      => 'test',
             ]),
             'created_at' => now()->subMinutes(rand(1, 60)),
-            'updated_at' => now(),
+            'updated_at' => $status === 'completed' ? now()->addMinutes(5) : now(),
         ]);
+
+        return (object) ['id' => $id];
     }
 }

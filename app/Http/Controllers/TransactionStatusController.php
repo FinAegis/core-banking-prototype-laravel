@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Transaction\Models\Transaction;
+use App\Domain\Account\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -294,6 +294,12 @@ class TransactionStatusController extends Controller
      */
     private function getTransactionStatistics($user)
     {
+        $isTestingWithSqlite = config('database.default') === 'sqlite';
+
+        $avgCompletionTimeQuery = $isTestingWithSqlite
+            ? 'AVG(CASE WHEN status = "completed" THEN (julianday(transaction_projections.updated_at) - julianday(transaction_projections.created_at)) * 86400 END) as avg_completion_time'
+            : 'AVG(CASE WHEN status = "completed" THEN TIMESTAMPDIFF(SECOND, transaction_projections.created_at, transaction_projections.updated_at) END) as avg_completion_time';
+
         $stats = DB::table('transaction_projections')
             ->join('accounts', 'transaction_projections.account_uuid', '=', 'accounts.uuid')
             ->where('accounts.user_uuid', $user->uuid)
@@ -304,7 +310,7 @@ class TransactionStatusController extends Controller
                 DB::raw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending'),
                 DB::raw('SUM(CASE WHEN status = "processing" THEN 1 ELSE 0 END) as processing'),
                 DB::raw('SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed'),
-                DB::raw('AVG(CASE WHEN status = "completed" THEN TIMESTAMPDIFF(SECOND, transaction_projections.created_at, transaction_projections.updated_at) END) as avg_completion_time')
+                DB::raw($avgCompletionTimeQuery)
             )
             ->first();
 

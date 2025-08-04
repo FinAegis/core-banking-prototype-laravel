@@ -46,6 +46,16 @@ class Subscriber extends Model
 {
     use HasFactory;
 
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\SubscriberFactory::new();
+    }
+
     protected $fillable = [
         'email',
         'source',

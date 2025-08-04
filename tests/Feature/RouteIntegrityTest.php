@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -12,7 +13,7 @@ class RouteIntegrityTest extends TestCase
  */ #[Test]
     public function test_all_routes_are_properly_defined(): void
     {
-        $routes = Route::getRoutes();
+        $routes = Route::getRoutes()->getRoutes();
         $routeErrors = [];
 
         foreach ($routes as $route) {
@@ -81,7 +82,7 @@ class RouteIntegrityTest extends TestCase
  */ #[Test]
     public function test_route_naming_conventions(): void
     {
-        $routes = Route::getRoutes();
+        $routes = Route::getRoutes()->getRoutes();
 
         foreach ($routes as $route) {
             $routeName = $route->getName();
@@ -120,7 +121,7 @@ class RouteIntegrityTest extends TestCase
  */ #[Test]
     public function test_no_duplicate_route_names(): void
     {
-        $routes = Route::getRoutes();
+        $routes = Route::getRoutes()->getRoutes();
         $routeNames = [];
         $duplicates = [];
 

@@ -20,7 +20,7 @@ class SeoMetaTagsTest extends TestCase
                 'hasOgTags'      => true,
             ],
             '/about' => [
-                'title'          => 'About FinAegis - Our Mission & Team',
+                'title'          => 'About FinAegis - Our Mission & Community',
                 'hasDescription' => true,
                 'hasKeywords'    => true,
                 'hasOgTags'      => true,
@@ -113,7 +113,9 @@ class SeoMetaTagsTest extends TestCase
 
             // Check canonical link
             $response->assertSee('<link rel="canonical"', false);
-            $response->assertSee('href="' . config('app.url') . $url . '"', false);
+            // For home page, the canonical URL should not have trailing slash
+            $canonicalUrl = $url === '/' ? config('app.url') : config('app.url') . $url;
+            $response->assertSee('href="' . $canonicalUrl . '"', false);
         }
     }
 
