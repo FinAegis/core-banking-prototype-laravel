@@ -177,8 +177,11 @@ class BankAllocationController extends Controller
 
             // Set primary bank if specified
             if (isset($validated['primary_bank'])) {
-                $this->bankAllocationService->setPrimaryBank($user, $validated['primary_bank']);
-                $allocations = $user->bankPreferences()->getQuery()->where('is_active', true)->get(); // Refresh
+                $updatedPrimary = $this->bankAllocationService->setPrimaryBank($user, $validated['primary_bank']);
+                // Force refresh all allocations from database to get updated is_primary values
+                $allocations = UserBankPreference::where('user_uuid', $user->uuid)
+                    ->where('status', 'active')
+                    ->get();
             }
 
             return response()->json(
