@@ -58,12 +58,9 @@ class ComplianceControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->user);
 
-        $kycVerification = KycVerification::factory()->create([
-            'user_uuid'   => $this->user->uuid,
-            'status'      => 'verified',
-            'level'       => 'advanced',
-            'verified_at' => now(),
-            'expires_at'  => now()->addYear(),
+        $kycVerification = KycVerification::factory()->verified()->create([
+            'user_id'     => $this->user->id,
+            'type'        => 'identity',
         ]);
 
         $response = $this->getJson("{$this->apiPrefix}/compliance/kyc/status");
@@ -71,25 +68,16 @@ class ComplianceControllerTest extends ControllerTestCase
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'data' => [
-                'status',
-                'level',
-                'verified_at',
-                'expires_at',
+                'kyc_level',
+                'kyc_status',
+                'risk_rating',
+                'requires_verification',
+                'verifications',
                 'limits' => [
-                    'daily_transaction_limit',
-                    'monthly_transaction_limit',
-                    'max_balance',
-                    'allowed_products',
+                    'daily',
+                    'monthly',
+                    'single',
                 ],
-                'required_documents',
-                'completed_steps',
-            ],
-        ]);
-
-        $response->assertJson([
-            'data' => [
-                'status' => 'verified',
-                'level'  => 'advanced',
             ],
         ]);
     }
@@ -104,13 +92,12 @@ class ComplianceControllerTest extends ControllerTestCase
         $response->assertStatus(200);
         $response->assertJson([
             'data' => [
-                'status' => 'unverified',
-                'level'  => 'none',
+                'kyc_level'  => 'basic',
+                'kyc_status' => 'not_started',
                 'limits' => [
-                    'daily_transaction_limit'   => 0,
-                    'monthly_transaction_limit' => 0,
-                    'max_balance'               => 0,
-                    'allowed_products'          => [],
+                    'daily'   => 0,
+                    'monthly' => 0,
+                    'single'  => 0,
                 ],
             ],
         ]);
@@ -122,31 +109,21 @@ class ComplianceControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user);
 
         $verificationData = [
-            'level'         => 'basic',
-            'personal_info' => [
-                'first_name'    => 'John',
-                'last_name'     => 'Doe',
-                'date_of_birth' => '1990-01-01',
-                'nationality'   => 'US',
-                'tax_id'        => '123-45-6789',
-            ],
-            'address' => [
-                'street'      => '123 Main St',
-                'city'        => 'New York',
-                'postal_code' => '10001',
-                'country'     => 'US',
-            ],
+            'type'     => 'identity',
+            'provider' => 'manual',
         ];
+
+        $verification = KycVerification::factory()->create([
+            'user_id' => $this->user->id,
+            'type'    => 'identity',
+            'status'  => 'pending',
+        ]);
 
         $this->mockKycService
             ->shouldReceive('startVerification')
-            ->with($this->user->uuid, 'basic', \Mockery::type('array'))
+            ->with($this->user, 'identity', \Mockery::type('array'))
             ->once()
-            ->andReturn([
-                'verification_id' => 'kyc_123',
-                'status'          => 'pending',
-                'next_steps'      => ['upload_id_document', 'upload_proof_of_address'],
-            ]);
+            ->andReturn($verification);
 
         $response = $this->postJson("{$this->apiPrefix}/compliance/kyc/start", $verificationData);
 
@@ -154,15 +131,17 @@ class ComplianceControllerTest extends ControllerTestCase
         $response->assertJsonStructure([
             'data' => [
                 'verification_id',
+                'verification_number',
+                'type',
                 'status',
                 'next_steps',
             ],
         ]);
 
         $this->assertDatabaseHas('kyc_verifications', [
-            'user_uuid' => $this->user->uuid,
-            'status'    => 'pending',
-            'level'     => 'basic',
+            'user_id' => $this->user->id,
+            'type'    => 'identity',
+            'status'  => 'pending',
         ]);
     }
 
