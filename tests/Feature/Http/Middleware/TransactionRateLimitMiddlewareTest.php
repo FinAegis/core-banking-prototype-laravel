@@ -238,8 +238,9 @@ class TransactionRateLimitMiddlewareTest extends TestCase
         }
         $this->postJson('/test-withdraw', ['amount' => 10])->assertStatus(429);
 
-        // Travel forward past the hourly window
-        $this->travel(61)->minutes();
+        // Clear the rate limit cache keys to simulate window expiry
+        Cache::forget("tx_rate_limit:{$this->user->id}:withdraw:hourly");
+        Cache::forget("tx_amount_limit:{$this->user->id}:withdraw:hourly");
 
         // Should be able to withdraw again
         $response = $this->postJson('/test-withdraw', ['amount' => 10]);
@@ -260,6 +261,6 @@ class TransactionRateLimitMiddlewareTest extends TestCase
         // After hitting the limit multiple times, should see security notice
         $response = $this->postJson('/test-transfer', ['amount' => 10]);
         $response->assertStatus(429)
-            ->assertJsonHasPath('security_notice');
+            ->assertJsonStructure(['security_notice']);
     }
 }

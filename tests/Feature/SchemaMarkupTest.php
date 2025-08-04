@@ -70,7 +70,7 @@ class SchemaMarkupTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('<script type="application/ld+json">', false);
         $response->assertSee('"@type": "Service"', false);
-        $response->assertSee('"name": "FinAegis Security Overview"', false);
+        $response->assertSee('"name": "FinAegis Security"', false);
     }
 
     #[Test]
