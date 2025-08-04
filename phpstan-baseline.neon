@@ -763,18 +763,6 @@ parameters:
 			path: app/Domain/Basket/Console/Commands/CalculateBasketPerformance.php
 
 		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: app/Domain/Basket/Console/Commands/RebalanceBasketsCommand.php
-
-		-
-			message: '#^Part \$basketCode \(non\-empty\-array\|non\-falsy\-string\|true\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 2
-			path: app/Domain/Basket/Console/Commands/RebalanceBasketsCommand.php
-
-		-
 			message: '#^Cannot call method isEmpty\(\) on array\.$#'
 			identifier: method.nonObject
 			count: 1
@@ -839,12 +827,6 @@ parameters:
 			identifier: property.phpDocType
 			count: 1
 			path: app/Domain/Basket/Models/ComponentPerformance.php
-
-		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 5
-			path: app/Domain/Basket/Services/BasketAccountService.php
 
 		-
 			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
@@ -1225,12 +1207,6 @@ parameters:
 			path: app/Domain/Compliance/Activities/KycSubmissionActivity.php
 
 		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: app/Domain/Compliance/Activities/KycVerificationActivity.php
-
-		-
 			message: '#^Property App\\Domain\\Compliance\\Aggregates\\ComplianceAggregate\:\:\$gdprConsents is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
@@ -1393,36 +1369,6 @@ parameters:
 			path: app/Domain/Compliance/Services/KycService.php
 
 		-
-			message: '#^Cannot access property \$aggregate_uuid on \(int\|string\)\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
-			message: '#^Cannot access property \$created_at on \(int\|string\)\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
-			message: '#^Cannot access property \$event_class on \(int\|string\)\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
-			message: '#^Cannot access property \$event_properties on \(int\|string\)\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
-			message: '#^Cannot access property \$id on \(int\|string\)\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
 			message: '#^Cannot call method count\(\) on \(int\|string\)\.$#'
 			identifier: method.nonObject
 			count: 2
@@ -1447,21 +1393,9 @@ parameters:
 			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
 
 		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
 			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\User\>\:\:pluck\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Models\\User, string given\.$#'
 			identifier: argument.type
 			count: 2
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, array given\.$#'
-			identifier: argument.type
-			count: 5
 			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
 
 		-
@@ -1491,12 +1425,6 @@ parameters:
 		-
 			message: '#^Using nullsafe property access "\?\-\>risk_rating" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
-
-		-
-			message: '#^Variable \$account might not be defined\.$#'
-			identifier: variable.undefined
 			count: 1
 			path: app/Domain/Compliance/Services/RegulatoryReportingService.php
 
@@ -1708,12 +1636,6 @@ parameters:
 			message: '#^Cannot access property \$custodian_name on array\<mixed\>\|object\.$#'
 			identifier: property.nonObject
 			count: 2
-			path: app/Domain/Custodian/Services/SettlementService.php
-
-		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
 			path: app/Domain/Custodian/Services/SettlementService.php
 
 		-
@@ -2269,48 +2191,6 @@ parameters:
 			path: app/Domain/Exchange/Services/ExternalLiquidityService.php
 
 		-
-			message: '#^Access to property \$base_currency on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^Access to property \$base_reserve on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^Access to property \$fees_collected_24h on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^Access to property \$quote_currency on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^Access to property \$quote_reserve on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^Access to property \$total_shares on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^Access to property \$volume_24h on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
 			message: '#^Call to an undefined method App\\Domain\\Exchange\\Services\\ExchangeService\:\:executePoolSwap\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -2320,24 +2200,6 @@ parameters:
 			message: '#^Call to an undefined method App\\Domain\\Exchange\\Services\\ExchangeService\:\:transferFromPool\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^Call to method providers\(\) on an unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
-			identifier: varTag.noVariable
-			count: 1
-			path: app/Domain/Exchange/Services/LiquidityPoolService.php
-
-		-
-			message: '#^PHPDoc tag @var for variable \$pool contains unknown class App\\Domain\\Liquidity\\Models\\LiquidityPool\.$#'
-			identifier: class.notFound
-			count: 11
 			path: app/Domain/Exchange/Services/LiquidityPoolService.php
 
 		-
@@ -2719,12 +2581,6 @@ parameters:
 			path: app/Domain/Governance/Activities/UpdateBasketComponentsActivity.php
 
 		-
-			message: '#^Cannot access property \$value on string\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Governance/Console/Commands/SetupVotingPolls.php
-
-		-
 			message: '#^Parameter \#2 \$month of method App\\Domain\\Governance\\Console\\Commands\\SetupVotingPolls\:\:setupMonthlyPoll\(\) expects string, array\|string\|true given\.$#'
 			identifier: argument.type
 			count: 1
@@ -2735,12 +2591,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Domain/Governance/Console/Commands/VotingSetupCommand.php
-
-		-
-			message: '#^Access to constant ACTIVE on an unknown class App\\Domain\\Governance\\Models\\PollStatus\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Domain/Governance/Models/Poll.php
 
 		-
 			message: '#^Call to method toArray\(\) on an unknown class App\\Domain\\Governance\\Models\\PollOption\.$#'
@@ -2756,18 +2606,6 @@ parameters:
 
 		-
 			message: '#^Call to static method new\(\) on an unknown class App\\Domain\\Governance\\Database\\Factories\\PollFactory\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Governance/Models/Poll.php
-
-		-
-			message: '#^Class App\\Domain\\Governance\\Models\\PollStatus not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Governance/Models/Poll.php
-
-		-
-			message: '#^Class App\\Domain\\Governance\\Models\\PollType not found\.$#'
 			identifier: class.notFound
 			count: 1
 			path: app/Domain/Governance/Models/Poll.php
@@ -2798,12 +2636,6 @@ parameters:
 
 		-
 			message: '#^Parameter \$option of anonymous function has invalid type App\\Domain\\Governance\\Models\\PollOption\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Domain/Governance/Models/Poll.php
-
-		-
-			message: '#^Parameter \$type of method App\\Domain\\Governance\\Models\\Poll\:\:scopeByType\(\) has invalid type App\\Domain\\Governance\\Models\\PollType\.$#'
 			identifier: class.notFound
 			count: 1
 			path: app/Domain/Governance/Models/Poll.php
@@ -2853,12 +2685,6 @@ parameters:
 		-
 			message: '#^Call to method toArray\(\) on an unknown class App\\Domain\\Governance\\Models\\PollResult\.$#'
 			identifier: class.notFound
-			count: 1
-			path: app/Domain/Governance/Services/GovernanceService.php
-
-		-
-			message: '#^Match expression does not handle remaining value\: string$#'
-			identifier: match.unhandled
 			count: 1
 			path: app/Domain/Governance/Services/GovernanceService.php
 
@@ -2917,12 +2743,6 @@ parameters:
 			path: app/Domain/Governance/Workflows/FeatureToggleWorkflow.php
 
 		-
-			message: '#^Cannot access property \$value on string\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Domain/Governance/Workflows/FeatureToggleWorkflow.php
-
-		-
 			message: '#^Attribute class Temporal\\Workflow\\WorkflowInterface does not exist\.$#'
 			identifier: attribute.notFound
 			count: 1
@@ -2931,12 +2751,6 @@ parameters:
 		-
 			message: '#^Attribute class Temporal\\Workflow\\WorkflowMethod does not exist\.$#'
 			identifier: attribute.notFound
-			count: 1
-			path: app/Domain/Governance/Workflows/UpdateConfigurationWorkflow.php
-
-		-
-			message: '#^Cannot access property \$value on string\.$#'
-			identifier: property.nonObject
 			count: 1
 			path: app/Domain/Governance/Workflows/UpdateConfigurationWorkflow.php
 
@@ -3343,18 +3157,6 @@ parameters:
 			path: app/Domain/Product/Services/SubProductService.php
 
 		-
-			message: '#^Binary operation "\." between non\-empty\-array\|non\-falsy\-string\|true and ''\-01'' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: app/Domain/Regulatory/Console/Commands/GenerateRegulatoryReports.php
-
-		-
-			message: '#^Parameter \#1 \$time of static method Carbon\\Carbon\:\:parse\(\) expects Carbon\\Month\|Carbon\\WeekDay\|DateTimeInterface\|float\|int\|string\|null, array\|string\|true given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Regulatory/Console/Commands/GenerateRegulatoryReports.php
-
-		-
 			message: '#^Call to an undefined static method App\\Domain\\Regulatory\\Models\\RegulatoryFilingRecord\:\:requireingRetry\(\)\.$#'
 			identifier: staticMethod.notFound
 			count: 1
@@ -3751,31 +3553,7 @@ parameters:
 			path: app/Domain/Stablecoin/Services/StabilityMechanismService.php
 
 		-
-			message: '#^Method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateFeeAdjustment\(\) invoked with 1 parameter, 2 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: app/Domain/Stablecoin/Services/StabilityMechanismService.php
-
-		-
-			message: '#^Method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateSupplyIncentives\(\) invoked with 1 parameter, 3 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: app/Domain/Stablecoin/Services/StabilityMechanismService.php
-
-		-
 			message: '#^Parameter \#1 \$atRiskPositions of method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:generateRiskRecommendations\(\) expects App\\Domain\\Stablecoin\\Services\\Collection, Illuminate\\Support\\Collection given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Stablecoin/Services/StabilityMechanismService.php
-
-		-
-			message: '#^Parameter \#1 \$deviation of method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateFeeAdjustment\(\) expects float, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Stablecoin/Services/StabilityMechanismService.php
-
-		-
-			message: '#^Parameter \#1 \$deviation of method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateSupplyIncentives\(\) expects float, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Domain/Stablecoin/Services/StabilityMechanismService.php
@@ -5511,7 +5289,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
 			identifier: argument.type
-			count: 4
+			count: 3
 			path: app/Http/Controllers/CgoController.php
 
 		-
@@ -5731,54 +5509,6 @@ parameters:
 			path: app/Http/Controllers/LendingController.php
 
 		-
-			message: '#^Missing parameter \$applicationId \(string\) in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.missing
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Missing parameter \$borrowerAccountId \(string\) in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.missing
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Missing parameter \$collateral \(array\|null\) in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.missing
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Missing parameter \$documents \(array\) in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.missing
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Missing parameter \$monthlyExpenses \(string\) in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.missing
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Missing parameter \$monthlyIncome \(string\) in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.missing
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Missing parameter \$purposeDescription \(string\|null\) in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.missing
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Parameter \#1 \$applicationData of method App\\Domain\\Lending\\Services\\LoanApplicationService\:\:submitApplication\(\) expects array, App\\Domain\\Lending\\DataObjects\\LoanApplication given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
 			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:pluck\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, string given\.$#'
 			identifier: argument.type
 			count: 2
@@ -5793,42 +5523,6 @@ parameters:
 		-
 			message: '#^Property App\\Http\\Controllers\\LendingController\:\:\$collateralManagementService is never read, only written\.$#'
 			identifier: property.onlyWritten
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Unknown parameter \$annualIncome in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.unknown
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Unknown parameter \$applicationUuid in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.unknown
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Unknown parameter \$borrowerAccountUuid in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.unknown
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Unknown parameter \$collateralDetails in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.unknown
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Unknown parameter \$collateralType in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.unknown
-			count: 1
-			path: app/Http/Controllers/LendingController.php
-
-		-
-			message: '#^Unknown parameter \$loanProduct in call to App\\Domain\\Lending\\DataObjects\\LoanApplication constructor\.$#'
-			identifier: argument.unknown
 			count: 1
 			path: app/Http/Controllers/LendingController.php
 
@@ -5993,12 +5687,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Http/Middleware/ApiRateLimitMiddleware.php
-
-		-
-			message: '#^Variable \$subProduct on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.variable
-			count: 1
-			path: app/Http/Middleware/EnsureSubProductEnabled.php
 
 		-
 			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
@@ -6679,12 +6367,6 @@ parameters:
 			path: tests/Actions/Jetstream/AddTeamMemberTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Console/Commands/CacheWarmupTest.php
-
-		-
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:withArgs\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -6721,12 +6403,6 @@ parameters:
 			path: tests/Console/Commands/CreateSnapshotTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Domain/Account/Actions/FreezeAccountTest.php
-
-		-
 			message: '#^Call to function is_callable\(\) with App\\Domain\\Account\\Actions\\FreezeAccount will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -6737,12 +6413,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: tests/Domain/Account/Actions/FreezeAccountTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Domain/Account/Actions/UnfreezeAccountTest.php
 
 		-
 			message: '#^Call to function is_callable\(\) with App\\Domain\\Account\\Actions\\UnfreezeAccount will always evaluate to true\.$#'
@@ -6949,12 +6619,6 @@ parameters:
 			path: tests/Domain/Account/Workflows/DestroyAccountActivityTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Domain/Account/Workflows/DestroyAccountActivityTest.php
-
-		-
 			message: '#^Parameter \#3 \$storedWorkflow of class App\\Domain\\Account\\Workflows\\DestroyAccountActivity constructor expects Workflow\\Models\\StoredWorkflow, Illuminate\\Database\\Eloquent\\Collection\<int, Workflow\\Models\\StoredWorkflow\>\|Workflow\\Models\\StoredWorkflow given\.$#'
 			identifier: argument.type
 			count: 1
@@ -6976,12 +6640,6 @@ parameters:
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturnSelf\(\)\.$#'
 			identifier: method.notFound
 			count: 2
-			path: tests/Domain/Account/Workflows/FreezeAccountActivityTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 4
 			path: tests/Domain/Account/Workflows/FreezeAccountActivityTest.php
 
 		-
@@ -7012,12 +6670,6 @@ parameters:
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturnSelf\(\)\.$#'
 			identifier: method.notFound
 			count: 2
-			path: tests/Domain/Account/Workflows/UnfreezeAccountActivityTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 4
 			path: tests/Domain/Account/Workflows/UnfreezeAccountActivityTest.php
 
 		-
@@ -7237,12 +6889,6 @@ parameters:
 			path: tests/Domain/Custodian/Services/DailyReconciliationServiceTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Domain/Custodian/Services/DailyReconciliationServiceTest.php
-
-		-
 			message: '#^Parameter \#1 \$syncService of class App\\Domain\\Custodian\\Services\\DailyReconciliationService constructor expects App\\Domain\\Custodian\\Services\\BalanceSynchronizationService, Mockery\\MockInterface given\.$#'
 			identifier: argument.type
 			count: 1
@@ -7399,12 +7045,6 @@ parameters:
 			path: tests/Domain/Payment/Services/TransferServiceTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Domain/Payment/Workflow/Activities/InitiateDepositActivityTest.php
-
-		-
 			message: '#^Call to an undefined method Mockery\\MockInterface\:\:execute\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -7459,76 +7099,10 @@ parameters:
 			path: tests/Domain/Payment/Workflows/TransferWorkflowTest.php
 
 		-
-			message: '#^Access to property \$account on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
-			message: '#^Access to property \$asset on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
-			message: '#^Access to property \$balance on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
-			message: '#^Access to property \$id on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method credit\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method debit\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method getFormattedBalance\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method hasSufficientBalance\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Account/AccountBalanceTest.php
-
-		-
 			message: '#^Parameter \#2 \$team of method App\\Actions\\Jetstream\\AddTeamMember\:\:add\(\) expects App\\Models\\Team, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
 			identifier: argument.type
 			count: 5
 			path: tests/Feature/Actions/Jetstream/AddTeamMemberTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 1000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/AccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 5000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/AccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 500000\} given\.$#'
-			identifier: argument.type
-			count: 3
-			path: tests/Feature/Api/AccountFreezeTest.php
 
 		-
 			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$btc\.$#'
@@ -7559,48 +7133,6 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: tests/Feature/Api/BIAN/CurrentAccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 2000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/BIAN/CurrentAccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 0\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/BalanceControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 15000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/BalanceControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, debit\: 1000, credit\: 2000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/BalanceControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, debit\: 500, credit\: 1500\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/BalanceControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, debit\: 5000, credit\: 8000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/BalanceControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Api/BalanceControllerTest.php
 
 		-
 			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$asset\.$#'
@@ -7729,42 +7261,6 @@ parameters:
 			path: tests/Feature/BlockchainWalletTest.php
 
 		-
-			message: '#^Access to property \$id on an unknown class App\\Models\\Turnover\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Cache/TurnoverCacheTest.php
-
-		-
-			message: '#^Call to method delete\(\) on an unknown class App\\Models\\Turnover\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Cache/TurnoverCacheTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, debit\: 1000, credit\: 2000, created_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Cache/TurnoverCacheTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, debit\: 1000, credit\: 2000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Cache/TurnoverCacheTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, debit\: 3000, credit\: 4000, created_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Cache/TurnoverCacheTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Cache/TurnoverCacheTest.php
-
-		-
 			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$gdprService\.$#'
 			identifier: property.notFound
 			count: 9
@@ -7813,12 +7309,6 @@ parameters:
 			path: tests/Feature/Console/RebalanceBasketsCommandTest.php
 
 		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: ''FIXED_BASKET'', name\: ''Fixed Basket'', type\: ''fixed'', is_active\: true\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Console/RebalanceBasketsCommandTest.php
-
-		-
 			message: '#^Parameter \#1 \$records of method Illuminate\\Database\\Eloquent\\Relations\\HasOneOrMany\<Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:createMany\(\) expects iterable\<array\<model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\>, array\<int, array\<string, bool\|float\|string\>\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -7829,66 +7319,6 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: tests/Feature/Coverage/AggressiveCoverageTest.php
-
-		-
-			message: '#^Access to property \$account on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Access to property \$account_uuid on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Access to property \$asset on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Access to property \$asset_code on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Access to property \$balance on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 4
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Call to method credit\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Call to method debit\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Call to method hasSufficientBalance\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: string, balance\: 50000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: string\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Coverage/ExtensiveCoverageTest.php
 
 		-
 			message: '#^Call to function method_exists\(\) with App\\Domain\\Asset\\Projectors\\AssetTransactionProjector and ''onAssetTransactionC…'' will always evaluate to true\.$#'
@@ -7913,12 +7343,6 @@ parameters:
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: tests/Feature/Coverage/LowCoverageTargetTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Feature/CreateAccountForNewUserTest.php
 
 		-
 			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:latest\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model\|null, string given\.$#'
@@ -7954,24 +7378,6 @@ parameters:
 			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$service\.$#'
 			identifier: property.notFound
 			count: 6
-			path: tests/Feature/Custodian/MultiCustodianTransferServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 17
-			path: tests/Feature/Custodian/MultiCustodianTransferServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Feature/Custodian/MultiCustodianTransferServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 12
 			path: tests/Feature/Custodian/MultiCustodianTransferServiceTest.php
 
 		-
@@ -8017,18 +7423,6 @@ parameters:
 			path: tests/Feature/Custodian/SettlementServiceTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Feature/Custodian/SettlementServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Feature/Custodian/SettlementServiceTest.php
-
-		-
 			message: '#^Call to function method_exists\(\) with App\\Domain\\Account\\Services\\AccountService and ''create'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -8065,12 +7459,6 @@ parameters:
 			path: tests/Feature/Domain/Account/Services/AccountServiceTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Feature/Domain/Basket/Activities/ComposeBasketActivityTest.php
-
-		-
 			message: '#^Call to an undefined method ReflectionType\:\:getName\(\)\.$#'
 			identifier: method.notFound
 			count: 3
@@ -8081,12 +7469,6 @@ parameters:
 			identifier: argument.type
 			count: 4
 			path: tests/Feature/Domain/Basket/Activities/ComposeBasketActivityTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Feature/Domain/Basket/Activities/DecomposeBasketActivityTest.php
 
 		-
 			message: '#^Call to an undefined method ReflectionType\:\:getName\(\)\.$#'
@@ -8101,105 +7483,9 @@ parameters:
 			path: tests/Feature/Domain/Basket/Activities/DecomposeBasketActivityTest.php
 
 		-
-			message: '#^Access to property \$code on an unknown class App\\Models\\BasketAsset\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Access to property \$id on an unknown class App\\Models\\BasketAsset\.$#'
-			identifier: class.notFound
-			count: 23
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
 			message: '#^Call to an undefined method App\\Domain\\Basket\\Services\\BasketValueCalculationService\:\:shouldReceive\(\)\.$#'
 			identifier: method.notFound
 			count: 15
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Call to method components\(\) on an unknown class App\\Models\\BasketAsset\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Call to method fresh\(\) on an unknown class App\\Models\\BasketAsset\.$#'
-			identifier: class.notFound
-			count: 4
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Call to method update\(\) on an unknown class App\\Models\\BasketAsset\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Call to static method pattern\(\) on an unknown class Tests\\Feature\\Domain\\Basket\\Services\\Mockery\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''dynamic'', rebalance_frequency\: ''daily'', last_rebalanced_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 6
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''dynamic'', rebalance_frequency\: ''daily''\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''dynamic'', rebalance_frequency\: ''weekly'', last_rebalanced_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''dynamic''\} given\.$#'
-			identifier: argument.type
-			count: 7
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''fixed''\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketRebalancingService\:\:getRebalancingHistory\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketRebalancingService\:\:needsRebalancing\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 2
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketRebalancingService\:\:rebalance\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 7
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketRebalancingService\:\:rebalanceIfNeeded\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 2
-			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketRebalancingService\:\:simulateRebalancing\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 1
 			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
 
 		-
@@ -8207,18 +7493,6 @@ parameters:
 			identifier: assign.propertyType
 			count: 1
 			path: tests/Feature/Domain/Basket/Services/BasketRebalancingServiceTest.php
-
-		-
-			message: '#^Access to property \$code on an unknown class App\\Models\\BasketAsset\.$#'
-			identifier: class.notFound
-			count: 12
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Access to property \$id on an unknown class App\\Models\\BasketAsset\.$#'
-			identifier: class.notFound
-			count: 13
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
 
 		-
 			message: '#^Call to an undefined method App\\Domain\\Asset\\Services\\ExchangeRateService\:\:shouldReceive\(\)\.$#'
@@ -8229,78 +7503,6 @@ parameters:
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with App\\Domain\\Basket\\Models\\BasketValue will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''fixed'', is_active\: false\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''fixed'', is_active\: true\} given\.$#'
-			identifier: argument.type
-			count: 2
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketAsset\>\:\:create\(\) expects array\<model property of App\\Models\\BasketAsset, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: non\-falsy\-string, type\: ''fixed''\} given\.$#'
-			identifier: argument.type
-			count: 13
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketValue\>\:\:create\(\) expects array\<model property of App\\Models\\BasketValue, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{basket_asset_code\: mixed, value\: 1\.0, calculated_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketValue\>\:\:create\(\) expects array\<model property of App\\Models\\BasketValue, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{basket_asset_code\: mixed, value\: 1\.1, calculated_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketValue\>\:\:create\(\) expects array\<model property of App\\Models\\BasketValue, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{basket_asset_code\: mixed, value\: 1\.2, calculated_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketValue\>\:\:create\(\) expects array\<model property of App\\Models\\BasketValue, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{basket_asset_code\: mixed, value\: 100\.0, calculated_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\BasketValue\>\:\:create\(\) expects array\<model property of App\\Models\\BasketValue, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{basket_asset_code\: mixed, value\: 110\.0, calculated_at\: Illuminate\\Support\\Carbon\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketValueCalculationService\:\:calculatePerformance\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 2
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketValueCalculationService\:\:calculateValue\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 10
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketValueCalculationService\:\:getHistoricalValues\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$basket of method App\\Domain\\Basket\\Services\\BasketValueCalculationService\:\:invalidateCache\(\) expects App\\Domain\\Basket\\Models\\BasketAsset, App\\Models\\BasketAsset given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Feature/Domain/Basket/Services/BasketValueCalculationServiceTest.php
 
@@ -8377,18 +7579,6 @@ parameters:
 			path: tests/Feature/Domain/Stablecoin/Services/CollateralServiceTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Feature/Domain/Stablecoin/Services/LiquidationServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 10
-			path: tests/Feature/Domain/Stablecoin/Services/LiquidationServiceTest.php
-
-		-
 			message: '#^Parameter \#1 \$exchangeRateService of class App\\Domain\\Stablecoin\\Services\\LiquidationService constructor expects App\\Domain\\Asset\\Services\\ExchangeRateService, Mockery\\MockInterface given\.$#'
 			identifier: argument.type
 			count: 1
@@ -8419,51 +7609,9 @@ parameters:
 			path: tests/Feature/Domain/Stablecoin/Services/LiquidationServiceTest.php
 
 		-
-			message: '#^Method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:applyStabilityMechanism\(\) invoked with 1 parameter, 2\-3 required\.$#'
-			identifier: arguments.count
-			count: 4
-			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
-
-		-
-			message: '#^Method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateFeeAdjustment\(\) invoked with 1 parameter, 2 required\.$#'
-			identifier: arguments.count
-			count: 2
-			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
-
-		-
-			message: '#^Method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateSupplyIncentives\(\) invoked with 1 parameter, 3 required\.$#'
-			identifier: arguments.count
-			count: 2
-			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Stablecoin\\Models\\Stablecoin\>\:\:create\(\) expects array\<model property of App\\Domain\\Stablecoin\\Models\\Stablecoin, mixed\>, array\<string, float\|int\|string\|true\> given\.$#'
-			identifier: argument.type
-			count: 3
-			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$deviation of method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateFeeAdjustment\(\) expects float, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$deviation of method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:calculateSupplyIncentives\(\) expects float, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
-
-		-
 			message: '#^Parameter \#1 \$exchangeRateService of class App\\Domain\\Stablecoin\\Services\\StabilityMechanismService constructor expects App\\Domain\\Asset\\Services\\ExchangeRateService, Mockery\\MockInterface given\.$#'
 			identifier: argument.type
 			count: 1
-			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$stablecoin of method App\\Domain\\Stablecoin\\Services\\StabilityMechanismService\:\:applyStabilityMechanism\(\) expects App\\Domain\\Stablecoin\\Models\\Stablecoin, string given\.$#'
-			identifier: argument.type
-			count: 4
 			path: tests/Feature/Domain/Stablecoin/Services/StabilityMechanismServiceTest.php
 
 		-
@@ -8503,64 +7651,10 @@ parameters:
 			path: tests/Feature/ExchangeNullAccountTest.php
 
 		-
-			message: '#^Call to static method create\(\) on an unknown class App\\Domain\\Exchange\\Models\\ExchangeRate\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/ExchangeRateViewerTest.php
-
-		-
-			message: '#^Call to static method truncate\(\) on an unknown class App\\Domain\\Exchange\\Models\\ExchangeRate\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/ExchangeRateViewerTest.php
-
-		-
 			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
 			path: tests/Feature/FaviconTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 100000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/AccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 10000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/AccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 50000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/AccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 75000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/AccountControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''BTC'', balance\: 12345678\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/AssetControllerTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 10000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/AssetControllerTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/Auth/EmailVerificationControllerTest.php
 
 		-
 			message: '#^Cannot call method format\(\) on string\.$#'
@@ -8581,72 +7675,6 @@ parameters:
 			path: tests/Feature/Http/Controllers/Api/Auth/EmailVerificationControllerTest.php
 
 		-
-			message: '#^Access to constant INVALID_TOKEN on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Password\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Access to constant INVALID_USER on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Password\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Access to constant PASSWORD_RESET on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Password\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Access to constant RESET_LINK_SENT on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Password\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Access to constant RESET_THROTTLED on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Password\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Call to static method assertDispatched\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Event\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Call to static method check\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Hash\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Call to static method fake\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Event\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Call to static method make\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Hash\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Call to static method shouldReceive\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\Password\.$#'
-			identifier: class.notFound
-			count: 10
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
-			message: '#^Class Tests\\Feature\\Http\\Controllers\\Api\\Auth\\PasswordReset not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/Auth/PasswordResetControllerTest.php
-
-		-
 			message: '#^Method Illuminate\\Testing\\TestResponse\<Symfony\\Component\\HttpFoundation\\Response\>\:\:assertStatus\(\) invoked with 2 parameters, 1 required\.$#'
 			identifier: arguments.count
 			count: 1
@@ -8657,12 +7685,6 @@ parameters:
 			identifier: arguments.count
 			count: 1
 			path: tests/Feature/Http/Controllers/Api/BIAN/PaymentInitiationControllerTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 3
-			path: tests/Feature/Http/Controllers/Api/BalanceControllerTest.php
 
 		-
 			message: '#^Call to method updateBalance\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\AccountCacheService\.$#'
@@ -8707,56 +7729,8 @@ parameters:
 			path: tests/Feature/Http/Controllers/Api/BalanceControllerTest.php
 
 		-
-			message: '#^Call to method shouldReceive\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingService\.$#'
-			identifier: class.notFound
-			count: 4
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
-			message: '#^Call to method shouldReceive\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\CustodianHealthMonitor\.$#'
-			identifier: class.notFound
-			count: 4
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
-			message: '#^Class Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingService not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
-			message: '#^Class Tests\\Feature\\Http\\Controllers\\Api\\CustodianHealthMonitor not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
 			message: '#^Method Illuminate\\Testing\\TestResponse\<Symfony\\Component\\HttpFoundation\\Response\>\:\:assertStatus\(\) invoked with 2 parameters, 1 required\.$#'
 			identifier: arguments.count
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingControllerTest\:\:\$mockAlertingService \(Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingService\) does not accept Mockery\\MockInterface\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingControllerTest\:\:\$mockAlertingService has unknown class Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingService as its type\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingControllerTest\:\:\$mockHealthMonitor \(Tests\\Feature\\Http\\Controllers\\Api\\CustodianHealthMonitor\) does not accept Mockery\\MockInterface\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Controllers\\Api\\BankAlertingControllerTest\:\:\$mockHealthMonitor has unknown class Tests\\Feature\\Http\\Controllers\\Api\\CustodianHealthMonitor as its type\.$#'
-			identifier: class.notFound
 			count: 1
 			path: tests/Feature/Http/Controllers/Api/BankAlertingControllerTest.php
 
@@ -8803,18 +7777,6 @@ parameters:
 			path: tests/Feature/Http/Controllers/Api/ExchangeControllerTest.php
 
 		-
-			message: '#^Call to static method create\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Order\.$#'
-			identifier: class.notFound
-			count: 8
-			path: tests/Feature/Http/Controllers/Api/ExchangeControllerTest.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Trade\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Http/Controllers/Api/ExchangeControllerTest.php
-
-		-
 			message: '#^Property Tests\\Feature\\Http\\Controllers\\Api\\ExchangeControllerTest\:\:\$exchangeService \(App\\Domain\\Exchange\\Services\\ExchangeService\) does not accept Mockery\\MockInterface\.$#'
 			identifier: assign.propertyType
 			count: 1
@@ -8827,51 +7789,9 @@ parameters:
 			path: tests/Feature/Http/Controllers/Api/ExchangeRateControllerTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
+			message: '#^Call to an undefined method App\\Domain\\Compliance\\Services\\KycService\|Mockery\\MockInterface\:\:shouldReceive\(\)\.$#'
 			identifier: method.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/ExchangeRateControllerTest.php
-
-		-
-			message: '#^Call to method shouldReceive\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\KycService\.$#'
-			identifier: class.notFound
 			count: 4
-			path: tests/Feature/Http/Controllers/Api/KycControllerTest.php
-
-		-
-			message: '#^Call to static method disk\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Storage\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/KycControllerTest.php
-
-		-
-			message: '#^Call to static method fake\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\Storage\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/KycControllerTest.php
-
-		-
-			message: '#^Call to static method fake\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\UploadedFile\.$#'
-			identifier: class.notFound
-			count: 9
-			path: tests/Feature/Http/Controllers/Api/KycControllerTest.php
-
-		-
-			message: '#^Class Tests\\Feature\\Http\\Controllers\\Api\\KycService not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/KycControllerTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Controllers\\Api\\KycControllerTest\:\:\$kycService \(Tests\\Feature\\Http\\Controllers\\Api\\KycService\) does not accept Mockery\\MockInterface\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/KycControllerTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Controllers\\Api\\KycControllerTest\:\:\$kycService has unknown class Tests\\Feature\\Http\\Controllers\\Api\\KycService as its type\.$#'
-			identifier: class.notFound
-			count: 1
 			path: tests/Feature/Http/Controllers/Api/KycControllerTest.php
 
 		-
@@ -8881,88 +7801,10 @@ parameters:
 			path: tests/Feature/Http/Controllers/Api/N1QueryOptimizationTest.php
 
 		-
-			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Governance\\Models\\Poll\>\:\:create\(\) expects array\<model property of App\\Domain\\Governance\\Models\\Poll, mixed\>, array\<string, Illuminate\\Support\\Carbon\|int\|list\<array\<string, string\>\>\|string\|false\|null\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/N1QueryOptimizationTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Governance\\Models\\Vote\>\:\:create\(\) expects array\<model property of App\\Domain\\Governance\\Models\\Vote, mixed\>, array\<string, int\<100, 1000\>\|list\<string\>\|string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/N1QueryOptimizationTest.php
-
-		-
 			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Account\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Domain\\Account\\Models\\AccountBalance, mixed\>, array\<string, mixed\> given\.$#'
 			identifier: argument.type
 			count: 4
 			path: tests/Feature/Http/Controllers/Api/TransferControllerTest.php
-
-		-
-			message: '#^Class App\\Domain\\Compliance\\Services\\AmlService not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/V2/ComplianceControllerTest.php
-
-		-
-			message: '#^Class App\\Domain\\Compliance\\Services\\RiskAssessmentService not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/V2/ComplianceControllerTest.php
-
-		-
-			message: '#^Call to static method disk\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\V2\\Storage\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/V2/FinancialInstitutionControllerTest.php
-
-		-
-			message: '#^Call to static method factory\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\V2\\FinancialInstitutionApplication\.$#'
-			identifier: class.notFound
-			count: 7
-			path: tests/Feature/Http/Controllers/Api/V2/FinancialInstitutionControllerTest.php
-
-		-
-			message: '#^Call to static method fake\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\V2\\Storage\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Controllers/Api/V2/FinancialInstitutionControllerTest.php
-
-		-
-			message: '#^Call to static method fake\(\) on an unknown class Tests\\Feature\\Http\\Controllers\\Api\\V2\\UploadedFile\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Controllers/Api/V2/FinancialInstitutionControllerTest.php
-
-		-
-			message: '#^Call to method shouldReceive\(\) on an unknown class Tests\\Feature\\Http\\Middleware\\SubProductService\.$#'
-			identifier: class.notFound
-			count: 14
-			path: tests/Feature/Http/Middleware/EnsureSubProductEnabledTest.php
-
-		-
-			message: '#^Call to static method middleware\(\) on an unknown class Tests\\Feature\\Http\\Middleware\\Route\.$#'
-			identifier: class.notFound
-			count: 8
-			path: tests/Feature/Http/Middleware/EnsureSubProductEnabledTest.php
-
-		-
-			message: '#^Class Tests\\Feature\\Http\\Middleware\\SubProductService not found\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Http/Middleware/EnsureSubProductEnabledTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Middleware\\EnsureSubProductEnabledTest\:\:\$subProductService \(Tests\\Feature\\Http\\Middleware\\SubProductService\) does not accept Mockery\\MockInterface\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: tests/Feature/Http/Middleware/EnsureSubProductEnabledTest.php
-
-		-
-			message: '#^Property Tests\\Feature\\Http\\Middleware\\EnsureSubProductEnabledTest\:\:\$subProductService has unknown class Tests\\Feature\\Http\\Middleware\\SubProductService as its type\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Middleware/EnsureSubProductEnabledTest.php
 
 		-
 			message: '#^Access to an undefined property Laravel\\Sanctum\\PersonalAccessToken\:\:\$plainTextToken\.$#'
@@ -8977,34 +7819,10 @@ parameters:
 			path: tests/Feature/Http/Middleware/TransactionRateLimitMiddlewareTest.php
 
 		-
-			message: '#^Call to static method flush\(\) on an unknown class Tests\\Feature\\Http\\Middleware\\Cache\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Middleware/TransactionRateLimitMiddlewareTest.php
-
-		-
-			message: '#^Call to static method middleware\(\) on an unknown class Tests\\Feature\\Http\\Middleware\\Route\.$#'
-			identifier: class.notFound
-			count: 3
-			path: tests/Feature/Http/Middleware/TransactionRateLimitMiddlewareTest.php
-
-		-
-			message: '#^Call to static method put\(\) on an unknown class Tests\\Feature\\Http\\Middleware\\Cache\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Http/Middleware/TransactionRateLimitMiddlewareTest.php
-
-		-
 			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:skip\(\)\.$#'
 			identifier: method.notFound
 			count: 2
 			path: tests/Feature/InviteTeamMemberTest.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class App\\Models\\Loan\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Lending/LendingControllerTest.php
 
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with string will always evaluate to true\.$#'
@@ -9037,98 +7855,8 @@ parameters:
 			path: tests/Feature/Middleware/ValidateWebhookSignatureTest.php
 
 		-
-			message: '#^Access to property \$account on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Access to property \$asset on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Access to property \$balance on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 7
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
 			message: '#^Call to function method_exists\(\) with App\\Domain\\Account\\Models\\AccountBalance and ''getFormattedBalance…'' will always evaluate to false\.$#'
 			identifier: function.impossibleType
-			count: 1
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method decrementBalance\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method fresh\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 4
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method getBalanceInDollarsAttribute\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method getFormattedBalanceAttribute\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method hasSufficientBalance\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method incrementBalance\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Call to method save\(\) on an unknown class App\\Models\\AccountBalance\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: string, balance\: 100000\} given\.$#'
-			identifier: argument.type
-			count: 4
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: string, balance\: 150000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: string, balance\: 250000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: string\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Models/AccountBalanceTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string\} given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Feature/Models/AccountBalanceTest.php
 
@@ -9205,28 +7933,10 @@ parameters:
 			path: tests/Feature/Models/BasketComponentTest.php
 
 		-
-			message: '#^Method App\\Models\\Setting\:\:getValueAttribute\(\) invoked with 0 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 9
-			path: tests/Feature/Models/SettingTest.php
-
-		-
 			message: '#^Parameter \#1 \$json of function json_decode expects string, array given\.$#'
 			identifier: argument.type
 			count: 5
 			path: tests/Feature/Models/TransferTest.php
-
-		-
-			message: '#^Access to property \$account on an unknown class App\\Models\\Turnover\.$#'
-			identifier: class.notFound
-			count: 2
-			path: tests/Feature/Models/TurnoverTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Turnover\>\:\:create\(\) expects array\<model property of App\\Models\\Turnover, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Feature/Models/TurnoverTest.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\User\:\:\$activeBankPreferences\.$#'
@@ -9269,24 +7979,6 @@ parameters:
 			identifier: arguments.count
 			count: 3
 			path: tests/Feature/NavigationTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 3
-			path: tests/Feature/OpenBankingWithdrawalTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Feature/OpenBankingWithdrawalTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Feature/OpenBankingWithdrawalTest.php
 
 		-
 			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:skip\(\)\.$#'
@@ -9553,25 +8245,7 @@ parameters:
 			path: tests/Models/TeamInvitationTest.php
 
 		-
-			message: '#^Call to static method table\(\) on an unknown class Tests\\Performance\\DB\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Performance/LoadTest.php
-
-		-
-			message: '#^Parameter \#1 \$accountUuid of method App\\Domain\\Asset\\Aggregates\\AssetTransactionAggregate\:\:credit\(\) expects App\\Domain\\Account\\DataObjects\\AccountUuid, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Performance/LoadTest.php
-
-		-
 			message: '#^Parameter \#1 \$user of method Illuminate\\Foundation\\Testing\\TestCase\:\:actingAs\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Performance/LoadTest.php
-
-		-
-			message: '#^Parameter \#3 \$money of method App\\Domain\\Asset\\Aggregates\\AssetTransactionAggregate\:\:credit\(\) expects App\\Domain\\Account\\DataObjects\\Money, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: tests/Performance/LoadTest.php
@@ -9627,18 +8301,6 @@ parameters:
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''API scope…'' will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Security/Authentication/AuthorizationSecurityTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 30000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Security/Authentication/AuthorizationSecurityTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\AccountBalance\>\:\:create\(\) expects array\<model property of App\\Models\\AccountBalance, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{account_uuid\: string, asset_code\: ''USD'', balance\: 50000\} given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Security/Authentication/AuthorizationSecurityTest.php
 
@@ -9757,34 +8419,10 @@ parameters:
 			path: tests/Unit/Console/Commands/RotateWalletKeysTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Unit/Domain/Account/Actions/CreditAccountTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Unit/Domain/Account/Actions/DebitAccountTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Unit/Domain/Account/Actions/FreezeAccountTest.php
-
-		-
 			message: '#^Parameter \#1 \$event of method App\\Domain\\Account\\Actions\\FreezeAccount\:\:__invoke\(\) expects App\\Domain\\Account\\Events\\AccountFrozen, Mockery\\MockInterface given\.$#'
 			identifier: argument.type
 			count: 4
 			path: tests/Unit/Domain/Account/Actions/FreezeAccountTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 5
-			path: tests/Unit/Domain/Account/Actions/UnfreezeAccountTest.php
 
 		-
 			message: '#^Parameter \#1 \$event of method App\\Domain\\Account\\Actions\\UnfreezeAccount\:\:__invoke\(\) expects App\\Domain\\Account\\Events\\AccountUnfrozen, Mockery\\MockInterface given\.$#'
@@ -9979,27 +8617,9 @@ parameters:
 			path: tests/Unit/Domain/Compliance/Services/TransactionMonitoringServiceTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 7
-			path: tests/Unit/Domain/Compliance/Services/TransactionMonitoringServiceTest.php
-
-		-
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andThrow\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: tests/Unit/Domain/Compliance/Services/TransactionMonitoringServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Unit/Domain/Compliance/Services/TransactionMonitoringServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 13
 			path: tests/Unit/Domain/Compliance/Services/TransactionMonitoringServiceTest.php
 
 		-
@@ -10051,12 +8671,6 @@ parameters:
 			path: tests/Unit/Domain/Exchange/LiquidityPool/AutomatedMarketMakerServiceTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
-			identifier: method.notFound
-			count: 4
-			path: tests/Unit/Domain/Exchange/LiquidityPool/Reactors/SnapshotLiquidityPoolReactorTest.php
-
-		-
 			message: '#^Call to an undefined method Mockery\\LegacyMockInterface\:\:onLiquidityAdded\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -10084,12 +8698,6 @@ parameters:
 			message: '#^Call to an undefined method App\\Domain\\Exchange\\Services\\FeeCalculator\:\:shouldReceive\(\)\.$#'
 			identifier: method.notFound
 			count: 3
-			path: tests/Unit/Domain/Exchange/Services/ExchangeServiceTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 4
 			path: tests/Unit/Domain/Exchange/Services/ExchangeServiceTest.php
 
 		-
@@ -10241,12 +8849,6 @@ parameters:
 			identifier: method.notFound
 			count: 5
 			path: tests/Unit/Domain/Stablecoin/Events/CollateralLockedTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: tests/Unit/Domain/Stablecoin/Oracles/BinanceOracleTest.php
 
 		-
 			message: '#^Call to an undefined method Mockery\\LegacyMockInterface\:\:getMultiplePrices\(\)\.$#'
@@ -10597,12 +9199,6 @@ parameters:
 			path: tests/Unit/Domain/Stablecoin/Services/StablecoinIssuanceServiceTest.php
 
 		-
-			message: '#^Access to property \$burn_fee on an unknown class App\\Models\\Stablecoin\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/BurnStablecoinActivityTest.php
-
-		-
 			message: '#^Call to an undefined method ReflectionType\:\:getName\(\)\.$#'
 			identifier: method.notFound
 			count: 5
@@ -10617,12 +9213,6 @@ parameters:
 		-
 			message: '#^Cannot call method getName\(\) on ReflectionClass\|false\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/BurnStablecoinActivityTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Stablecoin\>\:\:create\(\) expects array\<model property of App\\Models\\Stablecoin, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: ''USDS'', burn_fee\: 0\.005, total_supply\: 1000000000000\} given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/BurnStablecoinActivityTest.php
 
@@ -10729,12 +9319,6 @@ parameters:
 			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/LockCollateralActivityTest.php
 
 		-
-			message: '#^Access to property \$mint_fee on an unknown class App\\Models\\Stablecoin\.$#'
-			identifier: class.notFound
-			count: 1
-			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/MintStablecoinActivityTest.php
-
-		-
 			message: '#^Call to an undefined method ReflectionType\:\:getName\(\)\.$#'
 			identifier: method.notFound
 			count: 5
@@ -10749,18 +9333,6 @@ parameters:
 		-
 			message: '#^Cannot call method getName\(\) on ReflectionClass\|false\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/MintStablecoinActivityTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Stablecoin\>\:\:create\(\) expects array\<model property of App\\Models\\Stablecoin, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: ''NOFEE'', mint_fee\: 0\.0, total_supply\: 100000000000\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/MintStablecoinActivityTest.php
-
-		-
-			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Models\\Stablecoin\>\:\:create\(\) expects array\<model property of App\\Models\\Stablecoin, mixed\>\|\(callable\(array\<string, mixed\>\)\: array\<string, mixed\>\), array\{code\: ''USDS'', mint_fee\: 0\.002, total_supply\: 1000000000000\} given\.$#'
-			identifier: argument.type
 			count: 1
 			path: tests/Unit/Domain/Stablecoin/Workflows/Activities/MintStablecoinActivityTest.php
 
@@ -11017,12 +9589,6 @@ parameters:
 			path: tests/Unit/Filament/AccountExporterTest.php
 
 		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Unit/Filament/AccountExporterTest.php
-
-		-
 			message: '#^Parameter \#1 \$export of static method App\\Filament\\Exports\\AccountExporter\:\:getCompletedNotificationBody\(\) expects Filament\\Actions\\Exports\\Models\\Export, Mockery\\LegacyMockInterface given\.$#'
 			identifier: argument.type
 			count: 1
@@ -11164,12 +9730,6 @@ parameters:
 			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$team\.$#'
 			identifier: property.notFound
 			count: 17
-			path: tests/Unit/Policies/TeamPolicyTest.php
-
-		-
-			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
-			identifier: method.notFound
-			count: 8
 			path: tests/Unit/Policies/TeamPolicyTest.php
 
 		-

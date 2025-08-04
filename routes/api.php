@@ -493,11 +493,11 @@ Route::middleware('auth:sanctum')->prefix('risk')->group(function () {
         Route::get('/history', [RiskAnalysisController::class, 'getRiskHistory']);
         Route::get('/devices', [RiskAnalysisController::class, 'getDeviceHistory']);
     });
-    
+
     // Transaction risk endpoints
     Route::get('/transactions/{transactionId}/analyze', [RiskAnalysisController::class, 'analyzeTransaction']);
     Route::post('/transactions/{transactionId}/analyze', [RiskAnalysisController::class, 'analyzeTransaction']);
-    
+
     // General risk endpoints
     Route::post('/calculate', [RiskAnalysisController::class, 'calculateRiskScore']);
     Route::post('/device-fingerprint', [RiskAnalysisController::class, 'storeDeviceFingerprint']);

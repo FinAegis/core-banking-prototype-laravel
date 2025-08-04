@@ -28,7 +28,7 @@ class OpenBankingWithdrawalTest extends DomainTestCase
         parent::setUp();
 
         // Create user and account first (without firstOrCreate)
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->withPersonalTeam()->create();
         $this->account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
         ]);
@@ -193,10 +193,23 @@ class OpenBankingWithdrawalTest extends DomainTestCase
 
         $this->app->instance(BankIntegrationService::class, $mockBankService);
 
+        // Mock payment gateway service
+        $mockPaymentGateway = \Mockery::mock(\App\Domain\Payment\Services\PaymentGatewayService::class);
+        $mockPaymentGateway->shouldReceive('createWithdrawalRequest')
+            ->once()
+            ->andReturn(['reference' => 'WTH-123', 'status' => 'pending']);
+
+        $this->app->instance(\App\Domain\Payment\Services\PaymentGatewayService::class, $mockPaymentGateway);
+
         $response = $this->get(route('wallet.withdraw.openbanking.callback', [
             'code'  => 'authorization-code',
             'state' => csrf_token(),
         ]));
+
+        // Debug: Check session error
+        if (Session::has('error')) {
+            dump('Error: ' . Session::get('error'));
+        }
 
         $response->assertRedirect(route('wallet.index'));
         $response->assertSessionHas('success');
