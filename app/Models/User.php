@@ -173,9 +173,8 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Get the bank preferences for the user.
-     */
-    /**
-     * @return HasMany
+     *
+     * @return HasMany<UserBankPreference>
      */
     public function bankPreferences()
     {
@@ -196,7 +195,7 @@ class User extends Authenticatable implements FilamentUser
     /**
      * Get active bank preferences for the user.
      *
-     * @return HasMany
+     * @return HasMany<UserBankPreference>
      */
     public function activeBankPreferences(): HasMany
     {

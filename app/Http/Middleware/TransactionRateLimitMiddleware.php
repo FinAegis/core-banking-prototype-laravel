@@ -328,22 +328,22 @@ class TransactionRateLimitMiddleware
         $dailyCount = Cache::get($dailyKey, 0);
 
         // Set standard headers expected by tests
-        $response->headers->set('X-RateLimit-Transaction-Limit', $config['limit']);
-        $response->headers->set('X-RateLimit-Transaction-Remaining', max(0, $config['limit'] - $hourlyCount));
-        $response->headers->set('X-RateLimit-Transaction-Reset', now()->addSeconds($config['window'])->timestamp);
+        $response->headers->set('X-RateLimit-Transaction-Limit', (string) $config['limit']);
+        $response->headers->set('X-RateLimit-Transaction-Remaining', (string) max(0, $config['limit'] - $hourlyCount));
+        $response->headers->set('X-RateLimit-Transaction-Reset', (string) now()->addSeconds($config['window'])->timestamp);
 
         // Also set detailed headers
-        $response->headers->set('X-Transaction-Hourly-Limit', $config['limit']);
-        $response->headers->set('X-Transaction-Hourly-Remaining', max(0, $config['limit'] - $hourlyCount));
-        $response->headers->set('X-Transaction-Daily-Limit', $config['daily_limit']);
-        $response->headers->set('X-Transaction-Daily-Remaining', max(0, $config['daily_limit'] - $dailyCount));
+        $response->headers->set('X-Transaction-Hourly-Limit', (string) $config['limit']);
+        $response->headers->set('X-Transaction-Hourly-Remaining', (string) max(0, $config['limit'] - $hourlyCount));
+        $response->headers->set('X-Transaction-Daily-Limit', (string) $config['daily_limit']);
+        $response->headers->set('X-Transaction-Daily-Remaining', (string) max(0, $config['daily_limit'] - $dailyCount));
 
         if (isset($config['amount_limit'])) {
             $amountKey = "tx_amount_limit:{$userId}:{$transactionType}:hourly";
             $currentAmount = Cache::get($amountKey, 0);
 
-            $response->headers->set('X-Transaction-Amount-Limit', $config['amount_limit']);
-            $response->headers->set('X-Transaction-Amount-Remaining', max(0, $config['amount_limit'] - $currentAmount));
+            $response->headers->set('X-Transaction-Amount-Limit', (string) $config['amount_limit']);
+            $response->headers->set('X-Transaction-Amount-Remaining', (string) max(0, $config['amount_limit'] - $currentAmount));
         }
 
         return $response;
