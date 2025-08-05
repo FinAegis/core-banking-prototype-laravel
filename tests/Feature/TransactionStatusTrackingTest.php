@@ -130,7 +130,8 @@ class TransactionStatusTrackingTest extends DomainTestCase
         $this->actingAs($this->user);
 
         // Create a withdrawal transaction (which can be cancelled)
-        $transaction = $this->createTestTransaction('pending', 'withdrawal');
+        // Use a recently created transaction to pass the 30-minute check
+        $transaction = $this->createRecentTestTransaction('pending', 'withdrawal');
 
         $response = $this->post(route('transactions.status.cancel', $transaction->id));
 
@@ -267,6 +268,32 @@ class TransactionStatusTrackingTest extends DomainTestCase
         $response = $this->get(route('transactions.status.show', $transaction->id));
 
         $response->assertStatus(404);
+    }
+
+    /**
+     * Helper method to create test transactions with recent timestamp.
+     */
+    private function createRecentTestTransaction($status = 'pending', $type = 'deposit')
+    {
+        $uuid = \Str::uuid();
+        $id = \DB::table('transaction_projections')->insertGetId([
+            'uuid'         => $uuid,
+            'account_uuid' => $this->account->uuid,
+            'asset_code'   => 'USD',
+            'type'         => $type,
+            'amount'       => rand(1000, 50000),
+            'status'       => $status,
+            'reference'    => 'TEST-' . uniqid(),
+            'hash'         => hash('sha3-512', $uuid . $this->account->uuid . time()),
+            'metadata'     => json_encode([
+                'description' => 'Test transaction',
+                'source'      => 'test',
+            ]),
+            'created_at' => now()->subMinutes(5), // Recent transaction (5 minutes ago)
+            'updated_at' => $status === 'completed' ? now()->addMinutes(5) : now(),
+        ]);
+
+        return (object) ['id' => $id];
     }
 
     /**
