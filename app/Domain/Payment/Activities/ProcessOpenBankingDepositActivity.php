@@ -28,16 +28,16 @@ class ProcessOpenBankingDepositActivity
     public function createTransaction(OpenBankingDeposit $deposit): void
     {
         TransactionProjection::create([
-            'uuid'               => $deposit->reference,
-            'account_uuid'       => $deposit->accountUuid,
-            'amount'             => $deposit->amount,
-            'asset_code'         => $deposit->currency,
-            'type'               => 'deposit',
-            'status'             => 'pending',
-            'reference'          => $deposit->reference,
-            'description'        => "OpenBanking deposit from {$deposit->bankName}",
-            'metadata'           => $deposit->metadata,
-            'hash'               => hash('sha3-512', $deposit->reference . $deposit->accountUuid . time()),
+            'uuid'         => $deposit->reference,
+            'account_uuid' => $deposit->accountUuid,
+            'amount'       => $deposit->amount,
+            'asset_code'   => $deposit->currency,
+            'type'         => 'deposit',
+            'status'       => 'pending',
+            'reference'    => $deposit->reference,
+            'description'  => "OpenBanking deposit from {$deposit->bankName}",
+            'metadata'     => $deposit->metadata,
+            'hash'         => hash('sha3-512', $deposit->reference . $deposit->accountUuid . time()),
         ]);
     }
 
@@ -63,9 +63,9 @@ class ProcessOpenBankingDepositActivity
     {
         $transaction = TransactionProjection::where('uuid', $deposit->reference)->firstOrFail();
         $transaction->update([
-            'status'              => 'completed',
-            'external_reference'  => $bankReference,
-            'metadata'            => array_merge($transaction->metadata ?? [], [
+            'status'             => 'completed',
+            'external_reference' => $bankReference,
+            'metadata'           => array_merge($transaction->metadata ?? [], [
                 'bank_reference' => $bankReference,
                 'completed_at'   => now()->toIso8601String(),
             ]),
@@ -89,7 +89,7 @@ class ProcessOpenBankingDepositActivity
     {
         try {
             $transaction = TransactionProjection::where('uuid', $deposit->reference)->first();
-            
+
             if ($transaction && $transaction->status !== 'reversed') {
                 $transaction->update([
                     'status'   => 'reversed',
