@@ -143,11 +143,11 @@ return [
     */
 
     'rate_limits' => [
-        'api'                   => env('DEMO_RATE_LIMIT_API', 30),
-        'transactions'          => env('DEMO_RATE_LIMIT_TRANSACTIONS', 10),
-        'deposits_per_hour'     => env('DEMO_DEPOSITS_PER_HOUR', 10),
-        'withdrawals_per_hour'  => env('DEMO_WITHDRAWALS_PER_HOUR', 5),
-        'transactions_per_hour' => env('DEMO_TRANSACTIONS_PER_HOUR', 20),
+        'api'                     => env('DEMO_RATE_LIMIT_API', 30),
+        'transactions'            => env('DEMO_RATE_LIMIT_TRANSACTIONS', 10),
+        'deposits_per_hour'       => env('DEMO_DEPOSITS_PER_HOUR', 10),
+        'withdrawals_per_hour'    => env('DEMO_WITHDRAWALS_PER_HOUR', 5),
+        'transactions_per_hour'   => env('DEMO_TRANSACTIONS_PER_HOUR', 20),
         'api_requests_per_minute' => env('DEMO_API_REQUESTS_PER_MINUTE', 60),
     ],
 
