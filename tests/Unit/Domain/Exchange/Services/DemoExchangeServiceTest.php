@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Exchange\Services;
 
 use App\Domain\Exchange\Services\DemoExchangeService;
-use App\Domain\Exchange\Services\FeeCalculator;
 use App\Domain\Exchange\Models\Order;
 use App\Domain\Exchange\Models\Trade;
 use App\Domain\Exchange\Events\OrderPlaced;
@@ -21,7 +20,6 @@ class DemoExchangeServiceTest extends TestCase
     use RefreshDatabase;
     
     private DemoExchangeService $service;
-    private FeeCalculator $feeCalculator;
     
     protected function setUp(): void
     {
@@ -39,10 +37,11 @@ class DemoExchangeServiceTest extends TestCase
             'ETH/USD' => 2500,
         ]);
         
-        $this->feeCalculator = $this->createMock(FeeCalculator::class);
-        $this->feeCalculator->method('calculateTradingFee')->willReturn(1.00);
+        // Create FeeCalculator mock using app container
+        $feeCalculator = $this->createMock(\App\Domain\Exchange\Services\FeeCalculator::class);
+        $this->app->instance(\App\Domain\Exchange\Services\FeeCalculator::class, $feeCalculator);
         
-        $this->service = new DemoExchangeService($this->feeCalculator);
+        $this->service = app(DemoExchangeService::class);
     }
     
     /** @test */

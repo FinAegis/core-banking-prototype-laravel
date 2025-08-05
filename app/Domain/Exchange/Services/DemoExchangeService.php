@@ -163,11 +163,10 @@ class DemoExchangeService
      */
     private function simulateOrderMatching(Order $order): void
     {
-        // Calculate fees
-        $fee = $this->feeCalculator->calculateTradingFee(
-            $order->amount * ($order->price ?? $this->getSimulatedPrice($order->base_currency, $order->quote_currency)),
-            $order->side
-        );
+        // Calculate fees using demo values (0.1% for maker, 0.2% for taker)
+        $price = $order->price ?? $this->getSimulatedPrice($order->base_currency, $order->quote_currency);
+        $value = $order->amount * $price;
+        $fee = $order->side === 'buy' ? $value * 0.002 : $value * 0.002; // 0.2% taker fee for demo
 
         // Create a matching trade
         $trade = Trade::create([

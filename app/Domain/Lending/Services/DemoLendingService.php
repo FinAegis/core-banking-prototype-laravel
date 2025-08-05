@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Lending\Services;
 
 use App\Domain\Account\Models\Account;
-use App\Domain\Account\Services\TransactionService;
 use App\Domain\Lending\Events\LoanApplicationApproved;
 use App\Domain\Lending\Events\LoanApplicationRejected;
 use App\Domain\Lending\Events\LoanApplicationSubmitted;
@@ -20,12 +19,6 @@ use Illuminate\Support\Str;
 
 class DemoLendingService
 {
-    private TransactionService $transactionService;
-
-    public function __construct(TransactionService $transactionService)
-    {
-        $this->transactionService = $transactionService;
-    }
 
     /**
      * Submit a loan application with auto-approval for demo.
