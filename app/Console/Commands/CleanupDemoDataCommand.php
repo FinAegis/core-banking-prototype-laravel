@@ -139,7 +139,6 @@ class CleanupDemoDataCommand extends Command
             }
 
             return Command::SUCCESS;
-
         } catch (\Exception $e) {
             DB::rollBack();
             $this->error('Error during cleanup: ' . $e->getMessage());
