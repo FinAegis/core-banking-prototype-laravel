@@ -154,8 +154,7 @@ jobs:
     name: Deploy to Demo
     needs: [pre-deployment-checks, build-artifacts]
     if: |
-      (github.event.inputs.environment == 'demo' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) &&
-      secrets.DEMO_SERVER != null
+      github.event.inputs.environment == 'demo' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     environment: demo
     timeout-minutes: 30
@@ -260,9 +259,8 @@ jobs:
     needs: [pre-deployment-checks, build-artifacts]
     # Note: We don't depend on deploy-demo since it might be skipped
     if: |
-      ((github.event.inputs.environment == 'production' && github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))) &&
-      secrets.PRODUCTION_SERVER != null
+      (github.event.inputs.environment == 'production' && github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 45

@@ -141,7 +141,6 @@ jobs:
     services:
       mysql:
         image: mysql:8.0
-        if: github.event.inputs.environment == 'development'
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: operations_test
