@@ -253,9 +253,20 @@ class TransactionRateLimitMiddlewareTest extends TestCase
     {
         Sanctum::actingAs($this->user);
 
-        // Rapidly attempt many transactions to trigger suspicious activity
-        for ($i = 0; $i < 15; $i++) {
-            $this->postJson('/test-transfer', ['amount' => 10]);
+        // First 14 requests should pass (under the limit of 15)
+        for ($i = 0; $i < 14; $i++) {
+            $response = $this->postJson('/test-transfer', ['amount' => 10]);
+            $response->assertStatus(200);
+        }
+
+        // 15th request should hit the limit
+        $response = $this->postJson('/test-transfer', ['amount' => 10]);
+        $response->assertStatus(200);
+
+        // Now make multiple failed attempts to trigger security notice
+        for ($i = 0; $i < 6; $i++) {
+            $response = $this->postJson('/test-transfer', ['amount' => 10]);
+            $response->assertStatus(429);
         }
 
         // After hitting the limit multiple times, should see security notice

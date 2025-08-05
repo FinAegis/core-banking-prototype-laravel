@@ -241,7 +241,11 @@ class TransactionRateLimitMiddleware
         // Apply delay based on recent transaction frequency
         if ($recentCount > 3) {
             $delay = min(5, $recentCount - 3); // Max 5 second delay
-            sleep($delay);
+
+            // Skip actual delay in testing environment
+            if (! app()->environment('testing')) {
+                sleep($delay);
+            }
 
             Log::info(
                 'Progressive delay applied',

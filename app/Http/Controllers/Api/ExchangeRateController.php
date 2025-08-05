@@ -217,11 +217,7 @@ class ExchangeRateController extends Controller
         $fromAssetModel = \App\Domain\Asset\Models\Asset::where('code', $fromAsset)->first();
         $toAssetModel = \App\Domain\Asset\Models\Asset::where('code', $toAsset)->first();
 
-        if ($this !== null) {
-            if ($this !== null) {
-                $fromFormatted = $this->formatAmount($amount, $fromAssetModel);
-            }
-        }
+        $fromFormatted = $this->formatAmount($amount, $fromAssetModel);
         $toFormatted = $this->formatAmount($convertedAmount, $toAssetModel);
 
         return response()->json(
@@ -340,9 +336,10 @@ class ExchangeRateController extends Controller
             [
                 'from'   => 'sometimes|string|size:3',
                 'to'     => 'sometimes|string|size:3',
+                'asset'  => 'sometimes|string|size:3',
                 'source' => ['sometimes', Rule::in(['manual', 'api', 'oracle', 'market'])],
-                'active' => 'sometimes|boolean',
-                'valid'  => 'sometimes|boolean',
+                'active' => ['sometimes', 'string', Rule::in(['true', 'false', '1', '0'])],
+                'valid'  => ['sometimes', 'string', Rule::in(['true', 'false', '1', '0'])],
                 'limit'  => 'sometimes|integer|min:1|max:100',
             ]
         );
@@ -356,6 +353,14 @@ class ExchangeRateController extends Controller
 
         if ($request->has('to')) {
             $query->where('to_asset_code', strtoupper($request->string('to')->toString()));
+        }
+
+        if ($request->has('asset')) {
+            $asset = strtoupper($request->string('asset')->toString());
+            $query->where(function ($q) use ($asset) {
+                $q->where('from_asset_code', $asset)
+                  ->orWhere('to_asset_code', $asset);
+            });
         }
 
         if ($request->has('source')) {
