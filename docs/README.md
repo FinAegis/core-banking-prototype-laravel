@@ -1,19 +1,30 @@
-# FinAegis Prototype Documentation
+# FinAegis Platform Documentation
 
-Welcome to the **FinAegis Prototype** documentation - a comprehensive demonstration of modern banking architecture and financial service patterns.
+Welcome to the **FinAegis Core Banking Platform** documentation - a comprehensive guide for our modern banking platform with event sourcing, DDD, and workflow orchestration.
 
-## 🏛️ Prototype Overview
+## 🏛️ Platform Overview
 
-**FinAegis** is an open-source banking prototype that demonstrates:
+**FinAegis** is a production-ready banking platform featuring:
 
-**🌟 Core Concepts:**
-- **Global Currency Unit (GCU)** - Conceptual demonstration of a democratic digital currency
+**🌟 Core Features:**
+- **Global Currency Unit (GCU)** - Democratic digital currency with basket-based valuation
+- **Multi-Currency Support** - USD, EUR, GBP, and custom tokens
+- **Event Sourcing Architecture** - Complete audit trail and event-driven design
+- **Workflow Orchestration** - Saga pattern with compensation support
 
-**⚙️ Technical Demonstrations:**
-- **Exchange Module** - Example multi-currency trading architecture
-- **Lending Module** - P2P lending platform patterns  
-- **Stablecoin Framework** - Collateralized token issuance concepts
-- **Treasury Management** - Multi-bank allocation patterns
+**⚙️ Key Modules:**
+- **Exchange Trading** - Order matching engine with liquidity pools
+- **P2P Lending** - Automated loan workflows with credit scoring
+- **Stablecoin Framework** - Collateralized token issuance and management
+- **Treasury Management** - Multi-bank allocation and reconciliation
+
+## 🚦 Platform Status
+
+- **Current Version**: 2.0.0
+- **Environment**: Demo Ready, Pre-Production
+- **Demo Mode**: ✅ Fully Implemented
+- **Sandbox Mode**: ✅ Available for testing
+- **Production**: 🚧 Requires third-party integrations
 
 ## 📚 Documentation Structure
 
@@ -76,6 +87,7 @@ Development guides and tools
 - **[TESTING_GUIDE.md](06-DEVELOPMENT/TESTING_GUIDE.md)** - Comprehensive testing guide
 - **[BEHAT.md](06-DEVELOPMENT/BEHAT.md)** - BDD testing guide
 - **[DEMO.md](06-DEVELOPMENT/DEMO.md)** - Demo environment setup
+- **[DEMO_MODE_IMPLEMENTATION_SUMMARY.md](../DEMO_MODE_IMPLEMENTATION_SUMMARY.md)** - Demo mode implementation details
 
 ### [11-USER-GUIDES](11-USER-GUIDES/)
 End-user documentation
@@ -95,6 +107,11 @@ Operational procedures
 - Deployment guides (coming soon)
 - Monitoring setup (coming soon)
 - Backup procedures (coming soon)
+
+### Production & Deployment
+- **[PRODUCTION_READINESS_REPORT.md](PRODUCTION_READINESS_REPORT.md)** - Current production status
+- **[PRODUCTION_READINESS_CHECKLIST.md](PRODUCTION_READINESS_CHECKLIST.md)** - Launch requirements checklist
+- **[DEMO_ENVIRONMENT_PLAN.md](DEMO_ENVIRONMENT_PLAN.md)** - Demo implementation strategy
 
 ### [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 Common issues and solutions guide
