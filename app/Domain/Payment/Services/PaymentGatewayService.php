@@ -3,6 +3,7 @@
 namespace App\Domain\Payment\Services;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -11,9 +12,9 @@ use Stripe\PaymentIntent;
 
 class PaymentGatewayService
 {
-    protected PaymentService $paymentService;
+    protected PaymentServiceInterface $paymentService;
 
-    public function __construct(PaymentService $paymentService)
+    public function __construct(PaymentServiceInterface $paymentService)
     {
         $this->paymentService = $paymentService;
     }

@@ -149,3 +149,12 @@ Schedule::command('liquidity:update-market-making --cancel-existing')
     ->description('Update automated market making orders')
     ->appendOutputTo(storage_path('logs/liquidity-market-making.log'))
     ->withoutOverlapping();
+
+// Demo Data Cleanup (only runs in demo mode)
+if (config('demo.mode')) {
+    Schedule::command('demo:cleanup --days=' . config('demo.cleanup.retention_days', 1))
+        ->dailyAt(config('demo.cleanup.time', '03:00'))
+        ->description('Clean up old demo data')
+        ->appendOutputTo(storage_path('logs/demo-cleanup.log'))
+        ->withoutOverlapping();
+}

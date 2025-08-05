@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -11,9 +12,12 @@ class DepositController extends Controller
 {
     protected PaymentGatewayService $paymentGateway;
 
-    public function __construct(PaymentGatewayService $paymentGateway)
+    protected PaymentServiceInterface $paymentService;
+
+    public function __construct(PaymentGatewayService $paymentGateway, PaymentServiceInterface $paymentService)
     {
         $this->paymentGateway = $paymentGateway;
+        $this->paymentService = $paymentService;
     }
 
     /**
@@ -102,6 +106,57 @@ class DepositController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('wallet.deposit')
                 ->with('error', 'Failed to process deposit. Please contact support.');
+        }
+    }
+
+    /**
+     * Process a demo/simulated deposit without external payment processor.
+     * This is used in demo mode to demonstrate platform functionality.
+     */
+    public function simulateDeposit(Request $request)
+    {
+        // Only allow in demo or sandbox mode
+        if (! config('demo.mode') && ! config('demo.sandbox.enabled')) {
+            abort(403, 'Simulated deposits are only available in demo mode.');
+        }
+
+        $request->validate([
+            'amount'   => 'required|numeric|min:1|max:10000',
+            'currency' => 'required|in:USD,EUR,GBP',
+        ]);
+
+        $user = Auth::user();
+        /** @var User $user */
+        $account = $user->accounts()->first();
+
+        if (! $account) {
+            return redirect()->route('wallet.deposit')
+                ->with('error', 'Please create an account first.');
+        }
+
+        try {
+            // Create a simulated payment intent
+            $amountInCents = (int) ($request->amount * 100);
+            $intent = $this->paymentGateway->createDepositIntent(
+                $user,
+                $amountInCents,
+                $request->currency
+            );
+
+            // Immediately process it (bypassing Stripe redirect)
+            $result = $this->paymentGateway->processDeposit($intent->id);
+
+            return redirect()->route('wallet.index')
+                ->with('success', 'Demo deposit successful! Your account has been credited with ' .
+                    $request->currency . ' ' . number_format($request->amount, 2));
+        } catch (\Exception $e) {
+            \Log::error('Demo deposit failed', [
+                'error'   => $e->getMessage(),
+                'user_id' => $user->id,
+            ]);
+
+            return redirect()->route('wallet.deposit')
+                ->with('error', 'Failed to process demo deposit: ' . $e->getMessage());
         }
     }
 

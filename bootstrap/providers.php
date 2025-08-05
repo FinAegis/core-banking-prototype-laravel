@@ -8,6 +8,7 @@ return [
     App\Providers\CacheServiceProvider::class,
     App\Providers\ConsoleServiceProvider::class,
     App\Providers\CustodianServiceProvider::class,
+    App\Providers\DemoServiceProvider::class,
     App\Providers\EventServiceProvider::class,
     App\Providers\ExchangeRateProviderServiceProvider::class,
     App\Providers\ExchangeServiceProvider::class,

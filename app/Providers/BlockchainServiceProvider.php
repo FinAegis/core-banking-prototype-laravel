@@ -2,9 +2,7 @@
 
 namespace App\Providers;
 
-use App\Domain\Wallet\Connectors\EthereumConnector;
-use App\Domain\Wallet\Connectors\PolygonConnector;
-use App\Domain\Wallet\Connectors\SimpleBitcoinConnector;
+use App\Domain\Wallet\Factories\BlockchainConnectorFactory;
 use App\Domain\Wallet\Services\BlockchainWalletService;
 use App\Domain\Wallet\Services\KeyManagementService;
 use App\Domain\Wallet\Services\SecureKeyStorageService;
@@ -38,32 +36,11 @@ class BlockchainServiceProvider extends ServiceProvider
         $this->app->bind(
             'blockchain.connectors',
             function ($app) {
+                // Use factory to create connectors (handles demo mode)
                 return [
-                    'ethereum' => new EthereumConnector(
-                        [
-                            'rpc_url'  => config('blockchain.ethereum.rpc_url'),
-                            'chain_id' => config('blockchain.ethereum.chain_id'),
-                        ]
-                    ),
-                    'polygon' => new PolygonConnector(
-                        [
-                            'rpc_url'  => config('blockchain.polygon.rpc_url'),
-                            'chain_id' => config('blockchain.polygon.chain_id'),
-                        ]
-                    ),
-                    'bsc' => new EthereumConnector(
-                        [
-                            'rpc_url'  => config('blockchain.bsc.rpc_url'),
-                            'chain_id' => config('blockchain.bsc.chain_id'),
-                        ]
-                    ),
-                    'bitcoin' => new SimpleBitcoinConnector(
-                        [
-                            'network' => config('blockchain.bitcoin.network'),
-                            'api_url' => config('blockchain.bitcoin.api_url'),
-                            'api_key' => config('blockchain.bitcoin.api_key'),
-                        ]
-                    ),
+                    'ethereum' => BlockchainConnectorFactory::create('ethereum'),
+                    'polygon'  => BlockchainConnectorFactory::create('polygon'),
+                    'bitcoin'  => BlockchainConnectorFactory::create('bitcoin'),
                 ];
             }
         );

@@ -21,7 +21,8 @@ class DemoDepositCommand extends Command
                             {email : The email of the user to deposit to}
                             {amount : The amount to deposit}
                             {--asset=USD : The asset code (USD, EUR, GBP, GCU)}
-                            {--description=Demo deposit : Description for the transaction}';
+                            {--description=Demo deposit : Description for the transaction}
+                            {--instant : Skip queue processing and apply instantly (demo mode only)}';
 
     /**
      * The console command description.
@@ -46,6 +47,7 @@ class DemoDepositCommand extends Command
         $amount = $this->argument('amount');
         $assetCode = strtoupper($this->option('asset'));
         $description = $this->option('description');
+        $instant = $this->option('instant');
 
         // Validate amount
         if (! is_numeric($amount) || $amount <= 0) {
@@ -75,14 +77,16 @@ class DemoDepositCommand extends Command
 
             $accountService->create($accountData);
 
-            // Process queue to ensure account is created
-            $this->call(
-                'queue:work',
-                [
-                    '--stop-when-empty' => true,
-                    '--queue'           => 'default,events,ledger,transactions',
-                ]
-            );
+            // Process queue to ensure account is created (unless instant mode)
+            if (! $instant) {
+                $this->call(
+                    'queue:work',
+                    [
+                        '--stop-when-empty' => true,
+                        '--queue'           => 'default,events,ledger,transactions',
+                    ]
+                );
+            }
 
             // Refresh to get the created account
             $account = $user->accounts()->first();
@@ -106,40 +110,69 @@ class DemoDepositCommand extends Command
         // Convert amount to smallest unit (cents)
         $amountInCents = (int) ($amount * 100);
 
-        $this->info('Processing deposit...');
+        $this->info('Processing deposit' . ($instant ? ' (instant mode)' : '') . '...');
         $this->info("User: {$user->name} ({$user->email})");
         $this->info("Account: {$account->name} (UUID: {$account->uuid})");
         $this->info("Amount: {$amount} {$assetCode} ({$amountInCents} cents)");
 
         try {
-            // Create deposit using event sourcing
-            $ledger = app(LedgerAggregate::class);
-            $transactionId = Str::uuid()->toString();
+            $transactionId = null;
 
-            $ledger->retrieve($account->uuid)
-                ->addMoney(
-                    assetCode: $assetCode,
-                    amount: $amountInCents,
-                    description: $description,
-                    transactionId: $transactionId,
-                    metadata: [
-                        'type'        => 'demo_deposit',
-                        'created_by'  => 'console_command',
-                        'environment' => config('app.env'),
+            if ($instant && config('demo.mode')) {
+                // Use instant demo deposit service
+                $paymentService = app(\App\Domain\Payment\Contracts\PaymentServiceInterface::class);
+
+                if ($paymentService instanceof \App\Domain\Payment\Services\DemoPaymentService) {
+                    $this->info('Using instant demo payment service...');
+
+                    $result = $paymentService->processStripeDeposit([
+                        'account_uuid'   => $account->uuid,
+                        'amount'         => $amountInCents,
+                        'currency'       => strtolower($assetCode),
+                        'description'    => $description,
+                        'payment_method' => 'demo_instant',
+                    ]);
+
+                    $transactionId = $result;
+                    $this->info('✅ Instant deposit successful!');
+                } else {
+                    $this->warn('Instant mode is only available in demo mode. Falling back to regular processing...');
+                    $instant = false;
+                }
+            }
+
+            if (! $instant || ! config('demo.mode')) {
+                // Regular event sourcing deposit
+                $ledger = app(LedgerAggregate::class);
+                $transactionId = Str::uuid()->toString();
+
+                $ledger->retrieve($account->uuid)
+                    ->addMoney(
+                        assetCode: $assetCode,
+                        amount: $amountInCents,
+                        description: $description,
+                        transactionId: $transactionId,
+                        metadata: [
+                            'type'        => 'demo_deposit',
+                            'created_by'  => 'console_command',
+                            'environment' => config('app.env'),
+                            'instant'     => $instant,
+                        ]
+                    )
+                    ->persist();
+
+                // Process event queue
+                $this->call(
+                    'queue:work',
+                    [
+                        '--stop-when-empty' => true,
+                        '--queue'           => 'events,ledger',
                     ]
-                )
-                ->persist();
+                );
 
-            // Process event queue
-            $this->call(
-                'queue:work',
-                [
-                    '--stop-when-empty' => true,
-                    '--queue'           => 'events,ledger',
-                ]
-            );
+                $this->info('✅ Deposit successful!');
+            }
 
-            $this->info('✅ Deposit successful!');
             $this->info("Transaction ID: {$transactionId}");
 
             // Show updated balance

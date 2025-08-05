@@ -58,6 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'idempotency' => \App\Http\Middleware\IdempotencyMiddleware::class,
             'webhook.signature' => \App\Http\Middleware\ValidateWebhookSignature::class,
             'validate.key.access' => \App\Http\Middleware\ValidateKeyAccess::class,
+            'demo' => \App\Http\Middleware\DemoMode::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware
@@ -80,6 +81,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
+        
+        // Apply demo middleware to web routes in demo mode
+        if (config('demo.mode')) {
+            $middleware->appendToGroup('web', \App\Http\Middleware\DemoMode::class);
+        }
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Treat 'demo' environment as production for error handling

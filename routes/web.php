@@ -603,6 +603,9 @@ Route::middleware([
             Route::post('/payment-method', [App\Http\Controllers\DepositController::class, 'addPaymentMethod'])->name('payment-method.add');
             Route::delete('/payment-method/{id}', [App\Http\Controllers\DepositController::class, 'removePaymentMethod'])->name('payment-method.remove');
 
+            // Demo/Simulated deposits (only in demo mode)
+            Route::post('/simulate', [App\Http\Controllers\DepositController::class, 'simulateDeposit'])->name('simulate');
+
             // Bank deposits
             Route::get('/bank', function () {
                 $account = Auth::user()->accounts()->first();
