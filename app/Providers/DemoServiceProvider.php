@@ -6,15 +6,15 @@ namespace App\Providers;
 
 use App\Domain\Custodian\Connectors\DemoBankConnector;
 use App\Domain\Custodian\Services\CustodianRegistry;
+use App\Domain\Exchange\Services\DemoExchangeService;
+use App\Domain\Exchange\Services\ExchangeService;
+use App\Domain\Lending\Services\DemoLendingService;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Services\DemoPaymentGatewayService;
 use App\Domain\Payment\Services\DemoPaymentService;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Domain\Payment\Services\ProductionPaymentService;
 use App\Domain\Payment\Services\SandboxPaymentService;
-use App\Domain\Exchange\Services\DemoExchangeService;
-use App\Domain\Exchange\Services\ExchangeService;
-use App\Domain\Lending\Services\DemoLendingService;
 use App\Domain\Stablecoin\Services\DemoStablecoinService;
 use Illuminate\Support\ServiceProvider;
 
@@ -36,15 +36,15 @@ class DemoServiceProvider extends ServiceProvider
             // Production mode: Use ProductionPaymentService
             $this->app->bind(PaymentServiceInterface::class, ProductionPaymentService::class);
         }
-        
+
         // Register demo services for Exchange, Lending, and Stablecoin domains
         if (config('demo.mode')) {
             // Exchange service
             $this->app->bind(ExchangeService::class, DemoExchangeService::class);
-            
+
             // Lending service - bind by name since there may not be an interface yet
             $this->app->bind('lending.service', DemoLendingService::class);
-            
+
             // Stablecoin service - bind by name since there may not be an interface yet
             $this->app->bind('stablecoin.service', DemoStablecoinService::class);
         }
