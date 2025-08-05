@@ -293,16 +293,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [WorkflowMonitoringController::class, 'show']);
     });
 
-    // Exchange rate endpoints (moved from public to authenticated)
-    Route::middleware('api.rate_limit:query')->group(function () {
-        Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
-        Route::get('/exchange-rates/{from}/{to}', [ExchangeRateController::class, 'show']);
-        Route::get('/exchange-rates/{from}/{to}/convert', [ExchangeRateController::class, 'convert']);
-    });
 });
 
 // Public asset and exchange rate endpoints (no auth required for read-only access - public rate limiting)
 Route::middleware('api.rate_limit:public')->group(function () {
+    Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
+    Route::get('/exchange-rates/{from}/{to}', [ExchangeRateController::class, 'show']);
+    Route::get('/exchange-rates/{from}/{to}/convert', [ExchangeRateController::class, 'convert']);
 
     // Sub-product status endpoints
     Route::prefix('sub-products')->group(function () {

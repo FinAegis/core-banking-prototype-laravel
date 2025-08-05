@@ -7,7 +7,6 @@ use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -47,7 +46,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_gets_exchange_rate_between_two_assets()
     {
-        Sanctum::actingAs($this->user);
 
         $exchangeRate = ExchangeRate::factory()->create([
             'from_asset_code' => 'USD',
@@ -93,7 +91,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_handles_case_insensitive_asset_codes()
     {
-        Sanctum::actingAs($this->user);
 
         ExchangeRate::factory()->create([
             'from_asset_code' => 'USD',
@@ -112,7 +109,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_returns_404_when_exchange_rate_not_found()
     {
-        Sanctum::actingAs($this->user);
 
         // Use a truly non-existent currency pair
         $response = $this->getJson('/api/exchange-rates/USD/XXX');
@@ -127,7 +123,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_converts_amount_between_assets()
     {
-        Sanctum::actingAs($this->user);
 
         ExchangeRate::factory()->create([
             'from_asset_code' => 'USD',
@@ -168,7 +163,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_validates_conversion_amount()
     {
-        Sanctum::actingAs($this->user);
 
         ExchangeRate::factory()->create([
             'from_asset_code' => 'USD',
@@ -193,7 +187,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_lists_all_exchange_rates()
     {
-        Sanctum::actingAs($this->user);
 
         ExchangeRate::factory()->count(3)->create([
             'is_active' => true,
@@ -223,7 +216,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_filters_exchange_rates_by_active_status()
     {
-        Sanctum::actingAs($this->user);
 
         ExchangeRate::factory()->count(3)->create(['is_active' => true]);
         ExchangeRate::factory()->count(2)->create(['is_active' => false]);
@@ -241,7 +233,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_filters_exchange_rates_by_asset()
     {
-        Sanctum::actingAs($this->user);
 
         ExchangeRate::factory()->create([
             'from_asset_code' => 'USD',
@@ -275,22 +266,22 @@ class ExchangeRateControllerTest extends ControllerTestCase
     }
 
     #[Test]
-    public function it_requires_authentication()
+    public function it_does_not_require_authentication()
     {
+        // Exchange rate endpoints are public
         $response = $this->getJson('/api/exchange-rates/USD/EUR');
-        $response->assertStatus(401);
+        $response->assertStatus(200);
 
         $response = $this->getJson('/api/exchange-rates/USD/EUR/convert?amount=1000');
-        $response->assertStatus(401);
+        $response->assertStatus(200);
 
         $response = $this->getJson('/api/exchange-rates');
-        $response->assertStatus(401);
+        $response->assertStatus(200);
     }
 
     #[Test]
     public function it_handles_stale_exchange_rates()
     {
-        Sanctum::actingAs($this->user);
 
         // Create a rate that's old but not stale enough to trigger refresh (45 minutes old)
         $staleTime = now()->subMinutes(45);
@@ -321,7 +312,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     #[Test]
     public function it_calculates_cross_rates()
     {
-        Sanctum::actingAs($this->user);
 
         // Mock the exchange rate service for cross rate calculation
         $service = \Mockery::mock(ExchangeRateService::class);
