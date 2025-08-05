@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Payment\Activities;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Payment\DataObjects\OpenBankingDeposit;
-use App\Domain\Transaction\Aggregates\TransactionAggregate;
-use App\Models\Transaction;
 use Illuminate\Support\Facades\Log;
 
 class ProcessOpenBankingDepositActivity
@@ -28,17 +27,18 @@ class ProcessOpenBankingDepositActivity
 
     public function createTransaction(OpenBankingDeposit $deposit): void
     {
-        TransactionAggregate::retrieve($deposit->reference)
-            ->createTransaction(
-                transactionUuid: $deposit->reference,
-                accountUuid: $deposit->accountUuid,
-                amount: $deposit->amount,
-                currency: $deposit->currency,
-                type: Transaction::TYPE_DEPOSIT,
-                description: "OpenBanking deposit from {$deposit->bankName}",
-                metadata: $deposit->metadata
-            )
-            ->persist();
+        TransactionProjection::create([
+            'uuid'               => $deposit->reference,
+            'account_uuid'       => $deposit->accountUuid,
+            'amount'             => $deposit->amount,
+            'asset_code'         => $deposit->currency,
+            'type'               => 'deposit',
+            'status'             => 'pending',
+            'reference'          => $deposit->reference,
+            'description'        => "OpenBanking deposit from {$deposit->bankName}",
+            'metadata'           => $deposit->metadata,
+            'hash'               => hash('sha3-512', $deposit->reference . $deposit->accountUuid . time()),
+        ]);
     }
 
     public function processBankTransfer(OpenBankingDeposit $deposit): string
@@ -61,10 +61,15 @@ class ProcessOpenBankingDepositActivity
 
     public function completeTransaction(OpenBankingDeposit $deposit, string $bankReference): void
     {
-        TransactionAggregate::retrieve($deposit->reference)
-            ->authorizeTransaction($deposit->reference, $bankReference)
-            ->completeTransaction($deposit->reference, $bankReference)
-            ->persist();
+        $transaction = TransactionProjection::where('uuid', $deposit->reference)->firstOrFail();
+        $transaction->update([
+            'status'              => 'completed',
+            'external_reference'  => $bankReference,
+            'metadata'            => array_merge($transaction->metadata ?? [], [
+                'bank_reference' => $bankReference,
+                'completed_at'   => now()->toIso8601String(),
+            ]),
+        ]);
     }
 
     public function updateAccountBalance(OpenBankingDeposit $deposit): void
@@ -83,13 +88,21 @@ class ProcessOpenBankingDepositActivity
     public function reverseTransaction(OpenBankingDeposit $deposit): void
     {
         try {
-            TransactionAggregate::retrieve($deposit->reference)
-                ->reverseTransaction($deposit->reference, 'Workflow failed')
-                ->persist();
+            $transaction = TransactionProjection::where('uuid', $deposit->reference)->first();
+            
+            if ($transaction && $transaction->status !== 'reversed') {
+                $transaction->update([
+                    'status'   => 'reversed',
+                    'metadata' => array_merge($transaction->metadata ?? [], [
+                        'reversed_at'     => now()->toIso8601String(),
+                        'reversal_reason' => 'Workflow failed',
+                    ]),
+                ]);
 
-            Log::info('Transaction reversed', [
-                'reference' => $deposit->reference,
-            ]);
+                Log::info('Transaction reversed', [
+                    'reference' => $deposit->reference,
+                ]);
+            }
         } catch (\Exception $e) {
             Log::error('Failed to reverse transaction', [
                 'reference' => $deposit->reference,

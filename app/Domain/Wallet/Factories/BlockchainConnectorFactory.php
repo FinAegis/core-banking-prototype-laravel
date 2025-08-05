@@ -35,10 +35,11 @@ class BlockchainConnectorFactory
                 config('blockchain.polygon.rpc_url'),
                 config('blockchain.polygon.chain_id', '137')
             ),
-            'bitcoin' => new SimpleBitcoinConnector(
-                config('blockchain.bitcoin.rpc_url'),
-                config('blockchain.bitcoin.network', 'mainnet')
-            ),
+            'bitcoin' => new SimpleBitcoinConnector([
+                'api_url' => config('blockchain.bitcoin.rpc_url'),
+                'network' => config('blockchain.bitcoin.network', 'mainnet'),
+                'api_key' => config('blockchain.bitcoin.api_key'),
+            ]),
             default => throw new InvalidArgumentException("Unsupported blockchain: {$chain}"),
         };
     }

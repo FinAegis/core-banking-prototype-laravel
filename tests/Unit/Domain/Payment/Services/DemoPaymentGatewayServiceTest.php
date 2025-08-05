@@ -10,6 +10,7 @@ use App\Domain\Payment\Services\DemoPaymentGatewayService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class DemoPaymentGatewayServiceTest extends TestCase
@@ -18,7 +19,7 @@ class DemoPaymentGatewayServiceTest extends TestCase
 
     private DemoPaymentGatewayService $service;
 
-    private PaymentServiceInterface $paymentService;
+    private PaymentServiceInterface&MockInterface $paymentService;
 
     protected User $user;
 
@@ -41,7 +42,9 @@ class DemoPaymentGatewayServiceTest extends TestCase
         $this->user->load('accounts');
 
         // Mock the payment service
-        $this->paymentService = Mockery::mock(PaymentServiceInterface::class);
+        /** @var PaymentServiceInterface&MockInterface $paymentService */
+        $paymentService = Mockery::mock(PaymentServiceInterface::class);
+        $this->paymentService = $paymentService;
 
         // Create the demo gateway service with mocked payment service
         $this->service = new DemoPaymentGatewayService($this->paymentService);
@@ -106,7 +109,6 @@ class DemoPaymentGatewayServiceTest extends TestCase
     {
         $methods = $this->service->getSavedPaymentMethods($this->user);
 
-        $this->assertIsArray($methods);
         $this->assertCount(2, $methods);
 
         // Check card method
@@ -131,10 +133,12 @@ class DemoPaymentGatewayServiceTest extends TestCase
 
         $method = $this->service->addPaymentMethod($this->user, $paymentMethodId);
 
-        $this->assertEquals($paymentMethodId, $method->id);
-        $this->assertEquals('card', $method->type);
-        $this->assertEquals('visa', $method->card->brand);
-        $this->assertEquals('9876', $method->card->last4);
+        /** @var object $stripeMethod */
+        $stripeMethod = $method->asStripePaymentMethod();
+        $this->assertEquals($paymentMethodId, $stripeMethod->id);
+        $this->assertEquals('card', $stripeMethod->type);
+        $this->assertEquals('visa', $stripeMethod->card->brand);
+        $this->assertEquals('9876', $stripeMethod->card->last4);
     }
 
     public function test_remove_payment_method_succeeds_without_api_call(): void
