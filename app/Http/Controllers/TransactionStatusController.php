@@ -139,7 +139,7 @@ class TransactionStatusController extends Controller
                 ->update([
                     'status'       => 'cancelled',
                     'cancelled_at' => now(),
-                    'cancelled_by' => $user->id,
+                    'cancelled_by' => $user->uuid,
                 ]);
 
             // Reverse any holds or pending operations
