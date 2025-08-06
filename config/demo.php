@@ -75,13 +75,13 @@ return [
         'default_currency'       => env('DEMO_DEFAULT_CURRENCY', 'USD'),
         'processing_delay'       => env('DEMO_PROCESSING_DELAY', 0), // seconds
         'success_rate'           => env('DEMO_SUCCESS_RATE', 100), // percentage
-        
+
         // Exchange domain configuration
         'exchange' => [
-            'auto_fill_orders' => env('DEMO_AUTO_FILL_ORDERS', true),
+            'auto_fill_orders'     => env('DEMO_AUTO_FILL_ORDERS', true),
             'liquidity_multiplier' => env('DEMO_LIQUIDITY_MULTIPLIER', 10),
-            'spread_percentage' => env('DEMO_SPREAD_PERCENTAGE', 0.1),
-            'prices' => [
+            'spread_percentage'    => env('DEMO_SPREAD_PERCENTAGE', 0.1),
+            'prices'               => [
                 'EUR/USD' => 1.10,
                 'GBP/USD' => 1.27,
                 'GCU/USD' => 1.00,
@@ -89,26 +89,26 @@ return [
                 'ETH/USD' => 2500,
             ],
         ],
-        
+
         // Lending domain configuration
         'lending' => [
-            'auto_approve_loans' => env('DEMO_AUTO_APPROVE_LOANS', true),
+            'auto_approve_loans'     => env('DEMO_AUTO_APPROVE_LOANS', true),
             'auto_approve_threshold' => env('DEMO_LOAN_AUTO_APPROVE_THRESHOLD', 10000),
-            'default_credit_score' => env('DEMO_DEFAULT_CREDIT_SCORE', 750),
-            'approval_rate' => env('DEMO_LOAN_APPROVAL_RATE', 80),
-            'default_interest_rate' => env('DEMO_DEFAULT_INTEREST_RATE', 5.5),
-            'instant_disbursement' => env('DEMO_INSTANT_DISBURSEMENT', true),
+            'default_credit_score'   => env('DEMO_DEFAULT_CREDIT_SCORE', 750),
+            'approval_rate'          => env('DEMO_LOAN_APPROVAL_RATE', 80),
+            'default_interest_rate'  => env('DEMO_DEFAULT_INTEREST_RATE', 5.5),
+            'instant_disbursement'   => env('DEMO_INSTANT_DISBURSEMENT', true),
         ],
-        
+
         // Stablecoin domain configuration
         'stablecoin' => [
-            'auto_collateralize' => env('DEMO_AUTO_COLLATERALIZE', true),
-            'collateral_ratio' => env('DEMO_COLLATERAL_RATIO', 150), // 150%
+            'auto_collateralize'    => env('DEMO_AUTO_COLLATERALIZE', true),
+            'collateral_ratio'      => env('DEMO_COLLATERAL_RATIO', 150), // 150%
             'liquidation_threshold' => env('DEMO_LIQUIDATION_THRESHOLD', 120), // 120%
-            'stability_fee' => env('DEMO_STABILITY_FEE', 2.5), // 2.5% annual
+            'stability_fee'         => env('DEMO_STABILITY_FEE', 2.5), // 2.5% annual
         ],
-        
-        'exchange_rates'         => [
+
+        'exchange_rates' => [
             'EUR/USD' => 1.10,
             'GBP/USD' => 1.27,
             'USD/EUR' => 0.91,

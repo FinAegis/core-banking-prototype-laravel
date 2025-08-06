@@ -9,10 +9,8 @@ use App\Domain\Lending\Events\LoanApplicationApproved;
 use App\Domain\Lending\Events\LoanApplicationRejected;
 use App\Domain\Lending\Events\LoanApplicationSubmitted;
 use App\Domain\Lending\Events\LoanDisbursed;
-use App\Domain\Lending\Events\LoanPaymentReceived;
 use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Models\LoanApplication;
-use App\Domain\Lending\Models\LoanPayment;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -32,18 +30,18 @@ class DemoLendingService
                 'id'               => $applicationId,
                 'borrower_id'      => $data['borrower_id'],
                 'requested_amount' => $data['requested_amount'],
-                'currency'         => $data['currency'] ?? 'USD',
                 'term_months'      => $data['term_months'],
                 'purpose'          => $data['purpose'],
                 'status'           => 'pending',
-                'metadata'         => array_merge($data['metadata'] ?? [], [
-                    'demo_mode'     => true,
-                    'borrower_info' => $data['borrower_info'] ?? [],
+                'borrower_info'    => array_merge($data['borrower_info'] ?? [], [
+                    'demo_mode' => true,
+                    'currency'  => $data['currency'] ?? 'USD',
                 ]),
+                'submitted_at'     => now(),
             ]);
 
             event(new LoanApplicationSubmitted(
-                applicationId: $application->id,
+                applicationId: (string) $application->id,
                 borrowerId: (string) $application->borrower_id,
                 requestedAmount: (string) $application->requested_amount,
                 termMonths: $application->term_months,
@@ -67,7 +65,7 @@ class DemoLendingService
     public function processApplication(LoanApplication $application): void
     {
         // Simulate credit check
-        $creditScore = $this->simulateCreditScore($application->borrower_id);
+        $creditScore = $this->simulateCreditScore((int) $application->borrower_id);
         $riskAssessment = $this->assessRisk($application, $creditScore);
 
         // Store assessment data
@@ -117,23 +115,33 @@ class DemoLendingService
 
             // Create loan
             $loan = Loan::create([
-                'id'                => 'demo_loan_' . Str::random(16),
-                'application_id'    => $application->id,
-                'borrower_id'       => $application->borrower_id,
-                'principal_amount'  => $approvedAmount,
-                'currency'          => $application->currency,
-                'interest_rate'     => $interestRate,
-                'term_months'       => $application->term_months,
-                'status'            => 'active',
-                'disbursed_at'      => now(),
-                'next_payment_date' => Carbon::now()->addMonth(),
-                'monthly_payment'   => $this->calculateMonthlyPayment($approvedAmount, $interestRate, $application->term_months),
-                'remaining_balance' => $approvedAmount,
-                'metadata'          => ['demo_mode' => true],
+                'id'               => 'demo_loan_' . Str::random(16),
+                'application_id'   => $application->id,
+                'borrower_id'      => $application->borrower_id,
+                'principal'        => $approvedAmount,
+                'interest_rate'    => $interestRate,
+                'term_months'      => $application->term_months,
+                'status'           => 'active',
+                'disbursed_at'     => now(),
+                'disbursed_amount' => $approvedAmount,
             ]);
 
-            event(new LoanApplicationApproved($application));
-            event(new LoanDisbursed($loan));
+            event(new LoanApplicationApproved(
+                applicationId: (string) $application->id,
+                approvedAmount: (string) $approvedAmount,
+                interestRate: $interestRate,
+                terms: [
+                    'term_months'     => $application->term_months,
+                    'monthly_payment' => $this->calculateMonthlyPayment((float) $approvedAmount, $interestRate, $application->term_months),
+                ],
+                approvedBy: 'demo_system',
+                approvedAt: new \DateTimeImmutable()
+            ));
+            event(new LoanDisbursed(
+                loanId: (string) $loan->id,
+                amount: (string) $approvedAmount,
+                disbursedAt: new \DateTimeImmutable()
+            ));
 
             // Simulate disbursement to borrower's account
             if (config('demo.features.instant_disbursement', true)) {
@@ -153,45 +161,53 @@ class DemoLendingService
             'rejected_at'       => now(),
         ]);
 
-        event(new LoanApplicationRejected($application));
+        event(new LoanApplicationRejected(
+            applicationId: (string) $application->id,
+            reasons: $reasons,
+            rejectedBy: 'demo_system',
+            rejectedAt: new \DateTimeImmutable()
+        ));
     }
 
     /**
      * Make a loan payment.
      */
-    public function makePayment(string $loanId, float $amount): LoanPayment
+    public function makePayment(string $loanId, float $amount): array
     {
         return DB::transaction(function () use ($loanId, $amount) {
             $loan = Loan::findOrFail($loanId);
 
+            // Get current principal (use principal if remaining_balance doesn't exist)
+            $remainingBalance = $loan->principal - ($loan->total_principal_paid ?? 0);
+
             // Calculate payment allocation
-            $interestPortion = round($loan->remaining_balance * ($loan->interest_rate / 100 / 12), 2);
+            $interestPortion = round($remainingBalance * ($loan->interest_rate / 100 / 12), 2);
             $principalPortion = round($amount - $interestPortion, 2);
 
-            // Create payment record
-            $payment = LoanPayment::create([
-                'id'               => 'demo_pmt_' . Str::random(16),
-                'loan_id'          => $loan->id,
-                'amount'           => $amount,
-                'principal_amount' => $principalPortion,
-                'interest_amount'  => $interestPortion,
-                'payment_date'     => now(),
-                'status'           => 'completed',
-                'metadata'         => ['demo_mode' => true, 'instant_processing' => true],
-            ]);
+            // Update loan
+            $newTotalPrincipalPaid = ($loan->total_principal_paid ?? 0) + $principalPortion;
+            $newTotalInterestPaid = ($loan->total_interest_paid ?? 0) + $interestPortion;
+            $newBalance = max(0, $loan->principal - $newTotalPrincipalPaid);
 
-            // Update loan balance
-            $newBalance = max(0, $loan->remaining_balance - $principalPortion);
             $loan->update([
-                'remaining_balance' => $newBalance,
-                'last_payment_date' => now(),
-                'next_payment_date' => $newBalance > 0 ? Carbon::now()->addMonth() : null,
-                'status'            => $newBalance <= 0 ? 'paid_off' : 'active',
+                'total_principal_paid' => $newTotalPrincipalPaid,
+                'total_interest_paid'  => $newTotalInterestPaid,
+                'last_payment_date'    => now(),
+                'status'               => $newBalance <= 0 ? 'completed' : 'active',
             ]);
 
-            event(new LoanPaymentReceived($payment));
-
-            return $payment;
+            // Return payment details
+            return [
+                'id'                => 'demo_pmt_' . Str::random(16),
+                'loan_id'           => $loan->id,
+                'amount'            => $amount,
+                'principal_amount'  => $principalPortion,
+                'interest_amount'   => $interestPortion,
+                'payment_date'      => now(),
+                'status'            => 'completed',
+                'remaining_balance' => $newBalance,
+                'metadata'          => ['demo_mode' => true],
+            ];
         });
     }
 
@@ -200,14 +216,17 @@ class DemoLendingService
      */
     public function getLoanDetails(string $loanId): array
     {
-        $loan = Loan::with(['application', 'payments'])->findOrFail($loanId);
+        $loan = Loan::findOrFail($loanId);
+
+        $remainingBalance = $loan->principal - ($loan->total_principal_paid ?? 0);
+        $monthlyPayment = $this->calculateMonthlyPayment((float) $loan->principal, (float) $loan->interest_rate, $loan->term_months);
 
         return [
             'loan'                => $loan,
             'payment_schedule'    => $this->generatePaymentSchedule($loan),
-            'total_paid'          => $loan->payments->sum('amount'),
-            'total_interest_paid' => $loan->payments->sum('interest_amount'),
-            'remaining_payments'  => ceil($loan->remaining_balance / $loan->monthly_payment),
+            'total_paid'          => ($loan->total_principal_paid ?? 0) + ($loan->total_interest_paid ?? 0),
+            'total_interest_paid' => $loan->total_interest_paid ?? 0,
+            'remaining_payments'  => $remainingBalance > 0 ? ceil($remainingBalance / $monthlyPayment) : 0,
             'demo'                => true,
         ];
     }
@@ -220,7 +239,7 @@ class DemoLendingService
         $baseScore = config('demo.demo_data.lending.default_credit_score', 750);
         $variation = rand(-100, 100);
 
-        return max(300, min(850, $baseScore + $variation));
+        return (int) max(300, min(850, $baseScore + $variation));
     }
 
     /**
@@ -335,24 +354,29 @@ class DemoLendingService
     private function generatePaymentSchedule(Loan $loan): array
     {
         $schedule = [];
-        $balance = $loan->principal_amount;
+        $balance = $loan->principal;
         $monthlyRate = $loan->interest_rate / 100 / 12;
+        $monthlyPayment = $this->calculateMonthlyPayment((float) $loan->principal, (float) $loan->interest_rate, $loan->term_months);
         $paymentDate = Carbon::parse($loan->disbursed_at);
+
+        // Calculate how many payments have been made
+        $paymentsMade = $loan->total_principal_paid > 0 ?
+            (int) round($loan->total_principal_paid / ($monthlyPayment - ($balance * $monthlyRate))) : 0;
 
         for ($i = 1; $i <= $loan->term_months; $i++) {
             $paymentDate = $paymentDate->addMonth();
             $interestPayment = round($balance * $monthlyRate, 2);
-            $principalPayment = round($loan->monthly_payment - $interestPayment, 2);
+            $principalPayment = round($monthlyPayment - $interestPayment, 2);
             $balance = max(0, $balance - $principalPayment);
 
             $schedule[] = [
                 'payment_number' => $i,
                 'payment_date'   => $paymentDate->format('Y-m-d'),
-                'payment_amount' => $loan->monthly_payment,
+                'payment_amount' => $monthlyPayment,
                 'principal'      => $principalPayment,
                 'interest'       => $interestPayment,
                 'balance'        => $balance,
-                'status'         => $i <= $loan->payments()->count() ? 'paid' : 'pending',
+                'status'         => $i <= $paymentsMade ? 'paid' : 'pending',
             ];
 
             if ($balance <= 0) {
@@ -393,12 +417,10 @@ class DemoLendingService
     {
         // In demo mode, we just mark it as disbursed
         // In production, this would trigger actual fund transfer
+        // Note: disbursement_metadata field doesn't exist in the Loan model
+        // We'll update the disbursed_at field instead
         $loan->update([
-            'disbursement_metadata' => [
-                'demo_mode'            => true,
-                'instant_disbursement' => true,
-                'disbursed_at'         => now()->toIso8601String(),
-            ],
+            'disbursed_at' => now(),
         ]);
     }
 }

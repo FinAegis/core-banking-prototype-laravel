@@ -30,25 +30,25 @@ class DemoExchangeService
         // Create the order
         $order = DB::transaction(function () use ($data, $orderId) {
             $order = Order::create([
-                'id'             => $orderId,
-                'user_id'        => $data['user_id'],
+                'order_id'       => $orderId,
                 'account_id'     => $data['account_id'],
-                'type'           => $data['type'],
-                'side'           => $data['side'],
+                'type'           => $data['side'], // buy or sell
+                'order_type'     => $data['type'], // market or limit
                 'base_currency'  => $data['base_currency'],
                 'quote_currency' => $data['quote_currency'],
-                'amount'         => $data['amount'],
-                'price'          => $data['price'] ?? $this->getSimulatedPrice($data['base_currency'], $data['quote_currency']),
+                'amount'         => (string) $data['amount'],
+                'filled_amount'  => '0',
+                'price'          => $data['price'] ? (string) $data['price'] : (string) $this->getSimulatedPrice($data['base_currency'], $data['quote_currency']),
                 'status'         => 'pending',
                 'metadata'       => array_merge($data['metadata'] ?? [], ['demo_mode' => true]),
             ]);
 
             // Record order placed event
             event(new OrderPlaced(
-                orderId: $order->id,
+                orderId: $order->order_id,
                 accountId: (string) $order->account_id,
-                type: $order->side,
-                orderType: $order->type,
+                type: $order->type,
+                orderType: $order->order_type,
                 baseCurrency: $order->base_currency,
                 quoteCurrency: $order->quote_currency,
                 amount: (string) $order->amount,
@@ -73,8 +73,8 @@ class DemoExchangeService
     public function cancelOrder(string $orderId, int $userId): bool
     {
         return DB::transaction(function () use ($orderId, $userId) {
-            $order = Order::where('id', $orderId)
-                ->where('user_id', $userId)
+            $order = Order::where('order_id', $orderId)
+                ->where('account_id', $userId)
                 ->whereIn('status', ['pending', 'partially_filled'])
                 ->first();
 
@@ -88,7 +88,7 @@ class DemoExchangeService
             ]);
 
             event(new OrderCancelled(
-                orderId: $order->id,
+                orderId: $order->order_id,
                 reason: 'User requested cancellation'
             ));
 
@@ -174,44 +174,46 @@ class DemoExchangeService
     private function simulateOrderMatching(Order $order): void
     {
         // Calculate fees using demo values (0.1% for maker, 0.2% for taker)
-        $price = $order->price ?? $this->getSimulatedPrice($order->base_currency, $order->quote_currency);
-        $value = $order->amount * $price;
-        $fee = $order->side === 'buy' ? $value * 0.002 : $value * 0.002; // 0.2% taker fee for demo
+        $price = (float) $order->price ?: $this->getSimulatedPrice($order->base_currency, $order->quote_currency);
+        $amount = (float) $order->amount;
+        $value = $amount * $price;
+        $fee = $value * 0.002; // 0.2% taker fee for demo
+
+        $tradeId = 'demo_trd_' . Str::random(16);
 
         // Create a matching trade
         $trade = Trade::create([
-            'id'             => 'demo_trd_' . Str::random(16),
-            'order_id'       => $order->id,
-            'user_id'        => $order->user_id,
-            'account_id'     => $order->account_id,
-            'base_currency'  => $order->base_currency,
-            'quote_currency' => $order->quote_currency,
-            'side'           => $order->side,
-            'amount'         => $order->amount,
-            'price'          => $order->price ?? $this->getSimulatedPrice($order->base_currency, $order->quote_currency),
-            'fee'            => $fee,
-            'fee_currency'   => $order->quote_currency,
-            'status'         => 'completed',
-            'executed_at'    => now(),
-            'metadata'       => ['demo_mode' => true, 'instant_fill' => true],
+            'trade_id'          => $tradeId,
+            'buy_order_id'      => $order->type === 'buy' ? $order->order_id : $order->order_id,
+            'sell_order_id'     => $order->type === 'sell' ? $order->order_id : $order->order_id,
+            'buyer_account_id'  => $order->type === 'buy' ? $order->account_id : $order->account_id,
+            'seller_account_id' => $order->type === 'sell' ? $order->account_id : $order->account_id,
+            'base_currency'     => $order->base_currency,
+            'quote_currency'    => $order->quote_currency,
+            'price'             => (string) $price,
+            'amount'            => (string) $amount,
+            'value'             => (string) $value,
+            'maker_fee'         => '0',
+            'taker_fee'         => (string) $fee,
+            'maker_side'        => $order->type === 'buy' ? 'sell' : 'buy',
+            'metadata'          => ['demo_mode' => true, 'instant_fill' => true],
         ]);
 
         // Update order status
         $order->update([
-            'status'           => 'filled',
-            'filled_amount'    => $order->amount,
-            'remaining_amount' => 0,
-            'average_price'    => $trade->price,
-            'filled_at'        => now(),
+            'status'        => 'filled',
+            'filled_amount' => (string) $amount,
+            'average_price' => (string) $price,
+            'filled_at'     => now(),
         ]);
 
         // Fire events
         event(new OrderMatched(
-            orderId: $order->id,
-            matchedOrderId: $order->id, // Self-matched in demo
-            tradeId: $trade->id,
-            executedPrice: (string) $trade->price,
-            executedAmount: (string) $trade->amount,
+            orderId: $order->order_id,
+            matchedOrderId: $order->order_id, // Self-matched in demo
+            tradeId: $tradeId,
+            executedPrice: (string) $price,
+            executedAmount: (string) $amount,
             makerFee: '0',
             takerFee: (string) $fee
         ));

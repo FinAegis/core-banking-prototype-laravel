@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Stablecoin\Services;
 
-use App\Domain\Account\Models\Account;
 use App\Domain\Stablecoin\Events\CollateralPositionLiquidated;
+use App\Domain\Stablecoin\Events\CollateralPositionUpdated;
 use App\Domain\Stablecoin\Events\StablecoinBurned;
 use App\Domain\Stablecoin\Events\StablecoinMinted;
-use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
-use App\Domain\Stablecoin\Models\StablecoinTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -19,51 +17,62 @@ class DemoStablecoinService
     /**
      * Mint stablecoins with demo collateral.
      */
-    public function mint(array $data): StablecoinTransaction
+    public function mint(string $accountId, string $stablecoinId, float $amount, float $collateral): array
     {
-        return DB::transaction(function () use ($data) {
-            $stablecoin = Stablecoin::where('code', $data['stablecoin_code'])->firstOrFail();
-            $position = $this->getOrCreatePosition($data['account_id'], $stablecoin->id);
+        // Validate collateral ratio
+        $minRatio = config('demo.demo_data.stablecoin.collateral_ratio', 1.5);
+        $collateralPrice = $this->getCollateralPrice('ETH');
+        $collateralValue = $collateral * $collateralPrice;
+        $requiredCollateral = $amount * $minRatio;
 
-            // Calculate required collateral
-            $collateralRatio = config('demo.demo_data.stablecoin.collateral_ratio', 150) / 100;
-            $requiredCollateral = $data['amount'] * $collateralRatio;
+        if ($collateralValue < $requiredCollateral) {
+            throw new \Exception('Insufficient collateral. Required: $' . $requiredCollateral);
+        }
 
-            // In demo mode, automatically add collateral
-            if (config('demo.features.auto_collateralize', true)) {
-                $this->addDemoCollateral($position, $requiredCollateral);
-            }
+        $positionId = 'demo_pos_' . Str::random(16);
+        $collateralRatio = $collateralValue / $amount;
 
-            // Create mint transaction
-            $transaction = StablecoinTransaction::create([
-                'id'                  => 'demo_mint_' . Str::random(16),
-                'stablecoin_id'       => $stablecoin->id,
-                'position_id'         => $position->id,
-                'account_id'          => $data['account_id'],
-                'type'                => 'mint',
-                'amount'              => $data['amount'],
-                'collateral_amount'   => $requiredCollateral,
-                'collateral_currency' => $data['collateral_currency'] ?? 'USD',
-                'status'              => 'completed',
-                'executed_at'         => now(),
-                'metadata'            => array_merge($data['metadata'] ?? [], [
+        return DB::transaction(function () use ($accountId, $stablecoinId, $amount, $collateral, $positionId, $collateralRatio, $collateralPrice, $requiredCollateral) {
+            // Create transaction record (as array since StablecoinTransaction model doesn't exist)
+            $transaction = [
+                'id'            => 'demo_tx_' . Str::random(16),
+                'stablecoin_id' => $stablecoinId,
+                'account_id'    => $accountId,
+                'type'          => 'mint',
+                'amount'        => $amount,
+                'collateral'    => $collateral,
+                'status'        => 'completed',
+                'created_at'    => now(),
+                'metadata'      => [
                     'demo_mode'           => true,
-                    'auto_collateralized' => true,
-                ]),
-            ]);
+                    'position_id'         => $positionId,
+                    'collateral_ratio'    => $collateralRatio,
+                    'collateral_price'    => $collateralPrice,
+                    'required_collateral' => $requiredCollateral,
+                ],
+            ];
 
-            // Update position
-            $position->update([
-                'minted_amount'           => $position->minted_amount + $data['amount'],
-                'collateral_amount'       => $position->collateral_amount + $requiredCollateral,
-                'collateralization_ratio' => $this->calculateRatio($position),
-                'last_activity_at'        => now(),
-            ]);
+            // Create or update collateral position
+            $position = StablecoinCollateralPosition::updateOrCreate(
+                ['uuid' => $positionId],
+                [
+                    'account_uuid'          => $accountId,
+                    'stablecoin_code'       => $stablecoinId,
+                    'collateral_asset_code' => 'ETH',
+                    'collateral_amount'     => DB::raw("COALESCE(collateral_amount, 0) + $collateral"),
+                    'debt_amount'           => DB::raw("COALESCE(debt_amount, 0) + $amount"),
+                    'collateral_ratio'      => $collateralRatio,
+                    'status'                => 'active',
+                ]
+            );
 
-            // Update stablecoin supply
-            $stablecoin->increment('total_supply', $data['amount']);
-
-            event(new StablecoinMinted($transaction));
+            event(new StablecoinMinted(
+                position_uuid: $positionId,
+                account_uuid: $accountId,
+                stablecoin_code: $stablecoinId,
+                amount: (int) $amount,
+                metadata: ['collateral' => $collateral]
+            ));
 
             return $transaction;
         });
@@ -72,368 +81,243 @@ class DemoStablecoinService
     /**
      * Burn stablecoins and release collateral.
      */
-    public function burn(array $data): StablecoinTransaction
+    public function burn(string $accountId, string $stablecoinId, float $amount): array
     {
-        return DB::transaction(function () use ($data) {
-            $stablecoin = Stablecoin::where('code', $data['stablecoin_code'])->firstOrFail();
-            $position = StablecoinCollateralPosition::where('account_id', $data['account_id'])
-                ->where('stablecoin_id', $stablecoin->id)
-                ->firstOrFail();
+        $position = StablecoinCollateralPosition::where('account_uuid', $accountId)
+            ->where('stablecoin_code', $stablecoinId)
+            ->where('status', 'active')
+            ->first();
 
-            // Calculate collateral to release
-            $burnAmount = min($data['amount'], $position->minted_amount);
-            $collateralToRelease = ($burnAmount / $position->minted_amount) * $position->collateral_amount;
+        if (! $position) {
+            throw new \Exception('No active position found for this account and stablecoin');
+        }
 
-            // Create burn transaction
-            $transaction = StablecoinTransaction::create([
-                'id'                  => 'demo_burn_' . Str::random(16),
-                'stablecoin_id'       => $stablecoin->id,
-                'position_id'         => $position->id,
-                'account_id'          => $data['account_id'],
-                'type'                => 'burn',
-                'amount'              => $burnAmount,
-                'collateral_amount'   => $collateralToRelease,
-                'collateral_currency' => $position->collateral_currency,
-                'status'              => 'completed',
-                'executed_at'         => now(),
-                'metadata'            => array_merge($data['metadata'] ?? [], [
-                    'demo_mode'       => true,
-                    'instant_release' => true,
-                ]),
-            ]);
+        if ($position->debt_amount < $amount) {
+            throw new \Exception('Cannot burn more than debt amount');
+        }
+
+        return DB::transaction(function () use ($accountId, $stablecoinId, $amount, $position) {
+            // Create transaction (as array since StablecoinTransaction model doesn't exist)
+            $transaction = [
+                'id'            => 'demo_tx_' . Str::random(16),
+                'stablecoin_id' => $stablecoinId,
+                'account_id'    => $accountId,
+                'type'          => 'burn',
+                'amount'        => $amount,
+                'status'        => 'completed',
+                'created_at'    => now(),
+                'metadata'      => [
+                    'demo_mode'   => true,
+                    'position_id' => $position->uuid,
+                ],
+            ];
 
             // Update position
-            $newMintedAmount = $position->minted_amount - $burnAmount;
-            $newCollateralAmount = $position->collateral_amount - $collateralToRelease;
+            $newDebt = max(0, $position->debt_amount - $amount);
+            $collateralToReturn = $newDebt > 0
+                ? ($amount / $position->debt_amount) * $position->collateral_amount
+                : $position->collateral_amount;
 
             $position->update([
-                'minted_amount'           => $newMintedAmount,
-                'collateral_amount'       => $newCollateralAmount,
-                'collateralization_ratio' => $newMintedAmount > 0 ? ($newCollateralAmount / $newMintedAmount) * 100 : 0,
-                'last_activity_at'        => now(),
-                'status'                  => $newMintedAmount <= 0 ? 'closed' : 'active',
+                'debt_amount'       => $newDebt,
+                'collateral_amount' => $position->collateral_amount - $collateralToReturn,
+                'status'            => $newDebt > 0 ? 'active' : 'closed',
+                'collateral_ratio'  => $newDebt > 0 ? ($position->collateral_amount - $collateralToReturn) / $newDebt : 0,
             ]);
 
-            // Update stablecoin supply
-            $stablecoin->decrement('total_supply', $burnAmount);
-
-            event(new StablecoinBurned($transaction));
+            event(new StablecoinBurned(
+                position_uuid: $position->uuid,
+                account_uuid: $accountId,
+                stablecoin_code: $stablecoinId,
+                amount: (int) $amount,
+                metadata: ['collateral_returned' => $collateralToReturn]
+            ));
 
             return $transaction;
         });
     }
 
     /**
-     * Add collateral to position.
+     * Get position details with health status.
      */
-    public function addCollateral(array $data): StablecoinCollateralPosition
+    public function getPosition(string $positionId): array
     {
-        return DB::transaction(function () use ($data) {
-            $position = StablecoinCollateralPosition::findOrFail($data['position_id']);
-
-            // Add collateral
-            $position->increment('collateral_amount', $data['amount']);
-            $position->update([
-                'collateralization_ratio' => $this->calculateRatio($position),
-                'last_activity_at'        => now(),
-            ]);
-
-            // Record transaction
-            StablecoinTransaction::create([
-                'id'                  => 'demo_col_' . Str::random(16),
-                'stablecoin_id'       => $position->stablecoin_id,
-                'position_id'         => $position->id,
-                'account_id'          => $position->account_id,
-                'type'                => 'add_collateral',
-                'amount'              => 0,
-                'collateral_amount'   => $data['amount'],
-                'collateral_currency' => $position->collateral_currency,
-                'status'              => 'completed',
-                'executed_at'         => now(),
-                'metadata'            => ['demo_mode' => true],
-            ]);
-
-            // Event removed - CollateralAdded doesn't exist in this domain
-
-            return $position->fresh();
-        });
-    }
-
-    /**
-     * Check collateralization status.
-     */
-    public function checkCollateralization(string $positionId): array
-    {
-        $position = StablecoinCollateralPosition::with('stablecoin')->findOrFail($positionId);
-        $minRatio = config('demo.demo_data.stablecoin.liquidation_threshold', 120);
-        $targetRatio = config('demo.demo_data.stablecoin.collateral_ratio', 150);
-
-        $currentRatio = $this->calculateRatio($position);
-        $status = match (true) {
-            $currentRatio < $minRatio    => 'at_risk',
-            $currentRatio < $targetRatio => 'warning',
-            default                      => 'healthy',
-        };
+        $position = StablecoinCollateralPosition::where('uuid', $positionId)->firstOrFail();
+        $collateralPrice = $this->getCollateralPrice('ETH');
+        $currentCollateralValue = $position->collateral_amount * $collateralPrice;
+        $requiredCollateral = $position->debt_amount * config('demo.demo_data.stablecoin.collateral_ratio', 1.5);
 
         return [
-            'position_id'          => $position->id,
-            'current_ratio'        => round($currentRatio, 2),
-            'min_ratio'            => $minRatio,
-            'target_ratio'         => $targetRatio,
-            'status'               => $status,
-            'minted_amount'        => $position->minted_amount,
-            'collateral_amount'    => $position->collateral_amount,
-            'collateral_value_usd' => $this->getCollateralValueUSD($position),
-            'required_collateral'  => $position->minted_amount * ($targetRatio / 100),
-            'excess_collateral'    => max(0, $position->collateral_amount - ($position->minted_amount * ($targetRatio / 100))),
-            'demo'                 => true,
+            'position_id'         => $position->uuid,
+            'account_id'          => $position->account_uuid,
+            'stablecoin_id'       => $position->stablecoin_code,
+            'collateral'          => $position->collateral_amount,
+            'debt'                => $position->debt_amount,
+            'collateral_ratio'    => $position->collateral_ratio,
+            'collateral_value'    => $currentCollateralValue,
+            'required_collateral' => $requiredCollateral,
+            'health'              => $currentCollateralValue >= $requiredCollateral ? 'healthy' : 'at_risk',
+            'liquidation_price'   => $position->debt_amount > 0 ? ($position->debt_amount * 1.2) / $position->collateral_amount : 0,
+            'status'              => $position->status,
+            'demo'                => true,
         ];
     }
 
     /**
-     * Simulate liquidation for at-risk positions.
+     * Adjust collateral position.
      */
-    public function liquidate(string $positionId): array
+    public function adjustPosition(string $positionId, float $collateral = 0, float $debt = 0): array
     {
-        return DB::transaction(function () use ($positionId) {
-            $position = StablecoinCollateralPosition::with('stablecoin')->findOrFail($positionId);
-            $liquidationThreshold = config('demo.demo_data.stablecoin.liquidation_threshold', 120);
+        return DB::transaction(function () use ($positionId, $collateral, $debt) {
+            $position = StablecoinCollateralPosition::where('uuid', $positionId)->firstOrFail();
 
-            // Check if position is actually at risk
-            $currentRatio = $this->calculateRatio($position);
-            if ($currentRatio >= $liquidationThreshold) {
-                throw new \Exception('Position is not eligible for liquidation');
+            // Note: CollateralAdded event doesn't exist in the codebase
+            // We'll use CollateralPositionUpdated instead
+            if ($collateral > 0) {
+                event(new CollateralPositionUpdated(
+                    position_uuid: $position->uuid,
+                    collateral_amount: (int) $position->collateral_amount,
+                    debt_amount: (int) $position->debt_amount,
+                    collateral_ratio: (float) $position->collateral_ratio,
+                    status: $position->status,
+                    metadata: ['collateral_added' => $collateral]
+                ));
             }
 
-            // Calculate liquidation details
-            $liquidationPenalty = 0.1; // 10% penalty
-            $collateralToSeize = $position->collateral_amount;
-            $debtToCover = $position->minted_amount;
-            $penaltyAmount = $collateralToSeize * $liquidationPenalty;
-            $liquidatorReward = $penaltyAmount * 0.5; // 50% of penalty goes to liquidator
-
-            // Create liquidation transaction
-            $transaction = StablecoinTransaction::create([
-                'id'                  => 'demo_liq_' . Str::random(16),
-                'stablecoin_id'       => $position->stablecoin_id,
-                'position_id'         => $position->id,
-                'account_id'          => $position->account_id,
-                'type'                => 'liquidation',
-                'amount'              => $debtToCover,
-                'collateral_amount'   => $collateralToSeize,
-                'collateral_currency' => $position->collateral_currency,
-                'status'              => 'completed',
-                'executed_at'         => now(),
-                'metadata'            => [
-                    'demo_mode'         => true,
-                    'liquidation_ratio' => $currentRatio,
-                    'penalty_amount'    => $penaltyAmount,
-                    'liquidator_reward' => $liquidatorReward,
-                ],
-            ]);
-
-            // Close position
             $position->update([
-                'minted_amount'           => 0,
-                'collateral_amount'       => 0,
-                'collateralization_ratio' => 0,
-                'status'                  => 'liquidated',
-                'liquidated_at'           => now(),
+                'collateral_amount' => DB::raw("collateral_amount + $collateral"),
+                'debt_amount'       => DB::raw("debt_amount + $debt"),
+                'collateral_ratio'  => ($position->collateral_amount + $collateral) / ($position->debt_amount + $debt),
             ]);
 
-            // Update stablecoin supply
-            $position->stablecoin->decrement('total_supply', $debtToCover);
-
-            event(new CollateralPositionLiquidated(
-                position_uuid: $position->id,
-                liquidator_account_uuid: 'demo_liquidator',
-                collateral_seized: (int) $collateralToSeize,
-                debt_repaid: (int) $debtToCover,
-                liquidation_penalty: (int) $penaltyAmount
-            ));
-
-            return [
-                'transaction_id'    => $transaction->id,
-                'position_id'       => $position->id,
-                'debt_covered'      => $debtToCover,
-                'collateral_seized' => $collateralToSeize,
-                'penalty_amount'    => $penaltyAmount,
-                'liquidator_reward' => $liquidatorReward,
-                'timestamp'         => now()->toIso8601String(),
-                'demo'              => true,
-            ];
+            return $this->getPosition($positionId);
         });
     }
 
     /**
-     * Get positions at risk of liquidation.
+     * Check and liquidate positions at risk.
      */
-    public function getPositionsAtRisk(): array
+    public function checkLiquidations(): array
     {
-        $liquidationThreshold = config('demo.demo_data.stablecoin.liquidation_threshold', 120);
+        $liquidationThreshold = config('demo.demo_data.stablecoin.liquidation_threshold', 1.2);
+        $liquidated = [];
 
-        $positions = StablecoinCollateralPosition::where('status', 'active')
-            ->where('minted_amount', '>', 0)
-            ->get()
-            ->filter(function ($position) use ($liquidationThreshold) {
-                return $this->calculateRatio($position) < $liquidationThreshold;
-            });
+        $positionsAtRisk = StablecoinCollateralPosition::where('status', 'active')
+            ->where('collateral_ratio', '<', $liquidationThreshold)
+            ->get();
 
-        return $positions->map(function ($position) {
-            return [
-                'position_id'                  => $position->id,
-                'account_id'                   => $position->account_id,
-                'collateralization_ratio'      => $this->calculateRatio($position),
-                'minted_amount'                => $position->minted_amount,
-                'collateral_amount'            => $position->collateral_amount,
-                'estimated_liquidation_reward' => $position->collateral_amount * 0.05, // 5% reward
-            ];
-        })->toArray();
-    }
+        foreach ($positionsAtRisk as $position) {
+            // Simulate liquidation for demo
+            $collateralPrice = $this->getCollateralPrice('ETH');
+            $collateralValue = $position->collateral_amount * $collateralPrice;
+            $debtValue = $position->debt_amount;
+            $currentRatio = $collateralValue / $debtValue;
 
-    /**
-     * Simulate stability mechanism execution.
-     */
-    public function executeStabilityMechanism(string $stablecoinCode): array
-    {
-        $stablecoin = Stablecoin::where('code', $stablecoinCode)->firstOrFail();
+            if ($currentRatio < $liquidationThreshold) {
+                // Calculate liquidation amounts
+                $debtToCover = $position->debt_amount * 0.5; // Liquidate 50% of position
+                $collateralToSeize = ($debtToCover / $collateralPrice) * 1.1; // 10% penalty
+                $penaltyAmount = $collateralToSeize * 0.1;
 
-        // Simulate price oracle data
-        $currentPrice = $this->getSimulatedPrice($stablecoinCode);
-        $targetPrice = 1.00; // USD peg
-        $deviation = abs($currentPrice - $targetPrice) / $targetPrice;
+                $position->update([
+                    'debt_amount'       => $position->debt_amount - $debtToCover,
+                    'collateral_amount' => max(0, $position->collateral_amount - $collateralToSeize),
+                    'status'            => $position->debt_amount - $debtToCover <= 0 ? 'liquidated' : 'active',
+                    'collateral_ratio'  => $position->debt_amount - $debtToCover > 0
+                        ? ($position->collateral_amount - $collateralToSeize) * $collateralPrice / ($position->debt_amount - $debtToCover)
+                        : 0,
+                ]);
 
-        $actions = [];
+                event(new CollateralPositionLiquidated(
+                    position_uuid: $position->uuid,
+                    liquidator_account_uuid: 'demo_liquidator',
+                    collateral_seized: (int) $collateralToSeize,
+                    debt_repaid: (int) $debtToCover,
+                    liquidation_penalty: (int) $penaltyAmount
+                ));
 
-        // If price too high, increase supply
-        if ($currentPrice > 1.02) {
-            $actions[] = [
-                'action'      => 'decrease_stability_fee',
-                'current_fee' => config('demo.demo_data.stablecoin.stability_fee', 2.5),
-                'new_fee'     => max(0, config('demo.demo_data.stablecoin.stability_fee', 2.5) - 0.5),
-                'reason'      => 'Price above peg, encouraging minting',
-            ];
-        } elseif ($currentPrice < 0.98) {
-            // If price too low, decrease supply
-            $actions[] = [
-                'action'      => 'increase_stability_fee',
-                'current_fee' => config('demo.demo_data.stablecoin.stability_fee', 2.5),
-                'new_fee'     => config('demo.demo_data.stablecoin.stability_fee', 2.5) + 0.5,
-                'reason'      => 'Price below peg, discouraging minting',
-            ];
+                $liquidated[] = [
+                    'position_id'       => $position->uuid,
+                    'account_id'        => $position->account_uuid,
+                    'stablecoin_id'     => $position->stablecoin_code,
+                    'debt_covered'      => $debtToCover,
+                    'collateral_seized' => $collateralToSeize,
+                    'penalty'           => $penaltyAmount,
+                ];
+            }
         }
 
         return [
-            'stablecoin'               => $stablecoinCode,
-            'current_price'            => $currentPrice,
-            'target_price'             => $targetPrice,
-            'deviation_percentage'     => round($deviation * 100, 2),
-            'total_supply'             => $stablecoin->total_supply,
-            'total_collateral'         => $this->getTotalCollateral($stablecoin),
-            'system_collateralization' => $this->getSystemCollateralization($stablecoin),
-            'recommended_actions'      => $actions,
-            'executed'                 => ! empty($actions),
-            'timestamp'                => now()->toIso8601String(),
-            'demo'                     => true,
+            'checked'             => $positionsAtRisk->count(),
+            'liquidated'          => count($liquidated),
+            'liquidation_details' => $liquidated,
+            'timestamp'           => now()->toIso8601String(),
+            'demo'                => true,
         ];
     }
 
     /**
-     * Get or create position for account.
+     * Get system statistics.
      */
-    private function getOrCreatePosition(int $accountId, int $stablecoinId): StablecoinCollateralPosition
+    public function getSystemStats(): array
     {
-        return StablecoinCollateralPosition::firstOrCreate(
-            [
-                'account_id'    => $accountId,
-                'stablecoin_id' => $stablecoinId,
-            ],
-            [
-                'id'                      => 'demo_pos_' . Str::random(16),
-                'minted_amount'           => 0,
-                'collateral_amount'       => 0,
-                'collateral_currency'     => 'USD',
-                'collateralization_ratio' => 0,
-                'status'                  => 'active',
-                'metadata'                => ['demo_mode' => true],
-            ]
-        );
+        // Since StablecoinTransaction doesn't exist, we'll use StablecoinCollateralPosition
+        $totalMinted = StablecoinCollateralPosition::where('status', 'active')
+            ->sum('debt_amount');
+
+        $totalBurned = 0; // Would need to track this separately in production
+
+        $activePositions = StablecoinCollateralPosition::where('status', 'active')->get();
+        $totalCollateral = $activePositions->sum('collateral_amount');
+        $totalDebt = $activePositions->sum('debt_amount');
+
+        $systemRatio = $totalDebt > 0 ? $totalCollateral / $totalDebt : 0;
+
+        return [
+            'total_supply'            => $totalMinted - $totalBurned,
+            'total_minted'            => $totalMinted,
+            'total_burned'            => $totalBurned,
+            'total_collateral'        => $totalCollateral,
+            'total_debt'              => $totalDebt,
+            'system_collateral_ratio' => round($systemRatio, 2),
+            'active_positions'        => $activePositions->count(),
+            'at_risk_positions'       => $activePositions->where('collateral_ratio', '<', 1.5)->count(),
+            'demo'                    => true,
+        ];
     }
 
     /**
-     * Add demo collateral to position.
+     * Get account positions.
      */
-    private function addDemoCollateral(StablecoinCollateralPosition $position, float $amount): void
+    public function getAccountPositions(string $accountId, ?string $stablecoinId = null): array
     {
-        $position->update([
-            'collateral_amount'   => $position->collateral_amount + $amount,
-            'collateral_currency' => 'USD',
-            'metadata'            => array_merge($position->metadata ?? [], [
-                'demo_collateral_added'  => true,
-                'auto_collateral_amount' => $amount,
-            ]),
-        ]);
-    }
+        $query = StablecoinCollateralPosition::where('account_uuid', $accountId);
 
-    /**
-     * Calculate collateralization ratio.
-     */
-    private function calculateRatio(StablecoinCollateralPosition $position): float
-    {
-        if ($position->minted_amount <= 0) {
-            return 0;
+        if ($stablecoinId) {
+            $query->where('stablecoin_code', $stablecoinId);
         }
 
-        return ($position->collateral_amount / $position->minted_amount) * 100;
+        $positions = $query->get();
+
+        return [
+            'account_id'       => $accountId,
+            'positions'        => $positions->map(fn ($p) => $this->getPosition($p->uuid)),
+            'total_collateral' => $positions->sum('collateral_amount'),
+            'total_debt'       => $positions->sum('debt_amount'),
+            'demo'             => true,
+        ];
     }
 
     /**
-     * Get collateral value in USD.
+     * Get simulated collateral price.
      */
-    private function getCollateralValueUSD(StablecoinCollateralPosition $position): float
+    private function getCollateralPrice(string $asset): float
     {
-        // In demo mode, assume 1:1 for simplicity
-        // In production, this would use real exchange rates
-        return $position->collateral_amount;
-    }
-
-    /**
-     * Get simulated stablecoin price.
-     */
-    private function getSimulatedPrice(string $stablecoinCode): float
-    {
-        // Simulate slight deviation from $1 peg
-        $basePrice = 1.00;
-        $variation = (rand(-30, 30) / 1000); // ±0.03 variation
-
-        return round($basePrice + $variation, 4);
-    }
-
-    /**
-     * Get total collateral in system.
-     */
-    private function getTotalCollateral(Stablecoin $stablecoin): float
-    {
-        return StablecoinCollateralPosition::where('stablecoin_id', $stablecoin->id)
-            ->where('status', 'active')
-            ->sum('collateral_amount');
-    }
-
-    /**
-     * Get system-wide collateralization ratio.
-     */
-    private function getSystemCollateralization(Stablecoin $stablecoin): float
-    {
-        $totalMinted = StablecoinCollateralPosition::where('stablecoin_id', $stablecoin->id)
-            ->where('status', 'active')
-            ->sum('minted_amount');
-
-        if ($totalMinted <= 0) {
-            return 0;
-        }
-
-        $totalCollateral = $this->getTotalCollateral($stablecoin);
-
-        return round(($totalCollateral / $totalMinted) * 100, 2);
+        // Simulate ETH price in demo mode
+        return match ($asset) {
+            'ETH'   => 2000 + rand(-100, 100), // $1900-$2100
+            'BTC'   => 40000 + rand(-1000, 1000), // $39k-$41k
+            default => 1.0,
+        };
     }
 }

@@ -46,13 +46,13 @@ class DemoLendingServiceTest extends TestCase
         Event::fake();
 
         $applicationData = [
-            'borrower_id' => 1,
+            'borrower_id'      => 1,
             'requested_amount' => 5000,
-            'currency' => 'USD',
-            'term_months' => 12,
-            'purpose' => 'Business expansion',
-            'borrower_info' => [
-                'name' => 'John Doe',
+            'currency'         => 'USD',
+            'term_months'      => 12,
+            'purpose'          => 'Business expansion',
+            'borrower_info'    => [
+                'name'  => 'John Doe',
                 'email' => 'john@example.com',
             ],
         ];
@@ -79,11 +79,11 @@ class DemoLendingServiceTest extends TestCase
         Config::set('demo.demo_data.lending.approval_rate', 100); // Ensure approval
 
         $applicationData = [
-            'borrower_id' => 1,
+            'borrower_id'      => 1,
             'requested_amount' => 8000, // Below 10000 threshold
-            'currency' => 'USD',
-            'term_months' => 24,
-            'purpose' => 'Debt consolidation',
+            'currency'         => 'USD',
+            'term_months'      => 24,
+            'purpose'          => 'Debt consolidation',
         ];
 
         $application = $this->service->applyForLoan($applicationData);
@@ -113,13 +113,13 @@ class DemoLendingServiceTest extends TestCase
 
         // Create application with poor credit simulation
         $application = LoanApplication::create([
-            'id' => 'demo_app_test123',
-            'borrower_id' => 1,
+            'id'               => 'demo_app_test123',
+            'borrower_id'      => 1,
             'requested_amount' => 5000,
-            'currency' => 'USD',
-            'term_months' => 12,
-            'purpose' => 'Emergency',
-            'status' => 'pending',
+            'currency'         => 'USD',
+            'term_months'      => 12,
+            'purpose'          => 'Emergency',
+            'status'           => 'pending',
         ]);
 
         // Mock poor credit score by setting config temporarily
@@ -144,11 +144,11 @@ class DemoLendingServiceTest extends TestCase
         Config::set('demo.demo_data.lending.approval_rate', 0); // Force rejection
 
         $applicationData = [
-            'borrower_id' => 1,
+            'borrower_id'      => 1,
             'requested_amount' => 15000, // Above 10000 threshold
-            'currency' => 'USD',
-            'term_months' => 36,
-            'purpose' => 'Large purchase',
+            'currency'         => 'USD',
+            'term_months'      => 36,
+            'purpose'          => 'Large purchase',
         ];
 
         $application = $this->service->applyForLoan($applicationData);
@@ -167,17 +167,17 @@ class DemoLendingServiceTest extends TestCase
 
         // Create a loan first
         $loan = Loan::create([
-            'id' => 'demo_loan_test123',
-            'application_id' => 'demo_app_test123',
-            'borrower_id' => 1,
-            'principal_amount' => 10000,
-            'currency' => 'USD',
-            'interest_rate' => 6.0,
-            'term_months' => 12,
-            'status' => 'active',
-            'disbursed_at' => now(),
+            'id'                => 'demo_loan_test123',
+            'application_id'    => 'demo_app_test123',
+            'borrower_id'       => 1,
+            'principal_amount'  => 10000,
+            'currency'          => 'USD',
+            'interest_rate'     => 6.0,
+            'term_months'       => 12,
+            'status'            => 'active',
+            'disbursed_at'      => now(),
             'next_payment_date' => Carbon::now()->addMonth(),
-            'monthly_payment' => 860.66,
+            'monthly_payment'   => 860.66,
             'remaining_balance' => 10000,
         ]);
 
@@ -208,17 +208,17 @@ class DemoLendingServiceTest extends TestCase
         Event::fake();
 
         $loan = Loan::create([
-            'id' => 'demo_loan_test456',
-            'application_id' => 'demo_app_test456',
-            'borrower_id' => 1,
-            'principal_amount' => 1000,
-            'currency' => 'USD',
-            'interest_rate' => 5.0,
-            'term_months' => 12,
-            'status' => 'active',
-            'disbursed_at' => now(),
+            'id'                => 'demo_loan_test456',
+            'application_id'    => 'demo_app_test456',
+            'borrower_id'       => 1,
+            'principal_amount'  => 1000,
+            'currency'          => 'USD',
+            'interest_rate'     => 5.0,
+            'term_months'       => 12,
+            'status'            => 'active',
+            'disbursed_at'      => now(),
             'next_payment_date' => Carbon::now()->addMonth(),
-            'monthly_payment' => 85.61,
+            'monthly_payment'   => 85.61,
             'remaining_balance' => 85.61, // Last payment amount
         ]);
 
@@ -234,29 +234,29 @@ class DemoLendingServiceTest extends TestCase
     public function it_generates_correct_loan_details_with_payment_schedule()
     {
         $loan = Loan::create([
-            'id' => 'demo_loan_test789',
-            'application_id' => 'demo_app_test789',
-            'borrower_id' => 1,
-            'principal_amount' => 5000,
-            'currency' => 'USD',
-            'interest_rate' => 7.5,
-            'term_months' => 6,
-            'status' => 'active',
-            'disbursed_at' => now()->subMonth(),
+            'id'                => 'demo_loan_test789',
+            'application_id'    => 'demo_app_test789',
+            'borrower_id'       => 1,
+            'principal_amount'  => 5000,
+            'currency'          => 'USD',
+            'interest_rate'     => 7.5,
+            'term_months'       => 6,
+            'status'            => 'active',
+            'disbursed_at'      => now()->subMonth(),
             'next_payment_date' => now(),
-            'monthly_payment' => 847.89,
+            'monthly_payment'   => 847.89,
             'remaining_balance' => 5000,
         ]);
 
         // Create application for relationship
         LoanApplication::create([
-            'id' => 'demo_app_test789',
-            'borrower_id' => 1,
+            'id'               => 'demo_app_test789',
+            'borrower_id'      => 1,
             'requested_amount' => 5000,
-            'currency' => 'USD',
-            'term_months' => 6,
-            'purpose' => 'Test',
-            'status' => 'approved',
+            'currency'         => 'USD',
+            'term_months'      => 6,
+            'purpose'          => 'Test',
+            'status'           => 'approved',
         ]);
 
         $details = $this->service->getLoanDetails($loan->id);
@@ -284,11 +284,11 @@ class DemoLendingServiceTest extends TestCase
         Config::set('demo.demo_data.lending.approval_rate', 100);
 
         $applicationData = [
-            'borrower_id' => 1,
+            'borrower_id'      => 1,
             'requested_amount' => 5000,
-            'currency' => 'USD',
-            'term_months' => 12,
-            'purpose' => 'Test',
+            'currency'         => 'USD',
+            'term_months'      => 12,
+            'purpose'          => 'Test',
         ];
 
         $application = $this->service->applyForLoan($applicationData);
@@ -306,11 +306,11 @@ class DemoLendingServiceTest extends TestCase
         Event::fake();
 
         $applicationData = [
-            'borrower_id' => 1,
+            'borrower_id'      => 1,
             'requested_amount' => 1000,
-            'currency' => 'USD',
-            'term_months' => 12,
-            'purpose' => 'Test',
+            'currency'         => 'USD',
+            'term_months'      => 12,
+            'purpose'          => 'Test',
         ];
 
         $application = $this->service->applyForLoan($applicationData);
@@ -328,13 +328,15 @@ class DemoLendingServiceTest extends TestCase
     public function it_assesses_risk_factors_correctly()
     {
         $application = LoanApplication::create([
-            'id' => 'demo_app_risk_test',
-            'borrower_id' => 1,
+            'id'               => 'demo_app_risk_test',
+            'borrower_id'      => 1,
             'requested_amount' => 60000, // High amount
-            'currency' => 'USD',
-            'term_months' => 72, // Long term
-            'purpose' => 'Test',
-            'status' => 'pending',
+            'currency'         => 'USD',
+            'term_months'      => 72, // Long term
+            'purpose'          => 'Test',
+            'status'           => 'pending',
+            'borrower_info'    => ['demo' => true],
+            'submitted_at'     => now(),
         ]);
 
         Config::set('demo.demo_data.lending.default_credit_score', 600); // Fair credit
@@ -357,11 +359,11 @@ class DemoLendingServiceTest extends TestCase
         Config::set('demo.demo_data.lending.approval_rate', 100);
 
         $applicationData = [
-            'borrower_id' => 1,
+            'borrower_id'      => 1,
             'requested_amount' => 30000, // More than 25000 limit for 650 credit
-            'currency' => 'USD',
-            'term_months' => 24,
-            'purpose' => 'Test',
+            'currency'         => 'USD',
+            'term_months'      => 24,
+            'purpose'          => 'Test',
         ];
 
         $application = $this->service->applyForLoan($applicationData);
