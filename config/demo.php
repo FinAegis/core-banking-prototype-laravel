@@ -3,16 +3,16 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Demo Mode Configuration
+    | Demo Environment Configuration
     |--------------------------------------------------------------------------
     |
-    | This configuration file controls the demo mode features of the application.
-    | When demo mode is enabled, external API calls are bypassed and simulated
+    | This configuration file controls the demo environment features.
+    | When APP_ENV=demo, external API calls are bypassed and simulated
     | responses are returned for testing and demonstration purposes.
     |
+    | Note: Demo mode is now determined by APP_ENV=demo, not a separate flag.
+    |
     */
-
-    'mode' => env('DEMO_MODE', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -26,6 +26,7 @@ return [
     */
 
     'features' => [
+        'show_banner'               => env('DEMO_SHOW_BANNER', true),
         'instant_deposits'          => env('DEMO_INSTANT_DEPOSITS', true),
         'skip_kyc'                  => env('DEMO_SKIP_KYC', true),
         'mock_banks'                => env('DEMO_MOCK_BANKS', true),

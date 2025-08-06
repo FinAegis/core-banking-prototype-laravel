@@ -20,8 +20,8 @@ class BlockchainConnectorFactory
      */
     public static function create(string $chain): BlockchainConnector
     {
-        // Use demo service in demo mode
-        if (config('demo.mode') || config('demo.sandbox.enabled')) {
+        // Use demo service in demo environment
+        if (app()->environment('demo') || config('demo.sandbox.enabled')) {
             return new DemoBlockchainService($chain, self::getChainId($chain));
         }
 

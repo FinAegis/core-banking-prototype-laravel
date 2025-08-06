@@ -22,7 +22,7 @@
                         </p>
                     </div>
 
-                    @if(config('demo.mode'))
+                    @if(app()->environment('demo'))
                         <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                             <div class="flex">
                                 <div class="flex-shrink-0">
@@ -164,7 +164,7 @@
                         </div>
                     </form>
 
-                    @if(config('demo.mode'))
+                    @if(app()->environment('demo'))
                         <!-- Demo Mode Quick Actions -->
                         <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
                             <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-4">Demo Quick Actions</h4>

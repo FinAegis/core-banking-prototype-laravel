@@ -82,9 +82,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
         
-        // Apply demo middleware to web routes in demo mode
-        // Use environment variable directly since config() is not available during bootstrap
-        if (env('DEMO_MODE', false)) {
+        // Apply demo middleware to web routes in demo environment
+        // Check if we're in demo environment (APP_ENV=demo)
+        if (env('APP_ENV') === 'demo') {
             $middleware->appendToGroup('web', \App\Http\Middleware\DemoMode::class);
         }
     })

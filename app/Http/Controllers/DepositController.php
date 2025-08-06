@@ -115,9 +115,9 @@ class DepositController extends Controller
      */
     public function simulateDeposit(Request $request)
     {
-        // Only allow in demo or sandbox mode
-        if (! config('demo.mode') && ! config('demo.sandbox.enabled')) {
-            abort(403, 'Simulated deposits are only available in demo mode.');
+        // Only allow in demo environment or sandbox mode
+        if (! app()->environment('demo') && ! config('demo.sandbox.enabled')) {
+            abort(403, 'Simulated deposits are only available in demo environment.');
         }
 
         $request->validate([

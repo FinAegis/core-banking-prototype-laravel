@@ -22,8 +22,8 @@ class DemoBankConnector extends BaseCustodianConnector
 
     public function isAvailable(): bool
     {
-        // Always available in demo/sandbox mode
-        return config('demo.mode') || config('demo.sandbox.enabled');
+        // Always available in demo environment or sandbox mode
+        return app()->environment('demo') || config('demo.sandbox.enabled');
     }
 
     public function getSupportedAssets(): array

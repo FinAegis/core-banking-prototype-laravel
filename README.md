@@ -146,7 +146,7 @@ cp .env.demo .env
 php artisan config:cache
 
 # Or manually set in .env
-DEMO_MODE=true
+APP_ENV=demo
 DEMO_SHOW_BANNER=true
 DEMO_INSTANT_DEPOSITS=true
 ```
@@ -175,7 +175,7 @@ Password for all demo accounts: `demo123`
 
 ### Demo Services
 
-When `DEMO_MODE=true`, the platform automatically switches to demo implementations:
+When `APP_ENV=demo`, the platform automatically switches to demo implementations:
 - `DemoPaymentService` - Simulates Stripe payments
 - `DemoExchangeService` - Mock exchange operations
 - `DemoLendingService` - Auto-approved loans

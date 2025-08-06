@@ -26,8 +26,8 @@ class DemoServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Bind PaymentServiceInterface to the appropriate implementation based on environment
-        if (config('demo.mode')) {
-            // Demo mode: Use DemoPaymentService that bypasses external APIs
+        if ($this->app->environment('demo')) {
+            // Demo environment: Use DemoPaymentService that bypasses external APIs
             $this->app->bind(PaymentServiceInterface::class, DemoPaymentService::class);
         } elseif (config('demo.sandbox.enabled')) {
             // Sandbox mode: Use SandboxPaymentService with real sandbox APIs
@@ -38,7 +38,7 @@ class DemoServiceProvider extends ServiceProvider
         }
 
         // Register demo services for Exchange, Lending, and Stablecoin domains
-        if (config('demo.mode')) {
+        if ($this->app->environment('demo')) {
             // Exchange service
             $this->app->bind(ExchangeService::class, DemoExchangeService::class);
 
@@ -49,10 +49,10 @@ class DemoServiceProvider extends ServiceProvider
             $this->app->bind('stablecoin.service', DemoStablecoinService::class);
         }
 
-        // Only activate demo services when in demo or sandbox mode
-        if (config('demo.mode') || config('demo.sandbox.enabled')) {
-            // Replace payment gateway with demo version for demo mode only
-            if (config('demo.mode')) {
+        // Only activate demo services when in demo environment or sandbox mode
+        if ($this->app->environment('demo') || config('demo.sandbox.enabled')) {
+            // Replace payment gateway with demo version for demo environment only
+            if ($this->app->environment('demo')) {
                 $this->app->bind(PaymentGatewayService::class, DemoPaymentGatewayService::class);
             }
 
@@ -66,8 +66,8 @@ class DemoServiceProvider extends ServiceProvider
                     'enabled' => true,
                 ]));
 
-                // In demo mode, also override existing connectors with demo versions
-                if (config('demo.bypass_external_apis.banking_apis')) {
+                // In demo environment, also override existing connectors with demo versions
+                if ($this->app->environment('demo') && config('demo.features.mock_banks', true)) {
                     // Replace real bank connectors with demo versions
                     $registry->register('paysera', new DemoBankConnector([
                         'name'    => 'Paysera (Demo)',
@@ -93,10 +93,10 @@ class DemoServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Add demo banner to views when in demo mode
-        if (config('demo.indicators.show_banner')) {
+        // Add demo banner to views when in demo environment
+        if ($this->app->environment('demo') && config('demo.features.show_banner', true)) {
             view()->composer('*', function ($view) {
-                $view->with('isDemoMode', config('demo.mode'));
+                $view->with('isDemoMode', $this->app->environment('demo'));
                 $view->with('demoMessage', config('demo.indicators.banner_text'));
             });
         }

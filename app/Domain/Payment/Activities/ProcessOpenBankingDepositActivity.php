@@ -44,8 +44,8 @@ class ProcessOpenBankingDepositActivity
     public function processBankTransfer(OpenBankingDeposit $deposit): string
     {
         // In production, this would call the bank API
-        // In demo mode, we simulate instant success
-        if (config('demo.mode') || config('demo.sandbox.enabled')) {
+        // In demo environment, we simulate instant success
+        if (app()->environment('demo') || config('demo.sandbox.enabled')) {
             Log::info('Simulating OpenBanking transfer', [
                 'reference' => $deposit->reference,
                 'bank'      => $deposit->bankName,

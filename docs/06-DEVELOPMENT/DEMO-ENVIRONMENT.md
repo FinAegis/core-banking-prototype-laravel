@@ -32,7 +32,7 @@ Application Layer
     ↓
 Service Interface (PaymentServiceInterface, etc.)
     ↓
-Environment Check (config('demo.mode'))
+Environment Check (app()->environment('demo'))
     ↓                          ↓
 Demo Service              Production Service
 (DemoPaymentService)      (ProductionPaymentService)
@@ -53,7 +53,7 @@ Responsible for:
 
 ```php
 // Automatic service switching based on environment
-if (config('demo.mode')) {
+if ($this->app->environment('demo')) {
     $this->app->bind(PaymentServiceInterface::class, DemoPaymentService::class);
     $this->app->bind(ExchangeService::class, DemoExchangeService::class);
     // ... other bindings
@@ -72,10 +72,10 @@ Features:
 
 ### 3. Environment Detection
 
-The system uses a hierarchical configuration:
+The system uses Laravel's environment system:
 
 ```
-1. config('demo.mode')           // Master switch
+1. app()->environment('demo')     // Demo environment (APP_ENV=demo)
 2. config('demo.sandbox.enabled') // Sandbox mode with real sandbox APIs
 3. Production mode (default)      // Full external API usage
 ```
@@ -299,8 +299,8 @@ DEMO_MODE=true
 
 3. **Programmatic Check**:
 ```php
-if (config('demo.mode')) {
-    // Demo mode is active
+if (app()->environment('demo')) {
+    // Demo environment is active
 }
 ```
 
@@ -352,7 +352,7 @@ class DemoYourService implements YourServiceInterface {
 
 3. **Register in DemoServiceProvider**:
 ```php
-if (config('demo.mode')) {
+if ($this->app->environment('demo')) {
     $this->app->bind(YourServiceInterface::class, DemoYourService::class);
 } else {
     $this->app->bind(YourServiceInterface::class, ProductionYourService::class);
@@ -436,7 +436,7 @@ trait UsesDemoMode
 ```bash
 # Check demo mode status
 php artisan tinker
->>> config('demo.mode')
+>>> app()->environment('demo')
 
 # Test service binding
 >>> app(PaymentServiceInterface::class)

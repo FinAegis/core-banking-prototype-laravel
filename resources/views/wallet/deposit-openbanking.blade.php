@@ -36,7 +36,7 @@
                         </div>
                     </div>
 
-                    @if(config('demo.mode'))
+                    @if(app()->environment('demo'))
                         <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                             <div class="flex">
                                 <div class="flex-shrink-0">

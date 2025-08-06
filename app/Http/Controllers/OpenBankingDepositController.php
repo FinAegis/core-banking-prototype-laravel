@@ -40,8 +40,8 @@ class OpenBankingDepositController extends Controller
                 ->with('error', 'Please create an account first.');
         }
 
-        // In demo/sandbox mode, simulate the bank authorization
-        if (config('demo.mode') || config('demo.sandbox.enabled')) {
+        // In demo environment or sandbox mode, simulate the bank authorization
+        if (app()->environment('demo') || config('demo.sandbox.enabled')) {
             Log::info('Simulating OpenBanking deposit in demo mode', [
                 'user_id' => $user->id,
                 'amount'  => $request->amount,
@@ -71,8 +71,8 @@ class OpenBankingDepositController extends Controller
 
     public function callback(Request $request)
     {
-        // In demo/sandbox mode, process the simulated deposit
-        if (config('demo.mode') || config('demo.sandbox.enabled')) {
+        // In demo environment or sandbox mode, process the simulated deposit
+        if (app()->environment('demo') || config('demo.sandbox.enabled')) {
             $depositData = session()->pull('openbanking_deposit');
 
             if (! $depositData) {
@@ -90,7 +90,7 @@ class OpenBankingDepositController extends Controller
                     'reference'    => $reference,
                     'bank_name'    => $depositData['bank'],
                     'metadata'     => [
-                        'environment'   => config('demo.mode') ? 'demo' : 'sandbox',
+                        'environment'   => app()->environment('demo') ? 'demo' : 'sandbox',
                         'processor'     => 'openbanking_simulation',
                         'bank'          => $depositData['bank'],
                         'authorized_at' => now()->toIso8601String(),

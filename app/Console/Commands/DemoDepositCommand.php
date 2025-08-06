@@ -118,7 +118,7 @@ class DemoDepositCommand extends Command
         try {
             $transactionId = null;
 
-            if ($instant && config('demo.mode')) {
+            if ($instant && app()->environment('demo')) {
                 // Use instant demo deposit service
                 $paymentService = app(\App\Domain\Payment\Contracts\PaymentServiceInterface::class);
 
@@ -141,7 +141,7 @@ class DemoDepositCommand extends Command
                 }
             }
 
-            if (! $instant || ! config('demo.mode')) {
+            if (! $instant || ! app()->environment('demo')) {
                 // Regular event sourcing deposit
                 $ledger = app(LedgerAggregate::class);
                 $transactionId = Str::uuid()->toString();

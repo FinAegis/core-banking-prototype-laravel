@@ -22,8 +22,8 @@ class CleanupDemoDataCommand extends Command
 
     public function handle(): int
     {
-        if (! config('demo.mode')) {
-            $this->error('This command can only be run in demo mode');
+        if (! app()->environment('demo')) {
+            $this->error('This command can only be run in demo environment');
 
             return Command::FAILURE;
         }
