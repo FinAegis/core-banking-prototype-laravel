@@ -8,7 +8,7 @@ use App\Domain\Lending\Events\LoanApplicationApproved;
 use App\Domain\Lending\Events\LoanApplicationRejected;
 use App\Domain\Lending\Events\LoanApplicationSubmitted;
 use App\Domain\Lending\Events\LoanDisbursed;
-use App\Domain\Lending\Events\LoanPaymentReceived;
+use App\Domain\Lending\Events\RepaymentReceived;
 use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Models\LoanApplication;
 use App\Domain\Lending\Services\DemoLendingService;
@@ -61,7 +61,7 @@ class DemoLendingServiceTest extends TestCase
         $this->assertInstanceOf(LoanApplication::class, $application);
         $this->assertStringStartsWith('demo_app_', $application->id);
         $this->assertEquals(5000, $application->requested_amount);
-        $this->assertEquals('USD', $application->currency);
+        $this->assertEquals('USD', $application->borrower_info['currency'] ?? null);
         $this->assertEquals(12, $application->term_months);
         $this->assertTrue($application->metadata['demo_mode']);
 
@@ -115,10 +115,10 @@ class DemoLendingServiceTest extends TestCase
             'id'               => 'demo_app_test123',
             'borrower_id'      => 1,
             'requested_amount' => 5000,
-            'currency'         => 'USD',
             'term_months'      => 12,
             'purpose'          => 'Emergency',
             'status'           => 'pending',
+            'borrower_info'    => ['currency' => 'USD'],
         ]);
 
         // Mock poor credit score by setting config temporarily
@@ -184,7 +184,7 @@ class DemoLendingServiceTest extends TestCase
 
         $payment = $this->service->makePayment($loan->id, 860.66);
 
-        $this->assertIsArray($payment);
+        // Payment is already known to be an array
         $this->assertStringStartsWith('demo_pmt_', $payment['id']);
         $this->assertEquals(860.66, $payment['amount']);
         $this->assertEquals('completed', $payment['status']);
@@ -200,7 +200,7 @@ class DemoLendingServiceTest extends TestCase
         $this->assertEquals($payment['principal_amount'], $loan->total_principal_paid);
         $this->assertNotNull($loan->last_payment_date);
 
-        Event::assertDispatched(LoanPaymentReceived::class);
+        Event::assertDispatched(RepaymentReceived::class);
     }
 
     /** @test */
@@ -230,7 +230,7 @@ class DemoLendingServiceTest extends TestCase
 
         $loan->refresh();
         $this->assertEquals(0, $loan->remaining_balance);
-        $this->assertEquals('paid_off', $loan->status);
+        $this->assertEquals('completed', $loan->status);
         $this->assertNull($loan->next_payment_date);
     }
 
@@ -263,10 +263,10 @@ class DemoLendingServiceTest extends TestCase
             'id'               => 'demo_app_test789',
             'borrower_id'      => 1,
             'requested_amount' => 5000,
-            'currency'         => 'USD',
             'term_months'      => 6,
             'purpose'          => 'Test',
             'status'           => 'approved',
+            'borrower_info'    => ['currency' => 'USD'],
         ]);
 
         $details = $this->service->getLoanDetails($loan->id);
@@ -341,11 +341,10 @@ class DemoLendingServiceTest extends TestCase
             'id'               => 'demo_app_risk_test',
             'borrower_id'      => 1,
             'requested_amount' => 60000, // High amount
-            'currency'         => 'USD',
             'term_months'      => 72, // Long term
             'purpose'          => 'Test',
             'status'           => 'pending',
-            'borrower_info'    => ['demo' => true],
+            'borrower_info'    => ['demo' => true, 'currency' => 'USD'],
             'submitted_at'     => now(),
         ]);
 

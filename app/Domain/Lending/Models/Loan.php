@@ -29,6 +29,10 @@ class Loan extends Model
     use HasFactory;
     use HasUuids;
 
+    protected $keyType = 'string';
+
+    public $incrementing = false;
+
     protected $fillable = [
         'id',
         'application_id',

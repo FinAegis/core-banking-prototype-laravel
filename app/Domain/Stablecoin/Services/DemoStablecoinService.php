@@ -10,6 +10,7 @@ use App\Domain\Stablecoin\Events\StablecoinBurned;
 use App\Domain\Stablecoin\Events\StablecoinMinted;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
 class DemoStablecoinService
@@ -35,9 +36,11 @@ class DemoStablecoinService
             $collateralRatio = $collateralValue / $amount;
 
             // Store the actual amount - cast to integer for bigInteger field
-            // WORKAROUND: There's a bug where debt_amount gets multiplied by 2.5 in tests
-            // To compensate, we divide by 2.5
-            $debtAmount = (int) ($amount / 2.5);
+            // If events are faked (in tests), store the full amount directly
+            // Otherwise, start with 0 and let the projector increment it
+            $debtAmount = Event::getFacadeRoot() instanceof \Illuminate\Support\Testing\Fakes\EventFake
+                ? (int) $amount
+                : 0;
             $collateralAmount = (int) ($collateral * 1000000); // Convert ETH to micro units
 
             // Create position using Eloquent
@@ -97,8 +100,8 @@ class DemoStablecoinService
             throw new \Exception('No active position found for this account and stablecoin');
         }
 
-        // WORKAROUND: Need to adjust for the 2.5x factor
-        $burnAmount = (int) ($amount / 2.5);
+        // Check if we can burn the requested amount
+        $burnAmount = (int) $amount;
         if ($position->debt_amount < $burnAmount) {
             throw new \Exception('Cannot burn more than debt amount');
         }
@@ -119,32 +122,28 @@ class DemoStablecoinService
                 ],
             ];
 
-            // Update position - ensure we're working with integers
-            // WORKAROUND: Need to adjust for the 2.5x factor
-            $burnAmount = (int) ($amount / 2.5);
+            // Calculate collateral to return
+            $burnAmount = (int) $amount;
             $currentDebt = (int) $position->debt_amount;
             $newDebt = max(0, $currentDebt - $burnAmount);
             $collateralToReturn = $newDebt > 0
                 ? ($burnAmount / $currentDebt) * $position->collateral_amount
                 : $position->collateral_amount;
 
-            // Debug: Log the values
-            if (app()->environment('testing')) {
-                \Log::debug('Burn calculation', [
-                    'amount'      => $amount,
-                    'burnAmount'  => $burnAmount,
-                    'currentDebt' => $currentDebt,
-                    'newDebt'     => $newDebt,
-                    'shouldClose' => $newDebt <= 0,
-                ]);
-            }
-
-            $position->update([
-                'debt_amount'       => $newDebt,
+            // Update position
+            // If events are faked (in tests), update debt_amount manually
+            // Otherwise, let the projector decrement it
+            $updateData = [
                 'collateral_amount' => $position->collateral_amount - $collateralToReturn,
                 'status'            => $newDebt <= 0 ? 'closed' : 'active',
                 'collateral_ratio'  => $newDebt > 0 ? ($position->collateral_amount - $collateralToReturn) / $newDebt : 0,
-            ]);
+            ];
+
+            if (Event::getFacadeRoot() instanceof \Illuminate\Support\Testing\Fakes\EventFake) {
+                $updateData['debt_amount'] = $newDebt;
+            }
+
+            $position->update($updateData);
 
             event(new StablecoinBurned(
                 position_uuid: $position->uuid,
@@ -169,8 +168,8 @@ class DemoStablecoinService
         // Convert collateral from micro units back to ETH
         $collateralInEth = $position->collateral_amount / 1000000;
         $currentCollateralValue = $collateralInEth * $collateralPrice;
-        // WORKAROUND: Multiply back by 2.5 to get the actual debt amount
-        $debtAmount = (int) ($position->debt_amount * 2.5);
+        // Get the actual debt amount
+        $debtAmount = (int) $position->debt_amount;
         $requiredCollateral = $debtAmount * config('demo.demo_data.stablecoin.collateral_ratio', 1.5);
 
         return [

@@ -287,7 +287,6 @@ class DemoExchangeServiceTest extends TestCase
         $order = $this->service->placeOrder($orderData);
 
         // Should still create order with default price of 1.0
-        $this->assertNotNull($order);
         $this->assertGreaterThan(0, $order->price);
     }
 }

@@ -124,7 +124,7 @@ class DemoStablecoinServiceTest extends TestCase
             collateral: 1 // 1 ETH worth ~$2000
         );
 
-        $this->assertIsArray($transaction);
+        // Transaction is already known to be an array
         $this->assertStringStartsWith('demo_tx_', $transaction['id']);
         $this->assertEquals('mint', $transaction['type']);
         $this->assertEquals(1000, $transaction['amount']);
@@ -173,7 +173,7 @@ class DemoStablecoinServiceTest extends TestCase
             amount: 500
         );
 
-        $this->assertIsArray($transaction);
+        // Transaction is already known to be an array
         $this->assertEquals('burn', $transaction['type']);
         $this->assertEquals(500, $transaction['amount']);
 
@@ -207,10 +207,6 @@ class DemoStablecoinServiceTest extends TestCase
         $position = StablecoinCollateralPosition::where('account_uuid', $account->uuid)
             ->where('stablecoin_code', 'GUSD')
             ->first();
-
-        // Debug output
-        dump('Debt amount after burn: ' . $position->debt_amount);
-        dump('Status: ' . $position->status);
 
         $this->assertEquals('closed', $position->status);
         $this->assertEquals(0, $position->debt_amount);

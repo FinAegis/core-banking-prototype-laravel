@@ -9,6 +9,7 @@ use App\Domain\Lending\Events\LoanApplicationApproved;
 use App\Domain\Lending\Events\LoanApplicationRejected;
 use App\Domain\Lending\Events\LoanApplicationSubmitted;
 use App\Domain\Lending\Events\LoanDisbursed;
+use App\Domain\Lending\Events\RepaymentReceived;
 use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Models\LoanApplication;
 use Carbon\Carbon;
@@ -215,8 +216,21 @@ class DemoLendingService
             ]);
 
             // Return payment details
+            $paymentId = 'demo_pmt_' . Str::random(16);
+
+            // Dispatch event
+            event(new RepaymentReceived(
+                loanId: $loan->id,
+                paymentNumber: $loan->payments_made ?? 1,
+                amount: (string) $amount,
+                principalPortion: (string) $principalPortion,
+                interestPortion: (string) $interestPortion,
+                metadata: ['demo_mode' => true],
+                receivedAt: new \DateTimeImmutable()
+            ));
+
             return [
-                'id'                => 'demo_pmt_' . Str::random(16),
+                'id'                => $paymentId,
                 'loan_id'           => $loan->id,
                 'amount'            => $amount,
                 'principal_amount'  => $principalPortion,
