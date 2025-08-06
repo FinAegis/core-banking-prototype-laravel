@@ -58,7 +58,7 @@ class DemoExchangeService
             ));
 
             // Simulate instant matching for demo mode
-            if (config('demo.features.auto_fill_orders', true)) {
+            if (config('demo.features.auto_approve', true)) {
                 $this->simulateOrderMatching($order);
             }
 
@@ -106,7 +106,7 @@ class DemoExchangeService
 
         return Cache::remember($cacheKey, 5, function () use ($baseCurrency, $quoteCurrency, $depth) {
             $midPrice = $this->getSimulatedPrice($baseCurrency, $quoteCurrency);
-            $spread = config('demo.demo_data.exchange.spread_percentage', 0.1) / 100;
+            $spread = config('demo.domains.exchange.spread_percentage', 0.1) / 100;
 
             // Generate demo buy orders
             $bids = [];
@@ -226,7 +226,7 @@ class DemoExchangeService
     private function getSimulatedPrice(string $baseCurrency, string $quoteCurrency): float
     {
         $pair = "{$baseCurrency}/{$quoteCurrency}";
-        $basePrices = config('demo.demo_data.exchange.prices', [
+        $basePrices = config('demo.domains.exchange.default_rates', [
             'EUR/USD' => 1.10,
             'GBP/USD' => 1.27,
             'GCU/USD' => 1.00,
@@ -256,7 +256,7 @@ class DemoExchangeService
      */
     private function getRandomAmount(): float
     {
-        $multiplier = config('demo.demo_data.exchange.liquidity_multiplier', 10);
+        $multiplier = config('demo.domains.exchange.liquidity_multiplier', 10);
 
         return round(rand(10, 1000) * $multiplier / 10, 2);
     }

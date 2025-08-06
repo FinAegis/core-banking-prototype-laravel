@@ -1,224 +1,170 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     /*
     |--------------------------------------------------------------------------
-    | Demo Environment Configuration
+    | Demo Environment Features
     |--------------------------------------------------------------------------
     |
-    | This configuration file controls the demo environment features.
-    | When APP_ENV=demo, external API calls are bypassed and simulated
-    | responses are returned for testing and demonstration purposes.
-    |
-    | Note: Demo mode is now determined by APP_ENV=demo, not a separate flag.
-    |
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Demo Features
-    |--------------------------------------------------------------------------
-    |
-    | These settings control specific demo features that can be enabled or
-    | disabled independently. This allows for fine-grained control over
-    | which parts of the system use demo functionality.
+    | Feature flags for the demo environment (APP_ENV=demo).
+    | These control which demo behaviors are enabled.
     |
     */
 
     'features' => [
-        'show_banner'               => env('DEMO_SHOW_BANNER', true),
-        'instant_deposits'          => env('DEMO_INSTANT_DEPOSITS', true),
-        'skip_kyc'                  => env('DEMO_SKIP_KYC', true),
-        'mock_banks'                => env('DEMO_MOCK_BANKS', true),
-        'fake_blockchain'           => env('DEMO_FAKE_BLOCKCHAIN', true),
-        'fixed_exchange_rates'      => env('DEMO_FIXED_EXCHANGE_RATES', true),
-        'auto_approve_transactions' => env('DEMO_AUTO_APPROVE_TRANSACTIONS', true),
+        'instant_deposits'     => env('DEMO_INSTANT_DEPOSITS', true),
+        'skip_kyc'             => env('DEMO_SKIP_KYC', true),
+        'mock_external_apis'   => env('DEMO_MOCK_EXTERNAL_APIS', true),
+        'fixed_exchange_rates' => env('DEMO_FIXED_EXCHANGE_RATES', true),
+        'auto_approve'         => env('DEMO_AUTO_APPROVE', true),
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Sandbox Configuration
+    | UI Indicators
     |--------------------------------------------------------------------------
     |
-    | Sandbox mode uses real external APIs but in test/sandbox environments.
-    | This is useful for integration testing with actual payment providers
-    | while still using test credentials and fake money.
+    | Visual indicators shown when running in demo environment.
     |
     */
 
-    'sandbox' => [
-        'enabled'           => env('DEMO_SANDBOX_ENABLED', false),
-        'stripe_test_mode'  => env('STRIPE_TEST_MODE', true),
-        'bank_sandbox_urls' => [
-            'paysera'      => env('PAYSERA_SANDBOX_URL', 'https://sandbox.paysera.com'),
-            'santander'    => env('SANTANDER_SANDBOX_URL', 'https://sandbox.santander.com'),
-            'deutschebank' => env('DEUTSCHEBANK_SANDBOX_URL', 'https://simulator-api.db.com'),
-        ],
-        'blockchain_testnets' => [
-            'bitcoin'  => env('BITCOIN_TESTNET', 'testnet'),
-            'ethereum' => env('ETHEREUM_TESTNET', 'sepolia'),
-            'polygon'  => env('POLYGON_TESTNET', 'mumbai'),
-        ],
+    'ui' => [
+        'show_banner'    => env('DEMO_SHOW_BANNER', true),
+        'banner_text'    => env('DEMO_BANNER_TEXT', 'Demo Environment - No real transactions'),
+        'show_watermark' => env('DEMO_SHOW_WATERMARK', true),
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Demo Data Configuration
+    | Domain-Specific Settings
     |--------------------------------------------------------------------------
     |
-    | These settings control the behavior of demo data generation and
-    | the values used for simulated transactions and operations.
+    | Configuration for each business domain in demo mode.
     |
     */
 
-    'demo_data' => [
-        'default_deposit_amount' => env('DEMO_DEFAULT_DEPOSIT_AMOUNT', 10000), // $100.00
-        'default_currency'       => env('DEMO_DEFAULT_CURRENCY', 'USD'),
-        'processing_delay'       => env('DEMO_PROCESSING_DELAY', 0), // seconds
-        'success_rate'           => env('DEMO_SUCCESS_RATE', 100), // percentage
-
-        // Exchange domain configuration
+    'domains' => [
         'exchange' => [
-            'auto_fill_orders'     => env('DEMO_AUTO_FILL_ORDERS', true),
-            'liquidity_multiplier' => env('DEMO_LIQUIDITY_MULTIPLIER', 10),
-            'spread_percentage'    => env('DEMO_SPREAD_PERCENTAGE', 0.1),
-            'prices'               => [
+            'spread_percentage'    => 0.1,
+            'liquidity_multiplier' => 10,
+            'default_rates'        => [
                 'EUR/USD' => 1.10,
                 'GBP/USD' => 1.27,
                 'GCU/USD' => 1.00,
-                'BTC/USD' => 45000,
-                'ETH/USD' => 2500,
+                'BTC/USD' => 45000.00,
+                'ETH/USD' => 2500.00,
             ],
         ],
 
-        // Lending domain configuration
         'lending' => [
-            'auto_approve_loans'     => env('DEMO_AUTO_APPROVE_LOANS', true),
-            'auto_approve_threshold' => env('DEMO_LOAN_AUTO_APPROVE_THRESHOLD', 10000),
-            'default_credit_score'   => env('DEMO_DEFAULT_CREDIT_SCORE', 750),
-            'approval_rate'          => env('DEMO_LOAN_APPROVAL_RATE', 80),
-            'default_interest_rate'  => env('DEMO_DEFAULT_INTEREST_RATE', 5.5),
-            'instant_disbursement'   => env('DEMO_INSTANT_DISBURSEMENT', true),
+            'auto_approve_threshold' => 10000, // $100.00
+            'default_credit_score'   => 750,
+            'default_interest_rate'  => 5.5,
+            'approval_rate'          => 80, // percentage
         ],
 
-        // Stablecoin domain configuration
         'stablecoin' => [
-            'auto_collateralize'    => env('DEMO_AUTO_COLLATERALIZE', true),
-            'collateral_ratio'      => env('DEMO_COLLATERAL_RATIO', 150), // 150%
-            'liquidation_threshold' => env('DEMO_LIQUIDATION_THRESHOLD', 120), // 120%
-            'stability_fee'         => env('DEMO_STABILITY_FEE', 2.5), // 2.5% annual
+            'collateral_ratio'      => 1.5,
+            'liquidation_threshold' => 1.2,
+            'stability_fee'         => 2.5, // annual percentage
         ],
 
-        'exchange_rates' => [
-            'EUR/USD' => 1.10,
-            'GBP/USD' => 1.27,
-            'USD/EUR' => 0.91,
-            'USD/GBP' => 0.79,
+        'wallet' => [
+            'testnets' => [
+                'bitcoin'  => 'testnet',
+                'ethereum' => 'sepolia',
+                'polygon'  => 'mumbai',
+            ],
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Demo Mode Indicators
+    | Demo Users
     |--------------------------------------------------------------------------
     |
-    | Visual indicators and messages to show when demo mode is active.
+    | Pre-configured demo user accounts.
     |
     */
 
-    'indicators' => [
-        'show_banner'    => env('DEMO_SHOW_BANNER', true),
-        'banner_message' => env('DEMO_BANNER_MESSAGE', 'Demo Mode - No real transactions'),
-        'banner_color'   => env('DEMO_BANNER_COLOR', 'warning'),
-        'watermark'      => env('DEMO_WATERMARK', true),
+    'users' => [
+        'accounts' => [
+            'demo.user@gcu.global'      => 'Regular User',
+            'demo.business@gcu.global'  => 'Business User',
+            'demo.investor@gcu.global'  => 'Investor',
+            'demo.argentina@gcu.global' => 'High-Inflation Country User',
+            'demo.nomad@gcu.global'     => 'Digital Nomad',
+        ],
+        'default_password' => env('DEMO_USER_PASSWORD', 'demo123'),
+        'default_balance'  => 100000, // $1,000.00
+        'kyc_verified'     => true,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Demo User Configuration
+    | Operational Limits
     |--------------------------------------------------------------------------
     |
-    | Settings for demo user accounts and their default configurations.
+    | Safety limits for demo environment operations.
     |
     */
 
-    'demo_users' => [
-        'auto_create'     => env('DEMO_AUTO_CREATE_USERS', true),
-        'default_balance' => env('DEMO_DEFAULT_BALANCE', 100000), // $1,000.00
-        'kyc_status'      => env('DEMO_KYC_STATUS', 'verified'),
-        'account_types'   => ['personal', 'business'],
+    'limits' => [
+        'max_transaction_amount' => 100000, // $1,000.00
+        'max_accounts_per_user'  => 5,
+        'max_daily_transactions' => 50,
+        'data_retention_days'    => env('DEMO_DATA_RETENTION_DAYS', 7),
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Demo Restrictions
+    | Rate Limiting
     |--------------------------------------------------------------------------
     |
-    | Restrictions applied when running in demo mode to ensure safety
-    | and prevent excessive resource usage.
-    |
-    */
-
-    'restrictions' => [
-        'max_transaction_amount' => env('DEMO_MAX_TRANSACTION_AMOUNT', 100000), // $1,000.00
-        'max_accounts_per_user'  => env('DEMO_MAX_ACCOUNTS_PER_USER', 5),
-        'disable_real_banks'     => env('DEMO_DISABLE_REAL_BANKS', true),
-        'disable_withdrawals'    => env('DEMO_DISABLE_WITHDRAWALS', false),
-        'max_daily_transactions' => env('DEMO_MAX_DAILY_TRANSACTIONS', 50),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Rate Limits
-    |--------------------------------------------------------------------------
-    |
-    | Rate limiting configuration for demo mode to prevent abuse.
+    | API rate limits specific to demo environment.
     |
     */
 
     'rate_limits' => [
-        'api'                     => env('DEMO_RATE_LIMIT_API', 30),
-        'transactions'            => env('DEMO_RATE_LIMIT_TRANSACTIONS', 10),
-        'deposits_per_hour'       => env('DEMO_DEPOSITS_PER_HOUR', 10),
-        'withdrawals_per_hour'    => env('DEMO_WITHDRAWALS_PER_HOUR', 5),
-        'transactions_per_hour'   => env('DEMO_TRANSACTIONS_PER_HOUR', 20),
-        'api_requests_per_minute' => env('DEMO_API_REQUESTS_PER_MINUTE', 60),
+        'api_per_minute'        => 60,
+        'deposits_per_hour'     => 10,
+        'withdrawals_per_hour'  => 5,
+        'transactions_per_hour' => 20,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Security Settings
+    | Data Cleanup
     |--------------------------------------------------------------------------
     |
-    | Security settings specific to demo mode to prevent accidental
-    | production usage and ensure data isolation.
-    |
-    */
-
-    'security' => [
-        'enforce_demo_database' => env('DEMO_ENFORCE_DB', true),
-        'disable_external_apis' => env('DEMO_DISABLE_EXTERNAL_APIS', true),
-        'data_retention_days'   => env('DEMO_DATA_RETENTION_DAYS', 7),
-        'max_demo_accounts'     => env('DEMO_MAX_ACCOUNTS', 1000),
-        'rate_limiting'         => [
-            'deposits_per_hour'     => 10,
-            'withdrawals_per_hour'  => 5,
-            'transactions_per_hour' => 20,
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Demo Data Cleanup Settings
-    |--------------------------------------------------------------------------
-    |
-    | Automatic cleanup of demo data to prevent database bloat.
+    | Automatic cleanup of old demo data.
     |
     */
 
     'cleanup' => [
         'enabled'        => env('DEMO_CLEANUP_ENABLED', true),
         'retention_days' => env('DEMO_CLEANUP_RETENTION_DAYS', 1),
-        'time'           => env('DEMO_CLEANUP_TIME', '03:00'),
+        'schedule_time'  => '03:00',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sandbox Mode
+    |--------------------------------------------------------------------------
+    |
+    | Use real sandbox APIs instead of mocks (for integration testing).
+    |
+    */
+
+    'sandbox' => [
+        'enabled' => env('SANDBOX_MODE', false),
+        'apis'    => [
+            'stripe'     => env('STRIPE_SANDBOX_URL', 'https://api.stripe.com'),
+            'paysera'    => env('PAYSERA_SANDBOX_URL', 'https://sandbox.paysera.com'),
+            'santander'  => env('SANTANDER_SANDBOX_URL', 'https://sandbox.santander.com'),
+            'blockchain' => env('BLOCKCHAIN_SANDBOX_URL', 'https://testnet.blockchain.info'),
+        ],
     ],
 ];

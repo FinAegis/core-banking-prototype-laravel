@@ -238,7 +238,7 @@ class DemoBlockchainService implements BlockchainConnector
         $this->eventSubscriptions[$address] = $callback;
 
         // Simulate an incoming transaction after a delay
-        if (config('demo.features.simulate_events', true)) {
+        if (config('demo.features.auto_approve', true)) {
             dispatch(function () use ($address, $callback) {
                 sleep(rand(5, 15));
                 $callback([

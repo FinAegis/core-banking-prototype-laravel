@@ -67,7 +67,7 @@ class DemoServiceProvider extends ServiceProvider
                 ]));
 
                 // In demo environment, also override existing connectors with demo versions
-                if ($this->app->environment('demo') && config('demo.features.mock_banks', true)) {
+                if ($this->app->environment('demo') && config('demo.features.mock_external_apis', true)) {
                     // Replace real bank connectors with demo versions
                     $registry->register('paysera', new DemoBankConnector([
                         'name'    => 'Paysera (Demo)',
@@ -94,10 +94,10 @@ class DemoServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Add demo banner to views when in demo environment
-        if ($this->app->environment('demo') && config('demo.features.show_banner', true)) {
+        if ($this->app->environment('demo') && config('demo.ui.show_banner', true)) {
             view()->composer('*', function ($view) {
                 $view->with('isDemoMode', $this->app->environment('demo'));
-                $view->with('demoMessage', config('demo.indicators.banner_text'));
+                $view->with('demoMessage', config('demo.ui.banner_text'));
             });
         }
     }

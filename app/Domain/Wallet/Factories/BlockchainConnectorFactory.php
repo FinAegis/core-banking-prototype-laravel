@@ -50,9 +50,9 @@ class BlockchainConnectorFactory
     private static function getChainId(string $chain): string
     {
         return match (strtolower($chain)) {
-            'ethereum' => config('demo.sandbox.blockchain_testnets.ethereum') === 'sepolia' ? '11155111' : '1',
-            'polygon'  => config('demo.sandbox.blockchain_testnets.polygon') === 'mumbai' ? '80001' : '137',
-            'bitcoin'  => config('demo.sandbox.blockchain_testnets.bitcoin') === 'testnet' ? 'testnet' : 'mainnet',
+            'ethereum' => config('demo.domains.wallet.testnets.ethereum') === 'sepolia' ? '11155111' : '1',
+            'polygon'  => config('demo.domains.wallet.testnets.polygon') === 'mumbai' ? '80001' : '137',
+            'bitcoin'  => config('demo.domains.wallet.testnets.bitcoin') === 'testnet' ? 'testnet' : 'mainnet',
             default    => '1',
         };
     }

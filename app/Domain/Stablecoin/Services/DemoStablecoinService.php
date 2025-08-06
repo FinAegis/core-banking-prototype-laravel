@@ -21,7 +21,7 @@ class DemoStablecoinService
     public function mint(string $accountId, string $stablecoinId, float $amount, float $collateral): array
     {
         // Validate collateral ratio
-        $minRatio = config('demo.demo_data.stablecoin.collateral_ratio', 1.5);
+        $minRatio = config('demo.domains.stablecoin.collateral_ratio', 1.5);
         $collateralPrice = $this->getCollateralPrice('ETH');
         $collateralValue = $collateral * $collateralPrice;
         $requiredCollateral = $amount * $minRatio;
@@ -170,7 +170,7 @@ class DemoStablecoinService
         $currentCollateralValue = $collateralInEth * $collateralPrice;
         // Get the actual debt amount
         $debtAmount = (int) $position->debt_amount;
-        $requiredCollateral = $debtAmount * config('demo.demo_data.stablecoin.collateral_ratio', 1.5);
+        $requiredCollateral = $debtAmount * config('demo.domains.stablecoin.collateral_ratio', 1.5);
 
         return [
             'position_id'         => $position->uuid,
@@ -236,7 +236,7 @@ class DemoStablecoinService
      */
     public function checkLiquidations(): array
     {
-        $liquidationThreshold = config('demo.demo_data.stablecoin.liquidation_threshold', 1.2);
+        $liquidationThreshold = config('demo.domains.stablecoin.liquidation_threshold', 1.2);
         $liquidated = [];
 
         $positionsAtRisk = StablecoinCollateralPosition::where('status', 'active')

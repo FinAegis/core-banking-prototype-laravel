@@ -52,7 +52,7 @@ class DemoLendingService
             ));
 
             // Auto-process application in demo mode
-            if (config('demo.features.auto_approve_loans', true)) {
+            if (config('demo.features.auto_approve', true)) {
                 $this->processApplication($application);
             }
 
@@ -77,8 +77,8 @@ class DemoLendingService
         ]);
 
         // Auto-approval logic
-        $autoApproveThreshold = config('demo.demo_data.lending.auto_approve_threshold', 10000);
-        $approvalRate = config('demo.demo_data.lending.approval_rate', 80);
+        $autoApproveThreshold = config('demo.domains.lending.auto_approve_threshold', 10000);
+        $approvalRate = config('demo.domains.lending.approval_rate', 80);
 
         // Check if the amount can be approved (even if limited)
         $maxLoanAmount = $this->getMaxLoanAmount($creditScore);
@@ -163,7 +163,7 @@ class DemoLendingService
             ));
 
             // Simulate disbursement to borrower's account
-            if (config('demo.features.instant_disbursement', true)) {
+            if (config('demo.features.instant_deposits', true)) {
                 $this->disburseLoan($loan);
             }
         });
@@ -268,7 +268,7 @@ class DemoLendingService
      */
     private function simulateCreditScore(int $borrowerId): int
     {
-        $baseScore = config('demo.demo_data.lending.default_credit_score', 750);
+        $baseScore = config('demo.domains.lending.default_credit_score', 750);
         $variation = rand(-100, 100);
 
         return (int) max(300, min(850, $baseScore + $variation));
@@ -326,7 +326,7 @@ class DemoLendingService
      */
     private function calculateInterestRate(int $creditScore, int $termMonths): float
     {
-        $baseRate = config('demo.demo_data.lending.default_interest_rate', 5.5);
+        $baseRate = config('demo.domains.lending.default_interest_rate', 5.5);
 
         // Credit score adjustment
         $creditAdjustment = match (true) {

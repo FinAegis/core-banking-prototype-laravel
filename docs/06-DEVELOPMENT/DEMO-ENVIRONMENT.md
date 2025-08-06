@@ -123,11 +123,11 @@ Features:
 
 Configuration:
 ```php
-'demo_data' => [
+'domains' => [
     'exchange' => [
         'spread_percentage' => 0.1,
         'liquidity_multiplier' => 10,
-        'prices' => [
+        'default_rates' => [
             'EUR/USD' => 1.10,
             'GBP/USD' => 1.27,
             'GCU/USD' => 1.00,
@@ -208,75 +208,85 @@ Replaces connectors for:
 ### Environment Variables (.env)
 
 ```env
-# Master Demo Mode Switch
-DEMO_MODE=true
+# Environment Configuration
+APP_ENV=demo  # Activates demo mode
 
 # Feature Toggles
 DEMO_INSTANT_DEPOSITS=true
 DEMO_SKIP_KYC=true
-DEMO_MOCK_BANKS=true
-DEMO_FAKE_BLOCKCHAIN=true
+DEMO_MOCK_EXTERNAL_APIS=true
 DEMO_FIXED_EXCHANGE_RATES=true
+DEMO_AUTO_APPROVE=true
 
-# Demo Indicators
+# UI Indicators
 DEMO_SHOW_BANNER=true
-DEMO_WATERMARK=true
-DEMO_BANNER_TEXT="Demo Mode - Not Real Transactions"
+DEMO_SHOW_WATERMARK=true
+DEMO_BANNER_TEXT="Demo Environment - No real transactions"
 
-# Demo Data Configuration
-DEMO_DEFAULT_DEPOSIT_AMOUNT=10000  # $100.00
-DEMO_DEFAULT_CURRENCY=USD
-DEMO_SUCCESS_RATE=100              # 100% success
+# Demo User Configuration
+DEMO_USER_PASSWORD=demo123
+DEMO_DATA_RETENTION_DAYS=7
+
+# Cleanup Settings
+DEMO_CLEANUP_ENABLED=true
+DEMO_CLEANUP_RETENTION_DAYS=1
 
 # Sandbox Mode (uses real sandbox APIs)
-DEMO_SANDBOX_ENABLED=false
+SANDBOX_MODE=false
 ```
 
 ### Configuration File (config/demo.php)
 
 ```php
 return [
-    'mode' => env('DEMO_MODE', false),
-    
     'features' => [
-        'instant_deposits' => env('DEMO_INSTANT_DEPOSITS', true),
-        'auto_approve_loans' => true,
-        'instant_disbursement' => true,
-        'auto_fill_orders' => true,
-        'auto_collateralize' => true,
+        'instant_deposits'     => env('DEMO_INSTANT_DEPOSITS', true),
+        'skip_kyc'             => env('DEMO_SKIP_KYC', true),
+        'mock_external_apis'   => env('DEMO_MOCK_EXTERNAL_APIS', true),
+        'fixed_exchange_rates' => env('DEMO_FIXED_EXCHANGE_RATES', true),
+        'auto_approve'         => env('DEMO_AUTO_APPROVE', true),
     ],
     
-    'bypass_external_apis' => [
-        'payment_processors' => true,
-        'banking_apis' => true,
-        'blockchain_networks' => true,
-        'exchange_apis' => true,
+    'ui' => [
+        'show_banner' => env('DEMO_SHOW_BANNER', true),
+        'banner_text' => env('DEMO_BANNER_TEXT', 'Demo Environment - No real transactions'),
+        'show_watermark' => env('DEMO_SHOW_WATERMARK', true),
     ],
     
-    'demo_data' => [
+    'domains' => [
+        'exchange' => [
+            'spread_percentage'    => 0.1,
+            'liquidity_multiplier' => 10,
+            'default_rates'        => [
+                'EUR/USD' => 1.10,
+                'GBP/USD' => 1.27,
+                'GCU/USD' => 1.00,
+            ],
+        ],
         'lending' => [
             'auto_approve_threshold' => 10000,
-            'approval_rate' => 80,
-            'default_credit_score' => 750,
-            'default_interest_rate' => 5.5,
-        ],
-        'exchange' => [
-            'spread_percentage' => 0.1,
-            'liquidity_multiplier' => 10,
+            'default_credit_score'   => 750,
+            'default_interest_rate'  => 5.5,
+            'approval_rate'          => 80,
         ],
         'stablecoin' => [
-            'collateral_ratio' => 1.5,
+            'collateral_ratio'      => 1.5,
             'liquidation_threshold' => 1.2,
-            'stability_fee' => 2.5,
+            'stability_fee'         => 2.5,
         ],
     ],
     
-    'security' => [
-        'rate_limiting' => [
-            'deposits_per_hour' => 10,
-            'withdrawals_per_hour' => 5,
-        ],
-        'max_transaction_amount' => 100000, // $1,000
+    'limits' => [
+        'max_transaction_amount' => 100000,
+        'max_accounts_per_user'  => 5,
+        'max_daily_transactions' => 50,
+    ],
+    
+    'rate_limits' => [
+        'api_per_minute'        => 60,
+        'deposits_per_hour'     => 10,
+        'withdrawals_per_hour'  => 5,
+        'transactions_per_hour' => 20,
     ],
 ];
 ```
