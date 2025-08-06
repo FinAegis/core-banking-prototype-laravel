@@ -6,6 +6,7 @@ namespace App\Domain\Exchange\Repositories;
 
 use App\Domain\Exchange\Aggregates\Order;
 use App\Domain\Exchange\Contracts\OrderRepositoryInterface;
+use App\Domain\Exchange\Projections\Order as OrderProjection;
 use Illuminate\Support\Collection;
 
 /**
@@ -31,7 +32,7 @@ class OrderRepository implements OrderRepositoryInterface
     public function findByAccount(string $accountId): Collection
     {
         // Query the projections table for orders by account
-        return \App\Domain\Exchange\Models\Order::where('account_id', $accountId)
+        return OrderProjection::where('account_id', $accountId)
             ->get()
             ->map(fn ($projection) => $this->find($projection->order_id))
             ->filter();
@@ -42,7 +43,7 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function findOpenOrders(string $baseCurrency, string $quoteCurrency): Collection
     {
-        return \App\Domain\Exchange\Models\Order::where('base_currency', $baseCurrency)
+        return OrderProjection::where('base_currency', $baseCurrency)
             ->where('quote_currency', $quoteCurrency)
             ->whereIn('status', ['pending', 'open', 'partially_filled'])
             ->get()
@@ -65,8 +66,8 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $order = $this->find($orderId);
         if ($order) {
-            // Mark as deleted through event
-            $order->markDeleted();
+            // Cancel the order
+            $order->cancelOrder('Order deleted', ['deleted_at' => now()]);
             $order->persist();
         }
     }
@@ -76,7 +77,7 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function findByStatus(string $status): Collection
     {
-        return \App\Domain\Exchange\Models\Order::where('status', $status)
+        return OrderProjection::where('status', $status)
             ->get()
             ->map(fn ($projection) => $this->find($projection->order_id))
             ->filter();
@@ -87,7 +88,7 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function findByTimeRange(\DateTimeInterface $from, \DateTimeInterface $to): Collection
     {
-        return \App\Domain\Exchange\Models\Order::whereBetween('created_at', [$from, $to])
+        return OrderProjection::whereBetween('created_at', [$from, $to])
             ->get()
             ->map(fn ($projection) => $this->find($projection->order_id))
             ->filter();
@@ -98,7 +99,7 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function getStatistics(string $baseCurrency, string $quoteCurrency): array
     {
-        $stats = \App\Domain\Exchange\Models\Order::where('base_currency', $baseCurrency)
+        $stats = OrderProjection::where('base_currency', $baseCurrency)
             ->where('quote_currency', $quoteCurrency)
             ->selectRaw('
                 COUNT(*) as total_orders,

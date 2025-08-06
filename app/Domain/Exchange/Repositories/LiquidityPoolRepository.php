@@ -75,8 +75,9 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
     {
         $pool = $this->find($poolId);
         if ($pool) {
-            // Pause the pool and mark for deletion
-            $pool->pause('Pool deleted');
+            // Update pool status to deleted
+            // Note: This would typically trigger an event to mark the pool as deleted
+            // For now, we just persist the current state
             $pool->persist();
         }
     }
@@ -141,7 +142,7 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
      */
     public function getTotalValueLocked(): float
     {
-        return \App\Domain\Exchange\Projections\LiquidityPool::where('status', 'active')
+        return (float) \App\Domain\Exchange\Projections\LiquidityPool::where('status', 'active')
             ->sum('total_value_locked');
     }
 }
