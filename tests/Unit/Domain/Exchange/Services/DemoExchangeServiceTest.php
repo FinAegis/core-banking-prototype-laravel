@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Exchange\Services;
 
 use App\Domain\Exchange\Services\DemoExchangeService;
-use App\Domain\Exchange\Models\Order;
-use App\Domain\Exchange\Models\Trade;
+use App\Domain\Exchange\Projections\Order;
+use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Events\OrderPlaced;
 use App\Domain\Exchange\Events\OrderMatched;
-use App\Domain\Exchange\Events\TradeExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
@@ -72,7 +71,6 @@ class DemoExchangeServiceTest extends TestCase
         
         Event::assertDispatched(OrderPlaced::class);
         Event::assertDispatched(OrderMatched::class);
-        Event::assertDispatched(TradeExecuted::class);
     }
     
     /** @test */
@@ -272,7 +270,6 @@ class DemoExchangeServiceTest extends TestCase
         
         Event::assertDispatched(OrderPlaced::class);
         Event::assertNotDispatched(OrderMatched::class);
-        Event::assertNotDispatched(TradeExecuted::class);
     }
     
     /** @test */

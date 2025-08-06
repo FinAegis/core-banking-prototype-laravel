@@ -7,20 +7,17 @@ namespace App\Domain\Exchange\Services;
 use App\Domain\Exchange\Events\OrderCancelled;
 use App\Domain\Exchange\Events\OrderMatched;
 use App\Domain\Exchange\Events\OrderPlaced;
-use App\Domain\Exchange\Events\TradeExecuted;
-use App\Domain\Exchange\Models\Order;
-use App\Domain\Exchange\Models\Trade;
+use App\Domain\Exchange\Projections\Order;
+use App\Domain\Exchange\Projections\Trade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class DemoExchangeService
 {
-    private FeeCalculator $feeCalculator;
-
-    public function __construct(FeeCalculator $feeCalculator)
+    public function __construct()
     {
-        $this->feeCalculator = $feeCalculator;
+        // Demo service doesn't need external dependencies
     }
 
     /**
@@ -47,7 +44,17 @@ class DemoExchangeService
             ]);
 
             // Record order placed event
-            event(new OrderPlaced($order));
+            event(new OrderPlaced(
+                orderId: $order->id,
+                accountId: (string) $order->account_id,
+                type: $order->side,
+                orderType: $order->type,
+                baseCurrency: $order->base_currency,
+                quoteCurrency: $order->quote_currency,
+                amount: (string) $order->amount,
+                price: $order->price ? (string) $order->price : null,
+                metadata: $order->metadata ?? []
+            ));
 
             // Simulate instant matching for demo mode
             if (config('demo.features.auto_fill_orders', true)) {
@@ -80,7 +87,10 @@ class DemoExchangeService
                 'cancelled_at' => now(),
             ]);
 
-            event(new OrderCancelled($order));
+            event(new OrderCancelled(
+                orderId: $order->id,
+                reason: 'User requested cancellation'
+            ));
 
             return true;
         });
@@ -196,8 +206,15 @@ class DemoExchangeService
         ]);
 
         // Fire events
-        event(new OrderMatched($order, $trade));
-        event(new TradeExecuted($trade));
+        event(new OrderMatched(
+            orderId: $order->id,
+            matchedOrderId: $order->id, // Self-matched in demo
+            tradeId: $trade->id,
+            executedPrice: (string) $trade->price,
+            executedAmount: (string) $trade->amount,
+            makerFee: '0',
+            takerFee: (string) $fee
+        ));
     }
 
     /**

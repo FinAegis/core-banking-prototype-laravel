@@ -42,7 +42,15 @@ class DemoLendingService
                 ]),
             ]);
 
-            event(new LoanApplicationSubmitted($application));
+            event(new LoanApplicationSubmitted(
+                applicationId: $application->id,
+                borrowerId: (string) $application->borrower_id,
+                requestedAmount: (string) $application->requested_amount,
+                termMonths: $application->term_months,
+                purpose: $application->purpose,
+                borrowerInfo: $data['borrower_info'] ?? [],
+                submittedAt: new \DateTimeImmutable()
+            ));
 
             // Auto-process application in demo mode
             if (config('demo.features.auto_approve_loans', true)) {
