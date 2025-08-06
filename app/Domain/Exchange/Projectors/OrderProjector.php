@@ -16,6 +16,11 @@ class OrderProjector extends Projector
 {
     public function onOrderPlaced(OrderPlaced $event): void
     {
+        // Check if order already exists (created by DemoExchangeService)
+        if (Order::where('order_id', $event->orderId)->exists()) {
+            return;
+        }
+
         Order::create(
             [
             'order_id'       => $event->orderId,
@@ -73,6 +78,11 @@ class OrderProjector extends Projector
 
         // Create trade record
         $matchedOrder = Order::where('order_id', $event->matchedOrderId)->firstOrFail();
+
+        // Check if trade already exists (created by DemoExchangeService)
+        if (Trade::where('trade_id', $event->tradeId)->exists()) {
+            return;
+        }
 
         Trade::create(
             [

@@ -37,6 +37,7 @@ return new class () extends Migration {
             $table->jsonb('terms')->nullable();
             $table->string('approved_by')->nullable();
             $table->timestamp('approved_at')->nullable();
+            $table->jsonb('approval_metadata')->nullable();
             $table->jsonb('rejection_reasons')->nullable();
             $table->string('rejected_by')->nullable();
             $table->timestamp('rejected_at')->nullable();

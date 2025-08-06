@@ -11,6 +11,7 @@ use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\Trade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
 class DemoExchangeService
