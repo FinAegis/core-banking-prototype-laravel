@@ -134,7 +134,7 @@ class StablecoinAggregate extends AggregateRoot
         return $this;
     }
 
-    public function updatePosition(int $collateral_amount, int $debt_amount, float $collateral_ratio): self
+    public function updatePosition(float $collateral_amount, float $debt_amount, float $collateral_ratio): self
     {
         $this->recordThat(
             new CollateralPositionUpdated(

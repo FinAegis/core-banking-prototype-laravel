@@ -73,15 +73,16 @@ class DomainServiceProvider extends ServiceProvider
      */
     private function registerCQRSInfrastructure(): void
     {
+        // TODO: Implement CQRS infrastructure when ready
         // Command Bus
-        $this->app->singleton(CommandBus::class, function ($app) {
-            return new LaravelCommandBus($app);
-        });
+        // $this->app->singleton(CommandBus::class, function ($app) {
+        //     return new LaravelCommandBus($app);
+        // });
 
         // Query Bus
-        $this->app->singleton(QueryBus::class, function ($app) {
-            return new LaravelQueryBus($app);
-        });
+        // $this->app->singleton(QueryBus::class, function ($app) {
+        //     return new LaravelQueryBus($app);
+        // });
     }
 
     /**
@@ -89,9 +90,10 @@ class DomainServiceProvider extends ServiceProvider
      */
     private function registerDomainEventBus(): void
     {
-        $this->app->singleton(DomainEventBus::class, function ($app) {
-            return new LaravelDomainEventBus($app['events']);
-        });
+        // TODO: Implement Domain Event Bus when infrastructure is ready
+        // $this->app->singleton(DomainEventBus::class, function ($app) {
+        //     return new LaravelDomainEventBus($app['events']);
+        // });
     }
 
     /**
@@ -103,7 +105,8 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->tag([
             \App\Domain\Exchange\Sagas\OrderFulfillmentSaga::class,
             \App\Domain\Stablecoin\Sagas\StablecoinIssuanceSaga::class,
-            \App\Domain\Lending\Sagas\LoanDisbursementSaga::class,
+            // TODO: Create LoanDisbursementSaga
+            // \App\Domain\Lending\Sagas\LoanDisbursementSaga::class,
         ], 'sagas');
     }
 
@@ -112,29 +115,30 @@ class DomainServiceProvider extends ServiceProvider
      */
     private function registerEventSubscribers(): void
     {
-        $eventBus = $this->app->make(DomainEventBus::class);
+        // TODO: Implement event subscribers when handlers are created
+        // $eventBus = $this->app->make(DomainEventBus::class);
 
-        // Subscribe to order events
-        $eventBus->subscribe(
-            \App\Domain\Exchange\Events\OrderPlaced::class,
-            \App\Domain\Exchange\Handlers\OrderPlacedHandler::class
-        );
+        // // Subscribe to order events
+        // $eventBus->subscribe(
+        //     \App\Domain\Exchange\Events\OrderPlaced::class,
+        //     \App\Domain\Exchange\Handlers\OrderPlacedHandler::class
+        // );
 
-        $eventBus->subscribe(
-            \App\Domain\Exchange\Events\OrderMatched::class,
-            \App\Domain\Exchange\Handlers\OrderMatchedHandler::class
-        );
+        // $eventBus->subscribe(
+        //     \App\Domain\Exchange\Events\OrderMatched::class,
+        //     \App\Domain\Exchange\Handlers\OrderMatchedHandler::class
+        // );
 
-        // Subscribe to stablecoin events
-        $eventBus->subscribe(
-            \App\Domain\Stablecoin\Events\StablecoinMinted::class,
-            \App\Domain\Stablecoin\Handlers\StablecoinMintedHandler::class
-        );
+        // // Subscribe to stablecoin events
+        // $eventBus->subscribe(
+        //     \App\Domain\Stablecoin\Events\StablecoinMinted::class,
+        //     \App\Domain\Stablecoin\Handlers\StablecoinMintedHandler::class
+        // );
 
-        $eventBus->subscribe(
-            \App\Domain\Stablecoin\Events\CollateralLocked::class,
-            \App\Domain\Stablecoin\Handlers\CollateralLockedHandler::class
-        );
+        // $eventBus->subscribe(
+        //     \App\Domain\Stablecoin\Events\CollateralLocked::class,
+        //     \App\Domain\Stablecoin\Handlers\CollateralLockedHandler::class
+        // );
     }
 
     /**
@@ -142,29 +146,30 @@ class DomainServiceProvider extends ServiceProvider
      */
     private function registerCommandHandlers(): void
     {
-        $commandBus = $this->app->make(CommandBus::class);
+        // TODO: Implement command handlers when command bus is ready
+        // $commandBus = $this->app->make(CommandBus::class);
 
-        // Exchange commands
-        $commandBus->register(
-            \App\Domain\Exchange\Commands\PlaceOrderCommand::class,
-            \App\Domain\Exchange\Handlers\PlaceOrderHandler::class
-        );
+        // // Exchange commands
+        // $commandBus->register(
+        //     \App\Domain\Exchange\Commands\PlaceOrderCommand::class,
+        //     \App\Domain\Exchange\Handlers\PlaceOrderHandler::class
+        // );
 
-        $commandBus->register(
-            \App\Domain\Exchange\Commands\CancelOrderCommand::class,
-            \App\Domain\Exchange\Handlers\CancelOrderHandler::class
-        );
+        // $commandBus->register(
+        //     \App\Domain\Exchange\Commands\CancelOrderCommand::class,
+        //     \App\Domain\Exchange\Handlers\CancelOrderHandler::class
+        // );
 
-        // Stablecoin commands
-        $commandBus->register(
-            \App\Domain\Stablecoin\Commands\MintStablecoinCommand::class,
-            \App\Domain\Stablecoin\Handlers\MintStablecoinHandler::class
-        );
+        // // Stablecoin commands
+        // $commandBus->register(
+        //     \App\Domain\Stablecoin\Commands\MintStablecoinCommand::class,
+        //     \App\Domain\Stablecoin\Handlers\MintStablecoinHandler::class
+        // );
 
-        $commandBus->register(
-            \App\Domain\Stablecoin\Commands\BurnStablecoinCommand::class,
-            \App\Domain\Stablecoin\Handlers\BurnStablecoinHandler::class
-        );
+        // $commandBus->register(
+        //     \App\Domain\Stablecoin\Commands\BurnStablecoinCommand::class,
+        //     \App\Domain\Stablecoin\Handlers\BurnStablecoinHandler::class
+        // );
     }
 
     /**
@@ -172,28 +177,29 @@ class DomainServiceProvider extends ServiceProvider
      */
     private function registerQueryHandlers(): void
     {
-        $queryBus = $this->app->make(QueryBus::class);
+        // TODO: Implement query handlers when query bus is ready
+        // $queryBus = $this->app->make(QueryBus::class);
 
-        // Exchange queries
-        $queryBus->register(
-            \App\Domain\Exchange\Queries\GetOrderBookQuery::class,
-            \App\Domain\Exchange\Handlers\GetOrderBookHandler::class
-        );
+        // // Exchange queries
+        // $queryBus->register(
+        //     \App\Domain\Exchange\Queries\GetOrderBookQuery::class,
+        //     \App\Domain\Exchange\Handlers\GetOrderBookHandler::class
+        // );
 
-        $queryBus->register(
-            \App\Domain\Exchange\Queries\GetMarketDataQuery::class,
-            \App\Domain\Exchange\Handlers\GetMarketDataHandler::class
-        );
+        // $queryBus->register(
+        //     \App\Domain\Exchange\Queries\GetMarketDataQuery::class,
+        //     \App\Domain\Exchange\Handlers\GetMarketDataHandler::class
+        // );
 
-        // Stablecoin queries
-        $queryBus->register(
-            \App\Domain\Stablecoin\Queries\GetCollateralizationRatioQuery::class,
-            \App\Domain\Stablecoin\Handlers\GetCollateralizationRatioHandler::class
-        );
+        // // Stablecoin queries
+        // $queryBus->register(
+        //     \App\Domain\Stablecoin\Queries\GetCollateralizationRatioQuery::class,
+        //     \App\Domain\Stablecoin\Handlers\GetCollateralizationRatioHandler::class
+        // );
 
-        $queryBus->register(
-            \App\Domain\Stablecoin\Queries\GetStablecoinSupplyQuery::class,
-            \App\Domain\Stablecoin\Handlers\GetStablecoinSupplyHandler::class
-        );
+        // $queryBus->register(
+        //     \App\Domain\Stablecoin\Queries\GetStablecoinSupplyQuery::class,
+        //     \App\Domain\Stablecoin\Handlers\GetStablecoinSupplyHandler::class
+        // );
     }
 }
