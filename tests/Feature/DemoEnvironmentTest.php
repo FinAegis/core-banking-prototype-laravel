@@ -39,7 +39,7 @@ class DemoEnvironmentTest extends TestCase
     {
         $this->assertIsArray(config('demo'));
         $this->assertArrayHasKey('features', config('demo'));
-        $this->assertArrayHasKey('restrictions', config('demo'));
+        $this->assertArrayHasKey('limits', config('demo'));
         $this->assertArrayHasKey('rate_limits', config('demo'));
     }
 
@@ -56,9 +56,9 @@ class DemoEnvironmentTest extends TestCase
     #[Test]
     public function it_has_demo_restrictions()
     {
-        $this->assertIsInt(config('demo.restrictions.max_transaction_amount'));
-        $this->assertIsInt(config('demo.restrictions.max_accounts_per_user'));
-        $this->assertIsBool(config('demo.restrictions.disable_real_banks'));
+        $this->assertIsInt(config('demo.limits.max_transaction_amount'));
+        $this->assertIsInt(config('demo.limits.max_accounts_per_user'));
+        $this->assertIsInt(config('demo.limits.max_daily_transactions'));
     }
 
     #[Test]
