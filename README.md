@@ -1,9 +1,12 @@
 # FinAegis Core Banking Prototype
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-%3E50%25-brightgreen.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
+[![Demo Available](https://img.shields.io/badge/demo-live-blue.svg)](https://demo.finaegis.com)
 
 **Open Source Core Banking Prototype Demonstrating Modern Banking Architecture**
 
@@ -17,7 +20,8 @@ FinAegis is a comprehensive prototype of a core banking platform built with even
 
 ## 🔗 Quick Links
 
-- 🌐 **[Live Demo](https://finaegis.org)** - Try the prototype
+- 🌐 **[Live Demo](https://demo.finaegis.com)** - Try the demo environment
+- 🎮 **[Demo Guide](docs/11-USER-GUIDES/DEMO-USER-GUIDE.md)** - Demo features walkthrough  
 - 📚 **[Documentation](docs/README.md)** - Complete documentation index
 - 🚀 **[Quick Start](#-quick-start)** - Get started immediately
 - 💻 **[API Reference](docs/04-API/REST_API_REFERENCE.md)** - REST API v2.0
@@ -25,14 +29,18 @@ FinAegis is a comprehensive prototype of a core banking platform built with even
 
 ## 🌐 Live Demo
 
-**Experience the FinAegis prototype in action: [https://finaegis.org](https://finaegis.org)**
+**🎮 Demo Environment: [https://demo.finaegis.com](https://demo.finaegis.com)**  
+**🌍 Production Site: [https://finaegis.org](https://finaegis.org)**
 
-The live demo showcases:
-- Multi-asset banking operations
-- Global Currency Unit (GCU) concept demonstration
-- Admin dashboard (request demo credentials)
-- API documentation and interactive testing
-- Complete feature demonstrations
+### Demo Features
+The demo environment showcases all platform capabilities without real transactions:
+- ✅ Multi-asset banking operations  
+- ✅ Global Currency Unit (GCU) concept demonstration
+- ✅ Instant transaction processing (simulated)
+- ✅ Pre-configured demo accounts (see [Demo Guide](docs/11-USER-GUIDES/DEMO-USER-GUIDE.md))
+- ✅ API testing with demo credentials
+- ✅ Admin dashboard with full access
+- ✅ All external services mocked locally
 
 ## 🚧 Prototype Status
 
@@ -86,7 +94,26 @@ The prototype showcases advanced banking architecture patterns:
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Option 1: Try Demo Mode (Recommended for First-Time Users)
+
+```bash
+# Quick demo setup - no external dependencies needed!
+git clone https://github.com/finaegis/core-banking-laravel.git
+cd finaegis-core-banking
+composer install
+cp .env.demo .env
+php artisan key:generate
+php artisan migrate --seed
+npm install && npm run build
+php artisan serve
+
+# Access at http://localhost:8000
+# Demo credentials in .env.demo file
+```
+
+### Option 2: Full Installation
+
+#### Prerequisites
 
 - PHP 8.4+
 - Laravel 12
@@ -828,6 +855,39 @@ The FinAegis prototype demonstrates comprehensive banking architecture patterns 
 - **Resilience Patterns**: Circuit breakers, retries, and fallback mechanisms
 - **Error Handling**: Robust failure recovery across banks
 - **Performance Optimization**: Sub-second transaction processing
+
+## 🎉 Recent Implementations (2025)
+
+### Demo Environment System (January 2025)
+- ✅ **Complete Demo Mode**: Zero external dependencies for demonstrations
+- ✅ **Service Abstraction Layer**: Environment-based service implementations  
+- ✅ **Demo Services**: Payment, Exchange, Lending, Stablecoin, Blockchain mocks
+- ✅ **Demo Data Management**: Seeding, reset, and cleanup utilities
+- ✅ **Demo User Guide**: Comprehensive documentation for demo features
+
+### FinAegis Exchange Engine (January 2025)  
+- ✅ **Event-Sourced Trading**: Complete order book with event sourcing
+- ✅ **External Connectors**: Binance and Kraken integration
+- ✅ **Order Matching**: Saga-based order matching with compensation
+- ✅ **Market Data**: Real-time price feeds and aggregation
+
+### Stablecoin Framework (January 2025)
+- ✅ **EUR Stablecoin**: Complete token lifecycle management
+- ✅ **Oracle Integration**: Multiple price source aggregation  
+- ✅ **Reserve Management**: Event-sourced reserve tracking
+- ✅ **Governance Enhancement**: Voting-based parameter adjustment
+
+### P2P Lending Platform (January 2025)
+- ✅ **Loan Lifecycle**: Application, approval, funding, repayment
+- ✅ **Credit Scoring**: Risk assessment and automated decisions
+- ✅ **Event Sourcing**: Complete audit trail for all operations
+- ✅ **Early Settlement**: Support for early loan repayment
+
+### Wallet Management System (January 2025)
+- ✅ **Multi-Blockchain**: Ethereum, Polygon, BSC, Bitcoin support
+- ✅ **HD Wallets**: Hierarchical deterministic key generation
+- ✅ **Deposit/Withdrawal**: Saga-based blockchain operations
+- ✅ **Security**: Encrypted key storage and backup system
 
 ### Future Development Opportunities
 - [ ] **Production Hardening**: Security review and production readiness

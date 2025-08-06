@@ -85,6 +85,91 @@ php artisan l5-swagger:generate
 # Access at: http://localhost:8000/api/documentation
 ```
 
+## Demo Mode Development Workflow
+
+### Working with Demo Environment
+
+The platform includes a comprehensive demo mode for development and testing without external dependencies.
+
+#### Quick Demo Setup
+```bash
+# Use demo environment configuration
+cp .env.demo .env
+php artisan config:cache
+
+# Or set manually in .env
+APP_ENV_MODE=demo
+DEMO_SHOW_BANNER=true
+```
+
+#### Demo Service Development
+
+When developing new features, always implement the demo service layer:
+
+```php
+// 1. Create interface
+interface YourServiceInterface
+{
+    public function performAction(array $data): Result;
+}
+
+// 2. Create production implementation
+class ProductionYourService implements YourServiceInterface
+{
+    // Real implementation
+}
+
+// 3. Create demo implementation
+class DemoYourService implements YourServiceInterface
+{
+    public function performAction(array $data): Result
+    {
+        // Simulated behavior
+        return new Result(['success' => true, 'demo' => true]);
+    }
+}
+
+// 4. Register in service provider
+$this->app->bind(YourServiceInterface::class, function ($app) {
+    return match (config('services.environment_mode')) {
+        'demo' => new DemoYourService(),
+        default => new ProductionYourService(),
+    };
+});
+```
+
+#### Testing in Demo Mode
+
+```bash
+# Run tests with demo services
+APP_ENV_MODE=demo ./vendor/bin/pest
+
+# Test specific demo scenarios
+./vendor/bin/pest tests/Feature/Demo/
+```
+
+#### Demo Data Management
+
+```bash
+# Seed demo data
+php artisan db:seed --class=DemoDataSeeder
+
+# Reset demo environment
+php artisan demo:reset
+
+# Clean up old demo data
+php artisan demo:cleanup
+```
+
+#### Demo Mode Best Practices
+
+1. **Always implement demo services** for external integrations
+2. **Use predictable test data** (e.g., card 4242... always succeeds)
+3. **Add demo indicators** in UI (banners, badges)
+4. **Document demo behaviors** in service classes
+5. **Test both production and demo** implementations
+6. **Keep demo data isolated** using scopes or flags
+
 ## Architecture Overview
 
 ### Domain-Driven Design Structure
