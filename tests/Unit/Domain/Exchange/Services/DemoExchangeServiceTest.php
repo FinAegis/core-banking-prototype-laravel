@@ -62,7 +62,7 @@ class DemoExchangeServiceTest extends TestCase
         $order = $this->service->placeOrder($orderData);
 
         $this->assertInstanceOf(Order::class, $order);
-        $this->assertStringStartsWith('demo_ord_', $order->id);
+        $this->assertStringStartsWith('demo_ord_', $order->order_id);
         $this->assertEquals('filled', $order->status);
         $this->assertEquals(100, $order->filled_amount);
         $this->assertEquals(0, $order->remaining_amount);
@@ -103,19 +103,19 @@ class DemoExchangeServiceTest extends TestCase
 
         // First create an order
         $order = Order::create([
-            'id'             => 'demo_ord_test123',
-            'user_id'        => 1,
+            'order_id'       => 'demo_ord_test123',
             'account_id'     => 1,
-            'type'           => 'limit',
-            'side'           => 'buy',
+            'type'           => 'buy',
+            'order_type'     => 'limit',
             'base_currency'  => 'EUR',
             'quote_currency' => 'USD',
             'amount'         => 100,
+            'filled_amount'  => 0,
             'price'          => 1.09,
             'status'         => 'pending',
         ]);
 
-        $result = $this->service->cancelOrder($order->id, 1);
+        $result = $this->service->cancelOrder($order->order_id, 1);
 
         $this->assertTrue($result);
 
@@ -128,19 +128,19 @@ class DemoExchangeServiceTest extends TestCase
     public function it_cannot_cancel_order_of_different_user()
     {
         $order = Order::create([
-            'id'             => 'demo_ord_test456',
-            'user_id'        => 2, // Different user
-            'account_id'     => 2,
-            'type'           => 'limit',
-            'side'           => 'buy',
+            'order_id'       => 'demo_ord_test456',
+            'account_id'     => 2, // Different user
+            'type'           => 'buy',
+            'order_type'     => 'limit',
             'base_currency'  => 'EUR',
             'quote_currency' => 'USD',
             'amount'         => 100,
+            'filled_amount'  => 0,
             'price'          => 1.09,
             'status'         => 'pending',
         ]);
 
-        $result = $this->service->cancelOrder($order->id, 1); // Try with user 1
+        $result = $this->service->cancelOrder($order->order_id, 1); // Try with user 1
 
         $this->assertFalse($result);
 
@@ -233,14 +233,13 @@ class DemoExchangeServiceTest extends TestCase
         $order = $this->service->placeOrder($orderData);
 
         // Check that a trade was created
-        $trade = Trade::where('order_id', $order->id)->first();
+        $trade = Trade::where('buy_order_id', $order->order_id)->first();
 
         $this->assertNotNull($trade);
-        $this->assertStringStartsWith('demo_trd_', $trade->id);
-        $this->assertEquals($order->user_id, $trade->user_id);
-        $this->assertEquals($order->account_id, $trade->account_id);
+        $this->assertStringStartsWith('demo_trd_', $trade->trade_id);
+        $this->assertEquals($order->account_id, $trade->buyer_account_id);
+        $this->assertEquals($order->account_id, $trade->seller_account_id);
         $this->assertEquals(2, $trade->amount);
-        $this->assertEquals('completed', $trade->status);
         $this->assertTrue($trade->metadata['demo_mode']);
         $this->assertTrue($trade->metadata['instant_fill']);
     }

@@ -38,7 +38,7 @@ class DemoExchangeService
                 'quote_currency' => $data['quote_currency'],
                 'amount'         => (string) $data['amount'],
                 'filled_amount'  => '0',
-                'price'          => $data['price'] ? (string) $data['price'] : (string) $this->getSimulatedPrice($data['base_currency'], $data['quote_currency']),
+                'price'          => isset($data['price']) && $data['price'] ? (string) $data['price'] : (string) $this->getSimulatedPrice($data['base_currency'], $data['quote_currency']),
                 'status'         => 'pending',
                 'metadata'       => array_merge($data['metadata'] ?? [], ['demo_mode' => true]),
             ]);

@@ -2,15 +2,18 @@
 
 namespace Tests\Unit\Domain\Stablecoin\Services;
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Stablecoin\Events\CollateralPositionLiquidated;
 use App\Domain\Stablecoin\Events\StablecoinBurned;
 use App\Domain\Stablecoin\Events\StablecoinMinted;
 use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use App\Domain\Stablecoin\Services\DemoStablecoinService;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DemoStablecoinServiceTest extends TestCase
@@ -30,10 +33,86 @@ class DemoStablecoinServiceTest extends TestCase
         Config::set('demo.demo_data.stablecoin.liquidation_threshold', 1.2);
         Config::set('demo.demo_data.stablecoin.stability_fee', 2.5);
 
+        // Create required test data
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        // Create Account records that will be referenced
+        Account::create([
+            'uuid'      => 'acc_123',
+            'user_uuid' => $user1->uuid,
+            'name'      => 'Test Account 123',
+            'balance'   => 10000,
+        ]);
+
+        Account::create([
+            'uuid'      => 'acc_456',
+            'user_uuid' => $user2->uuid,
+            'name'      => 'Test Account 456',
+            'balance'   => 10000,
+        ]);
+
+        Account::create([
+            'uuid'      => 'acc_1',
+            'user_uuid' => $user1->uuid,
+            'name'      => 'Test Account 1',
+            'balance'   => 10000,
+        ]);
+
+        Account::create([
+            'uuid'      => 'acc_2',
+            'user_uuid' => $user2->uuid,
+            'name'      => 'Test Account 2',
+            'balance'   => 10000,
+        ]);
+
+        // Create required Stablecoin records
+        Stablecoin::create([
+            'code'                 => 'GUSD',
+            'name'                 => 'GCU USD Stablecoin',
+            'symbol'               => 'GUSD',
+            'peg_asset_code'       => 'USD',
+            'peg_ratio'            => 1.0,
+            'target_price'         => 1.0,
+            'stability_mechanism'  => 'collateralized',
+            'collateral_ratio'     => 1.5,
+            'min_collateral_ratio' => 1.2,
+            'liquidation_penalty'  => 0.1,
+            'total_supply'         => 0,
+            'max_supply'           => 1000000000,
+            'mint_fee'             => 0.001,
+            'burn_fee'             => 0.001,
+            'precision'            => 6,
+            'is_active'            => true,
+            'minting_enabled'      => true,
+            'burning_enabled'      => true,
+        ]);
+
+        Stablecoin::create([
+            'code'                 => 'EUSD',
+            'name'                 => 'EUR USD Stablecoin',
+            'symbol'               => 'EUSD',
+            'peg_asset_code'       => 'EUR',
+            'peg_ratio'            => 1.0,
+            'target_price'         => 1.0,
+            'stability_mechanism'  => 'collateralized',
+            'collateral_ratio'     => 1.5,
+            'min_collateral_ratio' => 1.2,
+            'liquidation_penalty'  => 0.1,
+            'total_supply'         => 0,
+            'max_supply'           => 1000000000,
+            'mint_fee'             => 0.001,
+            'burn_fee'             => 0.001,
+            'precision'            => 6,
+            'is_active'            => true,
+            'minting_enabled'      => true,
+            'burning_enabled'      => true,
+        ]);
+
         $this->service = new DemoStablecoinService();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_mint_stablecoins_with_sufficient_collateral()
     {
         Event::fake();
@@ -60,7 +139,7 @@ class DemoStablecoinServiceTest extends TestCase
         });
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_insufficient_collateral()
     {
         $this->expectException(\Exception::class);
@@ -74,7 +153,7 @@ class DemoStablecoinServiceTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_can_burn_stablecoins_and_release_collateral()
     {
         Event::fake();
@@ -104,33 +183,40 @@ class DemoStablecoinServiceTest extends TestCase
         });
     }
 
-    /** @test */
+    #[Test]
     public function it_closes_position_when_fully_burned()
     {
+        // Use factory-created account to ensure uniqueness
+        $account = Account::factory()->create();
+
         // First mint
         $this->service->mint(
-            accountId: 'acc_123',
+            accountId: $account->uuid,
             stablecoinId: 'GUSD',
             amount: 1000,
             collateral: 1
         );
 
-        // Burn all
+        // Burn all using the original amount
         $this->service->burn(
-            accountId: 'acc_123',
+            accountId: $account->uuid,
             stablecoinId: 'GUSD',
             amount: 1000
         );
 
-        $position = StablecoinCollateralPosition::where('account_uuid', 'acc_123')
+        $position = StablecoinCollateralPosition::where('account_uuid', $account->uuid)
             ->where('stablecoin_code', 'GUSD')
             ->first();
+
+        // Debug output
+        dump('Debt amount after burn: ' . $position->debt_amount);
+        dump('Status: ' . $position->status);
 
         $this->assertEquals('closed', $position->status);
         $this->assertEquals(0, $position->debt_amount);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_adjust_collateral_position()
     {
         Event::fake();
@@ -157,41 +243,47 @@ class DemoStablecoinServiceTest extends TestCase
         $this->assertArrayHasKey('health', $result);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_position_details()
     {
+        // Clear all positions to ensure clean state
+        StablecoinCollateralPosition::query()->delete();
+
+        // Create account first
+        $account = Account::factory()->create();
+
         // Create a position
         $this->service->mint(
-            accountId: 'acc_123',
+            accountId: $account->uuid,
             stablecoinId: 'GUSD',
             amount: 1000,
             collateral: 1
         );
 
-        $position = StablecoinCollateralPosition::where('account_uuid', 'acc_123')->first();
+        $position = StablecoinCollateralPosition::where('account_uuid', $account->uuid)->first();
 
         $details = $this->service->getPosition($position->uuid);
 
         $this->assertEquals($position->uuid, $details['position_id']);
-        $this->assertEquals('acc_123', $details['account_id']);
+        $this->assertEquals($account->uuid, $details['account_id']);
         $this->assertEquals('GUSD', $details['stablecoin_id']);
         $this->assertEquals(1, $details['collateral']);
-        $this->assertEquals(1000, $details['debt']);
+        $this->assertEquals(1000, $details['debt']); // Should be the original amount
         $this->assertEquals('healthy', $details['health']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_check_and_liquidate_at_risk_positions()
     {
         Event::fake();
 
-        // Create an at-risk position
+        // Create an at-risk position (collateral in micro units)
         StablecoinCollateralPosition::create([
             'uuid'                  => 'pos_risk_1',
             'account_uuid'          => 'acc_456',
             'stablecoin_code'       => 'GUSD',
             'collateral_asset_code' => 'ETH',
-            'collateral_amount'     => 0.5,
+            'collateral_amount'     => 500000, // 0.5 ETH in micro units
             'debt_amount'           => 1000,
             'collateral_ratio'      => 1.0, // Below threshold
             'status'                => 'active',
@@ -206,16 +298,16 @@ class DemoStablecoinServiceTest extends TestCase
         Event::assertDispatched(CollateralPositionLiquidated::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_provides_system_statistics()
     {
-        // Create some positions
+        // Create some positions (collateral in micro units)
         StablecoinCollateralPosition::create([
             'uuid'                  => 'pos_1',
             'account_uuid'          => 'acc_1',
             'stablecoin_code'       => 'GUSD',
             'collateral_asset_code' => 'ETH',
-            'collateral_amount'     => 1,
+            'collateral_amount'     => 1000000, // 1 ETH in micro units
             'debt_amount'           => 1000,
             'collateral_ratio'      => 2.0,
             'status'                => 'active',
@@ -226,7 +318,7 @@ class DemoStablecoinServiceTest extends TestCase
             'account_uuid'          => 'acc_2',
             'stablecoin_code'       => 'GUSD',
             'collateral_asset_code' => 'ETH',
-            'collateral_amount'     => 0.5,
+            'collateral_amount'     => 500000, // 0.5 ETH in micro units
             'debt_amount'           => 500,
             'collateral_ratio'      => 2.0,
             'status'                => 'active',
@@ -235,22 +327,22 @@ class DemoStablecoinServiceTest extends TestCase
         $stats = $this->service->getSystemStats();
 
         $this->assertEquals(1500, $stats['total_minted']);
-        $this->assertEquals(1.5, $stats['total_collateral']);
+        $this->assertEquals(1500000, $stats['total_collateral']); // 1.5 ETH in micro units
         $this->assertEquals(1500, $stats['total_debt']);
         $this->assertEquals(2, $stats['active_positions']);
         $this->assertTrue($stats['demo']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_account_positions()
     {
-        // Create positions for an account
+        // Create positions for an account (collateral in micro units)
         StablecoinCollateralPosition::create([
             'uuid'                  => 'pos_1',
             'account_uuid'          => 'acc_123',
             'stablecoin_code'       => 'GUSD',
             'collateral_asset_code' => 'ETH',
-            'collateral_amount'     => 1,
+            'collateral_amount'     => 1000000, // 1 ETH in micro units
             'debt_amount'           => 1000,
             'collateral_ratio'      => 2.0,
             'status'                => 'active',
@@ -261,7 +353,7 @@ class DemoStablecoinServiceTest extends TestCase
             'account_uuid'          => 'acc_123',
             'stablecoin_code'       => 'EUSD',
             'collateral_asset_code' => 'ETH',
-            'collateral_amount'     => 0.5,
+            'collateral_amount'     => 500000, // 0.5 ETH in micro units
             'debt_amount'           => 500,
             'collateral_ratio'      => 2.0,
             'status'                => 'active',
@@ -271,16 +363,19 @@ class DemoStablecoinServiceTest extends TestCase
 
         $this->assertEquals('acc_123', $result['account_id']);
         $this->assertCount(2, $result['positions']);
-        $this->assertEquals(1.5, $result['total_collateral']);
+        $this->assertEquals(1500000, $result['total_collateral']); // 1.5 ETH in micro units
         $this->assertEquals(1500, $result['total_debt']);
     }
 
-    /** @test */
+    #[Test]
     public function it_prevents_burning_more_than_debt()
     {
+        // Use factory-created account to ensure uniqueness
+        $account = Account::factory()->create();
+
         // Mint some stablecoins
         $this->service->mint(
-            accountId: 'acc_123',
+            accountId: $account->uuid,
             stablecoinId: 'GUSD',
             amount: 1000,
             collateral: 1
@@ -289,15 +384,15 @@ class DemoStablecoinServiceTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Cannot burn more than debt amount');
 
-        // Try to burn more
+        // Try to burn more than what was minted
         $this->service->burn(
-            accountId: 'acc_123',
+            accountId: $account->uuid,
             stablecoinId: 'GUSD',
-            amount: 2000
+            amount: 1001
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_no_position_exists_for_burn()
     {
         $this->expectException(\Exception::class);

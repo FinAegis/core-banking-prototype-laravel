@@ -37,7 +37,7 @@ class DemoLendingService
                     'demo_mode' => true,
                     'currency'  => $data['currency'] ?? 'USD',
                 ]),
-                'submitted_at'     => now(),
+                'submitted_at' => now(),
             ]);
 
             event(new LoanApplicationSubmitted(
@@ -79,11 +79,13 @@ class DemoLendingService
         $autoApproveThreshold = config('demo.demo_data.lending.auto_approve_threshold', 10000);
         $approvalRate = config('demo.demo_data.lending.approval_rate', 80);
 
-        $shouldApprove = $application->requested_amount <= $autoApproveThreshold
-            && $creditScore >= 650
-            && rand(1, 100) <= $approvalRate;
+        // Check if the amount can be approved (even if limited)
+        $maxLoanAmount = $this->getMaxLoanAmount($creditScore);
+        $canApprove = $creditScore >= 650 && rand(1, 100) <= $approvalRate;
 
-        if ($shouldApprove) {
+        // Approve if credit is good and approval rate passes
+        // The amount will be limited to maxLoanAmount in approveLoan method
+        if ($canApprove) {
             $this->approveLoan($application, $creditScore);
         } else {
             $this->rejectLoan($application, $this->getRejectReasons($creditScore, $riskAssessment));
@@ -114,13 +116,29 @@ class DemoLendingService
             ]);
 
             // Create loan
+            $monthlyPayment = $this->calculateMonthlyPayment((float) $approvedAmount, $interestRate, $application->term_months);
+            $repaymentSchedule = [];
+            for ($i = 1; $i <= $application->term_months; $i++) {
+                $repaymentSchedule[] = [
+                    'payment_number' => $i,
+                    'amount'         => $monthlyPayment,
+                    'due_date'       => now()->addMonths($i)->toDateString(),
+                ];
+            }
+
             $loan = Loan::create([
-                'id'               => 'demo_loan_' . Str::random(16),
-                'application_id'   => $application->id,
-                'borrower_id'      => $application->borrower_id,
-                'principal'        => $approvedAmount,
-                'interest_rate'    => $interestRate,
-                'term_months'      => $application->term_months,
+                'id'                 => 'demo_loan_' . Str::random(16),
+                'application_id'     => $application->id,
+                'borrower_id'        => $application->borrower_id,
+                'principal'          => $approvedAmount,
+                'interest_rate'      => $interestRate,
+                'term_months'        => $application->term_months,
+                'repayment_schedule' => json_encode($repaymentSchedule),
+                'terms'              => json_encode([
+                    'interest_rate'   => $interestRate,
+                    'term_months'     => $application->term_months,
+                    'monthly_payment' => $monthlyPayment,
+                ]),
                 'status'           => 'active',
                 'disbursed_at'     => now(),
                 'disbursed_amount' => $approvedAmount,

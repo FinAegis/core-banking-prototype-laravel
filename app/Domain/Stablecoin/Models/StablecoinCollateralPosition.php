@@ -83,6 +83,9 @@ class StablecoinCollateralPosition extends Model
      * The attributes that should be cast.
      */
     protected $casts = [
+        'collateral_amount'        => 'integer',
+        'debt_amount'              => 'integer',
+        'interest_accrued'         => 'integer',
         'collateral_ratio'         => 'decimal:4',
         'liquidation_price'        => 'decimal:8',
         'stop_loss_ratio'          => 'decimal:4',

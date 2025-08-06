@@ -11,7 +11,6 @@ use App\Domain\Lending\Events\LoanDisbursed;
 use App\Domain\Lending\Events\LoanPaymentReceived;
 use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Models\LoanApplication;
-use App\Domain\Lending\Models\LoanPayment;
 use App\Domain\Lending\Services\DemoLendingService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -167,36 +166,38 @@ class DemoLendingServiceTest extends TestCase
 
         // Create a loan first
         $loan = Loan::create([
-            'id'                => 'demo_loan_test123',
-            'application_id'    => 'demo_app_test123',
-            'borrower_id'       => 1,
-            'principal_amount'  => 10000,
-            'currency'          => 'USD',
-            'interest_rate'     => 6.0,
-            'term_months'       => 12,
-            'status'            => 'active',
-            'disbursed_at'      => now(),
-            'next_payment_date' => Carbon::now()->addMonth(),
-            'monthly_payment'   => 860.66,
-            'remaining_balance' => 10000,
+            'id'                 => 'demo_loan_test123',
+            'application_id'     => 'demo_app_test123',
+            'borrower_id'        => 1,
+            'principal'          => 10000,
+            'interest_rate'      => 6.0,
+            'term_months'        => 12,
+            'repayment_schedule' => json_encode([
+                ['payment_number' => 1, 'amount' => 860.66, 'due_date' => Carbon::now()->addMonth()->toDateString()],
+                ['payment_number' => 2, 'amount' => 860.66, 'due_date' => Carbon::now()->addMonths(2)->toDateString()],
+            ]),
+            'terms'            => json_encode(['interest_rate' => 6.0, 'term_months' => 12]),
+            'status'           => 'active',
+            'disbursed_at'     => now(),
+            'disbursed_amount' => 10000,
         ]);
 
         $payment = $this->service->makePayment($loan->id, 860.66);
 
-        $this->assertInstanceOf(LoanPayment::class, $payment);
-        $this->assertStringStartsWith('demo_pmt_', $payment->id);
-        $this->assertEquals(860.66, $payment->amount);
-        $this->assertEquals('completed', $payment->status);
-        $this->assertTrue($payment->metadata['demo_mode']);
+        $this->assertIsArray($payment);
+        $this->assertStringStartsWith('demo_pmt_', $payment['id']);
+        $this->assertEquals(860.66, $payment['amount']);
+        $this->assertEquals('completed', $payment['status']);
+        $this->assertTrue($payment['metadata']['demo_mode']);
 
         // Check interest calculation (6% annual = 0.5% monthly on 10000 = 50)
         $expectedInterest = round(10000 * (6.0 / 100 / 12), 2);
-        $this->assertEquals($expectedInterest, $payment->interest_amount);
-        $this->assertEquals(860.66 - $expectedInterest, $payment->principal_amount);
+        $this->assertEquals($expectedInterest, $payment['interest_amount']);
+        $this->assertEquals(860.66 - $expectedInterest, $payment['principal_amount']);
 
         // Check loan balance update
         $loan->refresh();
-        $this->assertEquals(10000 - $payment->principal_amount, $loan->remaining_balance);
+        $this->assertEquals($payment['principal_amount'], $loan->total_principal_paid);
         $this->assertNotNull($loan->last_payment_date);
 
         Event::assertDispatched(LoanPaymentReceived::class);
@@ -208,18 +209,21 @@ class DemoLendingServiceTest extends TestCase
         Event::fake();
 
         $loan = Loan::create([
-            'id'                => 'demo_loan_test456',
-            'application_id'    => 'demo_app_test456',
-            'borrower_id'       => 1,
-            'principal_amount'  => 1000,
-            'currency'          => 'USD',
-            'interest_rate'     => 5.0,
-            'term_months'       => 12,
-            'status'            => 'active',
-            'disbursed_at'      => now(),
-            'next_payment_date' => Carbon::now()->addMonth(),
-            'monthly_payment'   => 85.61,
-            'remaining_balance' => 85.61, // Last payment amount
+            'id'                 => 'demo_loan_test456',
+            'application_id'     => 'demo_app_test456',
+            'borrower_id'        => 1,
+            'principal'          => 1000,
+            'interest_rate'      => 5.0,
+            'term_months'        => 12,
+            'repayment_schedule' => json_encode([
+                ['payment_number' => 1, 'amount' => 85.61, 'due_date' => Carbon::now()->addMonth()->toDateString()],
+                ['payment_number' => 2, 'amount' => 85.61, 'due_date' => Carbon::now()->addMonths(2)->toDateString()],
+            ]),
+            'terms'                => json_encode(['interest_rate' => 5.0, 'term_months' => 12]),
+            'status'               => 'active',
+            'disbursed_at'         => now(),
+            'disbursed_amount'     => 1000,
+            'total_principal_paid' => 915, // Almost paid off
         ]);
 
         $payment = $this->service->makePayment($loan->id, 85.61);
@@ -234,18 +238,24 @@ class DemoLendingServiceTest extends TestCase
     public function it_generates_correct_loan_details_with_payment_schedule()
     {
         $loan = Loan::create([
-            'id'                => 'demo_loan_test789',
-            'application_id'    => 'demo_app_test789',
-            'borrower_id'       => 1,
-            'principal_amount'  => 5000,
-            'currency'          => 'USD',
-            'interest_rate'     => 7.5,
-            'term_months'       => 6,
-            'status'            => 'active',
-            'disbursed_at'      => now()->subMonth(),
-            'next_payment_date' => now(),
-            'monthly_payment'   => 847.89,
-            'remaining_balance' => 5000,
+            'id'                 => 'demo_loan_test789',
+            'application_id'     => 'demo_app_test789',
+            'borrower_id'        => 1,
+            'principal'          => 5000,
+            'interest_rate'      => 7.5,
+            'term_months'        => 6,
+            'repayment_schedule' => json_encode([
+                ['payment_number' => 1, 'amount' => 847.89, 'due_date' => now()->toDateString()],
+                ['payment_number' => 2, 'amount' => 847.89, 'due_date' => now()->addMonth()->toDateString()],
+                ['payment_number' => 3, 'amount' => 847.89, 'due_date' => now()->addMonths(2)->toDateString()],
+                ['payment_number' => 4, 'amount' => 847.89, 'due_date' => now()->addMonths(3)->toDateString()],
+                ['payment_number' => 5, 'amount' => 847.89, 'due_date' => now()->addMonths(4)->toDateString()],
+                ['payment_number' => 6, 'amount' => 847.89, 'due_date' => now()->addMonths(5)->toDateString()],
+            ]),
+            'terms'            => json_encode(['interest_rate' => 7.5, 'term_months' => 6]),
+            'status'           => 'active',
+            'disbursed_at'     => now()->subMonth(),
+            'disbursed_amount' => 5000,
         ]);
 
         // Create application for relationship
