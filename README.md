@@ -134,6 +134,57 @@ php artisan serve
 php artisan queue:work --queue=events,ledger,transactions,transfers,webhooks
 ```
 
+## 🎭 Demo Mode
+
+The platform includes a comprehensive Demo Mode that allows it to run without external dependencies, making it ideal for demonstrations, development, and testing.
+
+### Enabling Demo Mode
+
+```bash
+# Quick setup with demo environment
+cp .env.demo .env
+php artisan config:cache
+
+# Or manually set in .env
+DEMO_MODE=true
+DEMO_SHOW_BANNER=true
+DEMO_INSTANT_DEPOSITS=true
+```
+
+### Demo Features
+
+- **Zero External Dependencies**: All API calls are simulated locally
+- **Instant Operations**: No network delays or processing time
+- **Pre-configured Demo Users**: Ready-to-use test accounts
+- **Simulated Services**: Mock implementations for all external integrations
+  - Payment processors (Stripe simulation)
+  - Bank APIs (Paysera, Santander, Deutsche Bank mocks)
+  - Blockchain networks (Ethereum, Bitcoin simulations)
+  - Exchange APIs (Binance, Kraken mocks)
+
+### Demo User Accounts
+
+Pre-configured accounts available in demo mode:
+- `demo.argentina@gcu.global` - High-inflation country user
+- `demo.nomad@gcu.global` - Digital nomad
+- `demo.business@gcu.global` - Business user
+- `demo.investor@gcu.global` - Investor
+- `demo.user@gcu.global` - Regular user
+
+Password for all demo accounts: `demo123`
+
+### Demo Services
+
+When `DEMO_MODE=true`, the platform automatically switches to demo implementations:
+- `DemoPaymentService` - Simulates Stripe payments
+- `DemoExchangeService` - Mock exchange operations
+- `DemoLendingService` - Auto-approved loans
+- `DemoStablecoinService` - Instant minting/burning
+- `DemoBlockchainService` - Simulated blockchain transactions
+- `DemoBankConnector` - Mock bank operations
+
+For detailed demo environment documentation, see [Demo Environment Guide](docs/06-DEVELOPMENT/DEMO-ENVIRONMENT.md).
+
 ## 🏗️ Architecture
 
 ### Core Components
