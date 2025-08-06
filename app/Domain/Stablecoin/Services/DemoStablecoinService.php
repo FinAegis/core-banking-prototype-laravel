@@ -53,18 +53,27 @@ class DemoStablecoinService
             ];
 
             // Create or update collateral position
-            $position = StablecoinCollateralPosition::updateOrCreate(
-                ['uuid' => $positionId],
-                [
+            $existingPosition = StablecoinCollateralPosition::where('uuid', $positionId)->first();
+            
+            if ($existingPosition) {
+                $existingPosition->update([
+                    'collateral_amount' => $existingPosition->collateral_amount + $collateral,
+                    'debt_amount'       => $existingPosition->debt_amount + $amount,
+                    'collateral_ratio'  => $collateralRatio,
+                ]);
+                $position = $existingPosition;
+            } else {
+                $position = StablecoinCollateralPosition::create([
+                    'uuid'                  => $positionId,
                     'account_uuid'          => $accountId,
                     'stablecoin_code'       => $stablecoinId,
                     'collateral_asset_code' => 'ETH',
-                    'collateral_amount'     => DB::raw("COALESCE(collateral_amount, 0) + $collateral"),
-                    'debt_amount'           => DB::raw("COALESCE(debt_amount, 0) + $amount"),
+                    'collateral_amount'     => $collateral,
+                    'debt_amount'           => $amount,
                     'collateral_ratio'      => $collateralRatio,
                     'status'                => 'active',
-                ]
-            );
+                ]);
+            }
 
             event(new StablecoinMinted(
                 position_uuid: $positionId,
@@ -184,10 +193,13 @@ class DemoStablecoinService
                 ));
             }
 
+            $newCollateral = $position->collateral_amount + $collateral;
+            $newDebt = $position->debt_amount + $debt;
+            
             $position->update([
-                'collateral_amount' => DB::raw("collateral_amount + $collateral"),
-                'debt_amount'       => DB::raw("debt_amount + $debt"),
-                'collateral_ratio'  => ($position->collateral_amount + $collateral) / ($position->debt_amount + $debt),
+                'collateral_amount' => $newCollateral,
+                'debt_amount'       => $newDebt,
+                'collateral_ratio'  => $newDebt > 0 ? $newCollateral / $newDebt : 0,
             ]);
 
             return $this->getPosition($positionId);
