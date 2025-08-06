@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Workflow\WorkflowStub;
 
@@ -17,13 +18,13 @@ class OrderFulfillmentSagaTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Account $buyerAccount;
+    protected Account $buyerAccount;
 
-    private Account $sellerAccount;
+    protected Account $sellerAccount;
 
-    private User $buyer;
+    protected User $buyer;
 
-    private User $seller;
+    protected User $seller;
 
     protected function setUp(): void
     {
@@ -34,13 +35,13 @@ class OrderFulfillmentSagaTest extends TestCase
         $this->seller = User::factory()->create();
 
         $this->buyerAccount = Account::factory()->create([
-            'user_id' => $this->buyer->id,
-            'uuid'    => \Str::uuid()->toString(),
+            'user_uuid' => $this->buyer->uuid,
+            'uuid'      => \Str::uuid()->toString(),
         ]);
 
         $this->sellerAccount = Account::factory()->create([
-            'user_id' => $this->seller->id,
-            'uuid'    => \Str::uuid()->toString(),
+            'user_uuid' => $this->seller->uuid,
+            'uuid'      => \Str::uuid()->toString(),
         ]);
 
         // Add balances to accounts
@@ -55,7 +56,7 @@ class OrderFulfillmentSagaTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_successfully_completes_order_fulfillment_saga()
     {
         $orderId = \Str::uuid()->toString();
@@ -84,7 +85,7 @@ class OrderFulfillmentSagaTest extends TestCase
         $this->assertContains('update_order_status', $result['completed_steps']);
     }
 
-    /** @test */
+    #[Test]
     public function it_compensates_when_order_matching_fails()
     {
         $orderId = \Str::uuid()->toString();
@@ -116,7 +117,7 @@ class OrderFulfillmentSagaTest extends TestCase
         $this->assertContains('lock_buyer_funds', $result['compensated_steps']);
     }
 
-    /** @test */
+    #[Test]
     public function it_compensates_when_asset_transfer_fails()
     {
         $orderId = \Str::uuid()->toString();
@@ -155,7 +156,7 @@ class OrderFulfillmentSagaTest extends TestCase
         $this->assertContains('match_order', $result['compensated_steps']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_compensation_failures_gracefully()
     {
         $orderId = \Str::uuid()->toString();
@@ -193,7 +194,7 @@ class OrderFulfillmentSagaTest extends TestCase
         $this->assertArrayHasKey('compensated_steps', $result);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_input_parameters()
     {
         $this->expectException(\TypeError::class);

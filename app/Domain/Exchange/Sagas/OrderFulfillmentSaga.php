@@ -102,7 +102,6 @@ class OrderFulfillmentSaga extends Workflow
                 'matched_orders'  => $matchResult->matchedOrders ?? [],
                 'completed_steps' => $this->completedSteps,
             ];
-
         } catch (\Throwable $e) {
             Log::error('OrderFulfillmentSaga failed, executing compensations', [
                 'saga_id'         => $sagaId,

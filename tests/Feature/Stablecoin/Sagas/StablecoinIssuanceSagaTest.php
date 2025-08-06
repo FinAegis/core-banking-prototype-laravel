@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Workflow\WorkflowStub;
 
@@ -18,11 +19,11 @@ class StablecoinIssuanceSagaTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Account $account;
+    protected Account $account;
 
-    private User $user;
+    protected User $user;
 
-    private Stablecoin $stablecoin;
+    protected Stablecoin $stablecoin;
 
     protected function setUp(): void
     {
@@ -32,8 +33,8 @@ class StablecoinIssuanceSagaTest extends TestCase
         $this->user = User::factory()->create();
 
         $this->account = Account::factory()->create([
-            'user_id' => $this->user->id,
-            'uuid'    => \Str::uuid()->toString(),
+            'user_uuid' => $this->user->uuid,
+            'uuid'      => \Str::uuid()->toString(),
         ]);
 
         // Create a stablecoin
@@ -53,7 +54,7 @@ class StablecoinIssuanceSagaTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_successfully_completes_stablecoin_issuance_saga()
     {
         $input = [
@@ -88,7 +89,7 @@ class StablecoinIssuanceSagaTest extends TestCase
         $this->assertContains('deposit_stablecoins', $result['completed_steps']);
     }
 
-    /** @test */
+    #[Test]
     public function it_fails_when_compliance_check_fails()
     {
         $input = [
@@ -116,7 +117,7 @@ class StablecoinIssuanceSagaTest extends TestCase
         $this->assertEmpty($result['compensated_steps']); // No steps to compensate as it failed early
     }
 
-    /** @test */
+    #[Test]
     public function it_compensates_when_collateral_lock_fails()
     {
         $input = [
@@ -150,7 +151,7 @@ class StablecoinIssuanceSagaTest extends TestCase
         // No compensation needed as collateral lock itself failed
     }
 
-    /** @test */
+    #[Test]
     public function it_compensates_when_minting_fails()
     {
         $input = [
@@ -195,7 +196,7 @@ class StablecoinIssuanceSagaTest extends TestCase
         $this->assertContains('add_collateral_to_system', $result['compensated_steps']);
     }
 
-    /** @test */
+    #[Test]
     public function it_skips_compliance_check_when_disabled()
     {
         $input = [
@@ -221,7 +222,7 @@ class StablecoinIssuanceSagaTest extends TestCase
         $this->assertContains('lock_collateral', $result['completed_steps']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_partial_compensation_failures()
     {
         $input = [

@@ -51,7 +51,9 @@ class StablecoinIssuanceSaga extends Workflow
             if ($input['compliance_check'] ?? true) {
                 $complianceResult = yield from $this->verifyCompliance($input['account_id']);
                 if (! $complianceResult['success']) {
-                    throw new \Exception('Compliance verification failed: ' . ($complianceResult['message'] ?? 'Unknown reason'));
+                    throw new \Exception(
+                        'Compliance verification failed: ' . ($complianceResult['message'] ?? 'Unknown reason')
+                    );
                 }
                 $this->completedSteps[] = 'verify_compliance';
             }
@@ -99,7 +101,9 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['amount']
             );
             if (! $depositResult['success']) {
-                throw new \Exception('Failed to deposit stablecoins: ' . ($depositResult['message'] ?? 'Unknown reason'));
+                throw new \Exception(
+                    'Failed to deposit stablecoins: ' . ($depositResult['message'] ?? 'Unknown reason')
+                );
             }
             $this->completedSteps[] = 'deposit_stablecoins';
 
@@ -120,7 +124,6 @@ class StablecoinIssuanceSaga extends Workflow
                 'collateral_locked' => $input['collateral_amount'],
                 'completed_steps'   => $this->completedSteps,
             ];
-
         } catch (\Throwable $e) {
             Log::error('StablecoinIssuanceSaga failed, executing compensations', [
                 'saga_id'         => $sagaId,
@@ -213,18 +216,21 @@ class StablecoinIssuanceSaga extends Workflow
         );
 
         // Add compensation to remove collateral from system
-        $this->registerCompensation('add_collateral_to_system', function () use ($accountId, $stablecoinCode, $collateralAsset, $amount) {
-            // This would typically call a RemoveCollateralWorkflow
-            // For now, we'll log the compensation
-            Log::info('Compensation: Would remove collateral from system', [
-                'account_id'       => $accountId,
-                'stablecoin_code'  => $stablecoinCode,
-                'collateral_asset' => $collateralAsset,
-                'amount'           => $amount,
-            ]);
+        $this->registerCompensation(
+            'add_collateral_to_system',
+            function () use ($accountId, $stablecoinCode, $collateralAsset, $amount) {
+                // This would typically call a RemoveCollateralWorkflow
+                // For now, we'll log the compensation
+                Log::info('Compensation: Would remove collateral from system', [
+                    'account_id'       => $accountId,
+                    'stablecoin_code'  => $stablecoinCode,
+                    'collateral_asset' => $collateralAsset,
+                    'amount'           => $amount,
+                ]);
 
-            return true;
-        });
+                return true;
+            }
+        );
 
         return $result;
     }
