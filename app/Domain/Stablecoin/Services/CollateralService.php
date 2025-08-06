@@ -20,7 +20,7 @@ class CollateralService implements CollateralServiceInterface
     /**
      * Convert collateral amount to peg asset value.
      */
-    public function convertToPegAsset(string $fromAsset, int $amount, string $pegAsset): int
+    public function convertToPegAsset(string $fromAsset, float $amount, string $pegAsset): float
     {
         if ($fromAsset === $pegAsset) {
             return $amount;
@@ -33,20 +33,20 @@ class CollateralService implements CollateralServiceInterface
 
         $rate = $rateObject->rate;
 
-        return (int) round($amount * $rate);
+        return round($amount * $rate, 2);
     }
 
     /**
      * Calculate the total collateral value across all positions for a stablecoin.
      */
-    public function calculateTotalCollateralValue(string $stablecoinCode): int
+    public function calculateTotalCollateralValue(string $stablecoinCode): float
     {
         $stablecoin = Stablecoin::findOrFail($stablecoinCode);
         $positions = StablecoinCollateralPosition::where('stablecoin_code', $stablecoinCode)
             ->where('status', 'active')
             ->get();
 
-        $totalValue = 0;
+        $totalValue = 0.0;
         foreach ($positions as $position) {
             $value = $this->convertToPegAsset(
                 $position->collateral_asset_code,
@@ -305,11 +305,15 @@ class CollateralService implements CollateralServiceInterface
         }
 
         // Convert back to collateral asset
-        $rate = $this->exchangeRateService->getRate(
+        $rateObject = $this->exchangeRateService->getRate(
             $position->stablecoin->peg_asset_code,
             $position->collateral_asset_code
         );
 
-        return (int) round($additionalValueNeeded * $rate);
+        if (!$rateObject) {
+            throw new \RuntimeException('Exchange rate not available');
+        }
+
+        return (int) round($additionalValueNeeded * $rateObject->rate);
     }
 }

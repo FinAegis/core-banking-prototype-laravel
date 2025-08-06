@@ -10,19 +10,19 @@ interface CollateralServiceInterface
      * Convert collateral value to peg asset.
      *
      * @param  string $fromAsset
-     * @param  int    $amount
+     * @param  float  $amount
      * @param  string $pegAsset
-     * @return int
+     * @return float
      */
-    public function convertToPegAsset(string $fromAsset, int $amount, string $pegAsset): int;
+    public function convertToPegAsset(string $fromAsset, float $amount, string $pegAsset): float;
 
     /**
      * Calculate total collateral value in the system.
      *
      * @param  string $stablecoinCode
-     * @return int
+     * @return float
      */
-    public function calculateTotalCollateralValue(string $stablecoinCode): int;
+    public function calculateTotalCollateralValue(string $stablecoinCode): float;
 
     /**
      * Get positions at risk (collateral ratio below warning threshold).

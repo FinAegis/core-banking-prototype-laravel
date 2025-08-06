@@ -202,7 +202,7 @@ class StablecoinCollateralPosition extends Model
     /**
      * Calculate current collateral value in the peg asset.
      */
-    public function getCollateralValueInPegAsset(): int
+    public function getCollateralValueInPegAsset(): float
     {
         // This would need exchange rate conversion
         // For now, assuming direct conversion or same asset
