@@ -19,7 +19,6 @@ use Illuminate\Support\Str;
 
 class DemoLendingService
 {
-
     /**
      * Submit a loan application with auto-approval for demo.
      */

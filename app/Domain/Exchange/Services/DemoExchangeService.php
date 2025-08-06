@@ -217,13 +217,11 @@ class DemoExchangeService
         // Check if we have a direct price
         if (isset($basePrices[$pair])) {
             $basePrice = $basePrices[$pair];
-        }
-        // Check for inverse pair
-        elseif (isset($basePrices["{$quoteCurrency}/{$baseCurrency}"])) {
+        } elseif (isset($basePrices["{$quoteCurrency}/{$baseCurrency}"])) {
+            // Check for inverse pair
             $basePrice = 1 / $basePrices["{$quoteCurrency}/{$baseCurrency}"];
-        }
-        // Default to 1.0
-        else {
+        } else {
+            // Default to 1.0
             $basePrice = 1.0;
         }
 

@@ -308,9 +308,8 @@ class DemoStablecoinService
                 'new_fee'     => max(0, config('demo.demo_data.stablecoin.stability_fee', 2.5) - 0.5),
                 'reason'      => 'Price above peg, encouraging minting',
             ];
-        }
-        // If price too low, decrease supply
-        elseif ($currentPrice < 0.98) {
+        } elseif ($currentPrice < 0.98) {
+            // If price too low, decrease supply
             $actions[] = [
                 'action'      => 'increase_stability_fee',
                 'current_fee' => config('demo.demo_data.stablecoin.stability_fee', 2.5),
