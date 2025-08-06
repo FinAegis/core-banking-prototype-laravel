@@ -166,8 +166,7 @@ class OrderFulfillmentSaga extends Workflow
 
         $matchingInput = new OrderMatchingInput(
             orderId: $input['order_id'],
-            maxRetries: 3,
-            retryDelaySeconds: 5
+            maxIterations: 100
         );
 
         $result = yield $workflow->execute($matchingInput);
@@ -256,8 +255,8 @@ class OrderFulfillmentSaga extends Workflow
     private function updateOrderStatus(string $orderId, string $status): \Generator
     {
         // This would typically call an activity to update the order
-        // For now, we'll simulate it
-        yield \Workflow\timer(1); // Small delay to simulate work
+        // For now, we'll simulate it without delay
+        yield;
 
         return [
             'success'  => true,

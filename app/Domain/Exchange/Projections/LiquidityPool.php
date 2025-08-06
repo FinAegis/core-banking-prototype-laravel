@@ -12,20 +12,32 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $quote_currency
  * @property string $base_reserve
  * @property string $quote_reserve
+ * @property float $base_liquidity
+ * @property float $quote_liquidity
  * @property string $total_shares
  * @property string $fee_rate
+ * @property float $fee_percentage
  * @property bool $is_active
+ * @property string $status
  * @property string $volume_24h
  * @property string $fees_collected_24h
+ * @property float $total_fees_collected
+ * @property float $total_volume
+ * @property float $latest_price
  * @property array<string, mixed> $metadata
  * @property-read string $spot_price
- * @property-read string $total_value_locked
+ * @property-read float $total_value_locked
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  *
  * @method static \Illuminate\Database\Eloquent\Builder|LiquidityPool where($column, $operator = null, $value = null, $boolean = 'and')
+ * @method static \Illuminate\Database\Eloquent\Builder|LiquidityPool whereRaw($sql, $bindings = [])
  * @method static LiquidityPool|null find($id, $columns = ['*'])
  * @method static LiquidityPool findOrFail($id, $columns = ['*'])
  * @method static LiquidityPool firstOrFail($columns = ['*'])
  * @method static LiquidityPool create(array $attributes)
+ * @method static \Illuminate\Database\Eloquent\Collection get($columns = ['*'])
+ * @method static mixed sum($column)
  */
 class LiquidityPool extends Model
 {

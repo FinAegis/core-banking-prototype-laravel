@@ -61,8 +61,8 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     {
         $stablecoin = $this->find($stablecoinId);
         if ($stablecoin) {
-            // Deactivate the stablecoin
-            $stablecoin->deactivate('Stablecoin deleted');
+            // Close the stablecoin position
+            $stablecoin->closePosition('Stablecoin deleted');
             $stablecoin->persist();
         }
     }
