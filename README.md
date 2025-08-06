@@ -48,8 +48,24 @@ The demo environment showcases all platform capabilities without real transactio
 
 - A technical demonstration of core banking patterns
 - An educational resource for developers
-- A foundation for future development
-- A showcase of modern financial technology concepts
+
+## 🏗️ Architecture Highlights
+
+### Domain-Driven Design (DDD)
+- **25+ Bounded Contexts**: Account, Exchange, Stablecoin, Lending, Wallet, and more
+- **Event Sourcing**: 130+ domain events with full audit trail
+- **CQRS Pattern**: Separated command and query responsibilities
+- **Repository Pattern**: Abstracted data access with interfaces
+- **Saga Pattern**: Cross-domain transaction orchestration
+
+### Recent Improvements (v2.1)
+- **Saga Implementation**: Laravel Workflow-based sagas for complex transactions
+  - `OrderFulfillmentSaga`: Orchestrates exchange order processing
+  - `StablecoinIssuanceSaga`: Manages multi-domain stablecoin minting
+- **CQRS Infrastructure**: CommandBus and QueryBus for clean separation
+- **Domain Event Bus**: Decoupled event publishing and handling
+- **Repository Interfaces**: Proper abstraction for all key aggregates
+- **Compensation Support**: Full rollback capabilities for failed transactions
 
 ### 🌍 Conceptual Implementation: Global Currency Unit (GCU)
 

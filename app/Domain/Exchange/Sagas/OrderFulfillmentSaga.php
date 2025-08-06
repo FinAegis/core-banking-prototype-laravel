@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Exchange\Sagas;
 
-use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
 use App\Domain\Account\Workflows\DepositAccountWorkflow;
+use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
+use App\Domain\Exchange\ValueObjects\OrderMatchingInput;
 use App\Domain\Exchange\Workflows\OrderMatchingWorkflow;
 use App\Domain\Payment\Workflows\TransferWorkflow;
 use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
-use App\Domain\Exchange\ValueObjects\OrderMatchingInput;
+use Illuminate\Support\Facades\Log;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
-use Workflow\WorkflowStub;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Saga for orchestrating order fulfillment across multiple domains.
@@ -22,11 +21,12 @@ use Illuminate\Support\Facades\Log;
 class OrderFulfillmentSaga extends Workflow
 {
     private array $compensations = [];
+
     private array $completedSteps = [];
-    
+
     /**
      * Execute the order fulfillment saga.
-     * 
+     *
      * @param array $input Contains:
      *   - order_id: string
      *   - buyer_account_id: string
@@ -40,23 +40,23 @@ class OrderFulfillmentSaga extends Workflow
     public function execute(array $input): \Generator
     {
         $sagaId = \Str::uuid()->toString();
-        
+
         Log::info('Starting OrderFulfillmentSaga', [
-            'saga_id' => $sagaId,
+            'saga_id'  => $sagaId,
             'order_id' => $input['order_id'],
         ]);
 
         try {
             // Step 1: Lock buyer's funds
             $lockResult = yield from $this->lockBuyerFunds($input);
-            if (!$lockResult['success']) {
+            if (! $lockResult['success']) {
                 throw new \Exception('Failed to lock buyer funds: ' . $lockResult['message']);
             }
             $this->completedSteps[] = 'lock_buyer_funds';
 
             // Step 2: Match the order
             $matchResult = yield from $this->matchOrder($input);
-            if (!$matchResult->success) {
+            if (! $matchResult->success) {
                 throw new \Exception('Order matching failed: ' . $matchResult->message);
             }
             $this->completedSteps[] = 'match_order';
@@ -68,7 +68,7 @@ class OrderFulfillmentSaga extends Workflow
                 $input['base_currency'],
                 $input['amount']
             );
-            if (!$transferResult['success']) {
+            if (! $transferResult['success']) {
                 throw new \Exception('Asset transfer failed: ' . $transferResult['message']);
             }
             $this->completedSteps[] = 'transfer_assets';
@@ -80,7 +80,7 @@ class OrderFulfillmentSaga extends Workflow
                 $input['quote_currency'],
                 $input['amount'] * $input['price']
             );
-            if (!$paymentResult['success']) {
+            if (! $paymentResult['success']) {
                 throw new \Exception('Payment transfer failed: ' . $paymentResult['message']);
             }
             $this->completedSteps[] = 'transfer_payment';
@@ -90,35 +90,35 @@ class OrderFulfillmentSaga extends Workflow
             $this->completedSteps[] = 'update_order_status';
 
             Log::info('OrderFulfillmentSaga completed successfully', [
-                'saga_id' => $sagaId,
-                'order_id' => $input['order_id'],
+                'saga_id'         => $sagaId,
+                'order_id'        => $input['order_id'],
                 'completed_steps' => $this->completedSteps,
             ]);
 
             return [
-                'success' => true,
-                'saga_id' => $sagaId,
-                'order_id' => $input['order_id'],
-                'matched_orders' => $matchResult->matchedOrders ?? [],
+                'success'         => true,
+                'saga_id'         => $sagaId,
+                'order_id'        => $input['order_id'],
+                'matched_orders'  => $matchResult->matchedOrders ?? [],
                 'completed_steps' => $this->completedSteps,
             ];
 
         } catch (\Throwable $e) {
             Log::error('OrderFulfillmentSaga failed, executing compensations', [
-                'saga_id' => $sagaId,
-                'order_id' => $input['order_id'],
-                'error' => $e->getMessage(),
+                'saga_id'         => $sagaId,
+                'order_id'        => $input['order_id'],
+                'error'           => $e->getMessage(),
                 'completed_steps' => $this->completedSteps,
             ]);
 
             // Execute compensations in reverse order
-            yield from $this->compensate();
+            yield from $this->executeCompensations();
 
             return [
-                'success' => false,
-                'saga_id' => $sagaId,
-                'order_id' => $input['order_id'],
-                'error' => $e->getMessage(),
+                'success'           => false,
+                'saga_id'           => $sagaId,
+                'order_id'          => $input['order_id'],
+                'error'             => $e->getMessage(),
                 'compensated_steps' => array_keys($this->compensations),
             ];
         }
@@ -134,7 +134,7 @@ class OrderFulfillmentSaga extends Workflow
         );
 
         $amount = $input['amount'] * $input['price'];
-        
+
         $result = yield $workflow->execute(
             $input['buyer_account_id'],
             $input['quote_currency'],
@@ -143,7 +143,7 @@ class OrderFulfillmentSaga extends Workflow
         );
 
         // Add compensation to unlock funds
-        $this->addCompensation('lock_buyer_funds', function () use ($input, $amount) {
+        $this->registerCompensation('lock_buyer_funds', function () use ($input, $amount) {
             return ChildWorkflowStub::make(DepositAccountWorkflow::class)
                 ->execute(
                     $input['buyer_account_id'],
@@ -174,7 +174,7 @@ class OrderFulfillmentSaga extends Workflow
         $result = yield $workflow->execute($matchingInput);
 
         // Add compensation to cancel the order
-        $this->addCompensation('match_order', function () use ($input) {
+        $this->registerCompensation('match_order', function () use ($input) {
             return $this->updateOrderStatus($input['order_id'], 'cancelled');
         });
 
@@ -202,7 +202,7 @@ class OrderFulfillmentSaga extends Workflow
         );
 
         // Add compensation to reverse the transfer
-        $this->addCompensation('transfer_assets', function () use ($toAccount, $fromAccount, $currency, $amount) {
+        $this->registerCompensation('transfer_assets', function () use ($toAccount, $fromAccount, $currency, $amount) {
             return ChildWorkflowStub::make(WalletTransferWorkflow::class)
                 ->execute(
                     $toAccount,
@@ -230,21 +230,21 @@ class OrderFulfillmentSaga extends Workflow
 
         $result = yield $workflow->execute([
             'from_account' => $fromAccount,
-            'to_account' => $toAccount,
-            'currency' => $currency,
-            'amount' => $amount,
-            'description' => 'Order fulfillment payment',
+            'to_account'   => $toAccount,
+            'currency'     => $currency,
+            'amount'       => $amount,
+            'description'  => 'Order fulfillment payment',
         ]);
 
         // Add compensation to reverse the payment
-        $this->addCompensation('transfer_payment', function () use ($toAccount, $fromAccount, $currency, $amount) {
+        $this->registerCompensation('transfer_payment', function () use ($toAccount, $fromAccount, $currency, $amount) {
             return ChildWorkflowStub::make(TransferWorkflow::class)
                 ->execute([
                     'from_account' => $toAccount,
-                    'to_account' => $fromAccount,
-                    'currency' => $currency,
-                    'amount' => $amount,
-                    'description' => 'Order fulfillment payment reversal',
+                    'to_account'   => $fromAccount,
+                    'currency'     => $currency,
+                    'amount'       => $amount,
+                    'description'  => 'Order fulfillment payment reversal',
                 ]);
         });
 
@@ -259,18 +259,18 @@ class OrderFulfillmentSaga extends Workflow
         // This would typically call an activity to update the order
         // For now, we'll simulate it
         yield \Workflow\timer(1); // Small delay to simulate work
-        
+
         return [
-            'success' => true,
+            'success'  => true,
             'order_id' => $orderId,
-            'status' => $status,
+            'status'   => $status,
         ];
     }
 
     /**
-     * Add a compensation action.
+     * Register a compensation action.
      */
-    private function addCompensation(string $step, callable $compensation): void
+    private function registerCompensation(string $step, callable $compensation): void
     {
         $this->compensations[$step] = $compensation;
     }
@@ -278,10 +278,10 @@ class OrderFulfillmentSaga extends Workflow
     /**
      * Execute all compensations in reverse order.
      */
-    private function compensate(): \Generator
+    private function executeCompensations(): \Generator
     {
         $compensations = array_reverse($this->compensations, true);
-        
+
         foreach ($compensations as $step => $compensation) {
             try {
                 Log::info("Executing compensation for step: {$step}");

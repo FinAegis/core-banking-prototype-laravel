@@ -31,6 +31,7 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     public function findByCode(string $code): ?StablecoinAggregate
     {
         $stablecoin = \App\Domain\Stablecoin\Models\Stablecoin::where('code', $code)->first();
+
         return $stablecoin ? $this->find($stablecoin->uuid) : null;
     }
 
@@ -41,7 +42,7 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     {
         return \App\Domain\Stablecoin\Models\Stablecoin::where('is_active', true)
             ->get()
-            ->map(fn($model) => $this->find($model->uuid))
+            ->map(fn ($model) => $this->find($model->uuid))
             ->filter();
     }
 
@@ -73,7 +74,7 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     {
         return \App\Domain\Stablecoin\Models\Stablecoin::where('peg_asset_code', $pegAssetCode)
             ->get()
-            ->map(fn($model) => $this->find($model->uuid))
+            ->map(fn ($model) => $this->find($model->uuid))
             ->filter();
     }
 
@@ -83,8 +84,8 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     public function getCollateralizationMetrics(string $stablecoinId): array
     {
         $stablecoin = \App\Domain\Stablecoin\Models\Stablecoin::find($stablecoinId);
-        
-        if (!$stablecoin) {
+
+        if (! $stablecoin) {
             return [];
         }
 
@@ -97,15 +98,15 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
         $collateralizationRatio = $totalDebt > 0 ? ($totalCollateral / $totalDebt) * 100 : 0;
 
         return [
-            'stablecoin_id' => $stablecoinId,
-            'stablecoin_code' => $stablecoin->code,
-            'total_collateral' => $totalCollateral,
-            'total_debt' => $totalDebt,
+            'stablecoin_id'           => $stablecoinId,
+            'stablecoin_code'         => $stablecoin->code,
+            'total_collateral'        => $totalCollateral,
+            'total_debt'              => $totalDebt,
             'collateralization_ratio' => $collateralizationRatio,
-            'minimum_ratio' => $stablecoin->minimum_collateralization_ratio,
-            'is_healthy' => $collateralizationRatio >= $stablecoin->minimum_collateralization_ratio,
-            'position_count' => $positions->count(),
-            'at_risk_positions' => $positions->where('collateralization_ratio', '<', $stablecoin->liquidation_threshold)->count(),
+            'minimum_ratio'           => $stablecoin->minimum_collateralization_ratio,
+            'is_healthy'              => $collateralizationRatio >= $stablecoin->minimum_collateralization_ratio,
+            'position_count'          => $positions->count(),
+            'at_risk_positions'       => $positions->where('collateralization_ratio', '<', $stablecoin->liquidation_threshold)->count(),
         ];
     }
 
@@ -118,9 +119,10 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
             ->get()
             ->filter(function ($stablecoin) use ($threshold) {
                 $metrics = $this->getCollateralizationMetrics($stablecoin->uuid);
+
                 return $metrics['collateralization_ratio'] < $threshold;
             })
-            ->map(fn($model) => $this->find($model->uuid))
+            ->map(fn ($model) => $this->find($model->uuid))
             ->filter();
     }
 
@@ -130,8 +132,8 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     public function getTotalSupply(string $stablecoinCode): float
     {
         $stablecoin = \App\Domain\Stablecoin\Models\Stablecoin::where('code', $stablecoinCode)->first();
-        
-        if (!$stablecoin) {
+
+        if (! $stablecoin) {
             return 0.0;
         }
 
@@ -144,8 +146,8 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     public function getReserveStatistics(string $stablecoinId): array
     {
         $stablecoin = \App\Domain\Stablecoin\Models\Stablecoin::find($stablecoinId);
-        
-        if (!$stablecoin) {
+
+        if (! $stablecoin) {
             return [];
         }
 
@@ -154,19 +156,19 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
 
         $totalReserves = $reserves->sum('amount');
         $reserveComposition = $reserves->groupBy('asset_code')
-            ->map(fn($group) => [
-                'amount' => $group->sum('amount'),
+            ->map(fn ($group) => [
+                'amount'     => $group->sum('amount'),
                 'percentage' => $totalReserves > 0 ? ($group->sum('amount') / $totalReserves) * 100 : 0,
             ]);
 
         return [
-            'stablecoin_id' => $stablecoinId,
-            'stablecoin_code' => $stablecoin->code,
-            'total_reserves' => $totalReserves,
-            'total_supply' => $stablecoin->total_supply,
-            'reserve_ratio' => $stablecoin->total_supply > 0 ? ($totalReserves / $stablecoin->total_supply) * 100 : 0,
-            'reserve_composition' => $reserveComposition,
-            'last_audit_at' => $stablecoin->last_audit_at,
+            'stablecoin_id'          => $stablecoinId,
+            'stablecoin_code'        => $stablecoin->code,
+            'total_reserves'         => $totalReserves,
+            'total_supply'           => $stablecoin->total_supply,
+            'reserve_ratio'          => $stablecoin->total_supply > 0 ? ($totalReserves / $stablecoin->total_supply) * 100 : 0,
+            'reserve_composition'    => $reserveComposition,
+            'last_audit_at'          => $stablecoin->last_audit_at,
             'reserve_wallet_address' => $stablecoin->reserve_wallet_address,
         ];
     }

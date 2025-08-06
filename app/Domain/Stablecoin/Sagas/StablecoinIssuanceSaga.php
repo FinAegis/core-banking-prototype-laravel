@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Stablecoin\Sagas;
 
-use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
+use App\Domain\Compliance\Workflows\KycVerificationWorkflow;
 use App\Domain\Stablecoin\Workflows\AddCollateralWorkflow;
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
+use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Domain\Wallet\Workflows\WalletDepositWorkflow;
 use App\Domain\Wallet\Workflows\WalletWithdrawWorkflow;
-use App\Domain\Compliance\Workflows\KycVerificationWorkflow;
+use Illuminate\Support\Facades\Log;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Saga for orchestrating stablecoin issuance with multi-domain coordination.
@@ -21,11 +21,12 @@ use Illuminate\Support\Facades\Log;
 class StablecoinIssuanceSaga extends Workflow
 {
     private array $compensations = [];
+
     private array $completedSteps = [];
-    
+
     /**
      * Execute the stablecoin issuance saga.
-     * 
+     *
      * @param array $input Contains:
      *   - account_id: string
      *   - stablecoin_code: string
@@ -37,19 +38,19 @@ class StablecoinIssuanceSaga extends Workflow
     public function execute(array $input): \Generator
     {
         $sagaId = \Str::uuid()->toString();
-        
+
         Log::info('Starting StablecoinIssuanceSaga', [
-            'saga_id' => $sagaId,
-            'account_id' => $input['account_id'],
+            'saga_id'         => $sagaId,
+            'account_id'      => $input['account_id'],
             'stablecoin_code' => $input['stablecoin_code'],
-            'amount' => $input['amount'],
+            'amount'          => $input['amount'],
         ]);
 
         try {
             // Step 1: Compliance check (if required)
             if ($input['compliance_check'] ?? true) {
                 $complianceResult = yield from $this->verifyCompliance($input['account_id']);
-                if (!$complianceResult['success']) {
+                if (! $complianceResult['success']) {
                     throw new \Exception('Compliance verification failed: ' . ($complianceResult['message'] ?? 'Unknown reason'));
                 }
                 $this->completedSteps[] = 'verify_compliance';
@@ -61,7 +62,7 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['collateral_asset'],
                 $input['collateral_amount']
             );
-            if (!$lockResult['success']) {
+            if (! $lockResult['success']) {
                 throw new \Exception('Failed to lock collateral: ' . ($lockResult['message'] ?? 'Unknown reason'));
             }
             $this->completedSteps[] = 'lock_collateral';
@@ -73,7 +74,7 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['collateral_asset'],
                 $input['collateral_amount']
             );
-            if (!$collateralResult) {
+            if (! $collateralResult) {
                 throw new \Exception('Failed to add collateral to system');
             }
             $this->completedSteps[] = 'add_collateral_to_system';
@@ -86,7 +87,7 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['collateral_asset'],
                 $input['collateral_amount']
             );
-            if (!$mintResult) {
+            if (! $mintResult) {
                 throw new \Exception('Failed to mint stablecoins');
             }
             $this->completedSteps[] = 'mint_stablecoins';
@@ -97,44 +98,44 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['stablecoin_code'],
                 $input['amount']
             );
-            if (!$depositResult['success']) {
+            if (! $depositResult['success']) {
                 throw new \Exception('Failed to deposit stablecoins: ' . ($depositResult['message'] ?? 'Unknown reason'));
             }
             $this->completedSteps[] = 'deposit_stablecoins';
 
             Log::info('StablecoinIssuanceSaga completed successfully', [
-                'saga_id' => $sagaId,
-                'account_id' => $input['account_id'],
+                'saga_id'         => $sagaId,
+                'account_id'      => $input['account_id'],
                 'stablecoin_code' => $input['stablecoin_code'],
-                'amount' => $input['amount'],
+                'amount'          => $input['amount'],
                 'completed_steps' => $this->completedSteps,
             ]);
 
             return [
-                'success' => true,
-                'saga_id' => $sagaId,
-                'position_uuid' => $mintResult,
-                'stablecoin_code' => $input['stablecoin_code'],
-                'amount_minted' => $input['amount'],
+                'success'           => true,
+                'saga_id'           => $sagaId,
+                'position_uuid'     => $mintResult,
+                'stablecoin_code'   => $input['stablecoin_code'],
+                'amount_minted'     => $input['amount'],
                 'collateral_locked' => $input['collateral_amount'],
-                'completed_steps' => $this->completedSteps,
+                'completed_steps'   => $this->completedSteps,
             ];
 
         } catch (\Throwable $e) {
             Log::error('StablecoinIssuanceSaga failed, executing compensations', [
-                'saga_id' => $sagaId,
-                'account_id' => $input['account_id'],
-                'error' => $e->getMessage(),
+                'saga_id'         => $sagaId,
+                'account_id'      => $input['account_id'],
+                'error'           => $e->getMessage(),
                 'completed_steps' => $this->completedSteps,
             ]);
 
             // Execute compensations in reverse order
-            yield from $this->compensate();
+            yield from $this->executeCompensations();
 
             return [
-                'success' => false,
-                'saga_id' => $sagaId,
-                'error' => $e->getMessage(),
+                'success'           => false,
+                'saga_id'           => $sagaId,
+                'error'             => $e->getMessage(),
                 'compensated_steps' => array_keys($this->compensations),
             ];
         }
@@ -151,12 +152,12 @@ class StablecoinIssuanceSaga extends Workflow
 
         $result = yield $workflow->execute([
             'account_id' => $accountId,
-            'action' => 'verify',
-            'level' => 'enhanced', // Enhanced KYC for stablecoin operations
+            'action'     => 'verify',
+            'level'      => 'enhanced', // Enhanced KYC for stablecoin operations
         ]);
 
         // No compensation needed for compliance check
-        
+
         return $result;
     }
 
@@ -179,7 +180,7 @@ class StablecoinIssuanceSaga extends Workflow
         );
 
         // Add compensation to unlock collateral
-        $this->addCompensation('lock_collateral', function () use ($accountId, $collateralAsset, $amount) {
+        $this->registerCompensation('lock_collateral', function () use ($accountId, $collateralAsset, $amount) {
             return ChildWorkflowStub::make(WalletDepositWorkflow::class)
                 ->execute(
                     $accountId,
@@ -212,15 +213,16 @@ class StablecoinIssuanceSaga extends Workflow
         );
 
         // Add compensation to remove collateral from system
-        $this->addCompensation('add_collateral_to_system', function () use ($accountId, $stablecoinCode, $collateralAsset, $amount) {
+        $this->registerCompensation('add_collateral_to_system', function () use ($accountId, $stablecoinCode, $collateralAsset, $amount) {
             // This would typically call a RemoveCollateralWorkflow
             // For now, we'll log the compensation
             Log::info('Compensation: Would remove collateral from system', [
-                'account_id' => $accountId,
-                'stablecoin_code' => $stablecoinCode,
+                'account_id'       => $accountId,
+                'stablecoin_code'  => $stablecoinCode,
                 'collateral_asset' => $collateralAsset,
-                'amount' => $amount,
+                'amount'           => $amount,
             ]);
+
             return true;
         });
 
@@ -250,7 +252,7 @@ class StablecoinIssuanceSaga extends Workflow
         );
 
         // Add compensation to burn the minted stablecoins
-        $this->addCompensation('mint_stablecoins', function () use ($accountId, $stablecoinCode, $amount) {
+        $this->registerCompensation('mint_stablecoins', function () use ($accountId, $stablecoinCode, $amount) {
             return ChildWorkflowStub::make(BurnStablecoinWorkflow::class)
                 ->execute(
                     $accountId,
@@ -281,7 +283,7 @@ class StablecoinIssuanceSaga extends Workflow
         );
 
         // Add compensation to withdraw the deposited stablecoins
-        $this->addCompensation('deposit_stablecoins', function () use ($accountId, $stablecoinCode, $amount) {
+        $this->registerCompensation('deposit_stablecoins', function () use ($accountId, $stablecoinCode, $amount) {
             return ChildWorkflowStub::make(WalletWithdrawWorkflow::class)
                 ->execute(
                     $accountId,
@@ -294,9 +296,9 @@ class StablecoinIssuanceSaga extends Workflow
     }
 
     /**
-     * Add a compensation action.
+     * Register a compensation action.
      */
-    private function addCompensation(string $step, callable $compensation): void
+    private function registerCompensation(string $step, callable $compensation): void
     {
         $this->compensations[$step] = $compensation;
     }
@@ -304,10 +306,10 @@ class StablecoinIssuanceSaga extends Workflow
     /**
      * Execute all compensations in reverse order.
      */
-    private function compensate(): \Generator
+    private function executeCompensations(): \Generator
     {
         $compensations = array_reverse($this->compensations, true);
-        
+
         foreach ($compensations as $step => $compensation) {
             try {
                 Log::info("Executing compensation for step: {$step}");

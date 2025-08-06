@@ -44,7 +44,7 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
     {
         return \App\Domain\Exchange\Projections\LiquidityPool::where('status', 'active')
             ->get()
-            ->map(fn($projection) => $this->find($projection->pool_id))
+            ->map(fn ($projection) => $this->find($projection->pool_id))
             ->filter();
     }
 
@@ -55,7 +55,7 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
     {
         return \App\Domain\Exchange\Projections\LiquidityProvider::where('provider_id', $providerId)
             ->get()
-            ->map(fn($provider) => $this->find($provider->pool_id))
+            ->map(fn ($provider) => $this->find($provider->pool_id))
             ->filter()
             ->unique('pool_id');
     }
@@ -87,25 +87,25 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
     public function getStatistics(string $poolId): array
     {
         $pool = \App\Domain\Exchange\Projections\LiquidityPool::find($poolId);
-        
-        if (!$pool) {
+
+        if (! $pool) {
             return [];
         }
 
         return [
-            'pool_id' => $pool->pool_id,
-            'base_currency' => $pool->base_currency,
-            'quote_currency' => $pool->quote_currency,
-            'base_liquidity' => $pool->base_liquidity,
-            'quote_liquidity' => $pool->quote_liquidity,
-            'total_value_locked' => $pool->total_value_locked,
-            'fee_percentage' => $pool->fee_percentage,
+            'pool_id'              => $pool->pool_id,
+            'base_currency'        => $pool->base_currency,
+            'quote_currency'       => $pool->quote_currency,
+            'base_liquidity'       => $pool->base_liquidity,
+            'quote_liquidity'      => $pool->quote_liquidity,
+            'total_value_locked'   => $pool->total_value_locked,
+            'fee_percentage'       => $pool->fee_percentage,
             'total_fees_collected' => $pool->total_fees_collected,
-            'total_volume' => $pool->total_volume,
-            'provider_count' => $pool->providers()->count(),
-            'status' => $pool->status,
-            'created_at' => $pool->created_at,
-            'updated_at' => $pool->updated_at,
+            'total_volume'         => $pool->total_volume,
+            'provider_count'       => $pool->providers()->count(),
+            'status'               => $pool->status,
+            'created_at'           => $pool->created_at,
+            'updated_at'           => $pool->updated_at,
         ];
     }
 
@@ -117,7 +117,7 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
         return \App\Domain\Exchange\Projections\LiquidityPool::where('total_value_locked', '<', $threshold)
             ->where('status', 'active')
             ->get()
-            ->map(fn($projection) => $this->find($projection->pool_id))
+            ->map(fn ($projection) => $this->find($projection->pool_id))
             ->filter();
     }
 
@@ -132,7 +132,7 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
         ')
             ->where('status', 'active')
             ->get()
-            ->map(fn($projection) => $this->find($projection->pool_id))
+            ->map(fn ($projection) => $this->find($projection->pool_id))
             ->filter();
     }
 

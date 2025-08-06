@@ -7,7 +7,6 @@ namespace App\Domain\Exchange\Repositories;
 use App\Domain\Exchange\Aggregates\Order;
 use App\Domain\Exchange\Contracts\OrderRepositoryInterface;
 use Illuminate\Support\Collection;
-use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 /**
  * Event-sourced repository implementation for Order aggregates.
@@ -34,7 +33,7 @@ class OrderRepository implements OrderRepositoryInterface
         // Query the projections table for orders by account
         return \App\Domain\Exchange\Models\Order::where('account_id', $accountId)
             ->get()
-            ->map(fn($projection) => $this->find($projection->order_id))
+            ->map(fn ($projection) => $this->find($projection->order_id))
             ->filter();
     }
 
@@ -47,7 +46,7 @@ class OrderRepository implements OrderRepositoryInterface
             ->where('quote_currency', $quoteCurrency)
             ->whereIn('status', ['pending', 'open', 'partially_filled'])
             ->get()
-            ->map(fn($projection) => $this->find($projection->order_id))
+            ->map(fn ($projection) => $this->find($projection->order_id))
             ->filter();
     }
 
@@ -79,7 +78,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return \App\Domain\Exchange\Models\Order::where('status', $status)
             ->get()
-            ->map(fn($projection) => $this->find($projection->order_id))
+            ->map(fn ($projection) => $this->find($projection->order_id))
             ->filter();
     }
 
@@ -90,7 +89,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return \App\Domain\Exchange\Models\Order::whereBetween('created_at', [$from, $to])
             ->get()
-            ->map(fn($projection) => $this->find($projection->order_id))
+            ->map(fn ($projection) => $this->find($projection->order_id))
             ->filter();
     }
 

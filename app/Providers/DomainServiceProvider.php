@@ -4,25 +4,22 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-
+use App\Domain\Exchange\Contracts\LiquidityPoolRepositoryInterface;
 // Repository Interfaces and Implementations
 use App\Domain\Exchange\Contracts\OrderRepositoryInterface;
-use App\Domain\Exchange\Contracts\LiquidityPoolRepositoryInterface;
-use App\Domain\Exchange\Repositories\OrderRepository;
 use App\Domain\Exchange\Repositories\LiquidityPoolRepository;
-use App\Domain\Stablecoin\Contracts\StablecoinAggregateRepositoryInterface;
-use App\Domain\Stablecoin\Repositories\StablecoinAggregateRepository;
-
-// CQRS Infrastructure
+use App\Domain\Exchange\Repositories\OrderRepository;
 use App\Domain\Shared\CQRS\CommandBus;
 use App\Domain\Shared\CQRS\QueryBus;
+use App\Domain\Shared\Events\DomainEventBus;
+// CQRS Infrastructure
+use App\Domain\Stablecoin\Contracts\StablecoinAggregateRepositoryInterface;
+use App\Domain\Stablecoin\Repositories\StablecoinAggregateRepository;
 use App\Infrastructure\CQRS\LaravelCommandBus;
 use App\Infrastructure\CQRS\LaravelQueryBus;
-
 // Domain Event Bus
-use App\Domain\Shared\Events\DomainEventBus;
 use App\Infrastructure\Events\LaravelDomainEventBus;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * Service provider for domain layer bindings and configuration.
