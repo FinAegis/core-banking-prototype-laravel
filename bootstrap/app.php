@@ -83,7 +83,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         
         // Apply demo middleware to web routes in demo mode
-        if (config('demo.mode')) {
+        // Use environment variable directly since config() is not available during bootstrap
+        if (env('DEMO_MODE', false)) {
             $middleware->appendToGroup('web', \App\Http\Middleware\DemoMode::class);
         }
     })
