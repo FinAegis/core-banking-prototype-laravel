@@ -151,25 +151,20 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
             return [];
         }
 
-        $reserves = \App\Domain\Stablecoin\Models\StablecoinReserve::where('stablecoin_id', $stablecoinId)
-            ->get();
-
-        $totalReserves = $reserves->sum('amount');
-        $reserveComposition = $reserves->groupBy('asset_code')
-            ->map(fn ($group) => [
-                'amount'     => $group->sum('amount'),
-                'percentage' => $totalReserves > 0 ? ($group->sum('amount') / $totalReserves) * 100 : 0,
-            ]);
+        // TODO: Implement reserves when StablecoinReserve model is created
+        // For now, return basic statistics from the stablecoin model
+        $totalReserves = 0.0;
+        $reserveComposition = collect();
 
         return [
             'stablecoin_id'          => $stablecoinId,
             'stablecoin_code'        => $stablecoin->code,
             'total_reserves'         => $totalReserves,
             'total_supply'           => $stablecoin->total_supply,
-            'reserve_ratio'          => $stablecoin->total_supply > 0 ? ($totalReserves / $stablecoin->total_supply) * 100 : 0,
+            'reserve_ratio'          => 0.0,
             'reserve_composition'    => $reserveComposition,
-            'last_audit_at'          => $stablecoin->last_audit_at,
-            'reserve_wallet_address' => $stablecoin->reserve_wallet_address,
+            'last_audit_at'          => $stablecoin->last_audit_at ?? null,
+            'reserve_wallet_address' => $stablecoin->reserve_wallet_address ?? null,
         ];
     }
 }
