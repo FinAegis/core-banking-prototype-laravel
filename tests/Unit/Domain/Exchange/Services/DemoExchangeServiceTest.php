@@ -25,10 +25,10 @@ class DemoExchangeServiceTest extends TestCase
         parent::setUp();
 
         Config::set('demo.mode', true);
-        Config::set('demo.features.auto_fill_orders', true);
-        Config::set('demo.demo_data.exchange.spread_percentage', 0.1);
-        Config::set('demo.demo_data.exchange.liquidity_multiplier', 10);
-        Config::set('demo.demo_data.exchange.prices', [
+        Config::set('demo.features.auto_approve', true);
+        Config::set('demo.domains.exchange.spread_percentage', 0.1);
+        Config::set('demo.domains.exchange.liquidity_multiplier', 10);
+        Config::set('demo.domains.exchange.default_rates', [
             'EUR/USD' => 1.10,
             'GBP/USD' => 1.27,
             'GCU/USD' => 1.00,
@@ -247,7 +247,7 @@ class DemoExchangeServiceTest extends TestCase
     /** @test */
     public function it_respects_auto_fill_configuration()
     {
-        Config::set('demo.features.auto_fill_orders', false);
+        Config::set('demo.features.auto_approve', false);
         Event::fake();
 
         $orderData = [

@@ -27,11 +27,11 @@ class DemoStablecoinServiceTest extends TestCase
         parent::setUp();
 
         // Configure demo settings
-        Config::set('demo.mode', true);
-        Config::set('demo.features.auto_collateralize', true);
-        Config::set('demo.demo_data.stablecoin.collateral_ratio', 1.5);
-        Config::set('demo.demo_data.stablecoin.liquidation_threshold', 1.2);
-        Config::set('demo.demo_data.stablecoin.stability_fee', 2.5);
+        $this->app['env'] = 'demo';
+        Config::set('demo.features.auto_approve', true);
+        Config::set('demo.domains.stablecoin.collateral_ratio', 1.5);
+        Config::set('demo.domains.stablecoin.liquidation_threshold', 1.2);
+        Config::set('demo.domains.stablecoin.stability_fee', 2.5);
 
         // Create required test data
         $user1 = User::factory()->create();

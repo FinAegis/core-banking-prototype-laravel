@@ -29,12 +29,12 @@ class DemoLendingServiceTest extends TestCase
         parent::setUp();
 
         Config::set('demo.mode', true);
-        Config::set('demo.features.auto_approve_loans', true);
-        Config::set('demo.features.instant_disbursement', true);
-        Config::set('demo.demo_data.lending.auto_approve_threshold', 10000);
-        Config::set('demo.demo_data.lending.approval_rate', 80);
-        Config::set('demo.demo_data.lending.default_credit_score', 750);
-        Config::set('demo.demo_data.lending.default_interest_rate', 5.5);
+        Config::set('demo.features.auto_approve', true);
+        Config::set('demo.features.instant_deposits', true);
+        Config::set('demo.domains.lending.auto_approve_threshold', 10000);
+        Config::set('demo.domains.lending.approval_rate', 80);
+        Config::set('demo.domains.lending.default_credit_score', 750);
+        Config::set('demo.domains.lending.default_interest_rate', 5.5);
 
         $this->service = new DemoLendingService();
     }
@@ -75,8 +75,8 @@ class DemoLendingServiceTest extends TestCase
         srand(1); // Seed random for consistent test results
 
         // Mock a good credit score
-        Config::set('demo.demo_data.lending.default_credit_score', 750);
-        Config::set('demo.demo_data.lending.approval_rate', 100); // Ensure approval
+        Config::set('demo.domains.lending.default_credit_score', 750);
+        Config::set('demo.domains.lending.approval_rate', 100); // Ensure approval
 
         $applicationData = [
             'borrower_id'      => 1,
@@ -125,7 +125,7 @@ class DemoLendingServiceTest extends TestCase
         ]);
 
         // Mock poor credit score by setting config temporarily
-        Config::set('demo.demo_data.lending.default_credit_score', 550);
+        Config::set('demo.domains.lending.default_credit_score', 550);
 
         $this->service->processApplication($application);
         $application->refresh();
@@ -143,7 +143,7 @@ class DemoLendingServiceTest extends TestCase
     public function it_rejects_loan_exceeding_threshold_amount()
     {
         Event::fake();
-        Config::set('demo.demo_data.lending.approval_rate', 0); // Force rejection
+        Config::set('demo.domains.lending.approval_rate', 0); // Force rejection
 
         $applicationData = [
             'borrower_id'      => 1,
@@ -296,8 +296,8 @@ class DemoLendingServiceTest extends TestCase
         srand(1); // Seed random for consistent test results
 
         // Test with excellent credit score
-        Config::set('demo.demo_data.lending.default_credit_score', 820);
-        Config::set('demo.demo_data.lending.approval_rate', 100);
+        Config::set('demo.domains.lending.default_credit_score', 820);
+        Config::set('demo.domains.lending.approval_rate', 100);
 
         $applicationData = [
             'borrower_id'      => 1,
@@ -318,7 +318,7 @@ class DemoLendingServiceTest extends TestCase
     /** @test */
     public function it_respects_auto_approve_configuration()
     {
-        Config::set('demo.features.auto_approve_loans', false);
+        Config::set('demo.features.auto_approve', false);
         Event::fake();
 
         $applicationData = [
@@ -354,7 +354,7 @@ class DemoLendingServiceTest extends TestCase
             'submitted_at'     => now(),
         ]);
 
-        Config::set('demo.demo_data.lending.default_credit_score', 600); // Fair credit
+        Config::set('demo.domains.lending.default_credit_score', 600); // Fair credit
 
         $this->service->processApplication($application);
         $application->refresh();
@@ -371,8 +371,8 @@ class DemoLendingServiceTest extends TestCase
     {
         Event::fake();
         srand(1); // Seed random for consistent test results
-        Config::set('demo.demo_data.lending.default_credit_score', 650);
-        Config::set('demo.demo_data.lending.approval_rate', 100);
+        Config::set('demo.domains.lending.default_credit_score', 650);
+        Config::set('demo.domains.lending.approval_rate', 100);
 
         $applicationData = [
             'borrower_id'      => 1,

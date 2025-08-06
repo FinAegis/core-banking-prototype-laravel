@@ -38,14 +38,17 @@ class DemoBankConnectorTest extends TestCase
 
     public function test_is_available_in_demo_mode(): void
     {
-        Config::set('demo.mode', true);
+        // Test demo environment
+        $this->app['env'] = 'demo';
         $this->assertTrue($this->connector->isAvailable());
 
-        Config::set('demo.mode', false);
+        // Test sandbox mode
+        $this->app['env'] = 'testing';
         Config::set('demo.sandbox.enabled', true);
         $this->assertTrue($this->connector->isAvailable());
 
-        Config::set('demo.mode', false);
+        // Test production mode
+        $this->app['env'] = 'production';
         Config::set('demo.sandbox.enabled', false);
         $this->assertFalse($this->connector->isAvailable());
     }
