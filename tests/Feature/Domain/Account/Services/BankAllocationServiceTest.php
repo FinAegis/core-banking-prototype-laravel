@@ -29,8 +29,6 @@ class BankAllocationServiceTest extends TestCase
         $user = User::factory()->create();
 
         $preferences = $this->bankAllocationService->setupDefaultAllocations($user);
-
-        $this->assertNotEmpty($preferences);
         $this->assertInstanceOf(\Illuminate\Support\Collection::class, $preferences);
 
         // Check that allocations sum to 100%
@@ -65,8 +63,6 @@ class BankAllocationServiceTest extends TestCase
         ];
 
         $preferences = $this->bankAllocationService->updateAllocations($user, $newAllocations);
-
-        $this->assertNotEmpty($preferences);
         $this->assertCount(3, $preferences);
 
         // Verify allocations were updated
@@ -268,8 +264,6 @@ class BankAllocationServiceTest extends TestCase
         $this->bankAllocationService->updateAllocations($user, $allocations);
 
         $summary = $this->bankAllocationService->getDistributionSummary($user, 100000); // 1000 EUR in cents
-
-        $this->assertIsArray($summary);
         $this->assertArrayHasKey('distribution', $summary);
         $this->assertArrayHasKey('total_amount', $summary);
         $this->assertArrayHasKey('total_insurance_coverage', $summary);
@@ -295,8 +289,6 @@ class BankAllocationServiceTest extends TestCase
         $user = User::factory()->create();
 
         $summary = $this->bankAllocationService->getDistributionSummary($user, 100000); // 1000 EUR in cents
-
-        $this->assertIsArray($summary);
         $this->assertEquals(0, $summary['bank_count']);
         $this->assertEmpty($summary['distribution']);
         $this->assertEquals(100000, $summary['total_amount']);

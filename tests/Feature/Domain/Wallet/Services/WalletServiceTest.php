@@ -70,14 +70,14 @@ class WalletServiceTest extends TestCase
         $this->walletService->deposit($this->testUuid, 'USD', 100.00);
 
         // Assertions are handled by Mockery expectations
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
     public function test_deposit_accepts_various_uuid_formats()
     {
         $mockWorkflow = Mockery::mock('overload:' . WorkflowStub::class);
-        $mockWorkflow->shouldReceive('make')->andReturnSelf();
+        $mockWorkflow->shouldReceive('make')->andReturn($mockWorkflow);
         $mockWorkflow->shouldReceive('start')->once();
 
         // Test with string UUID
@@ -87,7 +87,7 @@ class WalletServiceTest extends TestCase
         $accountUuid = AccountUuid::fromString($this->testUuid);
         $this->walletService->deposit($accountUuid, 'GBP', 75.00);
 
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
@@ -116,7 +116,7 @@ class WalletServiceTest extends TestCase
         // Execute
         $this->walletService->withdraw($this->testUuid, 'USD', 50.00);
 
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
@@ -200,7 +200,7 @@ class WalletServiceTest extends TestCase
             'Test transfer'
         );
 
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
@@ -272,7 +272,7 @@ class WalletServiceTest extends TestCase
             50.00
         );
 
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
@@ -301,7 +301,7 @@ class WalletServiceTest extends TestCase
             100.00
         );
 
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
@@ -319,14 +319,14 @@ class WalletServiceTest extends TestCase
         $this->walletService->convert($this->testUuid, 'EUR', 'USD', 75.00);
         $this->walletService->convert($this->testUuid, 'GBP', 'EUR', 100.00);
 
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
     public function test_all_methods_handle_decimal_amounts_correctly()
     {
         $mockWorkflow = Mockery::mock('overload:' . WorkflowStub::class);
-        $mockWorkflow->shouldReceive('make')->andReturnSelf();
+        $mockWorkflow->shouldReceive('make')->andReturn($mockWorkflow);
         $mockWorkflow->shouldReceive('start')
             ->times(2)
             ->withArgs(function (...$args) {
@@ -340,6 +340,6 @@ class WalletServiceTest extends TestCase
         $this->walletService->deposit($this->testUuid, 'USD', 99.99);
         $this->walletService->convert($this->testUuid, 'USD', 'EUR', 123.45);
 
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 }

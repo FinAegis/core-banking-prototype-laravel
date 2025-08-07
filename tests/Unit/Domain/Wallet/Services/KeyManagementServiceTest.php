@@ -36,7 +36,6 @@ class KeyManagementServiceTest extends TestCase
 
         $words = explode(' ', $mnemonic);
         $this->assertCount(12, $words);
-        $this->assertIsString($mnemonic);
     }
 
     #[Test]
@@ -46,7 +45,6 @@ class KeyManagementServiceTest extends TestCase
 
         $words = explode(' ', $mnemonic);
         $this->assertCount(24, $words);
-        $this->assertIsString($mnemonic);
     }
 
     #[Test]
@@ -258,7 +256,7 @@ class KeyManagementServiceTest extends TestCase
 
         // Should not throw exception
         $this->keyManagementService->rotateKeys($walletId, $oldPassword, $newPassword);
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
@@ -287,7 +285,6 @@ class KeyManagementServiceTest extends TestCase
     {
         $key = $this->keyManagementService->generateKey();
 
-        $this->assertIsString($key);
         $this->assertEquals(64, strlen($key)); // 32 bytes hex encoded = 64 chars
     }
 
@@ -296,7 +293,6 @@ class KeyManagementServiceTest extends TestCase
     {
         $masterKey = $this->keyManagementService->generateMasterKey();
 
-        $this->assertIsString($masterKey);
         $this->assertEquals(64, strlen($masterKey));
     }
 
@@ -307,7 +303,6 @@ class KeyManagementServiceTest extends TestCase
         $privateKey = $this->keyManagementService->generateKey();
 
         $signature = $this->keyManagementService->signMessage($message, $privateKey);
-        $this->assertIsString($signature);
 
         // In this implementation, verification uses the same key (HMAC style)
         $isValid = $this->keyManagementService->verifySignature($message, $signature, $privateKey);
@@ -335,8 +330,6 @@ class KeyManagementServiceTest extends TestCase
         $childKey1 = $this->keyManagementService->deriveChildKey($parentKey, 0);
         $childKey2 = $this->keyManagementService->deriveChildKey($parentKey, 1);
 
-        $this->assertIsString($childKey1);
-        $this->assertIsString($childKey2);
         $this->assertNotEquals($childKey1, $childKey2);
 
         // Same index should generate same key
@@ -417,7 +410,6 @@ class KeyManagementServiceTest extends TestCase
 
         $signature = $this->keyManagementService->signTransaction($privateKey, $transaction, 'ethereum');
 
-        $this->assertIsString($signature);
         $this->assertStringStartsWith('0x', $signature);
     }
 
@@ -432,7 +424,6 @@ class KeyManagementServiceTest extends TestCase
 
         $signature = $this->keyManagementService->signTransaction($privateKey, $transaction, 'bitcoin');
 
-        $this->assertIsString($signature);
         $this->assertEquals(64, strlen($signature)); // 32 bytes hex
     }
 
