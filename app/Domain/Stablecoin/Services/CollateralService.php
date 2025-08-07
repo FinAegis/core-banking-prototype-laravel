@@ -310,7 +310,7 @@ class CollateralService implements CollateralServiceInterface
             $position->collateral_asset_code
         );
 
-        if (!$rateObject) {
+        if (! $rateObject) {
             throw new \RuntimeException('Exchange rate not available');
         }
 

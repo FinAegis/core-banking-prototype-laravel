@@ -39,12 +39,12 @@ class StablecoinIssuanceSagaTest extends TestCase
 
         // Create a stablecoin
         $this->stablecoin = Stablecoin::factory()->create([
-            'code'                => 'USDS',
-            'name'                => 'USD Stablecoin',
-            'peg_asset_code'      => 'USD',
-            'collateral_ratio'    => 1.5,  // 150% collateralization
+            'code'                 => 'USDS',
+            'name'                 => 'USD Stablecoin',
+            'peg_asset_code'       => 'USD',
+            'collateral_ratio'     => 1.5,  // 150% collateralization
             'min_collateral_ratio' => 1.2, // Minimum before liquidation (120%)
-            'is_active'           => true,
+            'is_active'            => true,
         ]);
 
         // Add collateral balance to account
