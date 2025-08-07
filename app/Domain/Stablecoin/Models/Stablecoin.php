@@ -212,7 +212,7 @@ class Stablecoin extends Model
     {
         // This would need to be calculated based on current exchange rates
         // For now, assuming all collateral is already in peg asset terms
-        return $this->total_collateral_value;
+        return (int) $this->total_collateral_value;
     }
 
     /**
