@@ -38,7 +38,7 @@ class BlockchainWalletServiceTest extends TestCase
         /** @var KeyManagementService&MockInterface $mockKeyManager */
         $mockKeyManager = Mockery::mock(KeyManagementService::class);
         $this->mockKeyManager = $mockKeyManager;
-        
+
         /** @var SecureKeyStorageService&MockInterface $mockSecureStorage */
         $mockSecureStorage = Mockery::mock(SecureKeyStorageService::class);
         $this->mockSecureStorage = $mockSecureStorage;
@@ -82,7 +82,7 @@ class BlockchainWalletServiceTest extends TestCase
     public function test_validate_address_for_ethereum_with_short_address()
     {
         $shortAddress = '0x742d35Cc';
-        
+
         // A valid Ethereum address should be longer
         $result = strlen($shortAddress) > 40 && str_starts_with($shortAddress, '0x');
         $this->assertFalse($result);
@@ -92,7 +92,7 @@ class BlockchainWalletServiceTest extends TestCase
     public function test_validate_address_for_ethereum_without_0x_prefix()
     {
         $addressWithoutPrefix = '742d35Cc6634C0532925a3b844Bc9e7595f0bEb81';
-        
+
         // Address without 0x prefix is invalid
         $result = str_starts_with($addressWithoutPrefix, '0x');
         $this->assertFalse($result);
@@ -104,9 +104,9 @@ class BlockchainWalletServiceTest extends TestCase
         // Test that we can create a fee structure for Ethereum
         $fee = [
             'estimated_fee' => 0.001,
-            'currency' => 'ETH'
+            'currency'      => 'ETH',
         ];
-        
+
         $this->assertArrayHasKey('estimated_fee', $fee);
         $this->assertArrayHasKey('currency', $fee);
         $this->assertEquals('ETH', $fee['currency']);
@@ -118,9 +118,9 @@ class BlockchainWalletServiceTest extends TestCase
         // Test that we can create a fee structure for Polygon
         $fee = [
             'estimated_fee' => 0.0001,
-            'currency' => 'MATIC'
+            'currency'      => 'MATIC',
         ];
-        
+
         $this->assertEquals('MATIC', $fee['currency']);
     }
 
@@ -130,9 +130,9 @@ class BlockchainWalletServiceTest extends TestCase
         // Test that we can create a fee structure for BSC
         $fee = [
             'estimated_fee' => 0.0005,
-            'currency' => 'BNB'
+            'currency'      => 'BNB',
         ];
-        
+
         $this->assertEquals('BNB', $fee['currency']);
     }
 
@@ -142,9 +142,9 @@ class BlockchainWalletServiceTest extends TestCase
         // Test that smart contract fees are higher
         $fee = [
             'estimated_fee' => 0.01,
-            'currency' => 'ETH'
+            'currency'      => 'ETH',
         ];
-        
+
         $this->assertArrayHasKey('estimated_fee', $fee);
         // Smart contract fees should be higher than transfers
         $this->assertGreaterThan(0.001, $fee['estimated_fee']);
@@ -167,7 +167,7 @@ class BlockchainWalletServiceTest extends TestCase
         // Test that transaction statuses are valid
         $possibleStatuses = ['pending', 'confirmed', 'failed'];
         $status = 'confirmed'; // Simulated status
-        
+
         $this->assertContains($status, $possibleStatuses);
     }
 
@@ -178,6 +178,7 @@ class BlockchainWalletServiceTest extends TestCase
 
         $callback = function ($transaction) use (&$callbackCalled) {
             $callbackCalled = true;
+
             return true;
         };
 
