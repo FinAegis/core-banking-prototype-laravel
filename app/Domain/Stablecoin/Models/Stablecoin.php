@@ -34,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $uuid
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * 
+ *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, mixed $operator = null, mixed $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Builder whereIn(string $column, mixed $values, string $boolean = 'and', bool $not = false)
  * @method static \Illuminate\Database\Eloquent\Builder whereNull(string $column)
