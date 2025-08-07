@@ -26,9 +26,9 @@ class StablecoinAggregate extends AggregateRoot
 
     private string $collateral_asset_code;
 
-    private int $collateral_amount = 0;
+    private float $collateral_amount = 0.0;
 
-    private int $debt_amount = 0;
+    private float $debt_amount = 0.0;
 
     private string $status = 'active';
 
@@ -78,7 +78,7 @@ class StablecoinAggregate extends AggregateRoot
         return $this;
     }
 
-    public function lockCollateral(int $amount): self
+    public function lockCollateral(float $amount): self
     {
         $this->recordThat(
             new CollateralLocked(
@@ -92,7 +92,7 @@ class StablecoinAggregate extends AggregateRoot
         return $this;
     }
 
-    public function mintStablecoin(int $amount): self
+    public function mintStablecoin(float $amount): self
     {
         $this->recordThat(
             new StablecoinMinted(
@@ -106,7 +106,7 @@ class StablecoinAggregate extends AggregateRoot
         return $this;
     }
 
-    public function burnStablecoin(int $amount): self
+    public function burnStablecoin(float $amount): self
     {
         $this->recordThat(
             new StablecoinBurned(
@@ -120,7 +120,7 @@ class StablecoinAggregate extends AggregateRoot
         return $this;
     }
 
-    public function releaseCollateral(int $amount): self
+    public function releaseCollateral(float $amount): self
     {
         $this->recordThat(
             new CollateralReleased(
@@ -227,7 +227,7 @@ class StablecoinAggregate extends AggregateRoot
     protected function applyCollateralPositionLiquidated(CollateralPositionLiquidated $event): void
     {
         $this->status = 'liquidated';
-        $this->collateral_amount = 0;
-        $this->debt_amount = 0;
+        $this->collateral_amount = 0.0;
+        $this->debt_amount = 0.0;
     }
 }

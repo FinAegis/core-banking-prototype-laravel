@@ -12,7 +12,7 @@ class CollateralLocked extends ShouldBeStored
         public readonly string $position_uuid,
         public readonly string $account_uuid,
         public readonly string $collateral_asset_code,
-        public readonly int $amount,
+        public readonly float $amount,
         public readonly array $metadata = []
     ) {
     }

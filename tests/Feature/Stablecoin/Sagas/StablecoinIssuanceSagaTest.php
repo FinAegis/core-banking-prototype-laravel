@@ -39,12 +39,12 @@ class StablecoinIssuanceSagaTest extends TestCase
 
         // Create a stablecoin
         $this->stablecoin = Stablecoin::factory()->create([
-            'code'                            => 'USDS',
-            'name'                            => 'USD Stablecoin',
-            'peg_asset_code'                  => 'USD',
-            'minimum_collateralization_ratio' => 150,
-            'liquidation_threshold'           => 120,
-            'is_active'                       => true,
+            'code'                => 'USDS',
+            'name'                => 'USD Stablecoin',
+            'peg_asset_code'      => 'USD',
+            'collateral_ratio'    => 1.5,  // 150% collateralization
+            'min_collateral_ratio' => 1.2, // Minimum before liquidation (120%)
+            'is_active'           => true,
         ]);
 
         // Add collateral balance to account
@@ -183,6 +183,7 @@ class StablecoinIssuanceSagaTest extends TestCase
 
         // Mock minting to fail
         $this->mock(\App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow::class, function (MockInterface $mock) {
+            /** @phpstan-ignore-next-line */
             $mock->shouldReceive('execute')
                 ->andThrow(new \Exception('Minting failed: Insufficient collateralization ratio'));
         });
@@ -249,14 +250,15 @@ class StablecoinIssuanceSagaTest extends TestCase
         });
 
         // Make the final step fail
-        $this->mock(\App\Domain\Wallet\Workflows\WalletDepositWorkflow::class, function (MockInterface $mock) {
+        $this->mock(\App\Domain\Wallet\Workflows\WalletDepositWorkflow::class, function (MockInterface $mock) use ($input) {
             $mock->shouldReceive('execute')
                 ->with($input['account_id'], $input['stablecoin_code'], $input['amount'])
                 ->andReturn(['success' => false, 'message' => 'Deposit failed']);
         });
 
         // Make compensation for collateral lock fail
-        $this->mock(\App\Domain\Wallet\Workflows\WalletDepositWorkflow::class, function (MockInterface $mock) {
+        $this->mock(\App\Domain\Wallet\Workflows\WalletDepositWorkflow::class, function (MockInterface $mock) use ($input) {
+            /** @phpstan-ignore-next-line */
             $mock->shouldReceive('execute')
                 ->with($input['account_id'], $input['collateral_asset'], $input['collateral_amount'])
                 ->andThrow(new \Exception('Compensation failed'));

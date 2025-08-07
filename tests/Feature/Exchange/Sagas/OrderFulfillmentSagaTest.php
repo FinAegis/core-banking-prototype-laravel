@@ -105,6 +105,7 @@ class OrderFulfillmentSagaTest extends TestCase
 
         // Mock the order matching to fail
         $this->mock(\App\Domain\Exchange\Workflows\OrderMatchingWorkflow::class, function (MockInterface $mock) {
+            /** @phpstan-ignore-next-line */
             $mock->shouldReceive('execute')
                 ->andThrow(new \Exception('Order not found'));
         });
@@ -176,11 +177,13 @@ class OrderFulfillmentSagaTest extends TestCase
 
         // Mock both the main operation and compensation to fail
         $this->mock(\App\Domain\Exchange\Workflows\OrderMatchingWorkflow::class, function (MockInterface $mock) {
+            /** @phpstan-ignore-next-line */
             $mock->shouldReceive('execute')
                 ->andThrow(new \Exception('Order matching failed'));
         });
 
         $this->mock(\App\Domain\Account\Workflows\DepositAccountWorkflow::class, function (MockInterface $mock) {
+            /** @phpstan-ignore-next-line */
             $mock->shouldReceive('execute')
                 ->andThrow(new \Exception('Compensation failed'));
         });

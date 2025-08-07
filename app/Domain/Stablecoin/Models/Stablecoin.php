@@ -9,6 +9,32 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * @property string $code
+ * @property string $name
+ * @property string $symbol
+ * @property string $peg_asset_code
+ * @property float $peg_ratio
+ * @property float $target_price
+ * @property string $stability_mechanism
+ * @property float $collateral_ratio
+ * @property float $min_collateral_ratio
+ * @property float $minimum_collateralization_ratio
+ * @property float $liquidation_threshold
+ * @property float $liquidation_penalty
+ * @property float $total_supply
+ * @property float $max_supply
+ * @property float $total_collateral_value
+ * @property float $mint_fee
+ * @property float $burn_fee
+ * @property int $precision
+ * @property bool $is_active
+ * @property bool $minting_enabled
+ * @property bool $burning_enabled
+ * @property array $metadata
+ * @property string $uuid
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * 
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, mixed $operator = null, mixed $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Builder whereIn(string $column, mixed $values, string $boolean = 'and', bool $not = false)
  * @method static \Illuminate\Database\Eloquent\Builder whereNull(string $column)
@@ -26,6 +52,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder selectRaw(string $expression, array $bindings = [])
  * @method static \Illuminate\Database\Eloquent\Collection get(array $columns = ['*'])
  * @method static static|null find(mixed $id, array $columns = ['*'])
+ * @method static static|null findOrFail(mixed $id, array $columns = ['*'])
  * @method static static|null first(array $columns = ['*'])
  * @method static static firstOrFail(array $columns = ['*'])
  * @method static static firstOrCreate(array $attributes, array $values = [])
