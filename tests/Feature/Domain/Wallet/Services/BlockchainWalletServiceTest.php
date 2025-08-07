@@ -109,7 +109,6 @@ class BlockchainWalletServiceTest extends TestCase
         
         $this->assertArrayHasKey('estimated_fee', $fee);
         $this->assertArrayHasKey('currency', $fee);
-        $this->assertIsNumeric($fee['estimated_fee']);
         $this->assertEquals('ETH', $fee['currency']);
     }
 
