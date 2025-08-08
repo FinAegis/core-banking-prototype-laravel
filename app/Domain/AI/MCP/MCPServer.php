@@ -142,7 +142,7 @@ class MCPServer implements MCPServerInterface
         $params = $request->getParams();
         $toolName = $params['name'] ?? throw new MCPException('Tool name is required');
         $arguments = $params['arguments'] ?? [];
-        
+
         // Add user_uuid from request if not in arguments
         if (!isset($arguments['user_uuid']) && $request->getUserId()) {
             $arguments['user_uuid'] = $request->getUserId();
