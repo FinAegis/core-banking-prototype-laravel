@@ -42,6 +42,7 @@ This document provides a comprehensive overview of the FinAegis Platform archite
 │  Account   │  Payment   │  Asset   │  Governance  │  Custodian      │
 │  Domain    │  Domain    │ Domain   │   Domain     │   Domain        │
 │            │            │          │              │  CGO Domain     │
+│  Shared/CQRS │ Shared/Events │                                      │
 ├─────────────────────────────────────────────────────────────────────┤
 │                    Sub-Product Domain Layer                         │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -52,6 +53,7 @@ This document provides a comprehensive overview of the FinAegis Platform archite
 ├─────────────────────────────────────────────────────────────────────┤
 │  Database  │  Redis   │  Queue   │  Storage   │  External APIs      │
 │  (MySQL)   │ (Cache)  │ System   │ (Files)    │ (Custodians)        │
+│  CQRS/CommandBus │ CQRS/QueryBus │ Events/DomainEventBus           │
 ├─────────────────────────────────────────────────────────────────────┤
 │ Blockchain │  Crypto  │  Market  │  Credit    │  Compliance         │
 │   Nodes    │ Exchanges│  Data    │  Scoring   │  Services           │
@@ -274,10 +276,42 @@ class LedgerAggregate extends AggregateRoot
 
 ## CQRS Implementation
 
+### Infrastructure Components
+
+The platform uses a complete CQRS infrastructure with Laravel implementations:
+
+#### Command Bus (`app/Infrastructure/CQRS/LaravelCommandBus.php`)
+- Synchronous command execution
+- Asynchronous command dispatch via queues
+- Transactional batch command execution
+- Container-based handler resolution
+
+#### Query Bus (`app/Infrastructure/CQRS/LaravelQueryBus.php`)
+- Cached query execution with TTL support
+- Batch query processing
+- MD5-based cache key generation
+- Container-based handler resolution
+
+#### Domain Event Bus (`app/Infrastructure/Events/LaravelDomainEventBus.php`)
+- Priority-based event handler execution
+- Transaction support (record/dispatch/clear)
+- Asynchronous event publishing
+- Integration with Laravel's native event system
+
 ### Command Side (Write Model)
 
 ```php
-// Command Handlers
+// Command Implementation
+class CreateAccountCommand implements Command
+{
+    public function __construct(
+        public readonly AccountUuid $accountUuid,
+        public readonly string $name,
+        public readonly string $userUuid,
+    ) {}
+}
+
+// Command Handler
 class CreateAccountHandler
 {
     public function handle(CreateAccountCommand $command): void
@@ -288,13 +322,11 @@ class CreateAccountHandler
     }
 }
 
-// Commands
-class CreateAccountCommand
-{
-    public function __construct(
-        public readonly AccountUuid $accountUuid,
-        public readonly string $name,
-        public readonly string $userUuid,
+// Registration in DomainServiceProvider
+$commandBus->register(
+    CreateAccountCommand::class,
+    CreateAccountHandler::class
+);
         public readonly ?int $initialBalance = null
     ) {}
 }
