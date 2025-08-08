@@ -74,12 +74,15 @@ Last updated: 2025-01-08 (January 2025)
 - [x] **Exchange Tools Implemented** ✅ COMPLETED (January 2025)
   - [x] Exchange tools: quote (QuoteTool with rate providers)
   - [x] Exchange tools: trade (TradeTool with order execution)
+
+- [x] **Compliance Tools Implemented** ✅ COMPLETED (January 2025)
+  - [x] Compliance tools: KYC verification (KycTool)
+  - [x] Compliance tools: AML screening (AmlScreeningTool)
   
 - [ ] **Remaining MCP Tools** (Next Priority)
-  - [ ] Account tools: create
+  - [ ] Account tools: create (IN PROGRESS)
   - [ ] Payment tools: status tracking
   - [ ] Exchange tools: liquidity pools
-  - [ ] Compliance tools: KYC, AML, risk assessment (IN PROGRESS)
   - [ ] Lending tools: applications, credit scoring
   - [ ] Stablecoin tools: mint, burn, collateral management
 

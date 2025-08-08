@@ -58,6 +58,7 @@ The demo environment showcases all platform capabilities without real transactio
   - Account operations: balance, deposit, withdraw (with AccountService integration)
   - Payment operations: transfer (with TransferService workflow integration)
   - Exchange operations: quote, trade (with ExchangeService and rate providers)
+  - Compliance operations: KYC verification, AML screening (with ComplianceService integration)
   - Full event sourcing and domain event tracking
 - **Conversation Management**: Full conversation tracking with event history
 - **Caching & Performance**: Built-in caching for tool results with TTL support
