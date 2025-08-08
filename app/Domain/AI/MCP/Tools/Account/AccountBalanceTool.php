@@ -138,7 +138,6 @@ class AccountBalanceTool implements MCPToolInterface
             ];
 
             return ToolExecutionResult::success($result);
-
         } catch (\Exception $e) {
             Log::error('MCP Tool error: account.balance', [
                 'error'      => $e->getMessage(),

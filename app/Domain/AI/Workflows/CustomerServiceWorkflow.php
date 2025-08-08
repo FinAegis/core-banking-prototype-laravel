@@ -65,7 +65,6 @@ class CustomerServiceWorkflow extends Workflow
                     'duration_ms'     => $this->calculateDuration(),
                 ],
             ];
-
         } catch (\Exception $e) {
             // Handle workflow failure with compensation
             yield $this->handleWorkflowFailure($e);
@@ -104,15 +103,15 @@ class CustomerServiceWorkflow extends Workflow
         // Basic validation inline for now
         // In production, this would use an activity
         $errors = [];
-        
+
         if (empty($query)) {
             $errors[] = 'Query cannot be empty';
         }
-        
+
         if (strlen($query) > 5000) {
             $errors[] = 'Query exceeds maximum length';
         }
-        
+
         return [
             'valid' => empty($errors),
             'errors' => $errors,
@@ -142,13 +141,13 @@ class CustomerServiceWorkflow extends Workflow
         // Simple intent classification for now
         // In production, this would use ML/NLP
         $query = $processedQuery['processed'];
-        
+
         $intent = [
             'name' => 'unknown',
             'confidence' => 0.5,
             'entities' => $processedQuery['entities'],
         ];
-        
+
         if (str_contains($query, 'balance')) {
             $intent = ['name' => 'check_balance', 'confidence' => 0.9, 'entities' => $processedQuery['entities']];
         } elseif (str_contains($query, 'transfer')) {
@@ -214,7 +213,7 @@ class CustomerServiceWorkflow extends Workflow
             'check_kyc_status' => 'Your KYC verification status has been retrieved.',
             'unknown' => 'I apologize, but I could not understand your request.',
         ];
-        
+
         return [
             'text' => $responses[$intent['name']] ?? $responses['unknown'],
             'success' => $toolResult['success'] ?? false,
