@@ -55,7 +55,7 @@ The demo environment showcases all platform capabilities without real transactio
 - **Event-Driven AI**: Every AI decision tracked via event sourcing (`AIInteractionAggregate`)
 - **Tool Registry**: Extensible system for exposing banking services as AI tools
 - **Banking Tools Available**:
-  - Account operations: balance, deposit, withdraw (with AccountService integration)
+  - Account operations: balance, deposit, withdraw, create (with AccountService integration)
   - Payment operations: transfer (with TransferService workflow integration)
   - Exchange operations: quote, trade (with ExchangeService and rate providers)
   - Compliance operations: KYC verification, AML screening (with ComplianceService integration)

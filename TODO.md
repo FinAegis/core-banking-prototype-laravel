@@ -79,9 +79,11 @@ Last updated: 2025-01-08 (January 2025)
   - [x] Compliance tools: KYC verification (KycTool)
   - [x] Compliance tools: AML screening (AmlScreeningTool)
   
+- [x] **Account Tools Implemented** ✅ COMPLETED (January 2025)
+  - [x] Account tools: create (CreateAccountTool)
+  
 - [ ] **Remaining MCP Tools** (Next Priority)
-  - [ ] Account tools: create (IN PROGRESS)
-  - [ ] Payment tools: status tracking
+  - [ ] Payment tools: status tracking (IN PROGRESS)
   - [ ] Exchange tools: liquidity pools
   - [ ] Lending tools: applications, credit scoring
   - [ ] Stablecoin tools: mint, burn, collateral management
