@@ -305,6 +305,11 @@ class CollateralService implements CollateralServiceInterface
         }
 
         // Convert back to collateral asset
+        // If same currency, no conversion needed
+        if ($position->stablecoin->peg_asset_code === $position->collateral_asset_code) {
+            return (int) round($additionalValueNeeded);
+        }
+
         $rateObject = $this->exchangeRateService->getRate(
             $position->stablecoin->peg_asset_code,
             $position->collateral_asset_code
