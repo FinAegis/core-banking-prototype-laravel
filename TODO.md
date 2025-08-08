@@ -6,6 +6,14 @@ Last updated: 2025-01-08 (January 2025)
 
 ### Recent Achievements (January 2025)
 
+#### AI Agent Framework Phase 2 Progress ✅
+- **MCP Banking Tools Implemented**: Deposit, Withdraw, Transfer tools
+- **Domain Service Integration**: Full integration with AccountService and TransferService
+- **Event Sourcing Ready**: Tools trigger workflows with event sourcing support
+- **Code Quality**: All tools pass PHPStan Level 5, PHPCS PSR-12, PHP CS Fixer
+
+### Recent Achievements (January 2025)
+
 #### Infrastructure Implementation ✅
 - **CQRS Infrastructure**: Command & Query Bus with Laravel implementations
 - **Domain Event Bus**: Full event sourcing support with transaction handling
@@ -58,10 +66,13 @@ Last updated: 2025-01-08 (January 2025)
   - [x] Implement tool execution with event tracking
   - [x] Add performance monitoring and caching
 
-- [ ] **Expose Existing Services as MCP Tools**
+- [x] **Expose Existing Services as MCP Tools** (Partial - January 2025)
   - [x] Account tools: balance (AccountBalanceTool implemented)
-  - [ ] Account tools: create, deposit, withdraw
-  - [ ] Payment tools: transfer, status tracking
+  - [x] Account tools: deposit (DepositTool with AccountService integration)
+  - [x] Account tools: withdraw (WithdrawTool with AccountService integration)
+  - [ ] Account tools: create
+  - [x] Payment tools: transfer (TransferTool with TransferService integration)
+  - [ ] Payment tools: status tracking
   - [ ] Exchange tools: quote, trade, liquidity pools
   - [ ] Compliance tools: KYC, AML, risk assessment
   - [ ] Lending tools: applications, credit scoring

@@ -139,7 +139,7 @@ class WithdrawTool implements MCPToolInterface
             // Use AccountService to trigger the withdrawal workflow
             // This will handle event sourcing and domain events
             $this->accountService->withdraw($accountUuid, [
-                'amount' => $amountInCents,
+                'amount'   => $amountInCents,
                 'currency' => $currency,
             ]);
 

@@ -157,7 +157,7 @@ class TransferTool implements MCPToolInterface
             // Use TransferService to trigger the transfer workflow
             // This will handle event sourcing and domain events
             $this->transferService->transfer($fromAccountUuid, $toAccountUuid, [
-                'amount' => $amountInCents,
+                'amount'   => $amountInCents,
                 'currency' => $currency,
             ]);
 

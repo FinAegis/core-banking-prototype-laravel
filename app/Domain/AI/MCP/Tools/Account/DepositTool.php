@@ -127,7 +127,7 @@ class DepositTool implements MCPToolInterface
             // Use AccountService to trigger the deposit workflow
             // This will handle event sourcing and domain events
             $this->accountService->deposit($accountUuid, [
-                'amount' => $amountInCents,
+                'amount'   => $amountInCents,
                 'currency' => $currency,
             ]);
 
