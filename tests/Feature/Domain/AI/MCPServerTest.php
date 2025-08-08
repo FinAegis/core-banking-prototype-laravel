@@ -49,7 +49,7 @@ class MCPServerTest extends TestCase
         // Register a test tool
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         // Verify tool was registered
         $this->assertTrue($this->registry->has('account.balance'));
 
