@@ -24,17 +24,17 @@ class TransferFactory extends Factory
             'aggregate_version' => fake()->numberBetween(1, 100),
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyTransferred',
-            'event_properties'  => json_encode([
+            'event_properties'  => [
                 'fromAccount' => ['uuid' => fake()->uuid()],
                 'toAccount'   => ['uuid' => fake()->uuid()],
                 'money'       => ['amount' => fake()->numberBetween(100, 100000)],
                 'hash'        => ['hash' => hash('sha3-512', fake()->text())],
-            ]),
-            'meta_data' => json_encode([
+            ],
+            'meta_data' => [
                 'user_uuid'  => fake()->uuid(),
                 'ip_address' => fake()->ipv4(),
                 'user_agent' => fake()->userAgent(),
-            ]),
+            ],
             'created_at' => fake()->dateTimeBetween('-1 year', 'now'),
         ];
     }
@@ -45,11 +45,11 @@ class TransferFactory extends Factory
     public function withAmount(int $amount): static
     {
         return $this->state(function (array $attributes) use ($amount) {
-            $eventProperties = json_decode($attributes['event_properties'], true);
+            $eventProperties = $attributes['event_properties'];
             $eventProperties['money']['amount'] = $amount;
 
             return [
-                'event_properties' => json_encode($eventProperties),
+                'event_properties' => $eventProperties,
             ];
         });
     }
@@ -60,13 +60,13 @@ class TransferFactory extends Factory
     public function betweenAccounts(string $fromUuid, string $toUuid): static
     {
         return $this->state(function (array $attributes) use ($fromUuid, $toUuid) {
-            $eventProperties = json_decode($attributes['event_properties'], true);
+            $eventProperties = $attributes['event_properties'];
             $eventProperties['fromAccount']['uuid'] = $fromUuid;
             $eventProperties['toAccount']['uuid'] = $toUuid;
 
             return [
                 'aggregate_uuid'   => $fromUuid, // Transfer aggregate is associated with source account
-                'event_properties' => json_encode($eventProperties),
+                'event_properties' => $eventProperties,
             ];
         });
     }
@@ -77,12 +77,12 @@ class TransferFactory extends Factory
     public function multiAsset(string $fromAsset, string $toAsset, float $exchangeRate): static
     {
         return $this->state(function (array $attributes) use ($fromAsset, $toAsset, $exchangeRate) {
-            $eventProperties = json_decode($attributes['event_properties'], true);
+            $eventProperties = $attributes['event_properties'];
             $fromAmount = $eventProperties['money']['amount'];
 
             return [
                 'event_class'      => 'App\\Domain\\Account\\Events\\AssetTransferred',
-                'event_properties' => json_encode([
+                'event_properties' => [
                     'fromAccount'  => $eventProperties['fromAccount'],
                     'toAccount'    => $eventProperties['toAccount'],
                     'fromAsset'    => $fromAsset,
@@ -91,7 +91,7 @@ class TransferFactory extends Factory
                     'toAmount'     => (int) round($fromAmount * $exchangeRate),
                     'exchangeRate' => $exchangeRate,
                     'hash'         => $eventProperties['hash'],
-                ]),
+                ],
             ];
         });
     }

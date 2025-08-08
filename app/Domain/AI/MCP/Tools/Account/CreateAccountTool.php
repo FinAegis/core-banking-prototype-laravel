@@ -130,6 +130,8 @@ class CreateAccountTool implements MCPToolInterface
     public function execute(array $parameters, ?string $conversationId = null): ToolExecutionResult
     {
         try {
+            Log::debug('CreateAccountTool execute called', ['parameters' => $parameters]);
+            
             // Get the user
             $user = $this->getUser($parameters['user_uuid'] ?? null);
 

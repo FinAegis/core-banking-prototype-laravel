@@ -37,14 +37,17 @@ class CreateAccountToolTest extends TestCase
         Sanctum::actingAs($this->user);
 
         // Set up MCP infrastructure
-        $this->registry = app(ToolRegistry::class);
+        $this->registry = new ToolRegistry();
         
         // Register the tool BEFORE creating the server
         $this->tool = new CreateAccountTool(app(AccountService::class));
         $this->registry->register($this->tool);
         
         // Now create the server which will pick up the registered tool
-        $this->server = app(MCPServer::class);
+        $this->server = new MCPServer(
+            $this->registry,
+            app(ResourceManager::class)
+        );
     }
 
     #[Test]
@@ -65,11 +68,23 @@ class CreateAccountToolTest extends TestCase
         // Act
         $response = $this->server->handle($request);
 
+        // Debug - see full response
+        if (!$response->isSuccess()) {
+            dump('Error:', $response->getError());
+        }
+        dump('Response data:', $response->getData());
+
         // Assert
         $this->assertTrue($response->isSuccess());
         $this->assertArrayHasKey('toolResult', $response->getData());
 
         $result = $response->getData()['toolResult'];
+        
+        // Debug to see what's in the result
+        if (!isset($result['account_uuid'])) {
+            dump('Result:', $result);
+        }
+        
         $this->assertArrayHasKey('account_uuid', $result);
         $this->assertArrayHasKey('account_number', $result);
         $this->assertEquals($accountName, $result['name']);
