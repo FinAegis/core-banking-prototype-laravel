@@ -78,6 +78,10 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $pool->quote_reserve = '200000';
         $pool->metadata = ['il_protection_enabled' => true];
         $pool->save();
+        
+        // Reload to ensure metadata is properly saved
+        $pool = LiquidityPool::where('pool_id', 'test-pool')->first();
+        $this->assertTrue($pool->metadata['il_protection_enabled'] ?? false, 'Pool metadata should be saved');
 
         // Position held for less than minimum period
         $newPosition = new LiquidityProvider();
@@ -103,6 +107,15 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $oldPosition->save();
         $oldPosition->setRelation('pool', $pool);
 
+        // Debug: check pool metadata
+        $this->assertNotNull($oldPosition->pool);
+        $this->assertTrue($oldPosition->pool->metadata['il_protection_enabled'] ?? false, 'Pool IL protection should be enabled');
+        
+        // Debug more info
+        $holdingHours = $oldPosition->created_at->diffInHours(now());
+        $this->assertGreaterThan(7 * 24, $holdingHours, 'Should have enough holding hours'); // Should be > 168 hours
+        $this->assertGreaterThan(0, $oldPosition->shares, 'Should have shares');
+        
         $this->assertTrue($this->service->isEligibleForProtection($oldPosition));
 
         // Inactive position (no shares)

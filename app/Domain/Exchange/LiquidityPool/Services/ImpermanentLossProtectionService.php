@@ -192,7 +192,7 @@ class ImpermanentLossProtectionService
     public function isEligibleForProtection(LiquidityProvider $position): bool
     {
         // Check minimum holding period
-        $holdingHours = now()->diffInHours($position->created_at);
+        $holdingHours = $position->created_at->diffInHours(now());
         if ($holdingHours < self::MIN_HOLDING_PERIOD) {
             return false;
         }
@@ -203,7 +203,8 @@ class ImpermanentLossProtectionService
         }
 
         // Check if pool has protection enabled
-        $pool = $position->pool;
+        // Load pool fresh if not already loaded
+        $pool = $position->relationLoaded('pool') ? $position->pool : $position->load('pool')->pool;
         if (! $pool || ! ($pool->metadata['il_protection_enabled'] ?? false)) {
             return false;
         }
@@ -217,7 +218,7 @@ class ImpermanentLossProtectionService
      */
     private function calculateCoverageRate(LiquidityProvider $position): BigDecimal
     {
-        $holdingDays = now()->diffInDays($position->created_at);
+        $holdingDays = $position->created_at->diffInDays(now());
 
         // Coverage increases with holding period
         // 7 days: 20% coverage
