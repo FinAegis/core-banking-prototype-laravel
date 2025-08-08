@@ -26,8 +26,18 @@ class MCPServerTest extends TestCase
     {
         parent::setUp();
 
-        // Use singleton to ensure same instance
+        // Register ToolRegistry as singleton
         $this->app->singleton(ToolRegistry::class);
+        
+        // Register MCPServer as singleton with the same ToolRegistry instance
+        $this->app->singleton(MCPServer::class, function ($app) {
+            return new MCPServer(
+                $app->make(ToolRegistry::class),
+                $app->make(\App\Domain\AI\MCP\ResourceManager::class),
+                null, // CommandBus optional for tests
+                null  // DomainEventBus optional for tests
+            );
+        });
 
         $this->registry = app(ToolRegistry::class);
         $this->server = app(MCPServer::class);

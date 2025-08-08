@@ -1,10 +1,11 @@
 {
-    "name": "yozaz/finaegis",
+    "name": "finaegis/core-banking-prototype-laravel",
     "type": "project",
     "description": "Core Banking Prototype - Educational Demonstration",
     "keywords": [
         "core banking",
-        "fintech"
+        "fintech",
+		"laravel"
     ],
     "license": "Apache-2.0",
     "repositories": [
