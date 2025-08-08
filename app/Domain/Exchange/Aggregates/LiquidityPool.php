@@ -2,6 +2,8 @@
 
 namespace App\Domain\Exchange\Aggregates;
 
+use App\Domain\Exchange\Events\ImpermanentLossProtectionClaimed;
+use App\Domain\Exchange\Events\ImpermanentLossProtectionEnabled;
 use App\Domain\Exchange\Events\LiquidityAdded;
 use App\Domain\Exchange\Events\LiquidityPoolCreated;
 use App\Domain\Exchange\Events\LiquidityPoolRebalanced;
@@ -476,5 +478,82 @@ class LiquidityPool extends AggregateRoot
     protected function applyLiquidityRewardsClaimed(LiquidityRewardsClaimed $event): void
     {
         $this->providers[$event->providerId]['pending_rewards'] = [];
+    }
+
+    public function enableImpermanentLossProtection(
+        string $protectionThreshold = '0.02',
+        string $maxCoverage = '0.80',
+        int $minHoldingPeriodHours = 168,
+        string $fundSize = '0',
+        array $metadata = []
+    ): self {
+        $this->recordThat(new ImpermanentLossProtectionEnabled(
+            poolId: $this->poolId,
+            protectionThreshold: $protectionThreshold,
+            maxCoverage: $maxCoverage,
+            minHoldingPeriodHours: $minHoldingPeriodHours,
+            fundSize: $fundSize,
+            metadata: $metadata
+        ));
+
+        return $this;
+    }
+
+    public function claimImpermanentLossProtection(
+        string $providerId,
+        string $positionId,
+        string $impermanentLoss,
+        string $impermanentLossPercent,
+        string $compensation,
+        string $compensationCurrency,
+        array $metadata = []
+    ): self {
+        if (!$this->isActive) {
+            throw new \DomainException('Cannot claim IL protection from inactive pool');
+        }
+
+        if (!isset($this->providers[$providerId])) {
+            throw new \DomainException('Provider not found in pool');
+        }
+
+        if (BigDecimal::of($compensation)->isLessThanOrEqualTo(0)) {
+            throw new \DomainException('Invalid compensation amount');
+        }
+
+        $this->recordThat(new ImpermanentLossProtectionClaimed(
+            poolId: $this->poolId,
+            providerId: $providerId,
+            positionId: $positionId,
+            impermanentLoss: $impermanentLoss,
+            impermanentLossPercent: $impermanentLossPercent,
+            compensation: $compensation,
+            compensationCurrency: $compensationCurrency,
+            metadata: $metadata
+        ));
+
+        return $this;
+    }
+
+    protected function applyImpermanentLossProtectionEnabled(ImpermanentLossProtectionEnabled $event): void
+    {
+        $this->metadata['il_protection_enabled'] = true;
+        $this->metadata['il_protection_threshold'] = $event->protectionThreshold;
+        $this->metadata['il_protection_max_coverage'] = $event->maxCoverage;
+        $this->metadata['il_protection_min_holding_hours'] = $event->minHoldingPeriodHours;
+        $this->metadata['il_protection_fund_size'] = $event->fundSize;
+    }
+
+    protected function applyImpermanentLossProtectionClaimed(ImpermanentLossProtectionClaimed $event): void
+    {
+        if (isset($this->providers[$event->providerId])) {
+            $this->providers[$event->providerId]['il_claims'] = 
+                ($this->providers[$event->providerId]['il_claims'] ?? []);
+            
+            $this->providers[$event->providerId]['il_claims'][] = [
+                'position_id' => $event->positionId,
+                'compensation' => $event->compensation,
+                'claimed_at' => now()->toIso8601String(),
+            ];
+        }
     }
 }

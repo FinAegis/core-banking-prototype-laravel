@@ -4,6 +4,7 @@ namespace App\Domain\Exchange\Services;
 
 use App\Domain\Exchange\Aggregates\LiquidityPool;
 use App\Domain\Exchange\Contracts\LiquidityPoolServiceInterface;
+use App\Domain\Exchange\LiquidityPool\Services\ImpermanentLossProtectionService;
 use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\Projections\LiquidityProvider;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
@@ -17,7 +18,8 @@ use Workflow\WorkflowStub;
 class LiquidityPoolService implements LiquidityPoolServiceInterface
 {
     public function __construct(
-        private readonly ExchangeService $exchangeService
+        private readonly ExchangeService $exchangeService,
+        private readonly ?ImpermanentLossProtectionService $ilProtectionService = null
     ) {
     }
 
@@ -269,5 +271,94 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
                 ];
             }
         );
+    }
+
+    /**
+     * Enable impermanent loss protection for a pool.
+     */
+    public function enableImpermanentLossProtection(
+        string $poolId,
+        string $protectionThreshold = '0.02',
+        string $maxCoverage = '0.80',
+        int $minHoldingPeriodHours = 168,
+        string $fundSize = '0',
+        array $metadata = []
+    ): void {
+        LiquidityPool::retrieve($poolId)
+            ->enableImpermanentLossProtection(
+                protectionThreshold: $protectionThreshold,
+                maxCoverage: $maxCoverage,
+                minHoldingPeriodHours: $minHoldingPeriodHours,
+                fundSize: $fundSize,
+                metadata: $metadata
+            )
+            ->persist();
+    }
+
+    /**
+     * Calculate impermanent loss for a position.
+     */
+    public function calculateImpermanentLoss(string $positionId): array
+    {
+        if (!$this->ilProtectionService) {
+            throw new \RuntimeException('Impermanent loss protection service not configured');
+        }
+
+        $position = LiquidityProvider::findOrFail($positionId);
+        $pool = $position->pool;
+        
+        $currentPrice = BigDecimal::of($pool->quote_reserve)
+            ->dividedBy($pool->base_reserve, 18);
+
+        return $this->ilProtectionService->calculateImpermanentLoss($position, $currentPrice);
+    }
+
+    /**
+     * Process IL protection claims for a pool.
+     */
+    public function processImpermanentLossProtectionClaims(string $poolId): Collection
+    {
+        if (!$this->ilProtectionService) {
+            throw new \RuntimeException('Impermanent loss protection service not configured');
+        }
+
+        $claims = $this->ilProtectionService->processProtectionClaims($poolId);
+        
+        // Record each claim in the aggregate
+        foreach ($claims as $claim) {
+            LiquidityPool::retrieve($poolId)
+                ->claimImpermanentLossProtection(
+                    providerId: $claim['provider_id'],
+                    positionId: $claim['position_id'],
+                    impermanentLoss: $claim['impermanent_loss'],
+                    impermanentLossPercent: $claim['impermanent_loss_percent'] ?? '0',
+                    compensation: $claim['compensation'],
+                    compensationCurrency: $claim['compensation_currency'],
+                    metadata: ['processed_at' => $claim['processed_at']]
+                )
+                ->persist();
+
+            // Execute compensation transfer
+            $this->exchangeService->transferFromPool(
+                poolId: $poolId,
+                toAccountId: $claim['provider_id'],
+                currency: $claim['compensation_currency'],
+                amount: $claim['compensation']
+            );
+        }
+
+        return $claims;
+    }
+
+    /**
+     * Get IL protection fund requirements for a pool.
+     */
+    public function getImpermanentLossProtectionFundRequirements(string $poolId): array
+    {
+        if (!$this->ilProtectionService) {
+            throw new \RuntimeException('Impermanent loss protection service not configured');
+        }
+
+        return $this->ilProtectionService->estimateProtectionFundRequirements($poolId);
     }
 }
