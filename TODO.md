@@ -71,11 +71,15 @@ Last updated: 2025-01-08 (January 2025)
   - [x] Full domain service integration
   - [x] Event sourcing workflow triggers
 
+- [x] **Exchange Tools Implemented** ✅ COMPLETED (January 2025)
+  - [x] Exchange tools: quote (QuoteTool with rate providers)
+  - [x] Exchange tools: trade (TradeTool with order execution)
+  
 - [ ] **Remaining MCP Tools** (Next Priority)
   - [ ] Account tools: create
   - [ ] Payment tools: status tracking
-  - [ ] Exchange tools: quote, trade, liquidity pools
-  - [ ] Compliance tools: KYC, AML, risk assessment
+  - [ ] Exchange tools: liquidity pools
+  - [ ] Compliance tools: KYC, AML, risk assessment (IN PROGRESS)
   - [ ] Lending tools: applications, credit scoring
   - [ ] Stablecoin tools: mint, burn, collateral management
 

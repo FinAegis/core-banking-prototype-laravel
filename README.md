@@ -57,6 +57,7 @@ The demo environment showcases all platform capabilities without real transactio
 - **Banking Tools Available**:
   - Account operations: balance, deposit, withdraw (with AccountService integration)
   - Payment operations: transfer (with TransferService workflow integration)
+  - Exchange operations: quote, trade (with ExchangeService and rate providers)
   - Full event sourcing and domain event tracking
 - **Conversation Management**: Full conversation tracking with event history
 - **Caching & Performance**: Built-in caching for tool results with TTL support
