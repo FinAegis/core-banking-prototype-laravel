@@ -81,10 +81,14 @@ Last updated: 2025-01-08 (January 2025)
   
 - [x] **Account Tools Implemented** ✅ COMPLETED (January 2025)
   - [x] Account tools: create (CreateAccountTool)
+
+- [x] **Payment Tools Implemented** ✅ COMPLETED (January 2025)
+  - [x] Payment tools: status tracking (PaymentStatusTool)
+  
+- [x] **Exchange Liquidity Tools Implemented** ✅ COMPLETED (January 2025)
+  - [x] Exchange tools: liquidity pools (LiquidityPoolTool)
   
 - [ ] **Remaining MCP Tools** (Next Priority)
-  - [ ] Payment tools: status tracking (IN PROGRESS)
-  - [ ] Exchange tools: liquidity pools
   - [ ] Lending tools: applications, credit scoring
   - [ ] Stablecoin tools: mint, burn, collateral management
 

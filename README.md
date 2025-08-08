@@ -56,8 +56,8 @@ The demo environment showcases all platform capabilities without real transactio
 - **Tool Registry**: Extensible system for exposing banking services as AI tools
 - **Banking Tools Available**:
   - Account operations: balance, deposit, withdraw, create (with AccountService integration)
-  - Payment operations: transfer (with TransferService workflow integration)
-  - Exchange operations: quote, trade (with ExchangeService and rate providers)
+  - Payment operations: transfer, status tracking (with TransferService workflow integration)
+  - Exchange operations: quote, trade, liquidity pools (with ExchangeService and AMM)
   - Compliance operations: KYC verification, AML screening (with ComplianceService integration)
   - Full event sourcing and domain event tracking
 - **Conversation Management**: Full conversation tracking with event history
