@@ -508,11 +508,11 @@ class LiquidityPool extends AggregateRoot
         string $compensationCurrency,
         array $metadata = []
     ): self {
-        if (!$this->isActive) {
+        if (! $this->isActive) {
             throw new \DomainException('Cannot claim IL protection from inactive pool');
         }
 
-        if (!isset($this->providers[$providerId])) {
+        if (! isset($this->providers[$providerId])) {
             throw new \DomainException('Provider not found in pool');
         }
 
@@ -546,13 +546,13 @@ class LiquidityPool extends AggregateRoot
     protected function applyImpermanentLossProtectionClaimed(ImpermanentLossProtectionClaimed $event): void
     {
         if (isset($this->providers[$event->providerId])) {
-            $this->providers[$event->providerId]['il_claims'] = 
+            $this->providers[$event->providerId]['il_claims'] =
                 ($this->providers[$event->providerId]['il_claims'] ?? []);
-            
+
             $this->providers[$event->providerId]['il_claims'][] = [
-                'position_id' => $event->positionId,
+                'position_id'  => $event->positionId,
                 'compensation' => $event->compensation,
-                'claimed_at' => now()->toIso8601String(),
+                'claimed_at'   => now()->toIso8601String(),
             ];
         }
     }

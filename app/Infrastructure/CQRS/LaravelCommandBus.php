@@ -27,7 +27,8 @@ class LaravelCommandBus implements CommandBus
 
     public function __construct(
         private readonly Container $container
-    ) {}
+    ) {
+    }
 
     /**
      * Dispatch a command to its handler.
@@ -35,23 +36,23 @@ class LaravelCommandBus implements CommandBus
     public function dispatch(Command $command): mixed
     {
         $commandClass = get_class($command);
-        
-        if (!isset($this->handlers[$commandClass])) {
+
+        if (! isset($this->handlers[$commandClass])) {
             throw new InvalidArgumentException("No handler registered for command: {$commandClass}");
         }
-        
+
         $handler = $this->resolveHandler($this->handlers[$commandClass]);
-        
+
         // Call the handle method on the handler
         if (is_object($handler) && method_exists($handler, 'handle')) {
             return $handler->handle($command);
         }
-        
+
         // If it's a callable, invoke it directly
         if (is_callable($handler)) {
             return $handler($command);
         }
-        
+
         throw new RuntimeException("Handler for {$commandClass} is not callable");
     }
 
@@ -69,7 +70,7 @@ class LaravelCommandBus implements CommandBus
     public function dispatchAsync(Command $command, int $delay = 0): void
     {
         $job = new AsyncCommandJob($command, get_class($command));
-        
+
         if ($delay > 0) {
             Queue::later($delay, $job);
         } else {
@@ -84,15 +85,15 @@ class LaravelCommandBus implements CommandBus
     {
         return DB::transaction(function () use ($commands) {
             $results = [];
-            
+
             foreach ($commands as $command) {
-                if (!$command instanceof Command) {
+                if (! $command instanceof Command) {
                     throw new InvalidArgumentException('All items must be Command instances');
                 }
-                
+
                 $results[] = $this->dispatch($command);
             }
-            
+
             return $results;
         });
     }
@@ -105,7 +106,7 @@ class LaravelCommandBus implements CommandBus
         if (is_string($handler)) {
             return $this->container->make($handler);
         }
-        
+
         return $handler;
     }
 }

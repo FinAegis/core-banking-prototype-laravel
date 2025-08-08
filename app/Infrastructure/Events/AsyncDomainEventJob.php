@@ -17,11 +17,15 @@ use Illuminate\Queue\SerializesModels;
  */
 class AsyncDomainEventJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public readonly DomainEvent $event
-    ) {}
+    ) {
+    }
 
     /**
      * Execute the job.

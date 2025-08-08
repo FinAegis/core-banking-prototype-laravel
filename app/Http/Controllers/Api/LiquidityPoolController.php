@@ -473,6 +473,7 @@ class LiquidityPoolController extends Controller
 
         try {
             $ilData = $this->liquidityService->calculateImpermanentLoss($positionId);
+
             return response()->json($ilData);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -507,11 +508,11 @@ class LiquidityPoolController extends Controller
         $this->middleware('auth:sanctum');
 
         $validated = $request->validate([
-            'pool_id' => 'required|uuid',
+            'pool_id'              => 'required|uuid',
             'protection_threshold' => 'nullable|numeric|min:0|max:0.1',
-            'max_coverage' => 'nullable|numeric|min:0|max:1',
-            'min_holding_hours' => 'nullable|integer|min:24',
-            'fund_size' => 'nullable|numeric|min:0',
+            'max_coverage'         => 'nullable|numeric|min:0|max:1',
+            'min_holding_hours'    => 'nullable|integer|min:24',
+            'fund_size'            => 'nullable|numeric|min:0',
         ]);
 
         try {
@@ -573,8 +574,8 @@ class LiquidityPoolController extends Controller
             $claims = $this->liquidityService->processImpermanentLossProtectionClaims($validated['pool_id']);
 
             return response()->json([
-                'success' => true,
-                'claims' => $claims,
+                'success'           => true,
+                'claims'            => $claims,
                 'total_compensated' => $claims->sum('compensation'),
             ]);
         } catch (\Exception $e) {
@@ -611,6 +612,7 @@ class LiquidityPoolController extends Controller
     {
         try {
             $requirements = $this->liquidityService->getImpermanentLossProtectionFundRequirements($poolId);
+
             return response()->json($requirements);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -652,7 +654,7 @@ class LiquidityPoolController extends Controller
     {
         try {
             $metrics = $this->liquidityService->getPoolMetrics($poolId);
-            
+
             // Add historical data (mock for now, would come from time-series DB)
             $metrics['price_history'] = [
                 ['timestamp' => now()->subDays(7)->toIso8601String(), 'price' => $metrics['spot_price']],

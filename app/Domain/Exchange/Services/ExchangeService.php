@@ -260,7 +260,7 @@ class ExchangeService implements ExchangeServiceInterface
         // 2. Credit to recipient account
         // 3. Record the transfer event
         // For now, we'll use the transfer service
-        
+
         // @todo Implement proper pool fund management
         $this->transferService->createTransfer(
             fromAccountId: "pool_{$poolId}", // Pool account ID
@@ -269,7 +269,7 @@ class ExchangeService implements ExchangeServiceInterface
             amount: $amount,
             type: 'pool_distribution',
             metadata: [
-                'pool_id' => $poolId,
+                'pool_id'           => $poolId,
                 'distribution_type' => 'il_protection',
             ]
         );
@@ -294,7 +294,7 @@ class ExchangeService implements ExchangeServiceInterface
         // 3. Deduct output from pool reserves
         // 4. Credit output to user account
         // 5. Record fee collection
-        
+
         // @todo Implement proper pool swap execution
         // For now, we'll simulate with transfers
         $this->transferService->createTransfer(
@@ -304,11 +304,11 @@ class ExchangeService implements ExchangeServiceInterface
             amount: $inputAmount,
             type: 'pool_swap_in',
             metadata: [
-                'pool_id' => $poolId,
+                'pool_id'   => $poolId,
                 'swap_type' => 'input',
             ]
         );
-        
+
         $this->transferService->createTransfer(
             fromAccountId: "pool_{$poolId}",
             toAccountId: $accountId,
@@ -316,8 +316,8 @@ class ExchangeService implements ExchangeServiceInterface
             amount: $outputAmount,
             type: 'pool_swap_out',
             metadata: [
-                'pool_id' => $poolId,
-                'swap_type' => 'output',
+                'pool_id'    => $poolId,
+                'swap_type'  => 'output',
                 'fee_amount' => $feeAmount,
             ]
         );

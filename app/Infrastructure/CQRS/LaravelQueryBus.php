@@ -27,7 +27,8 @@ class LaravelQueryBus implements QueryBus
     public function __construct(
         private readonly Container $container,
         private readonly CacheRepository $cache
-    ) {}
+    ) {
+    }
 
     /**
      * Ask a query and get the result.
@@ -35,23 +36,23 @@ class LaravelQueryBus implements QueryBus
     public function ask(Query $query): mixed
     {
         $queryClass = get_class($query);
-        
-        if (!isset($this->handlers[$queryClass])) {
+
+        if (! isset($this->handlers[$queryClass])) {
             throw new InvalidArgumentException("No handler registered for query: {$queryClass}");
         }
-        
+
         $handler = $this->resolveHandler($this->handlers[$queryClass]);
-        
+
         // Call the handle method on the handler
         if (is_object($handler) && method_exists($handler, 'handle')) {
             return $handler->handle($query);
         }
-        
+
         // If it's a callable, invoke it directly
         if (is_callable($handler)) {
             return $handler($query);
         }
-        
+
         throw new RuntimeException("Handler for {$queryClass} is not callable");
     }
 
@@ -69,7 +70,7 @@ class LaravelQueryBus implements QueryBus
     public function askCached(Query $query, int $ttl = 3600): mixed
     {
         $cacheKey = $this->getCacheKey($query);
-        
+
         return $this->cache->remember($cacheKey, $ttl, function () use ($query) {
             return $this->ask($query);
         });
@@ -83,15 +84,15 @@ class LaravelQueryBus implements QueryBus
     public function askMultiple(array $queries): array
     {
         $results = [];
-        
+
         foreach ($queries as $key => $query) {
-            if (!$query instanceof Query) {
+            if (! $query instanceof Query) {
                 throw new InvalidArgumentException('All items must be Query instances');
             }
-            
+
             $results[$key] = $this->ask($query);
         }
-        
+
         return $results;
     }
 
@@ -103,7 +104,7 @@ class LaravelQueryBus implements QueryBus
         if (is_string($handler)) {
             return $this->container->make($handler);
         }
-        
+
         return $handler;
     }
 
@@ -114,7 +115,7 @@ class LaravelQueryBus implements QueryBus
     {
         $class = get_class($query);
         $data = serialize($query);
-        
+
         return 'query:' . md5($class . ':' . $data);
     }
 }

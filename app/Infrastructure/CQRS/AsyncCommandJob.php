@@ -17,12 +17,16 @@ use Illuminate\Queue\SerializesModels;
  */
 class AsyncCommandJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public readonly Command $command,
         public readonly string $commandClass
-    ) {}
+    ) {
+    }
 
     /**
      * Execute the job.

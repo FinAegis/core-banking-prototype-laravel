@@ -33,7 +33,8 @@ class LaravelDomainEventBus implements DomainEventBus
     public function __construct(
         private readonly Dispatcher $dispatcher,
         private readonly Container $container
-    ) {}
+    ) {
+    }
 
     /**
      * Publish a domain event.
@@ -41,14 +42,14 @@ class LaravelDomainEventBus implements DomainEventBus
     public function publish(DomainEvent $event): void
     {
         $eventClass = get_class($event);
-        
+
         // First, dispatch to Laravel's event system for compatibility
         $this->dispatcher->dispatch($event);
-        
+
         // Then, dispatch to registered domain handlers
         if (isset($this->handlers[$eventClass])) {
             $handlers = $this->sortHandlersByPriority($this->handlers[$eventClass]);
-            
+
             foreach ($handlers as $handler) {
                 $this->invokeHandler($handler['handler'], $event);
             }
@@ -61,10 +62,10 @@ class LaravelDomainEventBus implements DomainEventBus
     public function publishMultiple(array $events): void
     {
         foreach ($events as $event) {
-            if (!$event instanceof DomainEvent) {
+            if (! $event instanceof DomainEvent) {
                 throw new \InvalidArgumentException('All items must be DomainEvent instances');
             }
-            
+
             $this->publish($event);
         }
     }
@@ -74,15 +75,15 @@ class LaravelDomainEventBus implements DomainEventBus
      */
     public function subscribe(string $eventClass, callable|string $handler, int $priority = 0): void
     {
-        if (!isset($this->handlers[$eventClass])) {
+        if (! isset($this->handlers[$eventClass])) {
             $this->handlers[$eventClass] = [];
         }
-        
+
         $this->handlers[$eventClass][] = [
-            'handler' => $handler,
+            'handler'  => $handler,
             'priority' => $priority,
         ];
-        
+
         // Also register with Laravel's event system if it's a class handler
         if (is_string($handler)) {
             $this->dispatcher->listen($eventClass, $handler);
@@ -94,15 +95,15 @@ class LaravelDomainEventBus implements DomainEventBus
      */
     public function unsubscribe(string $eventClass, callable|string $handler): void
     {
-        if (!isset($this->handlers[$eventClass])) {
+        if (! isset($this->handlers[$eventClass])) {
             return;
         }
-        
+
         $this->handlers[$eventClass] = array_filter(
             $this->handlers[$eventClass],
-            fn($item) => $item['handler'] !== $handler
+            fn ($item) => $item['handler'] !== $handler
         );
-        
+
         // Also unregister from Laravel's event system if needed
         if (is_string($handler)) {
             $this->dispatcher->forget($eventClass);
@@ -115,7 +116,7 @@ class LaravelDomainEventBus implements DomainEventBus
     public function publishAsync(DomainEvent $event, int $delay = 0): void
     {
         $job = new AsyncDomainEventJob($event);
-        
+
         if ($delay > 0) {
             Queue::later($delay, $job);
         } else {
@@ -162,7 +163,7 @@ class LaravelDomainEventBus implements DomainEventBus
     {
         $events = $this->recordedEvents;
         $this->recordedEvents = [];
-        
+
         foreach ($events as $event) {
             $this->publish($event);
         }
@@ -181,12 +182,12 @@ class LaravelDomainEventBus implements DomainEventBus
      */
     public function getSubscribers(string $eventClass): array
     {
-        if (!isset($this->handlers[$eventClass])) {
+        if (! isset($this->handlers[$eventClass])) {
             return [];
         }
-        
+
         return array_map(
-            fn($item) => $item['handler'],
+            fn ($item) => $item['handler'],
             $this->sortHandlersByPriority($this->handlers[$eventClass])
         );
     }
@@ -196,7 +197,8 @@ class LaravelDomainEventBus implements DomainEventBus
      */
     private function sortHandlersByPriority(array $handlers): array
     {
-        usort($handlers, fn($a, $b) => $b['priority'] <=> $a['priority']);
+        usort($handlers, fn ($a, $b) => $b['priority'] <=> $a['priority']);
+
         return $handlers;
     }
 
@@ -208,7 +210,7 @@ class LaravelDomainEventBus implements DomainEventBus
         if (is_string($handler)) {
             $handler = $this->container->make($handler);
         }
-        
+
         if (is_object($handler) && method_exists($handler, 'handle')) {
             $handler->handle($event);
         } elseif (is_callable($handler)) {

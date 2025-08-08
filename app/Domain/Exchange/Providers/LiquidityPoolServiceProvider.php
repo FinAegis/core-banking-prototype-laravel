@@ -16,7 +16,7 @@ class LiquidityPoolServiceProvider extends ServiceProvider
         // Register repositories
         $this->app->singleton(LiquidityPoolEventRepository::class);
         $this->app->singleton(LiquidityPoolSnapshotRepository::class);
-        
+
         // Register IL protection service
         $this->app->singleton(ImpermanentLossProtectionService::class);
     }

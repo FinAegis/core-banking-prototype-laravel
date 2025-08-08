@@ -56,11 +56,11 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $this->assertEquals($position->id, $result['position_id']);
         $this->assertEquals('2000', $result['entry_price']);
         $this->assertEquals('4000', $result['current_price']);
-        
+
         // Verify IL is positive (loss occurred)
         $il = BigDecimal::of($result['impermanent_loss']);
         $this->assertTrue($il->isGreaterThan(0));
-        
+
         // Verify IL percentage is reasonable (should be around 5.7% for 2x price change)
         $ilPercent = BigDecimal::of($result['impermanent_loss_percent']);
         $this->assertTrue($ilPercent->isGreaterThan(5));
@@ -156,7 +156,7 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         // 3% * 40% coverage = 1.2% compensation
         $this->assertStringContainsString('3', $compensation['excess_loss']);
         $this->assertStringContainsString('40', $compensation['coverage_rate']);
-        
+
         // 180-day position gets 80% coverage
         $position180Days = new LiquidityProvider();
         $position180Days->pool_id = $pool->pool_id;
