@@ -28,7 +28,7 @@ class MCPServerTest extends TestCase
 
         // Register ToolRegistry as singleton
         $this->app->singleton(ToolRegistry::class);
-        
+
         // Register MCPServer as singleton with the same ToolRegistry instance
         $this->app->singleton(MCPServer::class, function ($app) {
             return new MCPServer(
