@@ -28,45 +28,63 @@ Last updated: 2025-01-08 (January 2025)
 
 ## 📋 Current Priorities
 
-### 🔴 URGENT - AI Agent Framework Implementation
+### 🔴 URGENT - AI Agent Framework Implementation (DDD + Event Sourcing)
 
-#### Phase 1: Foundation (Week 1-2)
+#### Phase 1: Foundation - MCP Server & Domain Structure (Week 1)
+- [ ] **Domain-Driven Design Structure**
+  - [ ] Create `app/Domain/AI/` directory with DDD patterns
+  - [ ] Implement `AIAggregate` for event sourcing
+  - [ ] Create domain events: `AIDecisionMadeEvent`, `ToolExecutedEvent`
+  - [ ] Add projectors for AI interaction history
+  - [ ] Design sagas for multi-step AI operations
+
 - [ ] **MCP Server Implementation**
-  - [ ] Create `app/AI/MCP/MCPServer.php` base implementation
-  - [ ] Implement tool registry and discovery
-  - [ ] Add MCP protocol handlers
-  - [ ] Create resource exposure layer
+  - [ ] Create `app/Domain/AI/MCP/MCPServer.php` with event sourcing
+  - [ ] Implement `ToolRegistry` with service discovery
+  - [ ] Add MCP protocol handlers following CQRS pattern
+  - [ ] Create resource exposure layer with read models
+  - [ ] Implement authentication middleware
 
-- [ ] **AI Service Layer**
-  - [ ] Design `AIAgentInterface` and base contracts
-  - [ ] Create `app/AI/Agents/` directory structure
-  - [ ] Implement context management system
-  - [ ] Add conversation memory store (Redis)
+- [ ] **Infrastructure Layer**
+  - [ ] Create `app/Infrastructure/AI/` for external integrations
+  - [ ] Implement OpenAI/Claude API connectors
+  - [ ] Add Redis-based conversation store
+  - [ ] Set up vector database connector (Pinecone/Weaviate)
 
-- [ ] **Vector Database Integration**
-  - [ ] Set up Pinecone/Weaviate for semantic search
-  - [ ] Create embedding service for financial data
-  - [ ] Implement RAG (Retrieval Augmented Generation)
-  - [ ] Add context window management
+#### Phase 2: Tool Registry & Service Exposure (Week 2)
+- [ ] **Tool Registry Implementation**
+  - [ ] Create `MCPToolInterface` with schema validation
+  - [ ] Build tool discovery and registration system
+  - [ ] Implement tool execution with event tracking
+  - [ ] Add performance monitoring and caching
 
-#### Phase 2: Core Agents (Week 3-4)
+- [ ] **Expose Existing Services as MCP Tools**
+  - [ ] Account tools: create, balance, deposit, withdraw
+  - [ ] Payment tools: transfer, status tracking
+  - [ ] Exchange tools: quote, trade, liquidity pools
+  - [ ] Compliance tools: KYC, AML, risk assessment
+  - [ ] Lending tools: applications, credit scoring
+  - [ ] Stablecoin tools: mint, burn, collateral management
+
+#### Phase 3: Agent Implementation with Workflows (Week 3)
 - [ ] **Customer Service Agent**
-  - [ ] Natural language query processing
-  - [ ] Account operations via existing services
-  - [ ] Transaction history analysis
-  - [ ] FAQ and knowledge base integration
+  - [ ] Implement as Laravel Workflow with activities
+  - [ ] Natural language processing via infrastructure layer
+  - [ ] Intent classification with confidence scoring
+  - [ ] Context management using domain events
+  - [ ] Integration with existing read models
 
 - [ ] **Compliance Agent**
-  - [ ] KYC/AML automation
-  - [ ] Transaction monitoring
-  - [ ] Regulatory reporting assistance
-  - [ ] Risk assessment integration
+  - [ ] Create `ComplianceWorkflow` for multi-step checks
+  - [ ] KYC/AML automation with saga pattern
+  - [ ] Transaction monitoring with event streaming
+  - [ ] Regulatory reporting with compensations
 
 - [ ] **Risk Assessment Agent**
-  - [ ] Portfolio risk analysis
-  - [ ] Credit scoring integration
-  - [ ] Fraud detection patterns
-  - [ ] Alert generation system
+  - [ ] Implement `RiskAssessmentSaga` for portfolio analysis
+  - [ ] Credit scoring via existing `CreditScoringService`
+  - [ ] Fraud detection using behavioral patterns
+  - [ ] Alert generation through domain events
 
 #### Phase 3: Website & Documentation Update
 - [ ] **Website Content Updates**

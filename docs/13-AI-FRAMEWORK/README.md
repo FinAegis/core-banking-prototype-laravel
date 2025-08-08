@@ -125,27 +125,44 @@ class AIApprovalWorkflow
 composer require openai-php/laravel
 composer require langchain/langchain-php
 
-# Set up MCP server
-php artisan ai:mcp-server:init
+# Run migrations for AI tables
+php artisan migrate --path=database/migrations/ai
+
+# Register AI service provider
+php artisan vendor:publish --provider="App\Providers\AIServiceProvider"
 
 # Configure AI services
-php artisan ai:configure
+cp .env.ai.example .env
+php artisan config:cache
 ```
 
 ### Basic Usage
 
 ```php
-// Natural language account operation
-$agent = app(CustomerServiceAgent::class);
-$response = $agent->process("What's my account balance?");
+// Using MCP Server directly
+use App\Domain\AI\ValueObjects\MCPRequest;
 
-// Compliance check
-$complianceAgent = app(ComplianceAgent::class);
-$result = $complianceAgent->checkTransaction($transaction);
+$mcpServer = app(\App\Domain\AI\MCP\MCPServer::class);
+$request = MCPRequest::create('tools/call', [
+    'name' => 'account.balance',
+    'arguments' => ['account_uuid' => $accountId]
+]);
+$response = $mcpServer->handle($request);
 
-// Risk assessment
-$riskAgent = app(RiskAssessmentAgent::class);
-$risk = $riskAgent->assessPortfolio($portfolio);
+// Using Customer Service Workflow
+use Workflow\WorkflowStub;
+use App\Domain\AI\Workflows\CustomerServiceWorkflow;
+
+$workflow = WorkflowStub::make(CustomerServiceWorkflow::class);
+$result = $workflow->start(
+    conversationId: Str::uuid(),
+    query: "What's my account balance?",
+    userId: auth()->id()
+);
+
+// Using pre-configured agents
+$agent = app(\App\Domain\AI\Agents\CustomerServiceAgent::class);
+$response = $agent->process("Transfer $100 to John");
 ```
 
 ## 📚 Documentation
