@@ -11,6 +11,7 @@ use App\Domain\AI\MCP\Tools\Account\AccountBalanceTool;
 use App\Domain\AI\ValueObjects\MCPRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MCPServerTest extends TestCase
@@ -29,7 +30,7 @@ class MCPServerTest extends TestCase
         $this->server = app(MCPServer::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_initialize_mcp_server()
     {
         $request = MCPRequest::create('initialize', []);
@@ -42,12 +43,15 @@ class MCPServerTest extends TestCase
         $this->assertArrayHasKey('serverInfo', $response->getData());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_list_available_tools()
     {
         // Register a test tool
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
+        
+        // Verify tool was registered
+        $this->assertTrue($this->registry->has('account.balance'));
 
         $request = MCPRequest::create('tools/list', []);
 
@@ -67,7 +71,7 @@ class MCPServerTest extends TestCase
         $this->assertArrayHasKey('outputSchema', $accountTool);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_execute_account_balance_tool()
     {
         $user = User::factory()->create();
@@ -100,7 +104,7 @@ class MCPServerTest extends TestCase
         $this->assertArrayHasKey('balances', $result);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_tool_input_schema()
     {
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
@@ -120,7 +124,7 @@ class MCPServerTest extends TestCase
         $this->assertStringContainsString('validation', strtolower($response->getError()));
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_missing_required_parameters()
     {
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
@@ -137,7 +141,7 @@ class MCPServerTest extends TestCase
         $this->assertStringContainsString('required', strtolower($response->getError()));
     }
 
-    /** @test */
+    #[Test]
     public function it_tracks_conversation_context()
     {
         $conversationId = 'test-conversation-123';
@@ -155,7 +159,7 @@ class MCPServerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_records_tool_execution_in_event_store()
     {
         $user = User::factory()->create();
@@ -187,7 +191,7 @@ class MCPServerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_tool_not_found_error()
     {
         $request = MCPRequest::create('tools/call', [
@@ -201,7 +205,7 @@ class MCPServerTest extends TestCase
         $this->assertStringContainsString('not found', strtolower($response->getError()));
     }
 
-    /** @test */
+    #[Test]
     public function it_caches_tool_results_when_cacheable()
     {
         $user = User::factory()->create();
@@ -234,7 +238,7 @@ class MCPServerTest extends TestCase
         $this->assertTrue($response2->getData()['metadata']['cache_hit']);
     }
 
-    /** @test */
+    #[Test]
     public function it_provides_prompts_list()
     {
         $request = MCPRequest::create('prompts/list', []);
@@ -253,7 +257,7 @@ class MCPServerTest extends TestCase
         $this->assertArrayHasKey('arguments', $balancePrompt);
     }
 
-    /** @test */
+    #[Test]
     public function it_measures_tool_execution_performance()
     {
         $user = User::factory()->create();

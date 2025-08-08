@@ -30,9 +30,9 @@ class MCPServer implements MCPServerInterface
         private readonly ToolRegistry $toolRegistry,
         private readonly ResourceManager $resourceManager,
         /** @phpstan-ignore-next-line */
-        private readonly CommandBus $commandBus,
+        private readonly ?CommandBus $commandBus = null,
         /** @phpstan-ignore-next-line */
-        private readonly DomainEventBus $eventBus
+        private readonly ?DomainEventBus $eventBus = null
     ) {
         $this->initializeServer();
     }
@@ -112,15 +112,21 @@ class MCPServer implements MCPServerInterface
 
     private function handleToolsList(MCPRequest $request): MCPResponse
     {
+        // Get fresh tools from registry
+        $this->tools = $this->toolRegistry->getAllTools();
+        
         $tools = [];
 
         foreach ($this->tools as $name => $tool) {
-            $tools[] = [
-                'name'         => $name,
-                'description'  => $tool->getDescription(),
-                'inputSchema'  => $tool->getInputSchema(),
-                'outputSchema' => $tool->getOutputSchema(),
-            ];
+            // Handle both tool objects and null values
+            if ($tool instanceof MCPToolInterface) {
+                $tools[] = [
+                    'name'         => $tool->getName(),
+                    'description'  => $tool->getDescription(),
+                    'inputSchema'  => $tool->getInputSchema(),
+                    'outputSchema' => $tool->getOutputSchema(),
+                ];
+            }
         }
 
         // Cache the tools list for performance
@@ -134,6 +140,9 @@ class MCPServer implements MCPServerInterface
         $params = $request->getParams();
         $toolName = $params['name'] ?? throw new MCPException('Tool name is required');
         $arguments = $params['arguments'] ?? [];
+
+        // Get fresh tools from registry
+        $this->tools = $this->toolRegistry->getAllTools();
 
         // Check if tool exists
         if (! isset($this->tools[$toolName])) {

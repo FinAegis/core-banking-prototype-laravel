@@ -216,6 +216,14 @@ return [
         'aml_screening_match_status_updated' => App\Domain\Compliance\Events\AmlScreeningMatchStatusUpdated::class,
         'aml_screening_completed'            => App\Domain\Compliance\Events\AmlScreeningCompleted::class,
         'aml_screening_reviewed'             => App\Domain\Compliance\Events\AmlScreeningReviewed::class,
+
+        // AI Agent Framework events
+        'ai_conversation_started' => App\Domain\AI\Events\ConversationStartedEvent::class,
+        'ai_conversation_ended'   => App\Domain\AI\Events\ConversationEndedEvent::class,
+        'ai_agent_created'        => App\Domain\AI\Events\AgentCreatedEvent::class,
+        'ai_decision_made'        => App\Domain\AI\Events\AIDecisionMadeEvent::class,
+        'ai_intent_classified'    => App\Domain\AI\Events\IntentClassifiedEvent::class,
+        'ai_tool_executed'        => App\Domain\AI\Events\ToolExecutedEvent::class,
     ],
 
     /*
