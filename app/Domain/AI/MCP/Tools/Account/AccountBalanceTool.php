@@ -210,18 +210,18 @@ class AccountBalanceTool implements MCPToolInterface
             return false;
         }
 
-        // Check ownership
-        if ($account->user_id === $user->id) {
+        // Check ownership via user_uuid
+        if ($account->user_uuid === $user->uuid) {
             return true;
         }
 
         // Check team membership if applicable
-        if ($account->team_id && $user->belongsToTeam($account->team)) {
+        if ($account->team_id && method_exists($user, 'belongsToTeam') && $user->belongsToTeam($account->team)) {
             return true;
         }
 
         // Check for admin permission
-        if ($user->hasRole('admin')) {
+        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
             return true;
         }
 

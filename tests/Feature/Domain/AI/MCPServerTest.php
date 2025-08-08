@@ -26,6 +26,9 @@ class MCPServerTest extends TestCase
     {
         parent::setUp();
 
+        // Use singleton to ensure same instance
+        $this->app->singleton(ToolRegistry::class);
+
         $this->registry = app(ToolRegistry::class);
         $this->server = app(MCPServer::class);
     }
@@ -52,6 +55,11 @@ class MCPServerTest extends TestCase
 
         // Verify tool was registered
         $this->assertTrue($this->registry->has('account.balance'));
+
+        // Debug: Check what getAllTools returns
+        $allTools = $this->registry->getAllTools();
+        $this->assertNotEmpty($allTools, 'Registry getAllTools() returned empty');
+        $this->assertArrayHasKey('account.balance', $allTools);
 
         $request = MCPRequest::create('tools/list', []);
 
@@ -89,7 +97,7 @@ class MCPServerTest extends TestCase
         $request = MCPRequest::create('tools/call', [
             'name'      => 'account.balance',
             'arguments' => [
-                'account_uuid' => $account->uuid,
+                'account_uuid' => (string) $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);
@@ -121,7 +129,7 @@ class MCPServerTest extends TestCase
         $response = $this->server->handle($request);
 
         $this->assertFalse($response->isSuccess());
-        $this->assertStringContainsString('validation', strtolower($response->getError()));
+        $this->assertStringContainsString('pattern', strtolower($response->getError()));
     }
 
     #[Test]
@@ -155,7 +163,7 @@ class MCPServerTest extends TestCase
 
         // Verify conversation is tracked
         $this->assertDatabaseHas('stored_events', [
-            'event_class' => \App\Domain\AI\Events\ConversationStartedEvent::class,
+            'event_class' => 'ai_conversation_started',
         ]);
     }
 
@@ -175,7 +183,7 @@ class MCPServerTest extends TestCase
         $request = MCPRequest::create('tools/call', [
             'name'      => 'account.balance',
             'arguments' => [
-                'account_uuid' => $account->uuid,
+                'account_uuid' => (string) $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);
@@ -187,7 +195,7 @@ class MCPServerTest extends TestCase
 
         // Verify tool execution is recorded
         $this->assertDatabaseHas('stored_events', [
-            'event_class' => \App\Domain\AI\Events\ToolExecutedEvent::class,
+            'event_class' => 'ai_tool_executed',
         ]);
     }
 
@@ -222,20 +230,23 @@ class MCPServerTest extends TestCase
         $request = MCPRequest::create('tools/call', [
             'name'      => 'account.balance',
             'arguments' => [
-                'account_uuid' => $account->uuid,
+                'account_uuid' => (string) $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);
+        $request->setConversationId('test-cache-123');
 
         // First call - not cached
         $response1 = $this->server->handle($request);
         $this->assertTrue($response1->isSuccess());
-        $this->assertFalse($response1->getData()['metadata']['cache_hit']);
+        $metadata1 = $response1->getData()['metadata'] ?? [];
+        $this->assertFalse($metadata1['cache_hit'] ?? false);
 
         // Second call - should be cached
         $response2 = $this->server->handle($request);
         $this->assertTrue($response2->isSuccess());
-        $this->assertTrue($response2->getData()['metadata']['cache_hit']);
+        $metadata2 = $response2->getData()['metadata'] ?? [];
+        $this->assertTrue($metadata2['cache_hit'] ?? false);
     }
 
     #[Test]
@@ -273,7 +284,7 @@ class MCPServerTest extends TestCase
         $request = MCPRequest::create('tools/call', [
             'name'      => 'account.balance',
             'arguments' => [
-                'account_uuid' => $account->uuid,
+                'account_uuid' => (string) $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);

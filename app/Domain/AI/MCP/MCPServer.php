@@ -130,7 +130,9 @@ class MCPServer implements MCPServerInterface
         }
 
         // Cache the tools list for performance
-        Cache::put("mcp:tools:list:{$this->currentConversationId}", $tools, 300);
+        if ($this->currentConversationId) {
+            Cache::put("mcp:tools:list:{$this->currentConversationId}", $tools, 300);
+        }
 
         return MCPResponse::success(['tools' => $tools]);
     }
@@ -362,7 +364,8 @@ class MCPServer implements MCPServerInterface
 
         // Pattern validation
         if (isset($rules['pattern']) && is_string($value)) {
-            if (! preg_match($rules['pattern'], $value)) {
+            $pattern = '/' . str_replace('/', '\\/', $rules['pattern']) . '/';
+            if (! preg_match($pattern, $value)) {
                 throw new MCPException("Field {$field} does not match required pattern");
             }
         }
@@ -441,7 +444,8 @@ class MCPServer implements MCPServerInterface
                 'messages' => [
                     [
                         'role'    => 'system',
-                        'content' => 'You are a helpful banking assistant. Provide account balance information clearly.',
+                        'content' => 'You are a helpful banking assistant. ' .
+                                     'Provide account balance information clearly.',
                     ],
                     [
                         'role'    => 'user',
