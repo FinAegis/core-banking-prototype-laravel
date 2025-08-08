@@ -54,11 +54,14 @@ The demo environment showcases all platform capabilities without real transactio
 - **MCP Server Implemented**: Full Model Context Protocol server with tool registry
 - **Event-Driven AI**: Every AI decision tracked via event sourcing (`AIInteractionAggregate`)
 - **Tool Registry**: Extensible system for exposing banking services as AI tools
+- **Banking Tools Available**:
+  - Account operations: balance, deposit, withdraw (with AccountService integration)
+  - Payment operations: transfer (with TransferService workflow integration)
+  - Full event sourcing and domain event tracking
 - **Conversation Management**: Full conversation tracking with event history
 - **Caching & Performance**: Built-in caching for tool results with TTL support
 - **Resource Manager**: Expose data and documents as MCP resources
 - **CustomerServiceWorkflow**: Laravel Workflow-based AI agent orchestration
-- **Available Tools**: Account balance queries with more coming soon
 
 ### Domain-Driven Design (DDD)
 - **25+ Bounded Contexts**: Account, Exchange, Stablecoin, Lending, Wallet, and more
@@ -393,12 +396,12 @@ app/Domain/
 - Default management and recovery
 - Collateralized and uncollateralized loans
 
-### AI Agent Framework
+### AI Agent Framework (MCP Implementation)
 - **MCP Server**: Full Model Context Protocol implementation for AI integrations
 - **Tool Registry**: Dynamic registration and discovery of banking tools
 - **Conversation Management**: Event-sourced conversation tracking
 - **CustomerServiceWorkflow**: AI-powered customer service automation
-- **Banking Tools**: Account balance, transfers, KYC (more coming)
+- **Banking Tools**: Account operations (balance, deposit, withdraw), transfers
 - **Resource Exposure**: Documents and data available as MCP resources
 - **Performance**: Built-in caching with configurable TTL
 - **Event Tracking**: Every AI decision recorded for audit and compliance
