@@ -10,7 +10,6 @@ use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Payment\Services\TransferService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TransferTool implements MCPToolInterface
@@ -80,19 +79,19 @@ class TransferTool implements MCPToolInterface
         return [
             'type'       => 'object',
             'properties' => [
-                'transfer_id'           => ['type' => 'string'],
-                'from_account_uuid'     => ['type' => 'string'],
-                'to_account_uuid'       => ['type' => 'string'],
-                'amount'                => ['type' => 'number'],
-                'currency'              => ['type' => 'string'],
-                'from_new_balance'      => ['type' => 'number'],
-                'to_new_balance'        => ['type' => 'number'],
+                'transfer_id'            => ['type' => 'string'],
+                'from_account_uuid'      => ['type' => 'string'],
+                'to_account_uuid'        => ['type' => 'string'],
+                'amount'                 => ['type' => 'number'],
+                'currency'               => ['type' => 'string'],
+                'from_new_balance'       => ['type' => 'number'],
+                'to_new_balance'         => ['type' => 'number'],
                 'formatted_from_balance' => ['type' => 'string'],
                 'formatted_to_balance'   => ['type' => 'string'],
-                'timestamp'             => ['type' => 'string'],
-                'reference'             => ['type' => 'string'],
-                'status'                => ['type' => 'string'],
-                'fee'                   => ['type' => 'number'],
+                'timestamp'              => ['type' => 'string'],
+                'reference'              => ['type' => 'string'],
+                'status'                 => ['type' => 'string'],
+                'fee'                    => ['type' => 'number'],
             ],
         ];
     }
@@ -155,40 +154,22 @@ class TransferTool implements MCPToolInterface
             // Calculate fee (example: 0.1% of transfer amount, minimum 10 cents)
             $fee = max(10, (int) ($amountInCents * 0.001));
 
-            // Perform transfer in a transaction
-            $result = DB::transaction(function () use (
-                $fromAccount,
-                $toAccount,
-                $amountInCents,
-                $currency,
-                $reference,
-                $description,
-                $fee
-            ) {
-                // Use the transfer service for atomic transfer
-                $this->transferService->transfer(
-                    $fromAccount,
-                    $toAccount,
-                    $amountInCents,
-                    $currency,
-                    [
-                        'reference'   => $reference,
-                        'description' => $description,
-                        'channel'     => 'mcp_api',
-                        'fee'         => $fee,
-                    ]
-                );
+            // Use TransferService to trigger the transfer workflow
+            // This will handle event sourcing and domain events
+            $this->transferService->transfer($fromAccountUuid, $toAccountUuid, [
+                'amount' => $amountInCents,
+                'currency' => $currency,
+            ]);
 
-                // Get new balances
-                $fromNewBalance = $fromAccount->fresh()->getBalance($currency);
-                $toNewBalance = $toAccount->fresh()->getBalance($currency);
+            // After workflow execution, get the new balances
+            $fromNewBalance = $fromAccount->fresh()->getBalance($currency);
+            $toNewBalance = $toAccount->fresh()->getBalance($currency);
 
-                return [
-                    'transfer_id'     => \Illuminate\Support\Str::uuid()->toString(),
-                    'from_new_balance' => $fromNewBalance,
-                    'to_new_balance'   => $toNewBalance,
-                ];
-            });
+            $result = [
+                'transfer_id'      => \Illuminate\Support\Str::uuid()->toString(),
+                'from_new_balance' => $fromNewBalance,
+                'to_new_balance'   => $toNewBalance,
+            ];
 
             $response = [
                 'transfer_id'            => $result['transfer_id'],

@@ -10,7 +10,6 @@ use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class DepositTool implements MCPToolInterface
@@ -75,15 +74,15 @@ class DepositTool implements MCPToolInterface
         return [
             'type'       => 'object',
             'properties' => [
-                'transaction_id' => ['type' => 'string'],
-                'account_uuid'   => ['type' => 'string'],
-                'amount'         => ['type' => 'number'],
-                'currency'       => ['type' => 'string'],
-                'new_balance'    => ['type' => 'number'],
+                'transaction_id'    => ['type' => 'string'],
+                'account_uuid'      => ['type' => 'string'],
+                'amount'            => ['type' => 'number'],
+                'currency'          => ['type' => 'string'],
+                'new_balance'       => ['type' => 'number'],
                 'formatted_balance' => ['type' => 'string'],
-                'timestamp'      => ['type' => 'string'],
-                'reference'      => ['type' => 'string'],
-                'status'         => ['type' => 'string'],
+                'timestamp'         => ['type' => 'string'],
+                'reference'         => ['type' => 'string'],
+                'status'            => ['type' => 'string'],
             ],
         ];
     }
@@ -122,26 +121,23 @@ class DepositTool implements MCPToolInterface
                 return ToolExecutionResult::failure("Invalid currency: {$currency}");
             }
 
-            // Perform deposit in a transaction
-            $result = DB::transaction(function () use ($account, $amount, $currency, $reference, $source) {
-                // Convert amount to smallest unit (e.g., cents)
-                $amountInCents = (int) ($amount * 100);
+            // Convert amount to smallest unit (e.g., cents)
+            $amountInCents = (int) ($amount * 100);
 
-                // Add money to account
-                $account->addMoney($amountInCents, $currency, [
-                    'reference' => $reference,
-                    'source'    => $source,
-                    'channel'   => 'mcp_api',
-                ]);
+            // Use AccountService to trigger the deposit workflow
+            // This will handle event sourcing and domain events
+            $this->accountService->deposit($accountUuid, [
+                'amount' => $amountInCents,
+                'currency' => $currency,
+            ]);
 
-                // Get new balance
-                $newBalance = $account->getBalance($currency);
+            // After workflow execution, get the new balance
+            $newBalance = $account->fresh()->getBalance($currency);
 
-                return [
-                    'transaction_id' => \Illuminate\Support\Str::uuid()->toString(),
-                    'new_balance'    => $newBalance,
-                ];
-            });
+            $result = [
+                'transaction_id' => \Illuminate\Support\Str::uuid()->toString(),
+                'new_balance'    => $newBalance,
+            ];
 
             $response = [
                 'transaction_id'    => $result['transaction_id'],
