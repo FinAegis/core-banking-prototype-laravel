@@ -44,11 +44,13 @@ class PaymentStatusToolTest extends TestCase
 
         // Set up MCP infrastructure
         $this->registry = app(ToolRegistry::class);
-        $this->server = app(MCPServer::class);
-
-        // Register the tool
+        
+        // Register the tool BEFORE creating the server
         $this->tool = new PaymentStatusTool();
         $this->registry->register($this->tool);
+        
+        // Now create the server which will pick up the registered tool
+        $this->server = app(MCPServer::class);
     }
 
     #[Test]

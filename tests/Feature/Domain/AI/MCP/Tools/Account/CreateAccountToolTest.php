@@ -7,6 +7,7 @@ namespace Tests\Feature\Domain\AI\MCP\Tools\Account;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\MCP\MCPServer;
+use App\Domain\AI\MCP\ResourceManager;
 use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\AI\MCP\Tools\Account\CreateAccountTool;
 use App\Domain\AI\ValueObjects\MCPRequest;
@@ -37,11 +38,13 @@ class CreateAccountToolTest extends TestCase
 
         // Set up MCP infrastructure
         $this->registry = app(ToolRegistry::class);
-        $this->server = app(MCPServer::class);
-
-        // Register the tool
+        
+        // Register the tool BEFORE creating the server
         $this->tool = new CreateAccountTool(app(AccountService::class));
         $this->registry->register($this->tool);
+        
+        // Now create the server which will pick up the registered tool
+        $this->server = app(MCPServer::class);
     }
 
     #[Test]
@@ -267,8 +270,15 @@ class CreateAccountToolTest extends TestCase
         $mockService->method('create')
             ->willThrowException(new \RuntimeException('Database connection failed'));
 
+        // Create a new registry and server for this test to avoid conflicts
+        $newRegistry = new ToolRegistry();
         $tool = new CreateAccountTool($mockService);
-        $this->registry->register($tool);
+        $newRegistry->register($tool);
+        
+        $newServer = new MCPServer(
+            $newRegistry,
+            app(ResourceManager::class)
+        );
 
         $request = MCPRequest::create('tools/call', [
             'name'      => 'account.create',
@@ -280,7 +290,7 @@ class CreateAccountToolTest extends TestCase
         $request->setUserId((string) $this->user->id);
 
         // Act
-        $response = $this->server->handle($request);
+        $response = $newServer->handle($request);
 
         // Assert
         $this->assertFalse($response->isSuccess());
