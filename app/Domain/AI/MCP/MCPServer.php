@@ -144,7 +144,7 @@ class MCPServer implements MCPServerInterface
         $arguments = $params['arguments'] ?? [];
 
         // Add user_uuid from request if not in arguments
-        if (!isset($arguments['user_uuid']) && $request->getUserId()) {
+        if (! isset($arguments['user_uuid']) && $request->getUserId()) {
             $arguments['user_uuid'] = $request->getUserId();
         }
 

@@ -38,11 +38,11 @@ class CreateAccountToolTest extends TestCase
 
         // Set up MCP infrastructure
         $this->registry = new ToolRegistry();
-        
+
         // Register the tool BEFORE creating the server
         $this->tool = new CreateAccountTool(app(AccountService::class));
         $this->registry->register($this->tool);
-        
+
         // Now create the server which will pick up the registered tool
         $this->server = new MCPServer(
             $this->registry,
@@ -69,7 +69,7 @@ class CreateAccountToolTest extends TestCase
         $response = $this->server->handle($request);
 
         // Debug - see full response
-        if (!$response->isSuccess()) {
+        if (! $response->isSuccess()) {
             dump('Error:', $response->getError());
         }
         dump('Response data:', $response->getData());
@@ -79,12 +79,12 @@ class CreateAccountToolTest extends TestCase
         $this->assertArrayHasKey('toolResult', $response->getData());
 
         $result = $response->getData()['toolResult'];
-        
+
         // Debug to see what's in the result
-        if (!isset($result['account_uuid'])) {
+        if (! isset($result['account_uuid'])) {
             dump('Result:', $result);
         }
-        
+
         $this->assertArrayHasKey('account_uuid', $result);
         $this->assertArrayHasKey('account_number', $result);
         $this->assertEquals($accountName, $result['name']);
@@ -289,7 +289,7 @@ class CreateAccountToolTest extends TestCase
         $newRegistry = new ToolRegistry();
         $tool = new CreateAccountTool($mockService);
         $newRegistry->register($tool);
-        
+
         $newServer = new MCPServer(
             $newRegistry,
             app(ResourceManager::class)
