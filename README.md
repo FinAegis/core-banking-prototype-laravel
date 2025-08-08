@@ -50,13 +50,15 @@ The demo environment showcases all platform capabilities without real transactio
 
 ## 🏗️ Architecture Highlights
 
-### 🤖 AI Agent Framework (Coming Soon)
-- **MCP Compatible**: Full Model Context Protocol server implementation
-- **Intelligent Agents**: Customer service, compliance, risk, and trading agents
-- **Event-Driven AI**: Every AI decision tracked via event sourcing
-- **Human-in-the-Loop**: Configurable approval workflows for high-value operations
-- **Vector Search**: Semantic understanding of financial operations
-- **RAG Integration**: Context-aware responses using your data
+### 🤖 AI Agent Framework (Now Available!)
+- **MCP Server Implemented**: Full Model Context Protocol server with tool registry
+- **Event-Driven AI**: Every AI decision tracked via event sourcing (`AIInteractionAggregate`)
+- **Tool Registry**: Extensible system for exposing banking services as AI tools
+- **Conversation Management**: Full conversation tracking with event history
+- **Caching & Performance**: Built-in caching for tool results with TTL support
+- **Resource Manager**: Expose data and documents as MCP resources
+- **CustomerServiceWorkflow**: Laravel Workflow-based AI agent orchestration
+- **Available Tools**: Account balance queries with more coming soon
 
 ### Domain-Driven Design (DDD)
 - **25+ Bounded Contexts**: Account, Exchange, Stablecoin, Lending, Wallet, and more
@@ -294,10 +296,17 @@ app/Domain/
 │   ├── Services/     # Wallet and key management services
 │   ├── Connectors/   # Blockchain connectors (Bitcoin, Ethereum)
 │   └── ValueObjects/ # Address, transaction, and gas data objects
-└── Lending/          # P2P lending platform
-    ├── Models/       # Loan and credit score models
-    ├── Services/     # Credit scoring and risk assessment
-    └── Workflows/    # Loan lifecycle workflows
+├── Lending/          # P2P lending platform
+│   ├── Models/       # Loan and credit score models
+│   ├── Services/     # Credit scoring and risk assessment
+│   └── Workflows/    # Loan lifecycle workflows
+└── AI/               # AI Agent Framework
+    ├── Aggregates/   # AIInteractionAggregate for event sourcing
+    ├── Events/       # AI-specific events (conversations, tool execution)
+    ├── MCP/          # Model Context Protocol server
+    │   ├── Tools/    # MCP tools for banking operations
+    │   └── Resources/# MCP resource exposure
+    └── Workflows/    # AI agent orchestration (CustomerServiceWorkflow)
 ```
 
 ## 💼 Key Features
@@ -383,6 +392,16 @@ app/Domain/
 - Automated repayment processing
 - Default management and recovery
 - Collateralized and uncollateralized loans
+
+### AI Agent Framework
+- **MCP Server**: Full Model Context Protocol implementation for AI integrations
+- **Tool Registry**: Dynamic registration and discovery of banking tools
+- **Conversation Management**: Event-sourced conversation tracking
+- **CustomerServiceWorkflow**: AI-powered customer service automation
+- **Banking Tools**: Account balance, transfers, KYC (more coming)
+- **Resource Exposure**: Documents and data available as MCP resources
+- **Performance**: Built-in caching with configurable TTL
+- **Event Tracking**: Every AI decision recorded for audit and compliance
 
 ### Admin Dashboard (Filament v3)
 - Comprehensive admin interface powered by Filament v3
