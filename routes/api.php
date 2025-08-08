@@ -360,6 +360,15 @@ Route::middleware('api.rate_limit:public')->group(function () {
             Route::post('/swap', [App\Http\Controllers\Api\LiquidityPoolController::class, 'swap'])->name('swap');
             Route::get('/positions', [App\Http\Controllers\Api\LiquidityPoolController::class, 'positions'])->name('positions');
             Route::post('/claim-rewards', [App\Http\Controllers\Api\LiquidityPoolController::class, 'claimRewards'])->name('claim-rewards');
+            
+            // IL Protection endpoints
+            Route::get('/il-protection/{positionId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'calculateImpermanentLoss'])->name('il-protection.calculate');
+            Route::post('/il-protection/enable', [App\Http\Controllers\Api\LiquidityPoolController::class, 'enableImpermanentLossProtection'])->name('il-protection.enable');
+            Route::post('/il-protection/process-claims', [App\Http\Controllers\Api\LiquidityPoolController::class, 'processImpermanentLossProtectionClaims'])->name('il-protection.process-claims');
+            Route::get('/il-protection/fund-requirements/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'getImpermanentLossProtectionFundRequirements'])->name('il-protection.fund-requirements');
+            
+            // Analytics endpoints
+            Route::get('/analytics/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'getPoolAnalytics'])->name('analytics');
         });
     });
 });

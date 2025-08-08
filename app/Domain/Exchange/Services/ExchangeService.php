@@ -244,4 +244,82 @@ class ExchangeService implements ExchangeServiceInterface
     {
         return "orderbook_{$baseCurrency}_{$quoteCurrency}";
     }
+
+    /**
+     * Transfer funds from a liquidity pool to an account.
+     * This is used for IL protection compensation and rewards distribution.
+     */
+    public function transferFromPool(
+        string $poolId,
+        string $toAccountId,
+        string $currency,
+        string $amount
+    ): void {
+        // In a real implementation, this would:
+        // 1. Deduct from pool reserves
+        // 2. Credit to recipient account
+        // 3. Record the transfer event
+        // For now, we'll use the transfer service
+        
+        // @todo Implement proper pool fund management
+        $this->transferService->createTransfer(
+            fromAccountId: "pool_{$poolId}", // Pool account ID
+            toAccountId: $toAccountId,
+            currency: $currency,
+            amount: $amount,
+            type: 'pool_distribution',
+            metadata: [
+                'pool_id' => $poolId,
+                'distribution_type' => 'il_protection',
+            ]
+        );
+    }
+
+    /**
+     * Execute a swap through a liquidity pool.
+     * This handles the actual asset transfers for pool swaps.
+     */
+    public function executePoolSwap(
+        string $poolId,
+        string $accountId,
+        string $inputCurrency,
+        string $inputAmount,
+        string $outputCurrency,
+        string $outputAmount,
+        string $feeAmount
+    ): void {
+        // In a real implementation, this would:
+        // 1. Deduct input from user account
+        // 2. Add input to pool reserves
+        // 3. Deduct output from pool reserves
+        // 4. Credit output to user account
+        // 5. Record fee collection
+        
+        // @todo Implement proper pool swap execution
+        // For now, we'll simulate with transfers
+        $this->transferService->createTransfer(
+            fromAccountId: $accountId,
+            toAccountId: "pool_{$poolId}",
+            currency: $inputCurrency,
+            amount: $inputAmount,
+            type: 'pool_swap_in',
+            metadata: [
+                'pool_id' => $poolId,
+                'swap_type' => 'input',
+            ]
+        );
+        
+        $this->transferService->createTransfer(
+            fromAccountId: "pool_{$poolId}",
+            toAccountId: $accountId,
+            currency: $outputCurrency,
+            amount: $outputAmount,
+            type: 'pool_swap_out',
+            metadata: [
+                'pool_id' => $poolId,
+                'swap_type' => 'output',
+                'fee_amount' => $feeAmount,
+            ]
+        );
+    }
 }

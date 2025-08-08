@@ -440,4 +440,234 @@ class LiquidityPoolController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/liquidity/il-protection/{positionId}",
+     *     tags={"Liquidity Pool"},
+     *     summary="Calculate impermanent loss for a position",
+     *     security={{"bearerAuth":{}}},
+     * @OA\Parameter(
+     *         name="positionId",
+     *         in="path",
+     *         required=true,
+     * @OA\Schema(type="integer")
+     *     ),
+     * @OA\Response(
+     *         response=200,
+     *         description="IL calculation details",
+     * @OA\JsonContent(
+     * @OA\Property(property="position_id",        type="integer"),
+     * @OA\Property(property="entry_price",        type="string"),
+     * @OA\Property(property="current_price",      type="string"),
+     * @OA\Property(property="impermanent_loss",   type="string"),
+     * @OA\Property(property="impermanent_loss_percent", type="string"),
+     * @OA\Property(property="is_protected",       type="boolean")
+     *         )
+     *     )
+     * )
+     */
+    public function calculateImpermanentLoss(string $positionId, Request $request): JsonResponse
+    {
+        $this->middleware('auth:sanctum');
+
+        try {
+            $ilData = $this->liquidityService->calculateImpermanentLoss($positionId);
+            return response()->json($ilData);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/liquidity/il-protection/enable",
+     *     tags={"Liquidity Pool"},
+     *     summary="Enable IL protection for a pool",
+     *     security={{"bearerAuth":{}}},
+     * @OA\RequestBody(
+     *         required=true,
+     * @OA\JsonContent(
+     *             required={"pool_id"},
+     * @OA\Property(property="pool_id",               type="string", format="uuid"),
+     * @OA\Property(property="protection_threshold",  type="string", example="0.02"),
+     * @OA\Property(property="max_coverage",          type="string", example="0.80"),
+     * @OA\Property(property="min_holding_hours",     type="integer", example=168),
+     * @OA\Property(property="fund_size",             type="string", example="100000")
+     *         )
+     *     ),
+     * @OA\Response(
+     *         response=200,
+     *         description="IL protection enabled"
+     *     )
+     * )
+     */
+    public function enableImpermanentLossProtection(Request $request): JsonResponse
+    {
+        $this->middleware('auth:sanctum');
+
+        $validated = $request->validate([
+            'pool_id' => 'required|uuid',
+            'protection_threshold' => 'nullable|numeric|min:0|max:0.1',
+            'max_coverage' => 'nullable|numeric|min:0|max:1',
+            'min_holding_hours' => 'nullable|integer|min:24',
+            'fund_size' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            $this->liquidityService->enableImpermanentLossProtection(
+                poolId: $validated['pool_id'],
+                protectionThreshold: $validated['protection_threshold'] ?? '0.02',
+                maxCoverage: $validated['max_coverage'] ?? '0.80',
+                minHoldingPeriodHours: $validated['min_holding_hours'] ?? 168,
+                fundSize: $validated['fund_size'] ?? '0'
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'IL protection enabled for pool',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/liquidity/il-protection/process-claims",
+     *     tags={"Liquidity Pool"},
+     *     summary="Process IL protection claims for a pool",
+     *     security={{"bearerAuth":{}}},
+     * @OA\RequestBody(
+     *         required=true,
+     * @OA\JsonContent(
+     *             required={"pool_id"},
+     * @OA\Property(property="pool_id", type="string", format="uuid")
+     *         )
+     *     ),
+     * @OA\Response(
+     *         response=200,
+     *         description="Claims processed",
+     * @OA\JsonContent(
+     * @OA\Property(property="success", type="boolean"),
+     * @OA\Property(property="claims",  type="array",
+     * @OA\Items(
+     * @OA\Property(property="provider_id",    type="string"),
+     * @OA\Property(property="compensation",   type="string"),
+     * @OA\Property(property="compensation_currency", type="string")
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function processImpermanentLossProtectionClaims(Request $request): JsonResponse
+    {
+        $this->middleware('auth:sanctum');
+
+        $validated = $request->validate([
+            'pool_id' => 'required|uuid',
+        ]);
+
+        try {
+            $claims = $this->liquidityService->processImpermanentLossProtectionClaims($validated['pool_id']);
+
+            return response()->json([
+                'success' => true,
+                'claims' => $claims,
+                'total_compensated' => $claims->sum('compensation'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/liquidity/il-protection/fund-requirements/{poolId}",
+     *     tags={"Liquidity Pool"},
+     *     summary="Get IL protection fund requirements",
+     *     security={{"bearerAuth":{}}},
+     * @OA\Parameter(
+     *         name="poolId",
+     *         in="path",
+     *         required=true,
+     * @OA\Schema(type="string", format="uuid")
+     *     ),
+     * @OA\Response(
+     *         response=200,
+     *         description="Fund requirements",
+     * @OA\JsonContent(
+     * @OA\Property(property="pool_id",                  type="string"),
+     * @OA\Property(property="total_liquidity_value",    type="string"),
+     * @OA\Property(property="protected_value",          type="string"),
+     * @OA\Property(property="max_potential_compensation", type="string"),
+     * @OA\Property(property="recommended_fund_size",    type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function getImpermanentLossProtectionFundRequirements(string $poolId): JsonResponse
+    {
+        try {
+            $requirements = $this->liquidityService->getImpermanentLossProtectionFundRequirements($poolId);
+            return response()->json($requirements);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/liquidity/analytics/{poolId}",
+     *     tags={"Liquidity Pool"},
+     *     summary="Get pool analytics and performance metrics",
+     * @OA\Parameter(
+     *         name="poolId",
+     *         in="path",
+     *         required=true,
+     * @OA\Schema(type="string", format="uuid")
+     *     ),
+     * @OA\Response(
+     *         response=200,
+     *         description="Pool analytics",
+     * @OA\JsonContent(
+     * @OA\Property(property="pool_id",        type="string"),
+     * @OA\Property(property="tvl",            type="string"),
+     * @OA\Property(property="volume_24h",     type="string"),
+     * @OA\Property(property="fees_24h",       type="string"),
+     * @OA\Property(property="apy",            type="string"),
+     * @OA\Property(property="provider_count", type="integer"),
+     * @OA\Property(property="price_history",  type="array",
+     * @OA\Items(
+     * @OA\Property(property="timestamp", type="string"),
+     * @OA\Property(property="price",     type="string")
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function getPoolAnalytics(string $poolId): JsonResponse
+    {
+        try {
+            $metrics = $this->liquidityService->getPoolMetrics($poolId);
+            
+            // Add historical data (mock for now, would come from time-series DB)
+            $metrics['price_history'] = [
+                ['timestamp' => now()->subDays(7)->toIso8601String(), 'price' => $metrics['spot_price']],
+                ['timestamp' => now()->subDays(6)->toIso8601String(), 'price' => $metrics['spot_price']],
+                ['timestamp' => now()->subDays(5)->toIso8601String(), 'price' => $metrics['spot_price']],
+                ['timestamp' => now()->subDays(4)->toIso8601String(), 'price' => $metrics['spot_price']],
+                ['timestamp' => now()->subDays(3)->toIso8601String(), 'price' => $metrics['spot_price']],
+                ['timestamp' => now()->subDays(2)->toIso8601String(), 'price' => $metrics['spot_price']],
+                ['timestamp' => now()->subDays(1)->toIso8601String(), 'price' => $metrics['spot_price']],
+                ['timestamp' => now()->toIso8601String(), 'price' => $metrics['spot_price']],
+            ];
+
+            return response()->json($metrics);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
 }
