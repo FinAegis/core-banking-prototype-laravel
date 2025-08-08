@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\AI\Workflows;
 
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
-use Workflow\ActivityStub;
 use Workflow\Workflow;
 
 class CustomerServiceWorkflow extends Workflow
@@ -91,10 +90,10 @@ class CustomerServiceWorkflow extends Workflow
         $aggregate->persist();
 
         return [
-            'success' => true,
+            'success'         => true,
             'conversation_id' => $this->conversationId,
-            'agent_type' => 'customer-service',
-            'initialized_at' => now()->toIso8601String(),
+            'agent_type'      => 'customer-service',
+            'initialized_at'  => now()->toIso8601String(),
         ];
     }
 
@@ -113,8 +112,8 @@ class CustomerServiceWorkflow extends Workflow
         }
 
         return [
-            'valid' => empty($errors),
-            'errors' => $errors,
+            'valid'        => empty($errors),
+            'errors'       => $errors,
             'validated_at' => now()->toIso8601String(),
         ];
     }
@@ -124,8 +123,8 @@ class CustomerServiceWorkflow extends Workflow
         // Simple query processing for now
         // In production, this would use NLP processing
         $result = [
-            'processed' => strtolower(trim($query)),
-            'entities' => [],
+            'processed'       => strtolower(trim($query)),
+            'entities'        => [],
             'conversation_id' => $this->conversationId,
         ];
 
@@ -143,9 +142,9 @@ class CustomerServiceWorkflow extends Workflow
         $query = $processedQuery['processed'];
 
         $intent = [
-            'name' => 'unknown',
+            'name'       => 'unknown',
             'confidence' => 0.5,
-            'entities' => $processedQuery['entities'],
+            'entities'   => $processedQuery['entities'],
         ];
 
         if (str_contains($query, 'balance')) {
@@ -186,8 +185,8 @@ class CustomerServiceWorkflow extends Workflow
         // For now, return a mock result
         $result = [
             'success' => true,
-            'data' => [
-                'tool' => $toolMapping['tool'],
+            'data'    => [
+                'tool'    => $toolMapping['tool'],
                 'message' => 'Tool execution simulated',
             ],
         ];
@@ -207,17 +206,17 @@ class CustomerServiceWorkflow extends Workflow
         // Simple response generation for now
         // In production, this would use NLG
         $responses = [
-            'check_balance' => 'Here is your account balance information.',
-            'transfer_funds' => 'Your transfer has been processed successfully.',
-            'exchange_quote' => 'Here is your exchange quote.',
+            'check_balance'    => 'Here is your account balance information.',
+            'transfer_funds'   => 'Your transfer has been processed successfully.',
+            'exchange_quote'   => 'Here is your exchange quote.',
             'check_kyc_status' => 'Your KYC verification status has been retrieved.',
-            'unknown' => 'I apologize, but I could not understand your request.',
+            'unknown'          => 'I apologize, but I could not understand your request.',
         ];
 
         return [
-            'text' => $responses[$intent['name']] ?? $responses['unknown'],
+            'text'    => $responses[$intent['name']] ?? $responses['unknown'],
             'success' => $toolResult['success'] ?? false,
-            'data' => $toolResult['data'] ?? [],
+            'data'    => $toolResult['data'] ?? [],
         ];
     }
 

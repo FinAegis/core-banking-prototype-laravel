@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\AI;
 
+use App\Domain\Account\Models\Account;
 use App\Domain\AI\MCP\MCPServer;
 use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\AI\MCP\Tools\Account\AccountBalanceTool;
 use App\Domain\AI\ValueObjects\MCPRequest;
-use App\Domain\Account\Models\Account;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,12 +18,13 @@ class MCPServerTest extends TestCase
     use RefreshDatabase;
 
     private MCPServer $server;
+
     private ToolRegistry $registry;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->registry = app(ToolRegistry::class);
         $this->server = app(MCPServer::class);
     }
@@ -32,9 +33,9 @@ class MCPServerTest extends TestCase
     public function it_can_initialize_mcp_server()
     {
         $request = MCPRequest::create('initialize', []);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertTrue($response->isSuccess());
         $this->assertEquals('1.0', $response->getData()['protocolVersion']);
         $this->assertArrayHasKey('capabilities', $response->getData());
@@ -47,17 +48,17 @@ class MCPServerTest extends TestCase
         // Register a test tool
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         $request = MCPRequest::create('tools/list', []);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertTrue($response->isSuccess());
         $this->assertArrayHasKey('tools', $response->getData());
-        
+
         $tools = $response->getData()['tools'];
         $this->assertNotEmpty($tools);
-        
+
         // Find our registered tool
         $accountTool = collect($tools)->firstWhere('name', 'account.balance');
         $this->assertNotNull($accountTool);
@@ -72,28 +73,28 @@ class MCPServerTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->create([
             'user_uuid' => $user->uuid,
-            'balance' => 10000,
+            'balance'   => 10000,
         ]);
-        
+
         $this->actingAs($user);
-        
+
         // Register the tool
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         $request = MCPRequest::create('tools/call', [
-            'name' => 'account.balance',
+            'name'      => 'account.balance',
             'arguments' => [
                 'account_uuid' => $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertTrue($response->isSuccess());
         $this->assertArrayHasKey('toolResult', $response->getData());
-        
+
         $result = $response->getData()['toolResult'];
         $this->assertEquals($account->uuid, $result['account_uuid']);
         $this->assertArrayHasKey('balances', $result);
@@ -104,17 +105,17 @@ class MCPServerTest extends TestCase
     {
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         // Invalid UUID format
         $request = MCPRequest::create('tools/call', [
-            'name' => 'account.balance',
+            'name'      => 'account.balance',
             'arguments' => [
                 'account_uuid' => 'invalid-uuid',
             ],
         ]);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertFalse($response->isSuccess());
         $this->assertStringContainsString('validation', strtolower($response->getError()));
     }
@@ -124,14 +125,14 @@ class MCPServerTest extends TestCase
     {
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         $request = MCPRequest::create('tools/call', [
-            'name' => 'account.balance',
+            'name'      => 'account.balance',
             'arguments' => [], // Missing account_uuid
         ]);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertFalse($response->isSuccess());
         $this->assertStringContainsString('required', strtolower($response->getError()));
     }
@@ -140,14 +141,14 @@ class MCPServerTest extends TestCase
     public function it_tracks_conversation_context()
     {
         $conversationId = 'test-conversation-123';
-        
+
         $request = MCPRequest::create('initialize', []);
         $request->setConversationId($conversationId);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertTrue($response->isSuccess());
-        
+
         // Verify conversation is tracked
         $this->assertDatabaseHas('stored_events', [
             'event_class' => \App\Domain\AI\Events\ConversationStartedEvent::class,
@@ -161,25 +162,25 @@ class MCPServerTest extends TestCase
         $account = Account::factory()->create([
             'user_uuid' => $user->uuid,
         ]);
-        
+
         $this->actingAs($user);
-        
+
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         $request = MCPRequest::create('tools/call', [
-            'name' => 'account.balance',
+            'name'      => 'account.balance',
             'arguments' => [
                 'account_uuid' => $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);
         $request->setConversationId('test-conv-456');
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertTrue($response->isSuccess());
-        
+
         // Verify tool execution is recorded
         $this->assertDatabaseHas('stored_events', [
             'event_class' => \App\Domain\AI\Events\ToolExecutedEvent::class,
@@ -190,12 +191,12 @@ class MCPServerTest extends TestCase
     public function it_handles_tool_not_found_error()
     {
         $request = MCPRequest::create('tools/call', [
-            'name' => 'non.existent.tool',
+            'name'      => 'non.existent.tool',
             'arguments' => [],
         ]);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertFalse($response->isSuccess());
         $this->assertStringContainsString('not found', strtolower($response->getError()));
     }
@@ -206,27 +207,27 @@ class MCPServerTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->create([
             'user_uuid' => $user->uuid,
-            'balance' => 5000,
+            'balance'   => 5000,
         ]);
-        
+
         $this->actingAs($user);
-        
+
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         $request = MCPRequest::create('tools/call', [
-            'name' => 'account.balance',
+            'name'      => 'account.balance',
             'arguments' => [
                 'account_uuid' => $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);
-        
+
         // First call - not cached
         $response1 = $this->server->handle($request);
         $this->assertTrue($response1->isSuccess());
         $this->assertFalse($response1->getData()['metadata']['cache_hit']);
-        
+
         // Second call - should be cached
         $response2 = $this->server->handle($request);
         $this->assertTrue($response2->isSuccess());
@@ -237,15 +238,15 @@ class MCPServerTest extends TestCase
     public function it_provides_prompts_list()
     {
         $request = MCPRequest::create('prompts/list', []);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertTrue($response->isSuccess());
         $this->assertArrayHasKey('prompts', $response->getData());
-        
+
         $prompts = $response->getData()['prompts'];
         $this->assertNotEmpty($prompts);
-        
+
         // Check for expected prompts
         $balancePrompt = collect($prompts)->firstWhere('name', 'account_balance');
         $this->assertNotNull($balancePrompt);
@@ -259,28 +260,29 @@ class MCPServerTest extends TestCase
         $account = Account::factory()->create([
             'user_uuid' => $user->uuid,
         ]);
-        
+
         $this->actingAs($user);
-        
+
         $tool = new AccountBalanceTool(app(\App\Domain\Account\Services\AccountService::class));
         $this->registry->register($tool);
-        
+
         $request = MCPRequest::create('tools/call', [
-            'name' => 'account.balance',
+            'name'      => 'account.balance',
             'arguments' => [
                 'account_uuid' => $account->uuid,
             ],
         ]);
         $request->setUserId((string) $user->id);
-        
+
         $response = $this->server->handle($request);
-        
+
         $this->assertTrue($response->isSuccess());
         $this->assertArrayHasKey('metadata', $response->getData());
         $this->assertArrayHasKey('duration_ms', $response->getData()['metadata']);
-        
+
         $duration = $response->getData()['metadata']['duration_ms'];
         $this->assertIsInt($duration);
         $this->assertLessThan(1000, $duration); // Should complete within 1 second
     }
 }
+
