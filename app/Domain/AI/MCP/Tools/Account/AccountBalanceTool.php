@@ -7,14 +7,18 @@ namespace App\Domain\AI\MCP\Tools\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
+use App\Domain\Asset\Models\ExchangeRate;
+use App\Models\Account;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class AccountBalanceTool implements MCPToolInterface
 {
     public function __construct(
         private readonly AccountService $accountService
-    ) {}
+    ) {
+    }
 
     public function getName(): string
     {
@@ -34,17 +38,17 @@ class AccountBalanceTool implements MCPToolInterface
     public function getInputSchema(): array
     {
         return [
-            'type' => 'object',
+            'type'       => 'object',
             'properties' => [
                 'account_uuid' => [
-                    'type' => 'string',
+                    'type'        => 'string',
                     'description' => 'The UUID of the account',
-                    'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+                    'pattern'     => '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
                 ],
                 'asset_code' => [
-                    'type' => 'string',
+                    'type'        => 'string',
                     'description' => 'Optional asset code (e.g., USD, EUR, BTC)',
-                    'pattern' => '^[A-Z]{3,10}$',
+                    'pattern'     => '^[A-Z]{3,10}$',
                 ],
             ],
             'required' => ['account_uuid'],
@@ -54,17 +58,17 @@ class AccountBalanceTool implements MCPToolInterface
     public function getOutputSchema(): array
     {
         return [
-            'type' => 'object',
+            'type'       => 'object',
             'properties' => [
                 'account_uuid' => ['type' => 'string'],
-                'balances' => [
-                    'type' => 'array',
+                'balances'     => [
+                    'type'  => 'array',
                     'items' => [
-                        'type' => 'object',
+                        'type'       => 'object',
                         'properties' => [
-                            'asset_code' => ['type' => 'string'],
-                            'balance' => ['type' => 'number'],
-                            'formatted' => ['type' => 'string'],
+                            'asset_code'   => ['type' => 'string'],
+                            'balance'      => ['type' => 'number'],
+                            'formatted'    => ['type' => 'string'],
                             'last_updated' => ['type' => 'string'],
                         ],
                     ],
@@ -81,42 +85,42 @@ class AccountBalanceTool implements MCPToolInterface
             $assetCode = $parameters['asset_code'] ?? null;
 
             Log::info('MCP Tool: Getting account balance', [
-                'account_uuid' => $accountUuid,
-                'asset_code' => $assetCode,
+                'account_uuid'    => $accountUuid,
+                'asset_code'      => $assetCode,
                 'conversation_id' => $conversationId,
             ]);
 
-            // Get account from service
-            $account = $this->accountService->findByUuid($accountUuid);
-            
-            if (!$account) {
+            // Get account from database
+            $account = Account::where('uuid', $accountUuid)->first();
+
+            if (! $account) {
                 return ToolExecutionResult::failure("Account not found: {$accountUuid}");
             }
 
             // Check authorization
-            if (!$this->canAccessAccount($account)) {
-                return ToolExecutionResult::failure("Unauthorized access to account");
+            if (! $this->canAccessAccount($account)) {
+                return ToolExecutionResult::failure('Unauthorized access to account');
             }
 
             // Get balances
             $balances = [];
-            
+
             if ($assetCode) {
                 // Get specific asset balance
                 $balance = $account->getBalance($assetCode);
                 $balances[] = [
-                    'asset_code' => $assetCode,
-                    'balance' => $balance,
-                    'formatted' => money($balance, $assetCode)->format(),
+                    'asset_code'   => $assetCode,
+                    'balance'      => $balance,
+                    'formatted'    => $this->formatMoney($balance, $assetCode),
                     'last_updated' => now()->toIso8601String(),
                 ];
             } else {
                 // Get all asset balances
                 foreach ($account->balances as $assetBalance) {
                     $balances[] = [
-                        'asset_code' => $assetBalance->asset_code,
-                        'balance' => $assetBalance->balance,
-                        'formatted' => money($assetBalance->balance, $assetBalance->asset_code)->format(),
+                        'asset_code'   => $assetBalance->asset_code,
+                        'balance'      => $assetBalance->balance,
+                        'formatted'    => $this->formatMoney($assetBalance->balance, $assetBalance->asset_code),
                         'last_updated' => $assetBalance->updated_at->toIso8601String(),
                     ];
                 }
@@ -126,21 +130,21 @@ class AccountBalanceTool implements MCPToolInterface
             $totalValueUsd = $this->calculateTotalValueInUsd($balances);
 
             $result = [
-                'account_uuid' => $accountUuid,
-                'account_name' => $account->name,
-                'balances' => $balances,
+                'account_uuid'    => $accountUuid,
+                'account_name'    => $account->name,
+                'balances'        => $balances,
                 'total_value_usd' => $totalValueUsd,
-                'formatted_total' => money($totalValueUsd, 'USD')->format(),
+                'formatted_total' => $this->formatMoney($totalValueUsd, 'USD'),
             ];
 
             return ToolExecutionResult::success($result);
-            
+
         } catch (\Exception $e) {
             Log::error('MCP Tool error: account.balance', [
-                'error' => $e->getMessage(),
+                'error'      => $e->getMessage(),
                 'parameters' => $parameters,
             ]);
-            
+
             return ToolExecutionResult::failure($e->getMessage());
         }
     }
@@ -167,19 +171,19 @@ class AccountBalanceTool implements MCPToolInterface
     public function validateInput(array $parameters): bool
     {
         // UUID validation
-        if (!isset($parameters['account_uuid'])) {
+        if (! isset($parameters['account_uuid'])) {
             return false;
         }
 
         $uuid = $parameters['account_uuid'];
-        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid)) {
+        if (! preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid)) {
             return false;
         }
 
         // Asset code validation if provided
         if (isset($parameters['asset_code'])) {
             $assetCode = $parameters['asset_code'];
-            if (!preg_match('/^[A-Z]{3,10}$/', $assetCode)) {
+            if (! preg_match('/^[A-Z]{3,10}$/', $assetCode)) {
                 return false;
             }
         }
@@ -190,7 +194,7 @@ class AccountBalanceTool implements MCPToolInterface
     public function authorize(?string $userId): bool
     {
         // Check if user is authenticated
-        if (!$userId && !Auth::check()) {
+        if (! $userId && ! Auth::check()) {
             return false;
         }
 
@@ -202,8 +206,8 @@ class AccountBalanceTool implements MCPToolInterface
     {
         // Check if current user owns the account or has permission
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
 
@@ -228,7 +232,7 @@ class AccountBalanceTool implements MCPToolInterface
     private function calculateTotalValueInUsd(array $balances): float
     {
         $total = 0.0;
-        
+
         foreach ($balances as $balance) {
             // Get exchange rate to USD
             $rate = $this->getExchangeRateToUsd($balance['asset_code']);
@@ -247,12 +251,23 @@ class AccountBalanceTool implements MCPToolInterface
         // Get from exchange rate service
         try {
             $exchangeRate = app(\App\Domain\Asset\Services\ExchangeRateService::class);
+
             return $exchangeRate->getRate($assetCode, 'USD');
         } catch (\Exception $e) {
             Log::warning("Could not get exchange rate for {$assetCode}", [
                 'error' => $e->getMessage(),
             ]);
+
             return 0.0;
         }
+    }
+
+    private function formatMoney(float $amount, string $currency): string
+    {
+        // Simple money formatting
+        $decimals = in_array($currency, ['BTC', 'ETH']) ? 8 : 2;
+        $formatted = number_format($amount / pow(10, $decimals), $decimals);
+
+        return $currency . ' ' . $formatted;
     }
 }

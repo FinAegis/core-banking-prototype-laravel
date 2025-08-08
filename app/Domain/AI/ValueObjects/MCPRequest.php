@@ -10,10 +10,15 @@ use Illuminate\Support\Str;
 class MCPRequest implements Arrayable
 {
     private string $id;
+
     private string $method;
+
     private array $params;
+
     private ?string $conversationId;
+
     private ?string $userId;
+
     private array $metadata;
 
     public function __construct(
@@ -75,6 +80,7 @@ class MCPRequest implements Arrayable
     public function setConversationId(string $conversationId): self
     {
         $this->conversationId = $conversationId;
+
         return $this;
     }
 
@@ -86,6 +92,7 @@ class MCPRequest implements Arrayable
     public function setUserId(?string $userId): self
     {
         $this->userId = $userId;
+
         return $this;
     }
 
@@ -97,23 +104,24 @@ class MCPRequest implements Arrayable
     public function withMetadata(array $metadata): self
     {
         $this->metadata = array_merge($this->metadata, $metadata);
+
         return $this;
     }
 
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
-            'method' => $this->method,
-            'params' => $this->params,
+            'id'              => $this->id,
+            'method'          => $this->method,
+            'params'          => $this->params,
             'conversation_id' => $this->conversationId,
-            'user_id' => $this->userId,
-            'metadata' => $this->metadata,
+            'user_id'         => $this->userId,
+            'metadata'        => $this->metadata,
         ];
     }
 
     public function toJson(): string
     {
-        return json_encode($this->toArray());
+        return json_encode($this->toArray()) ?: '{}';
     }
 }

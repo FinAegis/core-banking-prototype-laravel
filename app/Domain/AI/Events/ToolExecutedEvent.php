@@ -31,28 +31,28 @@ class ToolExecutedEvent extends ShouldBeStored
 
     public function wasSuccessful(): bool
     {
-        return !isset($this->result['error']);
+        return ! isset($this->result['error']);
     }
 
     public function getPerformanceCategory(): string
     {
         return match (true) {
-            $this->durationMs < 100 => 'excellent',
-            $this->durationMs < 500 => 'good',
+            $this->durationMs < 100  => 'excellent',
+            $this->durationMs < 500  => 'good',
             $this->durationMs < 1000 => 'acceptable',
             $this->durationMs < 3000 => 'slow',
-            default => 'critical',
+            default                  => 'critical',
         };
     }
 
     public function getMetrics(): array
     {
         return [
-            'tool_name' => $this->toolName,
-            'duration_ms' => $this->durationMs,
-            'performance' => $this->getPerformanceCategory(),
-            'success' => $this->wasSuccessful(),
-            'parameter_count' => count($this->parameters),
+            'tool_name'        => $this->toolName,
+            'duration_ms'      => $this->durationMs,
+            'performance'      => $this->getPerformanceCategory(),
+            'success'          => $this->wasSuccessful(),
+            'parameter_count'  => count($this->parameters),
             'has_user_context' => $this->userId !== null,
         ];
     }
@@ -61,14 +61,14 @@ class ToolExecutedEvent extends ShouldBeStored
     {
         return [
             'conversation_id' => $this->conversationId,
-            'tool_name' => $this->toolName,
-            'parameters' => $this->parameters,
-            'result' => $this->result,
-            'duration_ms' => $this->durationMs,
-            'performance' => $this->getPerformanceCategory(),
-            'success' => $this->wasSuccessful(),
-            'user_id' => $this->userId,
-            'timestamp' => $this->timestamp,
+            'tool_name'       => $this->toolName,
+            'parameters'      => $this->parameters,
+            'result'          => $this->result,
+            'duration_ms'     => $this->durationMs,
+            'performance'     => $this->getPerformanceCategory(),
+            'success'         => $this->wasSuccessful(),
+            'user_id'         => $this->userId,
+            'timestamp'       => $this->timestamp,
         ];
     }
 }

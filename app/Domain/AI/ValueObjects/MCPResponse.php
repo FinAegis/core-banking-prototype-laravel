@@ -10,9 +10,13 @@ use Illuminate\Contracts\Support\Jsonable;
 class MCPResponse implements Arrayable, Jsonable
 {
     private bool $success;
+
     private array $data;
+
     private ?string $error;
+
     private int $code;
+
     private array $metadata;
 
     public function __construct(
@@ -46,7 +50,7 @@ class MCPResponse implements Arrayable, Jsonable
 
     public function isError(): bool
     {
-        return !$this->success;
+        return ! $this->success;
     }
 
     public function getData(): array
@@ -72,6 +76,7 @@ class MCPResponse implements Arrayable, Jsonable
     public function withMetadata(array $metadata): self
     {
         $this->metadata = array_merge($this->metadata, $metadata);
+
         return $this;
     }
 
@@ -79,7 +84,7 @@ class MCPResponse implements Arrayable, Jsonable
     {
         $response = [
             'success' => $this->success,
-            'code' => $this->code,
+            'code'    => $this->code,
         ];
 
         if ($this->success) {
@@ -88,7 +93,7 @@ class MCPResponse implements Arrayable, Jsonable
             $response['error'] = $this->error;
         }
 
-        if (!empty($this->metadata)) {
+        if (! empty($this->metadata)) {
             $response['metadata'] = $this->metadata;
         }
 
@@ -97,7 +102,7 @@ class MCPResponse implements Arrayable, Jsonable
 
     public function toJson($options = 0): string
     {
-        return json_encode($this->toArray(), $options);
+        return json_encode($this->toArray(), $options) ?: '{}';
     }
 
     public function toHttpResponse(): \Illuminate\Http\JsonResponse

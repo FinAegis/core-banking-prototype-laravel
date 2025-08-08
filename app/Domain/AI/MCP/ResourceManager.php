@@ -44,7 +44,7 @@ class ResourceManager
     public function searchResources(string $query): Collection
     {
         $query = strtolower($query);
-        
+
         return $this->resources->filter(function (MCPResourceInterface $resource) use ($query) {
             return str_contains(strtolower($resource->getName()), $query) ||
                    str_contains(strtolower($resource->getDescription()), $query);

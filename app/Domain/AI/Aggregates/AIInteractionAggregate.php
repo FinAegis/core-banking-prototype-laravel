@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace App\Domain\AI\Aggregates;
 
-use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\AgentCreatedEvent;
-use App\Domain\AI\Events\ToolExecutedEvent;
-use App\Domain\AI\Events\ConversationStartedEvent;
+use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\ConversationEndedEvent;
+use App\Domain\AI\Events\ConversationStartedEvent;
 use App\Domain\AI\Events\IntentClassifiedEvent;
-use App\Domain\AI\ValueObjects\AgentContext;
+use App\Domain\AI\Events\ToolExecutedEvent;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class AIInteractionAggregate extends AggregateRoot
 {
     protected string $conversationId;
+
     protected string $agentType;
+
     protected ?string $userId = null;
+
     protected array $context = [];
+
     protected array $executedTools = [];
+
     protected bool $isActive = false;
 
     public function startConversation(

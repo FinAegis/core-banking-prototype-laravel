@@ -12,8 +12,8 @@ use App\Domain\AI\Exceptions\ToolNotFoundException;
 use App\Domain\AI\ValueObjects\MCPRequest;
 use App\Domain\AI\ValueObjects\MCPResponse;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
-use App\Domain\Shared\CommandBus;
-use App\Domain\Shared\EventBus;
+use App\Domain\Shared\CQRS\CommandBus;
+use App\Domain\Shared\Events\DomainEventBus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -21,14 +21,16 @@ use Illuminate\Support\Str;
 class MCPServer implements MCPServerInterface
 {
     private array $tools = [];
+
     private array $resources = [];
+
     private ?string $currentConversationId = null;
 
     public function __construct(
         private readonly ToolRegistry $toolRegistry,
         private readonly ResourceManager $resourceManager,
         private readonly CommandBus $commandBus,
-        private readonly EventBus $eventBus
+        private readonly DomainEventBus $eventBus
     ) {
         $this->initializeServer();
     }
@@ -37,7 +39,7 @@ class MCPServer implements MCPServerInterface
     {
         // Load tools from registry
         $this->tools = $this->toolRegistry->getAllTools();
-        
+
         // Load resources from manager
         $this->resources = $this->resourceManager->getAllResources();
     }
@@ -50,21 +52,21 @@ class MCPServer implements MCPServerInterface
 
             // Route the request to appropriate handler
             return match ($request->getMethod()) {
-                'initialize' => $this->handleInitialize($request),
-                'tools/list' => $this->handleToolsList($request),
-                'tools/call' => $this->handleToolCall($request),
+                'initialize'     => $this->handleInitialize($request),
+                'tools/list'     => $this->handleToolsList($request),
+                'tools/call'     => $this->handleToolCall($request),
                 'resources/list' => $this->handleResourcesList($request),
                 'resources/read' => $this->handleResourceRead($request),
-                'prompts/list' => $this->handlePromptsList($request),
-                'prompts/get' => $this->handlePromptGet($request),
-                'completion' => $this->handleCompletion($request),
-                default => throw new MCPException("Unknown method: {$request->getMethod()}"),
+                'prompts/list'   => $this->handlePromptsList($request),
+                'prompts/get'    => $this->handlePromptGet($request),
+                'completion'     => $this->handleCompletion($request),
+                default          => throw new MCPException("Unknown method: {$request->getMethod()}"),
             };
         } catch (\Exception $e) {
             Log::error('MCP Server error', [
                 'method' => $request->getMethod(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'error'  => $e->getMessage(),
+                'trace'  => $e->getTraceAsString(),
             ]);
 
             return MCPResponse::error($e->getMessage(), $e->getCode() ?: 500);
@@ -74,14 +76,14 @@ class MCPServer implements MCPServerInterface
     private function ensureConversation(MCPRequest $request): void
     {
         $conversationId = $request->getConversationId() ?? Str::uuid()->toString();
-        
+
         if ($conversationId !== $this->currentConversationId) {
             $this->currentConversationId = $conversationId;
-            
+
             // Create or load conversation aggregate
             $aggregate = AIInteractionAggregate::retrieve($conversationId);
-            
-            if (!$aggregate->isActive()) {
+
+            if (! $aggregate->isActive()) {
                 $aggregate->startConversation(
                     $conversationId,
                     'mcp-server',
@@ -97,10 +99,10 @@ class MCPServer implements MCPServerInterface
     {
         return MCPResponse::success([
             'protocolVersion' => '1.0',
-            'capabilities' => $this->getCapabilities(),
-            'serverInfo' => [
-                'name' => 'FinAegis MCP Server',
-                'version' => '1.0.0',
+            'capabilities'    => $this->getCapabilities(),
+            'serverInfo'      => [
+                'name'        => 'FinAegis MCP Server',
+                'version'     => '1.0.0',
                 'description' => 'AI-powered banking operations via Model Context Protocol',
             ],
         ]);
@@ -109,12 +111,12 @@ class MCPServer implements MCPServerInterface
     private function handleToolsList(MCPRequest $request): MCPResponse
     {
         $tools = [];
-        
+
         foreach ($this->tools as $name => $tool) {
             $tools[] = [
-                'name' => $name,
-                'description' => $tool->getDescription(),
-                'inputSchema' => $tool->getInputSchema(),
+                'name'         => $name,
+                'description'  => $tool->getDescription(),
+                'inputSchema'  => $tool->getInputSchema(),
                 'outputSchema' => $tool->getOutputSchema(),
             ];
         }
@@ -132,7 +134,7 @@ class MCPServer implements MCPServerInterface
         $arguments = $params['arguments'] ?? [];
 
         // Check if tool exists
-        if (!isset($this->tools[$toolName])) {
+        if (! isset($this->tools[$toolName])) {
             throw new ToolNotFoundException("Tool not found: {$toolName}");
         }
 
@@ -143,31 +145,35 @@ class MCPServer implements MCPServerInterface
 
         // Execute tool with timing
         $startTime = microtime(true);
-        
+
         try {
             // Execute through command bus for CQRS pattern
             $result = $this->executeToolWithEventSourcing($tool, $arguments);
-            
-            $duration = (int)((microtime(true) - $startTime) * 1000);
+
+            $duration = (int) ((microtime(true) - $startTime) * 1000);
 
             // Record tool execution in event store
             $this->recordToolExecution($toolName, $arguments, $result, $duration);
 
             return MCPResponse::success([
                 'toolResult' => $result->getData(),
-                'metadata' => [
-                    'duration_ms' => $duration,
-                    'cache_hit' => $result->wasCached(),
+                'metadata'   => [
+                    'duration_ms'     => $duration,
+                    'cache_hit'       => $result->wasCached(),
                     'conversation_id' => $this->currentConversationId,
                 ],
             ]);
         } catch (\Exception $e) {
-            $duration = (int)((microtime(true) - $startTime) * 1000);
-            
+            $duration = (int) ((microtime(true) - $startTime) * 1000);
+
             // Record failed execution
-            $this->recordToolExecution($toolName, $arguments, 
-                ToolExecutionResult::failure($e->getMessage()), $duration);
-            
+            $this->recordToolExecution(
+                $toolName,
+                $arguments,
+                ToolExecutionResult::failure($e->getMessage()),
+                $duration
+            );
+
             throw $e;
         }
     }
@@ -178,7 +184,7 @@ class MCPServer implements MCPServerInterface
     ): ToolExecutionResult {
         // Check cache first
         $cacheKey = $this->getCacheKey($tool->getName(), $arguments);
-        
+
         if ($tool->isCacheable() && Cache::has($cacheKey)) {
             return ToolExecutionResult::fromCache(Cache::get($cacheKey));
         }
@@ -201,7 +207,7 @@ class MCPServer implements MCPServerInterface
         int $duration
     ): void {
         $aggregate = AIInteractionAggregate::retrieve($this->currentConversationId);
-        
+
         $aggregate->executeTool($toolName, $parameters, $result);
         $aggregate->persist();
     }
@@ -209,13 +215,13 @@ class MCPServer implements MCPServerInterface
     private function handleResourcesList(MCPRequest $request): MCPResponse
     {
         $resources = [];
-        
+
         foreach ($this->resources as $uri => $resource) {
             $resources[] = [
-                'uri' => $uri,
-                'name' => $resource->getName(),
+                'uri'         => $uri,
+                'name'        => $resource->getName(),
                 'description' => $resource->getDescription(),
-                'mimeType' => $resource->getMimeType(),
+                'mimeType'    => $resource->getMimeType(),
             ];
         }
 
@@ -227,7 +233,7 @@ class MCPServer implements MCPServerInterface
         $params = $request->getParams();
         $uri = $params['uri'] ?? throw new MCPException('Resource URI is required');
 
-        if (!isset($this->resources[$uri])) {
+        if (! isset($this->resources[$uri])) {
             throw new MCPException("Resource not found: {$uri}");
         }
 
@@ -237,9 +243,9 @@ class MCPServer implements MCPServerInterface
         return MCPResponse::success([
             'contents' => [
                 [
-                    'uri' => $uri,
+                    'uri'      => $uri,
                     'mimeType' => $resource->getMimeType(),
-                    'text' => $content,
+                    'text'     => $content,
                 ],
             ],
         ]);
@@ -250,16 +256,16 @@ class MCPServer implements MCPServerInterface
         return MCPResponse::success([
             'prompts' => [
                 [
-                    'name' => 'account_balance',
+                    'name'        => 'account_balance',
                     'description' => 'Check account balance for a user',
-                    'arguments' => [
+                    'arguments'   => [
                         ['name' => 'account_id', 'description' => 'Account UUID', 'required' => true],
                     ],
                 ],
                 [
-                    'name' => 'transfer_funds',
+                    'name'        => 'transfer_funds',
                     'description' => 'Transfer funds between accounts',
-                    'arguments' => [
+                    'arguments'   => [
                         ['name' => 'from_account', 'description' => 'Source account UUID', 'required' => true],
                         ['name' => 'to_account', 'description' => 'Destination account UUID', 'required' => true],
                         ['name' => 'amount', 'description' => 'Amount to transfer', 'required' => true],
@@ -277,8 +283,8 @@ class MCPServer implements MCPServerInterface
 
         // Return prompt template based on name
         $prompts = $this->getPromptTemplates();
-        
-        if (!isset($prompts[$name])) {
+
+        if (! isset($prompts[$name])) {
             throw new MCPException("Prompt not found: {$name}");
         }
 
@@ -291,7 +297,7 @@ class MCPServer implements MCPServerInterface
         // For now, return a placeholder response
         return MCPResponse::success([
             'completion' => [
-                'text' => 'AI completion would be generated here',
+                'text'  => 'AI completion would be generated here',
                 'model' => 'gpt-4',
             ],
         ]);
@@ -301,9 +307,9 @@ class MCPServer implements MCPServerInterface
     {
         $schema = $tool->getInputSchema();
         $required = $schema['required'] ?? [];
-        
+
         foreach ($required as $field) {
-            if (!isset($input[$field])) {
+            if (! isset($input[$field])) {
                 throw new MCPException("Required field missing: {$field}");
             }
         }
@@ -324,28 +330,28 @@ class MCPServer implements MCPServerInterface
         if (isset($rules['type'])) {
             $type = $rules['type'];
             $valid = match ($type) {
-                'string' => is_string($value),
-                'number' => is_numeric($value),
+                'string'  => is_string($value),
+                'number'  => is_numeric($value),
                 'integer' => is_int($value),
                 'boolean' => is_bool($value),
-                'array' => is_array($value),
-                'object' => is_object($value) || is_array($value),
-                default => true,
+                'array'   => is_array($value),
+                'object'  => is_object($value) || is_array($value),
+                default   => true,
             };
 
-            if (!$valid) {
+            if (! $valid) {
                 throw new MCPException("Field {$field} must be of type {$type}");
             }
         }
 
         // Enum validation
-        if (isset($rules['enum']) && !in_array($value, $rules['enum'], true)) {
+        if (isset($rules['enum']) && ! in_array($value, $rules['enum'], true)) {
             throw new MCPException("Field {$field} must be one of: " . implode(', ', $rules['enum']));
         }
 
         // Pattern validation
         if (isset($rules['pattern']) && is_string($value)) {
-            if (!preg_match($rules['pattern'], $value)) {
+            if (! preg_match($rules['pattern'], $value)) {
                 throw new MCPException("Field {$field} does not match required pattern");
             }
         }
@@ -357,20 +363,20 @@ class MCPServer implements MCPServerInterface
             'mcp:tool:%s:%s:%s',
             $this->currentConversationId,
             $toolName,
-            md5(json_encode($arguments))
+            md5(json_encode($arguments) ?: '')
         );
     }
 
     public function getCapabilities(): array
     {
         return [
-            'tools' => true,
-            'resources' => true,
-            'prompts' => true,
-            'sampling' => true,
-            'logging' => true,
+            'tools'        => true,
+            'resources'    => true,
+            'prompts'      => true,
+            'sampling'     => true,
+            'logging'      => true,
             'experimental' => [
-                'streaming' => false,
+                'streaming'   => false,
                 'attachments' => false,
             ],
         ];
@@ -389,16 +395,16 @@ class MCPServer implements MCPServerInterface
     public function executeTool(string $name, array $arguments): array
     {
         $request = MCPRequest::create('tools/call', [
-            'name' => $name,
+            'name'      => $name,
             'arguments' => $arguments,
         ]);
-        
+
         $response = $this->handleToolCall($request);
-        
+
         if ($response->isError()) {
             throw new \Exception($response->getError());
         }
-        
+
         return $response->getData()['toolResult'] ?? [];
     }
 
@@ -407,13 +413,13 @@ class MCPServer implements MCPServerInterface
         $request = MCPRequest::create('resources/read', [
             'uri' => $uri,
         ]);
-        
+
         $response = $this->handleResourceRead($request);
-        
+
         if ($response->isError()) {
             throw new \Exception($response->getError());
         }
-        
+
         return $response->getData()['contents'] ?? [];
     }
 
@@ -423,11 +429,11 @@ class MCPServer implements MCPServerInterface
             'account_balance' => [
                 'messages' => [
                     [
-                        'role' => 'system',
+                        'role'    => 'system',
                         'content' => 'You are a helpful banking assistant. Provide account balance information clearly.',
                     ],
                     [
-                        'role' => 'user',
+                        'role'    => 'user',
                         'content' => 'Check the balance for account {{account_id}}',
                     ],
                 ],
@@ -435,11 +441,11 @@ class MCPServer implements MCPServerInterface
             'transfer_funds' => [
                 'messages' => [
                     [
-                        'role' => 'system',
+                        'role'    => 'system',
                         'content' => 'You are processing a funds transfer. Ensure all details are correct.',
                     ],
                     [
-                        'role' => 'user',
+                        'role'    => 'user',
                         'content' => 'Transfer {{amount}} {{currency}} from {{from_account}} to {{to_account}}',
                     ],
                 ],

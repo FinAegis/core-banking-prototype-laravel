@@ -9,10 +9,15 @@ use Illuminate\Contracts\Support\Arrayable;
 class ToolExecutionResult implements Arrayable
 {
     private bool $success;
+
     private array $data;
+
     private ?string $error;
+
     private int $durationMs;
+
     private bool $cached;
+
     private array $metadata;
 
     public function __construct(
@@ -53,7 +58,7 @@ class ToolExecutionResult implements Arrayable
 
     public function isFailure(): bool
     {
-        return !$this->success;
+        return ! $this->success;
     }
 
     public function getData(): array
@@ -84,30 +89,31 @@ class ToolExecutionResult implements Arrayable
     public function withMetadata(array $metadata): self
     {
         $this->metadata = array_merge($this->metadata, $metadata);
+
         return $this;
     }
 
     public function getPerformanceCategory(): string
     {
         return match (true) {
-            $this->durationMs < 100 => 'excellent',
-            $this->durationMs < 500 => 'good',
+            $this->durationMs < 100  => 'excellent',
+            $this->durationMs < 500  => 'good',
             $this->durationMs < 1000 => 'acceptable',
             $this->durationMs < 3000 => 'slow',
-            default => 'critical',
+            default                  => 'critical',
         };
     }
 
     public function toArray(): array
     {
         return [
-            'success' => $this->success,
-            'data' => $this->data,
-            'error' => $this->error,
+            'success'     => $this->success,
+            'data'        => $this->data,
+            'error'       => $this->error,
             'duration_ms' => $this->durationMs,
-            'cached' => $this->cached,
+            'cached'      => $this->cached,
             'performance' => $this->getPerformanceCategory(),
-            'metadata' => $this->metadata,
+            'metadata'    => $this->metadata,
         ];
     }
 }

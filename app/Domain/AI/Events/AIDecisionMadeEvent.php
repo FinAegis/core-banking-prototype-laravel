@@ -37,7 +37,7 @@ class AIDecisionMadeEvent extends ShouldBeStored
             $this->confidence >= 0.85 => 'high',
             $this->confidence >= 0.70 => 'medium',
             $this->confidence >= 0.50 => 'low',
-            default => 'very_low',
+            default                   => 'very_low',
         };
     }
 
@@ -49,15 +49,15 @@ class AIDecisionMadeEvent extends ShouldBeStored
     public function getAuditData(): array
     {
         return [
-            'conversation_id' => $this->conversationId,
-            'agent_type' => $this->agentType,
-            'decision' => $this->decision,
-            'reasoning' => $this->reasoning,
-            'confidence' => $this->confidence,
-            'confidence_level' => $this->getConfidenceLevel(),
+            'conversation_id'   => $this->conversationId,
+            'agent_type'        => $this->agentType,
+            'decision'          => $this->decision,
+            'reasoning'         => $this->reasoning,
+            'confidence'        => $this->confidence,
+            'confidence_level'  => $this->getConfidenceLevel(),
             'requires_approval' => $this->requiresApproval,
-            'user_id' => $this->userId,
-            'timestamp' => $this->timestamp,
+            'user_id'           => $this->userId,
+            'timestamp'         => $this->timestamp,
         ];
     }
 }
