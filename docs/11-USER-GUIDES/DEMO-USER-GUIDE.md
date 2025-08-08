@@ -8,7 +8,7 @@ Welcome to the FinAegis Core Banking Platform demonstration environment! This gu
 
 ### 1. Access the Demo
 
-Visit the demo environment at: **[demo.finaegis.com](https://demo.finaegis.com)**
+Visit the demo environment at: **[finaegis.org](https://finaegis.org)**
 
 ### 2. Demo Credentials
 
@@ -198,13 +198,13 @@ Use these test inputs to trigger specific outcomes:
 
 #### Demo API Endpoints
 ```
-Base URL: https://demo.finaegis.com/api
+Base URL: https://finaegis.org/api
 Authentication: Bearer {demo_token}
 ```
 
 #### Get Demo Token
 ```bash
-curl -X POST https://demo.finaegis.com/api/auth/demo-token \
+curl -X POST https://finaegis.org/api/auth/demo-token \
   -H "Content-Type: application/json" \
   -d '{"email": "john@demo.finaegis.com"}'
 ```
@@ -212,11 +212,11 @@ curl -X POST https://demo.finaegis.com/api/auth/demo-token \
 #### Example API Calls
 ```bash
 # Get account balance
-curl https://demo.finaegis.com/api/accounts \
+curl https://finaegis.org/api/accounts \
   -H "Authorization: Bearer {demo_token}"
 
 # Create transaction
-curl -X POST https://demo.finaegis.com/api/transactions \
+curl -X POST https://finaegis.org/api/transactions \
   -H "Authorization: Bearer {demo_token}" \
   -H "Content-Type: application/json" \
   -d '{"to": "demo@recipient.com", "amount": 100, "currency": "EUR"}'
