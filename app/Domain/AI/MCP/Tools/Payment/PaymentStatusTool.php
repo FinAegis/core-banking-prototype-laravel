@@ -133,8 +133,8 @@ class PaymentStatusTool implements MCPToolInterface
             if (! $result) {
                 // Return success with not_found status instead of failure
                 return ToolExecutionResult::success([
-                    'status' => 'not_found',
-                    'message' => 'Transaction not found',
+                    'status'         => 'not_found',
+                    'message'        => 'Transaction not found',
                     'transaction_id' => $transactionId,
                 ]);
             }

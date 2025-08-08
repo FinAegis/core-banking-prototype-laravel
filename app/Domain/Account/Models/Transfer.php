@@ -15,7 +15,7 @@ class Transfer extends EloquentStoredEvent
     /**
      * Create a new factory instance for the model.
      *
-     * @return \Database\Factories\TransferFactory
+     * @return TransferFactory
      */
     protected static function newFactory(): \Illuminate\Database\Eloquent\Factories\Factory
     {
