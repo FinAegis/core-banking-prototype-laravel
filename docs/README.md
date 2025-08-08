@@ -2,6 +2,8 @@
 
 Welcome to the **FinAegis Core Banking Platform** documentation - a comprehensive guide for our modern banking platform with event sourcing, DDD, and workflow orchestration.
 
+📚 **[View Complete Documentation Index](INDEX.md)** - Quick access to all documentation organized by category
+
 ## 🏛️ Platform Overview
 
 **FinAegis** is a production-ready banking platform featuring:
