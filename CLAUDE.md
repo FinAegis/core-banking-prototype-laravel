@@ -85,6 +85,40 @@ php artisan l5-swagger:generate
 # Access at: http://localhost:8000/api/documentation
 ```
 
+## Infrastructure Configuration
+
+### CQRS & Domain Events
+
+The platform uses a clean CQRS implementation with Domain Event Bus for decoupled communication:
+
+#### For Demo/Development Environment
+```php
+// Infrastructure is enabled but handlers are optional
+// Set in .env for demo site:
+DOMAIN_ENABLE_HANDLERS=false  # Handlers not needed for demo
+```
+
+#### For Production Environment
+```php
+// Enable full infrastructure with handlers
+DOMAIN_ENABLE_HANDLERS=true
+
+// Register command/query/event handlers in DomainServiceProvider
+// Example:
+$commandBus->register(
+    PlaceOrderCommand::class,
+    PlaceOrderHandler::class
+);
+```
+
+#### Infrastructure Components
+- **CommandBus**: Handles commands with sync/async/transactional support
+- **QueryBus**: Handles queries with caching support
+- **DomainEventBus**: Bridges domain events with Laravel's event system
+- **Sagas**: Multi-step workflows with compensation support
+
+All infrastructure implementations are in `app/Infrastructure/` and are production-ready.
+
 ## Demo Mode Development Workflow
 
 ### Working with Demo Environment
@@ -183,7 +217,11 @@ app/
 │   ├── Wallet/              # Blockchain wallet management
 │   ├── CGO/                 # Continuous Growth Offering
 │   ├── Governance/          # Voting & governance
-│   └── Compliance/          # KYC/AML & regulatory
+│   ├── Compliance/          # KYC/AML & regulatory
+│   └── Shared/               # Shared domain interfaces (CQRS, Events)
+├── Infrastructure/           # Infrastructure implementations
+│   ├── CQRS/                # Command & Query Bus implementations
+│   └── Events/              # Domain Event Bus implementation
 ├── Http/Controllers/Api/     # REST API endpoints
 ├── Models/                   # Eloquent models
 ├── Services/                 # Application services
@@ -214,6 +252,8 @@ Example saga locations:
 - **Backend**: PHP 8.4+, Laravel 12
 - **Event Sourcing**: Spatie Event Sourcing
 - **Workflow Engine**: Laravel Workflow with Waterline
+- **CQRS Pattern**: Command & Query Bus with Laravel implementation
+- **Domain Events**: Custom Event Bus bridging with Laravel Events
 - **Admin Panel**: Filament 3.0
 - **Queue Management**: Laravel Horizon
 - **Testing**: Pest PHP (parallel support)
