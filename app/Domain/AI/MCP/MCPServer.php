@@ -114,7 +114,7 @@ class MCPServer implements MCPServerInterface
     {
         // Get fresh tools from registry
         $this->tools = $this->toolRegistry->getAllTools();
-        
+
         $tools = [];
 
         foreach ($this->tools as $name => $tool) {
