@@ -285,4 +285,3 @@ class MCPServerTest extends TestCase
         $this->assertLessThan(1000, $duration); // Should complete within 1 second
     }
 }
-

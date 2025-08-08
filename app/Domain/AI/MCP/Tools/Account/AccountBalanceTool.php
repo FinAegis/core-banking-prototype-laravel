@@ -8,7 +8,6 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
-use App\Domain\Asset\Models\ExchangeRate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -256,6 +255,7 @@ class AccountBalanceTool implements MCPToolInterface
             if (is_numeric($rate)) {
                 return (float) $rate;
             }
+
             return 1.0;
         } catch (\Exception $e) {
             Log::warning("Could not get exchange rate for {$assetCode}", [
