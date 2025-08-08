@@ -4,8 +4,6 @@ namespace Tests\Unit\Domain\Stablecoin\Services;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Stablecoin\Events\CollateralPositionLiquidated;
-use App\Domain\Stablecoin\Events\StablecoinBurned;
-use App\Domain\Stablecoin\Events\StablecoinMinted;
 use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use App\Domain\Stablecoin\Services\DemoStablecoinService;
@@ -134,7 +132,7 @@ class DemoStablecoinServiceTest extends TestCase
         $position = StablecoinCollateralPosition::where('account_uuid', 'acc_123')
             ->where('stablecoin_code', 'GUSD')
             ->first();
-        
+
         $this->assertNotNull($position);
         $this->assertEquals(1000000, $position->collateral_amount); // ETH in micro units
     }
@@ -174,12 +172,12 @@ class DemoStablecoinServiceTest extends TestCase
         // Transaction is already known to be an array
         $this->assertEquals('burn', $transaction['type']);
         $this->assertEquals(500, $transaction['amount']);
-        
+
         // Verify position was updated
         $position = StablecoinCollateralPosition::where('account_uuid', 'acc_123')
             ->where('stablecoin_code', 'GUSD')
             ->first();
-        
+
         $this->assertNotNull($position);
         $this->assertEquals(500, $position->debt_amount);
     }
