@@ -159,7 +159,7 @@ class TransactionMonitoringRule extends Model
         return $this->auto_escalate;
     }
 
-    public function appliesTo(string $customerType, string $riskLevel, string $country = null, string $currency = null): bool
+    public function appliesTo(string $customerType, string $riskLevel, ?string $country = null, ?string $currency = null): bool
     {
         // Check customer type
         if ($this->applies_to_customer_types && ! in_array($customerType, $this->applies_to_customer_types)) {
@@ -184,7 +184,7 @@ class TransactionMonitoringRule extends Model
         return true;
     }
 
-    public function recordTrigger(bool $isTruePositive = null): void
+    public function recordTrigger(?bool $isTruePositive = null): void
     {
         $this->increment('triggers_count');
         $this->update(['last_triggered_at' => now()]);

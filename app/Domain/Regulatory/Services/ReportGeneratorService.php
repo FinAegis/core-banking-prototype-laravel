@@ -13,7 +13,7 @@ class ReportGeneratorService
     /**
      * Generate report in specified format.
      */
-    public function generateReport(RegulatoryReport $report, string $format = null): string
+    public function generateReport(RegulatoryReport $report, ?string $format = null): string
     {
         $format = $format ?? $report->file_format;
 

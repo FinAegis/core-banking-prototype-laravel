@@ -184,7 +184,7 @@ class CustodianWebhook extends Model
     /**
      * Mark the webhook as ignored.
      */
-    public function markAsIgnored(string $reason = null): void
+    public function markAsIgnored(?string $reason = null): void
     {
         $this->update(
             [

@@ -270,7 +270,7 @@ class RegulatoryThreshold extends Model
         };
     }
 
-    public function getEffectiveAmountThreshold(string $currency = null): float
+    public function getEffectiveAmountThreshold(?string $currency = null): float
     {
         if (! $currency || $currency === $this->currency) {
             return $this->amount_threshold;
