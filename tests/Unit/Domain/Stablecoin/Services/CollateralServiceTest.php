@@ -83,12 +83,12 @@ class CollateralServiceTest extends ServiceTestCase
         $this->assertEquals('string', $parameters[0]->getType()->getName());
 
         $this->assertEquals('amount', $parameters[1]->getName());
-        $this->assertEquals('int', $parameters[1]->getType()->getName());
+        $this->assertEquals('float', $parameters[1]->getType()->getName());
 
         $this->assertEquals('pegAsset', $parameters[2]->getName());
         $this->assertEquals('string', $parameters[2]->getType()->getName());
 
-        $this->assertEquals('int', $reflection->getReturnType()->getName());
+        $this->assertEquals('float', $reflection->getReturnType()->getName());
     }
 
     #[Test]
@@ -103,7 +103,7 @@ class CollateralServiceTest extends ServiceTestCase
         $this->assertEquals('stablecoinCode', $parameter->getName());
         $this->assertEquals('string', $parameter->getType()->getName());
 
-        $this->assertEquals('int', $reflection->getReturnType()->getName());
+        $this->assertEquals('float', $reflection->getReturnType()->getName());
     }
 
     #[Test]

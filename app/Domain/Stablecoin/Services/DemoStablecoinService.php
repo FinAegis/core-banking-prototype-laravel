@@ -78,7 +78,7 @@ class DemoStablecoinService
                 position_uuid: $positionId,
                 account_uuid: $accountId,
                 stablecoin_code: $stablecoinId,
-                amount: (int) $amount,  // Use the original amount for the event
+                amount: (float) $amount,  // Use the original amount for the event
                 metadata: ['collateral' => $collateral]
             ));
 
@@ -149,7 +149,7 @@ class DemoStablecoinService
                 position_uuid: $position->uuid,
                 account_uuid: $accountId,
                 stablecoin_code: $stablecoinId,
-                amount: (int) $amount,
+                amount: (float) $amount,
                 metadata: ['collateral_returned' => $collateralToReturn]
             ));
 

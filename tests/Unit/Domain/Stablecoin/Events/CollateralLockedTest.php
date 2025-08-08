@@ -43,7 +43,7 @@ class CollateralLockedTest extends DomainTestCase
         $this->assertEquals('string', $parameters[2]->getType()->getName());
 
         $this->assertEquals('amount', $parameters[3]->getName());
-        $this->assertEquals('int', $parameters[3]->getType()->getName());
+        $this->assertEquals('float', $parameters[3]->getType()->getName());
 
         $this->assertEquals('metadata', $parameters[4]->getName());
         $this->assertEquals('array', $parameters[4]->getType()->getName());
