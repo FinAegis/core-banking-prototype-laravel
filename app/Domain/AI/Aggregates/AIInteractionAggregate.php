@@ -100,8 +100,6 @@ class AIInteractionAggregate extends AggregateRoot
             $this->userId
         ));
 
-        $this->executedTools[] = $toolName;
-
         return $this;
     }
 
