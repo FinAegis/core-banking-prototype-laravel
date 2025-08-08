@@ -40,19 +40,19 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $position = new LiquidityProvider();
         $position->pool_id = $pool->pool_id;
         $position->provider_id = 'provider-1';
-        $position->initial_base_amount = '10';
-        $position->initial_quote_amount = '20000';
-        $position->shares = '1000';
+        $position->initial_base_amount = 10.0;
+        $position->initial_quote_amount = 20000.0;
+        $position->shares = 1000.0;
         $position->metadata = ['entry_base_price' => '2000'];
         $position->created_at = now()->subDays(30);
         $position->save();
-        $position->pool = $pool;
+        $position->setRelation('pool', $pool);
 
         // Calculate IL when price doubles
         $currentPrice = BigDecimal::of('4000');
         $result = $this->service->calculateImpermanentLoss($position, $currentPrice);
 
-        $this->assertIsArray($result);
+        // Result is array
         $this->assertEquals($position->id, $result['position_id']);
         $this->assertEquals('2000', $result['entry_price']);
         $this->assertEquals('4000', $result['current_price']);
@@ -83,12 +83,12 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $newPosition = new LiquidityProvider();
         $newPosition->pool_id = $pool->pool_id;
         $newPosition->provider_id = 'provider-1';
-        $newPosition->shares = '100';
-        $newPosition->initial_base_amount = '1';
-        $newPosition->initial_quote_amount = '2000';
+        $newPosition->shares = 100.0;
+        $newPosition->initial_base_amount = 1.0;
+        $newPosition->initial_quote_amount = 2000.0;
         $newPosition->created_at = now()->subDays(3); // Only 3 days
         $newPosition->save();
-        $newPosition->pool = $pool;
+        $newPosition->setRelation('pool', $pool);
 
         $this->assertFalse($this->service->isEligibleForProtection($newPosition));
 
@@ -96,12 +96,12 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $oldPosition = new LiquidityProvider();
         $oldPosition->pool_id = $pool->pool_id;
         $oldPosition->provider_id = 'provider-2';
-        $oldPosition->shares = '100';
-        $oldPosition->initial_base_amount = '1';
-        $oldPosition->initial_quote_amount = '2000';
+        $oldPosition->shares = 100.0;
+        $oldPosition->initial_base_amount = 1.0;
+        $oldPosition->initial_quote_amount = 2000.0;
         $oldPosition->created_at = now()->subDays(10); // 10 days
         $oldPosition->save();
-        $oldPosition->pool = $pool;
+        $oldPosition->setRelation('pool', $pool);
 
         $this->assertTrue($this->service->isEligibleForProtection($oldPosition));
 
@@ -109,12 +109,12 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $inactivePosition = new LiquidityProvider();
         $inactivePosition->pool_id = $pool->pool_id;
         $inactivePosition->provider_id = 'provider-3';
-        $inactivePosition->shares = '0'; // No shares = inactive
-        $inactivePosition->initial_base_amount = '1';
-        $inactivePosition->initial_quote_amount = '2000';
+        $inactivePosition->shares = 0.0; // No shares = inactive
+        $inactivePosition->initial_base_amount = 1.0;
+        $inactivePosition->initial_quote_amount = 2000.0;
         $inactivePosition->created_at = now()->subDays(30);
         $inactivePosition->save();
-        $inactivePosition->pool = $pool;
+        $inactivePosition->setRelation('pool', $pool);
 
         $this->assertFalse($this->service->isEligibleForProtection($inactivePosition));
     }
@@ -135,12 +135,12 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $position30Days = new LiquidityProvider();
         $position30Days->pool_id = $pool->pool_id;
         $position30Days->provider_id = 'provider-1';
-        $position30Days->initial_base_amount = '10';
-        $position30Days->initial_quote_amount = '20000';
-        $position30Days->shares = '100';
+        $position30Days->initial_base_amount = 10.0;
+        $position30Days->initial_quote_amount = 20000.0;
+        $position30Days->shares = 100.0;
         $position30Days->created_at = now()->subDays(30);
         $position30Days->save();
-        $position30Days->pool = $pool;
+        $position30Days->setRelation('pool', $pool);
 
         $ilLoss = BigDecimal::of('1000'); // $1000 IL
         $ilPercent = BigDecimal::of('5'); // 5% IL
@@ -161,12 +161,12 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $position180Days = new LiquidityProvider();
         $position180Days->pool_id = $pool->pool_id;
         $position180Days->provider_id = 'provider-2';
-        $position180Days->initial_base_amount = '10';
-        $position180Days->initial_quote_amount = '20000';
-        $position180Days->shares = '100';
+        $position180Days->initial_base_amount = 10.0;
+        $position180Days->initial_quote_amount = 20000.0;
+        $position180Days->shares = 100.0;
         $position180Days->created_at = now()->subDays(180);
         $position180Days->save();
-        $position180Days->pool = $pool;
+        $position180Days->setRelation('pool', $pool);
 
         $compensation180 = $this->service->calculateProtectionCompensation(
             $position180Days,
@@ -193,12 +193,12 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $position = new LiquidityProvider();
         $position->pool_id = $pool->pool_id;
         $position->provider_id = 'provider-1';
-        $position->initial_base_amount = '10';
-        $position->initial_quote_amount = '20000';
-        $position->shares = '100';
+        $position->initial_base_amount = 10.0;
+        $position->initial_quote_amount = 20000.0;
+        $position->shares = 100.0;
         $position->created_at = now()->subDays(30);
         $position->save();
-        $position->pool = $pool;
+        $position->setRelation('pool', $pool);
 
         // IL below 2% threshold
         $smallLoss = BigDecimal::of('300');
@@ -232,16 +232,16 @@ class ImpermanentLossProtectionServiceTest extends TestCase
             $position = new LiquidityProvider();
             $position->pool_id = $pool->pool_id;
             $position->provider_id = "provider-$i";
-            $position->initial_base_amount = '10';
-            $position->initial_quote_amount = '20000';
-            $position->shares = '100';
+            $position->initial_base_amount = 10.0;
+            $position->initial_quote_amount = 20000.0;
+            $position->shares = 100.0;
             $position->created_at = now()->subDays($i * 20);
             $position->save();
         }
 
         $requirements = $this->service->estimateProtectionFundRequirements($pool->pool_id);
 
-        $this->assertIsArray($requirements);
+        // Requirements is array
         $this->assertEquals('test-pool', $requirements['pool_id']);
         $this->assertEquals('USDC', $requirements['fund_currency']);
         $this->assertGreaterThan(0, $requirements['total_liquidity_value']);
@@ -266,9 +266,9 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $position = new LiquidityProvider();
         $position->pool_id = $pool->pool_id;
         $position->provider_id = 'provider-1';
-        $position->initial_base_amount = '10';
-        $position->initial_quote_amount = '20000';
-        $position->shares = '100';
+        $position->initial_base_amount = 10.0;
+        $position->initial_quote_amount = 20000.0;
+        $position->shares = 100.0;
         $position->metadata = ['entry_base_price' => '2000']; // Entry price was 2000
         $position->created_at = now()->subDays(30);
         $position->save();

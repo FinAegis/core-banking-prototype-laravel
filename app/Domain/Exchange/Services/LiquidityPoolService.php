@@ -223,8 +223,7 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
                 poolId: $poolId,
                 toAccountId: $providerId,
                 currency: $currency,
-                amount: $amount,
-                description: 'Liquidity rewards claim'
+                amount: $amount
             );
         }
 
