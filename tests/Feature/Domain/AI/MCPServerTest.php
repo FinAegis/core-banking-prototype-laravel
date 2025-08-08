@@ -71,7 +71,7 @@ class MCPServerTest extends TestCase
     {
         $user = User::factory()->create();
         $account = Account::factory()->create([
-            'user_id' => $user->id,
+            'user_uuid' => $user->uuid,
             'balance' => 10000,
         ]);
         
@@ -87,7 +87,7 @@ class MCPServerTest extends TestCase
                 'account_uuid' => $account->uuid,
             ],
         ]);
-        $request->setUserId($user->id);
+        $request->setUserId((string) $user->id);
         
         $response = $this->server->handle($request);
         
@@ -159,7 +159,7 @@ class MCPServerTest extends TestCase
     {
         $user = User::factory()->create();
         $account = Account::factory()->create([
-            'user_id' => $user->id,
+            'user_uuid' => $user->uuid,
         ]);
         
         $this->actingAs($user);
@@ -173,7 +173,7 @@ class MCPServerTest extends TestCase
                 'account_uuid' => $account->uuid,
             ],
         ]);
-        $request->setUserId($user->id);
+        $request->setUserId((string) $user->id);
         $request->setConversationId('test-conv-456');
         
         $response = $this->server->handle($request);
@@ -205,7 +205,7 @@ class MCPServerTest extends TestCase
     {
         $user = User::factory()->create();
         $account = Account::factory()->create([
-            'user_id' => $user->id,
+            'user_uuid' => $user->uuid,
             'balance' => 5000,
         ]);
         
@@ -220,7 +220,7 @@ class MCPServerTest extends TestCase
                 'account_uuid' => $account->uuid,
             ],
         ]);
-        $request->setUserId($user->id);
+        $request->setUserId((string) $user->id);
         
         // First call - not cached
         $response1 = $this->server->handle($request);
@@ -257,7 +257,7 @@ class MCPServerTest extends TestCase
     {
         $user = User::factory()->create();
         $account = Account::factory()->create([
-            'user_id' => $user->id,
+            'user_uuid' => $user->uuid,
         ]);
         
         $this->actingAs($user);
@@ -271,7 +271,7 @@ class MCPServerTest extends TestCase
                 'account_uuid' => $account->uuid,
             ],
         ]);
-        $request->setUserId($user->id);
+        $request->setUserId((string) $user->id);
         
         $response = $this->server->handle($request);
         

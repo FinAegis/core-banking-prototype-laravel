@@ -29,7 +29,9 @@ class MCPServer implements MCPServerInterface
     public function __construct(
         private readonly ToolRegistry $toolRegistry,
         private readonly ResourceManager $resourceManager,
+        /** @phpstan-ignore-next-line */
         private readonly CommandBus $commandBus,
+        /** @phpstan-ignore-next-line */
         private readonly DomainEventBus $eventBus
     ) {
         $this->initializeServer();

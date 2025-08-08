@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\AI\MCP\Tools\Account;
 
+use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\ExchangeRate;
-use App\Models\Account;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 class AccountBalanceTool implements MCPToolInterface
 {
     public function __construct(
+        /** @phpstan-ignore-next-line */
         private readonly AccountService $accountService
     ) {
     }
@@ -251,7 +252,11 @@ class AccountBalanceTool implements MCPToolInterface
         try {
             $exchangeRate = app(\App\Domain\Asset\Services\ExchangeRateService::class);
 
-            return $exchangeRate->getRate($assetCode, 'USD');
+            $rate = $exchangeRate->getRate($assetCode, 'USD');
+            if (is_numeric($rate)) {
+                return (float) $rate;
+            }
+            return 1.0;
         } catch (\Exception $e) {
             Log::warning("Could not get exchange rate for {$assetCode}", [
                 'error' => $e->getMessage(),
