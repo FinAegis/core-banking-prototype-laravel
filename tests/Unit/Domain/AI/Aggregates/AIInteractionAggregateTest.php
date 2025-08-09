@@ -195,7 +195,7 @@ class AIInteractionAggregateTest extends TestCase
         // Act
         $result = new ToolExecutionResult(true, ['data' => 'test'], null, 100);
         $this->aggregate->executeTool('test.tool', [], $result);
-        
+
         // Assert - Tool execution still works but conversation is marked as inactive
         $this->assertFalse($this->aggregate->isActive());
         $executedTools = $this->aggregate->getExecutedTools();
@@ -267,26 +267,26 @@ class AIInteractionAggregateTest extends TestCase
             $this->userId,
             ['channel' => 'api']
         );
-        
+
         $this->aggregate->classifyIntent(
             'transfer money',
             'transfer_money',
             0.89
         );
-        
+
         $result = new ToolExecutionResult(
             success: true,
             data: ['success' => true],
             error: null,
             durationMs: 250
         );
-        
+
         $this->aggregate->executeTool(
             'transfer.execute',
             ['amount' => 100],
             $result
         );
-        
+
         $this->aggregate->endConversation(['tools_executed' => 1]);
 
         // Assert
@@ -294,7 +294,7 @@ class AIInteractionAggregateTest extends TestCase
         $this->assertFalse($this->aggregate->isActive()); // Should be inactive after EndedEvent
         $this->assertCount(1, $this->aggregate->getExecutedTools());
         $this->assertEquals('transfer.execute', $this->aggregate->getExecutedTools()[0]);
-        
+
         // Verify events were recorded
         $events = $this->aggregate->getRecordedEvents();
         $this->assertCount(4, $events);
