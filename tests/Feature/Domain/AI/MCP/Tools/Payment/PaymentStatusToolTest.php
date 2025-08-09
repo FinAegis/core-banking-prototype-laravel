@@ -45,11 +45,11 @@ class PaymentStatusToolTest extends TestCase
 
         // Set up MCP infrastructure
         $this->registry = new ToolRegistry();
-        
+
         // Register the tool BEFORE creating the server
         $this->tool = new PaymentStatusTool();
         $this->registry->register($this->tool);
-        
+
         // Now create the server which will pick up the registered tool
         $this->server = new MCPServer(
             $this->registry,
@@ -71,7 +71,7 @@ class PaymentStatusToolTest extends TestCase
 
         // Verify the transaction was created
         $this->assertDatabaseHas('transaction_projections', [
-            'uuid' => $transaction->uuid,
+            'uuid'         => $transaction->uuid,
             'account_uuid' => $this->account->uuid,
         ]);
 
@@ -87,7 +87,7 @@ class PaymentStatusToolTest extends TestCase
         $response = $this->server->handle($request);
 
         // Debug - let's see what the response contains
-        if (!$response->isSuccess()) {
+        if (! $response->isSuccess()) {
             dump('Error:', $response->getError());
             dump('Transaction UUID:', $transaction->uuid);
             dump('User UUID:', $this->user->uuid);
@@ -114,7 +114,7 @@ class PaymentStatusToolTest extends TestCase
         $toAccount = Account::factory()->create();
         $transferUuid = fake()->uuid();
         $transfer = Transfer::factory()->create([
-            'aggregate_uuid' => $transferUuid,
+            'aggregate_uuid'   => $transferUuid,
             'event_properties' => [
                 'from_account_uuid' => $this->account->uuid,
                 'to_account_uuid'   => $toAccount->uuid,
@@ -186,7 +186,7 @@ class PaymentStatusToolTest extends TestCase
         // Arrange
         $transferUuid = fake()->uuid();
         $transfer = Transfer::factory()->create([
-            'aggregate_uuid' => $transferUuid,
+            'aggregate_uuid'   => $transferUuid,
             'event_properties' => [
                 'from_account_uuid' => $this->account->uuid,
                 'amount'            => 150.00,
