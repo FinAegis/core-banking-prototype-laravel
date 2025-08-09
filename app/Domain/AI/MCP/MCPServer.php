@@ -144,8 +144,18 @@ class MCPServer implements MCPServerInterface
         $arguments = $params['arguments'] ?? [];
 
         // Add user_uuid from request if not in arguments
+        // Convert user ID to UUID format if it's numeric
         if (! isset($arguments['user_uuid']) && $request->getUserId()) {
-            $arguments['user_uuid'] = $request->getUserId();
+            $userId = $request->getUserId();
+            // If userId is numeric, get the user's UUID
+            if (is_numeric($userId)) {
+                $user = \App\Models\User::find($userId);
+                if ($user) {
+                    $arguments['user_uuid'] = $user->uuid;
+                }
+            } else {
+                $arguments['user_uuid'] = $userId;
+            }
         }
 
         // Get fresh tools from registry
@@ -336,6 +346,10 @@ class MCPServer implements MCPServerInterface
         if (isset($schema['properties'])) {
             foreach ($schema['properties'] as $field => $rules) {
                 if (isset($input[$field])) {
+                    // Skip validation for user_uuid since we handle it specially
+                    if ($field === 'user_uuid') {
+                        continue;
+                    }
                     $this->validateField($field, $input[$field], $rules);
                 }
             }

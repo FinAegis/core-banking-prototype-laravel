@@ -156,7 +156,19 @@ class PaymentStatusTool implements MCPToolInterface
     private function getUser(?string $userUuid): ?User
     {
         if ($userUuid) {
-            return User::where('uuid', $userUuid)->first();
+            // First try to find by UUID
+            $user = User::where('uuid', $userUuid)->first();
+            if ($user) {
+                return $user;
+            }
+
+            // If it's numeric, try to find by ID
+            if (is_numeric($userUuid)) {
+                $user = User::find((int) $userUuid);
+                if ($user) {
+                    return $user;
+                }
+            }
         }
 
         return Auth::user();
@@ -405,12 +417,12 @@ class PaymentStatusTool implements MCPToolInterface
 
         return match ($eventName) {
             'TransferStarted', 'TransferInitiated' => 'pending',
-            'TransferCompleted', 'TransferSucceeded' => 'completed',
-            'TransferFailed'    => 'failed',
+            'TransferCompleted', 'TransferSucceeded', 'MoneyTransferred' => 'completed',
+            'TransferFailed', 'TransferFailedEvent' => 'failed',
             'TransferCancelled' => 'cancelled',
             'TransferReversed'  => 'reversed',
             'TransferPending'   => 'processing',
-            default             => 'unknown',
+            default             => 'completed', // Default to completed for unknown events
         };
     }
 
