@@ -321,13 +321,23 @@ app/Domain/
 │   ├── Models/       # Loan and credit score models
 │   ├── Services/     # Credit scoring and risk assessment
 │   └── Workflows/    # Loan lifecycle workflows
-└── AI/               # AI Agent Framework
+└── AI/               # AI Agent Framework (Refactored)
+    ├── Activities/   # Atomic business logic units
+    │   ├── Trading/  # RSI, MACD, pattern identification
+    │   ├── Risk/     # VaR, credit scoring, fraud detection
+    │   └── Portfolio/# Optimization and rebalancing
+    ├── ChildWorkflows/# Focused sub-workflows
+    │   ├── Trading/  # MarketAnalysis, StrategyGeneration
+    │   ├── Risk/     # CreditRisk, FraudDetection workflows
+    │   └── Approval/ # ConfidenceEvaluation, Escalation
+    ├── Sagas/        # Compensatable operations
+    │   └── TradingExecutionSaga (with rollback support)
     ├── Aggregates/   # AIInteractionAggregate for event sourcing
-    ├── Events/       # AI-specific events (conversations, tool execution)
+    ├── Events/       # Domain events (MarketAnalyzed, TradeExecuted)
     ├── MCP/          # Model Context Protocol server
     │   ├── Tools/    # MCP tools for banking operations
     │   └── Resources/# MCP resource exposure
-    └── Workflows/    # AI agent orchestration (CustomerServiceWorkflow)
+    └── Workflows/    # Main orchestration workflows
 ```
 
 ## 💼 Key Features
@@ -414,12 +424,17 @@ app/Domain/
 - Default management and recovery
 - Collateralized and uncollateralized loans
 
-### AI Agent Framework (Phase 4 Complete - January 2025)
+### AI Agent Framework (Phase 4 Complete - January 2025, Refactored Architecture)
 - **MCP Server**: Production-ready Model Context Protocol v1.0 implementation
 - **20+ Banking Tools**: Complete coverage across all banking domains
 - **Event Sourcing**: AIInteractionAggregate tracks all conversations and decisions
+- **Refactored Architecture** (Clean Code Principles Applied):
+  - **Activities**: Atomic business logic units (RSI, MACD, pattern identification)
+  - **Child Workflows**: Focused sub-workflows (MarketAnalysis, StrategyGeneration)
+  - **Sagas**: Compensatable operations (TradingExecutionSaga with rollback)
+  - **Events**: Comprehensive event tracking (MarketAnalyzed, StrategyGenerated, TradeExecuted)
 - **Advanced AI Workflows**:
-  - **TradingAgentWorkflow**: Market analysis, portfolio optimization, automated strategies
+  - **TradingAgentWorkflow**: Orchestrates market analysis using child workflows (reduced from 720 to 194 lines)
   - **MultiAgentCoordination**: Agent communication, consensus, conflict resolution
   - **HumanInTheLoopWorkflow**: Approval mechanisms, confidence thresholds, audit trails
   - **CustomerServiceWorkflow**: Natural language processing with intent classification
