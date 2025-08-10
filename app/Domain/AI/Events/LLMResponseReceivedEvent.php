@@ -15,5 +15,6 @@ class LLMResponseReceivedEvent extends ShouldBeStored
         public readonly int $totalTokens,
         public readonly array $metadata,
         public readonly string $timestamp
-    ) {}
+    ) {
+    }
 }

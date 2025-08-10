@@ -17,7 +17,8 @@ final class ConversationContext implements Arrayable
         private readonly array $messages = [],
         private readonly array $systemPrompt = [],
         private readonly array $metadata = []
-    ) {}
+    ) {
+    }
 
     public function getConversationId(): string
     {

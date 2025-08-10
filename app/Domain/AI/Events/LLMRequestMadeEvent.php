@@ -15,5 +15,6 @@ class LLMRequestMadeEvent extends ShouldBeStored
         public readonly string $message,
         public readonly array $options,
         public readonly string $timestamp
-    ) {}
+    ) {
+    }
 }

@@ -13,5 +13,6 @@ class LLMErrorEvent extends ShouldBeStored
         public readonly string $provider,
         public readonly string $error,
         public readonly string $timestamp
-    ) {}
+    ) {
+    }
 }

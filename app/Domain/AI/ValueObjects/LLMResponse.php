@@ -15,7 +15,8 @@ final class LLMResponse implements Arrayable
         private readonly int $completionTokens,
         private readonly float $temperature,
         private readonly array $metadata = []
-    ) {}
+    ) {
+    }
 
     public function getContent(): string
     {

@@ -23,7 +23,7 @@ class AIInfrastructureServiceProvider extends ServiceProvider
         // Register LLM Provider
         $this->app->bind(LLMProviderInterface::class, function ($app) {
             $provider = config('services.ai.llm_provider', 'openai');
-            
+
             return match ($provider) {
                 'claude' => new ClaudeProvider(),
                 'openai' => new OpenAIProvider(),
@@ -41,7 +41,7 @@ class AIInfrastructureServiceProvider extends ServiceProvider
         // Register Vector Database
         $this->app->singleton(VectorDatabaseInterface::class, function ($app) {
             $provider = config('services.ai.vector_db_provider', 'pinecone');
-            
+
             return match ($provider) {
                 'pinecone' => new PineconeProvider(),
                 default => new PineconeProvider(),
