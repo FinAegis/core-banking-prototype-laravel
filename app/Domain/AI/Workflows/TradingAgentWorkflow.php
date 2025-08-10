@@ -698,13 +698,14 @@ class TradingAgentWorkflow extends Workflow
 
             $aggregate->makeDecision(
                 decision: 'trading_strategy_' . ($result['decision']['recommended_action']['type'] ?? 'unknown'),
-                confidence: $result['confidence'] ?? 0.0,
-                context: [
+                reasoning: [
                     'strategies' => $this->tradingStrategies,
                     'execution'  => $result['decision'] ?? [],
                     'analysis'   => $result['analysis_summary'] ?? [],
+                    'outcome'    => $result,
                 ],
-                outcome: json_encode($result)
+                confidence: $result['confidence'] ?? 0.0,
+                requiresApproval: ($result['confidence'] ?? 0.0) < 0.7
             );
 
             $aggregate->persist();

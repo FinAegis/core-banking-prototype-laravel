@@ -641,13 +641,14 @@ class HumanInTheLoopWorkflow extends Workflow
 
             $aggregate->makeDecision(
                 decision: 'human_in_loop_' . $result['final_decision'],
-                confidence: $result['ai_confidence'] ?? 0.0,
-                context: [
+                reasoning: [
                     'decision_maker' => $result['decision_maker'],
                     'ai_overridden'  => $result['ai_overridden'] ?? false,
                     'audit_trail'    => $this->auditTrail,
+                    'outcome'        => $result,
                 ],
-                outcome: json_encode($result)
+                confidence: $result['ai_confidence'] ?? 0.0,
+                requiresApproval: false
             );
 
             $aggregate->persist();

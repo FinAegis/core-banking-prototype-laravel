@@ -750,6 +750,8 @@ class MultiAgentCoordinationService
 
     /**
      * Register new agent.
+     *
+     * @param class-string $workflowClass
      */
     public function registerAgent(
         string $name,
