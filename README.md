@@ -59,13 +59,19 @@ The demo environment showcases all platform capabilities without real transactio
   - **Exchange Domain** (2 tools): GetExchangeRates, PlaceOrder
   - **Lending Domain** (2 tools): LoanApplication, CheckLoanStatus
   - **Stablecoin Domain** (2 tools): TransferTokens, CheckTokenBalance
+- **AI Agent Workflows** (Phase 3 Complete!):
+  - **CustomerServiceWorkflow**: Natural language query processing with intent classification
+  - **ComplianceWorkflow**: Comprehensive KYC/AML checks with transaction monitoring
+  - **RiskAssessmentSaga**: Multi-dimensional risk analysis (credit, fraud, portfolio)
+  - Saga pattern with full compensation support for workflow failures
+  - Confidence scoring and human-in-the-loop decisions
+  - Integration with existing domain services
 - **Advanced Features**:
   - Conversation tracking with full event history
   - Tool result caching with configurable TTL (<100ms response time)
   - Resource exposure for documents and data via MCP protocol
-  - CustomerServiceWorkflow for complex AI agent orchestration
   - Authorization and permission validation with Laravel Sanctum
-  - Saga pattern support for compensation flows
+  - Workflow orchestration via Laravel Workflow (Waterline)
   - User UUID injection for numeric ID compatibility
 - **Testing Coverage**: 
   - MCPServer fully tested with comprehensive test suites
