@@ -254,14 +254,14 @@ class ConversationStoreTest extends TestCase
                 $userId,
                 [['role' => 'user', 'content' => "Message $i"]]
             );
-            
+
             // Store with incrementing timestamps
             $key = 'ai:conversation:' . $context->getConversationId();
             $userKey = 'ai:conversation:user:' . $userId;
             Redis::setex($key, 3600, json_encode($context->toArray()));
             Redis::zadd($userKey, $baseTime + $i, $context->getConversationId());
         }
-        
+
         // Trim to keep last 100
         Redis::zremrangebyrank('ai:conversation:user:' . $userId, 0, -101);
 

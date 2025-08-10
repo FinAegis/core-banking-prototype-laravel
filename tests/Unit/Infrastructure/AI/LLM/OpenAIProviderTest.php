@@ -11,7 +11,6 @@ use App\Infrastructure\AI\LLM\OpenAIProvider;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -112,7 +111,7 @@ class OpenAIProviderTest extends TestCase
     {
         // Clear cache to ensure clean test
         Cache::flush();
-        
+
         // Arrange
         $conversationId = 'test-conversation-' . uniqid();
         $userId = 'user-123';
@@ -161,7 +160,7 @@ class OpenAIProviderTest extends TestCase
         $this->assertEquals($response1->getTotalTokens(), $response2->getTotalTokens());
     }
 
-    /** 
+    /**
      * @test
      * @skip Skipping temporarily - mock injection issue
      */
