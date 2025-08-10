@@ -97,9 +97,17 @@ class IdentifyPatternsActivity extends Activity
         }
 
         $recent = array_slice($prices, -5);
-        $peak1 = max(array_slice($recent, 0, 2));
-        $peak2 = max(array_slice($recent, 3, 2));
-        $valley = min(array_slice($recent, 1, 2));
+        $slice1 = array_slice($recent, 0, 2);
+        $slice2 = array_slice($recent, 3, 2);
+        $slice3 = array_slice($recent, 1, 2);
+        
+        if (empty($slice1) || empty($slice2) || empty($slice3)) {
+            return false;
+        }
+        
+        $peak1 = max($slice1);
+        $peak2 = max($slice2);
+        $valley = min($slice3);
 
         return abs($peak1 - $peak2) / $peak1 < 0.03 && // Peaks within 3%
                $valley < $peak1 * 0.95; // Valley at least 5% below peaks
@@ -112,9 +120,17 @@ class IdentifyPatternsActivity extends Activity
         }
 
         $recent = array_slice($prices, -5);
-        $trough1 = min(array_slice($recent, 0, 2));
-        $trough2 = min(array_slice($recent, 3, 2));
-        $peak = max(array_slice($recent, 1, 2));
+        $slice1 = array_slice($recent, 0, 2);
+        $slice2 = array_slice($recent, 3, 2);
+        $slice3 = array_slice($recent, 1, 2);
+        
+        if (empty($slice1) || empty($slice2) || empty($slice3)) {
+            return false;
+        }
+        
+        $trough1 = min($slice1);
+        $trough2 = min($slice2);
+        $peak = max($slice3);
 
         return abs($trough1 - $trough2) / $trough1 < 0.03 && // Troughs within 3%
                $peak > $trough1 * 1.05; // Peak at least 5% above troughs
@@ -173,7 +189,14 @@ class IdentifyPatternsActivity extends Activity
         $consolidation = array_slice($prices, 5, 5);
 
         $strongUp = end($initialMove) > $initialMove[0] * 1.1;
-        $consolidating = max($consolidation) - min($consolidation) < (max($consolidation) * 0.05);
+        
+        if (empty($consolidation)) {
+            return false;
+        }
+        
+        $maxConsolidation = max($consolidation);
+        $minConsolidation = min($consolidation);
+        $consolidating = $maxConsolidation - $minConsolidation < ($maxConsolidation * 0.05);
         $volumeDecreasing = array_sum(array_slice($volumes, -5)) < array_sum(array_slice($volumes, 0, 5)) * 0.7;
 
         return $strongUp && $consolidating && $volumeDecreasing;
@@ -190,7 +213,14 @@ class IdentifyPatternsActivity extends Activity
         $consolidation = array_slice($prices, 5, 5);
 
         $strongDown = end($initialMove) < $initialMove[0] * 0.9;
-        $consolidating = max($consolidation) - min($consolidation) < (max($consolidation) * 0.05);
+        
+        if (empty($consolidation)) {
+            return false;
+        }
+        
+        $maxConsolidation = max($consolidation);
+        $minConsolidation = min($consolidation);
+        $consolidating = $maxConsolidation - $minConsolidation < ($maxConsolidation * 0.05);
         $volumeDecreasing = array_sum(array_slice($volumes, -5)) < array_sum(array_slice($volumes, 0, 5)) * 0.7;
 
         return $strongDown && $consolidating && $volumeDecreasing;

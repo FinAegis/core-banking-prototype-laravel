@@ -14,7 +14,12 @@ class CalculateRSIActivityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->activity = new CalculateRSIActivity();
+        // Create activity with required constructor parameters
+        $this->activity = new CalculateRSIActivity(
+            index: 0,
+            now: now()->toDateTimeString(),
+            storedWorkflow: null
+        );
     }
 
     /** @test */
@@ -34,7 +39,6 @@ class CalculateRSIActivityTest extends TestCase
         ]);
 
         // Assert
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('value', $result);
         $this->assertArrayHasKey('signal', $result);
         $this->assertArrayHasKey('strength', $result);

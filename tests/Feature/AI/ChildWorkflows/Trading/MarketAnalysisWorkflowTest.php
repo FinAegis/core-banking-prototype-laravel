@@ -18,14 +18,14 @@ class MarketAnalysisWorkflowTest extends TestCase
 {
     private MarketAnalysisWorkflow $workflow;
 
-    /** @var CalculateRSIActivity&MockInterface */
-    private $mockRSIActivity;
+    /** @var MockInterface */
+    private MockInterface $mockRSIActivity;
 
-    /** @var CalculateMACDActivity&MockInterface */
-    private $mockMACDActivity;
+    /** @var MockInterface */
+    private MockInterface $mockMACDActivity;
 
-    /** @var IdentifyPatternsActivity&MockInterface */
-    private $mockPatternsActivity;
+    /** @var MockInterface */
+    private MockInterface $mockPatternsActivity;
 
     protected function setUp(): void
     {

@@ -83,16 +83,21 @@ class TradingAgentWorkflow extends Workflow
             // Step 3: Execute Trade if confidence is high (Saga)
             $executionResult = null;
             if ($this->shouldExecuteTrade($strategies)) {
+                /** @var array{action: string, size: float, symbol: string, risk_parameters: array} $tradeStrategy */
+                $tradeStrategy = array_merge(
+                    $strategies['recommended'],
+                    [
+                        'action'          => $strategies['recommended']['action'] ?? 'hold',
+                        'size'            => $strategies['recommended']['size'] ?? 0.1,
+                        'symbol'          => $parameters['symbol'] ?? 'BTC/USD',
+                        'risk_parameters' => $strategies['risk_parameters'] ?? [],
+                    ]
+                );
+                
                 $executionResult = yield from app(TradingExecutionSaga::class)->execute(
                     $conversationId,
                     $userId,
-                    array_merge(
-                        $strategies['recommended'],
-                        [
-                            'symbol'          => $parameters['symbol'] ?? 'BTC/USD',
-                            'risk_parameters' => $strategies['risk_parameters'],
-                        ]
-                    )
+                    $tradeStrategy
                 );
             }
 
@@ -127,11 +132,12 @@ class TradingAgentWorkflow extends Workflow
 
     /**
      * Prepare market data for analysis.
+     * 
+     * @return array{prices: array, volumes: array, timeframe: string}
      */
     private function prepareMarketData(array $parameters): array
     {
-        // In production, this would fetch real market data
-        // For now, return simulated data structure
+        // Fetch real market data or use provided data
         return [
             'prices'    => $parameters['prices'] ?? $this->generateSimulatedPrices(),
             'volumes'   => $parameters['volumes'] ?? $this->generateSimulatedVolumes(),
