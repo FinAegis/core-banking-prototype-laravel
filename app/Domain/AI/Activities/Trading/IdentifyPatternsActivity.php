@@ -100,11 +100,11 @@ class IdentifyPatternsActivity extends Activity
         $slice1 = array_slice($recent, 0, 2);
         $slice2 = array_slice($recent, 3, 2);
         $slice3 = array_slice($recent, 1, 2);
-        
+
         if (empty($slice1) || empty($slice2) || empty($slice3)) {
             return false;
         }
-        
+
         $peak1 = max($slice1);
         $peak2 = max($slice2);
         $valley = min($slice3);
@@ -123,11 +123,11 @@ class IdentifyPatternsActivity extends Activity
         $slice1 = array_slice($recent, 0, 2);
         $slice2 = array_slice($recent, 3, 2);
         $slice3 = array_slice($recent, 1, 2);
-        
+
         if (empty($slice1) || empty($slice2) || empty($slice3)) {
             return false;
         }
-        
+
         $trough1 = min($slice1);
         $trough2 = min($slice2);
         $peak = max($slice3);
@@ -189,11 +189,11 @@ class IdentifyPatternsActivity extends Activity
         $consolidation = array_slice($prices, 5, 5);
 
         $strongUp = end($initialMove) > $initialMove[0] * 1.1;
-        
+
         if (empty($consolidation)) {
             return false;
         }
-        
+
         $maxConsolidation = max($consolidation);
         $minConsolidation = min($consolidation);
         $consolidating = $maxConsolidation - $minConsolidation < ($maxConsolidation * 0.05);
@@ -213,11 +213,11 @@ class IdentifyPatternsActivity extends Activity
         $consolidation = array_slice($prices, 5, 5);
 
         $strongDown = end($initialMove) < $initialMove[0] * 0.9;
-        
+
         if (empty($consolidation)) {
             return false;
         }
-        
+
         $maxConsolidation = max($consolidation);
         $minConsolidation = min($consolidation);
         $consolidating = $maxConsolidation - $minConsolidation < ($maxConsolidation * 0.05);

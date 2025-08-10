@@ -50,6 +50,30 @@ Located in `app/Domain/AI/Events/`:
   - `StrategyGeneratedEvent.php` - Emitted after strategy creation
   - `TradeExecutedEvent.php` - Emitted after successful trade
 
+### Risk Domain
+#### Activities
+- `CalculateCreditScoreActivity.php` - Credit score calculation
+- `CalculateDebtRatiosActivity.php` - DTI ratio calculation
+- `CalculateVaRActivity.php` - Value at Risk calculation (existing)
+- `EvaluateLoanAffordabilityActivity.php` - Loan affordability assessment
+- `AnalyzeTransactionVelocityActivity.php` - Velocity check for fraud
+- `DetectAnomaliesActivity.php` - Anomaly detection for fraud
+- `VerifyDeviceAndLocationActivity.php` - Device/location verification
+
+#### Child Workflows
+- `CreditRiskWorkflow.php` - Credit risk assessment orchestration
+- `FraudDetectionWorkflow.php` - Fraud detection orchestration
+
+#### Sagas (Refactored)
+- `RiskAssessmentSaga.php` - Comprehensive risk evaluation with compensation
+  - Reduced from 782 to ~350 lines (55% reduction)
+  - Now uses child workflows for orchestration
+  - Cleaner separation of concerns
+
+#### Events
+- `CreditAssessedEvent.php` - Emitted after credit assessment
+- `FraudAssessedEvent.php` - Emitted after fraud detection
+
 ## Key Design Patterns Applied
 
 ### 1. Single Responsibility Principle
@@ -76,7 +100,7 @@ Complex operations use compensation stacks for automatic rollback on failure.
 - No external dependencies
 
 ### Feature Tests
-- Child Workflows tested with mocked activities (see `MarketAnalysisWorkflowTest.php`)
+- Child Workflows tested with mocked activities (see `MarketAnalysisWorkflowTest.php`, `CreditRiskWorkflowTest.php`)
 - Event emission verification
 - Sentiment calculation validation
 
@@ -88,19 +112,21 @@ Complex operations use compensation stacks for automatic rollback on failure.
 ## Migration Path
 
 ### Completed
-1. ✅ Created Activities for Trading calculations
-2. ✅ Created Child Workflows for Trading
+1. ✅ Created Activities for Trading calculations (6 activities)
+2. ✅ Created Child Workflows for Trading (2 workflows)
 3. ✅ Created TradingExecutionSaga with compensation
-4. ✅ Refactored TradingAgentWorkflow to orchestration-only
-5. ✅ Added comprehensive Events
-6. ✅ Created unit and feature tests
+4. ✅ Refactored TradingAgentWorkflow to orchestration-only (73% reduction)
+5. ✅ Created Activities for Risk assessment (7 activities)
+6. ✅ Created Child Workflows for Risk (2 workflows)
+7. ✅ Refactored RiskAssessmentSaga with child workflows (55% reduction)
+8. ✅ Added comprehensive Events for both domains
+9. ✅ Created unit and feature tests
+10. ✅ Fixed all PHPStan issues for production readiness
 
 ### Pending
-1. Create Risk Activities and Child Workflows
-2. Refactor RiskAssessmentSaga to use new components
-3. Refactor HumanInTheLoopWorkflow
-4. Create Portfolio optimization activities
-5. Add comprehensive test coverage
+1. Refactor HumanInTheLoopWorkflow
+2. Create Portfolio optimization activities
+3. Add more comprehensive test coverage
 
 ## Benefits Achieved
 

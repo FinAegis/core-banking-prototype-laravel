@@ -54,7 +54,7 @@ class CalculateMACDActivity extends Activity
         // Get latest values
         $currentMacd = end($macdLine);
         $currentSignal = end($signalLine);
-        
+
         // Handle case where EMA calculation might return false
         if ($currentMacd === false || $currentSignal === false) {
             return [
@@ -64,7 +64,7 @@ class CalculateMACDActivity extends Activity
                 'trend'     => 'neutral',
             ];
         }
-        
+
         $histogram = $currentMacd - $currentSignal;
 
         return [

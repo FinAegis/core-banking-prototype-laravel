@@ -93,7 +93,7 @@ class TradingAgentWorkflow extends Workflow
                         'risk_parameters' => $strategies['risk_parameters'] ?? [],
                     ]
                 );
-                
+
                 $executionResult = yield from app(TradingExecutionSaga::class)->execute(
                     $conversationId,
                     $userId,
@@ -132,7 +132,7 @@ class TradingAgentWorkflow extends Workflow
 
     /**
      * Prepare market data for analysis.
-     * 
+     *
      * @return array{prices: array, volumes: array, timeframe: string}
      */
     private function prepareMarketData(array $parameters): array

@@ -95,8 +95,8 @@ class TradingExecutionSaga extends Workflow
             $aggregate->makeDecision(
                 decision: 'saga_failed',
                 reasoning: [
-                    'saga' => 'trading_execution',
-                    'error' => $e->getMessage(),
+                    'saga'     => 'trading_execution',
+                    'error'    => $e->getMessage(),
                     'strategy' => $strategy,
                     'user_id'  => $userId,
                 ],
@@ -125,7 +125,7 @@ class TradingExecutionSaga extends Workflow
 
         // Check if user is active (users don't have status field by default)
         // You could check email_verified_at or other indicators
-        if (!$user->email_verified_at) {
+        if (! $user->email_verified_at) {
             throw new \InvalidArgumentException('User email is not verified');
         }
 
@@ -141,19 +141,19 @@ class TradingExecutionSaga extends Workflow
 
         // Get user's account
         $user = User::find($userId);
-        if (!$user) {
+        if (! $user) {
             throw new \RuntimeException('User not found');
         }
 
         // Get the user's primary account
         $account = $user->accounts()->first();
-        if (!$account) {
+        if (! $account) {
             throw new \RuntimeException('User account not found');
         }
 
         // Check account balance
         $balanceEntry = $account->balances()->where('asset_code', 'USD')->first();
-        if (!$balanceEntry || $balanceEntry->balance < $amount) {
+        if (! $balanceEntry || $balanceEntry->balance < $amount) {
             throw new \RuntimeException('Insufficient funds for trading');
         }
 
@@ -221,10 +221,10 @@ class TradingExecutionSaga extends Workflow
     {
         // Update order status to processing
         $this->orderService->updateOrder($orderId, ['status' => 'processing']);
-        
+
         // Get current market price (would integrate with price feed service)
         $currentPrice = $this->getMarketPrice();
-        
+
         $executionId = uniqid('exec_');
         $execution = [
             'id'              => $executionId,
@@ -259,7 +259,7 @@ class TradingExecutionSaga extends Workflow
 
         // Mark the original execution as reversed
         // Would update the execution record in the database
-        
+
         return true;
     }
 
@@ -280,7 +280,7 @@ class TradingExecutionSaga extends Workflow
     private function setRiskManagement(string $executionId, array $riskParams)
     {
         $riskOrders = [];
-        
+
         if (isset($riskParams['stop_loss'])) {
             // Create stop loss order
             $riskOrders['stop_loss'] = $this->createRiskOrder(
@@ -299,7 +299,7 @@ class TradingExecutionSaga extends Workflow
             );
         }
 
-        return !empty($riskOrders);
+        return ! empty($riskOrders);
     }
 
     /**
@@ -308,14 +308,14 @@ class TradingExecutionSaga extends Workflow
     private function createRiskOrder(string $executionId, string $type, float $price): string
     {
         $orderId = uniqid("{$type}_");
-        
+
         \Log::info('Risk order created', [
-            'order_id'      => $orderId,
-            'execution_id'  => $executionId,
-            'type'          => $type,
-            'price'         => $price,
+            'order_id'     => $orderId,
+            'execution_id' => $executionId,
+            'type'         => $type,
+            'price'        => $price,
         ]);
-        
+
         return $orderId;
     }
 
@@ -337,12 +337,12 @@ class TradingExecutionSaga extends Workflow
         // Get account balance
         $account = $user->accounts()->first();
         $balance = 0;
-        
+
         if ($account) {
             $balanceEntry = $account->balances()->where('asset_code', 'USD')->first();
             $balance = $balanceEntry ? (float) $balanceEntry->balance : 0;
         }
-        
+
         $positionSize = $strategy['size'] ?? 0.1;
 
         return $balance * $positionSize;
