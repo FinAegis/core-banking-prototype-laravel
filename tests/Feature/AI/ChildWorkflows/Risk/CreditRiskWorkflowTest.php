@@ -27,14 +27,19 @@ class CreditRiskWorkflowTest extends TestCase
 
         $this->assertTrue($method->isPublic());
         $this->assertEquals(4, $method->getNumberOfParameters());
-        $this->assertEquals('Generator', $method->getReturnType()->getName());
+        
+        $returnType = $method->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('Generator', $returnType->getName());
     }
 
     /** @test */
     public function it_extends_workflow_base_class(): void
     {
         $reflection = new \ReflectionClass(CreditRiskWorkflow::class);
-        $this->assertEquals('Workflow\Workflow', $reflection->getParentClass()->getName());
+        $parentClass = $reflection->getParentClass();
+        $this->assertNotFalse($parentClass);
+        $this->assertEquals('Workflow\Workflow', $parentClass->getName());
     }
 
     /** @test */
@@ -45,15 +50,23 @@ class CreditRiskWorkflowTest extends TestCase
         $parameters = $method->getParameters();
 
         $this->assertEquals('conversationId', $parameters[0]->getName());
-        $this->assertEquals('string', $parameters[0]->getType()->getName());
+        $type0 = $parameters[0]->getType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type0);
+        $this->assertEquals('string', $type0->getName());
         
         $this->assertEquals('user', $parameters[1]->getName());
-        $this->assertEquals('App\Models\User', $parameters[1]->getType()->getName());
+        $type1 = $parameters[1]->getType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type1);
+        $this->assertEquals('App\Models\User', $type1->getName());
         
         $this->assertEquals('financialData', $parameters[2]->getName());
-        $this->assertEquals('array', $parameters[2]->getType()->getName());
+        $type2 = $parameters[2]->getType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type2);
+        $this->assertEquals('array', $type2->getName());
         
         $this->assertEquals('parameters', $parameters[3]->getName());
-        $this->assertEquals('array', $parameters[3]->getType()->getName());
+        $type3 = $parameters[3]->getType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type3);
+        $this->assertEquals('array', $type3->getName());
     }
 }
