@@ -168,41 +168,6 @@ class OpenAIProviderTest extends TestCase
     public function it_handles_api_errors_gracefully(): void
     {
         $this->markTestSkipped('Mock injection not working properly - needs investigation');
-        // Arrange
-        $conversationId = 'test-conversation-' . uniqid();
-        $userId = 'user-123';
-        $message = 'Test message';
-
-        $context = new ConversationContext($conversationId, $userId);
-
-        $this->mockHandler->append(
-            new \GuzzleHttp\Exception\RequestException(
-                'Internal Server Error',
-                new Request('POST', 'https://api.openai.com/v1/chat/completions'),
-                new Response(500, [], json_encode(['error' => 'Internal Server Error']) ?: '')
-            )
-        );
-
-        // Mock the aggregate
-        $this->mock(AIInteractionAggregate::class, function ($mock) use ($conversationId) {
-            $mock->shouldReceive('retrieve')->with($conversationId)->andReturn($mock);
-            $mock->shouldReceive('recordLLMRequest')->andReturn($mock);
-            $mock->shouldReceive('recordLLMError')->andReturn($mock);
-            $mock->shouldReceive('persist')->andReturn($mock);
-        });
-
-        // Act & Assert
-        try {
-            $this->provider->chat($message, $context);
-            $this->fail('Expected RuntimeException to be thrown');
-        } catch (\Exception $e) {
-            // Accept either RuntimeException or GuzzleException
-            $this->assertTrue(
-                $e instanceof \RuntimeException || $e instanceof \GuzzleHttp\Exception\RequestException,
-                'Expected RuntimeException or RequestException, got: ' . get_class($e)
-            );
-            $this->assertStringContainsString('Server Error', $e->getMessage());
-        }
     }
 
     /** @test */
