@@ -146,7 +146,7 @@ class CreditRiskWorkflow extends Workflow
     private function calculateCreditUtilization(array $financialData): float
     {
         // Calculate credit utilization ratio
-        $totalCredit = 10000.0; // Would get from credit accounts
+        $totalCredit = $financialData['total_credit'] ?? 10000.0; // Get from credit accounts or use default
         $usedCredit = $financialData['total_debt'] ?? 0;
 
         return $totalCredit > 0 ? ($usedCredit / $totalCredit) : 0.0;

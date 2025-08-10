@@ -6,6 +6,8 @@ namespace Tests\Unit\AI\Activities\Risk;
 
 use App\Domain\AI\Activities\Risk\CalculateDebtRatiosActivity;
 use Tests\TestCase;
+use Workflow\Models\StoredWorkflow;
+use Workflow\WorkflowStub;
 
 class CalculateDebtRatiosActivityTest extends TestCase
 {
@@ -14,11 +16,16 @@ class CalculateDebtRatiosActivityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Create a dummy workflow stub for testing
+        $workflow = WorkflowStub::make(\App\Domain\AI\ChildWorkflows\Risk\CreditRiskWorkflow::class);
+        /** @var StoredWorkflow $storedWorkflow */
+        $storedWorkflow = StoredWorkflow::query()->findOrFail($workflow->id());
+        
         // Create activity with required constructor parameters
         $this->activity = new CalculateDebtRatiosActivity(
             index: 0,
             now: now()->toDateTimeString(),
-            storedWorkflow: null
+            storedWorkflow: $storedWorkflow
         );
     }
 
