@@ -315,6 +315,22 @@
                             View docs →
                         </span>
                     </a>
+
+                    <!-- AI Agent Framework -->
+                    <a href="{{ route('ai-framework') }}" class="feature-card bg-white border border-gray-200 rounded-xl p-8 block hover:border-cyan-500 transition-all">
+                        <div class="w-14 h-14 bg-gradient-to-br from-cyan-100 to-purple-100 rounded-lg flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">AI Agent Framework</h3>
+                        <p class="text-gray-600 mb-4">
+                            Intelligent automation with multi-LLM support and event-sourced architecture.
+                        </p>
+                        <span class="text-cyan-600 font-medium hover:text-cyan-700">
+                            Explore AI →
+                        </span>
+                    </a>
                 </div>
 
                 <div class="text-center mt-12">

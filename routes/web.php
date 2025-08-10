@@ -80,6 +80,19 @@ Route::get('/features/{feature}', function ($feature) {
     return view('features.' . $feature);
 })->name('features.show');
 
+// AI Agent Framework routes
+Route::get('/ai-framework', function () {
+    return view('ai-framework.index');
+})->name('ai-framework');
+
+Route::get('/ai-framework/demo', function () {
+    return view('ai-framework.demo');
+})->name('ai-framework.demo');
+
+Route::get('/ai-framework/docs', function () {
+    return view('ai-framework.docs');
+})->name('ai-framework.docs');
+
 Route::get('/pricing', function () {
     return view('pricing');
 })->name('pricing');

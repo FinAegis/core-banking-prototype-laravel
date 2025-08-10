@@ -1,87 +1,44 @@
-# MCP (Model Context Protocol) Integration Guide
+# MCP Integration Guide
 
-## Overview
+## Model Context Protocol (MCP) Implementation
 
-The Model Context Protocol (MCP) v1.0 enables standardized communication between AI systems and application backends. FinAegis implements a production-ready MCP server that exposes banking operations as tools and resources that AI agents can interact with, complete with event sourcing, caching, and comprehensive testing.
+FinAegis implements a complete MCP server that exposes banking operations as AI-accessible tools and resources.
 
-## Architecture
+## Server Configuration
 
-### Core Components
-
-```
-app/Domain/AI/
-├── MCP/
-│   ├── MCPServer.php              # Main MCP server implementation
-│   ├── ToolRegistry.php           # Dynamic tool registration
-│   ├── ResourceManager.php        # Resource exposure system
-│   └── Tools/                     # Banking tool implementations
-│       ├── Account/               # 4 account management tools
-│       ├── Payment/               # 2 payment operation tools
-│       ├── Exchange/              # 3 trading/liquidity tools
-│       └── Compliance/            # 2 KYC/AML tools
-├── Aggregates/
-│   └── AIInteractionAggregate.php # Event sourcing for AI interactions
-├── Events/                        # Domain events for AI operations
-├── ValueObjects/                  # Request/Response objects
-└── Workflows/
-    └── CustomerServiceWorkflow.php # AI agent orchestration
-```
-
-### MCP Server Implementation
+### Initialization
 
 ```php
-namespace App\Domain\AI\MCP;
+use App\Domain\AI\MCP\MCPServer;
+use App\Domain\AI\MCP\ToolRegistry;
 
-class MCPServer implements MCPServerInterface
-{
-    public function __construct(
-        private ToolRegistry $toolRegistry,
-        private ResourceManager $resourceManager,
-        private ?CommandBus $commandBus = null,
-        private ?DomainEventBus $eventBus = null
-    ) {}
-    
-    public function handle(MCPRequest $request): MCPResponse
-    {
-        return match ($request->getMethod()) {
-            'initialize' => $this->handleInitialize($request),
-            'tools/list' => $this->handleToolsList($request),
-            'tools/call' => $this->handleToolCall($request),
-            'resources/list' => $this->handleResourcesList($request),
-            'resources/read' => $this->handleResourceRead($request),
-            'prompts/list' => $this->handlePromptsList($request),
-            default => MCPResponse::error('Method not found'),
-        };
-    }
-}
+// Initialize MCP server
+$mcpServer = new MCPServer([
+    'name' => 'finaegis-banking',
+    'version' => '1.0.0',
+    'capabilities' => [
+        'tools' => true,
+        'resources' => true,
+        'prompts' => true,
+        'sampling' => false,
+    ],
+]);
+
+// Register tools
+$toolRegistry = new ToolRegistry();
+$toolRegistry->register('account.balance', AccountBalanceTool::class);
+$toolRegistry->register('payment.transfer', PaymentTransferTool::class);
+$toolRegistry->register('exchange.trade', ExchangeTradeTool::class);
+
+$mcpServer->setToolRegistry($toolRegistry);
 ```
 
-## Available Tools (11 Banking Tools)
+## Available Tools
 
-### Account Domain (4 tools)
-
-#### account.balance
-Get current account balance with multi-asset support.
-
-```json
-{
-  "name": "account.balance",
-  "description": "Get current account balance",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "account_uuid": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-      }
-    },
-    "required": ["account_uuid"]
-  }
-}
-```
+### Account Management
 
 #### account.create
-Create a new bank account with workflow integration.
+Create a new account for a user.
 
 ```json
 {
@@ -90,62 +47,39 @@ Create a new bank account with workflow integration.
   "inputSchema": {
     "type": "object",
     "properties": {
-      "name": { "type": "string" },
-      "type": { "enum": ["checking", "savings", "investment"] },
-      "currency": { 
-        "type": "string",
-        "pattern": "^[A-Z]{3}$"
-      },
-      "initial_balance": { "type": "number", "minimum": 0 }
+      "user_id": {"type": "string"},
+      "account_type": {"type": "string", "enum": ["checking", "savings", "investment"]},
+      "currency": {"type": "string"},
+      "initial_deposit": {"type": "number"}
     },
-    "required": ["name", "type"]
+    "required": ["user_id", "account_type", "currency"]
   }
 }
 ```
 
-#### account.deposit
-Process deposits with balance validation.
+#### account.balance
+Get the balance of an account.
 
 ```json
 {
-  "name": "account.deposit",
-  "description": "Deposit funds to account",
+  "name": "account.balance",
+  "description": "Get account balance and recent transactions",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "account_uuid": { "type": "string" },
-      "amount": { "type": "number", "minimum": 0.01 },
-      "currency": { "type": "string" },
-      "description": { "type": "string" }
+      "account_id": {"type": "string"},
+      "include_transactions": {"type": "boolean"},
+      "transaction_limit": {"type": "integer"}
     },
-    "required": ["account_uuid", "amount"]
+    "required": ["account_id"]
   }
 }
 ```
 
-#### account.withdraw
-Process withdrawals with overdraft protection.
-
-```json
-{
-  "name": "account.withdraw",
-  "description": "Withdraw funds from account",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "account_uuid": { "type": "string" },
-      "amount": { "type": "number", "minimum": 0.01 },
-      "description": { "type": "string" }
-    },
-    "required": ["account_uuid", "amount"]
-  }
-}
-```
-
-### Payment Domain (2 tools)
+### Payment Operations
 
 #### payment.transfer
-Execute account-to-account transfers with saga support.
+Transfer funds between accounts.
 
 ```json
 {
@@ -154,60 +88,21 @@ Execute account-to-account transfers with saga support.
   "inputSchema": {
     "type": "object",
     "properties": {
-      "from_account": { "type": "string" },
-      "to_account": { "type": "string" },
-      "amount": { "type": "number", "minimum": 0.01 },
-      "currency": { "type": "string" },
-      "reference": { "type": "string" }
+      "from_account": {"type": "string"},
+      "to_account": {"type": "string"},
+      "amount": {"type": "number"},
+      "currency": {"type": "string"},
+      "description": {"type": "string"}
     },
-    "required": ["from_account", "to_account", "amount"]
+    "required": ["from_account", "to_account", "amount", "currency"]
   }
 }
 ```
 
-#### payment.status
-Track payment and transfer status.
-
-```json
-{
-  "name": "payment.status",
-  "description": "Get payment or transfer status",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "transaction_id": { 
-        "type": "string",
-        "description": "UUID, reference, or external reference"
-      }
-    },
-    "required": ["transaction_id"]
-  }
-}
-```
-
-### Exchange Domain (3 tools)
-
-#### exchange.quote
-Get real-time exchange rate quotes.
-
-```json
-{
-  "name": "exchange.quote",
-  "description": "Get exchange rate quote",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "from_currency": { "type": "string" },
-      "to_currency": { "type": "string" },
-      "amount": { "type": "number", "minimum": 0 }
-    },
-    "required": ["from_currency", "to_currency", "amount"]
-  }
-}
-```
+### Exchange Operations
 
 #### exchange.trade
-Execute trades with order matching.
+Execute a currency exchange trade.
 
 ```json
 {
@@ -216,43 +111,18 @@ Execute trades with order matching.
   "inputSchema": {
     "type": "object",
     "properties": {
-      "account_uuid": { "type": "string" },
-      "from_currency": { "type": "string" },
-      "to_currency": { "type": "string" },
-      "amount": { "type": "number" },
-      "order_type": { "enum": ["market", "limit"] },
-      "limit_price": { "type": "number" }
+      "account_id": {"type": "string"},
+      "from_currency": {"type": "string"},
+      "to_currency": {"type": "string"},
+      "amount": {"type": "number"},
+      "type": {"type": "string", "enum": ["market", "limit"]}
     },
-    "required": ["account_uuid", "from_currency", "to_currency", "amount"]
+    "required": ["account_id", "from_currency", "to_currency", "amount"]
   }
 }
 ```
 
-#### exchange.liquidity_pool
-Manage AMM liquidity pools.
-
-```json
-{
-  "name": "exchange.liquidity_pool",
-  "description": "Manage liquidity pool operations",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "action": { 
-        "enum": ["create", "add_liquidity", "remove_liquidity", "get_info", "get_metrics", "list_pools", "my_positions"]
-      },
-      "pool_id": { "type": "string" },
-      "base_currency": { "type": "string" },
-      "quote_currency": { "type": "string" },
-      "base_amount": { "type": "number" },
-      "quote_amount": { "type": "number" }
-    },
-    "required": ["action"]
-  }
-}
-```
-
-### Compliance Domain (2 tools)
+### Compliance Tools
 
 #### compliance.kyc
 Perform KYC verification.
@@ -264,346 +134,532 @@ Perform KYC verification.
   "inputSchema": {
     "type": "object",
     "properties": {
-      "user_uuid": { "type": "string" },
-      "verification_level": { 
-        "enum": ["basic", "enhanced", "full"]
-      }
+      "user_id": {"type": "string"},
+      "document_type": {"type": "string"},
+      "document_data": {"type": "object"}
     },
-    "required": ["user_uuid"]
+    "required": ["user_id", "document_type", "document_data"]
   }
 }
 ```
 
-#### compliance.aml_screening
-Perform AML screening.
+#### compliance.aml
+Check for AML compliance.
 
 ```json
 {
-  "name": "compliance.aml_screening",
-  "description": "Perform AML screening",
+  "name": "compliance.aml",
+  "description": "Check AML compliance for transaction",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "entity_type": { "enum": ["user", "transaction"] },
-      "entity_id": { "type": "string" },
-      "screening_type": { 
-        "enum": ["sanctions", "pep", "adverse_media", "all"]
-      }
+      "transaction_id": {"type": "string"},
+      "enhanced_due_diligence": {"type": "boolean"}
     },
-    "required": ["entity_type", "entity_id"]
+    "required": ["transaction_id"]
   }
 }
 ```
 
-## Event Sourcing Integration
+## Available Resources
 
-### AIInteractionAggregate
+### Ledger Resources
 
-All AI interactions are tracked through event sourcing:
-
-```php
-namespace App\Domain\AI\Aggregates;
-
-class AIInteractionAggregate extends AggregateRoot
+```json
 {
-    public function startConversation(string $userId, array $context): self
-    {
-        $this->recordThat(new ConversationStartedEvent(
-            conversationId: $this->uuid(),
-            userId: $userId,
-            context: $context
-        ));
-        return $this;
-    }
-    
-    public function executeTool(
-        string $toolName,
-        array $input,
-        array $result,
-        int $durationMs
-    ): self {
-        $this->recordThat(new ToolExecutedEvent(
-            conversationId: $this->uuid(),
-            toolName: $toolName,
-            input: $input,
-            result: $result,
-            durationMs: $durationMs
-        ));
-        return $this;
-    }
+  "uri": "ledger://accounts",
+  "name": "Account Ledger",
+  "description": "Access to account information and balances",
+  "mimeType": "application/json"
 }
 ```
 
-### Domain Events
+### Exchange Resources
 
-- `ConversationStartedEvent` - New AI conversation initiated
-- `AgentCreatedEvent` - AI agent instantiated
-- `IntentClassifiedEvent` - User intent identified
-- `AIDecisionMadeEvent` - AI made a decision
-- `ToolExecutedEvent` - Tool was executed
-- `ConversationEndedEvent` - Conversation completed
-
-## Security & Authorization
-
-### Authentication
-
-All MCP requests require authentication:
-
-```php
-class MCPServer
+```json
 {
-    private function handleToolCall(MCPRequest $request): MCPResponse
-    {
-        $userId = $request->getUserId();
-        
-        if (!$userId && !Auth::check()) {
-            return MCPResponse::error('Authentication required');
-        }
-        
-        $user = $userId ? User::find($userId) : Auth::user();
-        
-        // Tool execution with user context
-        $result = $tool->execute($params, $user);
-    }
+  "uri": "exchange://orderbook",
+  "name": "Exchange Order Book",
+  "description": "Real-time order book data",
+  "mimeType": "application/json"
 }
 ```
 
-### Permission Validation
+### Compliance Resources
 
-Tools validate permissions before execution:
-
-```php
-class CreateAccountTool implements MCPToolInterface
+```json
 {
-    public function authorize(?string $userId): bool
-    {
-        if (!$userId) {
-            return false;
-        }
-        
-        $user = User::find($userId);
-        return $user && $user->can('create', Account::class);
-    }
+  "uri": "compliance://reports",
+  "name": "Compliance Reports",
+  "description": "Access to compliance and regulatory reports",
+  "mimeType": "application/json"
 }
 ```
 
-## Caching Strategy
-
-### Tool Result Caching
-
-Read operations are cached for performance:
-
-```php
-class AccountBalanceTool implements MCPToolInterface
-{
-    public function getCacheTTL(): ?int
-    {
-        return 60; // Cache for 1 minute
-    }
-    
-    public function getCacheKey(array $parameters): string
-    {
-        return sprintf(
-            'mcp.account.balance.%s',
-            $parameters['account_uuid']
-        );
-    }
-}
-```
-
-## Testing Coverage
-
-### Unit Tests
-
-```php
-class AIInteractionAggregateTest extends TestCase
-{
-    #[Test]
-    public function it_starts_conversation_and_records_event(): void
-    {
-        $aggregate = AIInteractionAggregate::retrieve($conversationId);
-        $aggregate->startConversation($userId, ['channel' => 'api']);
-        
-        $events = $aggregate->getRecordedEvents();
-        $this->assertCount(1, $events);
-        $this->assertInstanceOf(ConversationStartedEvent::class, $events[0]);
-    }
-    
-    #[Test]
-    public function it_tracks_tool_executions(): void
-    {
-        $aggregate->executeTool('account.balance', [], ['balance' => 1000], 150);
-        
-        $executedTools = $aggregate->getExecutedTools();
-        $this->assertCount(1, $executedTools);
-        $this->assertEquals('account.balance', $executedTools[0]['tool']);
-    }
-}
-```
-
-### Feature Tests
-
-```php
-class CreateAccountToolTest extends TestCase
-{
-    #[Test]
-    public function it_creates_account_successfully_with_valid_input(): void
-    {
-        $response = $this->server->handle(MCPRequest::create('tools/call', [
-            'name' => 'account.create',
-            'arguments' => [
-                'name' => 'Test Account',
-                'type' => 'savings',
-                'currency' => 'USD',
-            ],
-        ]));
-        
-        $this->assertTrue($response->isSuccess());
-        $this->assertDatabaseHas('accounts', ['name' => 'Test Account']);
-        $this->assertDatabaseHas('stored_events', ['event_class' => 'ai_tool_executed']);
-    }
-}
-```
-
-### Integration Tests
-
-```php
-class MCPServerTest extends TestCase
-{
-    #[Test]
-    public function it_measures_tool_execution_performance(): void
-    {
-        $response = $this->server->handle($request);
-        
-        $metadata = $response->getData()['metadata'];
-        $this->assertLessThan(100, $metadata['duration_ms']);
-    }
-    
-    #[Test]
-    public function it_caches_tool_results_when_cacheable(): void
-    {
-        $response1 = $this->server->handle($request);
-        $this->assertFalse($response1->getData()['metadata']['cache_hit']);
-        
-        $response2 = $this->server->handle($request);
-        $this->assertTrue($response2->getData()['metadata']['cache_hit']);
-    }
-}
-```
-
-## Performance Metrics
-
-- **Response Time**: <100ms for cached operations
-- **Tool Execution**: <1 second for complex operations
-- **Event Recording**: Asynchronous via queue
-- **Cache Hit Rate**: >80% for read operations
-
-## Client Integration Examples
+## Client Integration
 
 ### JavaScript/TypeScript
 
 ```typescript
-import { MCPClient } from '@modelcontextprotocol/sdk';
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
-const client = new MCPClient({
-  url: 'https://api.finaegis.org/mcp',
-  apiKey: process.env.MCP_API_KEY
+// Connect to FinAegis MCP server
+const transport = new StdioClientTransport({
+  command: "php",
+  args: ["artisan", "mcp:serve"],
 });
 
-// Create account
-const account = await client.executeTool('account.create', {
-  name: 'Business Account',
-  type: 'checking',
-  currency: 'USD'
+const client = new Client({
+  name: "ai-client",
+  version: "1.0.0",
 });
 
-// Check balance
-const balance = await client.executeTool('account.balance', {
-  account_uuid: account.account_uuid
+await client.connect(transport);
+
+// Call a tool
+const result = await client.callTool({
+  name: "account.balance",
+  arguments: {
+    account_id: "acc_123456",
+    include_transactions: true
+  }
 });
 
-// Execute transfer
-const transfer = await client.executeTool('payment.transfer', {
-  from_account: account.account_uuid,
-  to_account: 'recipient-uuid',
-  amount: 100.00,
-  reference: 'INV-2025-001'
-});
+console.log(result);
 ```
 
 ### Python
 
 ```python
-from mcp import MCPClient
+from mcp import Client
+import asyncio
 
-client = MCPClient(
-    url="https://api.finaegis.org/mcp",
-    api_key=os.environ["MCP_API_KEY"]
-)
+async def main():
+    # Connect to FinAegis MCP server
+    client = Client()
+    await client.connect_stdio(
+        command=["php", "artisan", "mcp:serve"]
+    )
+    
+    # Get account balance
+    result = await client.call_tool(
+        "account.balance",
+        arguments={
+            "account_id": "acc_123456",
+            "include_transactions": True
+        }
+    )
+    
+    print(result)
 
-# Perform KYC check
-kyc_result = client.execute_tool(
-    "compliance.kyc",
-    user_uuid="user-123",
-    verification_level="enhanced"
-)
-
-# Get payment status
-status = client.execute_tool(
-    "payment.status",
-    transaction_id="TRF-2025-00123"
-)
+asyncio.run(main())
 ```
 
-## Best Practices
+## Tool Implementation
 
-1. **Event Sourcing**: All AI interactions are recorded for audit
-2. **Saga Pattern**: Complex operations use compensation flows
-3. **Caching**: Read operations cached with appropriate TTL
-4. **Authorization**: User context validated on every tool call
-5. **Testing**: Comprehensive unit and feature test coverage
-6. **Performance**: Sub-100ms response times for cached operations
-7. **Error Handling**: Graceful degradation with clear error messages
-8. **Documentation**: Clear schemas and descriptions for all tools
+### Creating a Custom Tool
+
+```php
+namespace App\Domain\AI\MCP\Tools;
+
+use App\Domain\AI\MCP\Contracts\MCPTool;
+use App\Domain\Account\Services\AccountService;
+
+class AccountBalanceTool implements MCPTool
+{
+    private AccountService $accountService;
+    
+    public function __construct(AccountService $accountService)
+    {
+        $this->accountService = $accountService;
+    }
+    
+    public function getName(): string
+    {
+        return 'account.balance';
+    }
+    
+    public function getDescription(): string
+    {
+        return 'Get account balance and recent transactions';
+    }
+    
+    public function getInputSchema(): array
+    {
+        return [
+            'type' => 'object',
+            'properties' => [
+                'account_id' => [
+                    'type' => 'string',
+                    'description' => 'The account UUID'
+                ],
+                'include_transactions' => [
+                    'type' => 'boolean',
+                    'description' => 'Include recent transactions',
+                    'default' => false
+                ],
+                'transaction_limit' => [
+                    'type' => 'integer',
+                    'description' => 'Number of transactions to include',
+                    'default' => 10
+                ]
+            ],
+            'required' => ['account_id']
+        ];
+    }
+    
+    public function execute(array $arguments): array
+    {
+        // Validate permissions
+        $this->validateAccess($arguments['account_id']);
+        
+        // Get account balance
+        $account = $this->accountService->findByUuid($arguments['account_id']);
+        $balance = $account->getBalance();
+        
+        $result = [
+            'account_id' => $account->uuid,
+            'balance' => $balance->amount,
+            'currency' => $balance->currency,
+            'updated_at' => $balance->updated_at
+        ];
+        
+        // Include transactions if requested
+        if ($arguments['include_transactions'] ?? false) {
+            $limit = $arguments['transaction_limit'] ?? 10;
+            $transactions = $account->transactions()
+                ->latest()
+                ->limit($limit)
+                ->get();
+                
+            $result['transactions'] = $transactions->map(function ($tx) {
+                return [
+                    'id' => $tx->uuid,
+                    'type' => $tx->type,
+                    'amount' => $tx->amount,
+                    'description' => $tx->description,
+                    'created_at' => $tx->created_at
+                ];
+            });
+        }
+        
+        // Record AI access event
+        event(new AIToolAccessedEvent(
+            tool: $this->getName(),
+            arguments: $arguments,
+            result: $result
+        ));
+        
+        return $result;
+    }
+    
+    private function validateAccess(string $accountId): void
+    {
+        // Implement access control logic
+        if (!$this->accountService->canAccess($accountId)) {
+            throw new UnauthorizedException('Access denied to account');
+        }
+    }
+}
+```
+
+### Registering Tools
+
+```php
+// app/Providers/MCPServiceProvider.php
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use App\Domain\AI\MCP\ToolRegistry;
+
+class MCPServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->app->singleton(ToolRegistry::class, function ($app) {
+            $registry = new ToolRegistry();
+            
+            // Account tools
+            $registry->register('account.create', AccountCreateTool::class);
+            $registry->register('account.balance', AccountBalanceTool::class);
+            $registry->register('account.transactions', AccountTransactionsTool::class);
+            
+            // Payment tools
+            $registry->register('payment.transfer', PaymentTransferTool::class);
+            $registry->register('payment.schedule', PaymentScheduleTool::class);
+            
+            // Exchange tools
+            $registry->register('exchange.trade', ExchangeTradeTool::class);
+            $registry->register('exchange.rates', ExchangeRatesTool::class);
+            
+            // Compliance tools
+            $registry->register('compliance.kyc', ComplianceKYCTool::class);
+            $registry->register('compliance.aml', ComplianceAMLTool::class);
+            
+            return $registry;
+        });
+    }
+}
+```
+
+## Security Considerations
+
+### Authentication
+
+```php
+// Implement MCP authentication
+class MCPAuthMiddleware
+{
+    public function handle(MCPRequest $request, Closure $next)
+    {
+        $token = $request->getHeader('Authorization');
+        
+        if (!$this->validateToken($token)) {
+            throw new UnauthorizedException('Invalid MCP token');
+        }
+        
+        // Set authenticated context
+        $request->setContext([
+            'user_id' => $this->getUserFromToken($token),
+            'permissions' => $this->getPermissions($token)
+        ]);
+        
+        return $next($request);
+    }
+}
+```
+
+### Rate Limiting
+
+```php
+// Implement rate limiting for MCP calls
+class MCPRateLimiter
+{
+    public function handle(MCPRequest $request, Closure $next)
+    {
+        $key = 'mcp:' . $request->getContext('user_id');
+        
+        if (RateLimiter::tooManyAttempts($key, 100)) {
+            $seconds = RateLimiter::availableIn($key);
+            throw new TooManyRequestsException($seconds);
+        }
+        
+        RateLimiter::hit($key);
+        
+        return $next($request);
+    }
+}
+```
+
+### Audit Logging
+
+```php
+// Log all MCP tool calls
+class MCPAuditLogger
+{
+    public function handle(MCPRequest $request, Closure $next)
+    {
+        $startTime = microtime(true);
+        
+        try {
+            $response = $next($request);
+            
+            // Log successful call
+            Log::channel('mcp')->info('MCP tool called', [
+                'tool' => $request->getTool(),
+                'arguments' => $request->getArguments(),
+                'user_id' => $request->getContext('user_id'),
+                'duration' => microtime(true) - $startTime,
+                'status' => 'success'
+            ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            // Log failed call
+            Log::channel('mcp')->error('MCP tool failed', [
+                'tool' => $request->getTool(),
+                'arguments' => $request->getArguments(),
+                'user_id' => $request->getContext('user_id'),
+                'duration' => microtime(true) - $startTime,
+                'error' => $e->getMessage(),
+                'status' => 'failed'
+            ]);
+            
+            throw $e;
+        }
+    }
+}
+```
+
+## Testing MCP Tools
+
+### Unit Testing
+
+```php
+namespace Tests\Unit\MCP\Tools;
+
+use Tests\TestCase;
+use App\Domain\AI\MCP\Tools\AccountBalanceTool;
+use App\Domain\Account\Models\Account;
+
+class AccountBalanceToolTest extends TestCase
+{
+    public function test_it_returns_account_balance()
+    {
+        // Arrange
+        $account = Account::factory()->create([
+            'balance' => 1000.00,
+            'currency' => 'USD'
+        ]);
+        
+        $tool = app(AccountBalanceTool::class);
+        
+        // Act
+        $result = $tool->execute([
+            'account_id' => $account->uuid,
+            'include_transactions' => false
+        ]);
+        
+        // Assert
+        $this->assertEquals(1000.00, $result['balance']);
+        $this->assertEquals('USD', $result['currency']);
+        $this->assertEquals($account->uuid, $result['account_id']);
+    }
+    
+    public function test_it_includes_transactions_when_requested()
+    {
+        // Arrange
+        $account = Account::factory()
+            ->has(Transaction::factory()->count(5))
+            ->create();
+        
+        $tool = app(AccountBalanceTool::class);
+        
+        // Act
+        $result = $tool->execute([
+            'account_id' => $account->uuid,
+            'include_transactions' => true,
+            'transaction_limit' => 3
+        ]);
+        
+        // Assert
+        $this->assertArrayHasKey('transactions', $result);
+        $this->assertCount(3, $result['transactions']);
+    }
+}
+```
+
+### Integration Testing
+
+```php
+namespace Tests\Feature\MCP;
+
+use Tests\TestCase;
+use App\Domain\AI\MCP\MCPServer;
+
+class MCPServerTest extends TestCase
+{
+    public function test_mcp_server_handles_tool_calls()
+    {
+        // Arrange
+        $server = app(MCPServer::class);
+        $request = [
+            'jsonrpc' => '2.0',
+            'method' => 'tools/call',
+            'params' => [
+                'name' => 'account.balance',
+                'arguments' => [
+                    'account_id' => 'acc_123456'
+                ]
+            ],
+            'id' => 1
+        ];
+        
+        // Act
+        $response = $server->handle($request);
+        
+        // Assert
+        $this->assertEquals('2.0', $response['jsonrpc']);
+        $this->assertEquals(1, $response['id']);
+        $this->assertArrayHasKey('result', $response);
+        $this->assertArrayHasKey('balance', $response['result']);
+    }
+}
+```
+
+## Monitoring
+
+### Prometheus Metrics
+
+```php
+// Track MCP metrics
+class MCPMetricsCollector
+{
+    private PrometheusExporter $exporter;
+    
+    public function recordToolCall(string $tool, float $duration, bool $success)
+    {
+        $this->exporter->histogram(
+            'mcp_tool_duration_seconds',
+            $duration,
+            ['tool' => $tool, 'status' => $success ? 'success' : 'failure']
+        );
+        
+        $this->exporter->counter(
+            'mcp_tool_calls_total',
+            1,
+            ['tool' => $tool, 'status' => $success ? 'success' : 'failure']
+        );
+    }
+}
+```
+
+### Dashboard
+
+Create a monitoring dashboard for MCP operations:
+
+```php
+// routes/web.php
+Route::get('/admin/mcp/dashboard', function () {
+    $metrics = app(MCPMetricsCollector::class)->getMetrics();
+    
+    return view('admin.mcp.dashboard', [
+        'total_calls' => $metrics['total_calls'],
+        'success_rate' => $metrics['success_rate'],
+        'avg_duration' => $metrics['avg_duration'],
+        'top_tools' => $metrics['top_tools'],
+        'recent_errors' => $metrics['recent_errors']
+    ]);
+})->middleware(['auth', 'admin']);
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### Tool Not Found
-```json
-{
-  "error": "Tool not found: account.invalid",
-  "code": "TOOL_NOT_FOUND"
-}
-```
-**Solution**: Verify tool name in registry. Available tools: `account.balance`, `account.create`, etc.
+1. **Tool Not Found**
+   - Verify tool is registered in ToolRegistry
+   - Check tool name matches exactly
+   - Ensure service provider is loaded
 
-#### Authentication Required
-```json
-{
-  "error": "Authentication required",
-  "code": "UNAUTHENTICATED"
-}
-```
-**Solution**: Provide valid user ID or authentication token.
+2. **Permission Denied**
+   - Check user has required permissions
+   - Verify authentication token is valid
+   - Review access control policies
 
-#### Invalid Schema
-```json
-{
-  "error": "Schema validation failed",
-  "details": {
-    "missing": ["account_uuid"],
-    "invalid": ["amount: must be positive"]
-  }
-}
-```
-**Solution**: Ensure all required fields are provided and valid.
+3. **Rate Limit Exceeded**
+   - Implement exponential backoff
+   - Request rate limit increase
+   - Use batch operations where possible
+
+4. **Timeout Errors**
+   - Optimize database queries
+   - Implement caching
+   - Use async processing for long operations
 
 ## Resources
 
-- [MCP Specification v1.0](https://modelcontextprotocol.io/docs)
-- [FinAegis API Documentation](../04-API/REST_API_REFERENCE.md)
-- [Event Sourcing Guide](../02-ARCHITECTURE/EVENT_SOURCING.md)
-- [Testing Guide](../06-DEVELOPMENT/TESTING_GUIDE.md)
-- [AI Framework Overview](./README.md)
+- [MCP Specification](https://spec.modelcontextprotocol.io)
+- [MCP SDK Documentation](https://github.com/modelcontextprotocol/sdk)
+- [FinAegis API Reference](../04-API/README.md)

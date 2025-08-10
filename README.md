@@ -16,11 +16,12 @@ FinAegis is a comprehensive prototype of a core banking platform built with even
 
 📖 **See [GCU Vision Documentation](docs/01-VISION/GCU_VISION.md) for the complete platform vision and GCU implementation details.**
 
-**🤖 AI-Powered Banking Framework**: Beyond being AI-development friendly, FinAegis is evolving into a complete AI Agent Framework for financial institutions. With MCP (Model Context Protocol) compatibility, it enables banks to deploy intelligent AI agents for customer service, compliance, risk assessment, and automated trading - all built on our robust event-sourced architecture.
+**🤖 AI-Powered Banking Framework**: FinAegis now includes a complete AI Agent Framework for financial institutions. With full MCP (Model Context Protocol) server implementation, multi-LLM support (OpenAI GPT-4, Anthropic Claude), and event-sourced architecture, it enables banks to deploy intelligent AI agents for customer service, compliance, risk assessment, and automated trading. Every AI interaction is recorded for complete audit trails and regulatory compliance.
 
 ## 🔗 Quick Links
 
 - 🌐 **[Live Demo](https://finaegis.org)** - Try the demo environment
+- 🤖 **[AI Framework](docs/13-AI-FRAMEWORK/README.md)** - AI Agent Framework documentation
 - 🎮 **[Demo Guide](docs/11-USER-GUIDES/DEMO-USER-GUIDE.md)** - Demo features walkthrough  
 - 📚 **[Documentation](docs/README.md)** - Complete documentation index
 - 🚀 **[Quick Start](#-quick-start)** - Get started immediately
@@ -683,6 +684,10 @@ Our comprehensive documentation is organized into the following sections:
 - **[GCU Vision](docs/01-VISION/GCU_VISION.md)**: Global Currency Unit detailed concept
 - **[Development Roadmap](docs/01-VISION/ROADMAP.md)**: Implementation phases and timeline
 - **[Banking Requirements](docs/01-VISION/FINANCIAL_INSTITUTION_REQUIREMENTS.md)**: Partner bank integration requirements
+
+#### AI Agent Framework
+- **[AI Framework Overview](docs/13-AI-FRAMEWORK/README.md)**: Complete AI Agent Framework documentation
+- **[MCP Integration](docs/13-AI-FRAMEWORK/MCP_INTEGRATION.md)**: Model Context Protocol server implementation
 
 #### Technical Architecture
 - **[System Architecture](docs/02-ARCHITECTURE/ARCHITECTURE.md)**: Core technical architecture
