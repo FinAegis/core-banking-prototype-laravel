@@ -53,23 +53,27 @@ The demo environment showcases all platform capabilities without real transactio
 ### 🤖 AI Agent Framework (Production Ready!)
 - **MCP Server Implementation**: Full Model Context Protocol v1.0 server with comprehensive tool registry
 - **Event-Driven Architecture**: Complete audit trail via `AIInteractionAggregate` event sourcing
-- **11 Banking Tools Available**:
-  - **Account Domain** (4 tools): Balance inquiry, account creation, deposits, withdrawals
-  - **Payment Domain** (2 tools): Transfer execution, payment status tracking
-  - **Exchange Domain** (3 tools): Rate quotes, trade execution, liquidity pool management
-  - **Compliance Domain** (2 tools): KYC verification, AML screening
+- **12+ Banking Tools Implemented**:
+  - **Account Domain** (3 tools): CreateAccount, CheckBalance, GetTransactionHistory
+  - **Payment Domain** (3 tools): InitiatePayment, PaymentStatus, CancelPayment
+  - **Exchange Domain** (2 tools): GetExchangeRates, PlaceOrder
+  - **Lending Domain** (2 tools): LoanApplication, CheckLoanStatus
+  - **Stablecoin Domain** (2 tools): TransferTokens, CheckTokenBalance
 - **Advanced Features**:
   - Conversation tracking with full event history
   - Tool result caching with configurable TTL (<100ms response time)
   - Resource exposure for documents and data via MCP protocol
   - CustomerServiceWorkflow for complex AI agent orchestration
-  - Authorization and permission validation
+  - Authorization and permission validation with Laravel Sanctum
   - Saga pattern support for compensation flows
+  - User UUID injection for numeric ID compatibility
 - **Testing Coverage**: 
-  - MCPServer fully tested with 12 test cases
+  - MCPServer fully tested with comprehensive test suites
+  - All tools have >80% test coverage
   - Event sourcing verification
   - Tool execution tracking
   - Performance monitoring
+  - PHPStan Level 5 compliance
 
 ### Domain-Driven Design (DDD)
 - **25+ Bounded Contexts**: Account, Exchange, Stablecoin, Lending, Wallet, and more

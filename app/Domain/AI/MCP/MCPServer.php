@@ -183,6 +183,11 @@ class MCPServer implements MCPServerInterface
             // Record tool execution in event store
             $this->recordToolExecution($toolName, $arguments, $result, $duration);
 
+            // Check if tool execution failed
+            if (! $result->isSuccess()) {
+                return MCPResponse::error($result->getError() ?? 'Tool execution failed');
+            }
+
             return MCPResponse::success([
                 'toolResult' => $result->getData(),
                 'metadata'   => [

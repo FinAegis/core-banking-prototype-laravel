@@ -305,6 +305,9 @@ class PaymentStatusToolTest extends TestCase
             'status'       => 'completed',
         ]);
 
+        // Set a conversation ID to maintain caching context
+        $conversationId = (string) \Illuminate\Support\Str::uuid();
+
         $request = MCPRequest::create('tools/call', [
             'name'      => 'payment.status',
             'arguments' => [
@@ -312,13 +315,24 @@ class PaymentStatusToolTest extends TestCase
             ],
         ]);
         $request->setUserId((string) $this->user->id);
+        $request->setConversationId($conversationId);
 
         // Act - First call
         $response1 = $this->server->handle($request);
         $metadata1 = $response1->getData()['metadata'] ?? [];
 
+        // Create a new request for the second call with the same conversation ID
+        $request2 = MCPRequest::create('tools/call', [
+            'name'      => 'payment.status',
+            'arguments' => [
+                'transaction_id' => (string) $transaction->uuid,
+            ],
+        ]);
+        $request2->setUserId((string) $this->user->id);
+        $request2->setConversationId($conversationId);
+
         // Act - Second call (should be cached)
-        $response2 = $this->server->handle($request);
+        $response2 = $this->server->handle($request2);
         $metadata2 = $response2->getData()['metadata'] ?? [];
 
         // Assert

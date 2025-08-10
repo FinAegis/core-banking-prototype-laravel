@@ -206,10 +206,21 @@ class CreateAccountTool implements MCPToolInterface
             // Handle initial deposit if provided
             if (isset($parameters['initial_deposit']) && $parameters['initial_deposit'] > 0) {
                 try {
+                    // Convert amount to cents for storage
+                    $amountInCents = (int) round($parameters['initial_deposit'] * 100);
+
                     // For now, directly update the balance in the database
                     // In production, this would go through the deposit workflow
-                    $account->balance = $parameters['initial_deposit'];
-                    $account->save();
+                    // Create or update the AccountBalance entry for USD
+                    $accountBalance = \App\Domain\Account\Models\AccountBalance::updateOrCreate(
+                        [
+                            'account_uuid' => $account->uuid,
+                            'asset_code'   => $parameters['currency'] ?? 'USD',
+                        ],
+                        [
+                            'balance' => $amountInCents,
+                        ]
+                    );
 
                     $response['initial_deposit'] = $parameters['initial_deposit'];
                     $response['balance'] = $parameters['initial_deposit'];
@@ -217,7 +228,7 @@ class CreateAccountTool implements MCPToolInterface
                     $response['deposit_reference'] = 'DEP-' . uniqid();
                     $response['message'] = sprintf(
                         'Account created with initial deposit of %s %s',
-                        number_format($parameters['initial_deposit'] / 100, 2),
+                        number_format($parameters['initial_deposit'], 2),
                         $parameters['currency'] ?? 'USD'
                     );
                 } catch (\Exception $e) {
@@ -261,8 +272,12 @@ class CreateAccountTool implements MCPToolInterface
                     return $user;
                 }
             }
+
+            // If we have a UUID but no user found, return null
+            return null;
         }
 
+        // Only fall back to Auth::user() if no UUID was provided at all
         return Auth::user();
     }
 

@@ -187,12 +187,16 @@ class CreateAccountToolTest extends TestCase
         $account = Account::where('uuid', $result['account_uuid'])->first();
         $this->assertNotNull($account);
         $account->refresh(); // Refresh from database
-        $this->assertEquals(1000.50, $account->balance);
+        // Balance is stored in cents in the database
+        $this->assertEquals(100050, $account->balance);
     }
 
     #[Test]
     public function it_requires_authentication(): void
     {
+        // Clear the authentication from setUp
+        \Illuminate\Support\Facades\Auth::guard('sanctum')->forgetUser();
+
         // Arrange - Create a new server without authentication
         $newRegistry = new ToolRegistry();
         $tool = new CreateAccountTool(app(AccountService::class));
