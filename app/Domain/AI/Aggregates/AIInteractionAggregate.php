@@ -9,6 +9,9 @@ use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\ConversationEndedEvent;
 use App\Domain\AI\Events\ConversationStartedEvent;
 use App\Domain\AI\Events\IntentClassifiedEvent;
+use App\Domain\AI\Events\LLMErrorEvent;
+use App\Domain\AI\Events\LLMRequestMadeEvent;
+use App\Domain\AI\Events\LLMResponseReceivedEvent;
 use App\Domain\AI\Events\ToolExecutedEvent;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
@@ -109,6 +112,46 @@ class AIInteractionAggregate extends AggregateRoot
             $this->conversationId,
             $summary,
             count($this->executedTools)
+        ));
+
+        return $this;
+    }
+
+    public function recordLLMRequest(string $userId, string $provider, string $message, array $options = []): self
+    {
+        $this->recordThat(new LLMRequestMadeEvent(
+            $this->conversationId,
+            $userId,
+            $provider,
+            $message,
+            $options,
+            now()->toIso8601String()
+        ));
+
+        return $this;
+    }
+
+    public function recordLLMResponse(string $provider, string $content, int $totalTokens, array $metadata = []): self
+    {
+        $this->recordThat(new LLMResponseReceivedEvent(
+            $this->conversationId,
+            $provider,
+            $content,
+            $totalTokens,
+            $metadata,
+            now()->toIso8601String()
+        ));
+
+        return $this;
+    }
+
+    public function recordLLMError(string $provider, string $error): self
+    {
+        $this->recordThat(new LLMErrorEvent(
+            $this->conversationId,
+            $provider,
+            $error,
+            now()->toIso8601String()
         ));
 
         return $this;
