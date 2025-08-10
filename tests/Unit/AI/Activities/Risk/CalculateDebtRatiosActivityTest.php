@@ -20,7 +20,7 @@ class CalculateDebtRatiosActivityTest extends TestCase
         $workflow = WorkflowStub::make(\App\Domain\AI\ChildWorkflows\Risk\CreditRiskWorkflow::class);
         /** @var StoredWorkflow $storedWorkflow */
         $storedWorkflow = StoredWorkflow::query()->findOrFail($workflow->id());
-        
+
         // Create activity with required constructor parameters
         $this->activity = new CalculateDebtRatiosActivity(
             index: 0,
@@ -63,7 +63,7 @@ class CalculateDebtRatiosActivityTest extends TestCase
         // Arrange
         $financialData = [
             'transactions' => collect(),
-            'loans' => collect([
+            'loans'        => collect([
                 (object) ['monthly_payment' => 500],
             ]),
         ];
