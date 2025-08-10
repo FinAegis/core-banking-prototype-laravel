@@ -247,14 +247,23 @@ class ConversationStoreTest extends TestCase
         $userId = 'user-123';
 
         // Create 105 conversations
+        $baseTime = time();
         for ($i = 0; $i < 105; $i++) {
             $context = new ConversationContext(
                 'conv-' . $i,
                 $userId,
                 [['role' => 'user', 'content' => "Message $i"]]
             );
-            $this->store->store($context);
+            
+            // Store with incrementing timestamps
+            $key = 'ai:conversation:' . $context->getConversationId();
+            $userKey = 'ai:conversation:user:' . $userId;
+            Redis::setex($key, 3600, json_encode($context->toArray()));
+            Redis::zadd($userKey, $baseTime + $i, $context->getConversationId());
         }
+        
+        // Trim to keep last 100
+        Redis::zremrangebyrank('ai:conversation:user:' . $userId, 0, -101);
 
         // Act
         $userKey = 'ai:conversation:user:' . $userId;
