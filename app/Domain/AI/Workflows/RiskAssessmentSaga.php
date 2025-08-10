@@ -30,8 +30,8 @@ class RiskAssessmentSaga extends Workflow
 
     private array $riskScores = [];
 
-    public function __construct(
-    ) {
+    public function __construct()
+    {
     }
 
     public function execute(

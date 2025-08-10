@@ -30,8 +30,8 @@ class ComplianceWorkflow extends Workflow
 
     private array $compensationActions = [];
 
-    public function __construct(
-    ) {
+    public function __construct()
+    {
     }
 
     public function execute(
