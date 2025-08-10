@@ -49,7 +49,7 @@ class PineconeProviderTest extends TestCase
         $metadata = ['type' => 'document', 'source' => 'test'];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['upserted_count' => 1]))
+            new Response(200, [], json_encode(['upserted_count' => 1]) ?: '')
         );
 
         // Act
@@ -78,7 +78,7 @@ class PineconeProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['upserted_count' => 3]))
+            new Response(200, [], json_encode(['upserted_count' => 3]) ?: '')
         );
 
         // Act
@@ -108,8 +108,8 @@ class PineconeProviderTest extends TestCase
 
         // Expect 2 requests (100 + 50)
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['upserted_count' => 100])),
-            new Response(200, [], json_encode(['upserted_count' => 50]))
+            new Response(200, [], json_encode(['upserted_count' => 100]) ?: ''),
+            new Response(200, [], json_encode(['upserted_count' => 50]) ?: '')
         );
 
         // Act
@@ -135,7 +135,7 @@ class PineconeProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode($responseData))
+            new Response(200, [], json_encode($responseData) ?: '')
         );
 
         // Act
@@ -161,7 +161,7 @@ class PineconeProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode($responseData))
+            new Response(200, [], json_encode($responseData) ?: '')
         );
 
         // Act
@@ -180,7 +180,7 @@ class PineconeProviderTest extends TestCase
         $id = 'vec-123';
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['deleted' => 1]))
+            new Response(200, [], json_encode(['deleted' => 1]) ?: '')
         );
 
         // Act
@@ -199,7 +199,7 @@ class PineconeProviderTest extends TestCase
         $filters = ['type' => 'document', 'source' => 'test'];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['deleted' => 5]))
+            new Response(200, [], json_encode(['deleted' => 5]) ?: '')
         );
 
         // Act
@@ -233,7 +233,7 @@ class PineconeProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode($responseData))
+            new Response(200, [], json_encode($responseData) ?: '')
         );
 
         // Act
@@ -251,7 +251,7 @@ class PineconeProviderTest extends TestCase
     {
         // Arrange
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['vectors' => []]))
+            new Response(200, [], json_encode(['vectors' => []]) ?: '')
         );
 
         // Act
@@ -271,8 +271,8 @@ class PineconeProviderTest extends TestCase
 
         // First request checks if index exists (404)
         $this->mockHandler->append(
-            new Response(404, [], json_encode(['error' => 'Not found'])),
-            new Response(201, [], json_encode(['name' => $name, 'dimension' => $dimensions]))
+            new Response(404, [], json_encode(['error' => 'Not found']) ?: ''),
+            new Response(201, [], json_encode(['name' => $name, 'dimension' => $dimensions]) ?: '')
         );
 
         // Act
@@ -291,7 +291,7 @@ class PineconeProviderTest extends TestCase
 
         // Index already exists
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['name' => $name, 'dimension' => $dimensions]))
+            new Response(200, [], json_encode(['name' => $name, 'dimension' => $dimensions]) ?: '')
         );
 
         // Act
@@ -306,7 +306,7 @@ class PineconeProviderTest extends TestCase
     {
         // Arrange
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['indexes' => []]))
+            new Response(200, [], json_encode(['indexes' => []]) ?: '')
         );
 
         // Act
@@ -342,7 +342,7 @@ class PineconeProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode($responseData))
+            new Response(200, [], json_encode($responseData) ?: '')
         );
 
         // Act

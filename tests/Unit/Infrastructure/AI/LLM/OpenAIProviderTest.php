@@ -82,7 +82,7 @@ class OpenAIProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode($responseData))
+            new Response(200, [], json_encode($responseData) ?: '')
         );
 
         // Mock the aggregate
@@ -131,7 +131,7 @@ class OpenAIProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode($responseData))
+            new Response(200, [], json_encode($responseData) ?: '')
         );
 
         // Mock the aggregate
@@ -165,7 +165,7 @@ class OpenAIProviderTest extends TestCase
         $context = new ConversationContext($conversationId, $userId);
 
         $this->mockHandler->append(
-            new Response(500, [], json_encode(['error' => 'Internal Server Error']))
+            new Response(500, [], json_encode(['error' => 'Internal Server Error']) ?: '')
         );
 
         // Mock the aggregate
@@ -206,14 +206,13 @@ class OpenAIProviderTest extends TestCase
         ];
 
         $this->mockHandler->append(
-            new Response(200, [], json_encode($responseData))
+            new Response(200, [], json_encode($responseData) ?: '')
         );
 
         // Act
         $embeddings = $this->provider->generateEmbeddings($text);
 
         // Assert
-        $this->assertIsArray($embeddings);
         $this->assertCount(1536, $embeddings);
         $this->assertEquals(0.1, $embeddings[0]);
     }
@@ -223,7 +222,7 @@ class OpenAIProviderTest extends TestCase
     {
         // Arrange
         $this->mockHandler->append(
-            new Response(200, [], json_encode(['data' => []]))
+            new Response(200, [], json_encode(['data' => []]) ?: '')
         );
 
         // Act
