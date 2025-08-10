@@ -56,13 +56,13 @@ final class LLMResponse implements Arrayable
     public function toArray(): array
     {
         return [
-            'content' => $this->content,
-            'model' => $this->model,
-            'prompt_tokens' => $this->promptTokens,
+            'content'           => $this->content,
+            'model'             => $this->model,
+            'prompt_tokens'     => $this->promptTokens,
             'completion_tokens' => $this->completionTokens,
-            'total_tokens' => $this->getTotalTokens(),
-            'temperature' => $this->temperature,
-            'metadata' => $this->metadata,
+            'total_tokens'      => $this->getTotalTokens(),
+            'temperature'       => $this->temperature,
+            'metadata'          => $this->metadata,
         ];
     }
 }

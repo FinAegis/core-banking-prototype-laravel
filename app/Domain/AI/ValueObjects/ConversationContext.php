@@ -74,10 +74,10 @@ final class ConversationContext implements Arrayable
     {
         return [
             'conversation_id' => $this->conversationId,
-            'user_id' => $this->userId,
-            'messages' => $this->messages,
-            'system_prompt' => $this->systemPrompt,
-            'metadata' => $this->metadata,
+            'user_id'         => $this->userId,
+            'messages'        => $this->messages,
+            'system_prompt'   => $this->systemPrompt,
+            'metadata'        => $this->metadata,
         ];
     }
 }

@@ -16,6 +16,7 @@ use Tests\TestCase;
 class PineconeProviderTest extends TestCase
 {
     private PineconeProvider $provider;
+
     private MockHandler $mockHandler;
 
     protected function setUp(): void
@@ -32,7 +33,7 @@ class PineconeProviderTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $this->provider = new PineconeProvider();
-        
+
         // Use reflection to inject mock client
         $reflection = new \ReflectionClass($this->provider);
         $property = $reflection->getProperty('client');
@@ -60,7 +61,7 @@ class PineconeProviderTest extends TestCase
         $this->assertNotNull($request);
         $this->assertEquals('POST', $request->getMethod());
         $this->assertStringContainsString('/vectors/upsert', (string) $request->getUri());
-        
+
         $body = json_decode($request->getBody()->getContents(), true);
         $this->assertEquals($id, $body['vectors'][0]['id']);
         $this->assertEquals($vector, $body['vectors'][0]['values']);
@@ -100,8 +101,8 @@ class PineconeProviderTest extends TestCase
         $items = [];
         for ($i = 0; $i < 150; $i++) {
             $items[] = [
-                'id' => "vec-$i",
-                'vector' => array_fill(0, 10, 0.1),
+                'id'       => "vec-$i",
+                'vector'   => array_fill(0, 10, 0.1),
                 'metadata' => ['index' => $i],
             ];
         }
@@ -125,7 +126,7 @@ class PineconeProviderTest extends TestCase
         // Arrange
         $queryVector = array_fill(0, 10, 0.5);
         $topK = 5;
-        
+
         $responseData = [
             'matches' => [
                 ['id' => 'vec-1', 'score' => 0.95, 'metadata' => ['type' => 'A']],
@@ -153,7 +154,7 @@ class PineconeProviderTest extends TestCase
     {
         // Arrange
         $queryVector = array_fill(0, 10, 0.5);
-        
+
         $responseData = [
             'matches' => [
                 ['id' => 'vec-1', 'score' => 0.95, 'metadata' => []],
@@ -207,7 +208,7 @@ class PineconeProviderTest extends TestCase
 
         // Assert
         $this->assertEquals(5, $count);
-        
+
         $request = $this->mockHandler->getLastRequest();
         $body = json_decode($request->getBody()->getContents(), true);
         $this->assertArrayHasKey('filter', $body);
@@ -226,7 +227,7 @@ class PineconeProviderTest extends TestCase
         $responseData = [
             'vectors' => [
                 $id => [
-                    'values' => $vector,
+                    'values'   => $vector,
                     'metadata' => $metadata,
                 ],
             ],
@@ -336,9 +337,9 @@ class PineconeProviderTest extends TestCase
         // Arrange
         $responseData = [
             'totalVectorCount' => 10000,
-            'dimension' => 1536,
-            'indexFullness' => 0.25,
-            'namespaces' => ['default' => ['vectorCount' => 10000]],
+            'dimension'        => 1536,
+            'indexFullness'    => 0.25,
+            'namespaces'       => ['default' => ['vectorCount' => 10000]],
         ];
 
         $this->mockHandler->append(

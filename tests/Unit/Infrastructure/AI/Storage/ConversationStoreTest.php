@@ -17,7 +17,7 @@ class ConversationStoreTest extends TestCase
     {
         parent::setUp();
         $this->store = new ConversationStore();
-        
+
         // Clear Redis test data
         Redis::flushdb();
     }
@@ -109,7 +109,7 @@ class ConversationStoreTest extends TestCase
         // Arrange & Act & Assert
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Conversation non-existent not found');
-        
+
         $this->store->addMessage('non-existent', 'user', 'test');
     }
 
@@ -118,7 +118,7 @@ class ConversationStoreTest extends TestCase
     {
         // Arrange
         $userId = 'user-123';
-        
+
         // Create multiple conversations
         for ($i = 0; $i < 5; $i++) {
             $context = new ConversationContext(
@@ -147,7 +147,7 @@ class ConversationStoreTest extends TestCase
         $conversationId = 'test-conv-' . uniqid();
         $userId = 'user-123';
         $context = new ConversationContext($conversationId, $userId);
-        
+
         $this->store->store($context);
 
         // Act
@@ -156,7 +156,7 @@ class ConversationStoreTest extends TestCase
 
         // Assert
         $this->assertNull($retrieved);
-        
+
         // Check it's also removed from user's list
         $userConversations = $this->store->getUserConversations($userId);
         $this->assertEmpty($userConversations);
@@ -167,7 +167,7 @@ class ConversationStoreTest extends TestCase
     {
         // Arrange
         $userId = 'user-123';
-        
+
         // Create multiple conversations
         for ($i = 0; $i < 3; $i++) {
             $context = new ConversationContext(
@@ -184,7 +184,7 @@ class ConversationStoreTest extends TestCase
         // Assert
         $conversations = $this->store->getUserConversations($userId);
         $this->assertEmpty($conversations);
-        
+
         // Check individual conversations are deleted
         for ($i = 0; $i < 3; $i++) {
             $this->assertNull($this->store->retrieve('conv-' . $i));
@@ -196,7 +196,7 @@ class ConversationStoreTest extends TestCase
     {
         // Arrange
         $userId = 'user-123';
-        
+
         // Create conversations with different content
         $contexts = [
             new ConversationContext(
@@ -234,7 +234,7 @@ class ConversationStoreTest extends TestCase
 
         // Assert
         $this->assertCount(2, $results);
-        
+
         $conversationIds = array_column($results, 'conversation_id');
         $this->assertContains('conv-1', $conversationIds);
         $this->assertContains('conv-3', $conversationIds);
@@ -245,7 +245,7 @@ class ConversationStoreTest extends TestCase
     {
         // Arrange
         $userId = 'user-123';
-        
+
         // Create 105 conversations
         for ($i = 0; $i < 105; $i++) {
             $context = new ConversationContext(
@@ -262,7 +262,7 @@ class ConversationStoreTest extends TestCase
 
         // Assert
         $this->assertEquals(100, $count);
-        
+
         // Verify oldest conversations were removed
         $conversations = Redis::zrange($userKey, 0, -1);
         $this->assertNotContains('conv-0', $conversations);

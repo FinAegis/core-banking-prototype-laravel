@@ -19,6 +19,7 @@ use Tests\TestCase;
 class OpenAIProviderTest extends TestCase
 {
     private OpenAIProvider $provider;
+
     private MockHandler $mockHandler;
 
     protected function setUp(): void
@@ -35,7 +36,7 @@ class OpenAIProviderTest extends TestCase
         $client = new Client(['handler' => $handlerStack]);
 
         $this->provider = new OpenAIProvider();
-        
+
         // Use reflection to inject mock client
         $reflection = new \ReflectionClass($this->provider);
         $property = $reflection->getProperty('client');
@@ -50,7 +51,7 @@ class OpenAIProviderTest extends TestCase
         $conversationId = 'test-conversation-' . uniqid();
         $userId = 'user-123';
         $message = 'What is the weather today?';
-        
+
         $context = new ConversationContext(
             $conversationId,
             $userId,
@@ -60,24 +61,24 @@ class OpenAIProviderTest extends TestCase
         );
 
         $responseData = [
-            'id' => 'chatcmpl-123',
-            'object' => 'chat.completion',
+            'id'      => 'chatcmpl-123',
+            'object'  => 'chat.completion',
             'created' => time(),
-            'model' => 'gpt-4',
+            'model'   => 'gpt-4',
             'choices' => [
                 [
-                    'index' => 0,
+                    'index'   => 0,
                     'message' => [
-                        'role' => 'assistant',
+                        'role'    => 'assistant',
                         'content' => 'I cannot provide real-time weather information.',
                     ],
                     'finish_reason' => 'stop',
                 ],
             ],
             'usage' => [
-                'prompt_tokens' => 10,
+                'prompt_tokens'     => 10,
                 'completion_tokens' => 20,
-                'total_tokens' => 30,
+                'total_tokens'      => 30,
             ],
         ];
 
@@ -112,20 +113,20 @@ class OpenAIProviderTest extends TestCase
         $conversationId = 'test-conversation-' . uniqid();
         $userId = 'user-123';
         $message = 'Test message';
-        
+
         $context = new ConversationContext($conversationId, $userId);
 
         $responseData = [
-            'id' => 'chatcmpl-123',
-            'model' => 'gpt-4',
+            'id'      => 'chatcmpl-123',
+            'model'   => 'gpt-4',
             'choices' => [
                 [
-                    'message' => ['content' => 'Test response'],
+                    'message'       => ['content' => 'Test response'],
                     'finish_reason' => 'stop',
                 ],
             ],
             'usage' => [
-                'prompt_tokens' => 5,
+                'prompt_tokens'     => 5,
                 'completion_tokens' => 10,
             ],
         ];
@@ -144,7 +145,7 @@ class OpenAIProviderTest extends TestCase
 
         // Act
         $response1 = $this->provider->chat($message, $context);
-        
+
         // Second call should use cache
         $response2 = $this->provider->chat($message, $context);
 
@@ -161,7 +162,7 @@ class OpenAIProviderTest extends TestCase
         $conversationId = 'test-conversation-' . uniqid();
         $userId = 'user-123';
         $message = 'Test message';
-        
+
         $context = new ConversationContext($conversationId, $userId);
 
         $this->mockHandler->append(
@@ -179,7 +180,7 @@ class OpenAIProviderTest extends TestCase
         // Act & Assert
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failed to get response from OpenAI');
-        
+
         $this->provider->chat($message, $context);
     }
 
@@ -188,20 +189,20 @@ class OpenAIProviderTest extends TestCase
     {
         // Arrange
         $text = 'This is a test text for embeddings';
-        
+
         $responseData = [
             'object' => 'list',
-            'data' => [
+            'data'   => [
                 [
-                    'object' => 'embedding',
+                    'object'    => 'embedding',
                     'embedding' => array_fill(0, 1536, 0.1),
-                    'index' => 0,
+                    'index'     => 0,
                 ],
             ],
             'model' => 'text-embedding-ada-002',
             'usage' => [
                 'prompt_tokens' => 8,
-                'total_tokens' => 8,
+                'total_tokens'  => 8,
             ],
         ];
 

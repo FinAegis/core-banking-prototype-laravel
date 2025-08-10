@@ -27,7 +27,7 @@ class AIInfrastructureServiceProvider extends ServiceProvider
             return match ($provider) {
                 'claude' => new ClaudeProvider(),
                 'openai' => new OpenAIProvider(),
-                default => new OpenAIProvider(),
+                default  => new OpenAIProvider(),
             };
         });
 
@@ -44,7 +44,7 @@ class AIInfrastructureServiceProvider extends ServiceProvider
 
             return match ($provider) {
                 'pinecone' => new PineconeProvider(),
-                default => new PineconeProvider(),
+                default    => new PineconeProvider(),
             };
         });
     }
