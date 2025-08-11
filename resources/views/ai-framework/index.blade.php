@@ -9,17 +9,16 @@
         'keywords' => 'AI agents, financial automation, machine learning, LLM integration, intelligent banking, workflow automation, AI-powered finance, conversational banking',
     ])
 
-    {{-- Schema.org Markup for AI Service --}}
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
+        "@@context": "https://schema.org",
+        "@@type": "SoftwareApplication",
         "name": "FinAegis AI Agent Framework",
         "applicationCategory": "FinancialApplication",
         "operatingSystem": "Web",
         "description": "Enterprise AI framework for intelligent financial automation and decision support",
         "offers": {
-            "@type": "Offer",
+            "@@type": "Offer",
             "availability": "https://schema.org/InStock",
             "price": "0",
             "priceCurrency": "USD"
@@ -130,7 +129,7 @@
                     <a href="#demo" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
                         Try Live Demo
                     </a>
-                    <a href="{{ route('developers.api-docs') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
+                    <a href="/api/documentation" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
                         View API Docs
                     </a>
                 </div>
@@ -683,7 +682,7 @@ foreach ($agent->stream($message, $context) as $chunk) {
                 <a href="{{ route('register') }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
                     Start Free Trial
                 </a>
-                <a href="{{ route('contact') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
+                <a href="mailto:contact@finaegis.com" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
                     Schedule Demo
                 </a>
             </div>
@@ -716,3 +715,4 @@ foreach ($agent->stream($message, $context) as $chunk) {
     });
 </script>
 @endpush
+
