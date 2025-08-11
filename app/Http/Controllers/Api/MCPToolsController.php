@@ -181,7 +181,7 @@ class MCPToolsController extends Controller
 
         // Demo implementation
         $startTime = microtime(true);
-        
+
         $result = match ($tool) {
             'get_account_balance' => $this->executeGetAccountBalance($validated['parameters']),
             'authorize_transfer' => $this->executeAuthorizeTransfer($validated['parameters']),

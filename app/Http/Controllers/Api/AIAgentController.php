@@ -25,7 +25,8 @@ class AIAgentController extends Controller
     public function __construct(
         private readonly AIAgentService $aiAgentService,
         private readonly ConversationService $conversationService
-    ) {}
+    ) {
+    }
 
     /**
      * @OA\Post(

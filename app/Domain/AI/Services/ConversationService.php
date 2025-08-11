@@ -15,7 +15,7 @@ class ConversationService
     public function getOrCreate(string $conversationId, int $userId): array
     {
         $key = "conversation:{$conversationId}";
-        
+
         return Cache::remember($key, 3600, function () use ($conversationId, $userId) {
             return [
                 'id' => $conversationId,
@@ -60,11 +60,11 @@ class ConversationService
     {
         $key = "conversation:{$conversationId}";
         $conversation = Cache::get($key);
-        
+
         if ($conversation && $conversation['user_id'] === $userId) {
             return $conversation;
         }
-        
+
         // Demo conversation
         return [
             'id' => $conversationId,
@@ -92,12 +92,12 @@ class ConversationService
     {
         $key = "conversation:{$conversationId}";
         $conversation = Cache::get($key);
-        
+
         if ($conversation && $conversation['user_id'] === $userId) {
             Cache::forget($key);
             return true;
         }
-        
+
         return false;
     }
 }
