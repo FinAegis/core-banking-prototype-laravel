@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class AIAgentService
 {
     /**
-     * Send a chat message to the AI agent
+     * Send a chat message to the AI agent.
      */
     public function chat(
         string $message,
@@ -21,15 +21,15 @@ class AIAgentService
         // Demo implementation - returns simulated response
         return [
             'message_id' => Str::uuid()->toString(),
-            'content' => $this->generateDemoResponse($message),
+            'content'    => $this->generateDemoResponse($message),
             'confidence' => 0.85,
             'tools_used' => ['AccountBalanceTool', 'TransactionHistoryTool'],
-            'context' => $context,
+            'context'    => $context,
         ];
     }
 
     /**
-     * Store user feedback about an AI response
+     * Store user feedback about an AI response.
      */
     public function storeFeedback(
         string $messageId,
@@ -42,7 +42,7 @@ class AIAgentService
     }
 
     /**
-     * Generate a demo response based on the message
+     * Generate a demo response based on the message.
      */
     private function generateDemoResponse(string $message): string
     {

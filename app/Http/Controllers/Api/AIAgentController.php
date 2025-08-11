@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api;
 use App\Domain\AI\Services\AIAgentService;
 use App\Domain\AI\Services\ConversationService;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\AIResponseResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -68,12 +67,12 @@ class AIAgentController extends Controller
     public function chat(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'message' => 'required|string|max:4000',
+            'message'         => 'required|string|max:4000',
             'conversation_id' => 'nullable|uuid',
-            'context' => 'nullable|array',
-            'model' => ['nullable', Rule::in(['gpt-4', 'gpt-3.5-turbo', 'claude-3'])],
-            'temperature' => 'nullable|numeric|min:0|max:2',
-            'stream' => 'nullable|boolean',
+            'context'         => 'nullable|array',
+            'model'           => ['nullable', Rule::in(['gpt-4', 'gpt-3.5-turbo', 'claude-3'])],
+            'temperature'     => 'nullable|numeric|min:0|max:2',
+            'stream'          => 'nullable|boolean',
         ]);
 
         $conversationId = $validated['conversation_id'] ?? Str::uuid()->toString();
@@ -89,19 +88,19 @@ class AIAgentController extends Controller
             userId: $userId,
             context: $validated['context'] ?? [],
             options: [
-                'model' => $validated['model'] ?? 'gpt-4',
+                'model'       => $validated['model'] ?? 'gpt-4',
                 'temperature' => $validated['temperature'] ?? 0.7,
-                'stream' => $validated['stream'] ?? false,
+                'stream'      => $validated['stream'] ?? false,
             ]
         );
 
         return response()->json([
             'conversation_id' => $conversationId,
-            'message_id' => $response['message_id'],
-            'response' => $response['content'],
-            'confidence' => $response['confidence'] ?? null,
-            'tools_used' => $response['tools_used'] ?? [],
-            'context' => $response['context'] ?? [],
+            'message_id'      => $response['message_id'],
+            'response'        => $response['content'],
+            'confidence'      => $response['confidence'] ?? null,
+            'tools_used'      => $response['tools_used'] ?? [],
+            'context'         => $response['context'] ?? [],
         ]);
     }
 
@@ -183,7 +182,7 @@ class AIAgentController extends Controller
     {
         $conversation = $this->conversationService->getConversation($conversationId, (int) Auth::id());
 
-        if (!$conversation) {
+        if (! $conversation) {
             return response()->json(['error' => 'Conversation not found'], 404);
         }
 
@@ -216,7 +215,7 @@ class AIAgentController extends Controller
     {
         $deleted = $this->conversationService->deleteConversation($conversationId, (int) Auth::id());
 
-        if (!$deleted) {
+        if (! $deleted) {
             return response()->json(['error' => 'Conversation not found'], 404);
         }
 
@@ -250,8 +249,8 @@ class AIAgentController extends Controller
     {
         $validated = $request->validate([
             'message_id' => 'required|string',
-            'rating' => 'required|integer|min:1|max:5',
-            'feedback' => 'nullable|string|max:1000',
+            'rating'     => 'required|integer|min:1|max:5',
+            'feedback'   => 'nullable|string|max:1000',
         ]);
 
         // Store feedback for model improvement
