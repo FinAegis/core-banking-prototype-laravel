@@ -24,8 +24,8 @@
                         <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-1">
                                 <a href="{{ route('platform') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('platform*') ? 'bg-gray-50 text-indigo-600' : '' }}">Core Banking</a>
-                                <a href="{{ route('features') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('features*') && !request()->routeIs('features.gcu') ? 'bg-gray-50 text-indigo-600' : '' }}">Banking Services</a>
-                                <a href="{{ route('features.gcu') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('features.gcu') ? 'bg-gray-50 text-indigo-600' : '' }}">Global Currency Unit</a>
+                                <a href="{{ route('features') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('features*') ? 'bg-gray-50 text-indigo-600' : '' }}">Banking Services</a>
+                                <a href="{{ route('gcu') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('gcu*') ? 'bg-gray-50 text-indigo-600' : '' }}">Global Currency Unit</a>
                                 <a href="{{ route('ai-framework') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('ai-framework*') ? 'bg-gray-50 text-indigo-600' : '' }}">AI Framework</a>
                             </div>
                         </div>
@@ -90,7 +90,7 @@
                 <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Products</div>
                 <a href="{{ route('platform') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Core Banking</a>
                 <a href="{{ route('features') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Banking Services</a>
-                <a href="{{ route('features.gcu') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Global Currency Unit</a>
+                <a href="{{ route('gcu') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Global Currency Unit</a>
                 <a href="{{ route('ai-framework') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">AI Framework</a>
             </div>
             
