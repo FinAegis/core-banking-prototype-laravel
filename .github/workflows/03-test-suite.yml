@@ -66,9 +66,8 @@ jobs:
           tools: composer:v2
           coverage: xdebug
           ini-values: |
-            memory_limit=4G
+            memory_limit=512M
             max_execution_time=360
-            zend.enable_gc=1
             
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -146,8 +145,8 @@ jobs:
           DB_PASSWORD: root
         run: |
           # Run unit tests using CI configuration with MySQL (excluding slow tests)
-          # Use increased memory limit and disable Xdebug for better performance
-          php -d memory_limit=4G -d xdebug.mode=off ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci.xml --exclude-group=slow --no-coverage
+          # Increase memory limit to prevent exhaustion during coverage generation
+          php -d memory_limit=2G ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci-optimized.xml --exclude-group=slow
           
       - name: Run Security Tests
         if: always()
@@ -266,10 +265,7 @@ jobs:
           DB_DATABASE: testing
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: |
-          # Run feature tests in batches to avoid memory exhaustion
-          # Disable parallel execution and coverage for memory optimization
-          php -d memory_limit=4G -d xdebug.mode=off ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci.xml --exclude-group=slow --no-coverage --no-parallel
+        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci-optimized.xml --exclude-group=slow
 
   integration-tests:
     name: Integration Tests
@@ -360,7 +356,7 @@ jobs:
           DB_DATABASE: testing
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: php -d memory_limit=4G -d xdebug.mode=off ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci.xml --exclude-group=slow --no-coverage --no-parallel
+        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci-optimized.xml --exclude-group=slow
         
   behat-tests:
     name: Behat Tests
