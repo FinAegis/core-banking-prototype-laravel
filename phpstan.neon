@@ -1,6 +1,7 @@
 includes:
     - ./vendor/larastan/larastan/extension.neon
     - phpstan-baseline.neon
+    - phpstan-baseline-ai-tests.neon
 
 parameters:
     level: 5

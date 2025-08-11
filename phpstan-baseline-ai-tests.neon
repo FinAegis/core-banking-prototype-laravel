@@ -1,97 +1,289 @@
 parameters:
 	ignoreErrors:
-		# These errors are expected as the AI Framework implementation doesn't exist yet
-		# The tests serve as specifications for the upcoming Phase 4 implementation
-		
-		# AIInteractionAggregateTest.php
 		-
-			message: "#^Parameter \\#2 \\$agentType of method App\\\\Domain\\\\AI\\\\Aggregates\\\\AIInteractionAggregate\\:\\:startConversation\\(\\) expects string, int given\\.$#"
+			message: '#^Access to property \$aiConfidence on an unknown class App\\Domain\\AI\\Events\\HumanInterventionRequestedEvent\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Access to property \$context on an unknown class App\\Domain\\AI\\Events\\HumanInterventionRequestedEvent\.$#'
+			identifier: class.notFound
+			count: 2
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Access to property \$originalDecision on an unknown class App\\Domain\\AI\\Events\\HumanOverrideEvent\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Access to property \$overriddenBy on an unknown class App\\Domain\\AI\\Events\\HumanOverrideEvent\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Access to property \$overrideDecision on an unknown class App\\Domain\\AI\\Events\\HumanOverrideEvent\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Access to property \$reason on an unknown class App\\Domain\\AI\\Events\\HumanInterventionRequestedEvent\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Access to property \$reason on an unknown class App\\Domain\\AI\\Events\\HumanOverrideEvent\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\AI\\Aggregates\\AIInteractionAggregate\:\:recordDecision\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\AI\\Aggregates\\AIInteractionAggregate\:\:recordToolExecution\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Events\\HumanInterventionRequestedEvent not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Events\\HumanOverrideEvent not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Parameter \#2 \$agentType of method App\\Domain\\AI\\Aggregates\\AIInteractionAggregate\:\:startConversation\(\) expects string, int given\.$#'
+			identifier: argument.type
+			count: 8
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Parameter \#3 \$userId of method App\\Domain\\AI\\Aggregates\\AIInteractionAggregate\:\:startConversation\(\) expects string\|null, array\<string, string\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Feature/AI/AIInteractionAggregateTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andThrow\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Call to method coordinate\(\) on an unknown class App\\Domain\\AI\\Services\\MultiAgentCoordinator\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Cannot access offset ''risk_factors'' on Generator\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Cannot access offset ''risk_score'' on Generator\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Activities\\IntentRecognitionActivity not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Activities\\ToolSelectionActivity not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Events\\CompensationExecutedEvent not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Events\\HumanApprovalReceivedEvent not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Events\\HumanInterventionRequestedEvent not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Events\\IntentRecognizedEvent not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Signals\\HumanApprovalSignal not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Workflows\\Children\\FraudDetectionWorkflow not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Workflows\\HumanApprovalWorkflow not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Instantiated class App\\Domain\\AI\\Services\\MultiAgentCoordinator not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Workflows\\RiskAssessmentSaga\:\:execute\(\) invoked with 1 parameter, 3\-4 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Parameter \#1 \$conversationId of method App\\Domain\\AI\\Workflows\\RiskAssessmentSaga\:\:execute\(\) expects string, array\<string, array\<string, int\|string\>\|int\|string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Parameter \#2 \$array of method PHPUnit\\Framework\\Assert\:\:assertArrayHasKey\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, Generator given\.$#'
+			identifier: argument.type
+			count: 3
+			path: tests/Feature/AI/AgentWorkflowTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\AI\\MCP\\MCPServer\:\:getMetrics\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\AI\\MCP\\ResourceManager\:\:exposeResource\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\AI\\MCP\\ResourceManager\:\:getResource\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\AI\\MCP\\ResourceManager\:\:hasResource\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\AI\\MCP\\ToolRegistry\:\:all\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andThrow\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Call to an undefined static method Illuminate\\Support\\Facades\\Cache\:\:shouldHaveReceived\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\MCP\\Interfaces\\MCPToolInterface not found\.$#'
+			identifier: class.notFound
+			count: 6
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Instantiated class App\\Domain\\AI\\MCP\\CacheManager not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\MCP\\MCPServer\:\:executeTool\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 6
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\MCP\\MCPServer\:\:executeTool\(\) invoked with 4 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\MCP\\ToolRegistry\:\:register\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 5
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\MCP\\ToolRegistry\:\:register\(\) invoked with 3 parameters, 1 required\.$#'
+			identifier: arguments.count
 			count: 4
-			path: tests/Feature/AI/AIInteractionAggregateTest.php
-
-		-
-			message: "#^Parameter \\#3 \\$userId of method App\\\\Domain\\\\AI\\\\Aggregates\\\\AIInteractionAggregate\\:\\:startConversation\\(\\) expects string\\|null, array\\<string, string\\> given\\.$#"
-			count: 1
-			path: tests/Feature/AI/AIInteractionAggregateTest.php
-
-		-
-			message: "#^Call to an undefined method App\\\\Domain\\\\AI\\\\Aggregates\\\\AIInteractionAggregate\\:\\:recordDecision\\(\\)\\.$#"
-			count: 2
-			path: tests/Feature/AI/AIInteractionAggregateTest.php
-
-		-
-			message: "#^Call to an undefined method App\\\\Domain\\\\AI\\\\Aggregates\\\\AIInteractionAggregate\\:\\:recordToolExecution\\(\\)\\.$#"
-			count: 1
-			path: tests/Feature/AI/AIInteractionAggregateTest.php
-
-		-
-			message: "#^Class App\\\\Domain\\\\AI\\\\Events\\\\HumanInterventionRequestedEvent not found\\.$#"
-			count: 1
-			path: tests/Feature/AI/AIInteractionAggregateTest.php
-
-		-
-			message: "#^Access to property \\$reason on an unknown class App\\\\Domain\\\\AI\\\\Events\\\\HumanInterventionRequestedEvent\\.$#"
-			count: 1
-			path: tests/Feature/AI/AIInteractionAggregateTest.php
-
-		# MCPServerTest.php
-		-
-			message: "#^Method App\\\\Domain\\\\AI\\\\MCP\\\\ToolRegistry\\:\\:register\\(\\) invoked with 3 parameters, 1 required\\.$#"
-			count: 2
 			path: tests/Feature/AI/MCPServerTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$tool of method App\\\\Domain\\\\AI\\\\MCP\\\\ToolRegistry\\:\\:register\\(\\) expects App\\\\Domain\\\\AI\\\\Contracts\\\\MCPToolInterface, string given\\.$#"
-			count: 2
-			path: tests/Feature/AI/MCPServerTest.php
-
-		-
-			message: "#^Method App\\\\Domain\\\\AI\\\\MCP\\\\MCPServer\\:\\:executeTool\\(\\) invoked with 4 parameters, 2 required\\.$#"
+			message: '#^Method Tests\\Feature\\AI\\MCPServerTest\:\:createMockTool\(\) has invalid return type App\\Domain\\AI\\MCP\\Interfaces\\MCPToolInterface\.$#'
+			identifier: class.notFound
 			count: 1
 			path: tests/Feature/AI/MCPServerTest.php
 
 		-
-			message: "#^Method App\\\\Domain\\\\AI\\\\MCP\\\\MCPServer\\:\\:executeTool\\(\\) invoked with 3 parameters, 2 required\\.$#"
+			message: '#^Method Tests\\Feature\\AI\\MCPServerTest\:\:createMockTool\(\) should return App\\Domain\\AI\\MCP\\Interfaces\\MCPToolInterface but returns Mockery\\MockInterface\.$#'
+			identifier: return.type
 			count: 1
 			path: tests/Feature/AI/MCPServerTest.php
 
 		-
-			message: "#^Call to an undefined method App\\\\Domain\\\\AI\\\\MCP\\\\MCPServer\\:\\:getMetrics\\(\\)\\.$#"
+			message: '#^Parameter \#1 \$tool of method App\\Domain\\AI\\MCP\\ToolRegistry\:\:register\(\) expects App\\Domain\\AI\\Contracts\\MCPToolInterface, string given\.$#'
+			identifier: argument.type
+			count: 9
+			path: tests/Feature/AI/MCPServerTest.php
+
+		-
+			message: '#^Parameter \#3 \$commandBus of class App\\Domain\\AI\\MCP\\MCPServer constructor expects App\\Domain\\Shared\\CQRS\\CommandBus\|null, App\\Domain\\AI\\MCP\\CacheManager given\.$#'
+			identifier: argument.type
 			count: 1
 			path: tests/Feature/AI/MCPServerTest.php
 
 		-
-			message: "#^Class App\\\\Domain\\\\AI\\\\MCP\\\\Interfaces\\\\MCPToolInterface not found\\.$#"
-			count: 2
-			path: tests/Feature/AI/MCPServerTest.php
-
-		-
-			message: "#^Method Tests\\\\Feature\\\\AI\\\\MCPServerTest\\:\\:createMockTool\\(\\) has invalid return type App\\\\Domain\\\\AI\\\\MCP\\\\Interfaces\\\\MCPToolInterface\\.$#"
+			message: '#^Property Tests\\Feature\\AI\\MCPServerTest\:\:\$cacheManager has unknown class App\\Domain\\AI\\MCP\\CacheManager as its type\.$#'
+			identifier: class.notFound
 			count: 1
 			path: tests/Feature/AI/MCPServerTest.php
-
-		-
-			message: "#^Method Tests\\\\Feature\\\\AI\\\\MCPServerTest\\:\\:createMockTool\\(\\) should return App\\\\Domain\\\\AI\\\\MCP\\\\Interfaces\\\\MCPToolInterface but returns Mockery\\\\MockInterface\\.$#"
-			count: 1
-			path: tests/Feature/AI/MCPServerTest.php
-
-		-
-			message: "#^Method App\\\\Domain\\\\AI\\\\MCP\\\\ToolRegistry\\:\\:register\\(\\) invoked with 2 parameters, 1 required\\.$#"
-			count: 1
-			path: tests/Feature/AI/MCPServerTest.php
-
-		# These are expected for all test files as classes don't exist yet
-		-
-			message: "#^Class App\\\\Domain\\\\AI\\\\.*not found\\.$#"
-			paths:
-				- tests/Feature/AI/*.php
-
-		-
-			message: "#^Call to an undefined method App\\\\Domain\\\\AI\\\\.*$#"
-			paths:
-				- tests/Feature/AI/*.php
-
-		-
-			message: "#^Access to property .* on an unknown class App\\\\Domain\\\\AI\\\\.*$#"
-			paths:
-				- tests/Feature/AI/*.php
