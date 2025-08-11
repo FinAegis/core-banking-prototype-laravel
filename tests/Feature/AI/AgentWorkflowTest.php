@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AI;
 
-use Tests\TestCase;
-use App\Domain\AI\Workflows\CustomerServiceWorkflow;
-use App\Domain\AI\Workflows\ComplianceWorkflow;
-use App\Domain\AI\Workflows\RiskAssessmentSaga;
-use App\Domain\AI\Workflows\Children\FraudDetectionWorkflow;
 use App\Domain\AI\Activities\IntentRecognitionActivity;
 use App\Domain\AI\Activities\ToolSelectionActivity;
+use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\IntentRecognizedEvent;
 use App\Domain\AI\Events\ToolExecutedEvent;
-use App\Domain\AI\Events\AIDecisionMadeEvent;
-use Workflow\WorkflowStub;
-use Illuminate\Support\Facades\Event;
+use App\Domain\AI\Workflows\Children\FraudDetectionWorkflow;
+use App\Domain\AI\Workflows\ComplianceWorkflow;
+use App\Domain\AI\Workflows\CustomerServiceWorkflow;
+use App\Domain\AI\Workflows\RiskAssessmentSaga;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Mockery;
+use Tests\TestCase;
+use Workflow\WorkflowStub;
 
 class AgentWorkflowTest extends TestCase
 {
@@ -31,18 +31,18 @@ class AgentWorkflowTest extends TestCase
         $workflow = WorkflowStub::make(CustomerServiceWorkflow::class);
         $params = [
             'conversation_id' => 'conv_test_001',
-            'user_id' => 1,
-            'message' => 'What is my account balance?',
-            'context' => ['account_type' => 'checking'],
+            'user_id'         => 1,
+            'message'         => 'What is my account balance?',
+            'context'         => ['account_type' => 'checking'],
         ];
 
         // Mock activities
         $this->mockActivity(IntentRecognitionActivity::class)
             ->shouldReceive('recognize')
             ->andReturn([
-                'type' => 'balance_inquiry',
+                'type'       => 'balance_inquiry',
                 'confidence' => 0.95,
-                'entities' => ['account_type' => 'checking'],
+                'entities'   => ['account_type' => 'checking'],
             ]);
 
         $this->mockActivity(ToolSelectionActivity::class)
@@ -72,9 +72,9 @@ class AgentWorkflowTest extends TestCase
         Event::fake();
         $workflow = WorkflowStub::make(ComplianceWorkflow::class);
         $params = [
-            'user_id' => 1,
+            'user_id'   => 1,
             'documents' => [
-                'id_document' => 'passport_123.pdf',
+                'id_document'      => 'passport_123.pdf',
                 'proof_of_address' => 'utility_bill.pdf',
             ],
             'request_type' => 'account_opening',
@@ -103,10 +103,10 @@ class AgentWorkflowTest extends TestCase
         Event::fake();
         $saga = new RiskAssessmentSaga();
         $params = [
-            'user_id' => 1,
+            'user_id'     => 1,
             'transaction' => [
-                'amount' => 10000,
-                'type' => 'transfer',
+                'amount'      => 10000,
+                'type'        => 'transfer',
                 'destination' => 'external_account',
             ],
             'assessment_type' => 'transaction_risk',
@@ -136,11 +136,11 @@ class AgentWorkflowTest extends TestCase
         Event::fake();
         $workflow = WorkflowStub::make(FraudDetectionWorkflow::class);
         $params = [
-            'user_id' => 1,
+            'user_id'     => 1,
             'transaction' => [
-                'amount' => 50000,
+                'amount'   => 50000,
                 'merchant' => ['category' => 'gambling', 'country' => 'high_risk'],
-                'time' => '03:00:00',
+                'time'     => '03:00:00',
                 'location' => 'unusual',
             ],
         ];
@@ -170,21 +170,21 @@ class AgentWorkflowTest extends TestCase
         // Arrange
         Event::fake();
         config(['ai.confidence_threshold' => 0.8]);
-        
+
         $workflow = WorkflowStub::make(CustomerServiceWorkflow::class);
         $params = [
             'conversation_id' => 'conv_test_002',
-            'user_id' => 1,
-            'message' => 'Can I get a loan for buying cryptocurrency?', // Ambiguous request
+            'user_id'         => 1,
+            'message'         => 'Can I get a loan for buying cryptocurrency?', // Ambiguous request
         ];
 
         // Mock low confidence intent recognition
         $this->mockActivity(IntentRecognitionActivity::class)
             ->shouldReceive('recognize')
             ->andReturn([
-                'type' => 'unclear',
+                'type'       => 'unclear',
                 'confidence' => 0.45, // Below threshold
-                'entities' => [],
+                'entities'   => [],
             ]);
 
         // Act
@@ -208,8 +208,8 @@ class AgentWorkflowTest extends TestCase
         $workflow = WorkflowStub::make(CustomerServiceWorkflow::class);
         $params = [
             'conversation_id' => 'conv_test_003',
-            'user_id' => 1,
-            'message' => 'Transfer $1000 to account XYZ',
+            'user_id'         => 1,
+            'message'         => 'Transfer $1000 to account XYZ',
         ];
 
         // Mock activity to throw exception
@@ -235,9 +235,9 @@ class AgentWorkflowTest extends TestCase
         // Arrange
         Event::fake();
         $params = [
-            'task' => 'Complete loan application with risk assessment',
+            'task'    => 'Complete loan application with risk assessment',
             'user_id' => 1,
-            'agents' => ['loan_advisor', 'risk_assessor', 'compliance'],
+            'agents'  => ['loan_advisor', 'risk_assessor', 'compliance'],
         ];
 
         // Act
@@ -263,8 +263,8 @@ class AgentWorkflowTest extends TestCase
         Event::fake();
         $workflow = WorkflowStub::make(\App\Domain\AI\Workflows\HumanApprovalWorkflow::class);
         $params = [
-            'operation' => 'high_value_transfer',
-            'amount' => 100000,
+            'operation'         => 'high_value_transfer',
+            'amount'            => 100000,
             'requires_approval' => true,
         ];
 
@@ -290,6 +290,7 @@ class AgentWorkflowTest extends TestCase
     {
         $mock = Mockery::mock($activityClass);
         $this->app->instance($activityClass, $mock);
+
         return $mock;
     }
 
@@ -297,6 +298,7 @@ class AgentWorkflowTest extends TestCase
     {
         $mock = Mockery::mock($signalClass);
         $this->app->instance($signalClass, $mock);
+
         return $mock;
     }
 

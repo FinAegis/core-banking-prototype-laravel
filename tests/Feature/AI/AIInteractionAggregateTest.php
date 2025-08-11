@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AI;
 
-use Tests\TestCase;
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
-use App\Domain\AI\Events\ConversationStartedEvent;
 use App\Domain\AI\Events\AIDecisionMadeEvent;
-use App\Domain\AI\Events\ToolExecutedEvent;
+use App\Domain\AI\Events\ConversationStartedEvent;
 use App\Domain\AI\Events\HumanInterventionRequestedEvent;
 use App\Domain\AI\Events\HumanOverrideEvent;
-use Illuminate\Support\Facades\Event;
+use App\Domain\AI\Events\ToolExecutedEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Tests\TestCase;
 
 class AIInteractionAggregateTest extends TestCase
 {
@@ -171,7 +171,7 @@ class AIInteractionAggregateTest extends TestCase
         $aggregate->requestHumanIntervention('Test reason');
         $events = $aggregate->getRecordedEvents();
         $interventionEvent = end($events);
-        
+
         $this->assertInstanceOf(HumanInterventionRequestedEvent::class, $interventionEvent);
         $this->assertEqualsWithDelta($expectedAverage, $interventionEvent->aiConfidence, 0.01);
     }
@@ -222,7 +222,7 @@ class AIInteractionAggregateTest extends TestCase
         // Assert - State is correctly rebuilt
         $originalEvents = $originalAggregate->getRecordedEvents();
         $replayedEvents = $replayedAggregate->getRecordedEvents();
-        
+
         $this->assertCount(count($originalEvents), $replayedEvents);
         $this->assertEquals($originalEvents, $replayedEvents);
     }

@@ -4,35 +4,38 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AI;
 
-use Tests\TestCase;
-use App\Domain\AI\MCP\MCPServer;
-use App\Domain\AI\MCP\ToolRegistry;
-use App\Domain\AI\MCP\ResourceManager;
+use App\Domain\AI\Events\ToolExecutedEvent;
 use App\Domain\AI\MCP\CacheManager;
 use App\Domain\AI\MCP\Interfaces\MCPToolInterface;
-use App\Domain\AI\Events\ToolExecutedEvent;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Cache;
+use App\Domain\AI\MCP\MCPServer;
+use App\Domain\AI\MCP\ResourceManager;
+use App\Domain\AI\MCP\ToolRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Mockery;
+use Tests\TestCase;
 
 class MCPServerTest extends TestCase
 {
     use RefreshDatabase;
 
     private MCPServer $mcpServer;
+
     private ToolRegistry $toolRegistry;
+
     private ResourceManager $resourceManager;
+
     private CacheManager $cacheManager;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->toolRegistry = new ToolRegistry();
         $this->resourceManager = new ResourceManager();
         $this->cacheManager = new CacheManager();
-        
+
         $this->mcpServer = new MCPServer(
             $this->toolRegistry,
             $this->resourceManager,
@@ -45,18 +48,18 @@ class MCPServerTest extends TestCase
     {
         // Arrange
         $mockTool = $this->createMockTool('TestTool', 'Test tool description');
-        
+
         // Act
         $this->toolRegistry->register('test_tool', $mockTool, [
-            'category' => 'testing',
+            'category'      => 'testing',
             'requires_auth' => true,
         ]);
-        
+
         // Assert
         $this->assertTrue($this->toolRegistry->has('test_tool'));
         $tool = $this->toolRegistry->get('test_tool');
         $this->assertSame($mockTool, $tool);
-        
+
         $allTools = $this->toolRegistry->all();
         $this->assertArrayHasKey('test_tool', $allTools);
     }
@@ -69,17 +72,17 @@ class MCPServerTest extends TestCase
         $toolName = 'balance_check';
         $params = ['account_id' => 'ACC001'];
         $expectedResult = ['balance' => 1000.00, 'currency' => 'USD'];
-        
+
         $mockTool = Mockery::mock(MCPToolInterface::class);
         $mockTool->shouldReceive('execute')
             ->with($params)
             ->andReturn($expectedResult);
-        
+
         $this->toolRegistry->register($toolName, $mockTool);
-        
+
         // Act
         $result = $this->mcpServer->executeTool($toolName, $params, 'conv_123');
-        
+
         // Assert
         $this->assertEquals($expectedResult, $result);
         Event::assertDispatched(ToolExecutedEvent::class, function ($event) use ($toolName, $params) {
@@ -97,9 +100,9 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('validate')
             ->with(['invalid' => 'params'])
             ->andReturn(false);
-        
+
         $this->toolRegistry->register('validated_tool', $mockTool);
-        
+
         // Act & Assert
         $this->expectException(\InvalidArgumentException::class);
         $this->mcpServer->executeTool('validated_tool', ['invalid' => 'params'], 'conv_123');
@@ -113,25 +116,25 @@ class MCPServerTest extends TestCase
         $toolName = 'cacheable_tool';
         $params = ['param' => 'value'];
         $result = ['data' => 'cached_result'];
-        
+
         $mockTool = Mockery::mock(MCPToolInterface::class);
         $mockTool->shouldReceive('getCacheConfig')
             ->andReturn([
-                'enabled' => true,
-                'ttl' => 300,
+                'enabled'    => true,
+                'ttl'        => 300,
                 'key_prefix' => 'tool:cache:',
             ]);
         $mockTool->shouldReceive('validate')->andReturn(true);
         $mockTool->shouldReceive('execute')->once()->andReturn($result);
-        
+
         $this->toolRegistry->register($toolName, $mockTool);
-        
+
         // Act - First execution
         $result1 = $this->mcpServer->executeTool($toolName, $params, 'conv_123');
-        
+
         // Act - Second execution (should use cache)
         $result2 = $this->mcpServer->executeTool($toolName, $params, 'conv_123');
-        
+
         // Assert
         $this->assertEquals($result, $result1);
         $this->assertEquals($result, $result2);
@@ -144,11 +147,11 @@ class MCPServerTest extends TestCase
         // Arrange
         $resourceName = 'test_resource';
         $resourceData = ['key' => 'value', 'data' => [1, 2, 3]];
-        
+
         // Act
         $this->resourceManager->exposeResource($resourceName, $resourceData);
         $retrieved = $this->resourceManager->getResource($resourceName);
-        
+
         // Assert
         $this->assertEquals($resourceData, $retrieved);
         $this->assertTrue($this->resourceManager->hasResource($resourceName));
@@ -162,14 +165,14 @@ class MCPServerTest extends TestCase
         $toolName = 'failing_tool';
         $params = ['will' => 'fail'];
         $errorMessage = 'Tool execution failed';
-        
+
         $mockTool = Mockery::mock(MCPToolInterface::class);
         $mockTool->shouldReceive('validate')->andReturn(true);
         $mockTool->shouldReceive('execute')
             ->andThrow(new \RuntimeException($errorMessage));
-        
+
         $this->toolRegistry->register($toolName, $mockTool);
-        
+
         // Act & Assert
         try {
             $this->mcpServer->executeTool($toolName, $params, 'conv_123');
@@ -177,7 +180,7 @@ class MCPServerTest extends TestCase
         } catch (\RuntimeException $e) {
             $this->assertEquals($errorMessage, $e->getMessage());
         }
-        
+
         // Verify failure event was recorded
         Event::assertDispatched(ToolExecutedEvent::class, function ($event) use ($toolName) {
             return $event->toolName === $toolName && $event->success === false;
@@ -190,19 +193,19 @@ class MCPServerTest extends TestCase
         // Arrange
         $tool1 = $this->createMockTool('Tool1', 'First tool');
         $tool2 = $this->createMockTool('Tool2', 'Second tool');
-        
+
         $this->toolRegistry->register('tool1', $tool1, [
-            'category' => 'banking',
+            'category'      => 'banking',
             'requires_auth' => true,
         ]);
         $this->toolRegistry->register('tool2', $tool2, [
-            'category' => 'payments',
+            'category'      => 'payments',
             'requires_auth' => false,
         ]);
-        
+
         // Act
         $tools = $this->mcpServer->listTools();
-        
+
         // Assert
         $this->assertCount(2, $tools);
         $this->assertArrayHasKey('tool1', $tools);
@@ -217,11 +220,11 @@ class MCPServerTest extends TestCase
         // Arrange
         $toolName = 'restricted_tool';
         $mockTool = $this->createMockTool($toolName, 'Restricted tool');
-        
+
         $this->toolRegistry->register($toolName, $mockTool, [
             'requires_permission' => 'execute_restricted_tools',
         ]);
-        
+
         // Act & Assert
         $this->expectException(\Illuminate\Auth\Access\AuthorizationException::class);
         $this->mcpServer->executeTool($toolName, [], 'conv_123', 1); // User without permission
@@ -236,14 +239,14 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('validate')->andReturn(true);
         $mockTool->shouldReceive('execute')->andReturn(['success' => true]);
         $mockTool->shouldReceive('getCacheConfig')->andReturn(['enabled' => false]);
-        
+
         $this->toolRegistry->register($toolName, $mockTool);
-        
+
         // Act
         $startTime = microtime(true);
         $this->mcpServer->executeTool($toolName, [], 'conv_123');
         $executionTime = microtime(true) - $startTime;
-        
+
         // Assert
         $metrics = $this->mcpServer->getMetrics($toolName);
         $this->assertArrayHasKey('execution_count', $metrics);
@@ -257,17 +260,17 @@ class MCPServerTest extends TestCase
     {
         $mock = Mockery::mock(MCPToolInterface::class);
         $mock->shouldReceive('getSchema')->andReturn([
-            'name' => $name,
+            'name'        => $name,
             'description' => $description,
-            'parameters' => [],
+            'parameters'  => [],
         ]);
         $mock->shouldReceive('validate')->andReturn(true);
         $mock->shouldReceive('execute')->andReturn(['success' => true]);
         $mock->shouldReceive('getCacheConfig')->andReturn([
             'enabled' => false,
-            'ttl' => 0,
+            'ttl'     => 0,
         ]);
-        
+
         return $mock;
     }
 
