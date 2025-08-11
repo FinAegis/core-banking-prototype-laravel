@@ -380,9 +380,9 @@
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Real-World Applications</h2>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Implemented AI Workflows</h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    See how financial institutions are transforming their operations with AI agents
+                    Production-ready workflows with event sourcing, sagas, and MCP tool integration
                 </p>
             </div>
 
@@ -395,11 +395,11 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-semibold">Intelligent Customer Service</h3>
+                        <h3 class="text-2xl font-semibold">Customer Service Workflow</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        Deploy AI agents that understand context, handle complex queries,
-                        and seamlessly escalate to human agents when needed.
+                        CustomerServiceWorkflow handles complex banking queries with MCP tool integration,
+                        automated account operations, and human escalation when confidence is low.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
@@ -431,11 +431,11 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-semibold">Automated Risk Assessment</h3>
+                        <h3 class="text-2xl font-semibold">Risk Assessment Saga</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        AI-powered risk analysis that evaluates transactions, accounts,
-                        and behaviors in real-time to prevent fraud and ensure compliance.
+                        RiskAssessmentSaga orchestrates FraudDetectionWorkflow, CreditRiskWorkflow,
+                        and MarketRiskWorkflow with compensation patterns for comprehensive analysis.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
@@ -467,30 +467,30 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-semibold">Intelligent Document Processing</h3>
+                        <h3 class="text-2xl font-semibold">Trading Agent Workflow</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        Extract, validate, and process financial documents automatically
-                        with high accuracy and compliance validation.
+                        TradingAgentWorkflow performs market analysis with technical indicators,
+                        generates strategies, and executes trades with confidence thresholds.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            OCR with 99% accuracy
+                            RSI, MACD, SMA indicators
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Automated data extraction
+                            Momentum & mean reversion
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Compliance validation
+                            VaR risk assessment
                         </li>
                     </ul>
                 </div>
@@ -503,30 +503,30 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-semibold">AI Trading Assistant</h3>
+                        <h3 class="text-2xl font-semibold">Compliance Workflow</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        Analyze market conditions, generate insights, and execute
-                        trading strategies with AI-powered decision support.
+                        ComplianceWorkflow automates KYC verification and AML screening
+                        with MCP tools for regulatory compliance and audit trails.
                     </p>
                     <ul class="space-y-2 text-gray-600">
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Market sentiment analysis
+                            KycTool for identity verification
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Pattern recognition
+                            AML screening automation
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Strategy backtesting
+                            Audit trail generation
                         </li>
                     </ul>
                 </div>
@@ -603,8 +603,130 @@ Would you like me to generate a detailed report?</span>
         </div>
     </section>
 
-    <!-- Integration Guide -->
+    <!-- Advanced Features -->
     <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Advanced AI Capabilities</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Enterprise features for complex financial operations
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Multi-Agent Coordination -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Multi-Agent Coordination</h3>
+                    <p class="text-gray-600 mb-4">
+                        Orchestrates multiple AI agents (Customer Service, Compliance, Risk, Trading) with consensus building and weighted voting.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• Agent registry & discovery</li>
+                        <li>• Task delegation</li>
+                        <li>• Consensus algorithms</li>
+                    </ul>
+                </div>
+
+                <!-- Human-in-the-Loop -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Human-in-the-Loop</h3>
+                    <p class="text-gray-600 mb-4">
+                        HumanInTheLoopWorkflow manages AI decisions requiring oversight with configurable confidence and value thresholds.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• Confidence thresholds</li>
+                        <li>• Value-based escalation</li>
+                        <li>• Approval workflows</li>
+                    </ul>
+                </div>
+
+                <!-- MCP Tool Integration -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">MCP Tool Server</h3>
+                    <p class="text-gray-600 mb-4">
+                        Model Context Protocol server exposes 15+ banking tools for account operations, transactions, and compliance.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• Account & balance tools</li>
+                        <li>• Transaction tools</li>
+                        <li>• KYC/AML tools</li>
+                    </ul>
+                </div>
+
+                <!-- Event Sourcing -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">AI Event Sourcing</h3>
+                    <p class="text-gray-600 mb-4">
+                        AIInteractionAggregate records every LLM interaction with complete audit trails for compliance and analytics.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• Immutable event store</li>
+                        <li>• Decision tracking</li>
+                        <li>• Compliance audit trail</li>
+                    </ul>
+                </div>
+
+                <!-- Technical Analysis -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Technical Analysis</h3>
+                    <p class="text-gray-600 mb-4">
+                        Activities for technical indicators (RSI, MACD, SMA), pattern recognition, and automated trading strategies.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• CalculateRSIActivity</li>
+                        <li>• CalculateMACDActivity</li>
+                        <li>• VaRCalculationActivity</li>
+                    </ul>
+                </div>
+
+                <!-- Saga Orchestration -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Saga Pattern</h3>
+                    <p class="text-gray-600 mb-4">
+                        Complex workflows with automatic compensation for failures, ensuring data consistency across operations.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• Automatic rollback</li>
+                        <li>• Compensation handlers</li>
+                        <li>• Transaction integrity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integration Guide -->
+    <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-900 mb-4">Easy Integration</h2>
