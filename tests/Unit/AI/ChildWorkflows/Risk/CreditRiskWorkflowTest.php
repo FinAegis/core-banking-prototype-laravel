@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\AI\ChildWorkflows\Risk;
+namespace Tests\Unit\AI\ChildWorkflows\Risk;
 
 use App\Domain\AI\ChildWorkflows\Risk\CreditRiskWorkflow;
 use Tests\TestCase;

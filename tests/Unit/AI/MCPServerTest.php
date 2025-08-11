@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\AI;
+namespace Tests\Unit\AI;
 
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\Events\ToolExecutedEvent;
 use App\Domain\AI\MCP\MCPServer;
 use App\Domain\AI\MCP\ResourceManager;
 use App\Domain\AI\MCP\ToolRegistry;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Mockery;
@@ -17,7 +16,7 @@ use Tests\TestCase;
 
 class MCPServerTest extends TestCase
 {
-    use RefreshDatabase;
+    // Note: RefreshDatabase not needed - testing MCP server with mocks
 
     private MCPServer $mcpServer;
 

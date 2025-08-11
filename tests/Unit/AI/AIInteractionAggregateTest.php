@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\AI;
+namespace Tests\Unit\AI;
 
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\AI\Events\AIDecisionMadeEvent;
@@ -10,13 +10,12 @@ use App\Domain\AI\Events\ConversationStartedEvent;
 use App\Domain\AI\Events\HumanInterventionRequestedEvent;
 use App\Domain\AI\Events\ToolExecutedEvent;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class AIInteractionAggregateTest extends TestCase
 {
-    use RefreshDatabase;
+    // Note: RefreshDatabase not needed - testing event sourcing aggregates in memory
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_starts_a_conversation_and_records_event(): void

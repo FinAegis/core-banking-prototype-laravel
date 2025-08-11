@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\AI;
+namespace Tests\Unit\AI;
 
 use App\Domain\AI\Activities\IntentRecognitionActivity;
 use App\Domain\AI\Activities\ToolSelectionActivity;
@@ -13,7 +13,6 @@ use App\Domain\AI\Workflows\Children\FraudDetectionWorkflow;
 use App\Domain\AI\Workflows\ComplianceWorkflow;
 use App\Domain\AI\Workflows\CustomerServiceWorkflow;
 use App\Domain\AI\Workflows\RiskAssessmentSaga;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
@@ -21,7 +20,7 @@ use Workflow\WorkflowStub;
 
 class AgentWorkflowTest extends TestCase
 {
-    use RefreshDatabase;
+    // Note: RefreshDatabase not needed - testing workflows with stubs
 
         #[\PHPUnit\Framework\Attributes\Test]
     public function customer_service_workflow_processes_balance_inquiry(): void
