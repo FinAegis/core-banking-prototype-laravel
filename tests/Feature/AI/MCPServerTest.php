@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AI;
 
-use App\Domain\AI\Events\ToolExecutedEvent;
 use App\Domain\AI\Contracts\MCPToolInterface;
+use App\Domain\AI\Events\ToolExecutedEvent;
 use App\Domain\AI\MCP\MCPServer;
 use App\Domain\AI\MCP\ResourceManager;
 use App\Domain\AI\MCP\ToolRegistry;
@@ -45,6 +45,7 @@ class MCPServerTest extends TestCase
         $mockTool = $this->createMockTool('TestTool', 'Test tool description');
 
         // Act
+        /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
         // Assert
@@ -70,6 +71,7 @@ class MCPServerTest extends TestCase
             ->with($params)
             ->andReturn($expectedResult);
 
+        /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
         // Act
@@ -96,6 +98,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getName')->andReturn('validated_tool');
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
         $mockTool->shouldReceive('getDescription')->andReturn('Test tool');
+        /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
         // Act & Assert
@@ -125,6 +128,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('validate')->andReturn(true);
         $mockTool->shouldReceive('execute')->once()->andReturn($result);
 
+        /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
         // Act - First execution
@@ -150,6 +154,7 @@ class MCPServerTest extends TestCase
         $mockResource->shouldReceive('getDescription')->andReturn('Test resource description');
 
         // Act
+        /** @var \App\Domain\AI\Contracts\MCPResourceInterface $mockResource */
         $this->resourceManager->register($mockResource);
         $retrieved = $this->resourceManager->get($resourceUri);
 
@@ -175,6 +180,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('execute')
             ->andThrow(new \RuntimeException($errorMessage));
 
+        /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
         // Act & Assert
@@ -198,7 +204,9 @@ class MCPServerTest extends TestCase
         $tool1 = $this->createMockTool('Tool1', 'First tool');
         $tool2 = $this->createMockTool('Tool2', 'Second tool');
 
+        /** @var MCPToolInterface $tool1 */
         $this->toolRegistry->register($tool1);
+        /** @var MCPToolInterface $tool2 */
         $this->toolRegistry->register($tool2);
 
         // Act
@@ -219,9 +227,11 @@ class MCPServerTest extends TestCase
         $toolName = 'restricted_tool';
         $mockTool = $this->createMockTool($toolName, 'Restricted tool');
 
+        /** @var MCPToolInterface&Mockery\MockInterface $mockTool */
         $mockTool->shouldReceive('getName')->andReturn($toolName);
         $mockTool->shouldReceive('getCategory')->andReturn('restricted');
         $mockTool->shouldReceive('getDescription')->andReturn('Restricted tool');
+        /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
         // Act & Assert
@@ -242,6 +252,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getDescription')->andReturn('Monitored tool');
         $mockTool->shouldReceive('getCacheConfig')->andReturn(['enabled' => false]);
 
+        /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
         // Act
@@ -260,9 +271,13 @@ class MCPServerTest extends TestCase
         $this->assertLessThan(1.0, $metrics['average_execution_time']); // Should be fast
     }
 
+    /**
+     * @return MCPToolInterface&Mockery\MockInterface
+     */
     private function createMockTool(string $name, string $description): MCPToolInterface
     {
-        $mock = Mockery::mock(\App\Domain\AI\Contracts\MCPToolInterface::class);
+        /** @var MCPToolInterface&Mockery\MockInterface $mock */
+        $mock = Mockery::mock(MCPToolInterface::class);
         $mock->shouldReceive('getName')->andReturn($name);
         $mock->shouldReceive('getDescription')->andReturn($description);
         $mock->shouldReceive('getCategory')->andReturn('testing');
