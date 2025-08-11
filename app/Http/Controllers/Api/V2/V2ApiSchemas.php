@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V2;
 
 /**
- * V2 API Documentation Schemas
+ * V2 API Documentation Schemas.
  *
  * @OA\Server(
  *     url=L5_SWAGGER_CONST_HOST,
