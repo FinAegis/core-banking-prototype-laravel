@@ -23,10 +23,10 @@
                         </button>
                         <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-1">
-                                <a href="{{ route('platform') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('platform*') ? 'bg-gray-50 text-indigo-600' : '' }}">Core Platform</a>
-                                <a href="{{ route('features') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('features*') ? 'bg-gray-50 text-indigo-600' : '' }}">Features</a>
+                                <a href="{{ route('platform') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('platform*') ? 'bg-gray-50 text-indigo-600' : '' }}">Core Banking</a>
+                                <a href="{{ route('features') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('features*') && !request()->routeIs('features.gcu') ? 'bg-gray-50 text-indigo-600' : '' }}">Banking Services</a>
+                                <a href="{{ route('features.gcu') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('features.gcu') ? 'bg-gray-50 text-indigo-600' : '' }}">Global Currency Unit</a>
                                 <a href="{{ route('ai-framework') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('ai-framework*') ? 'bg-gray-50 text-indigo-600' : '' }}">AI Framework</a>
-                                <a href="{{ route('cgo') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('cgo*') ? 'bg-gray-50 text-indigo-600' : '' }}">CGO Investment</a>
                             </div>
                         </div>
                     </div>
@@ -50,6 +50,7 @@
                     </div>
                     
                     <a href="{{ route('pricing') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('pricing') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Pricing</a>
+                    <a href="{{ route('cgo') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium {{ request()->routeIs('cgo*') ? 'text-indigo-600 border-b-2 border-indigo-600' : '' }}">Invest</a>
                 </div>
             </div>
             
@@ -87,10 +88,10 @@
             <!-- Products Section -->
             <div class="border-t border-gray-200 pt-2 mt-2">
                 <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Products</div>
-                <a href="{{ route('platform') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Core Platform</a>
-                <a href="{{ route('features') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Features</a>
+                <a href="{{ route('platform') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Core Banking</a>
+                <a href="{{ route('features') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Banking Services</a>
+                <a href="{{ route('features.gcu') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Global Currency Unit</a>
                 <a href="{{ route('ai-framework') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">AI Framework</a>
-                <a href="{{ route('cgo') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">CGO Investment</a>
             </div>
             
             <!-- Resources Section -->
@@ -103,6 +104,7 @@
             </div>
             
             <a href="{{ route('pricing') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Pricing</a>
+            <a href="{{ route('cgo') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Invest</a>
             
             <hr class="my-2">
             @auth
