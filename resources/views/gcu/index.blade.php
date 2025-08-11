@@ -777,7 +777,7 @@
                 </div>
                 
                 <div class="mt-12 text-sm text-purple-200">
-                    <p>Questions? Contact our team at <a href="mailto:gcu@finaegis.org" class="underline">gcu@finaegis.org</a></p>
+                    <p>Questions? Contact our team at <a href="mailto:info@finaegis.org" class="underline">info@finaegis.org</a></p>
                 </div>
             </div>
         </section>

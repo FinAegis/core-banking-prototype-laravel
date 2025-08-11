@@ -159,7 +159,7 @@ class InvestmentAgreementService
                 'name'         => config('app.company_name', 'FinAegis Ltd'),
                 'registration' => config('app.company_registration', '12345678'),
                 'address'      => config('app.company_address', '123 Business St, London, UK'),
-                'email'        => config('app.company_email', 'invest@finaegis.com'),
+                'email'        => config('app.company_email', 'info@finaegis.org'),
             ],
             'investment_details' => [
                 'amount'               => $investment->amount,

@@ -39,6 +39,6 @@ Best regards,<br>
 The FinAegis Team
 
 <x-mail::subcopy>
-This email confirms your investment in FinAegis Ltd. If you did not make this investment, please contact us immediately at invest@finaegis.com.
+This email confirms your investment in FinAegis Ltd. If you did not make this investment, please contact us immediately at info@finaegis.org.
 </x-mail::subcopy>
 </x-mail::message>

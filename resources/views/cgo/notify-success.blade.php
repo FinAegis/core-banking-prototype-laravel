@@ -153,7 +153,7 @@
                     <div class="mt-10 pt-10 border-t border-gray-200 text-center">
                         <p class="text-sm text-gray-600">
                             Questions? Contact our investment team at 
-                            <a href="mailto:invest@finaegis.com" class="text-indigo-600 hover:text-indigo-700 font-medium">invest@finaegis.com</a>
+                            <a href="mailto:info@finaegis.org" class="text-indigo-600 hover:text-indigo-700 font-medium">info@finaegis.org</a>
                         </p>
                     </div>
                 </div>

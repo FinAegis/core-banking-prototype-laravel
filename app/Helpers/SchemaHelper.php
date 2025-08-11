@@ -24,7 +24,7 @@ class SchemaHelper
             'contactPoint' => [
                 '@type'       => 'ContactPoint',
                 'contactType' => 'customer support',
-                'email'       => 'support@finaegis.com',
+                'email'       => 'info@finaegis.org',
                 'url'         => config('app.url') . '/support/contact',
             ],
             'description'  => 'FinAegis is an enterprise financial platform powering the future of banking with democratic governance and real bank integration.',

@@ -148,7 +148,7 @@
                         <h2 class="text-2xl font-bold mt-8 mb-4">13. Contact Information</h2>
                         <p>
                             For questions about these terms or the CGO program, please contact:<br>
-                            Email: cgo@finaegis.com<br>
+                            Email: info@finaegis.org<br>
                             Address: [To be determined]
                         </p>
 
