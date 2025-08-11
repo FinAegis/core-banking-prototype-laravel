@@ -109,7 +109,7 @@ class AIInteractionAggregateTest extends TestCase
         // Act
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
             ->startConversation($conversationId, 'customer_service', '1')
-            ->makeDecision($decision, $lowConfidence)
+            ->makeDecision($decision, [], $lowConfidence)
             ->persist();
 
         // Assert
