@@ -23,7 +23,7 @@ class AgentWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function customer_service_workflow_processes_balance_inquiry(): void
     {
         // Arrange
@@ -65,7 +65,7 @@ class AgentWorkflowTest extends TestCase
         Event::assertDispatched(AIDecisionMadeEvent::class);
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function compliance_workflow_performs_kyc_verification(): void
     {
         // Arrange
@@ -96,7 +96,7 @@ class AgentWorkflowTest extends TestCase
         });
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function risk_assessment_saga_evaluates_multiple_risk_factors(): void
     {
         // Arrange
@@ -129,7 +129,7 @@ class AgentWorkflowTest extends TestCase
         $this->assertArrayHasKey('transaction_risk', $result['risk_factors']);
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function fraud_detection_workflow_identifies_suspicious_activity(): void
     {
         // Arrange
@@ -164,7 +164,7 @@ class AgentWorkflowTest extends TestCase
         });
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function workflow_requests_human_intervention_for_low_confidence(): void
     {
         // Arrange
@@ -200,7 +200,7 @@ class AgentWorkflowTest extends TestCase
         Event::assertDispatched(\App\Domain\AI\Events\HumanInterventionRequestedEvent::class);
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function workflow_handles_compensation_on_failure(): void
     {
         // Arrange
@@ -229,7 +229,7 @@ class AgentWorkflowTest extends TestCase
         Event::assertDispatched(\App\Domain\AI\Events\CompensationExecutedEvent::class);
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function multi_agent_coordination_delegates_tasks(): void
     {
         // Arrange
@@ -256,7 +256,7 @@ class AgentWorkflowTest extends TestCase
         });
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function human_in_the_loop_waits_for_approval(): void
     {
         // Arrange

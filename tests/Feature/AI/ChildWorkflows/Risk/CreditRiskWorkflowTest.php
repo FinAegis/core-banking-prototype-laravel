@@ -10,7 +10,7 @@ use Workflow\WorkflowStub;
 
 class CreditRiskWorkflowTest extends TestCase
 {
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_create_workflow_stub(): void
     {
         $this->assertTrue(class_exists(CreditRiskWorkflow::class));
@@ -19,7 +19,7 @@ class CreditRiskWorkflowTest extends TestCase
         $this->assertInstanceOf(WorkflowStub::class, $workflow);
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_execute_method_with_correct_signature(): void
     {
         $reflection = new \ReflectionClass(CreditRiskWorkflow::class);
@@ -33,7 +33,7 @@ class CreditRiskWorkflowTest extends TestCase
         $this->assertEquals('Generator', $returnType->getName());
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function it_extends_workflow_base_class(): void
     {
         $reflection = new \ReflectionClass(CreditRiskWorkflow::class);
@@ -42,7 +42,7 @@ class CreditRiskWorkflowTest extends TestCase
         $this->assertEquals('Workflow\Workflow', $parentClass->getName());
     }
 
-    /** @test */
+        #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_correct_parameter_types(): void
     {
         $reflection = new \ReflectionClass(CreditRiskWorkflow::class);

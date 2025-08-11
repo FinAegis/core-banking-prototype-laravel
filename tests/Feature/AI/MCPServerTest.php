@@ -38,7 +38,7 @@ class MCPServerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_register_and_discover_tools(): void
     {
         // Arrange
@@ -54,7 +54,7 @@ class MCPServerTest extends TestCase
         $this->assertSame($mockTool, $tool);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_executes_tools_and_records_events(): void
     {
         // Arrange
@@ -86,7 +86,7 @@ class MCPServerTest extends TestCase
         });
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_tool_parameters(): void
     {
         // Arrange
@@ -94,6 +94,8 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('validate')
             ->with(['invalid' => 'params'])
             ->andReturn(false);
+        $mockTool->shouldReceive('getInputSchema')->andReturn([]);
+        $mockTool->shouldReceive('getOutputSchema')->andReturn([]);
 
         $mockTool->shouldReceive('getName')->andReturn('validated_tool');
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
@@ -106,7 +108,7 @@ class MCPServerTest extends TestCase
         $this->mcpServer->executeTool('validated_tool', ['invalid' => 'params']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_caches_tool_results_when_configured(): void
     {
         // Arrange
@@ -143,7 +145,7 @@ class MCPServerTest extends TestCase
         Cache::shouldHaveReceived('remember')->twice();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_exposes_and_retrieves_resources(): void
     {
         // Arrange
@@ -163,7 +165,7 @@ class MCPServerTest extends TestCase
         $this->assertTrue($this->resourceManager->has($resourceUri));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_tool_execution_failures(): void
     {
         // Arrange
@@ -197,7 +199,7 @@ class MCPServerTest extends TestCase
         });
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_lists_available_tools_with_metadata(): void
     {
         // Arrange
@@ -220,7 +222,7 @@ class MCPServerTest extends TestCase
         $this->assertEquals('Tool2', $tools[1]['name']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_enforces_permissions_for_tool_execution(): void
     {
         // Arrange
@@ -239,7 +241,7 @@ class MCPServerTest extends TestCase
         $this->mcpServer->executeTool($toolName, []); // User without permission
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_tracks_tool_execution_metrics(): void
     {
         // Arrange
