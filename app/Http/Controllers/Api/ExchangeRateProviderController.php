@@ -536,7 +536,7 @@ class ExchangeRateProviderController extends Controller
      *
      * @OA\JsonContent(
      *
-     * @OA\Property(property="data",  type="array", description="Array of historical rate data"),
+     * @OA\Property(property="data",  type="array", description="Array of historical rate data", @OA\Items(type="object")),
      * @OA\Property(property="pair",  type="string", example="EUR/USD"),
      * @OA\Property(
      *                 property="period",

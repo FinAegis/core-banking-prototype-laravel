@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AccountBalanceController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AIAgentController;
+use App\Http\Controllers\Api\MCPToolsController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -114,6 +115,14 @@ Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->gro
     Route::get('/conversations/{conversationId}', [AIAgentController::class, 'getConversation'])->name('api.ai.conversation');
     Route::delete('/conversations/{conversationId}', [AIAgentController::class, 'deleteConversation'])->name('api.ai.conversation.delete');
     Route::post('/feedback', [AIAgentController::class, 'submitFeedback'])->name('api.ai.feedback');
+    
+    // MCP Tools endpoints
+    Route::prefix('mcp')->group(function () {
+        Route::get('/tools', [MCPToolsController::class, 'listTools'])->name('api.ai.mcp.tools');
+        Route::get('/tools/{tool}', [MCPToolsController::class, 'getToolDetails'])->name('api.ai.mcp.tool.details');
+        Route::post('/tools/{tool}/execute', [MCPToolsController::class, 'executeTool'])->name('api.ai.mcp.tool.execute');
+        Route::post('/register', [MCPToolsController::class, 'registerTool'])->name('api.ai.mcp.register');
+    });
 });
 
 // Legacy profile route for backward compatibility

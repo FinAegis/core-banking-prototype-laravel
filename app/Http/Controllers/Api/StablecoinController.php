@@ -76,7 +76,7 @@ class StablecoinController extends Controller
      *
      * @OA\JsonContent(
      *
-     * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Stablecoin"))
+     * @OA\Property(property="data", type="array", @OA\Items(type="object"))
      *         )
      *     )
      * )
@@ -133,7 +133,7 @@ class StablecoinController extends Controller
      *
      * @OA\JsonContent(
      *
-     * @OA\Property(property="data",                     ref="#/components/schemas/Stablecoin")
+     * @OA\Property(property="data",                     type="object")
      *         )
      *     ),
      *
@@ -141,7 +141,7 @@ class StablecoinController extends Controller
      *         response=404,
      *         description="Stablecoin not found",
      *
-     * @OA\JsonContent(ref="#/components/schemas/Error")
+     * @OA\JsonContent(type="object")
      *     )
      * )
      */
@@ -179,7 +179,7 @@ class StablecoinController extends Controller
      * @OA\RequestBody(
      *         required=true,
      *
-     * @OA\JsonContent(ref="#/components/schemas/CreateStablecoinRequest")
+     * @OA\JsonContent(type="object")
      *     ),
      *
      * @OA\Response(
@@ -188,7 +188,7 @@ class StablecoinController extends Controller
      *
      * @OA\JsonContent(
      *
-     * @OA\Property(property="data",                                       ref="#/components/schemas/Stablecoin")
+     * @OA\Property(property="data",                                       type="object")
      *         )
      *     ),
      *
@@ -196,7 +196,7 @@ class StablecoinController extends Controller
      *         response=422,
      *         description="Validation error",
      *
-     * @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     * @OA\JsonContent(type="object")
      *     )
      * )
      */
@@ -281,7 +281,7 @@ class StablecoinController extends Controller
      *
      * @OA\JsonContent(
      *
-     * @OA\Property(property="data",                 ref="#/components/schemas/Stablecoin")
+     * @OA\Property(property="data",                 type="object")
      *         )
      *     ),
      *
@@ -603,7 +603,7 @@ class StablecoinController extends Controller
      * @OA\JsonContent(
      *
      * @OA\Property(property="message", type="string", example="Stablecoin deactivated successfully"),
-     * @OA\Property(property="data",    ref="#/components/schemas/Stablecoin")
+     * @OA\Property(property="data",    type="object")
      *         )
      *     ),
      *
@@ -658,7 +658,7 @@ class StablecoinController extends Controller
      * @OA\JsonContent(
      *
      * @OA\Property(property="message", type="string", example="Stablecoin reactivated successfully"),
-     * @OA\Property(property="data",    ref="#/components/schemas/Stablecoin")
+     * @OA\Property(property="data",    type="object")
      *         )
      *     ),
      *

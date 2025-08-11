@@ -3,20 +3,7 @@
 namespace App\Http\Controllers\Api\V2;
 
 /**
- * @OA\Info(
- *     version="2.0.0",
- *     title="FinAegis Core Banking API v2",
- *     description="Modern, scalable, and secure core banking platform API. This is version 2 of the FinAegis API with improved performance, better error handling, and extended functionality.",
- *     @OA\Contact(
- *         name="FinAegis Support",
- *         email="support@finaegis.org",
- *         url="https://finaegis.org/support"
- *     ),
- *     @OA\License(
- *         name="Apache 2.0",
- *         url="https://www.apache.org/licenses/LICENSE-2.0.html"
- *     )
- * )
+ * V2 API Documentation Schemas
  *
  * @OA\Server(
  *     url=L5_SWAGGER_CONST_HOST,
@@ -76,21 +63,21 @@ namespace App\Http\Controllers\Api\V2;
  * )
  *
  * @OA\Schema(
- *     schema="Error",
+ *     schema="V2Error",
  *     type="object",
  *     @OA\Property(property="message", type="string", example="An error occurred"),
  *     @OA\Property(property="errors", type="object")
  * )
  *
  * @OA\Schema(
- *     schema="ValidationError",
+ *     schema="V2ValidationError",
  *     type="object",
  *     @OA\Property(property="message", type="string", example="The given data was invalid."),
  *     @OA\Property(property="errors", type="object")
  * )
  *
  * @OA\Schema(
- *     schema="Pagination",
+ *     schema="V2Pagination",
  *     type="object",
  *     @OA\Property(property="current_page", type="integer", example=1),
  *     @OA\Property(property="last_page", type="integer", example=10),
@@ -100,7 +87,7 @@ namespace App\Http\Controllers\Api\V2;
  *     @OA\Property(property="to", type="integer", example=20)
  * )
  */
-class OpenApiInfo
+class V2ApiSchemas
 {
-    // This class exists only for OpenAPI documentation
+    // This class exists only for OpenAPI documentation schemas
 }

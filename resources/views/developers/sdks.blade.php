@@ -353,8 +353,140 @@
             </div>
         </section>
 
+        <!-- AI Agent SDK Section -->
+        <section class="py-20 bg-gradient-to-br from-purple-50 to-indigo-50">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">AI Agent Integration</h2>
+                    <p class="text-xl text-gray-600">Connect to our AI-powered banking agents with simple API calls</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- AI SDK Example -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">AI Agent API</h3>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>JavaScript Example</span>
+                                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <pre class="code-block p-4"><code class="language-javascript"><span style="color: #c792ea;">const</span> <span style="color: #82aaff;">agent</span> = <span style="color: #c792ea;">new</span> <span style="color: #ffcb6b;">FinAegisAI</span>({
+  <span style="color: #f07178;">apiKey</span>: <span style="color: #c3e88d;">'your-api-key'</span>
+});
+
+<span style="color: #546e7a;">// Send a message to the AI agent</span>
+<span style="color: #c792ea;">const</span> <span style="color: #82aaff;">response</span> = <span style="color: #c792ea;">await</span> <span style="color: #82aaff;">agent</span>.<span style="color: #89ddff;">chat</span>({
+  <span style="color: #f07178;">message</span>: <span style="color: #c3e88d;">'What is my account balance?'</span>,
+  <span style="color: #f07178;">context</span>: { <span style="color: #f07178;">accountId</span>: <span style="color: #c3e88d;">'acc_123'</span> }
+});
+
+console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">response</span>.<span style="color: #f07178;">message</span>);
+<span style="color: #546e7a;">// "Your current balance is $12,456.78"</span></code></pre>
+                        </div>
+                    </div>
+
+                    <!-- MCP Tools Example -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">MCP Tool Integration</h3>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Python Example</span>
+                                <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <pre class="code-block p-4"><code class="language-python"><span style="color: #c792ea;">from</span> <span style="color: #ffcb6b;">finaegis</span> <span style="color: #c792ea;">import</span> <span style="color: #82aaff;">MCPClient</span>
+
+<span style="color: #546e7a;"># Initialize MCP client</span>
+<span style="color: #82aaff;">mcp</span> = <span style="color: #ffcb6b;">MCPClient</span>(<span style="color: #f07178;">api_key</span>=<span style="color: #c3e88d;">'your-api-key'</span>)
+
+<span style="color: #546e7a;"># Use banking tools directly</span>
+<span style="color: #82aaff;">balance</span> = <span style="color: #82aaff;">mcp</span>.<span style="color: #89ddff;">tools</span>.<span style="color: #89ddff;">get_account_balance</span>(
+    <span style="color: #f07178;">account_id</span>=<span style="color: #c3e88d;">'acc_123'</span>,
+    <span style="color: #f07178;">currency</span>=<span style="color: #c3e88d;">'USD'</span>
+)
+
+<span style="color: #c792ea;">print</span>(<span style="color: #c792ea;">f</span><span style="color: #c3e88d;">"Balance: {balance.amount} {balance.currency}"</span>)</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <a href="{{ route('demo.ai-agent') }}" class="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+                        Try AI Agent Demo
+                    </a>
+                    <a href="/api/documentation#/AI%20Agent" class="inline-block ml-4 text-purple-600 hover:text-purple-700 font-semibold">
+                        View AI API Docs →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- MCP Server Section -->
+        <section class="py-20 bg-white">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Model Context Protocol (MCP)</h2>
+                    <p class="text-xl text-gray-600">Standard protocol for AI model integration with banking tools</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold mb-2">15+ Banking Tools</h3>
+                            <p class="text-sm text-gray-600">Account, transaction, compliance, and analytics tools</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold mb-2">Built-in Security</h3>
+                            <p class="text-sm text-gray-600">Authentication, authorization, and audit logging</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold mb-2">Real-time Processing</h3>
+                            <p class="text-sm text-gray-600">Stream responses with WebSocket support</p>
+                        </div>
+                    </div>
+
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>MCP Server Configuration</span>
+                            <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                        </div>
+                        <pre class="code-block p-4"><code class="language-json">{
+  <span style="color: #f07178;">"name"</span>: <span style="color: #c3e88d;">"finaegis-mcp-server"</span>,
+  <span style="color: #f07178;">"version"</span>: <span style="color: #c3e88d;">"1.0.0"</span>,
+  <span style="color: #f07178;">"tools"</span>: [
+    <span style="color: #c3e88d;">"GetAccountBalance"</span>,
+    <span style="color: #c3e88d;">"TransferMoney"</span>,
+    <span style="color: #c3e88d;">"KycVerification"</span>,
+    <span style="color: #c3e88d;">"AmlScreening"</span>,
+    <span style="color: #c3e88d;">"SpendingAnalysis"</span>
+  ],
+  <span style="color: #f07178;">"capabilities"</span>: {
+    <span style="color: #f07178;">"streaming"</span>: <span style="color: #f78c6c;">true</span>,
+    <span style="color: #f07178;">"authentication"</span>: <span style="color: #c3e88d;">"bearer"</span>,
+    <span style="color: #f07178;">"rateLimit"</span>: <span style="color: #f78c6c;">1000</span>
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- SDK Coming Soon Section -->
-        <section id="sdk-timeline" class="py-20 bg-white">
+        <section id="sdk-timeline" class="py-20 bg-gray-50">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-gray-50 rounded-2xl p-8 text-center">
                     <h2 class="text-2xl font-bold text-gray-900 mb-4">Native SDKs Are Planned</h2>

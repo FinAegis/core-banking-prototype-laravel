@@ -54,7 +54,10 @@ return [
                  * Absolute paths to directory containing the swagger annotations are stored.
                  */
                 'annotations' => [
+                    base_path('app/Http/Controllers/Api'),
                     base_path('app/Http/Controllers/Api/V2'),
+                    base_path('app/Http/Controllers/Api/Documentation'),
+                    base_path('app/Http/Resources'),
                 ],
             ],
         ],

@@ -51,6 +51,14 @@ namespace App\Http\Controllers\Api\Documentation;
  *     name="Balance",
  *     description="Balance inquiry and account statistics"
  * )
+ * @OA\Tag(
+ *     name="AI Agent",
+ *     description="AI Agent chat and conversation management for intelligent banking assistance"
+ * )
+ * @OA\Tag(
+ *     name="MCP Tools",
+ *     description="Model Context Protocol (MCP) tools for AI agent banking operations"
+ * )
  */
 class OpenApiDoc
 {

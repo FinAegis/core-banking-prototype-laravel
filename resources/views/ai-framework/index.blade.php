@@ -126,10 +126,10 @@
                     enhance decision-making, and deliver personalized experiences at scale
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="{{ route('demo.ai-agent') }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
+                    <a href="{{ route('demo.ai-agent') }}" class="inline-block bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl text-center">
                         Try Live Demo
                     </a>
-                    <a href="/api/documentation#/AI%20Agent" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
+                    <a href="/api/documentation" class="inline-block border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition text-center">
                         View API Docs
                     </a>
                 </div>
@@ -545,59 +545,41 @@
             </div>
 
             <div class="bg-white rounded-2xl shadow-xl p-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <!-- Demo Terminal -->
-                    <div>
-                        <h3 class="text-xl font-semibold mb-4">Example Conversation</h3>
-                        <div class="demo-terminal">
-                            <div class="mb-4">
-                                <span class="prompt">User:</span>
-                                <span class="text-gray-300">I need to analyze my transaction history for tax purposes</span>
-                            </div>
-                            <div class="mb-4">
-                                <span class="response">AI Agent:</span>
-                                <span class="text-gray-300">I'll help you analyze your transaction history for tax purposes. Let me retrieve and categorize your transactions...</span>
-                            </div>
-                            <div class="mb-4">
-                                <span class="text-gray-500">[Processing transactions...]</span>
-                            </div>
-                            <div class="mb-4">
-                                <span class="response">AI Agent:</span>
-                                <span class="text-gray-300">I've analyzed 1,247 transactions from 2024. Here's your tax summary:
-- Business expenses: $45,231
-- Investment income: $12,450
-- Deductible donations: $3,200
-Would you like me to generate a detailed report?</span>
-                            </div>
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold mb-4">Experience AI-Powered Banking</h3>
+                    <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
+                        Our interactive demo showcases how AI agents handle real banking scenarios.
+                        Try conversations about account balances, transactions, transfers, and more.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <svg class="w-8 h-8 text-indigo-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"></path>
+                            </svg>
+                            <h4 class="font-semibold">Natural Language</h4>
+                            <p class="text-sm text-gray-600">Chat naturally about your banking needs</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <svg class="w-8 h-8 text-indigo-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <h4 class="font-semibold">Smart Context</h4>
+                            <p class="text-sm text-gray-600">AI understands banking context</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <svg class="w-8 h-8 text-indigo-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <h4 class="font-semibold">Instant Response</h4>
+                            <p class="text-sm text-gray-600">Real-time processing with MCP tools</p>
                         </div>
                     </div>
-
-                    <!-- Try It Yourself -->
-                    <div>
-                        <h3 class="text-xl font-semibold mb-4">Try It Yourself</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Select a scenario:</label>
-                                <select class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500">
-                                    <option>Account balance inquiry</option>
-                                    <option>Transaction analysis</option>
-                                    <option>Risk assessment</option>
-                                    <option>Document processing</option>
-                                    <option>Investment advice</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Your question:</label>
-                                <textarea class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder="Type your question here..."></textarea>
-                            </div>
-                            <button class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg">
-                                Send to AI Agent
-                            </button>
-                            <p class="text-sm text-gray-500 text-center">
-                                This is a demo environment. No real data is processed.
-                            </p>
-                        </div>
-                    </div>
+                    <a href="{{ route('demo.ai-agent') }}" class="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl">
+                        Launch Interactive Demo
+                    </a>
+                    <p class="text-sm text-gray-500 mt-4">
+                        Safe demo environment - No authentication required
+                    </p>
                 </div>
             </div>
         </div>
@@ -725,6 +707,121 @@ Would you like me to generate a detailed report?</span>
         </div>
     </section>
 
+    <!-- MCP Integration Section -->
+    <section class="py-20 bg-gradient-to-br from-indigo-50 to-purple-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Model Context Protocol (MCP)</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Bridging AI models with banking operations through standardized tool interfaces
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- MCP Overview -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-6">How MCP Works</h3>
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-lg p-6 shadow-md">
+                            <h4 class="font-semibold text-lg mb-2">1. Tool Discovery</h4>
+                            <p class="text-gray-600">
+                                AI agents discover available banking tools through the MCP server, including account operations, transactions, and compliance checks.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 shadow-md">
+                            <h4 class="font-semibold text-lg mb-2">2. Context Building</h4>
+                            <p class="text-gray-600">
+                                The protocol provides rich context about user permissions, account states, and regulatory requirements to the AI model.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 shadow-md">
+                            <h4 class="font-semibold text-lg mb-2">3. Tool Execution</h4>
+                            <p class="text-gray-600">
+                                AI agents execute banking operations through MCP tools with built-in validation, security checks, and audit logging.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 shadow-md">
+                            <h4 class="font-semibold text-lg mb-2">4. Response Formatting</h4>
+                            <p class="text-gray-600">
+                                Results are formatted with confidence scores, explanations, and next action suggestions for seamless user experience.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Tools -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-6">Banking Tools Available</h3>
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- Account Tools -->
+                            <div class="border-l-4 border-blue-500 pl-4">
+                                <h4 class="font-semibold">Account Management</h4>
+                                <p class="text-sm text-gray-600">GetAccountBalance, CreateAccount, CloseAccount, FreezeAccount</p>
+                            </div>
+                            <!-- Transaction Tools -->
+                            <div class="border-l-4 border-green-500 pl-4">
+                                <h4 class="font-semibold">Transactions</h4>
+                                <p class="text-sm text-gray-600">TransferMoney, GetTransactionHistory, CancelTransaction, RefundTransaction</p>
+                            </div>
+                            <!-- Compliance Tools -->
+                            <div class="border-l-4 border-purple-500 pl-4">
+                                <h4 class="font-semibold">Compliance</h4>
+                                <p class="text-sm text-gray-600">KycTool, AmlScreeningTool, RiskAssessmentTool, ComplianceCheckTool</p>
+                            </div>
+                            <!-- Analytics Tools -->
+                            <div class="border-l-4 border-orange-500 pl-4">
+                                <h4 class="font-semibold">Analytics</h4>
+                                <p class="text-sm text-gray-600">SpendingAnalysisTool, CashFlowTool, TrendAnalysisTool, ReportGeneratorTool</p>
+                            </div>
+                            <!-- Trading Tools -->
+                            <div class="border-l-4 border-red-500 pl-4">
+                                <h4 class="font-semibold">Trading & Exchange</h4>
+                                <p class="text-sm text-gray-600">GetExchangeRate, ExecuteTrade, GetMarketData, PortfolioAnalysisTool</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-700">
+                                <strong>Security First:</strong> All MCP tools include built-in authentication, authorization, rate limiting, and comprehensive audit logging.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Example -->
+            <div class="mt-12 bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold mb-4">MCP Tool Implementation Example</h3>
+                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                    <pre class="text-sm"><code class="language-json text-gray-300"><span class="text-gray-500">// MCP Tool Definition</span>
+{
+  <span class="text-yellow-400">"name"</span>: <span class="text-green-400">"GetAccountBalance"</span>,
+  <span class="text-yellow-400">"description"</span>: <span class="text-green-400">"Retrieve the current balance for a user's account"</span>,
+  <span class="text-yellow-400">"parameters"</span>: {
+    <span class="text-yellow-400">"account_id"</span>: {
+      <span class="text-yellow-400">"type"</span>: <span class="text-green-400">"string"</span>,
+      <span class="text-yellow-400">"description"</span>: <span class="text-green-400">"The account identifier"</span>,
+      <span class="text-yellow-400">"required"</span>: <span class="text-pink-400">true</span>
+    },
+    <span class="text-yellow-400">"currency"</span>: {
+      <span class="text-yellow-400">"type"</span>: <span class="text-green-400">"string"</span>,
+      <span class="text-yellow-400">"description"</span>: <span class="text-green-400">"Currency code (USD, EUR, GCU)"</span>,
+      <span class="text-yellow-400">"default"</span>: <span class="text-green-400">"USD"</span>
+    }
+  },
+  <span class="text-yellow-400">"returns"</span>: {
+    <span class="text-yellow-400">"balance"</span>: <span class="text-green-400">"number"</span>,
+    <span class="text-yellow-400">"currency"</span>: <span class="text-green-400">"string"</span>,
+    <span class="text-yellow-400">"available"</span>: <span class="text-green-400">"number"</span>,
+    <span class="text-yellow-400">"pending"</span>: <span class="text-green-400">"number"</span>
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Integration Guide -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -773,7 +870,7 @@ Would you like me to generate a detailed report?</span>
                         <p class="text-sm text-gray-600">Complete API reference with examples</p>
                     </a>
 
-                    <a href="https://github.com/your-org/finaegis-sdk" target="_blank" class="text-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <a href="{{ route('developers.show', 'sdks') }}" class="text-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                         <svg class="w-12 h-12 text-purple-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                         </svg>
