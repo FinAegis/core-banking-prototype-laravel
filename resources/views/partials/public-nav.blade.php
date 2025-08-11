@@ -61,10 +61,11 @@
                         @csrf
                         <button type="submit" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">Logout</button>
                     </form>
-                @else
+                @endauth
+                @guest
                     <a href="{{ route('login') }}" class="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">Login</a>
                     <a href="{{ route('register') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">Get Started</a>
-                @endauth
+                @endguest
             </div>
             
             <!-- Mobile menu button -->
@@ -110,10 +111,11 @@
                     @csrf
                     <button type="submit" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Logout</button>
                 </form>
-            @else
+            @endauth
+            @guest
                 <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Login</a>
                 <a href="{{ route('register') }}" class="block px-3 py-2 text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700 mx-3 rounded-lg text-center">Get Started</a>
-            @endauth
+            @endguest
         </div>
     </div>
 </nav>
