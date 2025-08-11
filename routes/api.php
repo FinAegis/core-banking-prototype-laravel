@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\AccountBalanceController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AIAgentController;
-use App\Http\Controllers\Api\MCPToolsController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -23,6 +22,7 @@ use App\Http\Controllers\Api\DailyReconciliationController;
 use App\Http\Controllers\Api\ExchangeRateController;
 use App\Http\Controllers\Api\GdprController;
 use App\Http\Controllers\Api\KycController;
+use App\Http\Controllers\Api\MCPToolsController;
 use App\Http\Controllers\Api\PollController;
 use App\Http\Controllers\Api\RegulatoryReportingController;
 use App\Http\Controllers\Api\RiskAnalysisController;
@@ -115,7 +115,7 @@ Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->gro
     Route::get('/conversations/{conversationId}', [AIAgentController::class, 'getConversation'])->name('api.ai.conversation');
     Route::delete('/conversations/{conversationId}', [AIAgentController::class, 'deleteConversation'])->name('api.ai.conversation.delete');
     Route::post('/feedback', [AIAgentController::class, 'submitFeedback'])->name('api.ai.feedback');
-    
+
     // MCP Tools endpoints
     Route::prefix('mcp')->group(function () {
         Route::get('/tools', [MCPToolsController::class, 'listTools'])->name('api.ai.mcp.tools');

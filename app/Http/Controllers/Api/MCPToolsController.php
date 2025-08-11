@@ -47,85 +47,85 @@ class MCPToolsController extends Controller
     {
         $tools = [
             [
-                'name' => 'get_account_balance',
+                'name'        => 'get_account_balance',
                 'description' => 'Retrieve the current balance for a customer account',
-                'category' => 'account_management',
-                'parameters' => [
-                    'account_id' => ['type' => 'string', 'required' => true],
+                'category'    => 'account_management',
+                'parameters'  => [
+                    'account_id'      => ['type' => 'string', 'required' => true],
                     'include_pending' => ['type' => 'boolean', 'required' => false],
-                    'currency' => ['type' => 'string', 'required' => false]
+                    'currency'        => ['type' => 'string', 'required' => false],
                 ],
                 'requires_auth' => true,
-                'rate_limit' => 100
+                'rate_limit'    => 100,
             ],
             [
-                'name' => 'authorize_transfer',
+                'name'        => 'authorize_transfer',
                 'description' => 'Authorize and initiate a money transfer between accounts',
-                'category' => 'transactions',
-                'parameters' => [
+                'category'    => 'transactions',
+                'parameters'  => [
                     'from_account' => ['type' => 'string', 'required' => true],
-                    'to_account' => ['type' => 'string', 'required' => true],
-                    'amount' => ['type' => 'number', 'required' => true],
-                    'currency' => ['type' => 'string', 'required' => true],
-                    'reference' => ['type' => 'string', 'required' => false]
+                    'to_account'   => ['type' => 'string', 'required' => true],
+                    'amount'       => ['type' => 'number', 'required' => true],
+                    'currency'     => ['type' => 'string', 'required' => true],
+                    'reference'    => ['type' => 'string', 'required' => false],
                 ],
                 'requires_auth' => true,
-                'requires_2fa' => true,
-                'rate_limit' => 20
+                'requires_2fa'  => true,
+                'rate_limit'    => 20,
             ],
             [
-                'name' => 'check_fraud_risk',
+                'name'        => 'check_fraud_risk',
                 'description' => 'Analyze transaction or activity for fraud risk',
-                'category' => 'security',
-                'parameters' => [
+                'category'    => 'security',
+                'parameters'  => [
                     'transaction_data' => ['type' => 'object', 'required' => true],
-                    'customer_id' => ['type' => 'string', 'required' => true],
-                    'check_type' => ['type' => 'string', 'enum' => ['transaction', 'login', 'account_change'], 'required' => true]
+                    'customer_id'      => ['type' => 'string', 'required' => true],
+                    'check_type'       => ['type' => 'string', 'enum' => ['transaction', 'login', 'account_change'], 'required' => true],
                 ],
                 'ml_enabled' => true,
-                'real_time' => true,
-                'rate_limit' => 50
+                'real_time'  => true,
+                'rate_limit' => 50,
             ],
             [
-                'name' => 'get_transaction_history',
+                'name'        => 'get_transaction_history',
                 'description' => 'Retrieve transaction history with filtering and pagination',
-                'category' => 'account_management',
-                'parameters' => [
+                'category'    => 'account_management',
+                'parameters'  => [
                     'account_id' => ['type' => 'string', 'required' => true],
                     'start_date' => ['type' => 'string', 'format' => 'date-time', 'required' => false],
-                    'end_date' => ['type' => 'string', 'format' => 'date-time', 'required' => false],
-                    'limit' => ['type' => 'integer', 'required' => false],
-                    'offset' => ['type' => 'integer', 'required' => false]
+                    'end_date'   => ['type' => 'string', 'format' => 'date-time', 'required' => false],
+                    'limit'      => ['type' => 'integer', 'required' => false],
+                    'offset'     => ['type' => 'integer', 'required' => false],
                 ],
-                'pagination' => true,
+                'pagination'  => true,
                 'max_results' => 1000,
-                'rate_limit' => 100
+                'rate_limit'  => 100,
             ],
             [
-                'name' => 'analyze_spending_patterns',
+                'name'        => 'analyze_spending_patterns',
                 'description' => 'AI-powered analysis of customer spending patterns',
-                'category' => 'insights',
-                'parameters' => [
+                'category'    => 'insights',
+                'parameters'  => [
                     'customer_id' => ['type' => 'string', 'required' => true],
-                    'period' => ['type' => 'string', 'enum' => ['daily', 'weekly', 'monthly', 'yearly'], 'required' => false],
-                    'categories' => ['type' => 'array', 'required' => false]
+                    'period'      => ['type' => 'string', 'enum' => ['daily', 'weekly', 'monthly', 'yearly'], 'required' => false],
+                    'categories'  => ['type' => 'array', 'required' => false],
                 ],
-                'ml_model' => 'spending-analyzer-v2',
-                'rate_limit' => 50
+                'ml_model'   => 'spending-analyzer-v2',
+                'rate_limit' => 50,
             ],
             [
-                'name' => 'create_budget_plan',
+                'name'        => 'create_budget_plan',
                 'description' => 'Generate personalized budget recommendations',
-                'category' => 'financial_planning',
-                'parameters' => [
-                    'customer_id' => ['type' => 'string', 'required' => true],
-                    'income' => ['type' => 'number', 'required' => true],
-                    'goals' => ['type' => 'array', 'required' => false],
-                    'risk_tolerance' => ['type' => 'string', 'enum' => ['low', 'medium', 'high'], 'required' => false]
+                'category'    => 'financial_planning',
+                'parameters'  => [
+                    'customer_id'    => ['type' => 'string', 'required' => true],
+                    'income'         => ['type' => 'number', 'required' => true],
+                    'goals'          => ['type' => 'array', 'required' => false],
+                    'risk_tolerance' => ['type' => 'string', 'enum' => ['low', 'medium', 'high'], 'required' => false],
                 ],
                 'personalization' => true,
-                'rate_limit' => 30
-            ]
+                'rate_limit'      => 30,
+            ],
         ];
 
         return response()->json(['data' => $tools]);
@@ -183,34 +183,34 @@ class MCPToolsController extends Controller
         $startTime = microtime(true);
 
         $result = match ($tool) {
-            'get_account_balance' => $this->executeGetAccountBalance($validated['parameters']),
-            'authorize_transfer' => $this->executeAuthorizeTransfer($validated['parameters']),
-            'check_fraud_risk' => $this->executeCheckFraudRisk($validated['parameters']),
-            'get_transaction_history' => $this->executeGetTransactionHistory($validated['parameters']),
+            'get_account_balance'       => $this->executeGetAccountBalance($validated['parameters']),
+            'authorize_transfer'        => $this->executeAuthorizeTransfer($validated['parameters']),
+            'check_fraud_risk'          => $this->executeCheckFraudRisk($validated['parameters']),
+            'get_transaction_history'   => $this->executeGetTransactionHistory($validated['parameters']),
             'analyze_spending_patterns' => $this->executeAnalyzeSpendingPatterns($validated['parameters']),
-            'create_budget_plan' => $this->executeCreateBudgetPlan($validated['parameters']),
-            default => null
+            'create_budget_plan'        => $this->executeCreateBudgetPlan($validated['parameters']),
+            default                     => null
         };
 
         if ($result === null) {
             return response()->json([
                 'success' => false,
-                'error' => 'Tool not found',
-                'tool' => $tool
+                'error'   => 'Tool not found',
+                'tool'    => $tool,
             ], 404);
         }
 
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         return response()->json([
-            'success' => true,
-            'tool' => $tool,
-            'result' => $result,
+            'success'           => true,
+            'tool'              => $tool,
+            'result'            => $result,
             'execution_time_ms' => round($executionTime),
-            'metadata' => [
-                'user_id' => Auth::id(),
+            'metadata'          => [
+                'user_id'   => Auth::id(),
                 'timestamp' => now()->toIso8601String(),
-            ]
+            ],
         ]);
     }
 
@@ -252,45 +252,45 @@ class MCPToolsController extends Controller
     {
         $tools = [
             'get_account_balance' => [
-                'name' => 'get_account_balance',
+                'name'        => 'get_account_balance',
                 'description' => 'Retrieve the current balance for a customer account with optional pending transactions',
-                'category' => 'account_management',
-                'parameters' => [
+                'category'    => 'account_management',
+                'parameters'  => [
                     'account_id' => [
-                        'type' => 'string',
-                        'required' => true,
-                        'description' => 'The unique identifier of the account'
+                        'type'        => 'string',
+                        'required'    => true,
+                        'description' => 'The unique identifier of the account',
                     ],
                     'include_pending' => [
-                        'type' => 'boolean',
-                        'required' => false,
-                        'default' => false,
-                        'description' => 'Include pending transactions in the balance calculation'
+                        'type'        => 'boolean',
+                        'required'    => false,
+                        'default'     => false,
+                        'description' => 'Include pending transactions in the balance calculation',
                     ],
                     'currency' => [
-                        'type' => 'string',
-                        'required' => false,
-                        'default' => 'USD',
-                        'description' => 'Currency code for balance display'
-                    ]
+                        'type'        => 'string',
+                        'required'    => false,
+                        'default'     => 'USD',
+                        'description' => 'Currency code for balance display',
+                    ],
                 ],
                 'examples' => [
                     [
                         'description' => 'Basic balance check',
-                        'parameters' => ['account_id' => 'acct_123']
+                        'parameters'  => ['account_id' => 'acct_123'],
                     ],
                     [
                         'description' => 'Balance with pending transactions',
-                        'parameters' => ['account_id' => 'acct_123', 'include_pending' => true]
-                    ]
+                        'parameters'  => ['account_id' => 'acct_123', 'include_pending' => true],
+                    ],
                 ],
-                'rate_limit' => 100,
+                'rate_limit'    => 100,
                 'requires_auth' => true,
-                'cache_ttl' => 60
-            ]
+                'cache_ttl'     => 60,
+            ],
         ];
 
-        if (!isset($tools[$tool])) {
+        if (! isset($tools[$tool])) {
             return response()->json(['error' => 'Tool not found'], 404);
         }
 
@@ -336,20 +336,20 @@ class MCPToolsController extends Controller
     public function registerTool(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:mcp_tools,name',
-            'description' => 'required|string',
-            'endpoint' => 'required|url',
-            'parameters' => 'required|array',
-            'category' => 'string',
+            'name'          => 'required|string|unique:mcp_tools,name',
+            'description'   => 'required|string',
+            'endpoint'      => 'required|url',
+            'parameters'    => 'required|array',
+            'category'      => 'string',
             'requires_auth' => 'boolean',
-            'rate_limit' => 'integer|min:1|max:1000'
+            'rate_limit'    => 'integer|min:1|max:1000',
         ]);
 
         // Demo implementation
         return response()->json([
             'success' => true,
             'tool_id' => 'tool_' . uniqid(),
-            'message' => 'Tool registered successfully'
+            'message' => 'Tool registered successfully',
         ], 201);
     }
 
@@ -357,99 +357,99 @@ class MCPToolsController extends Controller
     private function executeGetAccountBalance(array $params): array
     {
         return [
-            'account_id' => $params['account_id'] ?? 'acct_default',
+            'account_id'        => $params['account_id'] ?? 'acct_default',
             'available_balance' => 12456.78,
-            'current_balance' => 12556.78,
-            'pending_balance' => 100.00,
-            'currency' => $params['currency'] ?? 'USD',
-            'as_of' => now()->toIso8601String()
+            'current_balance'   => 12556.78,
+            'pending_balance'   => 100.00,
+            'currency'          => $params['currency'] ?? 'USD',
+            'as_of'             => now()->toIso8601String(),
         ];
     }
 
     private function executeAuthorizeTransfer(array $params): array
     {
         return [
-            'success' => true,
-            'transfer_id' => 'txfr_' . uniqid(),
-            'status' => 'pending',
+            'success'              => true,
+            'transfer_id'          => 'txfr_' . uniqid(),
+            'status'               => 'pending',
             'estimated_completion' => now()->addMinutes(5)->toIso8601String(),
-            'fee' => 0.50,
-            'exchange_rate' => 1.0
+            'fee'                  => 0.50,
+            'exchange_rate'        => 1.0,
         ];
     }
 
     private function executeCheckFraudRisk(array $params): array
     {
         return [
-            'risk_score' => 0.23,
-            'risk_level' => 'low',
-            'flags' => [],
+            'risk_score'         => 0.23,
+            'risk_level'         => 'low',
+            'flags'              => [],
             'recommended_action' => 'proceed',
-            'ml_confidence' => 0.89
+            'ml_confidence'      => 0.89,
         ];
     }
 
     private function executeGetTransactionHistory(array $params): array
     {
         return [
-            'account_id' => $params['account_id'],
+            'account_id'   => $params['account_id'],
             'transactions' => [
                 [
-                    'id' => 'tx_001',
-                    'type' => 'deposit',
-                    'amount' => 500.00,
-                    'date' => now()->subDays(1)->toIso8601String(),
-                    'description' => 'Salary deposit'
+                    'id'          => 'tx_001',
+                    'type'        => 'deposit',
+                    'amount'      => 500.00,
+                    'date'        => now()->subDays(1)->toIso8601String(),
+                    'description' => 'Salary deposit',
                 ],
                 [
-                    'id' => 'tx_002',
-                    'type' => 'withdrawal',
-                    'amount' => 100.00,
-                    'date' => now()->subDays(2)->toIso8601String(),
-                    'description' => 'ATM withdrawal'
-                ]
+                    'id'          => 'tx_002',
+                    'type'        => 'withdrawal',
+                    'amount'      => 100.00,
+                    'date'        => now()->subDays(2)->toIso8601String(),
+                    'description' => 'ATM withdrawal',
+                ],
             ],
             'total_count' => 2,
-            'has_more' => false
+            'has_more'    => false,
         ];
     }
 
     private function executeAnalyzeSpendingPatterns(array $params): array
     {
         return [
-            'customer_id' => $params['customer_id'],
-            'period' => $params['period'] ?? 'monthly',
+            'customer_id'    => $params['customer_id'],
+            'period'         => $params['period'] ?? 'monthly',
             'total_spending' => 3456.78,
-            'categories' => [
-                'groceries' => 450.00,
+            'categories'     => [
+                'groceries'     => 450.00,
                 'entertainment' => 200.00,
-                'utilities' => 300.00,
-                'transport' => 150.00
+                'utilities'     => 300.00,
+                'transport'     => 150.00,
             ],
             'insights' => [
-                'highest_category' => 'groceries',
-                'trend' => 'decreasing',
-                'savings_opportunity' => 200.00
-            ]
+                'highest_category'    => 'groceries',
+                'trend'               => 'decreasing',
+                'savings_opportunity' => 200.00,
+            ],
         ];
     }
 
     private function executeCreateBudgetPlan(array $params): array
     {
         return [
-            'customer_id' => $params['customer_id'],
-            'monthly_income' => $params['income'],
+            'customer_id'        => $params['customer_id'],
+            'monthly_income'     => $params['income'],
             'recommended_budget' => [
-                'essentials' => $params['income'] * 0.5,
-                'savings' => $params['income'] * 0.2,
-                'investments' => $params['income'] * 0.1,
-                'discretionary' => $params['income'] * 0.2
+                'essentials'    => $params['income'] * 0.5,
+                'savings'       => $params['income'] * 0.2,
+                'investments'   => $params['income'] * 0.1,
+                'discretionary' => $params['income'] * 0.2,
             ],
             'tips' => [
                 'Automate your savings',
                 'Review subscriptions monthly',
-                'Use the 50/30/20 rule'
-            ]
+                'Use the 50/30/20 rule',
+            ],
         ];
     }
 }
