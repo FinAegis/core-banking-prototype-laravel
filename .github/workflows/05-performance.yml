@@ -135,7 +135,7 @@ jobs:
             opcache.enable_cli=1
             opcache.jit=tracing
             opcache.jit_buffer_size=256M
-            memory_limit=512M
+            memory_limit=4G
             
       - name: Cache Dependencies
         uses: actions/cache@v4
