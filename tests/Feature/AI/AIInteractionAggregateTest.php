@@ -29,7 +29,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, $userId, $context)
+            ->startConversation($conversationId, 'customer_service', (string) $userId, $context)
             ->persist();
 
         // Assert
@@ -54,7 +54,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, 1)
+            ->startConversation($conversationId, 'customer_service', '1')
             ->recordDecision($decision, $confidence, $factors, $alternatives)
             ->persist();
 
@@ -81,7 +81,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, 1)
+            ->startConversation($conversationId, 'customer_service', '1')
             ->recordToolExecution($toolName, $parameters, $result, $executionTime)
             ->persist();
 
@@ -108,7 +108,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, 1)
+            ->startConversation($conversationId, 'customer_service', '1')
             ->recordDecision($decision, $lowConfidence)
             ->persist();
 
@@ -134,7 +134,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, 1)
+            ->startConversation($conversationId, 'customer_service', '1')
             ->recordDecision($originalDecision, 0.75)
             ->recordHumanOverride($originalDecision, $overrideDecision, $overriddenBy, $reason)
             ->persist();
@@ -158,7 +158,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, 1)
+            ->startConversation($conversationId, 'customer_service', '1')
             ->recordDecision('decision1', 0.8)
             ->recordDecision('decision2', 0.9)
             ->recordDecision('decision3', 0.7)
@@ -185,7 +185,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act - Record multiple events
         $aggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, 1)
+            ->startConversation($conversationId, 'customer_service', '1')
             ->recordDecision('decision1', 0.85)
             ->recordToolExecution('Tool1', [], 'result1', 0.1)
             ->recordDecision('decision2', 0.95)
@@ -211,7 +211,7 @@ class AIInteractionAggregateTest extends TestCase
 
         // Act - Create aggregate with events
         $originalAggregate = AIInteractionAggregate::retrieve($conversationId)
-            ->startConversation($conversationId, 1, ['test' => 'context'])
+            ->startConversation($conversationId, 'customer_service', '1', ['test' => 'context'])
             ->recordDecision('test_decision', 0.88)
             ->recordToolExecution('TestTool', ['param' => 'value'], 'result', 0.5)
             ->persist();
