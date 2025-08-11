@@ -77,7 +77,7 @@ class AIAgentController extends Controller
         ]);
 
         $conversationId = $validated['conversation_id'] ?? Str::uuid()->toString();
-        $userId = Auth::id();
+        $userId = (int) Auth::id();
 
         // Create or retrieve conversation
         $conversation = $this->conversationService->getOrCreate($conversationId, $userId);
@@ -140,7 +140,7 @@ class AIAgentController extends Controller
     public function conversations(Request $request): JsonResponse
     {
         $limit = $request->input('limit', 10);
-        $conversations = $this->conversationService->getUserConversations(Auth::id(), $limit);
+        $conversations = $this->conversationService->getUserConversations((int) Auth::id(), $limit);
 
         return response()->json($conversations);
     }
@@ -181,7 +181,7 @@ class AIAgentController extends Controller
      */
     public function getConversation(string $conversationId): JsonResponse
     {
-        $conversation = $this->conversationService->getConversation($conversationId, Auth::id());
+        $conversation = $this->conversationService->getConversation($conversationId, (int) Auth::id());
 
         if (!$conversation) {
             return response()->json(['error' => 'Conversation not found'], 404);
@@ -214,7 +214,7 @@ class AIAgentController extends Controller
      */
     public function deleteConversation(string $conversationId): JsonResponse
     {
-        $deleted = $this->conversationService->deleteConversation($conversationId, Auth::id());
+        $deleted = $this->conversationService->deleteConversation($conversationId, (int) Auth::id());
 
         if (!$deleted) {
             return response()->json(['error' => 'Conversation not found'], 404);
@@ -257,7 +257,7 @@ class AIAgentController extends Controller
         // Store feedback for model improvement
         $this->aiAgentService->storeFeedback(
             messageId: $validated['message_id'],
-            userId: Auth::id(),
+            userId: (int) Auth::id(),
             rating: $validated['rating'],
             feedback: $validated['feedback'] ?? null
         );
