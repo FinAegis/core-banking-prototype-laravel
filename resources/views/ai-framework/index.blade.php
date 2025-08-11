@@ -126,10 +126,10 @@
                     enhance decision-making, and deliver personalized experiences at scale
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="#demo" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
+                    <a href="{{ route('demo.ai-agent') }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
                         Try Live Demo
                     </a>
-                    <a href="/api/documentation" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
+                    <a href="/api/documentation#/AI%20Agent" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
                         View API Docs
                     </a>
                 </div>
@@ -336,10 +336,10 @@
                             <div>
                                 <h4 class="font-semibold mb-3">AI & Machine Learning</h4>
                                 <div class="flex flex-wrap gap-2">
-                                    <span class="tech-badge">OpenAI GPT-4</span>
-                                    <span class="tech-badge">Claude 3</span>
-                                    <span class="tech-badge">LangChain</span>
-                                    <span class="tech-badge">Pinecone</span>
+                                    <span class="tech-badge">OpenAI Integration</span>
+                                    <span class="tech-badge">Anthropic Claude</span>
+                                    <span class="tech-badge">MCP Protocol</span>
+                                    <span class="tech-badge">Vector Store</span>
                                 </div>
                             </div>
                             <div>
@@ -406,19 +406,19 @@
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            24/7 multilingual support
+                            Automated response capabilities
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            90% query resolution rate
+                            Context-aware query handling
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Seamless human handoff
+                            Human escalation support
                         </li>
                     </ul>
                 </div>
@@ -442,19 +442,19 @@
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Real-time fraud detection
+                            Fraud detection workflows
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            AML/KYC automation
+                            KYC/AML integration
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Behavioral analysis
+                            Risk scoring models
                         </li>
                     </ul>
                 </div>
@@ -738,29 +738,29 @@ Would you like me to generate a detailed report?</span>
             <div class="max-w-4xl mx-auto">
                 <!-- Code Example -->
                 <div class="bg-gray-900 rounded-xl p-6 overflow-x-auto">
-                    <pre class="text-sm"><code class="language-php text-gray-300">// Initialize AI Agent
-$agent = app(AIAgentService::class);
+                    <pre class="text-sm"><code class="language-php text-gray-300"><span class="text-gray-500">// Initialize AI Agent Service</span>
+<span class="text-purple-400">$agent</span> = <span class="text-cyan-400">app</span>(<span class="text-green-400">AIAgentService</span>::<span class="text-blue-400">class</span>);
 
-// Create a conversation context
-$context = new ConversationContext(
-    conversationId: Str::uuid(),
-    userId: auth()->id(),
-    systemPrompt: 'You are a helpful financial assistant.'
+<span class="text-gray-500">// Create conversation context</span>
+<span class="text-purple-400">$context</span> = <span class="text-blue-400">new</span> <span class="text-green-400">ConversationContext</span>(
+    <span class="text-orange-400">conversationId:</span> <span class="text-green-400">Str</span>::<span class="text-cyan-400">uuid</span>(),
+    <span class="text-orange-400">userId:</span> <span class="text-cyan-400">auth</span>()-><span class="text-cyan-400">id</span>(),
+    <span class="text-orange-400">systemPrompt:</span> <span class="text-yellow-400">'You are a helpful financial assistant.'</span>
 );
 
-// Send a message to the AI
-$response = $agent->chat(
-    message: 'Analyze my spending patterns',
-    context: $context,
-    options: [
-        'model' => 'gpt-4',
-        'temperature' => 0.7,
+<span class="text-gray-500">// Send message to AI agent</span>
+<span class="text-purple-400">$response</span> = <span class="text-purple-400">$agent</span>-><span class="text-cyan-400">chat</span>(
+    <span class="text-orange-400">message:</span> <span class="text-yellow-400">'Analyze my spending patterns'</span>,
+    <span class="text-orange-400">context:</span> <span class="text-purple-400">$context</span>,
+    <span class="text-orange-400">options:</span> [
+        <span class="text-yellow-400">'model'</span> => <span class="text-yellow-400">'gpt-4'</span>,
+        <span class="text-yellow-400">'temperature'</span> => <span class="text-pink-400">0.7</span>,
     ]
 );
 
-// Stream responses for real-time feedback
-foreach ($agent->stream($message, $context) as $chunk) {
-    echo $chunk; // Display to user in real-time
+<span class="text-gray-500">// Stream responses for real-time feedback</span>
+<span class="text-blue-400">foreach</span> (<span class="text-purple-400">$agent</span>-><span class="text-cyan-400">stream</span>(<span class="text-purple-400">$message</span>, <span class="text-purple-400">$context</span>) <span class="text-blue-400">as</span> <span class="text-purple-400">$chunk</span>) {
+    <span class="text-blue-400">echo</span> <span class="text-purple-400">$chunk</span>; <span class="text-gray-500">// Display to user in real-time</span>
 }</code></pre>
                 </div>
 

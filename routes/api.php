@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AccountBalanceController;
 use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\AIAgentController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -105,6 +106,15 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// AI Agent endpoints (protected)
+Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->group(function () {
+    Route::post('/chat', [AIAgentController::class, 'chat'])->name('api.ai.chat');
+    Route::get('/conversations', [AIAgentController::class, 'conversations'])->name('api.ai.conversations');
+    Route::get('/conversations/{conversationId}', [AIAgentController::class, 'getConversation'])->name('api.ai.conversation');
+    Route::delete('/conversations/{conversationId}', [AIAgentController::class, 'deleteConversation'])->name('api.ai.conversation.delete');
+    Route::post('/feedback', [AIAgentController::class, 'submitFeedback'])->name('api.ai.feedback');
+});
 
 // Legacy profile route for backward compatibility
 Route::get('/profile', function (Request $request) {

@@ -89,6 +89,10 @@ Route::get('/ai-framework/demo', function () {
     return view('ai-framework.demo');
 })->name('ai-framework.demo');
 
+Route::get('/demo/ai-agent', function () {
+    return view('demo.ai-agent');
+})->name('demo.ai-agent');
+
 Route::get('/ai-framework/docs', function () {
     return view('ai-framework.docs');
 })->name('ai-framework.docs');
