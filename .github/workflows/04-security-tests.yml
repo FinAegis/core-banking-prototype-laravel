@@ -57,7 +57,8 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          echo "APP_KEY set for composer install"
+          # Generate a dummy APP_KEY for testing (not used for encryption in tests)
+          php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" >> .env
           
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
@@ -114,7 +115,8 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          echo "APP_KEY set for composer install"
+          # Generate a dummy APP_KEY for testing (not used for encryption in tests)
+          php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" >> .env
           
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
@@ -171,7 +173,8 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          echo "APP_KEY set for composer install"
+          # Generate a dummy APP_KEY for testing (not used for encryption in tests)
+          php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" >> .env
           
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
@@ -228,7 +231,8 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          echo "APP_KEY set for composer install"
+          # Generate a dummy APP_KEY for testing (not used for encryption in tests)
+          php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" >> .env
           
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
