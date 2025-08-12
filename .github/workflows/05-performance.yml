@@ -71,10 +71,10 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.ci .env
+          # Ensure APP_KEY is set for composer install
+          echo "APP_KEY=base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw=" >> .env
           
       - name: Install Dependencies
-        env:
-          APP_KEY: "base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw="
         run: composer install --prefer-dist --no-progress --optimize-autoloader
           
       - name: Prepare Performance Testing
@@ -149,10 +149,10 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.ci .env
+          # Ensure APP_KEY is set for composer install
+          echo "APP_KEY=base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw=" >> .env
           
       - name: Install Dependencies
-        env:
-          APP_KEY: "base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw="
         run: composer install --prefer-dist --no-progress --optimize-autoloader
           
       - name: Prepare Performance Environment
@@ -268,10 +268,10 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.ci .env
+          # Ensure APP_KEY is set for composer install
+          echo "APP_KEY=base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw=" >> .env
           
       - name: Install Dependencies
-        env:
-          APP_KEY: "base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw="
         run: composer install --prefer-dist --no-progress --optimize-autoloader
           
       - name: Prepare Application

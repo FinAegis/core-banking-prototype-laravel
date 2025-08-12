@@ -52,10 +52,10 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.testing .env
+          # Ensure APP_KEY is set for composer install
+          echo "APP_KEY=base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw=" >> .env
           
       - name: Install Dependencies
-        env:
-          APP_KEY: "base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw="
         run: composer install --prefer-dist --no-progress --no-dev
         
       - name: Run Security Audit
