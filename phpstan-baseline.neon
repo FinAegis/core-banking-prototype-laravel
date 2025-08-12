@@ -7930,13 +7930,13 @@ parameters:
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\:\:andThrow\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: tests/Unit/AI/AgentWorkflowTest.php
+			path: tests/Feature/AI/AgentWorkflowTest.php
 
 		-
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\:\:andThrow\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: tests/Unit/AI/MCPServerTest.php
+			path: tests/Feature/AI/MCPServerTest.php
 
 		-
 			message: '#^Call to an undefined method App\\Domain\\Wallet\\Services\\SecureKeyStorageService\:\:shouldReceive\(\)\.$#'
