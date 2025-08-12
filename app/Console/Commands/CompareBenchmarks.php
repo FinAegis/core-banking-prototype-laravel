@@ -46,12 +46,12 @@ class CompareBenchmarks extends Command
 
         $baselineContent = file_get_contents($baselinePath);
         $currentContent = file_get_contents($currentPath);
-        
+
         if ($baselineContent === false || $currentContent === false) {
             $this->error('Failed to read benchmark files');
             return 1;
         }
-        
+
         $baseline = json_decode($baselineContent, true);
         $current = json_decode($currentContent, true);
 
