@@ -270,27 +270,116 @@ class AgentWorkflowTest extends TestCase
     {
         // Arrange
         Event::fake();
+        
+        // Create workflow stub
         $workflow = WorkflowStub::make(\App\Domain\AI\Workflows\HumanApprovalWorkflow::class);
-        $params = [
-            'operation'         => 'high_value_transfer',
-            'amount'            => 100000,
-            'requires_approval' => true,
-        ];
-
-        // Simulate human approval signal via workflow method
-        // Note: In a real test, you would trigger the signal method on the workflow instance
-
-        // Act
-        $result = $workflow->execute($params);
+        
+        // Start the workflow execution (non-blocking)
+        $workflow->start(
+            'conversation_123',
+            'high_value_transfer',
+            [
+                'amount' => 100000,
+                'currency' => 'USD'
+            ],
+            10 // 10 second timeout for test
+        );
+        
+        // Simulate human approval by calling the signal method
+        $workflow->approve('test_approver', 'Approved for testing');
+        
+        // Wait for workflow to complete
+        $result = $workflow->output();
 
         // Assert
         $this->assertArrayHasKey('approved', $result);
         $this->assertTrue($result['approved']);
         $this->assertArrayHasKey('approval_id', $result);
-        $this->assertArrayHasKey('approved_by', $result);
+        $this->assertEquals('test_approver', $result['approver_id']);
+        $this->assertEquals('Approved for testing', $result['comments']);
+        $this->assertFalse($result['timed_out']);
 
-        // Verify approval event
+        // Verify events
+        Event::assertDispatched(\App\Domain\AI\Events\HumanInterventionRequestedEvent::class);
         Event::assertDispatched(\App\Domain\AI\Events\HumanApprovalReceivedEvent::class);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function human_in_the_loop_handles_rejection(): void
+    {
+        // Arrange
+        Event::fake();
+        
+        // Create workflow stub
+        $workflow = WorkflowStub::make(\App\Domain\AI\Workflows\HumanApprovalWorkflow::class);
+        
+        // Start the workflow execution
+        $workflow->start(
+            'conversation_456',
+            'suspicious_transaction',
+            [
+                'amount' => 50000,
+                'risk_score' => 0.85
+            ],
+            10 // 10 second timeout for test
+        );
+        
+        // Simulate human rejection by calling the reject signal method
+        $workflow->reject('compliance_officer', 'Transaction flagged as suspicious');
+        
+        // Wait for workflow to complete
+        $result = $workflow->output();
+
+        // Assert
+        $this->assertArrayHasKey('approved', $result);
+        $this->assertFalse($result['approved']);
+        $this->assertEquals('compliance_officer', $result['approver_id']);
+        $this->assertEquals('Transaction flagged as suspicious', $result['comments']);
+        $this->assertFalse($result['timed_out']);
+
+        // Verify events
+        Event::assertDispatched(\App\Domain\AI\Events\HumanInterventionRequestedEvent::class);
+        Event::assertDispatched(\App\Domain\AI\Events\HumanApprovalReceivedEvent::class, function ($event) {
+            return $event->approved === false;
+        });
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function human_in_the_loop_handles_timeout(): void
+    {
+        // Arrange
+        Event::fake();
+        
+        // Create workflow stub
+        $workflow = WorkflowStub::make(\App\Domain\AI\Workflows\HumanApprovalWorkflow::class);
+        
+        // Start the workflow execution with very short timeout
+        $workflow->start(
+            'conversation_789',
+            'pending_operation',
+            [
+                'amount' => 25000
+            ],
+            0.1 // 0.1 second timeout to ensure it times out
+        );
+        
+        // Don't send any signal, let it timeout
+        
+        // Wait for workflow to complete
+        $result = $workflow->output();
+
+        // Assert
+        $this->assertArrayHasKey('approved', $result);
+        $this->assertFalse($result['approved']);
+        $this->assertEquals('timeout', $result['approver_id']);
+        $this->assertEquals('Approval request timed out', $result['comments']);
+        $this->assertTrue($result['timed_out']);
+
+        // Verify events
+        Event::assertDispatched(\App\Domain\AI\Events\HumanInterventionRequestedEvent::class);
+        Event::assertDispatched(\App\Domain\AI\Events\HumanApprovalReceivedEvent::class, function ($event) {
+            return $event->approved === false && $event->approverId === 'timeout';
+        });
     }
 
     private function mockActivity(string $activityClass): Mockery\MockInterface
