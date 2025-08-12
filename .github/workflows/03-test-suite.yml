@@ -138,7 +138,7 @@ jobs:
       - name: Run Unit Tests
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: :memory:
+          DB_DATABASE: ":memory:"
         run: |
           # Run unit tests using SQLite in-memory database to reduce memory usage
           # Split tests into smaller batches to prevent memory exhaustion
@@ -148,7 +148,7 @@ jobs:
         if: always()
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: :memory:
+          DB_DATABASE: ":memory:"
         run: |
           # Run security tests with SQLite to reduce memory usage
           ./vendor/bin/pest --testsuite=Security --configuration=phpunit.ci-optimized.xml --no-coverage
