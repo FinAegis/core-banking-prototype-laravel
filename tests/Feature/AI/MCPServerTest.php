@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\AI;
+namespace Tests\Feature\AI;
 
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\Events\ToolExecutedEvent;

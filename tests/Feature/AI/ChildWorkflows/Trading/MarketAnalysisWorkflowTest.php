@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\AI\ChildWorkflows\Trading;
+namespace Tests\Feature\AI\ChildWorkflows\Trading;
 
 use App\Domain\AI\ChildWorkflows\Trading\MarketAnalysisWorkflow;
 use Tests\TestCase;

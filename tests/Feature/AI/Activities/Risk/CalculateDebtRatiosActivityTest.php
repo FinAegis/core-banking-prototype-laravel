@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\AI\Activities\Risk;
+namespace Tests\Feature\AI\Activities\Risk;
 
 use App\Domain\AI\Activities\Risk\CalculateDebtRatiosActivity;
 use Tests\TestCase;

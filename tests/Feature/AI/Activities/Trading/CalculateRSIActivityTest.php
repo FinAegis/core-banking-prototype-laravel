@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\AI\Activities\Trading;
+namespace Tests\Feature\AI\Activities\Trading;
 
 use App\Domain\AI\Activities\Trading\CalculateRSIActivity;
 use Tests\TestCase;
