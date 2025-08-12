@@ -9,7 +9,7 @@ use App\Domain\AI\Activities\ToolSelectionActivity;
 use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\IntentRecognizedEvent;
 use App\Domain\AI\Events\ToolExecutedEvent;
-use App\Domain\AI\Workflows\Children\FraudDetectionWorkflow;
+use App\Domain\AI\ChildWorkflows\Children\FraudDetectionWorkflow;
 use App\Domain\AI\Workflows\ComplianceWorkflow;
 use App\Domain\AI\Workflows\CustomerServiceWorkflow;
 use App\Domain\AI\Workflows\RiskAssessmentSaga;
@@ -102,8 +102,9 @@ class AgentWorkflowTest extends TestCase
         Event::fake();
         $saga = new RiskAssessmentSaga();
         $params = [
-            'user_id'     => 1,
-            'transaction' => [
+            'conversation_id' => 'conv_risk_001',
+            'user_id'         => 1,
+            'transaction'     => [
                 'amount'      => 10000,
                 'type'        => 'transfer',
                 'destination' => 'external_account',

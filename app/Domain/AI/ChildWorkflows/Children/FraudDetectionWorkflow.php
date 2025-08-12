@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\AI\Workflows\Children;
+namespace App\Domain\AI\ChildWorkflows\Children;
 
 use Workflow\Workflow;
 
