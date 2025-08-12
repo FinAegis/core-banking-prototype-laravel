@@ -71,10 +71,10 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.ci .env
-          # Generate a dummy APP_KEY for testing (not used for encryption in tests)
-          php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" >> .env
           
       - name: Install Dependencies
+        env:
+          APP_KEY: "base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw="
         run: composer install --prefer-dist --no-progress --optimize-autoloader
           
       - name: Prepare Performance Testing
@@ -149,10 +149,10 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.ci .env
-          # Generate a dummy APP_KEY for testing (not used for encryption in tests)
-          php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" >> .env
           
       - name: Install Dependencies
+        env:
+          APP_KEY: "base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw="
         run: composer install --prefer-dist --no-progress --optimize-autoloader
           
       - name: Prepare Performance Environment
@@ -268,10 +268,10 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.ci .env
-          # Generate a dummy APP_KEY for testing (not used for encryption in tests)
-          php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" >> .env
           
       - name: Install Dependencies
+        env:
+          APP_KEY: "base64:L0Y3T6X2hNmHYRlFrxbCqzFtZPZvGPVzYvNDzUMMNFw="
         run: composer install --prefer-dist --no-progress --optimize-autoloader
           
       - name: Prepare Application
