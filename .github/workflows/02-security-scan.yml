@@ -6,7 +6,7 @@ on:
       php-version:
         description: 'PHP version to use'
         required: false
-        default: '8.4'
+        default: '8.3'
         type: string
     secrets:
       GITLEAKS_LICENSE:

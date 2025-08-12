@@ -14,7 +14,7 @@ on:
         default: false
 
 env:
-  PHP_VERSION: '8.4'
+  PHP_VERSION: '8.3'
   NODE_VERSION: '20'
 
 permissions:
@@ -32,14 +32,14 @@ jobs:
     name: Code Quality
     uses: ./.github/workflows/01-code-quality.yml
     with:
-      php-version: '8.4'
+      php-version: '8.3'
     secrets: inherit
 
   security-scan:
     name: Security Scan
     uses: ./.github/workflows/02-security-scan.yml
     with:
-      php-version: '8.4'
+      php-version: '8.3'
     secrets: inherit
 
   build-assets:
@@ -55,7 +55,7 @@ jobs:
     needs: [code-quality]
     uses: ./.github/workflows/03-test-suite.yml
     with:
-      php-version: '8.4'
+      php-version: '8.3'
       node-version: '20'
     secrets: inherit
 
@@ -65,7 +65,7 @@ jobs:
     needs: [security-scan]
     uses: ./.github/workflows/04-security-tests.yml
     with:
-      php-version: '8.4'
+      php-version: '8.3'
     secrets: inherit
 
   # Phase 4: Performance Tests (After Test Suite)
@@ -74,7 +74,7 @@ jobs:
     needs: [test-suite]
     uses: ./.github/workflows/05-performance.yml
     with:
-      php-version: '8.4'
+      php-version: '8.3'
     secrets: inherit
 
   # Final Phase: Status Check (No commenting)

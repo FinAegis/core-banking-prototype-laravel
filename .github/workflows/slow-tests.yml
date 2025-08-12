@@ -17,7 +17,7 @@ on:
       - '.github/workflows/slow-tests.yml'
 
 env:
-  PHP_VERSION: '8.4'
+  PHP_VERSION: '8.3'
   NODE_VERSION: '20'
   COMPOSER_PROCESS_TIMEOUT: 0
   COMPOSER_NO_INTERACTION: 1

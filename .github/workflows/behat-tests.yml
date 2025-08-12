@@ -14,11 +14,11 @@ on:
       php-version:
         description: 'PHP version to use'
         required: false
-        default: '8.4'
+        default: '8.3'
         type: string
 
 env:
-  PHP_VERSION: ${{ inputs.php-version || '8.4' }}
+  PHP_VERSION: ${{ inputs.php-version || '8.3' }}
 
 jobs:
   behat:
