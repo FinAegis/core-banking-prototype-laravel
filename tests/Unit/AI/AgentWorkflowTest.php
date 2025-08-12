@@ -6,10 +6,10 @@ namespace Tests\Unit\AI;
 
 use App\Domain\AI\Activities\IntentRecognitionActivity;
 use App\Domain\AI\Activities\ToolSelectionActivity;
+use App\Domain\AI\ChildWorkflows\Children\FraudDetectionWorkflow;
 use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\IntentRecognizedEvent;
 use App\Domain\AI\Events\ToolExecutedEvent;
-use App\Domain\AI\ChildWorkflows\Children\FraudDetectionWorkflow;
 use App\Domain\AI\Workflows\ComplianceWorkflow;
 use App\Domain\AI\Workflows\CustomerServiceWorkflow;
 use App\Domain\AI\Workflows\RiskAssessmentSaga;
@@ -103,7 +103,7 @@ class AgentWorkflowTest extends TestCase
         $saga = new RiskAssessmentSaga();
         $params = [
             'conversation_id' => 'conv_risk_001',
-            'user_id'         => 1,
+            'user_id'         => '1',
             'transaction'     => [
                 'amount'      => 10000,
                 'type'        => 'transfer',
@@ -225,7 +225,7 @@ class AgentWorkflowTest extends TestCase
         // Mock activity to throw exception
         $this->mockActivity(ToolSelectionActivity::class)
             ->shouldReceive('select')
-            ->andThrow(new \RuntimeException('Service unavailable'));
+            ->andThrowExceptions([new \RuntimeException('Service unavailable')]);
 
         // Act & Assert
         try {
@@ -252,7 +252,10 @@ class AgentWorkflowTest extends TestCase
 
         // Act
         $coordinator = new \App\Domain\AI\Services\MultiAgentCoordinationService();
-        $result = $coordinator->coordinate($params['task'], $params['agents']);
+        $result = $coordinator->coordinateTask(
+            $params['task'],
+            ['agents' => $params['agents']]
+        );
 
         // Assert
         $this->assertArrayHasKey('lead_agent', $result);
@@ -271,24 +274,24 @@ class AgentWorkflowTest extends TestCase
     {
         // Arrange
         Event::fake();
-        
+
         // Create workflow stub
         $workflow = WorkflowStub::make(\App\Domain\AI\Workflows\HumanApprovalWorkflow::class);
-        
+
         // Start the workflow execution (non-blocking)
         $workflow->start(
             'conversation_123',
             'high_value_transfer',
             [
-                'amount' => 100000,
-                'currency' => 'USD'
+                'amount'   => 100000,
+                'currency' => 'USD',
             ],
             10 // 10 second timeout for test
         );
-        
+
         // Simulate human approval by calling the signal method
         $workflow->approve('test_approver', 'Approved for testing');
-        
+
         // Wait for workflow to complete
         $result = $workflow->output();
 
@@ -310,24 +313,24 @@ class AgentWorkflowTest extends TestCase
     {
         // Arrange
         Event::fake();
-        
+
         // Create workflow stub
         $workflow = WorkflowStub::make(\App\Domain\AI\Workflows\HumanApprovalWorkflow::class);
-        
+
         // Start the workflow execution
         $workflow->start(
             'conversation_456',
             'suspicious_transaction',
             [
-                'amount' => 50000,
-                'risk_score' => 0.85
+                'amount'     => 50000,
+                'risk_score' => 0.85,
             ],
             10 // 10 second timeout for test
         );
-        
+
         // Simulate human rejection by calling the reject signal method
         $workflow->reject('compliance_officer', 'Transaction flagged as suspicious');
-        
+
         // Wait for workflow to complete
         $result = $workflow->output();
 
@@ -350,22 +353,22 @@ class AgentWorkflowTest extends TestCase
     {
         // Arrange
         Event::fake();
-        
+
         // Create workflow stub
         $workflow = WorkflowStub::make(\App\Domain\AI\Workflows\HumanApprovalWorkflow::class);
-        
+
         // Start the workflow execution with very short timeout
         $workflow->start(
             'conversation_789',
             'pending_operation',
             [
-                'amount' => 25000
+                'amount' => 25000,
             ],
             0.1 // 0.1 second timeout to ensure it times out
         );
-        
+
         // Don't send any signal, let it timeout
-        
+
         // Wait for workflow to complete
         $result = $workflow->output();
 
@@ -387,14 +390,6 @@ class AgentWorkflowTest extends TestCase
     {
         $mock = Mockery::mock($activityClass);
         $this->app->instance($activityClass, $mock);
-
-        return $mock;
-    }
-
-    private function mockSignal(string $signalClass): Mockery\MockInterface
-    {
-        $mock = Mockery::mock($signalClass);
-        $this->app->instance($signalClass, $mock);
 
         return $mock;
     }
