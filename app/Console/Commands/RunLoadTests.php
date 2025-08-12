@@ -204,9 +204,9 @@ class RunLoadTests extends Command
                 try {
                     $workflow = app(\App\Domain\Payment\Workflows\TransferWorkflow::class);
                     $workflow->execute(
-                        new \App\Domain\Account\ValueObjects\AccountUuid($from->uuid),
-                        new \App\Domain\Account\ValueObjects\AccountUuid($to->uuid),
-                        new \App\Domain\Account\ValueObjects\Money(1000)
+                        new \App\Domain\Account\DataObjects\AccountUuid($from->uuid),
+                        new \App\Domain\Account\DataObjects\AccountUuid($to->uuid),
+                        new \App\Domain\Account\DataObjects\Money(1000)
                     );
                 } catch (\Exception $e) {
                     // Log but continue testing

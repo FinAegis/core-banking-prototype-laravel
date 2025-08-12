@@ -44,8 +44,16 @@ class CompareBenchmarks extends Command
             return Command::FAILURE;
         }
 
-        $baseline = json_decode(file_get_contents($baselinePath), true);
-        $current = json_decode(file_get_contents($currentPath), true);
+        $baselineContent = file_get_contents($baselinePath);
+        $currentContent = file_get_contents($currentPath);
+        
+        if ($baselineContent === false || $currentContent === false) {
+            $this->error('Failed to read benchmark files');
+            return 1;
+        }
+        
+        $baseline = json_decode($baselineContent, true);
+        $current = json_decode($currentContent, true);
 
         $this->info('📊 Performance Benchmark Comparison');
         $this->info('===================================');

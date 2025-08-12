@@ -220,9 +220,9 @@ class BenchmarkTransferPerformance extends Command
         $middle = floor(($count - 1) / 2);
 
         if ($count % 2) {
-            return $times[$middle];
+            return $times[(int) $middle];
         } else {
-            return ($times[$middle] + $times[$middle + 1]) / 2;
+            return ($times[(int) $middle] + $times[(int) $middle + 1]) / 2;
         }
     }
 
@@ -234,7 +234,7 @@ class BenchmarkTransferPerformance extends Command
         $upper = ceil($index);
         $weight = $index - $lower;
 
-        return $times[$lower] * (1 - $weight) + $times[$upper] * $weight;
+        return $times[(int) $lower] * (1 - $weight) + $times[(int) $upper] * $weight;
     }
 
     private function cleanupTestAccounts(array $accounts): void
