@@ -1,6 +1,35 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Readonly property App\\Domain\\Account\\Events\\AssetBalanceAdded::\$assetCode is assigned outside of its declaring class\.$#'
+			identifier: property.readOnlyAssignOutOfClass
+			count: 1
+			path: tests/Unit/Domain/Account/Events/AssetBalanceAddedTest.php
+
+		-
+			message: '#^Readonly property App\\Domain\\Account\\Events\\AssetBalanceSubtracted::\$amount is assigned outside of its declaring class\.$#'
+			identifier: property.readOnlyAssignOutOfClass
+			count: 1
+			path: tests/Unit/Domain/Account/Events/AssetBalanceSubtractedTest.php
+
+		-
+			message: '#^Readonly property App\\Domain\\Compliance\\Events\\SuspiciousActivityDetected::\$transaction is assigned outside of its declaring class\.$#'
+			identifier: property.readOnlyAssignOutOfClass
+			count: 1
+			path: tests/Unit/Domain/Compliance/Events/SuspiciousActivityDetectedTest.php
+
+		-
+			message: '#^Readonly property App\\Domain\\Lending\\ValueObjects\\CreditScore::\$score is assigned outside of its declaring class\.$#'
+			identifier: property.readOnlyAssignOutOfClass
+			count: 1
+			path: tests/Unit/Domain/Lending/ValueObjects/CreditScoreTest.php
+
+		-
+			message: '#^Readonly property App\\Domain\\Lending\\ValueObjects\\RiskRating::\$rating is assigned outside of its declaring class\.$#'
+			identifier: property.readOnlyAssignOutOfClass
+			count: 1
+			path: tests/Unit/Domain/Lending/ValueObjects/RiskRatingTest.php
+		-
 			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Relations\\HasOneOrMany\<Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:create\(\) expects array\<model property of Illuminate\\Database\\Eloquent\\Model, mixed\>, array\<string, string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
