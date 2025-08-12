@@ -49,6 +49,7 @@ class CompareBenchmarks extends Command
 
         if ($baselineContent === false || $currentContent === false) {
             $this->error('Failed to read benchmark files');
+
             return 1;
         }
 
