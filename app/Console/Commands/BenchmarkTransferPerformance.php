@@ -49,7 +49,7 @@ class BenchmarkTransferPerformance extends Command
         $startTime = microtime(true);
 
         $results = [];
-        $chunks = array_chunk(range(0, $iterations - 1), $parallel);
+        $chunks = array_chunk(range(0, $iterations - 1), max(1, $parallel));
 
         foreach ($chunks as $chunk) {
             $batchStart = microtime(true);

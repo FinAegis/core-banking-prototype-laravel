@@ -76,7 +76,7 @@ class CreateNewUser implements CreatesNewUsers
      */
     protected function createTeam(User $user): Team
     {
-        return $user->ownedTeams()->save(
+        $team = $user->ownedTeams()->save(
             Team::forceCreate(
                 [
                     'user_id'       => $user->id,
@@ -85,5 +85,8 @@ class CreateNewUser implements CreatesNewUsers
                 ]
             )
         );
+
+        /** @var Team $team */
+        return $team;
     }
 }

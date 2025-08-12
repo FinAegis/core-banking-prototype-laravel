@@ -41,7 +41,9 @@ class DeleteUser implements DeletesUsers
     {
         $user->teams()->detach();
 
-        $user->ownedTeams->each(
+        /** @var \Illuminate\Support\Collection<int, Team> $ownedTeams */
+        $ownedTeams = $user->ownedTeams;
+        $ownedTeams->each(
             function (Team $team) {
                 $this->deletesTeams->delete($team);
             }

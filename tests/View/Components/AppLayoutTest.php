@@ -4,18 +4,22 @@ use App\View\Components\AppLayout;
 
 it('extends Component', function () {
     $reflection = new ReflectionClass(AppLayout::class);
-    expect($reflection->getParentClass()->getName())->toBe('Illuminate\View\Component');
+    $parentClass = $reflection->getParentClass();
+    expect($parentClass)->not->toBe(false);
+    expect($parentClass->getName())->toBe('Illuminate\View\Component');
 });
 
 it('has render method', function () {
-    expect(method_exists(AppLayout::class, 'render'))->toBeTrue();
+    // Method exists check is redundant - just verify it's callable
+    $component = new AppLayout();
+    expect(is_callable([$component, 'render']))->toBeTrue();
 });
 
 it('render method returns View', function () {
     $reflection = new ReflectionClass(AppLayout::class);
     $method = $reflection->getMethod('render');
 
-    expect($method->getReturnType()->getName())->toBe('Illuminate\View\View');
+    expect((string) $method->getReturnType())->toBe('Illuminate\View\View');
 });
 
 it('can be instantiated', function () {

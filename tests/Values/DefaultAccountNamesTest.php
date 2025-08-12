@@ -14,7 +14,8 @@ it('has expected cases', function () {
 });
 
 it('has default method', function () {
-    expect(method_exists(DefaultAccountNames::class, 'default'))->toBeTrue();
+    // Method exists check is redundant - just call it
+    expect(DefaultAccountNames::default())->toBe(DefaultAccountNames::MAIN);
 });
 
 it('default returns MAIN', function () {
@@ -24,13 +25,14 @@ it('default returns MAIN', function () {
 });
 
 it('has label method', function () {
-    expect(method_exists(DefaultAccountNames::class, 'label'))->toBeTrue();
+    // Method exists check is redundant - just call it
+    expect(DefaultAccountNames::MAIN->label())->toBe('Main');
 });
 
 it('has label method structure', function () {
     $reflection = new ReflectionMethod(DefaultAccountNames::class, 'label');
     expect($reflection->isPublic())->toBeTrue();
-    expect($reflection->getReturnType()?->getName())->toBe('string');
+    expect((string) $reflection->getReturnType())->toBe('string');
 });
 
 it('has correct string values', function () {
