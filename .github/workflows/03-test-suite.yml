@@ -131,8 +131,9 @@ jobs:
           echo "DB_USERNAME=root" >> .env
           echo "DB_PASSWORD=root" >> .env
           
-          php artisan config:cache
-          php artisan route:cache
+          # Note: Route caching disabled to prevent memory exhaustion in tests
+          php artisan config:clear
+          php artisan route:clear
           php artisan migrate --force
           
       - name: Run Unit Tests
@@ -246,8 +247,9 @@ jobs:
           echo "DB_USERNAME=root" >> .env
           echo "DB_PASSWORD=root" >> .env
           
-          php artisan config:cache
-          php artisan route:cache
+          # Note: Route caching disabled to prevent memory exhaustion in tests
+          php artisan config:clear
+          php artisan route:clear
           php artisan migrate --force
           
       - name: Run Feature Tests
