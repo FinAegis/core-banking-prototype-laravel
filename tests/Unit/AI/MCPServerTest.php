@@ -178,8 +178,9 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getName')->andReturn($toolName);
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
         $mockTool->shouldReceive('getDescription')->andReturn('Failing test tool');
-        $mockTool->shouldReceive('execute')
-            ->andThrowExceptions([new \RuntimeException($errorMessage)]);
+        /** @var Mockery\ExpectationInterface $expectation */
+        $expectation = $mockTool->shouldReceive('execute');
+        $expectation->andThrow(new \RuntimeException($errorMessage));
 
         /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);

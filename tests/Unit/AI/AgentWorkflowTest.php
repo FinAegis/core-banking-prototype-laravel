@@ -223,9 +223,11 @@ class AgentWorkflowTest extends TestCase
         ];
 
         // Mock activity to throw exception
-        $this->mockActivity(ToolSelectionActivity::class)
-            ->shouldReceive('select')
-            ->andThrowExceptions([new \RuntimeException('Service unavailable')]);
+        /** @var Mockery\MockInterface $mock */
+        $mock = $this->mockActivity(ToolSelectionActivity::class);
+        /** @var Mockery\ExpectationInterface $expectation */
+        $expectation = $mock->shouldReceive('select');
+        $expectation->andThrow(new \RuntimeException('Service unavailable'));
 
         // Act & Assert
         try {
@@ -250,11 +252,17 @@ class AgentWorkflowTest extends TestCase
             'agents'  => ['loan_advisor', 'risk_assessor', 'compliance'],
         ];
 
+        // Create a mock user
+        $user = new \App\Models\User();
+        $user->id = $params['user_id'];
+
         // Act
         $coordinator = new \App\Domain\AI\Services\MultiAgentCoordinationService();
         $result = $coordinator->coordinateTask(
-            $params['task'],
-            ['agents' => $params['agents']]
+            'task_' . uniqid(), // taskId
+            'loan_application', // taskType
+            ['task' => $params['task'], 'agents' => $params['agents']], // parameters
+            $user // user
         );
 
         // Assert
@@ -386,6 +394,10 @@ class AgentWorkflowTest extends TestCase
         });
     }
 
+    /**
+     * @param class-string $activityClass
+     * @return Mockery\MockInterface&Mockery\LegacyMockInterface
+     */
     private function mockActivity(string $activityClass): Mockery\MockInterface
     {
         $mock = Mockery::mock($activityClass);
