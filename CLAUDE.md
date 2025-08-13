@@ -29,6 +29,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run PHPStan analysis (Level 5) - Xdebug disabled for performance
 XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
 
+# Stricter analysis for new/modified files (Level 7)
+XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [files] --level=7 --memory-limit=2G
+
+# Check for dead code and bleeding edge issues
+XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [files] --level=max --memory-limit=2G
+
 # Fix code style issues
 ./vendor/bin/php-cs-fixer fix
 
