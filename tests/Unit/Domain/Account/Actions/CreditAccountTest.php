@@ -3,6 +3,7 @@
 namespace Tests\Unit\Domain\Account\Actions;
 
 use App\Domain\Account\Actions\CreditAccount;
+use App\Domain\Account\DataObjects\Hash;
 use App\Domain\Account\Events\AssetBalanceAdded;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
@@ -29,21 +30,26 @@ class CreditAccountTest extends DomainTestCase
 
     private function createAssetBalanceAddedMock(string $aggregateRootUuid, string $assetCode, int $amount)
     {
-        $event = \Mockery::mock(AssetBalanceAdded::class)->makePartial();
-        $event->shouldReceive('aggregateRootUuid')->andReturn($aggregateRootUuid);
+        // Create a test double that extends the event class
+        return new class ($assetCode, $amount, Hash::fromData("test-{$assetCode}-{$amount}"), ['test' => true], $aggregateRootUuid) extends AssetBalanceAdded {
+            private string $testAggregateRootUuid;
 
-        // Use reflection to set readonly properties
-        $reflection = new \ReflectionClass($event);
+            public function __construct(
+                string $assetCode,
+                int $amount,
+                Hash $hash,
+                ?array $metadata,
+                string $aggregateRootUuid
+            ) {
+                parent::__construct($assetCode, $amount, $hash, $metadata);
+                $this->testAggregateRootUuid = $aggregateRootUuid;
+            }
 
-        $assetCodeProp = $reflection->getProperty('assetCode');
-        $assetCodeProp->setAccessible(true);
-        $assetCodeProp->setValue($event, $assetCode);
-
-        $amountProp = $reflection->getProperty('amount');
-        $amountProp->setAccessible(true);
-        $amountProp->setValue($event, $amount);
-
-        return $event;
+            public function aggregateRootUuid(): string
+            {
+                return $this->testAggregateRootUuid;
+            }
+        };
     }
 
     #[Test]
