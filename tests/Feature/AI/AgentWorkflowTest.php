@@ -15,9 +15,9 @@ use App\Domain\AI\Workflows\CustomerServiceWorkflow;
 use App\Domain\AI\Workflows\RiskAssessmentSaga;
 use Illuminate\Support\Facades\Event;
 use Mockery;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Workflow\WorkflowStub;
-use PHPUnit\Framework\Attributes\Group;
 
 #[Group('slow')]
 #[Group('workflows')]
