@@ -109,15 +109,18 @@ class WorkflowTestService
         $aggregate = AIInteractionAggregate::retrieve($conversationId);
 
         // Initialize the aggregate if it's new
-        try {
-            // Try to access conversationId to check if aggregate is initialized
-            $conversationIdExists = $aggregate->conversationId ?? null;
-        } catch (\Error $e) {
-            // Property not initialized, need to start conversation
-            $conversationIdExists = null;
+        // Check if aggregate has been initialized with a conversation
+        // Using reflection to check if property is initialized since ?? doesn't throw
+        $reflectionClass = new \ReflectionClass($aggregate);
+        $conversationIdInitialized = false;
+        
+        if ($reflectionClass->hasProperty('conversationId')) {
+            $property = $reflectionClass->getProperty('conversationId');
+            $property->setAccessible(true);
+            $conversationIdInitialized = $property->isInitialized($aggregate);
         }
 
-        if ($conversationIdExists === null) {
+        if (!$conversationIdInitialized) {
             $aggregate->startConversation(
                 $conversationId,
                 'approval-agent',
