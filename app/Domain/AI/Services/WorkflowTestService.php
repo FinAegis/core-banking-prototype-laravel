@@ -116,7 +116,7 @@ class WorkflowTestService
             // Property not initialized, need to start conversation
             $conversationIdExists = null;
         }
-        
+
         if ($conversationIdExists === null) {
             $aggregate->startConversation(
                 $conversationId,
