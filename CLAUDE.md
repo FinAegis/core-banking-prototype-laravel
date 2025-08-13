@@ -26,8 +26,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Code Quality (ALWAYS RUN BEFORE COMMITTING)
 ```bash
-# Run PHPStan analysis (Level 5)
-TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
+# Run PHPStan analysis (Level 5) - Xdebug disabled for performance
+XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
 
 # Fix code style issues
 ./vendor/bin/php-cs-fixer fix
@@ -36,7 +36,7 @@ TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
 ./vendor/bin/php-cs-fixer fix --dry-run --diff
 
 # Quick validation before commit (one-liner)
-./vendor/bin/pest --parallel && TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G && ./vendor/bin/php-cs-fixer fix --dry-run --diff
+./vendor/bin/pest --parallel && XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G && ./vendor/bin/php-cs-fixer fix --dry-run --diff
 ```
 
 ### Development Server

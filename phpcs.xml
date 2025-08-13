@@ -6,8 +6,17 @@
     <rule ref="PSR12">
         <!-- Allow snake_case test method names -->
         <exclude name="PSR1.Methods.CamelCapsMethodName.NotCamelCaps"/>
-        <!-- Exclude line length check -->
+        <!-- Exclude strict line length check -->
         <exclude name="Generic.Files.LineLength"/>
+    </rule>
+    
+    <!-- Configure line length with higher limits -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="150"/>
+            <property name="absoluteLineLimit" value="200"/>
+            <property name="ignoreComments" value="true"/>
+        </properties>
     </rule>
     
     <!-- Apply the snake_case exclusion only to test files -->
