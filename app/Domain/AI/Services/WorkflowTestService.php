@@ -120,7 +120,7 @@ class WorkflowTestService
             $conversationIdInitialized = $property->isInitialized($aggregate);
         }
 
-        if (!$conversationIdInitialized) {
+        if (! $conversationIdInitialized) {
             $aggregate->startConversation(
                 $conversationId,
                 'approval-agent',

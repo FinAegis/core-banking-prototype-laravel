@@ -35,14 +35,17 @@ XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [files] --leve
 # Check for dead code and bleeding edge issues
 XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [files] --level=max --memory-limit=2G
 
-# Fix code style issues
+# Fix code style issues (IMPORTANT: Run before committing!)
 ./vendor/bin/php-cs-fixer fix
 
-# Check style without fixing
+# Check style without fixing (use this to verify)
 ./vendor/bin/php-cs-fixer fix --dry-run --diff
 
-# Quick validation before commit (one-liner)
-./vendor/bin/pest --parallel && XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G && ./vendor/bin/php-cs-fixer fix --dry-run --diff
+# Quick validation before commit (one-liner - RECOMMENDED)
+./vendor/bin/pest --parallel && XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G && ./vendor/bin/php-cs-fixer fix
+
+# Full pre-commit validation (ensures all style issues are fixed)
+./vendor/bin/php-cs-fixer fix && ./vendor/bin/pest --parallel && XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
 ```
 
 ### Development Server
