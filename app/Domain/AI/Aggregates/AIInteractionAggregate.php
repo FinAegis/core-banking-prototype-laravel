@@ -84,9 +84,9 @@ class AIInteractionAggregate extends AggregateRoot
                 $this->conversationId,
                 'Low confidence decision',
                 [
-                    'decision' => $decision,
+                    'decision'   => $decision,
                     'confidence' => $confidence,
-                    'reasoning' => $reasoning,
+                    'reasoning'  => $reasoning,
                 ],
                 $confidence,
                 null
