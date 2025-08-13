@@ -17,12 +17,16 @@ use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 use Workflow\WorkflowStub;
+use PHPUnit\Framework\Attributes\Group;
 
+#[Group('slow')]
+#[Group('workflows')]
 class AgentWorkflowTest extends TestCase
 {
     // Note: RefreshDatabase not needed - testing workflows with stubs
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function customer_service_workflow_processes_balance_inquiry(): void
     {
         // Arrange
@@ -75,7 +79,8 @@ class AgentWorkflowTest extends TestCase
         Event::assertDispatched(AIDecisionMadeEvent::class);
     }
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function compliance_workflow_performs_kyc_verification(): void
     {
         // Arrange
@@ -106,7 +111,8 @@ class AgentWorkflowTest extends TestCase
         });
     }
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function risk_assessment_saga_evaluates_multiple_risk_factors(): void
     {
         // Arrange
@@ -150,7 +156,8 @@ class AgentWorkflowTest extends TestCase
         $this->assertArrayHasKey('transaction_risk', $result['risk_factors']);
     }
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function fraud_detection_workflow_identifies_suspicious_activity(): void
     {
         // Arrange
@@ -185,7 +192,8 @@ class AgentWorkflowTest extends TestCase
         });
     }
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function workflow_requests_human_intervention_for_low_confidence(): void
     {
         // Arrange
@@ -221,7 +229,8 @@ class AgentWorkflowTest extends TestCase
         Event::assertDispatched(\App\Domain\AI\Events\HumanInterventionRequestedEvent::class);
     }
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function workflow_handles_compensation_on_failure(): void
     {
         // Arrange
@@ -252,7 +261,8 @@ class AgentWorkflowTest extends TestCase
         Event::assertDispatched(\App\Domain\AI\Events\CompensationExecutedEvent::class);
     }
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function multi_agent_coordination_delegates_tasks(): void
     {
         // Arrange
@@ -288,7 +298,8 @@ class AgentWorkflowTest extends TestCase
         });
     }
 
-        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function human_in_the_loop_waits_for_approval(): void
     {
         // Arrange
@@ -328,6 +339,7 @@ class AgentWorkflowTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function human_in_the_loop_handles_rejection(): void
     {
         // Arrange
@@ -368,6 +380,7 @@ class AgentWorkflowTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
+    #[Group('slow')]
     public function human_in_the_loop_handles_timeout(): void
     {
         // Arrange

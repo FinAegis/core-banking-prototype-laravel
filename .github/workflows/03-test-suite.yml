@@ -262,7 +262,7 @@ jobs:
           DB_DATABASE: testing
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci-optimized.xml --exclude-group=slow
+        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci-optimized.xml --exclude-group=slow --parallel --processes=4
 
   integration-tests:
     name: Integration Tests
