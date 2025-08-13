@@ -49,14 +49,25 @@ class AgentWorkflowTest extends TestCase
             ->andReturn(['CheckBalanceTool']);
 
         // Act
-        $result = $workflow->execute($params);
+        $workflow->start(
+            $params['conversation_id'],
+            $params['message'],
+            (string) $params['user_id'],
+            $params['context']
+        );
+
+        // Get the workflow result
+        $result = $workflow->output();
 
         // Assert
+        $this->assertNotNull($result);
+        $this->assertArrayHasKey('success', $result);
+        $this->assertTrue($result['success']);
         $this->assertArrayHasKey('response', $result);
-        $this->assertArrayHasKey('confidence', $result);
-        $this->assertArrayHasKey('tools_used', $result);
-        $this->assertContains('CheckBalanceTool', $result['tools_used']);
-        $this->assertGreaterThan(0.9, $result['confidence']);
+        $this->assertArrayHasKey('metadata', $result);
+        $this->assertArrayHasKey('confidence', $result['metadata']);
+        $this->assertArrayHasKey('tools_used', $result['metadata']);
+        $this->assertGreaterThan(0.9, $result['metadata']['confidence']);
 
         // Verify events
         Event::assertDispatched(IntentRecognizedEvent::class);

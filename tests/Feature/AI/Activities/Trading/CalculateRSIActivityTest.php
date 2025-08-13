@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\AI\Activities\Trading;
 
 use App\Domain\AI\Activities\Trading\CalculateRSIActivity;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Workflow\Models\StoredWorkflow;
 use Workflow\WorkflowStub;
@@ -29,7 +30,7 @@ class CalculateRSIActivityTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_rsi_with_valid_data(): void
     {
         // Arrange
@@ -53,7 +54,7 @@ class CalculateRSIActivityTest extends TestCase
         $this->assertLessThanOrEqual(100, $result['value']);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_neutral_for_insufficient_data(): void
     {
         // Arrange
@@ -71,7 +72,7 @@ class CalculateRSIActivityTest extends TestCase
         $this->assertEquals(0.0, $result['strength']);
     }
 
-    /** @test */
+    #[Test]
     public function it_identifies_overbought_condition(): void
     {
         // Arrange - Create prices that will generate high RSI
@@ -93,7 +94,7 @@ class CalculateRSIActivityTest extends TestCase
         $this->assertEquals('overbought', $result['signal']);
     }
 
-    /** @test */
+    #[Test]
     public function it_identifies_oversold_condition(): void
     {
         // Arrange - Create prices that will generate low RSI
@@ -115,7 +116,7 @@ class CalculateRSIActivityTest extends TestCase
         $this->assertEquals('oversold', $result['signal']);
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_signal_strength_correctly(): void
     {
         // Arrange

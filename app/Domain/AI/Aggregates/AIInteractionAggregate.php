@@ -8,6 +8,7 @@ use App\Domain\AI\Events\AgentCreatedEvent;
 use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\ConversationEndedEvent;
 use App\Domain\AI\Events\ConversationStartedEvent;
+use App\Domain\AI\Events\HumanInterventionRequestedEvent;
 use App\Domain\AI\Events\IntentClassifiedEvent;
 use App\Domain\AI\Events\LLMErrorEvent;
 use App\Domain\AI\Events\LLMRequestMadeEvent;
@@ -76,13 +77,29 @@ class AIInteractionAggregate extends AggregateRoot
         float $confidence,
         bool $requiresApproval = false
     ): self {
+        // Check if confidence is below threshold and request human intervention
+        $threshold = config('ai.confidence_threshold', 0.7);
+        if ($confidence < $threshold) {
+            $this->recordThat(new HumanInterventionRequestedEvent(
+                $this->conversationId,
+                'Low confidence decision',
+                [
+                    'decision' => $decision,
+                    'confidence' => $confidence,
+                    'reasoning' => $reasoning,
+                ],
+                $confidence,
+                null
+            ));
+        }
+
         $this->recordThat(new AIDecisionMadeEvent(
             $this->conversationId,
             $this->agentType,
             $decision,
             $reasoning,
             $confidence,
-            $requiresApproval,
+            $requiresApproval || $confidence < $threshold,
             $this->userId
         ));
 
@@ -183,6 +200,12 @@ class AIInteractionAggregate extends AggregateRoot
     {
         $this->context['last_decision'] = $event->decision;
         $this->context['requires_approval'] = $event->requiresApproval;
+    }
+
+    protected function applyHumanInterventionRequestedEvent(HumanInterventionRequestedEvent $event): void
+    {
+        $this->context['intervention_requested'] = true;
+        $this->context['intervention_reason'] = $event->reason;
     }
 
     protected function applyToolExecutedEvent(ToolExecutedEvent $event): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\AI\Activities\Risk;
 
 use App\Domain\AI\Activities\Risk\CalculateDebtRatiosActivity;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Workflow\Models\StoredWorkflow;
 use Workflow\WorkflowStub;
@@ -29,7 +30,7 @@ class CalculateDebtRatiosActivityTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_debt_ratios_correctly(): void
     {
         // Arrange
@@ -57,7 +58,7 @@ class CalculateDebtRatiosActivityTest extends TestCase
         $this->assertEquals(0.1, $result['dti_ratio']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_zero_income(): void
     {
         // Arrange
@@ -77,7 +78,7 @@ class CalculateDebtRatiosActivityTest extends TestCase
         $this->assertEquals(1.0, $result['dti_ratio']); // Max ratio when income is 0
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_empty_financial_data(): void
     {
         // Act

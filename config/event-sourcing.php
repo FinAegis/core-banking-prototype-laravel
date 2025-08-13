@@ -224,6 +224,7 @@ return [
         'ai_decision_made'        => App\Domain\AI\Events\AIDecisionMadeEvent::class,
         'ai_intent_classified'    => App\Domain\AI\Events\IntentClassifiedEvent::class,
         'ai_tool_executed'        => App\Domain\AI\Events\ToolExecutedEvent::class,
+        'ai_human_intervention_requested' => App\Domain\AI\Events\HumanInterventionRequestedEvent::class,
     ],
 
     /*
