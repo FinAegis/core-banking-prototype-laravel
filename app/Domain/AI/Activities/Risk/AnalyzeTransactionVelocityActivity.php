@@ -19,7 +19,7 @@ class AnalyzeTransactionVelocityActivity extends Activity
      *
      * @param array{user_id: string, amount: float} $input
      *
-     * @return array{violated: bool, severity: float, details: array}
+     * @return array{violated: bool, severity: float, details: array<string, mixed>}
      */
     public function execute(array $input): array
     {
@@ -49,6 +49,9 @@ class AnalyzeTransactionVelocityActivity extends Activity
         ];
     }
 
+    /**
+     * @return array{hourly_count: int, daily_count: int, daily_amount: float}
+     */
     private function getRecentTransactions(User $user): array
     {
         $hourlyCount = $user->transactions()
@@ -70,6 +73,10 @@ class AnalyzeTransactionVelocityActivity extends Activity
         ];
     }
 
+    /**
+     * @param array{hourly_count: int, daily_count: int, daily_amount: float} $recentTransactions
+     * @return array{transactions_per_hour: int, transactions_per_day: int, daily_amount_total: float, current_transaction_size: float, exceeds_hourly_limit: bool, exceeds_daily_limit: bool, exceeds_amount_limit: bool}
+     */
     private function calculateVelocityMetrics(array $recentTransactions, float $currentAmount): array
     {
         return [
@@ -83,6 +90,9 @@ class AnalyzeTransactionVelocityActivity extends Activity
         ];
     }
 
+    /**
+     * @param array{exceeds_hourly_limit: bool, exceeds_daily_limit: bool, exceeds_amount_limit: bool} $metrics
+     */
     private function checkVelocityViolation(array $metrics): bool
     {
         return $metrics['exceeds_hourly_limit'] ||
@@ -90,6 +100,9 @@ class AnalyzeTransactionVelocityActivity extends Activity
                $metrics['exceeds_amount_limit'];
     }
 
+    /**
+     * @param array{exceeds_hourly_limit: bool, exceeds_daily_limit: bool, exceeds_amount_limit: bool} $metrics
+     */
     private function calculateSeverity(array $metrics): float
     {
         $severity = 0.0;

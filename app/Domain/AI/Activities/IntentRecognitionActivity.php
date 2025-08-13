@@ -8,6 +8,10 @@ use Workflow\Activity;
 
 class IntentRecognitionActivity extends Activity
 {
+    /**
+     * @param array<string, mixed> $context
+     * @return array{type: string, confidence: float, entities: array<string, mixed>}
+     */
     public function recognize(string $query, array $context = []): array
     {
         // This is a placeholder implementation for testing

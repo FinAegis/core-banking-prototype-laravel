@@ -113,7 +113,7 @@ class WorkflowTestService
         // Using reflection to check if property is initialized since ?? doesn't throw
         $reflectionClass = new \ReflectionClass($aggregate);
         $conversationIdInitialized = false;
-        
+
         if ($reflectionClass->hasProperty('conversationId')) {
             $property = $reflectionClass->getProperty('conversationId');
             $property->setAccessible(true);
