@@ -94,6 +94,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
         $mockTool->shouldReceive('isCacheable')->andReturn(false);
         $mockTool->shouldReceive('validateInput')->andReturn(true);
+        $mockTool->shouldReceive('authorize')->with(Mockery::any())->andReturn(true);
         $mockTool->shouldReceive('execute')
             ->with(Mockery::on(function ($args) use ($params) {
                 return $args === $params;
@@ -129,6 +130,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
         $mockTool->shouldReceive('getOutputSchema')->andReturn([]);
         $mockTool->shouldReceive('isCacheable')->andReturn(false);
+        $mockTool->shouldReceive('authorize')->with(Mockery::any())->andReturn(true);
         // Add execute expectation in case it gets called before validation failure
         $mockTool->shouldReceive('execute')->never();
 
@@ -167,6 +169,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getCacheTtl')->andReturn(300);
         $mockTool->shouldReceive('validate')->andReturn(true);
         $mockTool->shouldReceive('validateInput')->andReturn(true);
+        $mockTool->shouldReceive('authorize')->with(Mockery::any())->andReturn(true);
         $mockTool->shouldReceive('execute')
             ->with(Mockery::on(function ($args) use ($params) {
                 return $args === $params;
@@ -225,6 +228,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getDescription')->andReturn('Failing test tool');
         $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
         $mockTool->shouldReceive('isCacheable')->andReturn(false);
+        $mockTool->shouldReceive('authorize')->with(Mockery::any())->andReturn(true);
         $mockTool->shouldReceive('execute')
             ->with(Mockery::on(function ($args) use ($params) {
                 return $args === $params;
@@ -276,14 +280,21 @@ class MCPServerTest extends TestCase
     {
         // Arrange
         $toolName = 'restricted_tool';
-        $mockTool = $this->createMockTool($toolName, 'Restricted tool');
 
-        /** @var MCPToolInterface&Mockery\MockInterface $mockTool */
+        // Create a fresh mock without using the helper to avoid conflicting expectations
+        $mockTool = Mockery::mock(MCPToolInterface::class);
         $mockTool->shouldReceive('getName')->andReturn($toolName);
         $mockTool->shouldReceive('getCategory')->andReturn('restricted');
         $mockTool->shouldReceive('getDescription')->andReturn('Restricted tool');
         $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
+        $mockTool->shouldReceive('getOutputSchema')->andReturn([]);
+        $mockTool->shouldReceive('getCapabilities')->andReturn([]);
+        $mockTool->shouldReceive('isCacheable')->andReturn(false);
+        $mockTool->shouldReceive('getCacheTtl')->andReturn(0);
+        $mockTool->shouldReceive('validate')->andReturn(true);
         $mockTool->shouldReceive('validateInput')->andReturn(true);
+        $mockTool->shouldReceive('authorize')->with(null)->andReturn(false); // This will deny authorization
+
         /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
 
@@ -308,6 +319,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getDescription')->andReturn('Monitored tool');
         $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
         $mockTool->shouldReceive('isCacheable')->andReturn(false);
+        $mockTool->shouldReceive('authorize')->with(Mockery::any())->andReturn(true);
         $mockTool->shouldReceive('getCacheConfig')->andReturn(['enabled' => false]);
 
         /** @var MCPToolInterface $mockTool */
@@ -351,7 +363,7 @@ class MCPServerTest extends TestCase
         ]);
         $mock->shouldReceive('validate')->andReturn(true);
         $mock->shouldReceive('validateInput')->andReturn(true);
-        $mock->shouldReceive('authorize')->andReturn(true);
+        $mock->shouldReceive('authorize')->with(Mockery::any())->andReturn(true);
         $mock->shouldReceive('execute')
             ->with(Mockery::type('array'), Mockery::type('string'))
             ->andReturn(ToolExecutionResult::success(['success' => true]));

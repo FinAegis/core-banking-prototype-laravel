@@ -168,6 +168,14 @@ class MCPServer implements MCPServerInterface
 
         $tool = $this->tools[$toolName];
 
+        // Check authorization
+        $userId = $arguments['user_uuid'] ?? null;
+        if (! $tool->authorize($userId)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException(
+                "User is not authorized to use tool: {$toolName}"
+            );
+        }
+
         // Validate input against schema
         $this->validateToolInput($tool, $arguments);
 
