@@ -168,20 +168,32 @@ class MCPServer implements MCPServerInterface
 
         $tool = $this->tools[$toolName];
 
-        // Check authorization
-        $userId = $arguments['user_uuid'] ?? null;
-        if (! $tool->authorize($userId)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException(
-                "User is not authorized to use tool: {$toolName}"
-            );
-        }
-
-        // Validate input against schema
+        // Validate input against schema first (before authorization)
         $this->validateToolInput($tool, $arguments);
 
         // Additional validation using tool's validateInput method
         if (! $tool->validateInput($arguments)) {
             throw new \InvalidArgumentException("Tool input validation failed for: {$toolName}");
+        }
+
+        // Check authorization after validation
+        $userId = $arguments['user_uuid'] ?? null;
+
+        // Special handling for missing user - check if it's a "not found" vs "not authorized" case
+        if (! $userId && ! auth()->check()) {
+            // No user ID provided and no authenticated user
+            if (in_array('user_uuid', $tool->getInputSchema()['required'] ?? [])) {
+                // If user_uuid is required and missing, this is a validation error (should be caught above)
+                throw new MCPException('User not found or not authenticated');
+            }
+            // For optional user_uuid, this is an authorization issue if no auth
+            if (! $tool->authorize($userId)) {
+                throw new MCPException('User not found or not authenticated');
+            }
+        } elseif (! $tool->authorize($userId)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException(
+                "User is not authorized to use tool: {$toolName}"
+            );
         }
 
         // Execute tool with timing
