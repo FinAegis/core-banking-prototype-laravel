@@ -10,6 +10,7 @@ use App\Domain\AI\MCP\MCPServer;
 use App\Domain\AI\MCP\ResourceManager;
 use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\AI\ValueObjects\MCPRequest;
+use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
@@ -75,9 +76,12 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
         $mockTool->shouldReceive('getDescription')->andReturn('Balance check tool');
         $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
+        $mockTool->shouldReceive('isCacheable')->andReturn(false);
         $mockTool->shouldReceive('execute')
-            ->with($params)
-            ->andReturn($expectedResult);
+            ->withArgs(function($args, $conversationId) use ($params) {
+                return $args === $params && is_string($conversationId);
+            })
+            ->andReturn(ToolExecutionResult::success($expectedResult));
 
         /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
@@ -90,7 +94,7 @@ class MCPServerTest extends TestCase
         Event::assertDispatched(ToolExecutedEvent::class, function ($event) use ($toolName, $params) {
             return $event->toolName === $toolName
                 && $event->parameters === $params
-                && $event->success === true;
+                && $event->wasSuccessful();
         });
     }
 
@@ -104,6 +108,9 @@ class MCPServerTest extends TestCase
             ->andReturn(false);
         $mockTool->shouldReceive('getInputSchema')->andReturn([]);
         $mockTool->shouldReceive('getOutputSchema')->andReturn([]);
+        $mockTool->shouldReceive('isCacheable')->andReturn(false);
+        // Add execute expectation in case it gets called before validation failure
+        $mockTool->shouldReceive('execute')->never();
 
         $mockTool->shouldReceive('getName')->andReturn('validated_tool');
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
@@ -136,8 +143,14 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
         $mockTool->shouldReceive('getDescription')->andReturn('Cacheable test tool');
         $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
+        $mockTool->shouldReceive('isCacheable')->andReturn(true);
         $mockTool->shouldReceive('validate')->andReturn(true);
-        $mockTool->shouldReceive('execute')->once()->andReturn($result);
+        $mockTool->shouldReceive('execute')
+            ->once()
+            ->withArgs(function($args, $conversationId) use ($params) {
+                return $args === $params && is_string($conversationId);
+            })
+            ->andReturn(ToolExecutionResult::success($result));
 
         /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
@@ -188,9 +201,12 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getName')->andReturn($toolName);
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
         $mockTool->shouldReceive('getDescription')->andReturn('Failing test tool');
+        $mockTool->shouldReceive('isCacheable')->andReturn(false);
         /** @var Mockery\ExpectationInterface $expectation */
         $expectation = $mockTool->shouldReceive('execute');
-        $expectation->andThrow(new \RuntimeException($errorMessage));
+        $expectation->withArgs(function($args, $conversationId) use ($params) {
+            return $args === $params && is_string($conversationId);
+        })->andThrow(new \RuntimeException($errorMessage));
 
         /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
@@ -205,7 +221,7 @@ class MCPServerTest extends TestCase
 
         // Verify failure event was recorded
         Event::assertDispatched(ToolExecutedEvent::class, function ($event) use ($toolName) {
-            return $event->toolName === $toolName && $event->success === false;
+            return $event->toolName === $toolName && !$event->wasSuccessful();
         });
     }
 
@@ -258,10 +274,15 @@ class MCPServerTest extends TestCase
         $toolName = 'monitored_tool';
         $mockTool = Mockery::mock(MCPToolInterface::class);
         $mockTool->shouldReceive('validate')->andReturn(true);
-        $mockTool->shouldReceive('execute')->andReturn(['success' => true]);
+        $mockTool->shouldReceive('execute')
+            ->withArgs(function($args, $conversationId) {
+                return is_array($args) && is_string($conversationId);
+            })
+            ->andReturn(ToolExecutionResult::success(['success' => true]));
         $mockTool->shouldReceive('getName')->andReturn($toolName);
         $mockTool->shouldReceive('getCategory')->andReturn('monitoring');
         $mockTool->shouldReceive('getDescription')->andReturn('Monitored tool');
+        $mockTool->shouldReceive('isCacheable')->andReturn(false);
         $mockTool->shouldReceive('getCacheConfig')->andReturn(['enabled' => false]);
 
         /** @var MCPToolInterface $mockTool */
@@ -293,13 +314,18 @@ class MCPServerTest extends TestCase
         $mock->shouldReceive('getName')->andReturn($name);
         $mock->shouldReceive('getDescription')->andReturn($description);
         $mock->shouldReceive('getCategory')->andReturn('testing');
+        $mock->shouldReceive('isCacheable')->andReturn(false);
         $mock->shouldReceive('getSchema')->andReturn([
             'name'        => $name,
             'description' => $description,
             'parameters'  => [],
         ]);
         $mock->shouldReceive('validate')->andReturn(true);
-        $mock->shouldReceive('execute')->andReturn(['success' => true]);
+        $mock->shouldReceive('execute')
+            ->withArgs(function($args, $conversationId) {
+                return is_array($args) && is_string($conversationId);
+            })
+            ->andReturn(ToolExecutionResult::success(['success' => true]));
         $mock->shouldReceive('getCacheConfig')->andReturn([
             'enabled' => false,
             'ttl'     => 0,

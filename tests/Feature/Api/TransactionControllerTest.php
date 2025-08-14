@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +25,21 @@ beforeEach(function () {
         ['code' => 'BTC'],
         ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true, 'metadata' => []]
     );
+    
+    // Create account balances for withdrawal tests
+    AccountBalance::create([
+        'account_uuid' => $this->account->uuid,
+        'asset_code' => 'USD',
+        'current_balance' => 100000, // $1000.00 in cents
+        'available_balance' => 100000,
+    ]);
+    
+    AccountBalance::create([
+        'account_uuid' => $this->account->uuid,
+        'asset_code' => 'BTC',
+        'current_balance' => 10000000, // 0.1 BTC in satoshis
+        'available_balance' => 10000000,
+    ]);
 });
 
 describe('POST /api/accounts/{uuid}/deposit', function () {

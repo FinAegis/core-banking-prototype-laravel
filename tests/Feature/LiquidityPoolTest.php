@@ -106,7 +106,7 @@ class LiquidityPoolTest extends DomainTestCase
         // Check pool reserves updated
         $poolProjection = PoolProjection::where('pool_id', $poolId)->first();
         $this->assertEquals('1.000000000000000000', $poolProjection->base_reserve);
-        $this->assertEquals('48000.00', $poolProjection->quote_reserve);
+        $this->assertEquals('48000.000000000000000000', $poolProjection->quote_reserve);
         $this->assertGreaterThan(0, $poolProjection->total_shares);
 
         // Check provider record created
@@ -151,7 +151,7 @@ class LiquidityPoolTest extends DomainTestCase
         // Check pool reserves updated
         $poolProjection = PoolProjection::where('pool_id', $poolId)->first();
         $this->assertEquals('0.500000000000000000', $poolProjection->base_reserve);
-        $this->assertEquals('24000.00', $poolProjection->quote_reserve);
+        $this->assertEquals('24000.000000000000000000', $poolProjection->quote_reserve);
 
         // Check provider shares updated
         $provider->refresh();
@@ -206,7 +206,7 @@ class LiquidityPoolTest extends DomainTestCase
         // Check pool reserves
         $poolProjection = PoolProjection::where('pool_id', $poolId)->first();
         $this->assertEquals('3.000000000000000000', $poolProjection->base_reserve);
-        $this->assertEquals('144000.00', $poolProjection->quote_reserve);
+        $this->assertEquals('144000.000000000000000000', $poolProjection->quote_reserve);
 
         // Check providers have correct share percentages
         $provider1 = LiquidityProvider::where('pool_id', $poolId)
