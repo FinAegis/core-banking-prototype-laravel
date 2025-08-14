@@ -15,8 +15,8 @@ use Tests\TestCase;
 
 class AIInteractionAggregateTest extends TestCase
 {
-    // Note: RefreshDatabase not needed - testing event sourcing aggregates in memory
-
+    // Note: RefreshDatabase is needed for event sourcing snapshots table
+    
     /**
      * Override to prevent database operations in setUp.
      */
