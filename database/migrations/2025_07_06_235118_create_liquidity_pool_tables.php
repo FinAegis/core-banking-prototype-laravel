@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class () extends Migration {
@@ -42,18 +43,18 @@ return new class () extends Migration {
 
             $table->unique(['pool_id', 'provider_id']);
         });
-        
+
         // Add foreign key constraint separately to avoid timeout issues
         // Use raw SQL with increased lock wait timeout for MySQL
         if (config('database.default') === 'mysql') {
-            \DB::statement('SET SESSION innodb_lock_wait_timeout = 120');
+            DB::statement('SET SESSION innodb_lock_wait_timeout = 120');
             Schema::table('liquidity_providers', function (Blueprint $table) {
                 $table->foreign('pool_id')
                     ->references('pool_id')
                     ->on('liquidity_pools')
                     ->onDelete('cascade');
             });
-            \DB::statement('SET SESSION innodb_lock_wait_timeout = 50'); // Reset to default
+            DB::statement('SET SESSION innodb_lock_wait_timeout = 50'); // Reset to default
         } else {
             // For SQLite and other databases, add the foreign key normally
             Schema::table('liquidity_providers', function (Blueprint $table) {
@@ -78,17 +79,17 @@ return new class () extends Migration {
             $table->json('metadata')->nullable();
             $table->timestamps();
         });
-        
+
         // Add foreign key constraint separately to avoid timeout issues
         if (config('database.default') === 'mysql') {
-            \DB::statement('SET SESSION innodb_lock_wait_timeout = 120');
+            DB::statement('SET SESSION innodb_lock_wait_timeout = 120');
             Schema::table('pool_swaps', function (Blueprint $table) {
                 $table->foreign('pool_id')
                     ->references('pool_id')
                     ->on('liquidity_pools')
                     ->onDelete('cascade');
             });
-            \DB::statement('SET SESSION innodb_lock_wait_timeout = 50'); // Reset to default
+            DB::statement('SET SESSION innodb_lock_wait_timeout = 50'); // Reset to default
         } else {
             // For SQLite and other databases, add the foreign key normally
             Schema::table('pool_swaps', function (Blueprint $table) {
