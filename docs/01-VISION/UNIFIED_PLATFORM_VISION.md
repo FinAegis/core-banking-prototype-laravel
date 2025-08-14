@@ -168,7 +168,7 @@ All demonstrations use the same core prototype infrastructure, showcasing code r
    - FX optimization tools
    - Corporate treasury features
 
-4. **FinAegis Lending** (Q4 2025)
+4. **FinAegis Lending** (Demo Available)
    - P2P lending marketplace
    - Credit scoring integration
    - Automated loan servicing
@@ -208,17 +208,17 @@ return [
             'advanced_orders' => true,
         ],
         'licenses' => ['vasp', 'mica'],
-        'metadata' => ['launch_date' => '2025-03-01'],
+        'metadata' => ['demo_mode' => true],
     ],
     'lending' => [
-        'enabled' => false, // Coming Q4 2025
+        'enabled' => false, // Demo only
         'features' => [
             'sme_loans' => true,
             'invoice_financing' => true,
             'p2p_marketplace' => true,
         ],
         'licenses' => ['lending_license'],
-        'metadata' => ['launch_date' => '2025-10-01'],
+        'metadata' => ['demo_mode' => true],
     ],
     'stablecoins' => [
         'enabled' => true,
@@ -228,7 +228,7 @@ return [
             'asset_backed_tokens' => true,
         ],
         'licenses' => ['emi_license', 'mica'],
-        'metadata' => ['launch_date' => '2025-07-01'],
+        'metadata' => ['demo_mode' => true],
     ],
     'treasury' => [
         'enabled' => true,
@@ -238,7 +238,7 @@ return [
             'cash_flow_forecasting' => true,
         ],
         'licenses' => ['payment_services'],
-        'metadata' => ['launch_date' => '2025-01-01'],
+        'metadata' => ['demo_mode' => true],
     ],
 ];
 ```

@@ -307,13 +307,13 @@ Result: (1000×40 + 500×35 + 1500×30) / 3000 = 34.17%
 ### General Questions
 
 **Q: How is GCU different from cryptocurrencies?**
-A: GCU funds are held in real banks with deposit insurance, not on a blockchain. It's fully regulated and compliant with banking laws.
+A: In this demo, GCU simulates how funds would be held in banks with deposit insurance. This is a demonstration platform.
 
 **Q: Can I lose money with GCU?**
 A: GCU value can fluctuate with currency exchange rates, but diversification reduces volatility compared to single currencies.
 
-**Q: What happens if a partner bank fails?**
-A: Your funds are protected by government deposit insurance up to €100k per bank. Additionally, funds are automatically redistributed if a bank shows signs of trouble.
+**Q: How does the demo simulate bank failures?**
+A: The demo shows how funds would theoretically be protected and redistributed in case of bank issues.
 
 ### Technical Questions
 
@@ -324,7 +324,7 @@ A: Every 30 seconds based on real-time exchange rates.
 A: Yes, through recurring orders or API integration.
 
 **Q: Is there a GCU debit card?**
-A: Coming in Q4 2025 with selected partner banks.
+A: This is a demo feature showing how debit card integration could work.
 
 ### Voting Questions
 
@@ -341,22 +341,22 @@ A: The current composition is maintained in case of exact ties.
 
 ### Getting Help
 
-- **GCU Support**: gcu@finaegis.org
-- **Live Chat**: Available 24/7
-- **Community Forum**: discuss.finaegis.org/gcu
-- **Video Tutorials**: youtube.com/finaegis
+- **Documentation**: Available in /docs
+- **Demo Mode**: Fully functional demonstration
+- **Test Accounts**: Pre-configured for testing
+- **Source Code**: Available on GitHub
 
 ### Stay Updated
 
-- **Monthly Newsletter**: GCU composition updates
-- **Twitter**: @FinAegisGCU
-- **Blog**: blog.finaegis.org/gcu
-- **API Status**: status.finaegis.org
+- **Demo Features**: All features available for testing
+- **API Documentation**: See /docs/04-API
+- **Technical Guides**: See /docs/06-DEVELOPMENT
+- **Architecture**: See /docs/02-ARCHITECTURE
 
 ### Feedback
 
-We value your input on GCU:
-- Feature requests: features@finaegis.org
+This is a demonstration platform:
+- GitHub Issues: Report bugs and suggestions
 - Bug reports: GitHub issues
 - General feedback: In-app feedback form
 

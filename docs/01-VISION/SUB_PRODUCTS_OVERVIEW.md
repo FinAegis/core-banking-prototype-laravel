@@ -186,7 +186,7 @@ Each sub-product can be independently enabled or disabled:
         'licenses' => ['vasp', 'mica'],
     ],
     'lending' => [
-        'enabled' => false, // Coming Q2 2025
+        'enabled' => false, // Demo mode only
         'features' => ['sme_loans', 'invoice_financing'],
         'licenses' => ['lending_license'],
     ],
@@ -214,10 +214,10 @@ Each sub-product can be independently enabled or disabled:
 ## Regulatory Framework
 
 ### Core Licenses
-- **EMI License**: E-money institution (Lithuania) - ✅ Planned Q3 2025
-- **Payment Services**: PSD2 compliance across EU - ✅ Ready
-- **VASP Registration**: Virtual asset service provider - 🔄 Q4 2025
-- **Lending License**: P2P lending authorization - 🔄 Q1 2026
+- **EMI License**: E-money institution - Demo simulation
+- **Payment Services**: PSD2 compliance - Demo implementation
+- **VASP Registration**: Virtual asset service provider - Demo mode
+- **Lending License**: P2P lending authorization - Demo only
 
 ### Compliance by Sub-Product
 - **Exchange**: VASP, MiCA, AML/CFT
@@ -229,18 +229,18 @@ Each sub-product can be independently enabled or disabled:
 
 ## Roadmap and Availability
 
-### Current Status (Q2 2025)
+### Current Status (Demo Platform)
 - ✅ **GCU**: Fully operational flagship product
 - ✅ **Treasury**: Basic multi-bank allocation available
 - 🔄 **Stablecoins**: EUR stablecoin in beta testing
-- 🔄 **Exchange**: Fiat trading live, crypto coming Q3 2025
-- 📋 **Lending**: Development starting Q4 2025
+- 🔄 **Exchange**: Demo trading available
+- 📋 **Lending**: Demo implementation available
 
-### Planned Releases
-- **Q3 2025**: Exchange crypto trading, advanced stablecoins
-- **Q4 2025**: Enhanced treasury features, lending beta
-- **Q1 2026**: Full lending marketplace, advanced trading
-- **Q2 2026**: Cross-chain stablecoins, institutional features
+### Available Features (Demo)
+- **Exchange**: Demo crypto and fiat trading
+- **Treasury**: Multi-bank allocation simulation
+- **Lending**: P2P lending demonstration
+- **Stablecoins**: EUR stablecoin demo
 
 ---
 
@@ -268,10 +268,10 @@ Each sub-product can be independently enabled or disabled:
 
 ## Contact and Support
 
-### Sales and Partnerships
-- **Email**: partnerships@finaegis.org
-- **Phone**: +370 600 12345 (Lithuania)
-- **Address**: Vilnius, Lithuania
+### Demo Support
+- **Documentation**: Available in /docs
+- **Demo Mode**: Fully functional demonstration
+- **Test Data**: Pre-configured demo accounts
 
 ### Technical Integration
 - **Developer Portal**: developers.finaegis.org
@@ -285,6 +285,6 @@ Each sub-product can be independently enabled or disabled:
 
 ---
 
-*Last Updated: June 26, 2025*
-*Version: 1.0*
-*Next Review: September 2025*
+*Last Updated: August 14, 2025*
+*Version: 1.0 Demo*
+*Platform Type: Demonstration*
