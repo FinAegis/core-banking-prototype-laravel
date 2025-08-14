@@ -8,16 +8,15 @@ use App\Domain\Shared\ValueObjects\Hash;
 use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
-class CollateralPositionClosed extends ShouldBeStored
+class CollateralPriceUpdated extends ShouldBeStored
 {
     public function __construct(
         public readonly string $positionId,
-        public readonly string $ownerId,
-        public readonly array $finalCollateral,
-        public readonly float $finalDebt,
-        public readonly string $closureReason,
+        public readonly float $oldPrice,
+        public readonly float $newPrice,
+        public readonly float $priceChange,
         public readonly Hash $hash,
-        public readonly DateTimeImmutable $closedAt
+        public readonly DateTimeImmutable $updatedAt
     ) {
     }
 }
