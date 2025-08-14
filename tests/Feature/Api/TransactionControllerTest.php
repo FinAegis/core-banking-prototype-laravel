@@ -15,29 +15,37 @@ beforeEach(function () {
     $this->user = User::factory()->create();
     $this->account = Account::factory()->create(['user_uuid' => $this->user->uuid]);
 
-    // Only create assets if they don't exist to avoid unique constraint violations
-    $this->asset = Asset::firstOrCreate(
+    // Ensure assets exist - use updateOrCreate for better reliability in CI
+    $this->asset = Asset::updateOrCreate(
         ['code' => 'USD'],
         ['name' => 'US Dollar', 'type' => 'fiat', 'precision' => 2, 'is_active' => true, 'metadata' => []]
     );
 
-    $this->btcAsset = Asset::firstOrCreate(
+    $this->btcAsset = Asset::updateOrCreate(
         ['code' => 'BTC'],
         ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true, 'metadata' => []]
     );
 
-    // Create account balances for withdrawal tests
-    AccountBalance::create([
-        'account_uuid' => $this->account->uuid,
-        'asset_code'   => 'USD',
-        'balance'      => 100000, // $1000.00 in cents
-    ]);
+    // Create initial account balances using updateOrCreate to avoid duplicates
+    AccountBalance::updateOrCreate(
+        [
+            'account_uuid' => $this->account->uuid,
+            'asset_code'   => 'USD',
+        ],
+        [
+            'balance' => 100000, // $1000.00 in cents
+        ]
+    );
 
-    AccountBalance::create([
-        'account_uuid' => $this->account->uuid,
-        'asset_code'   => 'BTC',
-        'balance'      => 10000000, // 0.1 BTC in satoshis
-    ]);
+    AccountBalance::updateOrCreate(
+        [
+            'account_uuid' => $this->account->uuid,
+            'asset_code'   => 'BTC',
+        ],
+        [
+            'balance' => 10000000, // 0.1 BTC in satoshis
+        ]
+    );
 });
 
 describe('POST /api/accounts/{uuid}/deposit', function () {
@@ -175,7 +183,20 @@ describe('POST /api/accounts/{uuid}/deposit', function () {
 
 describe('POST /api/accounts/{uuid}/withdraw', function () {
     beforeEach(function () {
-        // Set up account with balance for withdrawal tests using updateOrCreate to avoid duplicates
+        // Ensure assets are available (they should be from parent beforeEach)
+        // Just verify they exist in CI
+        if (! Asset::where('code', 'USD')->exists()) {
+            Asset::create([
+                'code'      => 'USD',
+                'name'      => 'US Dollar',
+                'type'      => 'fiat',
+                'precision' => 2,
+                'is_active' => true,
+                'metadata'  => [],
+            ]);
+        }
+
+        // Update balances to ensure sufficient funds for withdrawal
         $this->account->balances()->updateOrCreate(
             ['asset_code' => 'USD'],
             ['balance' => 100000] // $1000 in cents
@@ -194,6 +215,12 @@ describe('POST /api/accounts/{uuid}/withdraw', function () {
             'asset_code'  => 'USD',
             'description' => 'Test withdrawal',
         ]);
+
+        // If test fails in CI, output validation errors for debugging
+        if ($response->status() === 422) {
+            dump('Validation errors:', $response->json('errors'));
+            dump('Response message:', $response->json('message'));
+        }
 
         $response->assertStatus(200)
             ->assertJson([
