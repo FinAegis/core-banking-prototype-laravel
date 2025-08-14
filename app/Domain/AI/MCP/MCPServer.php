@@ -171,6 +171,11 @@ class MCPServer implements MCPServerInterface
         // Validate input against schema
         $this->validateToolInput($tool, $arguments);
 
+        // Additional validation using tool's validateInput method
+        if (! $tool->validateInput($arguments)) {
+            throw new \InvalidArgumentException("Tool input validation failed for: {$toolName}");
+        }
+
         // Execute tool with timing
         $startTime = microtime(true);
 
@@ -422,7 +427,20 @@ class MCPServer implements MCPServerInterface
 
     public function listTools(): array
     {
-        return array_values($this->tools);
+        // Get fresh tools from registry
+        $this->tools = $this->toolRegistry->getAllTools();
+
+        $tools = [];
+        foreach ($this->tools as $name => $tool) {
+            if ($tool instanceof MCPToolInterface) {
+                $tools[] = [
+                    'name'        => $tool->getName(),
+                    'description' => $tool->getDescription(),
+                ];
+            }
+        }
+
+        return $tools;
     }
 
     public function listResources(): array

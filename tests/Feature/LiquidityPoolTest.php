@@ -291,7 +291,7 @@ class LiquidityPoolTest extends DomainTestCase
         $this->assertEquals('BTC', $metrics['base_currency']);
         $this->assertEquals('EUR', $metrics['quote_currency']);
         $this->assertEquals('1.000000000000000000', $metrics['base_reserve']);
-        $this->assertEquals('48000.00', $metrics['quote_reserve']);
+        $this->assertEquals('48000.000000000000000000', $metrics['quote_reserve']);
         $this->assertEquals('48000', substr($metrics['spot_price'], 0, 5));
         $this->assertEquals('96000', substr($metrics['tvl'], 0, 5)); // 1 BTC + 48000 EUR in EUR terms
         $this->assertEquals(1, $metrics['provider_count']);
