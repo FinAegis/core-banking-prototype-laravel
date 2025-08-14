@@ -179,18 +179,25 @@ class MCPServer implements MCPServerInterface
         // Check authorization after validation
         $userId = $arguments['user_uuid'] ?? null;
 
-        // Special handling for missing user - check if it's a "not found" vs "not authorized" case
-        if (! $userId && ! auth()->check()) {
-            // No user ID provided and no authenticated user
-            if (in_array('user_uuid', $tool->getInputSchema()['required'] ?? [])) {
-                // If user_uuid is required and missing, this is a validation error (should be caught above)
-                throw new MCPException('User not found or not authenticated');
+        // Check authorization - the tool decides if it needs a user
+        if (! $tool->authorize($userId)) {
+            // Determine the type of failure based on context
+            // If there's no user ID and no authenticated user, this might be a "not found" case
+            // But we need to check if the tool actually requires authentication
+            if (! $userId && ! auth()->check()) {
+                // Check if this tool typically requires auth by looking at its input schema
+                $schema = $tool->getInputSchema();
+                $requiresUser = isset($schema['properties']['user_uuid']) ||
+                               in_array('user_uuid', $schema['required'] ?? []);
+
+                // If the tool expects a user and none is provided, it's a "not found/not authenticated" issue
+                if ($requiresUser) {
+                    // Return an error response that will be handled by the handle() method
+                    throw new MCPException('User not found or not authenticated');
+                }
             }
-            // For optional user_uuid, this is an authorization issue if no auth
-            if (! $tool->authorize($userId)) {
-                throw new MCPException('User not found or not authenticated');
-            }
-        } elseif (! $tool->authorize($userId)) {
+
+            // Otherwise it's a proper authorization failure
             throw new \Illuminate\Auth\Access\AuthorizationException(
                 "User is not authorized to use tool: {$toolName}"
             );
