@@ -16,6 +16,22 @@ use Tests\TestCase;
 class AIInteractionAggregateTest extends TestCase
 {
     // Note: RefreshDatabase not needed - testing event sourcing aggregates in memory
+    
+    /**
+     * Override to prevent database operations in setUp
+     */
+    protected function shouldCreateDefaultAccountsInSetup(): bool
+    {
+        return false;
+    }
+    
+    /**
+     * Override to prevent role creation
+     */
+    protected function createRoles(): void
+    {
+        // Skip role creation for this test
+    }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_starts_a_conversation_and_records_event(): void
