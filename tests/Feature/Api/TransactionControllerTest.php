@@ -25,20 +25,18 @@ beforeEach(function () {
         ['code' => 'BTC'],
         ['name' => 'Bitcoin', 'type' => 'crypto', 'precision' => 8, 'is_active' => true, 'metadata' => []]
     );
-    
+
     // Create account balances for withdrawal tests
     AccountBalance::create([
         'account_uuid' => $this->account->uuid,
-        'asset_code' => 'USD',
-        'current_balance' => 100000, // $1000.00 in cents
-        'available_balance' => 100000,
+        'asset_code'   => 'USD',
+        'balance'      => 100000, // $1000.00 in cents
     ]);
-    
+
     AccountBalance::create([
         'account_uuid' => $this->account->uuid,
-        'asset_code' => 'BTC',
-        'current_balance' => 10000000, // 0.1 BTC in satoshis
-        'available_balance' => 10000000,
+        'asset_code'   => 'BTC',
+        'balance'      => 10000000, // 0.1 BTC in satoshis
     ]);
 });
 
