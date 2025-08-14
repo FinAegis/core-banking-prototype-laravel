@@ -20,17 +20,17 @@ use Tests\TestCase;
 class MCPServerTest extends TestCase
 {
     // Note: RefreshDatabase not needed - testing MCP server with mocks
-    
+
     /**
-     * Override to prevent database operations in setUp
+     * Override to prevent database operations in setUp.
      */
     protected function shouldCreateDefaultAccountsInSetup(): bool
     {
         return false;
     }
-    
+
     /**
-     * Override to prevent role creation
+     * Override to prevent role creation.
      */
     protected function createRoles(): void
     {
