@@ -6,10 +6,10 @@ namespace Tests\Feature\AI;
 
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\Events\ToolExecutedEvent;
-use App\Domain\AI\MCP\MCPRequest;
 use App\Domain\AI\MCP\MCPServer;
 use App\Domain\AI\MCP\ResourceManager;
 use App\Domain\AI\MCP\ToolRegistry;
+use App\Domain\AI\ValueObjects\MCPRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
