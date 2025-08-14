@@ -76,7 +76,7 @@ class CustomerRiskProfileFactory extends Factory
             'restricted_currencies'       => [],
             'enhanced_monitoring'         => false,
             'monitoring_rules'            => [],
-            'monitoring_frequency'        => 'standard',
+            'monitoring_frequency'        => 30,
             'risk_history'                => [],
             'screening_history'           => [],
             'suspicious_activities_count' => 0,

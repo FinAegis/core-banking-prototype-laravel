@@ -117,8 +117,8 @@ class BalanceControllerTest extends ControllerTestCase
                     ],
                 ],
             ])
-            ->assertJsonPath('data.turnover.debit', 10000)
-            ->assertJsonPath('data.turnover.credit', 15000);
+            ->assertJsonPath('data.turnover.debit', '10000.00')
+            ->assertJsonPath('data.turnover.credit', '15000.00');
     }
 
     #[Test]

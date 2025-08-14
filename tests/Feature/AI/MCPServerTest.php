@@ -6,11 +6,13 @@ namespace Tests\Feature\AI;
 
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\Events\ToolExecutedEvent;
+use App\Domain\AI\MCP\MCPRequest;
 use App\Domain\AI\MCP\MCPServer;
 use App\Domain\AI\MCP\ResourceManager;
 use App\Domain\AI\MCP\ToolRegistry;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 use Mockery;
 use Tests\TestCase;
 
@@ -35,6 +37,12 @@ class MCPServerTest extends TestCase
             $this->toolRegistry,
             $this->resourceManager
         );
+
+        // Initialize conversation for tests
+        $request = MCPRequest::create('initialize', [
+            'conversationId' => 'test-conversation-' . Str::uuid(),
+        ]);
+        $this->mcpServer->handle($request);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -66,6 +74,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getName')->andReturn($toolName);
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
         $mockTool->shouldReceive('getDescription')->andReturn('Balance check tool');
+        $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
         $mockTool->shouldReceive('execute')
             ->with($params)
             ->andReturn($expectedResult);
@@ -126,6 +135,7 @@ class MCPServerTest extends TestCase
         $mockTool->shouldReceive('getName')->andReturn($toolName);
         $mockTool->shouldReceive('getCategory')->andReturn('testing');
         $mockTool->shouldReceive('getDescription')->andReturn('Cacheable test tool');
+        $mockTool->shouldReceive('getInputSchema')->andReturn(['required' => []]);
         $mockTool->shouldReceive('validate')->andReturn(true);
         $mockTool->shouldReceive('execute')->once()->andReturn($result);
 

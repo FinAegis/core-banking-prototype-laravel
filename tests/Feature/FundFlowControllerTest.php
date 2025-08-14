@@ -166,9 +166,9 @@ class FundFlowControllerTest extends ControllerTestCase
         $response->assertStatus(200);
         $response->assertViewIs('fund-flow.index');
         $response->assertViewHas('statistics', function ($statistics) {
-            return $statistics->total_inflow === 10000
-                && $statistics->total_outflow === 5000
-                && $statistics->net_flow === 5000;
+            return (float) $statistics->total_inflow === 10000.0
+                && (float) $statistics->total_outflow === 5000.0
+                && (float) $statistics->net_flow === 5000.0;
         });
     }
 
@@ -203,7 +203,7 @@ class FundFlowControllerTest extends ControllerTestCase
         $response->assertStatus(200);
         $response->assertViewIs('fund-flow.index');
         $response->assertViewHas('statistics', function ($statistics) {
-            return $statistics->total_inflow === 5000; // Only recent transaction
+            return (float) $statistics->total_inflow === 5000.0; // Only recent transaction
         });
     }
 

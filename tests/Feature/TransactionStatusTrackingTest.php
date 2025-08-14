@@ -230,11 +230,11 @@ class TransactionStatusTrackingTest extends DomainTestCase
             // Handle both array and object formats
             $stats = (array) $stats;
 
-            return $stats['total'] === 4
-                && $stats['completed'] === 2
-                && $stats['pending'] === 1
-                && $stats['failed'] === 1
-                && $stats['success_rate'] === 50.0;
+            return (int) $stats['total'] === 4
+                && (int) $stats['completed'] === 2
+                && (int) $stats['pending'] === 1
+                && (int) $stats['failed'] === 1
+                && (float) $stats['success_rate'] === 50.0;
         });
     }
 
