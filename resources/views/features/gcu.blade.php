@@ -20,7 +20,7 @@
 
 @push('styles')
 <style>
-    .gradient-bg {
+    .gradient-bg-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     .feature-card {
@@ -28,7 +28,11 @@
     }
     .feature-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .gcu-symbol {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
     }
 </style>
 @endpush
@@ -36,11 +40,14 @@
 @section('content')
 
     <!-- Hero Section -->
-    <section class="gradient-bg text-white pt-24 pb-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="pt-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div class="text-center">
-                <h1 class="text-5xl font-bold mb-6">Global Currency Unit (GCU)</h1>
-                <p class="text-xl text-purple-100 max-w-3xl mx-auto">
+                <div class="inline-flex items-center px-4 py-2 bg-indigo-100 rounded-full mb-6">
+                    <span class="text-indigo-600 font-semibold">Revolutionary Currency</span>
+                </div>
+                <h1 class="text-5xl font-bold text-gray-900 mb-6">Global Currency Unit (GCU)</h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                     A revolutionary basket currency designed for stability, transparency, and democratic governance in the global economy.
                 </p>
             </div>
@@ -312,12 +319,12 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 gradient-bg text-white">
+    <section class="py-20 bg-indigo-600">
         <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h2 class="text-4xl font-bold mb-6">Start Using GCU Today</h2>
-            <p class="text-xl mb-8 text-purple-100">Join thousands of users already benefiting from the stability and transparency of the Global Currency Unit</p>
+            <h2 class="text-4xl font-bold mb-6 text-white">Start Using GCU Today</h2>
+            <p class="text-xl mb-8 text-indigo-100">Join thousands of users already benefiting from the stability and transparency of the Global Currency Unit</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition">
+                <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
                     Open an Account
                 </a>
                 <a href="{{ route('gcu') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-indigo-600 transition">
