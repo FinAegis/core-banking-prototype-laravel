@@ -235,6 +235,13 @@ return [
         'ai_intent_classified'            => App\Domain\AI\Events\IntentClassifiedEvent::class,
         'ai_tool_executed'                => App\Domain\AI\Events\ToolExecutedEvent::class,
         'ai_human_intervention_requested' => App\Domain\AI\Events\HumanInterventionRequestedEvent::class,
+
+        // Treasury Management events
+        'treasury_account_created'    => App\Domain\Treasury\Events\TreasuryAccountCreated::class,
+        'cash_allocated'              => App\Domain\Treasury\Events\CashAllocated::class,
+        'yield_optimization_started'  => App\Domain\Treasury\Events\YieldOptimizationStarted::class,
+        'risk_assessment_completed'   => App\Domain\Treasury\Events\RiskAssessmentCompleted::class,
+        'regulatory_report_generated' => App\Domain\Treasury\Events\RegulatoryReportGenerated::class,
     ],
 
     /*
