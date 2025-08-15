@@ -13,12 +13,15 @@ use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\User\Values\UserRoles;
 use App\Models\User;
 use App\Values\EventQueues;
+use Illuminate\Support\Str;
 
 // Test existing model class instantiation
 it('can instantiate existing core models', function () {
     $user = User::factory()->create();
     $account = Account::factory()->create();
-    $asset = Asset::factory()->create();
+    $asset = Asset::factory()->create([
+        'code' => 'TST' . strtoupper(Str::random(3)),
+    ]);
     $exchangeRate = ExchangeRate::factory()->create();
 
     expect($user)->toBeInstanceOf(User::class);
@@ -94,7 +97,9 @@ it('can test existing factory states', function () {
 it('can test existing model relationships', function () {
     $user = User::factory()->create();
     $account = Account::factory()->forUser($user)->create();
-    $asset = Asset::factory()->create();
+    $asset = Asset::factory()->create([
+        'code' => 'TST' . strtoupper(Str::random(3)),
+    ]);
     $balance = AccountBalance::factory()->create([
         'account_uuid' => $account->uuid,
         'asset_code'   => $asset->code,
@@ -174,7 +179,10 @@ it('can test exchange rate model methods', function () {
 // Test account balance model methods
 it('can test account balance model methods extensively', function () {
     $account = Account::factory()->create();
-    $asset = Asset::factory()->create();
+    // Create asset with unique code to avoid conflicts with seeded data
+    $asset = Asset::factory()->create([
+        'code' => 'TST' . strtoupper(Str::random(3)),
+    ]);
 
     $balance = AccountBalance::factory()->create([
         'account_uuid' => $account->uuid,
