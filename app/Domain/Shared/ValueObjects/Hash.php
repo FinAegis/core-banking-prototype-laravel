@@ -11,7 +11,7 @@ final readonly class Hash
     public function __construct(
         private string $hash
     ) {
-        if (!$this->isValidHash($hash)) {
+        if (! $this->isValidHash($hash)) {
             throw new InvalidArgumentException('Invalid hash provided.');
         }
     }
@@ -29,7 +29,12 @@ final readonly class Hash
      */
     public static function fromData(array $data): self
     {
-        return new self(hash('sha3-512', json_encode($data)));
+        $encoded = json_encode($data);
+        if ($encoded === false) {
+            throw new InvalidArgumentException('Failed to encode data for hashing');
+        }
+
+        return new self(hash('sha3-512', $encoded));
     }
 
     /**

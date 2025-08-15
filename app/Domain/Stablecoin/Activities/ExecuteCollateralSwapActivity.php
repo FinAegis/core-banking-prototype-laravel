@@ -97,7 +97,6 @@ class ExecuteCollateralSwapActivity extends Activity
             Log::info('Collateral swap executed successfully', $result);
 
             return $result;
-
         } catch (\Throwable $e) {
             DB::rollBack();
 

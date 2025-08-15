@@ -204,7 +204,7 @@ class PriceOracleService
     private function fetchChainlinkPrice(string $assetCode, string $quoteCurrency): BigDecimal
     {
         // In production, this would call actual Chainlink oracle
-        return match($assetCode) {
+        return match ($assetCode) {
             'ETH'   => BigDecimal::of('2000'),
             'BTC'   => BigDecimal::of('40000'),
             'USDC'  => BigDecimal::of('1'),
@@ -218,7 +218,7 @@ class PriceOracleService
     private function fetchBinancePrice(string $assetCode, string $quoteCurrency): BigDecimal
     {
         // In production, this would call Binance API
-        return match($assetCode) {
+        return match ($assetCode) {
             'ETH'   => BigDecimal::of('1995'),
             'BTC'   => BigDecimal::of('39900'),
             'USDC'  => BigDecimal::of('0.9999'),
@@ -232,7 +232,7 @@ class PriceOracleService
     private function fetchCoinbasePrice(string $assetCode, string $quoteCurrency): BigDecimal
     {
         // In production, this would call Coinbase API
-        return match($assetCode) {
+        return match ($assetCode) {
             'ETH'   => BigDecimal::of('2005'),
             'BTC'   => BigDecimal::of('40100'),
             'USDC'  => BigDecimal::of('1.0001'),

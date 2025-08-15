@@ -14,7 +14,7 @@ enum CollateralType: string
 
     public function isVolatile(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::CRYPTO, self::COMMODITY => true,
             self::FIAT, self::MIXED, self::ALGORITHMIC => false,
         };
@@ -22,7 +22,7 @@ enum CollateralType: string
 
     public function defaultLiquidationThreshold(): float
     {
-        return match($this) {
+        return match ($this) {
             self::CRYPTO      => 150.0,      // 150% for volatile crypto
             self::FIAT        => 110.0,        // 110% for stable fiat
             self::COMMODITY   => 130.0,   // 130% for commodities
@@ -33,7 +33,7 @@ enum CollateralType: string
 
     public function minimumRatio(): float
     {
-        return match($this) {
+        return match ($this) {
             self::CRYPTO      => 200.0,      // 200% minimum for crypto
             self::FIAT        => 120.0,        // 120% for fiat
             self::COMMODITY   => 150.0,   // 150% for commodities
@@ -44,7 +44,7 @@ enum CollateralType: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::CRYPTO      => 'Cryptocurrency',
             self::FIAT        => 'Fiat Currency',
             self::COMMODITY   => 'Commodity',

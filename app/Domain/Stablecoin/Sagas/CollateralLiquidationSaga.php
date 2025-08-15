@@ -84,7 +84,6 @@ class CollateralLiquidationSaga extends Reactor
 
             // Step 2.5: Set auction timeout (typically 1 hour)
             $this->scheduleAuctionTimeout($auctionId, 3600);
-
         } catch (\Exception $e) {
             Log::error('Failed to start liquidation auction', [
                 'position_id' => $event->positionId,
@@ -162,7 +161,6 @@ class CollateralLiquidationSaga extends Reactor
                 'auction_id'     => $auctionId,
                 'remaining_debt' => $remainingDebt->toFloat(),
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to execute liquidation', [
                 'position_id' => $positionId,

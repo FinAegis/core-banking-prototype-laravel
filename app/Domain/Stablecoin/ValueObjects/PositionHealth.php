@@ -94,7 +94,7 @@ final class PositionHealth
 
     public function statusColor(): string
     {
-        return match($this->status()) {
+        return match ($this->status()) {
             'HEALTHY'     => 'green',
             'AT_RISK'     => 'yellow',
             'MARGIN_CALL' => 'orange',

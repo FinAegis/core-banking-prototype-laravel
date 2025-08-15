@@ -67,13 +67,13 @@ class CollateralPositionAggregate extends AggregateRoot
             initialDebt: $initialDebt->toFloat(),
             collateralType: $collateralType->value,
             liquidationThreshold: $liquidationThreshold->liquidationPercentage(),
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $positionId,
                 $ownerId,
                 $initialCollateral,
                 $initialDebt->toFloat(),
                 $collateralType->value,
-            ])),
+            ]),
             createdAt: new \DateTimeImmutable()
         ));
 
@@ -94,11 +94,11 @@ class CollateralPositionAggregate extends AggregateRoot
             positionId: $this->positionId,
             collateral: $additionalCollateral,
             newTotalCollateral: $this->calculateNewTotalCollateral($additionalCollateral),
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $additionalCollateral,
                 time(),
-            ])),
+            ]),
             addedAt: new \DateTimeImmutable()
         ));
 
@@ -129,11 +129,11 @@ class CollateralPositionAggregate extends AggregateRoot
             positionId: $this->positionId,
             withdrawn: $withdrawalAmount,
             remainingCollateral: $remainingCollateral,
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $withdrawalAmount,
                 time(),
-            ])),
+            ]),
             withdrawnAt: new \DateTimeImmutable()
         ));
 
@@ -152,11 +152,11 @@ class CollateralPositionAggregate extends AggregateRoot
             oldPrice: $previousPrice->toFloat(),
             newPrice: $newPrice->toFloat(),
             priceChange: $priceChange->toFloat(),
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $newPrice->toFloat(),
                 time(),
-            ])),
+            ]),
             updatedAt: new \DateTimeImmutable()
         ));
 
@@ -175,11 +175,11 @@ class CollateralPositionAggregate extends AggregateRoot
             healthRatio: $health->ratio()->toFloat(),
             isHealthy: $health->isHealthy(),
             requiresAction: $health->requiresAction(),
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $health->ratio()->toFloat(),
                 time(),
-            ])),
+            ]),
             checkedAt: new \DateTimeImmutable()
         ));
 
@@ -204,11 +204,11 @@ class CollateralPositionAggregate extends AggregateRoot
             currentRatio: $this->collateralRatio->value()->toFloat(),
             requiredRatio: $this->liquidationThreshold->marginCallLevel()->toFloat(),
             timeToRespond: 24, // hours
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $this->ownerId,
                 time(),
-            ])),
+            ]),
             issuedAt: new \DateTimeImmutable()
         ));
 
@@ -227,11 +227,11 @@ class CollateralPositionAggregate extends AggregateRoot
             collateralValue: $this->calculateCollateralValue()->toFloat(),
             debtAmount: $this->totalDebt->toFloat(),
             liquidationReason: 'Below liquidation threshold',
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $this->totalDebt->toFloat(),
                 time(),
-            ])),
+            ]),
             startedAt: new \DateTimeImmutable()
         ));
 
@@ -248,12 +248,12 @@ class CollateralPositionAggregate extends AggregateRoot
             liquidatedAmount: $liquidatedAmount->toFloat(),
             remainingDebt: $remainingDebt->toFloat(),
             liquidationDetails: $liquidationDetails,
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $liquidatedAmount->toFloat(),
                 $remainingDebt->toFloat(),
                 time(),
-            ])),
+            ]),
             completedAt: new \DateTimeImmutable()
         ));
 
@@ -279,11 +279,11 @@ class CollateralPositionAggregate extends AggregateRoot
             oldAllocation: $this->collateral,
             newAllocation: $newAllocation,
             rebalanceReason: 'Portfolio optimization',
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $newAllocation,
                 time(),
-            ])),
+            ]),
             rebalancedAt: new \DateTimeImmutable()
         ));
 
@@ -302,11 +302,11 @@ class CollateralPositionAggregate extends AggregateRoot
             finalCollateral: $this->collateral,
             finalDebt: $this->totalDebt->toFloat(),
             closureReason: $reason,
-            hash: Hash::make(json_encode([
+            hash: Hash::fromData([
                 $this->positionId,
                 $reason,
                 time(),
-            ])),
+            ]),
             closedAt: new \DateTimeImmutable()
         ));
 
@@ -432,7 +432,7 @@ class CollateralPositionAggregate extends AggregateRoot
     private function getAssetPrice(string $asset): BigDecimal
     {
         // Simplified - would use oracle service in production
-        return match($asset) {
+        return match ($asset) {
             'ETH'   => BigDecimal::of('2000'),
             'BTC'   => BigDecimal::of('40000'),
             'USD'   => BigDecimal::of('1'),

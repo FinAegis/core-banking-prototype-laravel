@@ -140,7 +140,6 @@ class CollateralRebalancingWorkflow extends Workflow
                 'total_cost'          => $rebalancingStrategy['estimated_cost'],
                 'final_health_ratio'  => $finalHealth['health_ratio_after'],
             ];
-
         } catch (\Throwable $e) {
             Log::error('Rebalancing workflow failed', [
                 'position_id' => $positionId,
