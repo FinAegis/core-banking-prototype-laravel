@@ -49,7 +49,7 @@ class LiquidationAuction extends Model
     ];
 
     /**
-     * @return HasMany<LiquidationBid>
+     * @return HasMany<LiquidationBid, covariant $this>
      */
     public function bids(): HasMany
     {

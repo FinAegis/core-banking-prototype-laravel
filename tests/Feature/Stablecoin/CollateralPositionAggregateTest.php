@@ -18,6 +18,10 @@ use Brick\Math\BigDecimal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
+/**
+ * @property string $positionId
+ * @property string $ownerId
+ */
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
