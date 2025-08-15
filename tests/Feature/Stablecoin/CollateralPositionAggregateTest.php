@@ -6,11 +6,11 @@ use App\Domain\Stablecoin\Aggregates\CollateralPositionAggregate;
 use App\Domain\Stablecoin\Events\CollateralAdded;
 use App\Domain\Stablecoin\Events\CollateralHealthChecked;
 use App\Domain\Stablecoin\Events\CollateralLiquidationStarted;
-use App\Domain\Stablecoin\Events\EnhancedCollateralPositionClosed;
-use App\Domain\Stablecoin\Events\EnhancedCollateralPositionCreated;
 use App\Domain\Stablecoin\Events\CollateralPriceUpdated;
 use App\Domain\Stablecoin\Events\CollateralRebalanced;
 use App\Domain\Stablecoin\Events\CollateralWithdrawn;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionClosed;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionCreated;
 use App\Domain\Stablecoin\Events\MarginCallIssued;
 use App\Domain\Stablecoin\ValueObjects\CollateralType;
 use App\Domain\Stablecoin\ValueObjects\LiquidationThreshold;
@@ -39,7 +39,7 @@ it('can create a new collateral position', function () {
 
     // Get events before persist (they're still in memory)
     $events = $aggregate->getRecordedEvents();
-    
+
     $aggregate->persist();
 
     expect($events)->toHaveCount(1)
@@ -65,7 +65,7 @@ it('can add collateral to an existing position', function () {
     );
 
     $aggregate->addCollateral(['ETH' => 1, 'BTC' => 0.25]);
-    
+
     $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 
@@ -106,7 +106,7 @@ it('can withdraw collateral if position remains healthy', function () {
     );
 
     $aggregate->withdrawCollateral(['USD' => 2000]);
-    
+
     $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 
@@ -147,7 +147,7 @@ it('updates price and checks health', function () {
     );
 
     $aggregate->updatePrice(BigDecimal::of('2000')); // ETH price = $10,000 collateral vs $5,000 debt = 200% ratio
-    
+
     $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 
@@ -172,7 +172,7 @@ it('issues margin call when health deteriorates', function () {
 
     // Simulate price drop
     $aggregate->updatePrice(BigDecimal::of('1600')); // ETH price drops
-    
+
     $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 
@@ -194,7 +194,7 @@ it('starts liquidation when position becomes critical', function () {
     );
 
     $aggregate->startLiquidation();
-    
+
     $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 
@@ -218,7 +218,7 @@ it('can rebalance collateral allocation', function () {
 
     $newAllocation = ['ETH' => 1.5, 'BTC' => 0.7, 'USDC' => 1000];
     $aggregate->rebalanceCollateral($newAllocation);
-    
+
     $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 
@@ -259,7 +259,7 @@ it('can close position', function () {
     );
 
     $aggregate->closePosition('User requested closure');
-    
+
     $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 

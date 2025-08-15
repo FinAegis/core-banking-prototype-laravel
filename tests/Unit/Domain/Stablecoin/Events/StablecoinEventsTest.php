@@ -70,21 +70,20 @@ class StablecoinEventsTest extends DomainTestCase
         $reason = 'user_requested';
         $metadata = ['closed_at' => now()->toIso8601String()];
 
-        $event = new CollateralPositionClosed($positionUuid, $reason, $metadata);
+        $event = new CollateralPositionClosed($positionUuid, $reason);
 
         $this->assertInstanceOf(ShouldBeStored::class, $event);
         $this->assertEquals($positionUuid, $event->position_uuid);
         $this->assertEquals($reason, $event->reason);
-        $this->assertEquals($metadata, $event->metadata);
     }
 
     #[Test]
-    public function test_collateral_position_closed_uses_default_reason(): void
+    public function test_collateral_position_closed_requires_reason(): void
     {
-        $event = new CollateralPositionClosed('pos-123');
+        $event = new CollateralPositionClosed('pos-123', 'user_closed');
 
+        $this->assertEquals('pos-123', $event->position_uuid);
         $this->assertEquals('user_closed', $event->reason);
-        $this->assertEquals([], $event->metadata);
     }
 
     #[Test]
@@ -111,8 +110,7 @@ class StablecoinEventsTest extends DomainTestCase
             $collateralAmount,
             $debtAmount,
             $collateralRatio,
-            $status,
-            $metadata
+            $status
         );
 
         $this->assertInstanceOf(ShouldBeStored::class, $event);
@@ -124,7 +122,6 @@ class StablecoinEventsTest extends DomainTestCase
         $this->assertEquals($debtAmount, $event->debt_amount);
         $this->assertEquals($collateralRatio, $event->collateral_ratio);
         $this->assertEquals($status, $event->status);
-        $this->assertEquals($metadata, $event->metadata);
     }
 
     #[Test]
@@ -137,7 +134,8 @@ class StablecoinEventsTest extends DomainTestCase
             'BTC',
             100000000,
             50000000000,
-            200.0
+            200.0,
+            'active'
         );
 
         $this->assertEquals('active', $event->status);
@@ -649,8 +647,8 @@ class StablecoinEventsTest extends DomainTestCase
     {
         $events = [
             new CollateralLocked('pos-1', 'acc-1', 'BTC', 100),
-            new CollateralPositionClosed('pos-2'),
-            new CollateralPositionCreated('pos-3', 'acc-3', 'USDS', 'ETH', 100, 50, 200.0),
+            new CollateralPositionClosed('pos-2', 'closed'),
+            new CollateralPositionCreated('pos-3', 'acc-3', 'USDS', 'ETH', 100, 50, 200.0, 'active'),
             new CollateralPositionUpdated('pos-4', 100, 50, 200.0, 'active'),
             new CollateralPositionLiquidated('pos-5', 'acc-liq', 100, 50, 5),
             new CollateralReleased('pos-6', 'acc-4', 'BTC', 50),

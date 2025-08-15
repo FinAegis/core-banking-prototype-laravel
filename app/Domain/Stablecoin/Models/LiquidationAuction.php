@@ -7,6 +7,19 @@ namespace App\Domain\Stablecoin\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property string $auction_id
+ * @property string $position_id
+ * @property float $collateral_value
+ * @property float $minimum_bid
+ * @property string $status
+ * @property \Illuminate\Support\Carbon $started_at
+ * @property \Illuminate\Support\Carbon $expires_at
+ * @property string|null $winner_id
+ * @property float|null $winning_bid
+ * @property \Illuminate\Support\Carbon|null $completed_at
+ * @property array $collateral
+ */
 class LiquidationAuction extends Model
 {
     protected $table = 'liquidation_auctions';
@@ -35,6 +48,9 @@ class LiquidationAuction extends Model
         'collateral'       => 'array',
     ];
 
+    /**
+     * @return HasMany<LiquidationBid>
+     */
     public function bids(): HasMany
     {
         return $this->hasMany(LiquidationBid::class, 'auction_id', 'auction_id');

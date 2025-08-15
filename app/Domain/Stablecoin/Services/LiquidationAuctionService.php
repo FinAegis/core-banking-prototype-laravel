@@ -22,12 +22,15 @@ class LiquidationAuctionService
     ): string {
         $auctionId = Str::uuid()->toString();
 
+        // Store current prices in collateral field if provided
+        $collateral = $currentPrices ?: [];
+
         LiquidationAuction::create([
             'auction_id'       => $auctionId,
             'position_id'      => $positionId,
             'collateral_value' => $collateralValue,
             'minimum_bid'      => $minimumBid,
-            'current_prices'   => $currentPrices,
+            'collateral'       => $collateral,
             'status'           => 'active',
             'started_at'       => now(),
             'expires_at'       => now()->addHour(),

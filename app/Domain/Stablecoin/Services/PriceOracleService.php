@@ -81,6 +81,26 @@ class PriceOracleService
     }
 
     /**
+     * Get current prices for common assets.
+     */
+    public function getCurrentPrices(): array
+    {
+        $assets = ['ETH', 'BTC', 'USDC', 'USDT'];
+        $prices = [];
+
+        foreach ($assets as $asset) {
+            try {
+                $prices[$asset] = $this->getPrice($asset)->toFloat();
+            } catch (\Exception $e) {
+                Log::warning("Failed to get price for {$asset}", ['error' => $e->getMessage()]);
+                $prices[$asset] = 1.0;
+            }
+        }
+
+        return $prices;
+    }
+
+    /**
      * Get historical price.
      */
     public function getHistoricalPrice(
