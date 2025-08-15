@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @property string $positionId
+ * @property string $ownerId
+ */
+
 declare(strict_types=1);
 
 use App\Domain\Stablecoin\Aggregates\CollateralPositionAggregate;
@@ -18,10 +23,6 @@ use Brick\Math\BigDecimal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
-/**
- * @property string $positionId
- * @property string $ownerId
- */
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
