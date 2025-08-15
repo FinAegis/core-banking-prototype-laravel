@@ -313,3 +313,29 @@ it('returns correct state', function () {
         ->and($state['isUnderMarginCall'])->toBeFalse()
         ->and($state['isBeingLiquidated'])->toBeFalse();
 });
+
+it('uses separate collateral_position_events table for event storage', function () {
+    $aggregate = CollateralPositionAggregate::retrieve($this->positionId);
+
+    $aggregate->createPosition(
+        $this->positionId,
+        $this->ownerId,
+        ['ETH' => 1],
+        BigDecimal::of('1000'),
+        CollateralType::CRYPTO,
+        new LiquidationThreshold(150)
+    );
+
+    $aggregate->persist();
+
+    // Verify events are stored in collateral_position_events table
+    $this->assertDatabaseHas('collateral_position_events', [
+        'aggregate_uuid' => $this->positionId,
+        'event_class'    => 'enhanced_collateral_position_created',
+    ]);
+
+    // Verify events are NOT in stablecoin_events table
+    $this->assertDatabaseMissing('stablecoin_events', [
+        'aggregate_uuid' => $this->positionId,
+    ]);
+});

@@ -15,8 +15,8 @@ use App\Domain\Stablecoin\Events\CollateralWithdrawn;
 use App\Domain\Stablecoin\Events\EnhancedCollateralPositionClosed;
 use App\Domain\Stablecoin\Events\EnhancedCollateralPositionCreated;
 use App\Domain\Stablecoin\Events\MarginCallIssued;
-use App\Domain\Stablecoin\Repositories\StablecoinEventRepository;
-use App\Domain\Stablecoin\Repositories\StablecoinSnapshotRepository;
+use App\Domain\Stablecoin\Repositories\CollateralPositionEventRepository;
+use App\Domain\Stablecoin\Repositories\CollateralPositionSnapshotRepository;
 use App\Domain\Stablecoin\ValueObjects\CollateralRatio;
 use App\Domain\Stablecoin\ValueObjects\CollateralType;
 use App\Domain\Stablecoin\ValueObjects\LiquidationThreshold;
@@ -469,12 +469,12 @@ class CollateralPositionAggregate extends AggregateRoot
 
     protected function getStoredEventRepository(): StoredEventRepository
     {
-        return app()->make(StablecoinEventRepository::class);
+        return app()->make(CollateralPositionEventRepository::class);
     }
 
     protected function getSnapshotRepository(): SnapshotRepository
     {
-        return app()->make(StablecoinSnapshotRepository::class);
+        return app()->make(CollateralPositionSnapshotRepository::class);
     }
 
     public function getState(): array
