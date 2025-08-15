@@ -157,10 +157,10 @@ Last updated: 2025-01-08 (January 2025)
 - [x] Risk management framework with saga pattern and compensation
 - [x] Regulatory reporting for treasury operations (BASEL III, FORM 10Q, etc.)
 
-#### Documentation Tasks (Postponed)
-- [ ] Add CQRS command/query examples to existing API docs
-- [ ] Create event sourcing best practices guide
-- [ ] Update workflow orchestration documentation
+#### Documentation Tasks ✅ COMPLETED (January 2025)
+- [x] Add CQRS command/query examples to existing API docs
+- [x] Create event sourcing best practices guide
+- [x] Update workflow orchestration documentation
 
 ### 🟢 LOW PRIORITY - Production Readiness (Postponed)
 
