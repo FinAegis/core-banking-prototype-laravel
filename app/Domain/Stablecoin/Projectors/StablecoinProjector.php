@@ -19,11 +19,6 @@ class StablecoinProjector extends Projector
 {
     public function onCollateralPositionCreated(CollateralPositionCreated $event): void
     {
-        // Skip if this is the new enhanced collateral event structure
-        if (property_exists($event, 'positionId')) {
-            return;
-        }
-
         StablecoinCollateralPosition::create(
             [
             'uuid'                  => $event->position_uuid,

@@ -9,11 +9,11 @@ use App\Domain\Stablecoin\Events\CollateralAdded;
 use App\Domain\Stablecoin\Events\CollateralHealthChecked;
 use App\Domain\Stablecoin\Events\CollateralLiquidationCompleted;
 use App\Domain\Stablecoin\Events\CollateralLiquidationStarted;
-use App\Domain\Stablecoin\Events\CollateralPositionClosed;
-use App\Domain\Stablecoin\Events\CollateralPositionCreated;
 use App\Domain\Stablecoin\Events\CollateralPriceUpdated;
 use App\Domain\Stablecoin\Events\CollateralRebalanced;
 use App\Domain\Stablecoin\Events\CollateralWithdrawn;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionClosed;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionCreated;
 use App\Domain\Stablecoin\Events\MarginCallIssued;
 use App\Domain\Stablecoin\Repositories\StablecoinEventRepository;
 use App\Domain\Stablecoin\Repositories\StablecoinSnapshotRepository;
@@ -60,7 +60,7 @@ class CollateralPositionAggregate extends AggregateRoot
         CollateralType $collateralType,
         LiquidationThreshold $liquidationThreshold
     ): self {
-        $this->recordThat(new CollateralPositionCreated(
+        $this->recordThat(new EnhancedCollateralPositionCreated(
             positionId: $positionId,
             ownerId: $ownerId,
             collateral: $initialCollateral,
@@ -198,10 +198,15 @@ class CollateralPositionAggregate extends AggregateRoot
 
     public function issueMarginCall(): self
     {
+        // Calculate current ratio if not set
+        $currentRatio = $this->collateralRatio
+            ? $this->collateralRatio->value()->toFloat()
+            : $this->calculateHealth()->ratio()->toFloat();
+
         $this->recordThat(new MarginCallIssued(
             positionId: $this->positionId,
             ownerId: $this->ownerId,
-            currentRatio: $this->collateralRatio->value()->toFloat(),
+            currentRatio: $currentRatio,
             requiredRatio: $this->liquidationThreshold->marginCallLevel()->toFloat(),
             timeToRespond: 24, // hours
             hash: Hash::fromData([
@@ -296,7 +301,7 @@ class CollateralPositionAggregate extends AggregateRoot
             throw new \DomainException('Position already closed');
         }
 
-        $this->recordThat(new CollateralPositionClosed(
+        $this->recordThat(new EnhancedCollateralPositionClosed(
             positionId: $this->positionId,
             ownerId: $this->ownerId,
             finalCollateral: $this->collateral,
@@ -314,7 +319,7 @@ class CollateralPositionAggregate extends AggregateRoot
     }
 
     // Apply event methods
-    protected function applyCollateralPositionCreated(CollateralPositionCreated $event): void
+    protected function applyEnhancedCollateralPositionCreated(EnhancedCollateralPositionCreated $event): void
     {
         $this->positionId = $event->positionId;
         $this->ownerId = $event->ownerId;
@@ -375,7 +380,7 @@ class CollateralPositionAggregate extends AggregateRoot
         $this->collateral = $event->newAllocation;
     }
 
-    protected function applyCollateralPositionClosed(CollateralPositionClosed $event): void
+    protected function applyEnhancedCollateralPositionClosed(EnhancedCollateralPositionClosed $event): void
     {
         $this->isActive = false;
     }
@@ -453,7 +458,7 @@ class CollateralPositionAggregate extends AggregateRoot
             );
         }
 
-        $ratio = $collateralValue->dividedBy($this->totalDebt, 4);
+        $ratio = $collateralValue->dividedBy($this->totalDebt, 4, \Brick\Math\RoundingMode::DOWN);
 
         return new PositionHealth(
             $ratio,

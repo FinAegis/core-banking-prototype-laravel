@@ -8,24 +8,19 @@ use App\Domain\Stablecoin\Events\CollateralAdded;
 use App\Domain\Stablecoin\Events\CollateralHealthChecked;
 use App\Domain\Stablecoin\Events\CollateralLiquidationCompleted;
 use App\Domain\Stablecoin\Events\CollateralLiquidationStarted;
-use App\Domain\Stablecoin\Events\CollateralPositionClosed;
-use App\Domain\Stablecoin\Events\CollateralPositionCreated;
 use App\Domain\Stablecoin\Events\CollateralPriceUpdated;
 use App\Domain\Stablecoin\Events\CollateralRebalanced;
 use App\Domain\Stablecoin\Events\CollateralWithdrawn;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionClosed;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionCreated;
 use App\Domain\Stablecoin\Events\MarginCallIssued;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
 class CollateralPositionProjector extends Projector
 {
-    public function onCollateralPositionCreated(CollateralPositionCreated $event): void
+    public function onEnhancedCollateralPositionCreated(EnhancedCollateralPositionCreated $event): void
     {
-        // Skip if this is our new enhanced collateral event structure
-        // The existing StablecoinProjector handles the old structure
-        if (! property_exists($event, 'positionId')) {
-            return;
-        }
 
         Log::info('CollateralPositionCreated event handled', [
             'position_id'  => $event->positionId,
@@ -57,18 +52,20 @@ class CollateralPositionProjector extends Projector
     public function onCollateralPriceUpdated(CollateralPriceUpdated $event): void
     {
         Log::info('CollateralPriceUpdated event handled', [
-            'position_id' => $event->positionId,
-            'asset'       => $event->asset,
-            'new_price'   => $event->newPrice,
+            'position_id'  => $event->positionId,
+            'old_price'    => $event->oldPrice,
+            'new_price'    => $event->newPrice,
+            'price_change' => $event->priceChange,
         ]);
     }
 
     public function onCollateralHealthChecked(CollateralHealthChecked $event): void
     {
         Log::info('CollateralHealthChecked event handled', [
-            'position_id'  => $event->positionId,
-            'health_ratio' => $event->healthRatio,
-            'status'       => $event->status,
+            'position_id'     => $event->positionId,
+            'health_ratio'    => $event->healthRatio,
+            'is_healthy'      => $event->isHealthy,
+            'requires_action' => $event->requiresAction,
         ]);
     }
 
@@ -106,12 +103,12 @@ class CollateralPositionProjector extends Projector
         ]);
     }
 
-    public function onCollateralPositionClosed(CollateralPositionClosed $event): void
+    public function onEnhancedCollateralPositionClosed(EnhancedCollateralPositionClosed $event): void
     {
         Log::info('CollateralPositionClosed event handled', [
-            'position_id'          => $event->positionId,
-            'remaining_collateral' => $event->remainingCollateral,
-            'final_debt'           => $event->finalDebt,
+            'position_id'      => $event->positionId,
+            'final_collateral' => $event->finalCollateral,
+            'final_debt'       => $event->finalDebt,
         ]);
     }
 }

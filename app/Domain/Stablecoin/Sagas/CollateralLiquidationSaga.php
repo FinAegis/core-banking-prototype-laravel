@@ -63,26 +63,30 @@ class CollateralLiquidationSaga extends Reactor
             // Step 2.1: Freeze the position to prevent modifications
             $this->freezePosition($event->positionId);
 
-            // Step 2.2: Calculate liquidation penalty (typically 10-15%)
+            // Step 2.2: Get current collateral prices from oracle
+            $currentPrices = $this->priceOracle->getCurrentPrices();
+
+            // Step 2.3: Calculate liquidation penalty (typically 10-15%)
             $liquidationPenalty = $this->calculateLiquidationPenalty(
                 BigDecimal::of($event->debtAmount)
             );
 
-            // Step 2.3: Start auction process
+            // Step 2.4: Start auction process with current market prices
             $auctionId = $this->auctionService->startAuction(
                 $event->positionId,
                 $event->collateralValue,
-                $event->debtAmount + $liquidationPenalty->toFloat()
+                $event->debtAmount + $liquidationPenalty->toFloat(),
+                $currentPrices // Pass current prices to auction service
             );
 
-            // Step 2.4: Notify potential liquidators
+            // Step 2.5: Notify potential liquidators
             $this->notifyLiquidators($auctionId, [
                 'position_id'      => $event->positionId,
                 'collateral_value' => $event->collateralValue,
                 'minimum_bid'      => $event->debtAmount + $liquidationPenalty->toFloat(),
             ]);
 
-            // Step 2.5: Set auction timeout (typically 1 hour)
+            // Step 2.6: Set auction timeout (typically 1 hour)
             $this->scheduleAuctionTimeout($auctionId, 3600);
         } catch (\Exception $e) {
             Log::error('Failed to start liquidation auction', [

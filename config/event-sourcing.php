@@ -133,6 +133,8 @@ return [
         'collateral_liquidation_started'  => App\Domain\Stablecoin\Events\CollateralLiquidationStarted::class,
         'collateral_liquidation_completed' => App\Domain\Stablecoin\Events\CollateralLiquidationCompleted::class,
         'collateral_rebalanced'           => App\Domain\Stablecoin\Events\CollateralRebalanced::class,
+        'enhanced_collateral_position_created' => App\Domain\Stablecoin\Events\EnhancedCollateralPositionCreated::class,
+        'enhanced_collateral_position_closed'  => App\Domain\Stablecoin\Events\EnhancedCollateralPositionClosed::class,
         'deposit_initiated'              => App\Domain\Payment\Events\DepositInitiated::class,
         'deposit_completed'              => App\Domain\Payment\Events\DepositCompleted::class,
         'deposit_failed'                 => App\Domain\Payment\Events\DepositFailed::class,

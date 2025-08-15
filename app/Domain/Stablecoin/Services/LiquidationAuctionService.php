@@ -17,7 +17,8 @@ class LiquidationAuctionService
     public function startAuction(
         string $positionId,
         float $collateralValue,
-        float $minimumBid
+        float $minimumBid,
+        ?array $currentPrices = null
     ): string {
         $auctionId = Str::uuid()->toString();
 
@@ -26,6 +27,7 @@ class LiquidationAuctionService
             'position_id'      => $positionId,
             'collateral_value' => $collateralValue,
             'minimum_bid'      => $minimumBid,
+            'current_prices'   => $currentPrices,
             'status'           => 'active',
             'started_at'       => now(),
             'expires_at'       => now()->addHour(),

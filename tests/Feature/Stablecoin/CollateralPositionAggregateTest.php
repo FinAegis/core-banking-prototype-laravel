@@ -6,8 +6,8 @@ use App\Domain\Stablecoin\Aggregates\CollateralPositionAggregate;
 use App\Domain\Stablecoin\Events\CollateralAdded;
 use App\Domain\Stablecoin\Events\CollateralHealthChecked;
 use App\Domain\Stablecoin\Events\CollateralLiquidationStarted;
-use App\Domain\Stablecoin\Events\CollateralPositionClosed;
-use App\Domain\Stablecoin\Events\CollateralPositionCreated;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionClosed;
+use App\Domain\Stablecoin\Events\EnhancedCollateralPositionCreated;
 use App\Domain\Stablecoin\Events\CollateralPriceUpdated;
 use App\Domain\Stablecoin\Events\CollateralRebalanced;
 use App\Domain\Stablecoin\Events\CollateralWithdrawn;
@@ -37,12 +37,13 @@ it('can create a new collateral position', function () {
         new LiquidationThreshold(150)
     );
 
+    // Get events before persist (they're still in memory)
+    $events = $aggregate->getRecordedEvents();
+    
     $aggregate->persist();
 
-    $events = $aggregate->getRecordedEvents();
-
     expect($events)->toHaveCount(1)
-        ->and($events[0])->toBeInstanceOf(CollateralPositionCreated::class)
+        ->and($events[0])->toBeInstanceOf(EnhancedCollateralPositionCreated::class)
         ->and($events[0]->positionId)->toBe($this->positionId)
         ->and($events[0]->ownerId)->toBe($this->ownerId)
         ->and($events[0]->collateral)->toBe(['ETH' => 2, 'BTC' => 0.5])
@@ -64,9 +65,9 @@ it('can add collateral to an existing position', function () {
     );
 
     $aggregate->addCollateral(['ETH' => 1, 'BTC' => 0.25]);
-    $aggregate->persist();
-
+    
     $events = $aggregate->getRecordedEvents();
+    $aggregate->persist();
 
     expect($events)->toHaveCount(2)
         ->and($events[1])->toBeInstanceOf(CollateralAdded::class)
@@ -105,9 +106,9 @@ it('can withdraw collateral if position remains healthy', function () {
     );
 
     $aggregate->withdrawCollateral(['USD' => 2000]);
-    $aggregate->persist();
-
+    
     $events = $aggregate->getRecordedEvents();
+    $aggregate->persist();
 
     expect($events)->toHaveCount(2)
         ->and($events[1])->toBeInstanceOf(CollateralWithdrawn::class)
@@ -139,16 +140,16 @@ it('updates price and checks health', function () {
     $aggregate->createPosition(
         $this->positionId,
         $this->ownerId,
-        ['ETH' => 2],
+        ['ETH' => 5],  // More collateral to avoid auto-liquidation
         BigDecimal::of('5000'),
         CollateralType::CRYPTO,
         new LiquidationThreshold(150)
     );
 
-    $aggregate->updatePrice(BigDecimal::of('2000')); // ETH price
-    $aggregate->persist();
-
+    $aggregate->updatePrice(BigDecimal::of('2000')); // ETH price = $10,000 collateral vs $5,000 debt = 200% ratio
+    
     $events = $aggregate->getRecordedEvents();
+    $aggregate->persist();
 
     expect($events)->toHaveCount(3) // Created, PriceUpdated, HealthChecked
         ->and($events[1])->toBeInstanceOf(CollateralPriceUpdated::class)
@@ -171,9 +172,9 @@ it('issues margin call when health deteriorates', function () {
 
     // Simulate price drop
     $aggregate->updatePrice(BigDecimal::of('1600')); // ETH price drops
-    $aggregate->persist();
-
+    
     $events = $aggregate->getRecordedEvents();
+    $aggregate->persist();
 
     $marginCallEvents = array_filter($events, fn ($e) => $e instanceof MarginCallIssued);
 
@@ -193,9 +194,9 @@ it('starts liquidation when position becomes critical', function () {
     );
 
     $aggregate->startLiquidation();
-    $aggregate->persist();
-
+    
     $events = $aggregate->getRecordedEvents();
+    $aggregate->persist();
 
     expect($events)->toHaveCount(2)
         ->and($events[1])->toBeInstanceOf(CollateralLiquidationStarted::class)
@@ -217,9 +218,9 @@ it('can rebalance collateral allocation', function () {
 
     $newAllocation = ['ETH' => 1.5, 'BTC' => 0.7, 'USDC' => 1000];
     $aggregate->rebalanceCollateral($newAllocation);
-    $aggregate->persist();
-
+    
     $events = $aggregate->getRecordedEvents();
+    $aggregate->persist();
 
     expect($events)->toHaveCount(2)
         ->and($events[1])->toBeInstanceOf(CollateralRebalanced::class)
@@ -258,12 +259,12 @@ it('can close position', function () {
     );
 
     $aggregate->closePosition('User requested closure');
+    
+    $events = $aggregate->getRecordedEvents();
     $aggregate->persist();
 
-    $events = $aggregate->getRecordedEvents();
-
     expect($events)->toHaveCount(2)
-        ->and($events[1])->toBeInstanceOf(CollateralPositionClosed::class)
+        ->and($events[1])->toBeInstanceOf(EnhancedCollateralPositionClosed::class)
         ->and($events[1]->closureReason)->toBe('User requested closure');
 });
 
