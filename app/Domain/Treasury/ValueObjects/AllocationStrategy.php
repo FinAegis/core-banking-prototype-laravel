@@ -82,7 +82,7 @@ final class AllocationStrategy
                 ['type' => 'equities', 'percentage' => 70.0],
             ],
             self::CUSTOM => $this->allocations,
-            default => [
+            default      => [
                 ['type' => 'cash', 'percentage' => 100.0],
             ],
         };

@@ -103,7 +103,6 @@ class RiskManagementSaga extends Reactor
                 'account_id' => $accountId,
                 'risk_score' => $riskScore,
             ]);
-
         } catch (\Exception $e) {
             Log::error('Risk assessment failed', [
                 'saga_id'    => $this->sagaId,

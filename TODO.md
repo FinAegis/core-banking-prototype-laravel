@@ -6,6 +6,15 @@ Last updated: 2025-01-08 (January 2025)
 
 ### Recent Achievements (January 2025)
 
+#### Treasury Management System ✅ COMPLETED (January 2025)
+- **Complete Treasury Domain**: DDD implementation with event sourcing
+- **Cash Management Workflow**: Multi-step workflow with compensation support
+- **Risk Management Saga**: Continuous monitoring and assessment with escalation
+- **Yield Optimization**: Risk-adjusted portfolio optimization service
+- **Regulatory Reporting**: Support for BASEL III, FORM 10Q, and other standards
+- **Separate Event Storage**: Dedicated treasury_events and treasury_snapshots tables
+- **Full Test Coverage**: All components tested and code quality verified
+
 #### AI Agent Framework Progress ✅
 - **Phase 1 Complete**: MCP Server foundation with event sourcing
 - **Phase 2 Complete**: Banking Tools - 20+ tools across all domains
@@ -142,11 +151,11 @@ Last updated: 2025-01-08 (January 2025)
 
 ### 🟡 MEDIUM PRIORITY - Previous Development (Now Secondary)
 
-#### Phase 8.5: FinAegis Treasury (Postponed)
-- [ ] Cash management system design
-- [ ] Treasury yield optimization
-- [ ] Risk management framework
-- [ ] Regulatory reporting for treasury operations
+#### Phase 8.5: FinAegis Treasury ✅ COMPLETED (January 2025)
+- [x] Cash management system design with DDD and event sourcing
+- [x] Treasury yield optimization service with risk-adjusted allocation
+- [x] Risk management framework with saga pattern and compensation
+- [x] Regulatory reporting for treasury operations (BASEL III, FORM 10Q, etc.)
 
 #### Documentation Tasks (Postponed)
 - [ ] Add CQRS command/query examples to existing API docs

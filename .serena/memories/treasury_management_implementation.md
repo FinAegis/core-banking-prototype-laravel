@@ -81,7 +81,7 @@ TreasuryServiceProvider registers all repositories and services for dependency i
 ## Testing
 - All tests passing with proper event sourcing validation
 - Separate event storage verified
-- Code quality checks passed (PHPStan Level 5, PHP-CS-Fixer)
+- Code quality checks passed (PHPStan Level 5, PHP-CS-Fixer, PHPCS)
 
 ## Next Steps for Extension
 1. Add command handlers for CQRS implementation
@@ -89,3 +89,9 @@ TreasuryServiceProvider registers all repositories and services for dependency i
 3. Add more regulatory report templates
 4. Enhance yield optimization algorithms
 5. Implement real-time risk monitoring
+
+## Important Implementation Notes
+- Always use separate event storage per aggregate
+- Implement saga compensation for workflow failures
+- Use value objects for domain concepts
+- Follow DDD patterns consistently

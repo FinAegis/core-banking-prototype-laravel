@@ -110,7 +110,6 @@ class CashManagementWorkflow extends Workflow
                 'liquidity'    => $liquidityAnalysis,
                 'risk_profile' => $validation['risk_profile'],
             ];
-
         } catch (\Exception $e) {
             // Compensation: Reverse allocations if any step fails
             yield from $this->compensate();
