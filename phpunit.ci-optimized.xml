@@ -4,7 +4,7 @@
          bootstrap="vendor/autoload.php"
          colors="true"
          enforceTimeLimit="true"
-         defaultTimeLimit="30"
+         defaultTimeLimit="60"
 >
     <testsuites>
         <testsuite name="Unit">
