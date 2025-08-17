@@ -192,8 +192,8 @@ class HealthCheckerTest extends TestCase
 
     public function test_response_times_are_measured(): void
     {
-        // Act
-        $result = $this->healthChecker->checkDatabase();
+        // Act - checkDatabase is called internally
+        $result = $this->healthChecker->check();
 
         // Assert
         $this->assertArrayHasKey('response_time', $result);
@@ -226,7 +226,7 @@ class HealthCheckerTest extends TestCase
     public function test_handles_partial_failures_gracefully(): void
     {
         // Mock Redis failure but keep other services working
-        Redis::shouldReceive('connection->ping')
+        Redis::shouldReceive('ping')
             ->once()
             ->andThrow(new \Exception('Redis not available'));
 
@@ -236,7 +236,6 @@ class HealthCheckerTest extends TestCase
         $result = $healthChecker->check();
 
         // Assert
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('checks', $result);
 
         // Find Redis check
