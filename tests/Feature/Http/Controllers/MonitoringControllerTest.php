@@ -7,7 +7,6 @@ namespace Tests\Feature\Http\Controllers;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class MonitoringControllerTest extends TestCase
@@ -27,8 +26,9 @@ class MonitoringControllerTest extends TestCase
         // Assert
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'text/plain; version=0.0.4');
-        
+
         $content = $response->getContent();
+        $this->assertIsString($content);
         $this->assertStringContainsString('# HELP', $content);
         $this->assertStringContainsString('# TYPE', $content);
         $this->assertStringContainsString('app_uptime_seconds', $content);
@@ -87,7 +87,7 @@ class MonitoringControllerTest extends TestCase
             'uptime',
             'memory_usage',
         ]);
-        
+
         $data = $response->json();
         $this->assertTrue($data['alive']);
         $this->assertIsFloat($data['uptime']);
@@ -107,7 +107,8 @@ class MonitoringControllerTest extends TestCase
         // Assert
         $response->assertStatus(200);
         $content = $response->getContent();
-        
+        $this->assertIsString($content);
+
         $this->assertStringContainsString('app_users_total', $content);
         $this->assertStringContainsString('http_requests_total', $content);
     }
@@ -149,14 +150,16 @@ class MonitoringControllerTest extends TestCase
 
         // Assert
         $response->assertStatus(200);
-        
-        $lines = explode("\n", $response->getContent());
-        
+
+        $content = $response->getContent();
+        $this->assertIsString($content);
+        $lines = explode("\n", $content);
+
         foreach ($lines as $line) {
             if (empty(trim($line))) {
                 continue;
             }
-            
+
             // Check if line is a comment or metric
             if (strpos($line, '#') === 0) {
                 // It's a comment line (HELP or TYPE)
@@ -186,7 +189,7 @@ class MonitoringControllerTest extends TestCase
 
         foreach ($endpoints as $endpoint) {
             $response = $this->get($endpoint);
-            
+
             // Should not return 401 Unauthorized
             $this->assertNotEquals(401, $response->status());
         }
@@ -196,9 +199,9 @@ class MonitoringControllerTest extends TestCase
     {
         // Arrange
         Cache::put('metrics.http.by_method', [
-            'GET' => 100,
-            'POST' => 50,
-            'PUT' => 20,
+            'GET'    => 100,
+            'POST'   => 50,
+            'PUT'    => 20,
             'DELETE' => 10,
         ]);
 
@@ -208,7 +211,8 @@ class MonitoringControllerTest extends TestCase
         // Assert
         $response->assertStatus(200);
         $content = $response->getContent();
-        
+        $this->assertIsString($content);
+
         // Check for labeled metrics
         $this->assertStringContainsString('{method="GET"}', $content);
         $this->assertStringContainsString('{method="POST"}', $content);
@@ -221,10 +225,10 @@ class MonitoringControllerTest extends TestCase
 
         // Assert
         $response->assertStatus(200);
-        
+
         $checks = collect($response->json('checks'));
         $checkNames = $checks->pluck('name')->toArray();
-        
+
         // Verify all expected components are checked
         $expectedChecks = ['database', 'cache', 'queue', 'storage'];
         foreach ($expectedChecks as $expected) {
@@ -236,16 +240,16 @@ class MonitoringControllerTest extends TestCase
     {
         // Measure response time
         $startTime = microtime(true);
-        
+
         // Act
         $response = $this->get('/api/monitoring/metrics');
-        
+
         $endTime = microtime(true);
         $responseTime = $endTime - $startTime;
-        
+
         // Assert
         $response->assertStatus(200);
-        
+
         // Metrics endpoint should respond quickly (under 500ms)
         $this->assertLessThan(0.5, $responseTime);
     }
@@ -257,12 +261,12 @@ class MonitoringControllerTest extends TestCase
 
         // Assert
         $response->assertStatus(200);
-        
+
         // Liveness check should be minimal
         $data = $response->json();
         $this->assertArrayHasKey('alive', $data);
         $this->assertArrayHasKey('timestamp', $data);
-        
+
         // Should not include expensive checks
         $this->assertArrayNotHasKey('checks', $data);
     }
@@ -274,13 +278,13 @@ class MonitoringControllerTest extends TestCase
 
         // Assert
         $response->assertStatus(200);
-        
+
         $checks = collect($response->json('checks'));
-        
+
         // Should include critical dependencies
         $criticalChecks = ['database', 'cache', 'migrations'];
         $checkNames = $checks->pluck('name')->toArray();
-        
+
         foreach ($criticalChecks as $critical) {
             $this->assertContains($critical, $checkNames);
         }
