@@ -13,7 +13,7 @@ enum AlertLevel: string
 
     public function priority(): int
     {
-        return match($this) {
+        return match ($this) {
             self::INFO      => 1,
             self::WARNING   => 2,
             self::CRITICAL  => 3,
@@ -28,7 +28,7 @@ enum AlertLevel: string
 
     public function color(): string
     {
-        return match($this) {
+        return match ($this) {
             self::INFO      => '#3498db',
             self::WARNING   => '#f39c12',
             self::CRITICAL  => '#e74c3c',

@@ -13,7 +13,7 @@ enum MetricType: string
 
     public function description(): string
     {
-        return match($this) {
+        return match ($this) {
             self::COUNTER   => 'A cumulative metric that only increases',
             self::GAUGE     => 'A metric that can go up or down',
             self::HISTOGRAM => 'A metric that samples observations and counts them in buckets',

@@ -74,7 +74,7 @@ class MetricsAggregate extends AggregateRoot
         $threshold = $this->thresholds[$metricName];
         $operator = $threshold['operator'] ?? '>';
 
-        $exceeds = match($operator) {
+        $exceeds = match ($operator) {
             '>'     => $value > $threshold['value'],
             '<'     => $value < $threshold['value'],
             '>='    => $value >= $threshold['value'],
