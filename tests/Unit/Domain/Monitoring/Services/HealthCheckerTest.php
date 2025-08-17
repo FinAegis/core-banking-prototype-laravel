@@ -8,9 +8,7 @@ use App\Domain\Monitoring\Services\HealthChecker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class HealthCheckerTest extends TestCase
@@ -22,7 +20,7 @@ class HealthCheckerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->healthChecker = app(HealthChecker::class);
     }
 
@@ -72,7 +70,7 @@ class HealthCheckerTest extends TestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('healthy', $result);
         $this->assertArrayHasKey('message', $result);
-        
+
         // Redis might not be available in test environment
         if ($result['healthy']) {
             $this->assertEquals('Redis connection successful', $result['message']);
@@ -114,7 +112,7 @@ class HealthCheckerTest extends TestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('healthy', $result);
         $this->assertArrayHasKey('message', $result);
-        
+
         if ($result['healthy']) {
             $this->assertEquals('All migrations are up to date', $result['message']);
         }
@@ -130,7 +128,7 @@ class HealthCheckerTest extends TestCase
         $this->assertArrayHasKey('ready', $result);
         $this->assertArrayHasKey('checks', $result);
         $this->assertArrayHasKey('timestamp', $result);
-        
+
         // Verify essential services are checked
         $checkNames = array_column($result['checks'], 'name');
         $this->assertContains('database', $checkNames);
@@ -149,7 +147,7 @@ class HealthCheckerTest extends TestCase
         $this->assertArrayHasKey('timestamp', $result);
         $this->assertArrayHasKey('uptime', $result);
         $this->assertArrayHasKey('memory_usage', $result);
-        
+
         $this->assertTrue($result['alive']);
         $this->assertIsFloat($result['uptime']);
         $this->assertIsInt($result['memory_usage']);
@@ -163,7 +161,7 @@ class HealthCheckerTest extends TestCase
             ->andThrow(new \Exception('Database connection failed'));
 
         $healthChecker = new HealthChecker();
-        
+
         // Act
         $result = $healthChecker->checkDatabase();
 
@@ -180,7 +178,7 @@ class HealthCheckerTest extends TestCase
         // Assert
         $allHealthy = true;
         foreach ($result['checks'] as $check) {
-            if (!$check['healthy']) {
+            if (! $check['healthy']) {
                 $allHealthy = false;
                 break;
             }
@@ -213,11 +211,11 @@ class HealthCheckerTest extends TestCase
         $this->assertArrayHasKey('disk_free', $result);
         $this->assertArrayHasKey('disk_total', $result);
         $this->assertArrayHasKey('disk_usage_percentage', $result);
-        
+
         $this->assertIsInt($result['disk_free']);
         $this->assertIsInt($result['disk_total']);
         $this->assertIsFloat($result['disk_usage_percentage']);
-        
+
         // Verify percentage calculation
         if ($result['disk_total'] > 0) {
             $expectedPercentage = (($result['disk_total'] - $result['disk_free']) / $result['disk_total']) * 100;
@@ -233,14 +231,14 @@ class HealthCheckerTest extends TestCase
             ->andThrow(new \Exception('Redis not available'));
 
         $healthChecker = new HealthChecker();
-        
+
         // Act
         $result = $healthChecker->check();
 
         // Assert
         $this->assertIsArray($result);
         $this->assertArrayHasKey('checks', $result);
-        
+
         // Find Redis check
         $redisCheck = null;
         foreach ($result['checks'] as $check) {
@@ -249,11 +247,11 @@ class HealthCheckerTest extends TestCase
                 break;
             }
         }
-        
+
         if ($redisCheck) {
             $this->assertFalse($redisCheck['healthy']);
         }
-        
+
         // Other checks should still work
         $databaseCheck = null;
         foreach ($result['checks'] as $check) {
@@ -262,7 +260,7 @@ class HealthCheckerTest extends TestCase
                 break;
             }
         }
-        
+
         if ($databaseCheck) {
             $this->assertTrue($databaseCheck['healthy']);
         }

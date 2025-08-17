@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Monitoring\Services;
 
 use App\Domain\Monitoring\Services\MetricsCollector;
-use App\Domain\Monitoring\ValueObjects\MetricType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -19,7 +18,7 @@ class MetricsCollectorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->collector = app(MetricsCollector::class);
     }
 
@@ -187,7 +186,7 @@ class MetricsCollectorTest extends TestCase
         // Act
         $this->collector->collectCustom('custom.metric.name', 42.5, [
             'environment' => 'testing',
-            'component' => 'monitoring',
+            'component'   => 'monitoring',
         ]);
 
         // Assert
@@ -198,7 +197,7 @@ class MetricsCollectorTest extends TestCase
     {
         // Simulate concurrent requests
         $threads = [];
-        
+
         for ($i = 0; $i < 10; $i++) {
             $this->collector->collectHttpRequest('GET', '/api/concurrent', 200, 0.1);
         }

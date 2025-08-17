@@ -12,8 +12,6 @@ use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class PrometheusExporterTest extends TestCase
@@ -25,7 +23,7 @@ class PrometheusExporterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->exporter = app(PrometheusExporter::class);
     }
 
@@ -44,7 +42,7 @@ class PrometheusExporterTest extends TestCase
     {
         // Arrange - Create some test data
         User::factory()->count(5)->create();
-        
+
         // Act
         $output = $this->exporter->export();
 
@@ -61,11 +59,11 @@ class PrometheusExporterTest extends TestCase
         $user = User::factory()->create();
         $asset = Asset::factory()->create();
         $account = Account::factory()->create(['user_id' => $user->id]);
-        
+
         Transaction::factory()->count(3)->create([
             'account_id' => $account->id,
-            'asset_id' => $asset->id,
-            'status' => 'completed',
+            'asset_id'   => $asset->id,
+            'status'     => 'completed',
         ]);
 
         ExchangeOrder::factory()->count(2)->create([
