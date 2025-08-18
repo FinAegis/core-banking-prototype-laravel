@@ -84,10 +84,10 @@ class PrometheusExporterTest extends TestCase
     public function test_exports_http_metrics(): void
     {
         // Arrange - Simulate some HTTP metrics
-        Cache::put('metrics.http.total', 1000);
-        Cache::put('metrics.http.success', 950);
-        Cache::put('metrics.http.errors', 50);
-        Cache::put('metrics.http.duration', 0.250);
+        Cache::put('metrics:http:requests:total', 1000);
+        Cache::put('metrics:http:requests:status:200', 950);
+        Cache::put('metrics:http:requests:status:500', 50);
+        Cache::put('metrics:http:duration:average', 0.250);
 
         // Act
         $output = $this->exporter->export();
@@ -102,8 +102,8 @@ class PrometheusExporterTest extends TestCase
         // Arrange - Set some cache metrics
         Cache::put('test_key_1', 'value1');
         Cache::put('test_key_2', 'value2');
-        Cache::put('metrics.cache.hits', 100);
-        Cache::put('metrics.cache.misses', 10);
+        Cache::put('metrics:cache:hits', 100);
+        Cache::put('metrics:cache:misses', 10);
 
         // Act
         $output = $this->exporter->export();
@@ -116,8 +116,8 @@ class PrometheusExporterTest extends TestCase
     public function test_exports_queue_metrics(): void
     {
         // Arrange
-        Cache::put('metrics.queue.jobs', 50);
-        Cache::put('metrics.queue.failed', 2);
+        Cache::put('metrics:queue:jobs', 50);
+        Cache::put('metrics:queue:failed', 2);
 
         // Act
         $output = $this->exporter->export();
@@ -191,9 +191,9 @@ class PrometheusExporterTest extends TestCase
     public function test_exports_workflow_metrics(): void
     {
         // Arrange
-        Cache::put('metrics.workflow.started', 10);
-        Cache::put('metrics.workflow.completed', 8);
-        Cache::put('metrics.workflow.failed', 2);
+        Cache::put('metrics:workflows:started', 10);
+        Cache::put('metrics:workflows:completed', 8);
+        Cache::put('metrics:workflows:failed', 2);
 
         // Act
         $output = $this->exporter->export();
@@ -205,8 +205,8 @@ class PrometheusExporterTest extends TestCase
     public function test_exports_event_metrics(): void
     {
         // Arrange
-        Cache::put('metrics.events.processed', 1000);
-        Cache::put('metrics.events.failed', 5);
+        Cache::put('metrics:events:processed', 1000);
+        Cache::put('metrics:events:failed', 5);
 
         // Act
         $output = $this->exporter->export();

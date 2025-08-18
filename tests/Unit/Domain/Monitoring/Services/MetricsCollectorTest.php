@@ -34,10 +34,10 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordHttpRequest($method, $path, $statusCode, $duration);
 
         // Assert
-        $this->assertEquals(1, Cache::get('metrics.http.total'));
-        $this->assertEquals(1, Cache::get('metrics.http.success'));
-        $this->assertEquals(0, Cache::get('metrics.http.errors', 0));
-        $this->assertGreaterThan(0, Cache::get('metrics.http.duration'));
+        $this->assertEquals(1, Cache::get('metrics:http:requests:total'));
+        $this->assertEquals(1, Cache::get('metrics:http:requests:status:200'));
+        $this->assertEquals(0, Cache::get('metrics:http:requests:status:500', 0));
+        $this->assertGreaterThan(0, Cache::get('metrics:http:duration:average'));
     }
 
     public function test_collects_error_metrics(): void
@@ -49,7 +49,7 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordHttpRequest('POST', '/api/orders', $statusCode, 0.5);
 
         // Assert
-        $this->assertEquals(1, Cache::get('metrics.http.errors'));
+        $this->assertEquals(1, Cache::get('metrics:http:requests:status:500'));
     }
 
     public function test_collects_business_event_metrics(): void
@@ -62,8 +62,8 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordBusinessEvent($eventName, $metadata);
 
         // Assert
-        $this->assertEquals(1, Cache::get("metrics.events.{$eventName}"));
-        $this->assertEquals(1, Cache::get('metrics.events.total'));
+        $this->assertEquals(1, Cache::get("metrics:events:{$eventName}:total"));
+        $this->assertEquals(1, Cache::get('metrics:events:total'));
     }
 
     public function test_collects_aggregate_metrics(): void
@@ -77,8 +77,8 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordAggregateMetric($aggregateType, $action, $duration);
 
         // Assert
-        $this->assertEquals(1, Cache::get("metrics.aggregates.{$aggregateType}.{$action}"));
-        $this->assertGreaterThan(0, Cache::get("metrics.aggregates.{$aggregateType}.duration"));
+        $this->assertEquals(1, Cache::get("metrics:aggregates:{$aggregateType}:{$action}:total"));
+        $this->assertGreaterThan(0, Cache::get("metrics:aggregates:{$aggregateType}:duration"));
     }
 
     public function test_collects_workflow_metrics(): void
@@ -92,8 +92,8 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordWorkflowMetric($workflowName, $status, $duration);
 
         // Assert
-        $this->assertEquals(1, Cache::get("metrics.workflows.{$workflowName}.{$status}"));
-        $this->assertEquals(5.5, Cache::get("metrics.workflows.{$workflowName}.duration"));
+        $this->assertEquals(1, Cache::get("metrics:workflows:{$workflowName}:{$status}"));
+        $this->assertEquals(5.5, Cache::get("metrics:workflows:{$workflowName}:duration"));
     }
 
     public function test_collects_cache_metrics(): void
@@ -104,8 +104,8 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordCacheMetric('user_preferences', false);
 
         // Assert
-        $this->assertEquals(1, Cache::get('metrics.cache.hits'));
-        $this->assertEquals(2, Cache::get('metrics.cache.misses'));
+        $this->assertEquals(1, Cache::get('metrics:cache:hits'));
+        $this->assertEquals(2, Cache::get('metrics:cache:misses'));
     }
 
     public function test_collects_queue_metrics(): void
@@ -116,9 +116,9 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordQueueMetric('default', 'GenerateReport', 'completed', 3.0);
 
         // Assert
-        $this->assertEquals(2, Cache::get('metrics.queue.completed'));
-        $this->assertEquals(1, Cache::get('metrics.queue.failed'));
-        $this->assertGreaterThan(0, Cache::get('metrics.queue.duration'));
+        $this->assertEquals(2, Cache::get('metrics:queue:completed'));
+        $this->assertEquals(1, Cache::get('metrics:queue:failed'));
+        $this->assertGreaterThan(0, Cache::get('metrics:queue:duration'));
     }
 
     public function test_increments_counters_correctly(): void
@@ -129,8 +129,8 @@ class MetricsCollectorTest extends TestCase
         }
 
         // Assert
-        $this->assertEquals(5, Cache::get('metrics.http.total'));
-        $this->assertEquals(5, Cache::get('metrics.http.success'));
+        $this->assertEquals(5, Cache::get('metrics:http:requests:total'));
+        $this->assertEquals(5, Cache::get('metrics:http:requests:status:200'));
     }
 
     public function test_calculates_average_duration(): void
@@ -144,7 +144,7 @@ class MetricsCollectorTest extends TestCase
         }
 
         // Assert
-        $averageDuration = Cache::get('metrics.http.duration');
+        $averageDuration = Cache::get('metrics:http:duration:average');
         $expectedAverage = array_sum($durations) / count($durations);
         $this->assertEqualsWithDelta($expectedAverage, $averageDuration, 0.01);
     }
@@ -158,10 +158,9 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordHttpRequest('DELETE', '/api/posts/1', 204, 0.05);
 
         // Assert
-        $byMethod = Cache::get('metrics.http.by_method', []);
-        $this->assertEquals(2, $byMethod['GET'] ?? 0);
-        $this->assertEquals(1, $byMethod['POST'] ?? 0);
-        $this->assertEquals(1, $byMethod['DELETE'] ?? 0);
+        $this->assertEquals(2, Cache::get('metrics:http:methods:GET', 0));
+        $this->assertEquals(1, Cache::get('metrics:http:methods:POST', 0));
+        $this->assertEquals(1, Cache::get('metrics:http:methods:DELETE', 0));
     }
 
     public function test_tracks_metrics_by_status_code(): void
@@ -196,7 +195,7 @@ class MetricsCollectorTest extends TestCase
         ]]);
 
         // Assert
-        $this->assertEquals(42.5, Cache::get('metrics.custom.custom.metric.name'));
+        $this->assertEquals(42.5, Cache::get('metrics:custom:custom.metric.name'));
     }
 
     public function test_handles_concurrent_updates(): void
@@ -209,7 +208,7 @@ class MetricsCollectorTest extends TestCase
         }
 
         // Assert
-        $this->assertEquals(10, Cache::get('metrics.http.total'));
+        $this->assertEquals(10, Cache::get('metrics:http:requests:total'));
     }
 
     public function test_workflow_status_tracking(): void
@@ -221,9 +220,9 @@ class MetricsCollectorTest extends TestCase
         $this->collector->recordWorkflowMetric('TestWorkflow', 'failed', 1.0);
 
         // Assert
-        $this->assertEquals(2, Cache::get('metrics.workflows.TestWorkflow.started'));
-        $this->assertEquals(1, Cache::get('metrics.workflows.TestWorkflow.completed'));
-        $this->assertEquals(1, Cache::get('metrics.workflows.TestWorkflow.failed'));
+        $this->assertEquals(2, Cache::get('metrics:workflows:TestWorkflow:started'));
+        $this->assertEquals(1, Cache::get('metrics:workflows:TestWorkflow:completed'));
+        $this->assertEquals(1, Cache::get('metrics:workflows:TestWorkflow:failed'));
     }
 
     public function test_resets_metrics(): void
@@ -236,13 +235,13 @@ class MetricsCollectorTest extends TestCase
         // Act
         // Note: MetricsCollector doesn't have a reset method
         // Manually clear cache keys instead
-        Cache::forget('metrics.http.total');
-        Cache::forget('metrics.events.total');
-        Cache::forget('metrics.cache.hits');
+        Cache::forget('metrics:http:requests:total');
+        Cache::forget('metrics:events:total');
+        Cache::forget('metrics:cache:hits');
 
         // Assert
-        $this->assertNull(Cache::get('metrics.http.total'));
-        $this->assertNull(Cache::get('metrics.events.total'));
-        $this->assertNull(Cache::get('metrics.cache.hits'));
+        $this->assertNull(Cache::get('metrics:http:requests:total'));
+        $this->assertNull(Cache::get('metrics:events:total'));
+        $this->assertNull(Cache::get('metrics:cache:hits'));
     }
 }

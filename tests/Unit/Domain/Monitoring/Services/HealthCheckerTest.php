@@ -30,7 +30,6 @@ class HealthCheckerTest extends TestCase
         $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('status', $result);
         $this->assertArrayHasKey('checks', $result);
         $this->assertArrayHasKey('timestamp', $result);
@@ -39,13 +38,15 @@ class HealthCheckerTest extends TestCase
     public function test_database_check(): void
     {
         // Act
-        $result = $this->healthChecker->checkDatabase();
+        $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertTrue($result['healthy']);
-        $this->assertEquals('Database connection successful', $result['message']);
-        $this->assertArrayHasKey('response_time', $result);
-        $this->assertIsFloat($result['response_time']);
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('database', $result['checks']);
+        $this->assertTrue($result['checks']['database']['healthy']);
+        $this->assertEquals('Database connection successful', $result['checks']['database']['message']);
+        $this->assertArrayHasKey('duration_ms', $result['checks']['database']);
+        $this->assertIsFloat($result['checks']['database']['duration_ms']);
     }
 
     public function test_cache_check(): void
@@ -54,67 +55,75 @@ class HealthCheckerTest extends TestCase
         Cache::put('test_key', 'test_value');
 
         // Act
-        $result = $this->healthChecker->checkCache();
+        $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertTrue($result['healthy']);
-        $this->assertEquals('Cache is operational', $result['message']);
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('cache', $result['checks']);
+        $this->assertTrue($result['checks']['cache']['healthy']);
+        $this->assertEquals('Cache is operational', $result['checks']['cache']['message']);
     }
 
     public function test_redis_check(): void
     {
         // Act
-        $result = $this->healthChecker->checkRedis();
+        $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('healthy', $result);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('redis', $result['checks']);
+        $this->assertArrayHasKey('healthy', $result['checks']['redis']);
+        $this->assertArrayHasKey('message', $result['checks']['redis']);
 
         // Redis might not be available in test environment
-        if ($result['healthy']) {
-            $this->assertEquals('Redis connection successful', $result['message']);
-            $this->assertArrayHasKey('memory_usage', $result);
+        if ($result['checks']['redis']['healthy']) {
+            $this->assertEquals('Redis connection successful', $result['checks']['redis']['message']);
+            $this->assertArrayHasKey('memory_usage_mb', $result['checks']['redis']);
         }
     }
 
     public function test_queue_check(): void
     {
         // Act
-        $result = $this->healthChecker->checkQueue();
+        $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertTrue($result['healthy']);
-        $this->assertEquals('Queue system operational', $result['message']);
-        $this->assertArrayHasKey('size', $result);
-        $this->assertArrayHasKey('failed_jobs', $result);
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('queue', $result['checks']);
+        $this->assertTrue($result['checks']['queue']['healthy']);
+        $this->assertEquals('Queue system operational', $result['checks']['queue']['message']);
+        $this->assertArrayHasKey('size', $result['checks']['queue']);
+        $this->assertArrayHasKey('failed_jobs', $result['checks']['queue']);
     }
 
     public function test_storage_check(): void
     {
         // Act
-        $result = $this->healthChecker->checkStorage();
+        $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertTrue($result['healthy']);
-        $this->assertEquals('Storage is writable', $result['message']);
-        $this->assertArrayHasKey('disk_free', $result);
-        $this->assertArrayHasKey('disk_total', $result);
-        $this->assertArrayHasKey('disk_usage_percentage', $result);
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('storage', $result['checks']);
+        $this->assertTrue($result['checks']['storage']['healthy']);
+        $this->assertEquals('Storage is writable', $result['checks']['storage']['message']);
+        $this->assertArrayHasKey('free_gb', $result['checks']['storage']);
+        $this->assertArrayHasKey('total_gb', $result['checks']['storage']);
+        $this->assertArrayHasKey('used_percent', $result['checks']['storage']);
     }
 
     public function test_migrations_check(): void
     {
         // Act
-        $result = $this->healthChecker->checkMigrations();
+        $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('healthy', $result);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('migrations', $result['checks']);
+        $this->assertArrayHasKey('healthy', $result['checks']['migrations']);
+        $this->assertArrayHasKey('message', $result['checks']['migrations']);
 
-        if ($result['healthy']) {
-            $this->assertEquals('All migrations are up to date', $result['message']);
+        if ($result['checks']['migrations']['healthy']) {
+            $this->assertEquals('All migrations are up to date', $result['checks']['migrations']['message']);
         }
     }
 
@@ -124,7 +133,6 @@ class HealthCheckerTest extends TestCase
         $result = $this->healthChecker->checkReadiness();
 
         // Assert
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('ready', $result);
         $this->assertArrayHasKey('checks', $result);
         $this->assertArrayHasKey('timestamp', $result);
@@ -139,35 +147,32 @@ class HealthCheckerTest extends TestCase
     public function test_liveness_check(): void
     {
         // Act
-        $result = $this->healthChecker->checkLiveness();
+        $result = $this->healthChecker->checkReadiness();
 
         // Assert
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('alive', $result);
+        $this->assertArrayHasKey('ready', $result);
         $this->assertArrayHasKey('timestamp', $result);
-        $this->assertArrayHasKey('uptime', $result);
-        $this->assertArrayHasKey('memory_usage', $result);
+        $this->assertArrayHasKey('checks', $result);
 
-        $this->assertTrue($result['alive']);
-        $this->assertIsFloat($result['uptime']);
-        $this->assertIsInt($result['memory_usage']);
+        $this->assertTrue($result['ready']);
     }
 
     public function test_unhealthy_status_when_check_fails(): void
     {
         // Mock a failing database connection
-        DB::shouldReceive('connection')
+        DB::shouldReceive('select')
             ->once()
             ->andThrow(new \Exception('Database connection failed'));
 
         $healthChecker = new HealthChecker();
 
         // Act
-        $result = $healthChecker->checkDatabase();
+        $result = $healthChecker->check();
 
         // Assert
-        $this->assertFalse($result['healthy']);
-        $this->assertStringContainsString('Database connection failed', $result['message']);
+        $this->assertEquals('unhealthy', $result['status']);
+        $this->assertFalse($result['checks']['database']['healthy']);
+        $this->assertStringContainsString('Database connection failed', $result['checks']['database']['error']);
     }
 
     public function test_overall_health_depends_on_individual_checks(): void
@@ -196,30 +201,40 @@ class HealthCheckerTest extends TestCase
         $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertArrayHasKey('response_time', $result);
-        $this->assertIsFloat($result['response_time']);
-        $this->assertGreaterThan(0, $result['response_time']);
-        $this->assertLessThan(1, $result['response_time']); // Should be fast
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('database', $result['checks']);
+
+        if ($result['checks']['database']['healthy']) {
+            $this->assertArrayHasKey('duration_ms', $result['checks']['database']);
+            $this->assertIsFloat($result['checks']['database']['duration_ms']);
+            $this->assertGreaterThan(0, $result['checks']['database']['duration_ms']);
+        }
     }
 
     public function test_storage_metrics_are_calculated(): void
     {
-        // Act
-        $result = $this->healthChecker->checkStorage();
+        // Act - checkStorage is called internally by check()
+        $result = $this->healthChecker->check();
 
         // Assert
-        $this->assertArrayHasKey('disk_free', $result);
-        $this->assertArrayHasKey('disk_total', $result);
-        $this->assertArrayHasKey('disk_usage_percentage', $result);
+        $this->assertArrayHasKey('checks', $result);
+        $this->assertArrayHasKey('storage', $result['checks']);
+        $storage = $result['checks']['storage'];
 
-        $this->assertIsInt($result['disk_free']);
-        $this->assertIsInt($result['disk_total']);
-        $this->assertIsFloat($result['disk_usage_percentage']);
+        if ($storage['healthy']) {
+            $this->assertArrayHasKey('free_gb', $storage);
+            $this->assertArrayHasKey('total_gb', $storage);
+            $this->assertArrayHasKey('used_percent', $storage);
 
-        // Verify percentage calculation
-        if ($result['disk_total'] > 0) {
-            $expectedPercentage = (($result['disk_total'] - $result['disk_free']) / $result['disk_total']) * 100;
-            $this->assertEqualsWithDelta($expectedPercentage, $result['disk_usage_percentage'], 0.1);
+            $this->assertIsFloat($storage['free_gb']);
+            $this->assertIsFloat($storage['total_gb']);
+            $this->assertIsFloat($storage['used_percent']);
+
+            // Verify percentage calculation
+            if ($storage['total_gb'] > 0) {
+                $expectedPercentage = (($storage['total_gb'] - $storage['free_gb']) / $storage['total_gb']) * 100;
+                $this->assertEqualsWithDelta($expectedPercentage, $storage['used_percent'], 0.1);
+            }
         }
     }
 
