@@ -68,7 +68,7 @@ class MonitoringSystemTest extends TestCase
         // Assert - Metrics were collected
         $this->assertEquals(1, Cache::get('metrics:http:requests:total'));
         $this->assertEquals(1, Cache::get('metrics:http:requests:success'));
-        $this->assertEquals(1, Cache::get('metrics:events:UserRegistered'));
+        $this->assertEquals(1, Cache::get('metrics:events:UserRegistered:total'));
         $this->assertEquals(1, Cache::get('metrics:cache:hits'));
         $this->assertEquals(1, Cache::get('metrics:queue:completed'));
     }
