@@ -25,6 +25,9 @@ class MetricsAggregateTest extends TestCase
 
         $this->aggregateId = Str::uuid()->toString();
         $this->aggregate = MetricsAggregate::fake($this->aggregateId);
+
+        // Clear any events that might have been recorded during initialization
+        $this->aggregate->getRecordedEvents();
     }
 
     public function test_can_record_metric(): void

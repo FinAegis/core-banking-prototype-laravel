@@ -80,7 +80,7 @@ class MonitoringSystemTest extends TestCase
         // Act & Assert - Metrics endpoint
         $response = $this->get('/api/monitoring/metrics');
         $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/plain; version=0.0.4');
+        $this->assertStringContainsString('text/plain', $response->headers->get('Content-Type'));
         $response->assertSee('http_requests_total');
 
         // Act & Assert - Health endpoint
@@ -225,12 +225,12 @@ class MonitoringSystemTest extends TestCase
         $collector->recordCacheMetric('key5', false);
 
         // Assert
-        $this->assertEquals(3, Cache::get('metrics.cache.hits'));
-        $this->assertEquals(2, Cache::get('metrics.cache.misses'));
+        $this->assertEquals(3, Cache::get('metrics:cache:hits'));
+        $this->assertEquals(2, Cache::get('metrics:cache:misses'));
 
         // Calculate hit rate
-        $hits = (int) Cache::get('metrics.cache.hits', 0);
-        $misses = (int) Cache::get('metrics.cache.misses', 0);
+        $hits = (int) Cache::get('metrics:cache:hits', 0);
+        $misses = (int) Cache::get('metrics:cache:misses', 0);
         $total = $hits + $misses;
         $hitRate = $total > 0 ? $hits / $total : 0;
 

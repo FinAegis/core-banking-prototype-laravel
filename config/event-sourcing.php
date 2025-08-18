@@ -242,6 +242,14 @@ return [
         'yield_optimization_started'  => App\Domain\Treasury\Events\YieldOptimizationStarted::class,
         'risk_assessment_completed'   => App\Domain\Treasury\Events\RiskAssessmentCompleted::class,
         'regulatory_report_generated' => App\Domain\Treasury\Events\RegulatoryReportGenerated::class,
+
+        // Monitoring events
+        'metric_recorded'     => App\Domain\Monitoring\Events\MetricRecorded::class,
+        'threshold_exceeded'  => App\Domain\Monitoring\Events\ThresholdExceeded::class,
+        'alert_triggered'     => App\Domain\Monitoring\Events\AlertTriggered::class,
+        'alert_resolved'      => App\Domain\Monitoring\Events\AlertResolved::class,
+        'health_check_failed' => App\Domain\Monitoring\Events\HealthCheckFailed::class,
+        'health_check_passed' => App\Domain\Monitoring\Events\HealthCheckPassed::class,
     ],
 
     /*

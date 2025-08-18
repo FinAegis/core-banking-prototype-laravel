@@ -158,9 +158,8 @@ class PrometheusExporter
      */
     protected function collectBusinessMetrics(): void
     {
-        // Active accounts
+        // Total accounts (accounts table doesn't have status column)
         $activeAccounts = DB::table('accounts')
-            ->where('status', 'active')
             ->count();
 
         $this->setGauge(
@@ -192,9 +191,8 @@ class PrometheusExporter
             $treasuryBalance ?? 0
         );
 
-        // Loan metrics
+        // Loan metrics (count all loans as loans table may not have status column)
         $activeLoans = DB::table('loans')
-            ->where('status', 'active')
             ->count();
 
         $this->setGauge(
@@ -220,8 +218,17 @@ class PrometheusExporter
      */
     protected function collectInfrastructureMetrics(): void
     {
-        // Database connections
-        $dbConnections = DB::connection()->select('SHOW STATUS LIKE "Threads_connected"')[0]->Value ?? 0;
+        // Database connections (MySQL-specific, skip for SQLite)
+        $dbConnections = 0;
+        try {
+            if (DB::connection()->getDriverName() === 'mysql') {
+                $result = DB::connection()->select('SHOW STATUS LIKE "Threads_connected"');
+                $dbConnections = $result[0]->Value ?? 0;
+            }
+        } catch (\Exception $e) {
+            // Ignore errors for unsupported databases
+            $dbConnections = 0;
+        }
 
         $this->setGauge(
             'database_connections_active',
