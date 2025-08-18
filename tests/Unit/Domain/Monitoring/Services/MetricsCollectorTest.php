@@ -19,6 +19,9 @@ class MetricsCollectorTest extends TestCase
     {
         parent::setUp();
 
+        // Clear cache before each test to ensure isolation
+        Cache::flush();
+
         $this->collector = app(MetricsCollector::class);
     }
 

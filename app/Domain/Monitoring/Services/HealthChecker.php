@@ -16,11 +16,12 @@ class HealthChecker
     public function check(): array
     {
         $checks = [
-            'database' => $this->checkDatabase(),
-            'cache'    => $this->checkCache(),
-            'redis'    => $this->checkRedis(),
-            'queue'    => $this->checkQueue(),
-            'storage'  => $this->checkStorage(),
+            'database'   => $this->checkDatabase(),
+            'cache'      => $this->checkCache(),
+            'redis'      => $this->checkRedis(),
+            'queue'      => $this->checkQueue(),
+            'storage'    => $this->checkStorage(),
+            'migrations' => $this->checkMigrations(),
         ];
 
         $healthy = collect($checks)->every(fn ($check) => $check['healthy']);

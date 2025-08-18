@@ -25,6 +25,9 @@ class MetricsMiddlewareTest extends TestCase
     {
         parent::setUp();
 
+        // Clear cache before each test to ensure isolation
+        Cache::flush();
+
         $this->metricsCollector = app(MetricsCollector::class);
         $this->middleware = new MetricsMiddleware($this->metricsCollector);
     }
@@ -127,15 +130,15 @@ class MetricsMiddlewareTest extends TestCase
     {
         // Arrange
         $routes = [
-            '/api/users'    => 3,
-            '/api/posts'    => 2,
-            '/api/comments' => 1,
+            'api/users'    => 3,
+            'api/posts'    => 2,
+            'api/comments' => 1,
         ];
 
         // Act
         foreach ($routes as $route => $count) {
             for ($i = 0; $i < $count; $i++) {
-                $request = Request::create($route, 'GET');
+                $request = Request::create('/' . $route, 'GET');
                 $this->middleware->handle($request, function ($req) {
                     return new Response('Success', 200);
                 });

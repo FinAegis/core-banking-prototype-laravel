@@ -49,8 +49,14 @@ class MetricsCollector
         $this->updateCache('http:requests:duration', $duration);
         $this->incrementCache("http:requests:status:{$statusCode}");
         $this->incrementCache('http:requests:total');
-        $this->incrementCache("http:requests:{$method}");
+        $this->incrementCache("http:methods:{$method}");
         $this->updateCache("http:requests:duration:{$method}", $duration);
+
+        // Update average duration
+        $currentCount = Cache::get('metrics:http:requests:total', 0);
+        $currentAverage = Cache::get('metrics:http:duration:average', 0);
+        $newAverage = (($currentAverage * ($currentCount - 1)) + $duration) / $currentCount;
+        Cache::put('metrics:http:duration:average', $newAverage, 60);
 
         // Track success/error counts
         if ($statusCode >= 200 && $statusCode < 400) {
@@ -77,7 +83,8 @@ class MetricsCollector
 
         $aggregate->persist();
 
-        $this->incrementCache("events:{$eventType}");
+        $this->incrementCache("events:{$eventType}:total");
+        $this->incrementCache('events:total');
     }
 
     /**
@@ -117,6 +124,10 @@ class MetricsCollector
         }
 
         $aggregate->persist();
+
+        // Update cache for tests
+        $this->incrementCache("aggregates:{$aggregateType}:{$operation}:total");
+        $this->updateCache("aggregates:{$aggregateType}:duration", $duration);
     }
 
     /**
@@ -158,6 +169,7 @@ class MetricsCollector
 
         // Update cache for tests
         $this->incrementCache("workflows:{$workflowType}:{$status}");
+        $this->updateCache("workflows:{$workflowType}:duration", $duration);
     }
 
     /**
@@ -232,6 +244,11 @@ class MetricsCollector
     {
         foreach ($metrics as $metric) {
             $this->buffer[] = $metric;
+
+            // Also update cache for custom metrics
+            if (isset($metric['name']) && isset($metric['value'])) {
+                Cache::put("metrics:custom:{$metric['name']}", $metric['value'], 60);
+            }
 
             if (count($this->buffer) >= $this->bufferSize) {
                 $this->flush();
