@@ -108,9 +108,9 @@ class MonitoringSystemTest extends TestCase
         // Arrange
         $collector = app(MetricsCollector::class);
         // Reset metrics manually
-        Cache::forget('metrics.http.total');
-        Cache::forget('metrics.http.success');
-        Cache::forget('metrics.http.errors');
+        Cache::forget('metrics:http:requests:total');
+        Cache::forget('metrics:http:requests:success');
+        Cache::forget('metrics:http:requests:errors');
 
         // Act - Simulate multiple requests
         for ($i = 0; $i < 10; $i++) {
@@ -119,9 +119,9 @@ class MonitoringSystemTest extends TestCase
         }
 
         // Assert
-        $this->assertEquals(10, Cache::get('metrics.http.total'));
-        $this->assertEquals(8, Cache::get('metrics.http.success'));
-        $this->assertEquals(2, Cache::get('metrics.http.errors'));
+        $this->assertEquals(10, Cache::get('metrics:http:requests:total'));
+        $this->assertEquals(8, Cache::get('metrics:http:requests:success'));
+        $this->assertEquals(2, Cache::get('metrics:http:requests:errors'));
     }
 
     public function test_health_checker_detects_issues(): void
@@ -180,7 +180,7 @@ class MonitoringSystemTest extends TestCase
     public function test_monitoring_middleware_collects_metrics(): void
     {
         // Arrange
-        Cache::forget('metrics.http.total');
+        Cache::forget('metrics:http:requests:total');
 
         // Act - Make HTTP requests
         $this->get('/api/monitoring/health');
@@ -188,7 +188,7 @@ class MonitoringSystemTest extends TestCase
         $this->get('/api/monitoring/ready');
 
         // Assert - Metrics should be collected
-        $total = Cache::get('metrics.http.total', 0);
+        $total = Cache::get('metrics:http:requests:total', 0);
         $this->assertGreaterThanOrEqual(3, $total);
     }
 

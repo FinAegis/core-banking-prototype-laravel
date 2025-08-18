@@ -168,8 +168,8 @@ class PrometheusExporter
             $activeAccounts
         );
 
-        // Transaction volume
-        $transactionVolume = DB::table('transactions')
+        // Transaction volume - use transaction_projections table
+        $transactionVolume = DB::table('transaction_projections')
             ->where('created_at', '>=', now()->subHour())
             ->sum('amount');
 

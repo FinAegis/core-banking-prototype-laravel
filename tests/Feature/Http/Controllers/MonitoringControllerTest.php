@@ -99,8 +99,8 @@ class MonitoringControllerTest extends TestCase
     {
         // Arrange - Create some business data
         User::factory()->count(3)->create();
-        Cache::put('metrics.http.total', 100);
-        Cache::put('metrics.transactions.total', 50);
+        Cache::put('metrics:http:requests:total', 100);
+        Cache::put('metrics:transactions:total', 50);
 
         // Act
         $response = $this->get('/api/monitoring/metrics');
@@ -173,7 +173,7 @@ class MonitoringControllerTest extends TestCase
     public function test_metrics_include_labels(): void
     {
         // Arrange
-        Cache::put('metrics.http.by_method', [
+        Cache::put('metrics:http:by_method', [
             'GET'    => 100,
             'POST'   => 50,
             'PUT'    => 20,
