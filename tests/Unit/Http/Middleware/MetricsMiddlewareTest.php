@@ -18,12 +18,13 @@ class MetricsMiddlewareTest extends TestCase
     use RefreshDatabase;
 
     private MetricsMiddleware $middleware;
+
     private MetricsCollector $metricsCollector;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->metricsCollector = app(MetricsCollector::class);
         $this->middleware = new MetricsMiddleware($this->metricsCollector);
     }
@@ -33,7 +34,7 @@ class MetricsMiddlewareTest extends TestCase
         // Arrange
         $request = Request::create('/api/users', 'GET');
         $response = new Response('Success', 200);
-        
+
         // Act
         $result = $this->middleware->handle($request, function ($req) use ($response) {
             return $response;
@@ -51,7 +52,7 @@ class MetricsMiddlewareTest extends TestCase
         // Arrange
         $request = Request::create('/api/users/999', 'GET');
         $response = new Response('Not Found', 404);
-        
+
         // Act
         $result = $this->middleware->handle($request, function ($req) use ($response) {
             return $response;
@@ -68,10 +69,11 @@ class MetricsMiddlewareTest extends TestCase
         // Arrange
         $request = Request::create('/api/slow', 'GET');
         $processingTime = 0.1; // 100ms
-        
+
         // Act
         $this->middleware->handle($request, function ($req) use ($processingTime) {
-            usleep((int)($processingTime * 1000000)); // Sleep for 100ms
+            usleep((int) ($processingTime * 1000000)); // Sleep for 100ms
+
             return new Response('Success', 200);
         });
 
@@ -84,7 +86,7 @@ class MetricsMiddlewareTest extends TestCase
     {
         // Arrange
         $methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
-        
+
         // Act
         foreach ($methods as $method) {
             $request = Request::create('/api/test', $method);
@@ -105,10 +107,10 @@ class MetricsMiddlewareTest extends TestCase
         // Arrange
         $request = Request::create('/api/error', 'GET');
         $exception = new \Exception('Something went wrong');
-        
+
         // Act & Assert
         $this->expectException(\Exception::class);
-        
+
         try {
             $this->middleware->handle($request, function ($req) use ($exception) {
                 throw $exception;
@@ -125,11 +127,11 @@ class MetricsMiddlewareTest extends TestCase
     {
         // Arrange
         $routes = [
-            '/api/users' => 3,
-            '/api/posts' => 2,
+            '/api/users'    => 3,
+            '/api/posts'    => 2,
             '/api/comments' => 1,
         ];
-        
+
         // Act
         foreach ($routes as $route => $count) {
             for ($i = 0; $i < $count; $i++) {
@@ -161,7 +163,7 @@ class MetricsMiddlewareTest extends TestCase
             500 => '5xx',
             503 => '5xx',
         ];
-        
+
         // Act
         foreach ($statusCodes as $code => $category) {
             $request = Request::create('/api/test', 'GET');
@@ -184,7 +186,7 @@ class MetricsMiddlewareTest extends TestCase
         $request = Request::create('/api/data', 'GET');
         $responseData = ['id' => 1, 'name' => 'Test'];
         $response = response()->json($responseData, 200);
-        
+
         // Act
         $result = $this->middleware->handle($request, function ($req) use ($response) {
             return $response;
@@ -202,7 +204,7 @@ class MetricsMiddlewareTest extends TestCase
         $request = Request::create('/api/json', 'POST');
         $request->headers->set('Content-Type', 'application/json');
         $response = response()->json(['success' => true], 201);
-        
+
         // Act
         $result = $this->middleware->handle($request, function ($req) use ($response) {
             return $response;
@@ -219,14 +221,14 @@ class MetricsMiddlewareTest extends TestCase
         // Arrange
         $request = Request::create('/api/performance', 'GET');
         $iterations = 100;
-        
+
         // Measure without middleware
         $startWithout = microtime(true);
         for ($i = 0; $i < $iterations; $i++) {
             $response = new Response('Success', 200);
         }
         $timeWithout = microtime(true) - $startWithout;
-        
+
         // Measure with middleware
         $startWith = microtime(true);
         for ($i = 0; $i < $iterations; $i++) {
@@ -235,7 +237,7 @@ class MetricsMiddlewareTest extends TestCase
             });
         }
         $timeWith = microtime(true) - $startWith;
-        
+
         // Assert - Overhead should be less than 50% increase
         $overhead = ($timeWith - $timeWithout) / $timeWithout;
         $this->assertLessThan(0.5, $overhead);
