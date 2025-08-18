@@ -21,7 +21,7 @@ class MonitoringSystemTest extends TestCase
     {
         // Clear cache to ensure clean test
         Cache::flush();
-        
+
         // Arrange
         $collector = app(MetricsCollector::class);
         $exporter = app(PrometheusExporter::class);
@@ -110,7 +110,7 @@ class MonitoringSystemTest extends TestCase
     {
         // Clear cache to ensure clean test
         Cache::flush();
-        
+
         // Arrange
         $collector = app(MetricsCollector::class);
 
@@ -216,7 +216,7 @@ class MonitoringSystemTest extends TestCase
     {
         // Clear cache to ensure clean test
         Cache::flush();
-        
+
         // Arrange
         $collector = app(MetricsCollector::class);
 
@@ -244,7 +244,7 @@ class MonitoringSystemTest extends TestCase
     {
         // Clear cache to ensure clean test
         Cache::flush();
-        
+
         // Arrange
         $collector = app(MetricsCollector::class);
 
@@ -268,7 +268,7 @@ class MonitoringSystemTest extends TestCase
     {
         // Clear cache to ensure clean test
         Cache::flush();
-        
+
         // Arrange
         $collector = app(MetricsCollector::class);
 
