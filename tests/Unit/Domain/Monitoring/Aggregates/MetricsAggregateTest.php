@@ -25,9 +25,6 @@ class MetricsAggregateTest extends TestCase
 
         $this->aggregateId = Str::uuid()->toString();
         $this->aggregate = MetricsAggregate::fake($this->aggregateId);
-
-        // Clear any events that might have been recorded during initialization
-        $this->aggregate->getRecordedEvents();
     }
 
     public function test_can_record_metric(): void
@@ -51,19 +48,14 @@ class MetricsAggregateTest extends TestCase
         );
 
         // Assert
-        $events = collect($this->aggregate->getRecordedEvents());
-        $this->assertEquals(1, $events->count());
-        $this->assertTrue(
-            $events->contains(function ($event) use ($metricId, $type, $name, $value, $labels, $unit) {
-                return $event instanceof MetricRecorded
-                    && $event->metricId === $metricId
-                    && $event->type === $type->value
-                    && $event->name === $name
-                    && $event->value === $value
-                    && $event->labels === $labels
-                    && $event->unit === $unit;
-            })
-        );
+        $this->aggregate->assertRecorded(function (MetricRecorded $event) use ($metricId, $type, $name, $value, $labels, $unit) {
+            return $event->metricId === $metricId
+                && $event->type === $type->value
+                && $event->name === $name
+                && $event->value === $value
+                && $event->labels === $labels
+                && $event->unit === $unit;
+        });
     }
 
     public function test_can_set_threshold(): void
@@ -90,7 +82,7 @@ class MetricsAggregateTest extends TestCase
         );
 
         // Check that ThresholdExceeded event was recorded
-        $events = collect($this->aggregate->getRecordedEvents());
+        $events = collect($this->aggregate->aggregateRoot()->getRecordedEvents());
         $this->assertEquals(2, $events->count()); // MetricRecorded + ThresholdExceeded
         $this->assertTrue(
             $events->contains(function ($event) use ($alertLevel) {
@@ -121,7 +113,7 @@ class MetricsAggregateTest extends TestCase
         );
 
         // Assert
-        $events = collect($this->aggregate->getRecordedEvents());
+        $events = collect($this->aggregate->aggregateRoot()->getRecordedEvents());
         $this->assertEquals(2, $events->count());
 
         // First event should be MetricRecorded
@@ -165,7 +157,7 @@ class MetricsAggregateTest extends TestCase
         );
 
         // Assert - Only MetricRecorded event, no ThresholdExceeded
-        $events = collect($this->aggregate->getRecordedEvents());
+        $events = collect($this->aggregate->aggregateRoot()->getRecordedEvents());
         $this->assertEquals(1, $events->count());
         $this->assertInstanceOf(MetricRecorded::class, $events->first());
         $this->assertFalse($events->contains(fn ($e) => $e instanceof ThresholdExceeded));
@@ -183,7 +175,7 @@ class MetricsAggregateTest extends TestCase
         $this->aggregate->triggerAlert($alertId, $alertLevel, $message, $context);
 
         // Assert
-        $events = collect($this->aggregate->getRecordedEvents());
+        $events = collect($this->aggregate->aggregateRoot()->getRecordedEvents());
         $this->assertTrue(
             $events->contains(function ($event) use ($alertId, $alertLevel, $message, $context) {
                 return $event instanceof AlertTriggered
@@ -216,7 +208,7 @@ class MetricsAggregateTest extends TestCase
         // Assert
         // Note: getMetricsHistory is not accessible on FakeAggregateRoot
         // Verify the events were recorded
-        $events = collect($this->aggregate->getRecordedEvents());
+        $events = collect($this->aggregate->aggregateRoot()->getRecordedEvents());
         $this->assertEquals(3, $events->count());
 
         foreach ($metrics as $metric) {
@@ -252,7 +244,7 @@ class MetricsAggregateTest extends TestCase
                 $value
             );
 
-            $events = collect($this->aggregate->getRecordedEvents());
+            $events = collect($this->aggregate->aggregateRoot()->getRecordedEvents());
             $this->assertTrue(
                 $events->contains(function ($event) use ($type) {
                     return $event instanceof MetricRecorded && $event->type === $type->value;
@@ -276,7 +268,7 @@ class MetricsAggregateTest extends TestCase
 
             $this->aggregate->triggerAlert($alertId, $level, $message);
 
-            $events = collect($this->aggregate->getRecordedEvents());
+            $events = collect($this->aggregate->aggregateRoot()->getRecordedEvents());
             $this->assertTrue(
                 $events->contains(function ($event) use ($level) {
                     return $event instanceof AlertTriggered && $event->level === $level->value;

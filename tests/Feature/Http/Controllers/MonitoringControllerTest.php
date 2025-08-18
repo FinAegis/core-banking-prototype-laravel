@@ -25,7 +25,7 @@ class MonitoringControllerTest extends TestCase
 
         // Assert
         $response->assertStatus(200);
-        $response->assertHeaderMissing('Content-Type', 'text/html'); // Just check it's not HTML
+        // Verify it returns text/plain content type
         $this->assertStringContainsString('text/plain', $response->headers->get('Content-Type'));
 
         $content = $response->getContent();
