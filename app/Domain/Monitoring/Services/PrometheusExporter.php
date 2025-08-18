@@ -180,6 +180,41 @@ class PrometheusExporter
             'Current memory usage in bytes',
             memory_get_usage(true)
         );
+
+        // Cache metrics
+        $cacheHits = (float) Cache::get('metrics:cache:hits', 0);
+        $cacheMisses = (float) Cache::get('metrics:cache:misses', 0);
+
+        $this->setGauge(
+            'app_cache_hits_total',
+            'Total number of cache hits',
+            $cacheHits
+        );
+
+        $this->setGauge(
+            'app_cache_misses_total',
+            'Total number of cache misses',
+            $cacheMisses
+        );
+
+        // Workflow metrics
+        $workflowsCompleted = (float) Cache::get('metrics:workflows:completed', 0);
+        $workflowsFailed = (float) Cache::get('metrics:workflows:failed', 0);
+
+        $this->setGauge(
+            'workflow_executions_total',
+            'Total number of workflow executions',
+            $workflowsCompleted + $workflowsFailed
+        );
+
+        // Event metrics
+        $eventsProcessed = (float) Cache::get('metrics:events:total', 0);
+
+        $this->setGauge(
+            'events_processed_total',
+            'Total number of events processed',
+            $eventsProcessed
+        );
     }
 
     /**
@@ -273,11 +308,32 @@ class PrometheusExporter
             (float) $dbConnections
         );
 
+        // Also export with infra_ prefix for backward compatibility
+        $this->setGauge(
+            'infra_db_connections',
+            'Number of active database connections',
+            (float) $dbConnections
+        );
+
+        // Database queries (placeholder - would need actual query tracking)
+        $this->setGauge(
+            'infra_db_queries_total',
+            'Total number of database queries',
+            (float) Cache::get('metrics:db:queries:total', 0)
+        );
+
         // Queue size
         $queueSize = DB::table('jobs')->count();
 
         $this->setGauge(
             'queue_jobs_pending',
+            'Number of pending queue jobs',
+            $queueSize
+        );
+
+        // Also export with infra_ prefix for backward compatibility
+        $this->setGauge(
+            'infra_queue_size',
             'Number of pending queue jobs',
             $queueSize
         );
@@ -290,6 +346,13 @@ class PrometheusExporter
         $this->setGauge(
             'queue_jobs_failed_hourly',
             'Number of failed jobs in the last hour',
+            $failedJobs
+        );
+
+        // Also export with infra_ prefix for backward compatibility
+        $this->setGauge(
+            'infra_queue_failed_total',
+            'Total number of failed jobs',
             $failedJobs
         );
 
@@ -315,6 +378,13 @@ class PrometheusExporter
             'event_sourcing_events_hourly',
             'Number of events stored in the last hour',
             $eventCount
+        );
+
+        // Redis memory (placeholder - would need actual Redis memory tracking)
+        $this->setGauge(
+            'infra_redis_memory_bytes',
+            'Redis memory usage in bytes',
+            (float) Cache::get('metrics:redis:memory', 0)
         );
     }
 

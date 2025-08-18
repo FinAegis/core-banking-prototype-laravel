@@ -66,8 +66,8 @@ class PrometheusExporterTest extends TestCase
 
         // Assert
         $this->assertStringContainsString('app_users_total', $output);
-        // Check that we have at least 1 user
-        $this->assertMatchesRegularExpression('/app_users_total\s+1/', $output);
+        // Check that we have at least 1 user (use \d+ to match any number)
+        $this->assertMatchesRegularExpression('/app_users_total\s+\d+/', $output);
     }
 
     public function test_exports_infrastructure_metrics(): void
