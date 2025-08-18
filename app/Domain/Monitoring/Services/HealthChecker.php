@@ -63,12 +63,16 @@ class HealthChecker
             $duration = (microtime(true) - $start) * 1000;
 
             return [
+                'name'        => 'database',
                 'healthy'     => true,
+                'message'     => 'Database connection successful',
                 'duration_ms' => round($duration, 2),
             ];
         } catch (\Exception $e) {
             return [
+                'name'    => 'database',
                 'healthy' => false,
+                'message' => 'Database connection failed: ' . $e->getMessage(),
                 'error'   => $e->getMessage(),
             ];
         }
@@ -88,12 +92,16 @@ class HealthChecker
             $duration = (microtime(true) - $start) * 1000;
 
             return [
+                'name'        => 'cache',
                 'healthy'     => $value === true,
+                'message'     => 'Cache is operational',
                 'duration_ms' => round($duration, 2),
             ];
         } catch (\Exception $e) {
             return [
+                'name'    => 'cache',
                 'healthy' => false,
+                'message' => 'Cache check failed: ' . $e->getMessage(),
                 'error'   => $e->getMessage(),
             ];
         }
@@ -110,12 +118,16 @@ class HealthChecker
             $duration = (microtime(true) - $start) * 1000;
 
             return [
+                'name'        => 'redis',
                 'healthy'     => true,
+                'message'     => 'Redis connection successful',
                 'duration_ms' => round($duration, 2),
             ];
         } catch (\Exception $e) {
             return [
+                'name'    => 'redis',
                 'healthy' => false,
+                'message' => 'Redis connection failed: ' . $e->getMessage(),
                 'error'   => $e->getMessage(),
             ];
         }
@@ -136,13 +148,17 @@ class HealthChecker
             $healthy = $failedJobs < 10 && $pendingJobs < 1000;
 
             return [
+                'name'         => 'queue',
                 'healthy'      => $healthy,
+                'message'      => $healthy ? 'Queue is operating normally' : 'Queue has issues',
                 'failed_jobs'  => $failedJobs,
                 'pending_jobs' => $pendingJobs,
             ];
         } catch (\Exception $e) {
             return [
+                'name'    => 'queue',
                 'healthy' => false,
+                'message' => 'Queue check failed: ' . $e->getMessage(),
                 'error'   => $e->getMessage(),
             ];
         }
@@ -159,15 +175,21 @@ class HealthChecker
             $total = disk_total_space($path);
             $usedPercent = (($total - $free) / $total) * 100;
 
+            $healthy = $usedPercent < 90;
+
             return [
-                'healthy'      => $usedPercent < 90,
+                'name'         => 'storage',
+                'healthy'      => $healthy,
+                'message'      => $healthy ? 'Storage has sufficient space' : 'Storage space is low',
                 'free_gb'      => round($free / 1073741824, 2),
                 'total_gb'     => round($total / 1073741824, 2),
                 'used_percent' => round($usedPercent, 2),
             ];
         } catch (\Exception $e) {
             return [
+                'name'    => 'storage',
                 'healthy' => false,
+                'message' => 'Storage check failed: ' . $e->getMessage(),
                 'error'   => $e->getMessage(),
             ];
         }
@@ -181,13 +203,19 @@ class HealthChecker
         try {
             $pending = \Artisan::call('migrate:status', ['--pending' => true]);
 
+            $healthy = $pending === 0;
+
             return [
-                'healthy'            => $pending === 0,
+                'name'               => 'migrations',
+                'healthy'            => $healthy,
+                'message'            => $healthy ? 'All migrations are up to date' : 'Pending migrations found',
                 'pending_migrations' => $pending,
             ];
         } catch (\Exception $e) {
             return [
+                'name'    => 'migrations',
                 'healthy' => false,
+                'message' => 'Migration check failed: ' . $e->getMessage(),
                 'error'   => $e->getMessage(),
             ];
         }
