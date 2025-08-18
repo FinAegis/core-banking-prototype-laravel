@@ -7,6 +7,7 @@ namespace Tests\Unit\Infrastructure\AI\Storage;
 use App\Domain\AI\ValueObjects\ConversationContext;
 use App\Infrastructure\AI\Storage\ConversationStore;
 use Illuminate\Support\Facades\Redis;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ConversationStoreTest extends TestCase
@@ -29,7 +30,7 @@ class ConversationStoreTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_store_and_retrieve_conversation(): void
     {
         // Arrange
@@ -63,7 +64,7 @@ class ConversationStoreTest extends TestCase
         $this->assertEquals($metadata, $retrieved->getMetadata());
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_null_for_non_existent_conversation(): void
     {
         // Act
@@ -73,7 +74,7 @@ class ConversationStoreTest extends TestCase
         $this->assertNull($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_add_message_to_existing_conversation(): void
     {
         // Arrange
@@ -103,7 +104,7 @@ class ConversationStoreTest extends TestCase
         $this->assertEquals('Hi there!', $messages[1]['content']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_adding_message_to_non_existent_conversation(): void
     {
         // Arrange & Act & Assert
@@ -113,7 +114,7 @@ class ConversationStoreTest extends TestCase
         $this->store->addMessage('non-existent', 'user', 'test');
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_user_conversations(): void
     {
         // Arrange
@@ -140,7 +141,7 @@ class ConversationStoreTest extends TestCase
         $this->assertEquals('conv-2', $conversations[2]['conversation_id']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_delete_conversation(): void
     {
         // Arrange
@@ -162,7 +163,7 @@ class ConversationStoreTest extends TestCase
         $this->assertEmpty($userConversations);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_clear_all_user_conversations(): void
     {
         // Arrange
@@ -191,7 +192,7 @@ class ConversationStoreTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_can_search_conversations_by_content(): void
     {
         // Arrange
@@ -240,7 +241,7 @@ class ConversationStoreTest extends TestCase
         $this->assertContains('conv-3', $conversationIds);
     }
 
-    /** @test */
+    #[Test]
     public function it_limits_user_conversations_to_100(): void
     {
         // Arrange

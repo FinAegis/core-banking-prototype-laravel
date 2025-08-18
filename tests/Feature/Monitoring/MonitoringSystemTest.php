@@ -253,11 +253,11 @@ class MonitoringSystemTest extends TestCase
         $collector->recordQueueMetric('default', 'SyncData', 'completed', 1.5);
 
         // Assert
-        $this->assertEquals(3, Cache::get('metrics.queue.completed'));
-        $this->assertEquals(1, Cache::get('metrics.queue.failed'));
+        $this->assertEquals(3, Cache::get('metrics:queue:completed'));
+        $this->assertEquals(1, Cache::get('metrics:queue:failed'));
 
         // Average duration should be calculated
-        $avgDuration = Cache::get('metrics.queue.duration');
+        $avgDuration = Cache::get('metrics:queue:duration');
         $this->assertIsFloat($avgDuration);
         $this->assertGreaterThan(0, $avgDuration);
     }
@@ -279,8 +279,8 @@ class MonitoringSystemTest extends TestCase
         $collector->recordWorkflowMetric('LoanApplicationWorkflow', 'started', 0);
 
         // Assert
-        $this->assertEquals(3, Cache::get('metrics.workflows.LoanApplicationWorkflow.started'));
-        $this->assertEquals(1, Cache::get('metrics.workflows.LoanApplicationWorkflow.completed'));
-        $this->assertEquals(1, Cache::get('metrics.workflows.LoanApplicationWorkflow.failed'));
+        $this->assertEquals(3, Cache::get('metrics:workflows:LoanApplicationWorkflow:started'));
+        $this->assertEquals(1, Cache::get('metrics:workflows:LoanApplicationWorkflow:completed'));
+        $this->assertEquals(1, Cache::get('metrics:workflows:LoanApplicationWorkflow:failed'));
     }
 }

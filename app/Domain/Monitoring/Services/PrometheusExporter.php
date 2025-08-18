@@ -125,6 +125,14 @@ class PrometheusExporter
      */
     protected function collectApplicationMetrics(): void
     {
+        // Uptime metrics
+        $startTime = defined('LARAVEL_START') ? LARAVEL_START : ($_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
+        $this->setGauge(
+            'app_uptime_seconds',
+            'Application uptime in seconds',
+            microtime(true) - $startTime
+        );
+
         // Request metrics
         $this->setGauge(
             'http_requests_total',
@@ -151,6 +159,13 @@ class PrometheusExporter
             'Total number of application errors',
             Cache::get('metrics:errors:total', 0)
         );
+
+        // Memory usage
+        $this->setGauge(
+            'app_memory_usage_bytes',
+            'Current memory usage in bytes',
+            memory_get_usage(true)
+        );
     }
 
     /**
@@ -158,6 +173,14 @@ class PrometheusExporter
      */
     protected function collectBusinessMetrics(): void
     {
+        // User metrics
+        $totalUsers = DB::table('users')->count();
+        $this->setGauge(
+            'app_users_total',
+            'Total number of users',
+            $totalUsers
+        );
+
         // Total accounts (accounts table doesn't have status column)
         $activeAccounts = DB::table('accounts')
             ->count();

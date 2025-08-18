@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DemoLendingServiceTest extends TestCase
@@ -39,7 +40,7 @@ class DemoLendingServiceTest extends TestCase
         $this->service = new DemoLendingService();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_submit_loan_application_with_auto_approval()
     {
         Event::fake();
@@ -68,7 +69,7 @@ class DemoLendingServiceTest extends TestCase
         Event::assertDispatched(LoanApplicationSubmitted::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_auto_approves_loan_within_threshold_with_good_credit()
     {
         Event::fake();
@@ -107,7 +108,7 @@ class DemoLendingServiceTest extends TestCase
         $this->assertEquals($application->approved_amount, $loan->principal);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_loan_with_poor_credit_score()
     {
         Event::fake();
@@ -139,7 +140,7 @@ class DemoLendingServiceTest extends TestCase
         Event::assertNotDispatched(LoanApplicationApproved::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_loan_exceeding_threshold_amount()
     {
         Event::fake();
@@ -162,7 +163,7 @@ class DemoLendingServiceTest extends TestCase
         Event::assertDispatched(LoanApplicationRejected::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_make_loan_payment_with_correct_allocation()
     {
         Event::fake();
@@ -206,7 +207,7 @@ class DemoLendingServiceTest extends TestCase
         Event::assertDispatched(RepaymentReceived::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_marks_loan_as_paid_off_when_fully_paid()
     {
         Event::fake();
@@ -237,7 +238,7 @@ class DemoLendingServiceTest extends TestCase
         $this->assertNull($loan->next_payment_date);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_correct_loan_details_with_payment_schedule()
     {
         $loan = Loan::create([
@@ -289,7 +290,7 @@ class DemoLendingServiceTest extends TestCase
         $this->assertEquals('pending', $schedule[0]['status']);
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_interest_rate_based_on_credit_score()
     {
         Event::fake();
@@ -315,7 +316,7 @@ class DemoLendingServiceTest extends TestCase
         $this->assertEquals($expectedRate, $application->interest_rate);
     }
 
-    /** @test */
+    #[Test]
     public function it_respects_auto_approve_configuration()
     {
         Config::set('demo.features.auto_approve', false);
@@ -340,7 +341,7 @@ class DemoLendingServiceTest extends TestCase
         Event::assertNotDispatched(LoanApplicationRejected::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_assesses_risk_factors_correctly()
     {
         $application = LoanApplication::create([
@@ -366,7 +367,7 @@ class DemoLendingServiceTest extends TestCase
         $this->assertEquals('high', $application->risk_rating);
     }
 
-    /** @test */
+    #[Test]
     public function it_limits_loan_amount_based_on_credit_score()
     {
         Event::fake();

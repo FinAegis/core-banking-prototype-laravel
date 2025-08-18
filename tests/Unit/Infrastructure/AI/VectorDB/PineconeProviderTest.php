@@ -11,6 +11,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PineconeProviderTest extends TestCase
@@ -41,7 +42,7 @@ class PineconeProviderTest extends TestCase
         $property->setValue($this->provider, $client);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_store_vector(): void
     {
         // Arrange
@@ -68,7 +69,7 @@ class PineconeProviderTest extends TestCase
         $this->assertEquals($metadata, $body['vectors'][0]['metadata']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_store_batch_vectors(): void
     {
         // Arrange
@@ -94,7 +95,7 @@ class PineconeProviderTest extends TestCase
         $this->assertEquals('vec-3', $body['vectors'][2]['id']);
     }
 
-    /** @test */
+    #[Test]
     public function it_splits_large_batches(): void
     {
         // Arrange
@@ -120,7 +121,7 @@ class PineconeProviderTest extends TestCase
         $this->assertCount(0, $this->mockHandler); // All responses consumed
     }
 
-    /** @test */
+    #[Test]
     public function it_can_search_vectors(): void
     {
         // Arrange
@@ -149,7 +150,7 @@ class PineconeProviderTest extends TestCase
         $this->assertEquals(['type' => 'A'], $results[0]['metadata']);
     }
 
-    /** @test */
+    #[Test]
     public function it_caches_search_results(): void
     {
         // Arrange
@@ -174,7 +175,7 @@ class PineconeProviderTest extends TestCase
         $this->assertCount(0, $this->mockHandler); // Only one request made
     }
 
-    /** @test */
+    #[Test]
     public function it_can_delete_vector(): void
     {
         // Arrange
@@ -193,7 +194,7 @@ class PineconeProviderTest extends TestCase
         $this->assertEquals([$id], $body['ids']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_delete_by_filter(): void
     {
         // Arrange
@@ -216,7 +217,7 @@ class PineconeProviderTest extends TestCase
         $this->assertEquals(['$eq' => 'test'], $body['filter']['source']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_vector_by_id(): void
     {
         // Arrange
@@ -247,7 +248,7 @@ class PineconeProviderTest extends TestCase
         $this->assertEquals($metadata, $result['metadata']);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_null_for_non_existent_vector(): void
     {
         // Arrange
@@ -262,7 +263,7 @@ class PineconeProviderTest extends TestCase
         $this->assertNull($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_index(): void
     {
         // Arrange
@@ -283,7 +284,7 @@ class PineconeProviderTest extends TestCase
         $this->assertCount(0, $this->mockHandler); // Both requests consumed
     }
 
-    /** @test */
+    #[Test]
     public function it_skips_creating_existing_index(): void
     {
         // Arrange
@@ -302,7 +303,7 @@ class PineconeProviderTest extends TestCase
         $this->assertCount(0, $this->mockHandler); // Only one request made
     }
 
-    /** @test */
+    #[Test]
     public function it_checks_availability(): void
     {
         // Arrange
@@ -317,7 +318,7 @@ class PineconeProviderTest extends TestCase
         $this->assertTrue($isAvailable);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_when_api_key_missing(): void
     {
         // Arrange
@@ -331,7 +332,7 @@ class PineconeProviderTest extends TestCase
         $this->assertFalse($isAvailable);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_stats(): void
     {
         // Arrange

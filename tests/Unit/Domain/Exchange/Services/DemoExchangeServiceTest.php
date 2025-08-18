@@ -12,6 +12,7 @@ use App\Domain\Exchange\Services\DemoExchangeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DemoExchangeServiceTest extends TestCase
@@ -43,7 +44,7 @@ class DemoExchangeServiceTest extends TestCase
         $this->service = app(DemoExchangeService::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_place_demo_order_with_instant_matching()
     {
         Event::fake();
@@ -73,7 +74,7 @@ class DemoExchangeServiceTest extends TestCase
         Event::assertDispatched(OrderMatched::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_place_limit_order_with_specified_price()
     {
         Event::fake();
@@ -96,7 +97,7 @@ class DemoExchangeServiceTest extends TestCase
         $this->assertEquals(1.28, $order->average_price);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_cancel_pending_order()
     {
         Event::fake();
@@ -124,7 +125,7 @@ class DemoExchangeServiceTest extends TestCase
         $this->assertNotNull($order->cancelled_at);
     }
 
-    /** @test */
+    #[Test]
     public function it_cannot_cancel_order_of_different_user()
     {
         $order = Order::create([
@@ -148,7 +149,7 @@ class DemoExchangeServiceTest extends TestCase
         $this->assertEquals('pending', $order->status);
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_demo_order_book_with_liquidity()
     {
         $orderBook = $this->service->getOrderBook('EUR', 'USD', 5);
@@ -180,7 +181,7 @@ class DemoExchangeServiceTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_provides_market_data_with_realistic_values()
     {
         $marketData = $this->service->getMarketData('BTC', 'USD');
@@ -215,7 +216,7 @@ class DemoExchangeServiceTest extends TestCase
         $this->assertGreaterThanOrEqual($low, $lastPrice);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_trade_record_when_order_is_filled()
     {
         Event::fake();
@@ -244,7 +245,7 @@ class DemoExchangeServiceTest extends TestCase
         $this->assertTrue($trade->metadata['instant_fill']);
     }
 
-    /** @test */
+    #[Test]
     public function it_respects_auto_fill_configuration()
     {
         Config::set('demo.features.auto_approve', false);
@@ -271,7 +272,7 @@ class DemoExchangeServiceTest extends TestCase
         Event::assertNotDispatched(OrderMatched::class);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_unknown_currency_pairs_gracefully()
     {
         $orderData = [
