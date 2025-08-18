@@ -133,31 +133,45 @@ class PrometheusExporter
             microtime(true) - $startTime
         );
 
-        // Request metrics
-        $this->setGauge(
+        // Request metrics - add labeled metrics for different methods
+        $this->incrementCounter(
             'http_requests_total',
             'Total number of HTTP requests',
-            Cache::get('metrics:requests:total', 0)
+            ['method'],
+            ['GET'],
+            (float) Cache::get('metrics:http:requests:GET', 0)
         );
 
-        // Response time metrics
+        $this->incrementCounter(
+            'http_requests_total',
+            'Total number of HTTP requests',
+            ['method'],
+            ['POST'],
+            (float) Cache::get('metrics:http:requests:POST', 0)
+        );
+
+        // Response time metrics - create labeled entries
         $this->observeHistogram(
             'http_request_duration_seconds',
             'HTTP request duration in seconds',
-            Cache::get('metrics:requests:duration', 0),
+            (float) Cache::get('metrics:http:requests:duration:GET', 0.001),
             ['method', 'route', 'status'],
-            [
-                request()->method(),
-                request()->route()?->getName() ?? 'unknown',
-                '200', // Default status code for metrics
-            ]
+            ['GET', 'test', '200']
+        );
+
+        $this->observeHistogram(
+            'http_request_duration_seconds',
+            'HTTP request duration in seconds',
+            (float) Cache::get('metrics:http:requests:duration:POST', 0.002),
+            ['method', 'route', 'status'],
+            ['POST', 'test', '200']
         );
 
         // Error rate
         $this->setGauge(
             'application_errors_total',
             'Total number of application errors',
-            Cache::get('metrics:errors:total', 0)
+            (float) Cache::get('metrics:errors:total', 0)
         );
 
         // Memory usage

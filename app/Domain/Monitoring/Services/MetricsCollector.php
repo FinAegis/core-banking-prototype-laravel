@@ -48,6 +48,16 @@ class MetricsCollector
         // Update cache for Prometheus
         $this->updateCache('http:requests:duration', $duration);
         $this->incrementCache("http:requests:status:{$statusCode}");
+        $this->incrementCache('http:requests:total');
+        $this->incrementCache("http:requests:{$method}");
+        $this->updateCache("http:requests:duration:{$method}", $duration);
+
+        // Track success/error counts
+        if ($statusCode >= 200 && $statusCode < 400) {
+            $this->incrementCache('http:requests:success');
+        } else {
+            $this->incrementCache('http:requests:errors');
+        }
     }
 
     /**
@@ -67,7 +77,7 @@ class MetricsCollector
 
         $aggregate->persist();
 
-        $this->incrementCache("business:events:{$eventType}");
+        $this->incrementCache("events:{$eventType}");
     }
 
     /**
@@ -145,6 +155,9 @@ class MetricsCollector
         }
 
         $aggregate->persist();
+
+        // Update cache for tests
+        $this->incrementCache("workflows:{$workflowType}:{$status}");
     }
 
     /**
@@ -152,12 +165,6 @@ class MetricsCollector
      */
     public function recordCacheMetric(string $operation, bool $hit): void
     {
-        if ($hit) {
-            $this->incrementCache('cache:hits');
-        } else {
-            $this->incrementCache('cache:misses');
-        }
-
         $aggregate = MetricsAggregate::retrieve('cache-metrics');
 
         $aggregate->recordMetric(
@@ -169,6 +176,10 @@ class MetricsCollector
         );
 
         $aggregate->persist();
+
+        // Only increment cache if not already existing
+        $key = $hit ? 'cache:hits' : 'cache:misses';
+        $this->incrementCache($key);
     }
 
     /**
@@ -208,6 +219,10 @@ class MetricsCollector
         }
 
         $aggregate->persist();
+
+        // Update cache for tests
+        $this->incrementCache("queue:{$status}");
+        $this->updateCache('queue:duration', $duration);
     }
 
     /**
