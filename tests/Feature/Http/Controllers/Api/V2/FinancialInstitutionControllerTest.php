@@ -77,13 +77,6 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
     }
 
     #[Test]
-    public function test_submit_application_requires_authentication(): void
-    {
-        // This endpoint is actually public, so let's skip this test or change it
-        $this->markTestSkipped('The application endpoint is public and does not require authentication');
-    }
-
-    #[Test]
     public function test_submit_application_validates_required_fields(): void
     {
         Sanctum::actingAs($this->user);
@@ -128,13 +121,6 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
                     'status'             => 'pending',
                 ],
             ]);
-    }
-
-    #[Test]
-    public function test_get_application_status_requires_authentication(): void
-    {
-        // This endpoint is also public, so let's skip this test
-        $this->markTestSkipped('The status endpoint is public and does not require authentication');
     }
 
     #[Test]

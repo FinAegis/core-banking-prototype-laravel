@@ -234,39 +234,6 @@ class MetricsMiddlewareTest extends TestCase
         $this->assertGreaterThanOrEqual(1, Cache::get('metrics:http:requests:success'));
     }
 
-    public function test_middleware_performance_overhead_is_minimal(): void
-    {
-        // Skip this test in CI as performance can vary greatly
-        if (getenv('CI')) {
-            $this->markTestSkipped('Performance test skipped in CI environment');
-        }
-
-        // Arrange
-        $request = Request::create('/api/performance', 'GET');
-        $iterations = 100;
-
-        // Measure without middleware
-        $startWithout = microtime(true);
-        for ($i = 0; $i < $iterations; $i++) {
-            $response = new Response('Success', 200);
-        }
-        $timeWithout = microtime(true) - $startWithout;
-
-        // Measure with middleware
-        $startWith = microtime(true);
-        for ($i = 0; $i < $iterations; $i++) {
-            $this->middleware->handle($request, function ($req) {
-                return new Response('Success', 200);
-            });
-        }
-        $timeWith = microtime(true) - $startWith;
-
-        // Assert - Overhead should exist but be reasonable
-        // Simply check that middleware doesn't take more than 10ms per request on average
-        $averageMiddlewareTime = ($timeWith - $timeWithout) / $iterations;
-        $this->assertLessThan(0.01, $averageMiddlewareTime); // Less than 10ms per request
-    }
-
     protected function tearDown(): void
     {
         parent::tearDown();

@@ -260,12 +260,6 @@ class ExchangeRateControllerTest extends ControllerTestCase
     }
 
     #[Test]
-    public function it_gets_exchange_rate_history()
-    {
-        $this->markTestSkipped('History endpoint not implemented yet');
-    }
-
-    #[Test]
     public function it_does_not_require_authentication()
     {
         // Exchange rate endpoints are public

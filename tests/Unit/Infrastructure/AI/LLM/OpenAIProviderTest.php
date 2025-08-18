@@ -162,12 +162,6 @@ class OpenAIProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_api_errors_gracefully(): void
-    {
-        $this->markTestSkipped('Mock injection not working properly - needs investigation');
-    }
-
-    #[Test]
     public function it_can_generate_embeddings(): void
     {
         // Arrange
