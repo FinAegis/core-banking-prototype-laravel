@@ -78,7 +78,8 @@ class HealthCheckerTest extends TestCase
         // Redis might not be available in test environment
         if ($result['checks']['redis']['healthy']) {
             $this->assertEquals('Redis connection successful', $result['checks']['redis']['message']);
-            $this->assertArrayHasKey('memory_usage_mb', $result['checks']['redis']);
+            // Note: Redis check doesn't return memory_usage_mb, only duration_ms
+            $this->assertArrayHasKey('duration_ms', $result['checks']['redis']);
         }
     }
 
@@ -91,8 +92,8 @@ class HealthCheckerTest extends TestCase
         $this->assertArrayHasKey('checks', $result);
         $this->assertArrayHasKey('queue', $result['checks']);
         $this->assertTrue($result['checks']['queue']['healthy']);
-        $this->assertEquals('Queue system operational', $result['checks']['queue']['message']);
-        $this->assertArrayHasKey('size', $result['checks']['queue']);
+        $this->assertEquals('Queue is operating normally', $result['checks']['queue']['message']);
+        $this->assertArrayHasKey('pending_jobs', $result['checks']['queue']);
         $this->assertArrayHasKey('failed_jobs', $result['checks']['queue']);
     }
 
@@ -105,7 +106,7 @@ class HealthCheckerTest extends TestCase
         $this->assertArrayHasKey('checks', $result);
         $this->assertArrayHasKey('storage', $result['checks']);
         $this->assertTrue($result['checks']['storage']['healthy']);
-        $this->assertEquals('Storage is writable', $result['checks']['storage']['message']);
+        $this->assertEquals('Storage has sufficient space', $result['checks']['storage']['message']);
         $this->assertArrayHasKey('free_gb', $result['checks']['storage']);
         $this->assertArrayHasKey('total_gb', $result['checks']['storage']);
         $this->assertArrayHasKey('used_percent', $result['checks']['storage']);

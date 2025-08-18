@@ -161,10 +161,7 @@ class OpenAIProviderTest extends TestCase
         $this->assertEquals($response1->getTotalTokens(), $response2->getTotalTokens());
     }
 
-    /**
-     * @test
-     * @skip Skipping temporarily - mock injection issue
-     */
+    #[Test]
     public function it_handles_api_errors_gracefully(): void
     {
         $this->markTestSkipped('Mock injection not working properly - needs investigation');
