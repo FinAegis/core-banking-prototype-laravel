@@ -183,18 +183,29 @@ describe('POST /api/accounts/{uuid}/deposit', function () {
 
 describe('POST /api/accounts/{uuid}/withdraw', function () {
     beforeEach(function () {
-        // Ensure assets are available (they should be from parent beforeEach)
-        // Just verify they exist in CI
-        if (! Asset::where('code', 'USD')->exists()) {
-            Asset::create([
-                'code'      => 'USD',
+        // Ensure USD asset exists for tests that require it - use updateOrCreate for idempotency
+        Asset::updateOrCreate(
+            ['code' => 'USD'],
+            [
                 'name'      => 'US Dollar',
                 'type'      => 'fiat',
                 'precision' => 2,
                 'is_active' => true,
                 'metadata'  => [],
-            ]);
-        }
+            ]
+        );
+
+        // Ensure BTC asset exists too
+        Asset::updateOrCreate(
+            ['code' => 'BTC'],
+            [
+                'name'      => 'Bitcoin',
+                'type'      => 'crypto',
+                'precision' => 8,
+                'is_active' => true,
+                'metadata'  => [],
+            ]
+        );
 
         // Update balances to ensure sufficient funds for withdrawal
         $this->account->balances()->updateOrCreate(
@@ -205,10 +216,17 @@ describe('POST /api/accounts/{uuid}/withdraw', function () {
             ['asset_code' => 'BTC'],
             ['balance' => 10000000] // 0.1 BTC in satoshis
         );
+
+        // Force refresh to ensure balances are loaded
+        $this->account->refresh();
     });
 
     it('successfully withdraws USD from account', function () {
         Sanctum::actingAs($this->user);
+
+        // Debug: verify balance before withdrawal
+        $balance = $this->account->getBalance('USD');
+        expect($balance)->toBe(100000);
 
         $response = $this->postJson("/api/accounts/{$this->account->uuid}/withdraw", [
             'amount'      => 50.00,
@@ -216,8 +234,12 @@ describe('POST /api/accounts/{uuid}/withdraw', function () {
             'description' => 'Test withdrawal',
         ]);
 
-        // If test fails in CI, output validation errors for debugging
+        // If test fails in CI, output more debugging info
         if ($response->status() === 422) {
+            dump('Account UUID:', $this->account->uuid);
+            dump('Account balance for USD:', $this->account->getBalance('USD'));
+            dump('Assets in DB:', Asset::pluck('code')->toArray());
+            dump('Account balances:', $this->account->balances()->get()->toArray());
             dump('Validation errors:', $response->json('errors'));
             dump('Response message:', $response->json('message'));
         }
