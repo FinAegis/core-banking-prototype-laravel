@@ -27,7 +27,7 @@ class MetricsMiddleware
             // Record request metrics using the MetricsCollector
             $this->metrics->recordHttpRequest(
                 method: $request->method(),
-                route: $request->path(),
+                path: $request->path(),
                 statusCode: $response->status(),
                 duration: $duration
             );
@@ -70,7 +70,7 @@ class MetricsMiddleware
             // Record exception metrics
             $this->metrics->recordHttpRequest(
                 method: $request->method(),
-                route: $request->path(),
+                path: $request->path(),
                 statusCode: 500,
                 duration: $duration
             );

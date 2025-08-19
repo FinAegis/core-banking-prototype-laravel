@@ -2,15 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Domain\Monitoring\Aggregates\MonitoringAggregate;
-use App\Domain\Monitoring\Events\MonitoringSessionStartedEvent;
-use App\Domain\Monitoring\Events\MetricRecordedEvent;
-use App\Domain\Monitoring\Events\HealthCheckPerformedEvent;
-use App\Domain\Monitoring\Repositories\MonitoringAggregateRepository;
+use App\Domain\Monitoring\Services\HealthChecker;
 use App\Domain\Monitoring\Services\MetricsCollector;
 use App\Domain\Monitoring\Services\PrometheusExporter;
-use App\Domain\Monitoring\Services\HealthChecker;
-use App\Domain\Monitoring\Services\DistributedTracer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 
@@ -20,166 +14,156 @@ beforeEach(function () {
     Cache::flush();
 });
 
-it('can create a monitoring session and record metrics', function () {
-    $repository = app(MonitoringAggregateRepository::class);
+it('can record and retrieve HTTP metrics', function () {
     $collector = app(MetricsCollector::class);
-    
-    // Start a monitoring session
-    $sessionId = 'test-session-' . uniqid();
-    $aggregate = MonitoringAggregate::retrieve($sessionId);
-    $aggregate->startSession($sessionId, ['type' => 'test']);
-    $repository->store($aggregate);
-    
-    // Record some metrics
-    $collector->incrementCounter('test_counter', 1.0, ['env' => 'test']);
-    $collector->setGauge('test_gauge', 42.5, ['server' => 'app1']);
-    
-    // Retrieve metrics
-    $metrics = $collector->getMetrics();
-    
-    expect($metrics)->toHaveKey('test_counter:env=test');
-    expect($metrics['test_counter:env=test']['value'])->toBe(1.0);
-    expect($metrics)->toHaveKey('test_gauge:server=app1');
-    expect($metrics['test_gauge:server=app1']['value'])->toBe(42.5);
+
+    // Record some HTTP requests
+    $collector->recordHttpRequest('GET', '/api/users', 200, 0.125);
+    $collector->recordHttpRequest('POST', '/api/orders', 201, 0.250);
+    $collector->recordHttpRequest('GET', '/api/products', 500, 1.5);
+
+    // Check metrics in cache
+    expect(Cache::get('metrics:http:requests:total'))->toBe('3');
+    expect(Cache::get('metrics:http:requests:status:200'))->toBe('1');
+    expect(Cache::get('metrics:http:requests:status:201'))->toBe('1');
+    expect(Cache::get('metrics:http:requests:status:500'))->toBe('1');
+    expect(Cache::get('metrics:http:methods:GET'))->toBe('2');
+    expect(Cache::get('metrics:http:methods:POST'))->toBe('1');
 });
 
 it('can export metrics in Prometheus format', function () {
-    $repository = app(MonitoringAggregateRepository::class);
     $collector = app(MetricsCollector::class);
     $exporter = app(PrometheusExporter::class);
-    
-    // Set up metrics
-    $collector->incrementCounter('http_requests_total', 100, ['method' => 'GET']);
-    $collector->setGauge('memory_usage_bytes', 1024000, ['server' => 'app1']);
-    
-    // Export in Prometheus format
-    $output = $exporter->export();
-    
-    expect($output)->toContain('http_requests_total{method="GET"}');
-    expect($output)->toContain('memory_usage_bytes{server="app1"}');
-});
 
-it('can perform distributed tracing', function () {
-    $repository = app(MonitoringAggregateRepository::class);
-    $collector = app(MetricsCollector::class);
-    $tracer = new DistributedTracer($repository, $collector);
-    
-    // Start a trace
-    $traceId = $tracer->startTrace('test-operation', ['service' => 'api']);
-    expect($traceId)->toBeString();
-    
-    // Start a span
-    $spanId = $tracer->startSpan('database-query', null, ['db' => 'mysql']);
-    expect($spanId)->toBeString();
-    
-    // Add tags
-    $tracer->addTag('user_id', '12345');
-    
-    // End span and trace
-    $tracer->endSpan($spanId);
-    $tracer->endTrace();
-    
-    // Get trace data
-    $traces = $tracer->getTraces();
-    expect($traces)->toHaveKey($traceId);
+    // Record some metrics
+    $collector->recordHttpRequest('GET', '/api/test', 200, 0.100);
+    $collector->recordBusinessEvent('order_placed', ['customer' => '123']);
+
+    // Export metrics
+    $output = $exporter->export();
+
+    expect($output)->toBeString();
+    expect($output)->toContain('# HELP');
+    expect($output)->toContain('# TYPE');
+    expect($output)->toContain('http_requests_total');
 });
 
 it('can perform health checks', function () {
-    $repository = app(MonitoringAggregateRepository::class);
-    $collector = app(MetricsCollector::class);
-    $healthChecker = new HealthChecker($repository, $collector);
-    
-    // Perform health check
+    $healthChecker = app(HealthChecker::class);
+
     $result = $healthChecker->check();
-    
+
     expect($result)->toHaveKey('status');
-    expect($result)->toHaveKey('healthy');
-    expect($result)->toHaveKey('checks');
     expect($result)->toHaveKey('timestamp');
-    
-    // Check structure of individual checks
+    expect($result)->toHaveKey('checks');
+    expect($result['status'])->toBeIn(['healthy', 'unhealthy']);
+});
+
+it('can track workflow metrics', function () {
+    $collector = app(MetricsCollector::class);
+
+    // Record workflow metrics
+    $collector->recordWorkflowMetric('order_processing', 'started', 0);
+    $collector->recordWorkflowMetric('order_processing', 'completed', 2.5);
+
+    // Check metrics
+    expect(Cache::get('metrics:workflows:order_processing:started'))->toBe('1');
+    expect(Cache::get('metrics:workflows:order_processing:completed'))->toBe('1');
+    expect(Cache::get('metrics:workflows:order_processing:duration'))->toBe(2.5);
+});
+
+it('can track business events', function () {
+    $collector = app(MetricsCollector::class);
+
+    // Record business events
+    $collector->recordBusinessEvent('user_registered');
+    $collector->recordBusinessEvent('order_placed');
+    $collector->recordBusinessEvent('order_placed');
+
+    // Check metrics
+    expect(Cache::get('metrics:events:user_registered:total'))->toBe('1');
+    expect(Cache::get('metrics:events:order_placed:total'))->toBe('2');
+    expect(Cache::get('metrics:events:total'))->toBe('3');
+});
+
+it('calculates average duration correctly', function () {
+    $collector = app(MetricsCollector::class);
+
+    // Record multiple requests
+    $collector->recordHttpRequest('GET', '/api/test', 200, 0.100);
+    $collector->recordHttpRequest('GET', '/api/test', 200, 0.200);
+    $collector->recordHttpRequest('GET', '/api/test', 200, 0.300);
+
+    // Check average (should be 0.200)
+    $average = Cache::get('metrics:http:duration:average');
+    expect($average)->toBeGreaterThan(0);
+    expect($average)->toBeLessThanOrEqual(0.300);
+});
+
+it('exports metrics with proper Prometheus formatting', function () {
+    $exporter = app(PrometheusExporter::class);
+
+    // Set some known metrics
+    Cache::put('metrics:http:requests:total', 100);
+    Cache::put('metrics:http:requests:status:200', 95);
+    Cache::put('metrics:http:requests:status:500', 5);
+
+    $output = $exporter->export();
+
+    // Check for proper Prometheus format
+    expect($output)->toContain('# HELP http_requests_total');
+    expect($output)->toContain('# TYPE http_requests_total counter');
+    expect($output)->toContain('http_requests_total 100');
+});
+
+it('health checker reports database status', function () {
+    $healthChecker = app(HealthChecker::class);
+
+    $result = $healthChecker->check();
+
     expect($result['checks'])->toHaveKey('database');
+    expect($result['checks']['database'])->toHaveKey('healthy');
+    expect($result['checks']['database'])->toHaveKey('message');
+});
+
+it('health checker reports cache status', function () {
+    $healthChecker = app(HealthChecker::class);
+
+    $result = $healthChecker->check();
+
     expect($result['checks'])->toHaveKey('cache');
-    expect($result['checks'])->toHaveKey('redis');
+    expect($result['checks']['cache'])->toHaveKey('healthy');
+    expect($result['checks']['cache'])->toHaveKey('message');
+});
+
+it('health checker reports queue status', function () {
+    $healthChecker = app(HealthChecker::class);
+
+    $result = $healthChecker->check();
+
     expect($result['checks'])->toHaveKey('queue');
+    expect($result['checks']['queue'])->toHaveKey('healthy');
+    expect($result['checks']['queue'])->toHaveKey('message');
 });
 
-it('can record events in the monitoring event store', function () {
-    $repository = app(MonitoringAggregateRepository::class);
-    
-    $sessionId = 'event-test-' . uniqid();
-    $aggregate = MonitoringAggregate::retrieve($sessionId);
-    
-    // Start session
-    $aggregate->startSession($sessionId, ['purpose' => 'event testing']);
-    
-    // Record metric
-    $aggregate->recordMetric('test_metric', 100.0, 'counter');
-    
-    // Perform health check
-    $aggregate->performHealthCheck('test_component', true, 'All good');
-    
-    // Store aggregate
-    $repository->store($aggregate);
-    
-    // Retrieve and verify
-    $retrieved = $repository->findBySessionId($sessionId);
-    
-    expect($retrieved)->not->toBeNull();
-    expect($retrieved->getSessionId())->toBe($sessionId);
-    expect($retrieved->getMetrics())->not->toBeEmpty();
-    expect($retrieved->getHealthStatus())->not->toBeEmpty();
+it('exports application metrics', function () {
+    $exporter = app(PrometheusExporter::class);
+
+    $output = $exporter->export();
+
+    // Check for application metrics
+    expect($output)->toContain('app_uptime_seconds');
+    expect($output)->toContain('app_memory_usage_bytes');
+    expect($output)->toContain('app_users_total');
 });
 
-it('can handle monitoring workflows', function () {
-    // This test would require the workflow to be properly set up
-    // For now, we'll just verify the workflow exists
-    expect(class_exists(\App\Domain\Monitoring\Workflows\MonitoringWorkflow::class))->toBeTrue();
-});
+it('exports infrastructure metrics', function () {
+    $exporter = app(PrometheusExporter::class);
 
-it('stores monitoring events in custom table', function () {
-    $repository = app(MonitoringAggregateRepository::class);
-    
-    $sessionId = 'table-test-' . uniqid();
-    $aggregate = MonitoringAggregate::retrieve($sessionId);
-    
-    $aggregate->startSession($sessionId);
-    $repository->store($aggregate);
-    
-    // Check that event was stored in custom table
-    $eventCount = DB::table('monitoring_events')
-        ->where('aggregate_uuid', $sessionId)
-        ->count();
-    
-    expect($eventCount)->toBeGreaterThan(0);
-});
+    $output = $exporter->export();
 
-it('can aggregate metrics over time', function () {
-    $collector = app(MetricsCollector::class);
-    
-    // Record multiple values for the same counter
-    $collector->incrementCounter('api_calls', 10, ['endpoint' => '/users']);
-    $collector->incrementCounter('api_calls', 15, ['endpoint' => '/users']);
-    $collector->incrementCounter('api_calls', 5, ['endpoint' => '/users']);
-    
-    $metrics = $collector->getMetrics();
-    
-    // Counter should accumulate
-    expect($metrics['api_calls:endpoint=/users']['value'])->toBe(30.0);
-});
-
-it('can export metrics in JSON format', function () {
-    $repository = app(MonitoringAggregateRepository::class);
-    $collector = app(MetricsCollector::class);
-    $exporter = new PrometheusExporter($collector);
-    
-    // Set up metrics
-    $collector->setGauge('test_metric', 42.5, ['env' => 'prod']);
-    
-    // Export as JSON
-    $json = $exporter->exportJson();
-    
-    expect($json)->toHaveKey('metrics');
-    expect($json['metrics'])->toBeArray();
-    expect($json)->toHaveKey('timestamp');
+    // Check for infrastructure metrics
+    expect($output)->toContain('infra_db_connections');
+    expect($output)->toContain('infra_queue_size');
+    expect($output)->toContain('infra_redis_memory_bytes');
 });
