@@ -91,7 +91,8 @@ class MonitoringControllerTest extends TestCase
 
         $data = $response->json();
         $this->assertTrue($data['alive']);
-        $this->assertIsFloat($data['uptime']);
+        // Uptime may be null if LARAVEL_START is not defined in test environment
+        $this->assertTrue($data['uptime'] === null || is_float($data['uptime']));
         $this->assertIsInt($data['memory_usage']);
     }
 
@@ -172,13 +173,11 @@ class MonitoringControllerTest extends TestCase
 
     public function test_metrics_include_labels(): void
     {
-        // Arrange
-        Cache::put('metrics:http:by_method', [
-            'GET'    => 100,
-            'POST'   => 50,
-            'PUT'    => 20,
-            'DELETE' => 10,
-        ]);
+        // Arrange - Set metrics in the format our MetricsCollector uses
+        Cache::put('metrics:http:methods:GET', 100);
+        Cache::put('metrics:http:methods:POST', 50);
+        Cache::put('metrics:http:methods:PUT', 20);
+        Cache::put('metrics:http:methods:DELETE', 10);
 
         // Act
         $response = $this->get('/api/monitoring/metrics');

@@ -17,16 +17,15 @@ beforeEach(function () {
     Cache::flush();
 });
 
+afterEach(function () {
+    // Clear any facade mocks
+    Mockery::close();
+});
+
 describe('health endpoint', function () {
     it('returns health status without authentication', function () {
-        // Mock healthy services
-        DB::shouldReceive('select')->with('SELECT 1')->andReturn([1]);
-        DB::shouldReceive('table')->with('failed_jobs')->andReturnSelf();
-        DB::shouldReceive('where')->andReturnSelf();
-        DB::shouldReceive('count')->andReturn(0);
-        DB::shouldReceive('table')->with('jobs')->andReturnSelf();
-        Redis::shouldReceive('ping')->andReturn('PONG');
-        Queue::shouldReceive('size')->andReturn(100);
+        // The health check will use real database connections in test environment
+        // No mocking needed as RefreshDatabase trait ensures clean state
 
         $response = $this->getJson('/api/monitoring/health');
 
@@ -100,20 +99,26 @@ describe('prometheus endpoint', function () {
 });
 
 describe('metrics endpoint', function () {
-    it('requires authentication', function () {
-        $response = $this->getJson('/api/monitoring/metrics');
+    it('returns Prometheus metrics without authentication', function () {
+        // Set some cache metrics
+        Cache::put('metrics:http:requests:total', 100);
+        Cache::put('metrics:http:methods:GET', 50);
 
-        $response->assertUnauthorized();
+        $response = $this->get('/api/monitoring/metrics');
+
+        $response->assertOk();
+        $this->assertStringStartsWith('text/plain', $response->headers->get('Content-Type'));
+        $response->assertSee('http_requests_total');
     });
 
-    it('returns metrics in JSON format', function () {
+    it('returns JSON metrics with authentication', function () {
         Sanctum::actingAs($this->user);
 
         // Set some cache metrics
         Cache::put('metrics:http:requests:total', 100);
         Cache::put('metrics:cache:hits', 50);
 
-        $response = $this->getJson('/api/monitoring/metrics');
+        $response = $this->getJson('/api/monitoring/metrics-json');
 
         $response->assertOk()
             ->assertJsonStructure([

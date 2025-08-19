@@ -186,6 +186,14 @@ class PrometheusExporter
             }
         }
 
+        // HTTP methods
+        foreach (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as $method) {
+            $count = Cache::get("metrics:http:methods:{$method}", 0);
+            if ($count > 0) {
+                $output .= "http_requests_total{method=\"{$method}\"} {$count}\n";
+            }
+        }
+
         // Average duration
         $avgDuration = Cache::get('metrics:http:duration:average', 0);
         $output .= "# HELP http_request_duration_seconds HTTP request duration in seconds\n";
