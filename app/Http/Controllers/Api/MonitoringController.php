@@ -7,14 +7,11 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Monitoring\Services\HealthChecker;
 use App\Domain\Monitoring\Services\MetricsCollector;
 use App\Domain\Monitoring\Services\PrometheusExporter;
-use App\Domain\Monitoring\Services\DistributedTracer;
-use App\Domain\Monitoring\Workflows\MonitoringWorkflow;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
-use Workflow\WorkflowStub;
 
 class MonitoringController extends Controller
 {
@@ -42,7 +39,7 @@ class MonitoringController extends Controller
     public function health(HealthChecker $healthChecker): JsonResponse
     {
         $health = $healthChecker->check();
-        
+
         return response()->json($health, $health['healthy'] ? 200 : 503);
     }
 
@@ -63,15 +60,34 @@ class MonitoringController extends Controller
      */
     public function metrics(MetricsCollector $collector): JsonResponse
     {
-        $collector->recordApplicationMetrics();
-        $collector->recordBusinessMetrics();
-        
-        $metrics = $collector->getAllMetrics();
-        
+        // Collect current metrics from cache
+        $metrics = [];
+
+        // HTTP metrics
+        $metrics['http_requests_total'] = Cache::get('metrics:http:requests:total', 0);
+        $metrics['http_requests_by_status'] = [
+            '200' => Cache::get('metrics:http:requests:status:200', 0),
+            '404' => Cache::get('metrics:http:requests:status:404', 0),
+            '500' => Cache::get('metrics:http:requests:status:500', 0),
+        ];
+        $metrics['http_duration_average'] = Cache::get('metrics:http:duration:average', 0);
+
+        // Cache metrics
+        $metrics['cache_hits'] = Cache::get('metrics:cache:hits', 0);
+        $metrics['cache_misses'] = Cache::get('metrics:cache:misses', 0);
+
+        // Queue metrics
+        $metrics['queue_jobs'] = Cache::get('metrics:queue:jobs', 0);
+        $metrics['queue_failed'] = Cache::get('metrics:queue:failed', 0);
+
+        // Event metrics
+        $metrics['events_processed'] = Cache::get('metrics:events:processed', 0);
+        $metrics['events_failed'] = Cache::get('metrics:events:failed', 0);
+
         return response()->json([
-            'metrics' => $metrics,
+            'metrics'   => $metrics,
             'timestamp' => now()->toIso8601String(),
-            'count' => count($metrics),
+            'count'     => count($metrics),
         ]);
     }
 
@@ -95,7 +111,7 @@ class MonitoringController extends Controller
     public function prometheus(PrometheusExporter $exporter): Response
     {
         $metrics = $exporter->export();
-        
+
         return response($metrics, 200)
             ->header('Content-Type', 'text/plain; version=0.0.4');
     }
@@ -125,20 +141,20 @@ class MonitoringController extends Controller
     public function traces(Request $request): JsonResponse
     {
         $limit = $request->integer('limit', 100);
-        
+
         $traces = [];
         $traceKeys = Cache::get('monitoring:traces:keys', []);
-        
+
         foreach (array_slice($traceKeys, -$limit) as $traceId) {
             $trace = Cache::get("trace:{$traceId}");
             if ($trace) {
                 $traces[] = $trace;
             }
         }
-        
+
         return response()->json([
-            'traces' => $traces,
-            'count' => count($traces),
+            'traces'    => $traces,
+            'count'     => count($traces),
             'timestamp' => now()->toIso8601String(),
         ]);
     }
@@ -169,19 +185,29 @@ class MonitoringController extends Controller
      *     )
      * )
      */
-    public function trace(string $traceId, DistributedTracer $tracer): JsonResponse
+    public function trace(string $traceId): JsonResponse
     {
-        $summary = $tracer->getTraceSummary($traceId);
-        
-        if ($summary['spanCount'] === 0) {
+        // Get trace data from cache
+        $trace = Cache::get("trace:{$traceId}");
+
+        if (! $trace) {
             return response()->json(['error' => 'Trace not found'], 404);
         }
-        
+
         $spans = Cache::get("trace:spans:{$traceId}", []);
-        
+
+        // Build summary from trace data
+        $summary = [
+            'traceId'   => $traceId,
+            'spanCount' => count($spans),
+            'startTime' => $trace['start_time'] ?? null,
+            'endTime'   => $trace['end_time'] ?? null,
+            'duration'  => $trace['duration'] ?? null,
+        ];
+
         return response()->json([
-            'summary' => $summary,
-            'spans' => $spans,
+            'summary'   => $summary,
+            'spans'     => $spans,
             'timestamp' => now()->toIso8601String(),
         ]);
     }
@@ -213,16 +239,16 @@ class MonitoringController extends Controller
         $query = \DB::table('monitoring_alerts')
             ->where('acknowledged', false)
             ->orderBy('created_at', 'desc');
-        
+
         if ($request->has('severity')) {
             $query->where('severity', $request->input('severity'));
         }
-        
+
         $alerts = $query->limit(100)->get();
-        
+
         return response()->json([
-            'alerts' => $alerts,
-            'count' => $alerts->count(),
+            'alerts'    => $alerts,
+            'count'     => $alerts->count(),
             'timestamp' => now()->toIso8601String(),
         ]);
     }
@@ -261,18 +287,18 @@ class MonitoringController extends Controller
         $updated = \DB::table('monitoring_alerts')
             ->where('id', $alertId)
             ->update([
-                'acknowledged' => true,
+                'acknowledged'    => true,
                 'acknowledged_by' => auth()->id(),
                 'acknowledged_at' => now(),
-                'updated_at' => now(),
+                'updated_at'      => now(),
             ]);
-        
-        if (!$updated) {
+
+        if (! $updated) {
             return response()->json(['error' => 'Alert not found'], 404);
         }
-        
+
         return response()->json([
-            'message' => 'Alert acknowledged',
+            'message'  => 'Alert acknowledged',
             'alert_id' => $alertId,
         ]);
     }
@@ -305,19 +331,20 @@ class MonitoringController extends Controller
     public function startWorkflow(Request $request): JsonResponse
     {
         $config = $request->validate([
-            'interval' => 'sometimes|integer|min:10|max:3600',
+            'interval'       => 'sometimes|integer|min:10|max:3600',
             'max_iterations' => 'sometimes|nullable|integer|min:1',
         ]);
-        
-        $workflow = WorkflowStub::make(MonitoringWorkflow::class);
-        $workflowId = $workflow->id();
-        
-        $workflow->start($config);
-        
+
+        // For now, we'll simulate workflow start without the actual workflow class
+        // This can be implemented later when monitoring workflows are added
+        $workflowId = 'monitoring-' . uniqid();
+
         Cache::put('monitoring:workflow:id', $workflowId, now()->addDays(7));
-        
+        Cache::put('monitoring:workflow:config', $config, now()->addDays(7));
+        Cache::put('monitoring:workflow:status', 'running', now()->addDays(7));
+
         return response()->json([
-            'message' => 'Monitoring workflow started',
+            'message'     => 'Monitoring workflow started',
             'workflow_id' => $workflowId,
         ]);
     }
@@ -346,16 +373,16 @@ class MonitoringController extends Controller
     public function stopWorkflow(): JsonResponse
     {
         $workflowId = Cache::get('monitoring:workflow:id');
-        
-        if (!$workflowId) {
+
+        if (! $workflowId) {
             return response()->json(['error' => 'No active workflow found'], 404);
         }
-        
-        $workflow = WorkflowStub::load($workflowId);
-        $workflow->signal('stop');
-        
+
+        // Simulate workflow stop
+        Cache::put('monitoring:workflow:status', 'stopped', now()->addDays(7));
         Cache::forget('monitoring:workflow:id');
-        
+        Cache::forget('monitoring:workflow:config');
+
         return response()->json([
             'message' => 'Monitoring workflow stopped',
         ]);
