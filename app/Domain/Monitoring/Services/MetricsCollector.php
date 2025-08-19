@@ -17,6 +17,13 @@ class MetricsCollector
         $this->increment("metrics:http:requests:status:{$statusCode}");
         $this->increment("metrics:http:methods:{$method}");
         $this->updateAverage('metrics:http:duration:average', $duration);
+
+        // Track success/error counts
+        if ($statusCode >= 200 && $statusCode < 300) {
+            $this->increment('metrics:http:requests:success');
+        } elseif ($statusCode >= 400) {
+            $this->increment('metrics:http:requests:errors');
+        }
     }
 
     /**
@@ -45,7 +52,7 @@ class MetricsCollector
         $this->increment("metrics:workflows:{$workflowName}:{$status}");
 
         if ($duration > 0) {
-            Cache::put("metrics:workflows:{$workflowName}:duration", $duration);
+            Cache::put("metrics:workflows:{$workflowName}:duration", (string) $duration);
         }
     }
 
@@ -87,8 +94,8 @@ class MetricsCollector
      */
     private function increment(string $key): void
     {
-        $current = Cache::get($key, 0);
-        Cache::put($key, $current + 1);
+        $current = (int) Cache::get($key, 0);
+        Cache::put($key, (string) ($current + 1));
     }
 
     /**

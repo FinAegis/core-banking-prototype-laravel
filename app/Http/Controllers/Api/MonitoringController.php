@@ -90,9 +90,14 @@ class MonitoringController extends Controller
      */
     public function alive(): JsonResponse
     {
+        // Calculate uptime from app start time if available
+        $uptime = defined('LARAVEL_START') ? microtime(true) - LARAVEL_START : null;
+
         return response()->json([
-            'alive'     => true,
-            'timestamp' => now()->toIso8601String(),
+            'alive'        => true,
+            'timestamp'    => now()->toIso8601String(),
+            'uptime'       => $uptime,
+            'memory_usage' => memory_get_usage(true),
         ]);
     }
 

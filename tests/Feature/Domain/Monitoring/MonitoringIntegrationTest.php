@@ -69,7 +69,7 @@ it('can track workflow metrics', function () {
     // Check metrics
     expect(Cache::get('metrics:workflows:order_processing:started'))->toBe('1');
     expect(Cache::get('metrics:workflows:order_processing:completed'))->toBe('1');
-    expect(Cache::get('metrics:workflows:order_processing:duration'))->toBe(2.5);
+    expect(Cache::get('metrics:workflows:order_processing:duration'))->toBe('2.5');
 });
 
 it('can track business events', function () {
