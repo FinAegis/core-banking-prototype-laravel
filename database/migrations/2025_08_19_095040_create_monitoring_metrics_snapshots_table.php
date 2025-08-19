@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -18,7 +17,7 @@ return new class extends Migration
             $table->integer('metrics_count')->default(0);
             $table->enum('overall_health', ['healthy', 'degraded', 'unhealthy', 'unknown'])->default('unknown');
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index('overall_health');
             $table->index('created_at');
         });
