@@ -149,7 +149,7 @@ class TraceAggregate extends AggregateRoot
             $this->traceName = $event->name;
             $this->startTime = $event->timestamp;
         }
-        
+
         $this->spans[$event->spanId] = [
             'id'         => $event->spanId,
             'parent_id'  => $event->parentSpanId,
