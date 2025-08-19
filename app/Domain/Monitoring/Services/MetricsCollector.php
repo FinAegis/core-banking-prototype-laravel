@@ -123,19 +123,19 @@ class MetricsCollector
     public function recordCustomMetric(string $name, float $value, array $labels = []): void
     {
         $key = "metrics:custom:{$name}";
-        
-        if (!empty($labels)) {
+
+        if (! empty($labels)) {
             $labelString = $this->formatLabels($labels);
             $key .= ":{$labelString}";
         }
-        
+
         // Store the metric value
         Cache::put($key, $value);
-        
+
         // Track that this metric exists
         $metricsKey = 'metrics:custom:registered';
         $registeredMetrics = Cache::get($metricsKey, []);
-        if (!in_array($name, $registeredMetrics)) {
+        if (! in_array($name, $registeredMetrics)) {
             $registeredMetrics[] = $name;
             Cache::put($metricsKey, $registeredMetrics);
         }
@@ -153,8 +153,8 @@ class MetricsCollector
         $key = "metrics:thresholds:{$metricName}";
         Cache::put($key, [
             'threshold' => $threshold,
-            'level' => $level->value,
-            'operator' => $operator,
+            'level'     => $level->value,
+            'operator'  => $operator,
         ]);
     }
 
@@ -168,6 +168,7 @@ class MetricsCollector
         foreach ($labels as $key => $value) {
             $parts[] = "{$key}={$value}";
         }
+
         return implode(',', $parts);
     }
 }
