@@ -116,4 +116,58 @@ class MetricsCollector
         Cache::put($sumKey, $sum);
         Cache::put($key, $sum / $count);
     }
+
+    /**
+     * Record a custom metric with labels.
+     */
+    public function recordCustomMetric(string $name, float $value, array $labels = []): void
+    {
+        $key = "metrics:custom:{$name}";
+        
+        if (!empty($labels)) {
+            $labelString = $this->formatLabels($labels);
+            $key .= ":{$labelString}";
+        }
+        
+        // Store the metric value
+        Cache::put($key, $value);
+        
+        // Track that this metric exists
+        $metricsKey = 'metrics:custom:registered';
+        $registeredMetrics = Cache::get($metricsKey, []);
+        if (!in_array($name, $registeredMetrics)) {
+            $registeredMetrics[] = $name;
+            Cache::put($metricsKey, $registeredMetrics);
+        }
+    }
+
+    /**
+     * Set an alert threshold for a metric.
+     */
+    public function setAlertThreshold(
+        string $metricName,
+        float $threshold,
+        \App\Domain\Monitoring\ValueObjects\AlertLevel $level,
+        string $operator = '>'
+    ): void {
+        $key = "metrics:thresholds:{$metricName}";
+        Cache::put($key, [
+            'threshold' => $threshold,
+            'level' => $level->value,
+            'operator' => $operator,
+        ]);
+    }
+
+    /**
+     * Format labels for cache key.
+     */
+    private function formatLabels(array $labels): string
+    {
+        ksort($labels);
+        $parts = [];
+        foreach ($labels as $key => $value) {
+            $parts[] = "{$key}={$value}";
+        }
+        return implode(',', $parts);
+    }
 }
