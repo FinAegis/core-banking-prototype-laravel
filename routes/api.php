@@ -551,6 +551,30 @@ Route::prefix('webhooks')->middleware(['api.rate_limit:webhook'])->group(functio
         ->middleware('webhook.signature:coinbase');
 });
 
+// Monitoring endpoints
+Route::prefix('monitoring')->group(function () {
+    // Public health check endpoint
+    Route::get('/health', [App\Http\Controllers\Api\MonitoringController::class, 'health']);
+    
+    // Prometheus metrics endpoint (no auth for scraping)
+    Route::get('/prometheus', [App\Http\Controllers\Api\MonitoringController::class, 'prometheus']);
+    
+    // Protected monitoring endpoints
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/metrics', [App\Http\Controllers\Api\MonitoringController::class, 'metrics']);
+        Route::get('/traces', [App\Http\Controllers\Api\MonitoringController::class, 'traces']);
+        Route::get('/trace/{traceId}', [App\Http\Controllers\Api\MonitoringController::class, 'trace']);
+        Route::get('/alerts', [App\Http\Controllers\Api\MonitoringController::class, 'alerts']);
+        Route::put('/alerts/{alertId}/acknowledge', [App\Http\Controllers\Api\MonitoringController::class, 'acknowledgeAlert']);
+        
+        // Workflow management (admin only)
+        Route::middleware('is_admin')->group(function () {
+            Route::post('/workflow/start', [App\Http\Controllers\Api\MonitoringController::class, 'startWorkflow']);
+            Route::post('/workflow/stop', [App\Http\Controllers\Api\MonitoringController::class, 'stopWorkflow']);
+        });
+    });
+});
+
 // Include BIAN-compliant routes
 require __DIR__ . '/api-bian.php';
 
