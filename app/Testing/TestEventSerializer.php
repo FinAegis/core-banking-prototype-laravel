@@ -23,9 +23,11 @@ class TestEventSerializer implements EventSerializer
 
             $value = $property->getValue($event);
 
-            // Handle Carbon instances
+            // Handle Carbon and DateTimeImmutable instances
             if ($value instanceof Carbon) {
                 $properties[$property->getName()] = $value->toIso8601String();
+            } elseif ($value instanceof \DateTimeImmutable || $value instanceof \DateTime) {
+                $properties[$property->getName()] = $value->format('c');
             } elseif (is_object($value) && method_exists($value, 'toArray')) {
                 // Handle DataObjects
                 $properties[$property->getName()] = $value->toArray();
@@ -59,9 +61,13 @@ class TestEventSerializer implements EventSerializer
                 if ($type && $type instanceof \ReflectionNamedType && ! $type->isBuiltin()) {
                     $typeName = $type->getName();
 
-                    // Handle Carbon instances
+                    // Handle Carbon and DateTimeImmutable instances
                     if ($typeName === Carbon::class) {
                         $value = Carbon::parse($value);
+                    } elseif ($typeName === \DateTimeImmutable::class) {
+                        $value = new \DateTimeImmutable($value);
+                    } elseif ($typeName === \DateTime::class) {
+                        $value = new \DateTime($value);
                     } elseif (is_array($value) && function_exists('hydrate')) {
                         // Handle DataObject hydration
                         try {

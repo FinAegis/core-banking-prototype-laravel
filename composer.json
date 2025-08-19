@@ -51,6 +51,7 @@
         "livewire/livewire": "^3.6.4",
         "meilisearch/meilisearch-php": "^1.9",
         "predis/predis": "^2.2",
+        "promphp/prometheus_client_php": "^2.14",
         "resend/resend-php": "^0.18.1",
         "scrivo/highlight.php": "^9.18",
         "simplito/elliptic-php": "^1.0",

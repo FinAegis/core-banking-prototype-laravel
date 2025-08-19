@@ -9,6 +9,7 @@ use App\Domain\Exchange\Projections\LiquidityPool;
 use App\Domain\Exchange\Projections\LiquidityProvider;
 use Brick\Math\BigDecimal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ImpermanentLossProtectionServiceTest extends TestCase
@@ -23,7 +24,7 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $this->service = new ImpermanentLossProtectionService();
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_impermanent_loss_correctly(): void
     {
         // Create a pool
@@ -67,7 +68,7 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $this->assertTrue($ilPercent->isLessThan(7));
     }
 
-    /** @test */
+    #[Test]
     public function it_determines_protection_eligibility_correctly(): void
     {
         $pool = new LiquidityPool();
@@ -132,7 +133,7 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $this->assertFalse($this->service->isEligibleForProtection($inactivePosition));
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_compensation_based_on_holding_period(): void
     {
         $pool = new LiquidityPool();
@@ -191,7 +192,7 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $this->assertStringContainsString('80', $compensation180['coverage_rate']);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_compensate_below_threshold(): void
     {
         $pool = new LiquidityPool();
@@ -228,7 +229,7 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $this->assertEquals('0', $compensation['compensation']);
     }
 
-    /** @test */
+    #[Test]
     public function it_estimates_protection_fund_requirements(): void
     {
         $pool = new LiquidityPool();
@@ -263,7 +264,7 @@ class ImpermanentLossProtectionServiceTest extends TestCase
         $this->assertGreaterThan(0, $requirements['recommended_fund_size']);
     }
 
-    /** @test */
+    #[Test]
     public function it_processes_protection_claims_for_eligible_positions(): void
     {
         $pool = new LiquidityPool();

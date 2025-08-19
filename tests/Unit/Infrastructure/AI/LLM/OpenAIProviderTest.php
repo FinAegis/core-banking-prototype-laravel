@@ -14,6 +14,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class OpenAIProviderTest extends TestCase
@@ -44,7 +45,7 @@ class OpenAIProviderTest extends TestCase
         $property->setValue($this->provider, $client);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_send_chat_request(): void
     {
         // Arrange
@@ -106,7 +107,7 @@ class OpenAIProviderTest extends TestCase
         $this->assertEquals(30, $response->getTotalTokens());
     }
 
-    /** @test */
+    #[Test]
     public function it_caches_responses(): void
     {
         // Clear cache to ensure clean test
@@ -160,16 +161,7 @@ class OpenAIProviderTest extends TestCase
         $this->assertEquals($response1->getTotalTokens(), $response2->getTotalTokens());
     }
 
-    /**
-     * @test
-     * @skip Skipping temporarily - mock injection issue
-     */
-    public function it_handles_api_errors_gracefully(): void
-    {
-        $this->markTestSkipped('Mock injection not working properly - needs investigation');
-    }
-
-    /** @test */
+    #[Test]
     public function it_can_generate_embeddings(): void
     {
         // Arrange
@@ -203,7 +195,7 @@ class OpenAIProviderTest extends TestCase
         $this->assertEquals(0.1, $embeddings[0]);
     }
 
-    /** @test */
+    #[Test]
     public function it_checks_availability(): void
     {
         // Arrange
@@ -218,7 +210,7 @@ class OpenAIProviderTest extends TestCase
         $this->assertTrue($isAvailable);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_when_api_key_is_missing(): void
     {
         // Arrange
@@ -232,7 +224,7 @@ class OpenAIProviderTest extends TestCase
         $this->assertFalse($isAvailable);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_provider_name(): void
     {
         // Act

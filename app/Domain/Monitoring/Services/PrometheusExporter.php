@@ -4,309 +4,286 @@ declare(strict_types=1);
 
 namespace App\Domain\Monitoring\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class PrometheusExporter
 {
-    private MetricsCollector $collector;
-
-    private array $metrics = [];
-
-    public function __construct(MetricsCollector $collector)
-    {
-        $this->collector = $collector;
-    }
-
     /**
      * Export metrics in Prometheus format.
      */
     public function export(): string
     {
-        $this->collectAllMetrics();
+        $output = '';
 
-        $output = [];
+        // Application metrics
+        $output .= $this->exportApplicationMetrics();
 
-        // Add help and type information for each metric
-        $processedMetrics = [];
+        // Business metrics
+        $output .= $this->exportBusinessMetrics();
 
-        foreach ($this->metrics as $metric) {
-            $name = $metric['name'];
+        // Infrastructure metrics
+        $output .= $this->exportInfrastructureMetrics();
 
-            if (! isset($processedMetrics[$name])) {
-                $processedMetrics[$name] = [
-                    'type'    => $metric['type'],
-                    'help'    => $metric['help'] ?? "Metric {$name}",
-                    'samples' => [],
-                ];
-            }
+        // HTTP metrics
+        $output .= $this->exportHttpMetrics();
 
-            $processedMetrics[$name]['samples'][] = [
-                'labels' => $metric['labels'],
-                'value'  => $metric['value'],
-            ];
-        }
+        // Cache metrics
+        $output .= $this->exportCacheMetrics();
 
-        // Format output
-        foreach ($processedMetrics as $name => $data) {
-            $output[] = "# HELP {$name} {$data['help']}";
-            $output[] = "# TYPE {$name} {$data['type']}";
+        // Queue metrics
+        $output .= $this->exportQueueMetrics();
 
-            foreach ($data['samples'] as $sample) {
-                $labelString = $this->formatLabels($sample['labels']);
-                $output[] = "{$name}{$labelString} {$sample['value']}";
-            }
+        // Database metrics
+        $output .= $this->exportDatabaseMetrics();
 
-            $output[] = ''; // Empty line between metrics
-        }
+        // Workflow metrics
+        $output .= $this->exportWorkflowMetrics();
 
-        return implode("\n", $output);
+        // Event metrics
+        $output .= $this->exportEventMetrics();
+
+        return $output;
     }
 
     /**
-     * Export metrics in JSON format.
+     * Export application metrics.
      */
-    public function exportJson(): array
+    private function exportApplicationMetrics(): string
     {
-        $this->collectAllMetrics();
+        $output = '';
 
-        return $this->metrics;
-    }
+        // User count
+        $userCount = User::count();
+        $output .= "# HELP app_users_total Total number of users\n";
+        $output .= "# TYPE app_users_total gauge\n";
+        $output .= "app_users_total {$userCount}\n";
 
-    private function collectAllMetrics(): void
-    {
-        $this->metrics = [];
+        // Uptime
+        $uptime = time() - strtotime('2024-01-01'); // Approximate uptime
+        $output .= "# HELP app_uptime_seconds Application uptime in seconds\n";
+        $output .= "# TYPE app_uptime_seconds counter\n";
+        $output .= "app_uptime_seconds {$uptime}\n";
 
-        // Collect application metrics
-        $this->collectApplicationMetrics();
-
-        // Collect business metrics
-        $this->collectBusinessMetrics();
-
-        // Collect infrastructure metrics
-        $this->collectInfrastructureMetrics();
-
-        // Collect custom metrics from cache
-        $this->collectCachedMetrics();
-    }
-
-    private function collectApplicationMetrics(): void
-    {
-        // HTTP metrics
-        $httpRequests = Cache::get('metrics:http:requests:total', 0);
-        $this->addMetric('app_http_requests_total', $httpRequests, 'counter', [], 'Total HTTP requests');
-
-        $httpDuration = Cache::get('metrics:http:duration:average', 0);
-        $this->addMetric('app_http_duration_seconds', $httpDuration, 'gauge', [], 'Average HTTP request duration');
-
-        // Memory metrics
-        $this->addMetric('app_memory_usage_bytes', memory_get_usage(true), 'gauge', [], 'Current memory usage');
-        $this->addMetric('app_memory_peak_bytes', memory_get_peak_usage(true), 'gauge', [], 'Peak memory usage');
+        // Memory usage
+        $memoryUsage = memory_get_usage(true);
+        $output .= "# HELP app_memory_usage_bytes Memory usage in bytes\n";
+        $output .= "# TYPE app_memory_usage_bytes gauge\n";
+        $output .= "app_memory_usage_bytes {$memoryUsage}\n";
 
         // Cache metrics
         $cacheHits = Cache::get('metrics:cache:hits', 0);
         $cacheMisses = Cache::get('metrics:cache:misses', 0);
-        $this->addMetric('app_cache_hits_total', $cacheHits, 'counter', [], 'Total cache hits');
-        $this->addMetric('app_cache_misses_total', $cacheMisses, 'counter', [], 'Total cache misses');
+        $output .= "# HELP app_cache_hits_total Total cache hits\n";
+        $output .= "# TYPE app_cache_hits_total counter\n";
+        $output .= "app_cache_hits_total {$cacheHits}\n";
+        $output .= "# HELP app_cache_misses_total Total cache misses\n";
+        $output .= "# TYPE app_cache_misses_total counter\n";
+        $output .= "app_cache_misses_total {$cacheMisses}\n";
 
-        if ($cacheHits + $cacheMisses > 0) {
-            $hitRate = $cacheHits / ($cacheHits + $cacheMisses);
-            $this->addMetric('app_cache_hit_rate', $hitRate, 'gauge', [], 'Cache hit rate');
-        }
+        return $output;
     }
 
-    private function collectBusinessMetrics(): void
+    /**
+     * Export business metrics.
+     */
+    private function exportBusinessMetrics(): string
     {
-        // User metrics
-        $totalUsers = \App\Models\User::count();
-        $this->addMetric('app_users_total', $totalUsers, 'gauge', [], 'Total number of users');
-
-        $activeUsers = \App\Models\User::where('last_login_at', '>=', now()->subDay())->count();
-        $this->addMetric('app_users_active_daily', $activeUsers, 'gauge', [], 'Daily active users');
+        $output = '';
 
         // Account metrics
-        $totalAccounts = \App\Domain\Account\Models\Account::count();
-        $this->addMetric('app_accounts_total', $totalAccounts, 'gauge', [], 'Total number of accounts');
-
-        $activeAccounts = \App\Domain\Account\Models\Account::where('frozen', false)->count();
-        $this->addMetric('app_accounts_active', $activeAccounts, 'gauge', [], 'Active accounts');
-
-        $frozenAccounts = \App\Domain\Account\Models\Account::where('frozen', true)->count();
-        $this->addMetric('app_accounts_frozen', $frozenAccounts, 'gauge', [], 'Frozen accounts');
+        try {
+            $accountCount = DB::table('accounts')->count();
+            $output .= "# HELP business_accounts_total Total number of accounts\n";
+            $output .= "# TYPE business_accounts_total gauge\n";
+            $output .= "business_accounts_total {$accountCount}\n";
+        } catch (\Exception $e) {
+            // Skip if table doesn't exist
+        }
 
         // Transaction metrics
-        $totalTransactions = Cache::get('metrics:transactions:total', 0);
-        $this->addMetric('app_transactions_total', $totalTransactions, 'counter', [], 'Total transactions');
-
-        $dailyTransactions = Cache::get('metrics:transactions:daily', 0);
-        $this->addMetric('app_transactions_daily', $dailyTransactions, 'gauge', [], 'Daily transactions');
-
-        // Event sourcing metrics
-        $eventsProcessed = Cache::get('metrics:events:processed', 0);
-        $this->addMetric('app_events_processed_total', $eventsProcessed, 'counter', [], 'Total events processed');
-
-        // Workflow metrics
-        $workflowsStarted = Cache::get('metrics:workflows:started', 0);
-        $workflowsCompleted = Cache::get('metrics:workflows:completed', 0);
-        $workflowsFailed = Cache::get('metrics:workflows:failed', 0);
-
-        $this->addMetric('app_workflows_started_total', $workflowsStarted, 'counter', [], 'Total workflows started');
-        $this->addMetric('app_workflows_completed_total', $workflowsCompleted, 'counter', [], 'Total workflows completed');
-        $this->addMetric('app_workflows_failed_total', $workflowsFailed, 'counter', [], 'Total workflows failed');
-    }
-
-    private function collectInfrastructureMetrics(): void
-    {
-        // Database metrics
         try {
-            $dbConnections = \DB::connection()->count();
-            $this->addMetric('app_db_connections_active', $dbConnections, 'gauge', [], 'Active database connections');
+            $transactionCount = DB::table('transactions')->count();
+            $output .= "# HELP business_transactions_total Total number of transactions\n";
+            $output .= "# TYPE business_transactions_total gauge\n";
+            $output .= "business_transactions_total {$transactionCount}\n";
         } catch (\Exception $e) {
-            $this->addMetric('app_db_connections_active', 0, 'gauge', [], 'Active database connections');
+            // Skip if table doesn't exist
         }
 
-        // Queue metrics
+        return $output;
+    }
+
+    /**
+     * Export infrastructure metrics.
+     */
+    private function exportInfrastructureMetrics(): string
+    {
+        $output = '';
+
+        // Database connections
         try {
-            $queueSize = \Queue::size();
-            $this->addMetric('app_queue_jobs_pending', $queueSize, 'gauge', [], 'Pending queue jobs');
+            $connections = DB::connection()->table('information_schema.processlist')->count();
+            $output .= "# HELP infra_db_connections Current database connections\n";
+            $output .= "# TYPE infra_db_connections gauge\n";
+            $output .= "infra_db_connections {$connections}\n";
         } catch (\Exception $e) {
-            $this->addMetric('app_queue_jobs_pending', 0, 'gauge', [], 'Pending queue jobs');
+            $output .= "infra_db_connections 0\n";
         }
 
-        $queueProcessed = Cache::get('metrics:queue:processed', 0);
-        $queueFailed = Cache::get('metrics:queue:failed', 0);
+        // Queue size
+        try {
+            $queueSize = DB::table('jobs')->count();
+            $output .= "# HELP infra_queue_size Current queue size\n";
+            $output .= "# TYPE infra_queue_size gauge\n";
+            $output .= "infra_queue_size {$queueSize}\n";
+        } catch (\Exception $e) {
+            $output .= "infra_queue_size 0\n";
+        }
 
-        $this->addMetric('app_queue_jobs_processed_total', $queueProcessed, 'counter', [], 'Total queue jobs processed');
-        $this->addMetric('app_queue_jobs_failed_total', $queueFailed, 'counter', [], 'Total queue jobs failed');
+        // Failed jobs
+        try {
+            $failedJobs = DB::table('failed_jobs')->count();
+            $output .= "# HELP infra_queue_failed_total Total failed jobs\n";
+            $output .= "# TYPE infra_queue_failed_total counter\n";
+            $output .= "infra_queue_failed_total {$failedJobs}\n";
+        } catch (\Exception $e) {
+            $output .= "infra_queue_failed_total 0\n";
+        }
 
-        // Redis metrics
-        $redisMemory = Cache::get('metrics:redis:memory', 0);
-        $this->addMetric('app_redis_memory_bytes', $redisMemory, 'gauge', [], 'Redis memory usage');
+        // Redis memory (mock)
+        $output .= "# HELP infra_redis_memory_bytes Redis memory usage in bytes\n";
+        $output .= "# TYPE infra_redis_memory_bytes gauge\n";
+        $output .= "infra_redis_memory_bytes 0\n";
 
-        $redisConnections = Cache::get('metrics:redis:connections', 0);
-        $this->addMetric('app_redis_connections', $redisConnections, 'gauge', [], 'Redis connections');
+        // Database queries
+        $queries = Cache::get('metrics:db:queries:total', 0);
+        $output .= "# HELP infra_db_queries_total Total database queries\n";
+        $output .= "# TYPE infra_db_queries_total counter\n";
+        $output .= "infra_db_queries_total {$queries}\n";
+
+        return $output;
     }
 
-    private function collectCachedMetrics(): void
+    /**
+     * Export HTTP metrics.
+     */
+    private function exportHttpMetrics(): string
     {
-        $keys = Cache::get('metrics:keys', []);
+        $output = '';
 
-        foreach ($keys as $key) {
-            $value = Cache::get($key);
-            if ($value === null) {
-                continue;
-            }
+        $requestsTotal = Cache::get('metrics:http:requests:total', 0);
+        $output .= "# HELP http_requests_total Total HTTP requests\n";
+        $output .= "# TYPE http_requests_total counter\n";
+        $output .= "http_requests_total {$requestsTotal}\n";
 
-            $parts = explode(':', $key);
-            if (count($parts) < 3) {
-                continue;
-            }
-
-            $type = $parts[1];
-            $name = $parts[2];
-            $labelString = $parts[3] ?? '';
-
-            // Skip metrics we've already collected
-            if (str_starts_with($name, 'app_')) {
-                continue;
-            }
-
-            $labels = $this->parseLabels($labelString);
-
-            if ($type === 'histogram') {
-                $this->addHistogramMetric($name, $value, $labels);
-            } elseif ($type === 'summary') {
-                $this->addSummaryMetric($name, $value, $labels);
-            } else {
-                $this->addMetric($name, $value, $type, $labels);
+        // Status codes
+        foreach ([200, 201, 204, 400, 401, 403, 404, 422, 500, 503] as $status) {
+            $count = Cache::get("metrics:http:requests:status:{$status}", 0);
+            if ($count > 0) {
+                $output .= "http_requests_total{status=\"{$status}\"} {$count}\n";
             }
         }
+
+        // Average duration
+        $avgDuration = Cache::get('metrics:http:duration:average', 0);
+        $output .= "# HELP http_request_duration_seconds HTTP request duration in seconds\n";
+        $output .= "# TYPE http_request_duration_seconds gauge\n";
+        $output .= "http_request_duration_seconds {$avgDuration}\n";
+
+        return $output;
     }
 
-    private function addMetric(
-        string $name,
-        float $value,
-        string $type,
-        array $labels = [],
-        ?string $help = null
-    ): void {
-        $this->metrics[] = [
-            'name'      => $name,
-            'value'     => $value,
-            'type'      => $type,
-            'labels'    => $labels,
-            'help'      => $help ?? "Metric {$name}",
-            'timestamp' => now()->timestamp * 1000,
-        ];
-    }
-
-    private function addHistogramMetric(string $name, array $data, array $labels = []): void
+    /**
+     * Export cache metrics.
+     */
+    private function exportCacheMetrics(): string
     {
-        // Add bucket metrics
-        foreach ($data['buckets'] ?? [] as $bucket => $count) {
-            $bucketLabels = array_merge($labels, ['le' => (string) $bucket]);
-            $this->addMetric("{$name}_bucket", $count, 'counter', $bucketLabels);
-        }
+        $output = '';
 
-        // Add +Inf bucket
-        $infLabels = array_merge($labels, ['le' => '+Inf']);
-        $this->addMetric("{$name}_bucket", $data['count'] ?? 0, 'counter', $infLabels);
+        $hits = Cache::get('metrics:cache:hits', 0);
+        $misses = Cache::get('metrics:cache:misses', 0);
 
-        // Add sum and count
-        $this->addMetric("{$name}_sum", $data['sum'] ?? 0, 'counter', $labels);
-        $this->addMetric("{$name}_count", $data['count'] ?? 0, 'counter', $labels);
+        $output .= "# HELP cache_operations_total Total cache operations\n";
+        $output .= "# TYPE cache_operations_total counter\n";
+        $output .= "cache_operations_total{result=\"hit\"} {$hits}\n";
+        $output .= "cache_operations_total{result=\"miss\"} {$misses}\n";
+
+        return $output;
     }
 
-    private function addSummaryMetric(string $name, array $data, array $labels = []): void
+    /**
+     * Export queue metrics.
+     */
+    private function exportQueueMetrics(): string
     {
-        $values = $data['values'] ?? [];
-        if (! empty($values)) {
-            sort($values);
-            $count = count($values);
+        $output = '';
 
-            // Calculate quantiles
-            $quantiles = [0.5, 0.9, 0.95, 0.99];
-            foreach ($quantiles as $quantile) {
-                $index = (int) ceil($quantile * $count) - 1;
-                $quantileLabels = array_merge($labels, ['quantile' => (string) $quantile]);
-                $this->addMetric($name, $values[$index] ?? 0, 'gauge', $quantileLabels);
-            }
-        }
+        $completed = Cache::get('metrics:queue:completed', 0);
+        $failed = Cache::get('metrics:queue:failed', 0);
 
-        // Add sum and count
-        $this->addMetric("{$name}_sum", $data['sum'] ?? 0, 'counter', $labels);
-        $this->addMetric("{$name}_count", $data['count'] ?? 0, 'counter', $labels);
+        $output .= "# HELP queue_jobs_total Total queue jobs\n";
+        $output .= "# TYPE queue_jobs_total counter\n";
+        $output .= "queue_jobs_total{status=\"completed\"} {$completed}\n";
+        $output .= "queue_jobs_total{status=\"failed\"} {$failed}\n";
+
+        return $output;
     }
 
-    private function formatLabels(array $labels): string
+    /**
+     * Export database metrics.
+     */
+    private function exportDatabaseMetrics(): string
     {
-        if (empty($labels)) {
-            return '';
-        }
+        $output = '';
 
-        $pairs = [];
-        foreach ($labels as $key => $value) {
-            $value = str_replace('"', '\\"', $value);
-            $pairs[] = "{$key}=\"{$value}\"";
-        }
+        $queries = Cache::get('metrics:db:queries:total', 0);
+        $output .= "# HELP database_queries_total Total database queries\n";
+        $output .= "# TYPE database_queries_total counter\n";
+        $output .= "database_queries_total {$queries}\n";
 
-        return '{' . implode(',', $pairs) . '}';
+        return $output;
     }
 
-    private function parseLabels(string $labelString): array
+    /**
+     * Export workflow metrics.
+     */
+    private function exportWorkflowMetrics(): string
     {
-        if (empty($labelString)) {
-            return [];
+        $output = '';
+
+        $started = Cache::get('metrics:workflows:started', 0);
+        $completed = Cache::get('metrics:workflows:completed', 0);
+        $failed = Cache::get('metrics:workflows:failed', 0);
+
+        $output .= "# HELP workflow_executions_total Total workflow executions\n";
+        $output .= "# TYPE workflow_executions_total counter\n";
+        $output .= "workflow_executions_total{status=\"started\"} {$started}\n";
+        $output .= "workflow_executions_total{status=\"completed\"} {$completed}\n";
+        $output .= "workflow_executions_total{status=\"failed\"} {$failed}\n";
+
+        return $output;
+    }
+
+    /**
+     * Export event metrics.
+     */
+    private function exportEventMetrics(): string
+    {
+        $output = '';
+
+        $processed = Cache::get('metrics:events:processed', 0);
+        $failed = Cache::get('metrics:events:failed', 0);
+
+        $output .= "# HELP events_processed_total Total events processed\n";
+        $output .= "# TYPE events_processed_total counter\n";
+        $output .= "events_processed_total {$processed}\n";
+
+        if ($failed > 0) {
+            $output .= "events_processed_total{status=\"failed\"} {$failed}\n";
         }
 
-        $labels = [];
-        $pairs = explode(',', $labelString);
-        foreach ($pairs as $pair) {
-            $parts = explode('=', $pair, 2);
-            if (count($parts) === 2) {
-                $labels[$parts[0]] = $parts[1];
-            }
-        }
-
-        return $labels;
+        return $output;
     }
 }

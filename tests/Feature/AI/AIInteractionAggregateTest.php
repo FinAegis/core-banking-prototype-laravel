@@ -138,13 +138,68 @@ class AIInteractionAggregateTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_records_human_overrides(): void
     {
-        $this->markTestSkipped('Method recordHumanOverride not implemented in aggregate');
+        // Arrange
+        Event::fake();
+        $conversationId = 'conv_test_128';
+        $originalDecision = 'approve_loan';
+        $overriddenDecision = 'reject_loan';
+        $reason = 'Risk assessment flagged additional concerns';
+
+        // Act
+        $aggregate = AIInteractionAggregate::retrieve($conversationId)
+            ->startConversation($conversationId, 'lending_agent', '1')
+            ->makeDecision($originalDecision, ['amount' => 10000], 0.75)
+            ->recordHumanOverride($originalDecision, $overriddenDecision, $reason)
+            ->persist();
+
+        // Assert
+        $events = $aggregate->getAppliedEvents();
+        $this->assertCount(3, $events);
+        $this->assertInstanceOf(HumanInterventionRequestedEvent::class, $events[2]);
+        $this->assertEquals($reason, $events[2]->reason);
+        $this->assertEquals('override', $events[2]->context['intervention_type']);
+        $this->assertEquals($originalDecision, $events[2]->context['original_decision']);
+        $this->assertEquals($overriddenDecision, $events[2]->context['overridden_decision']);
+        $this->assertEquals($overriddenDecision, $events[2]->suggestedAction);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_average_confidence_across_decisions(): void
     {
-        $this->markTestSkipped('Method requestHumanIntervention not implemented in aggregate');
+        // Arrange
+        Event::fake();
+        $conversationId = 'conv_test_129';
+
+        // Act
+        $aggregate = AIInteractionAggregate::retrieve($conversationId)
+            ->startConversation($conversationId, 'risk_agent', '1')
+            ->makeDecision('decision1', [], 0.80)
+            ->makeDecision('decision2', [], 0.90)
+            ->makeDecision('decision3', [], 0.60) // Low confidence, should trigger intervention
+            ->requestHumanIntervention('Low confidence decision requires review', ['avg_confidence' => 0.77])
+            ->persist();
+
+        // Assert
+        $events = $aggregate->getAppliedEvents();
+        // The low confidence decision triggers human intervention automatically, so we have 6 events
+        $this->assertCount(6, $events); // 1 start + 3 decisions + 1 auto-intervention + 1 manual intervention
+
+        // Calculate average confidence from the decisions
+        $confidences = [];
+        foreach ($events as $event) {
+            if ($event instanceof AIDecisionMadeEvent) {
+                $confidences[] = $event->confidence;
+            }
+        }
+
+        $avgConfidence = array_sum($confidences) / count($confidences);
+        $this->assertEqualsWithDelta(0.77, $avgConfidence, 0.01);
+
+        // Verify human intervention was requested
+        $lastEvent = end($events);
+        $this->assertInstanceOf(HumanInterventionRequestedEvent::class, $lastEvent);
+        $this->assertEquals('intervention_required', $lastEvent->context['intervention_type']);
+        $this->assertEquals('Low confidence decision requires review', $lastEvent->reason);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

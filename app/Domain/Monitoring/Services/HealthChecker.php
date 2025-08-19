@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Monitoring\Services;
 
-use App\Domain\Monitoring\Aggregates\MonitoringAggregate;
-use App\Domain\Monitoring\Repositories\MonitoringAggregateRepository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -13,20 +11,15 @@ use Illuminate\Support\Str;
 
 class HealthChecker
 {
-    private MonitoringAggregateRepository $repository;
+    private ?MetricsCollector $metricsCollector;
 
-    private MetricsCollector $metricsCollector;
-
-    public function __construct(
-        MonitoringAggregateRepository $repository,
-        MetricsCollector $metricsCollector
-    ) {
-        $this->repository = $repository;
+    public function __construct(?MetricsCollector $metricsCollector = null)
+    {
         $this->metricsCollector = $metricsCollector;
     }
 
     /**
-     * Perform a comprehensive health check.
+     * Perform comprehensive health check.
      */
     public function check(): array
     {
@@ -39,126 +32,117 @@ class HealthChecker
             'migrations' => $this->checkMigrations(),
         ];
 
-        $overall = $this->calculateOverallHealth($checks);
+        $healthy = collect($checks)->every(fn ($check) => $check['healthy']);
 
-        // Record health check in event store
-        $this->recordHealthCheck($checks, $overall);
-
-        // Update metrics
-        $this->updateHealthMetrics($checks, $overall);
+        // Update metrics if collector is available
+        if ($this->metricsCollector) {
+            $this->updateHealthMetrics($checks, $healthy);
+        }
 
         return [
-            'status'    => $overall['status'],
-            'healthy'   => $overall['healthy'],
+            'status'    => $healthy ? 'healthy' : 'unhealthy',
             'timestamp' => now()->toIso8601String(),
             'checks'    => $checks,
-            'summary'   => $overall['summary'],
         ];
     }
 
     /**
-     * Check database health.
+     * Check if application is ready to serve traffic.
      */
-    public function checkDatabase(): array
+    public function checkReadiness(): array
     {
-        $startTime = microtime(true);
+        $checks = [
+            'database'   => $this->checkDatabase(),
+            'cache'      => $this->checkCache(),
+            'migrations' => $this->checkMigrations(),
+        ];
 
+        $ready = collect($checks)->every(fn ($check) => $check['healthy']);
+
+        return [
+            'ready'     => $ready,
+            'timestamp' => now()->toIso8601String(),
+            'checks'    => $checks,
+        ];
+    }
+
+    /**
+     * Check database connectivity.
+     */
+    protected function checkDatabase(): array
+    {
         try {
+            $start = microtime(true);
             DB::select('SELECT 1');
-
-            $connectionCount = DB::connection()->count();
-            $maxConnections = config('database.connections.mysql.max_connections', 100);
-
-            $duration = (microtime(true) - $startTime) * 1000;
-
-            $healthy = $duration < 100 && $connectionCount < $maxConnections * 0.8;
+            $duration = (microtime(true) - $start) * 1000;
 
             return [
-                'status'          => $healthy ? 'healthy' : 'degraded',
-                'healthy'         => $healthy,
-                'duration_ms'     => $duration,
-                'connections'     => $connectionCount,
-                'max_connections' => $maxConnections,
-                'message'         => $healthy ? 'Database is responsive' : 'Database performance degraded',
+                'name'        => 'database',
+                'healthy'     => true,
+                'message'     => 'Database connection successful',
+                'duration_ms' => round($duration, 2),
             ];
         } catch (\Exception $e) {
             return [
-                'status'  => 'unhealthy',
+                'name'    => 'database',
                 'healthy' => false,
-                'error'   => $e->getMessage(),
                 'message' => 'Database connection failed',
+                'error'   => $e->getMessage(),
             ];
         }
     }
 
     /**
-     * Check cache health.
+     * Check cache connectivity.
      */
-    public function checkCache(): array
+    protected function checkCache(): array
     {
-        $startTime = microtime(true);
-
         try {
-            $testKey = 'health:check:' . Str::random(16);
-            $testValue = Str::random(32);
-
-            Cache::put($testKey, $testValue, 10);
-            $retrieved = Cache::get($testKey);
-            Cache::forget($testKey);
-
-            $duration = (microtime(true) - $startTime) * 1000;
-
-            $healthy = $retrieved === $testValue && $duration < 50;
+            $start = microtime(true);
+            $key = 'health:check:' . time();
+            Cache::put($key, true, 1);
+            $value = Cache::get($key);
+            Cache::forget($key);
+            $duration = (microtime(true) - $start) * 1000;
 
             return [
-                'status'      => $healthy ? 'healthy' : 'degraded',
-                'healthy'     => $healthy,
-                'duration_ms' => $duration,
-                'message'     => $healthy ? 'Cache is operational' : 'Cache performance degraded',
+                'name'        => 'cache',
+                'healthy'     => $value === true,
+                'message'     => 'Cache is operational',
+                'duration_ms' => round($duration, 2),
             ];
         } catch (\Exception $e) {
             return [
-                'status'  => 'unhealthy',
+                'name'    => 'cache',
                 'healthy' => false,
+                'message' => 'Cache check failed',
                 'error'   => $e->getMessage(),
-                'message' => 'Cache operation failed',
             ];
         }
     }
 
     /**
-     * Check Redis health.
+     * Check Redis connectivity.
      */
-    public function checkRedis(): array
+    protected function checkRedis(): array
     {
-        $startTime = microtime(true);
-
         try {
-            $redis = Redis::connection();
-            $pong = $redis->ping();
-
-            $info = $redis->info();
-            $memoryUsed = $info['used_memory'] ?? 0;
-            $memoryPeak = $info['used_memory_peak'] ?? 0;
-
-            $duration = (microtime(true) - $startTime) * 1000;
-
-            $healthy = $pong && $duration < 50;
+            $start = microtime(true);
+            Redis::ping();
+            $duration = (microtime(true) - $start) * 1000;
 
             return [
-                'status'      => $healthy ? 'healthy' : 'degraded',
-                'healthy'     => $healthy,
-                'duration_ms' => $duration,
-                'memory_used' => $memoryUsed,
-                'memory_peak' => $memoryPeak,
-                'message'     => $healthy ? 'Redis is operational' : 'Redis performance degraded',
+                'name'        => 'redis',
+                'healthy'     => true,
+                'message'     => 'Redis connection successful',
+                'duration_ms' => round($duration, 2),
             ];
         } catch (\Exception $e) {
             return [
-                'status'  => 'unhealthy',
+                'name'    => 'redis',
                 'healthy' => false,
-                'error'   => $e->getMessage(),
                 'message' => 'Redis connection failed',
+                'error'   => $e->getMessage(),
             ];
         }
     }
@@ -166,70 +150,61 @@ class HealthChecker
     /**
      * Check queue health.
      */
-    public function checkQueue(): array
+    protected function checkQueue(): array
     {
         try {
-            $defaultQueue = config('queue.default');
-            $queueSize = \Queue::size($defaultQueue);
+            $failedJobs = DB::table('failed_jobs')
+                ->where('failed_at', '>=', now()->subHour())
+                ->count();
 
-            $failedJobs = DB::table('failed_jobs')->count();
-            $maxQueueSize = config('monitoring.max_queue_size', 1000);
-            $maxFailedJobs = config('monitoring.max_failed_jobs', 100);
+            $pendingJobs = DB::table('jobs')->count();
 
-            $healthy = $queueSize < $maxQueueSize && $failedJobs < $maxFailedJobs;
+            $healthy = $failedJobs < 10 && $pendingJobs < 1000;
 
             return [
-                'status'      => $healthy ? 'healthy' : 'degraded',
-                'healthy'     => $healthy,
-                'queue_size'  => $queueSize,
-                'failed_jobs' => $failedJobs,
-                'message'     => $healthy ? 'Queue is processing normally' : 'Queue backlog detected',
+                'name'         => 'queue',
+                'healthy'      => $healthy,
+                'message'      => $healthy ? 'Queue is operating normally' : 'Queue has issues',
+                'failed_jobs'  => $failedJobs,
+                'pending_jobs' => $pendingJobs,
             ];
         } catch (\Exception $e) {
             return [
-                'status'  => 'unhealthy',
+                'name'    => 'queue',
                 'healthy' => false,
-                'error'   => $e->getMessage(),
                 'message' => 'Queue check failed',
+                'error'   => $e->getMessage(),
             ];
         }
     }
 
     /**
-     * Check storage health.
+     * Check storage availability.
      */
-    public function checkStorage(): array
+    protected function checkStorage(): array
     {
         try {
             $path = storage_path('app');
+            $free = disk_free_space($path);
+            $total = disk_total_space($path);
+            $usedPercent = (($total - $free) / $total) * 100;
 
-            // Check if storage is writable
-            $testFile = $path . '/health-check-' . Str::random(16) . '.tmp';
-            file_put_contents($testFile, 'test');
-            $content = file_get_contents($testFile);
-            unlink($testFile);
-
-            // Check disk space
-            $freeSpace = disk_free_space($path);
-            $totalSpace = disk_total_space($path);
-            $usedPercentage = (($totalSpace - $freeSpace) / $totalSpace) * 100;
-
-            $healthy = $content === 'test' && $usedPercentage < 90;
+            $healthy = $usedPercent < 90;
 
             return [
-                'status'          => $healthy ? 'healthy' : 'degraded',
-                'healthy'         => $healthy,
-                'free_space_gb'   => round($freeSpace / 1073741824, 2),
-                'total_space_gb'  => round($totalSpace / 1073741824, 2),
-                'used_percentage' => round($usedPercentage, 2),
-                'message'         => $healthy ? 'Storage is operational' : 'Storage space low',
+                'name'         => 'storage',
+                'healthy'      => $healthy,
+                'message'      => $healthy ? 'Storage has sufficient space' : 'Storage space is low',
+                'free_gb'      => round($free / 1073741824, 2),
+                'total_gb'     => round($total / 1073741824, 2),
+                'used_percent' => round($usedPercent, 2),
             ];
         } catch (\Exception $e) {
             return [
-                'status'  => 'unhealthy',
+                'name'    => 'storage',
                 'healthy' => false,
-                'error'   => $e->getMessage(),
                 'message' => 'Storage check failed',
+                'error'   => $e->getMessage(),
             ];
         }
     }
@@ -237,153 +212,50 @@ class HealthChecker
     /**
      * Check if migrations are up to date.
      */
-    public function checkMigrations(): array
+    protected function checkMigrations(): array
     {
         try {
             $pending = \Artisan::call('migrate:status', ['--pending' => true]);
-            $hasPending = $pending > 0;
+
+            $healthy = $pending === 0;
 
             return [
-                'status'             => ! $hasPending ? 'healthy' : 'degraded',
-                'healthy'            => ! $hasPending,
+                'name'               => 'migrations',
+                'healthy'            => $healthy,
+                'message'            => $healthy ? 'All migrations are up to date' : 'Pending migrations found',
                 'pending_migrations' => $pending,
-                'message'            => ! $hasPending ? 'All migrations applied' : 'Pending migrations detected',
             ];
         } catch (\Exception $e) {
             return [
-                'status'  => 'unknown',
-                'healthy' => true, // Don't fail health check on migration check failure
+                'name'    => 'migrations',
+                'healthy' => false,
+                'message' => 'Migration check failed',
                 'error'   => $e->getMessage(),
-                'message' => 'Could not check migration status',
             ];
         }
-    }
-
-    /**
-     * Calculate overall health status.
-     */
-    private function calculateOverallHealth(array $checks): array
-    {
-        $healthy = 0;
-        $degraded = 0;
-        $unhealthy = 0;
-
-        foreach ($checks as $check) {
-            switch ($check['status']) {
-                case 'healthy':
-                    $healthy++;
-                    break;
-                case 'degraded':
-                    $degraded++;
-                    break;
-                case 'unhealthy':
-                    $unhealthy++;
-                    break;
-            }
-        }
-
-        $total = count($checks);
-
-        if ($unhealthy > 0) {
-            $status = 'unhealthy';
-        } elseif ($degraded > $total / 2) {
-            $status = 'unhealthy';
-        } elseif ($degraded > 0) {
-            $status = 'degraded';
-        } else {
-            $status = 'healthy';
-        }
-
-        return [
-            'status'  => $status,
-            'healthy' => $status === 'healthy',
-            'summary' => [
-                'healthy'   => $healthy,
-                'degraded'  => $degraded,
-                'unhealthy' => $unhealthy,
-                'total'     => $total,
-            ],
-        ];
-    }
-
-    /**
-     * Record health check in event store.
-     */
-    private function recordHealthCheck(array $checks, array $overall): void
-    {
-        $aggregate = $this->getOrCreateAggregate();
-
-        foreach ($checks as $component => $check) {
-            $aggregate->performHealthCheck(
-                $component,
-                $check['healthy'],
-                $check['message'] ?? null,
-                $check
-            );
-        }
-
-        // Record overall health
-        $aggregate->performHealthCheck(
-            'overall',
-            $overall['healthy'],
-            "System status: {$overall['status']}",
-            $overall
-        );
-
-        $this->repository->store($aggregate);
     }
 
     /**
      * Update health metrics.
      */
-    private function updateHealthMetrics(array $checks, array $overall): void
+    private function updateHealthMetrics(array $checks, bool $healthy): void
     {
+        if (! $this->metricsCollector) {
+            return;
+        }
+
         // Overall health metric (1 = healthy, 0 = unhealthy)
-        $this->metricsCollector->setGauge(
-            'app_health_status',
-            $overall['healthy'] ? 1 : 0,
-            [],
-            null,
-            'Overall application health status'
-        );
+        $this->metricsCollector->recordBusinessEvent('health_check', [
+            'status'  => $healthy ? 'healthy' : 'unhealthy',
+            'healthy' => $healthy,
+        ]);
 
         // Component health metrics
         foreach ($checks as $component => $check) {
-            $this->metricsCollector->setGauge(
-                'app_health_component_status',
-                $check['healthy'] ? 1 : 0,
-                ['component' => $component],
-                null,
-                "Health status of {$component}"
-            );
-
-            // Component-specific metrics
-            if (isset($check['duration_ms'])) {
-                $this->metricsCollector->setGauge(
-                    'app_health_check_duration_ms',
-                    $check['duration_ms'],
-                    ['component' => $component],
-                    'milliseconds',
-                    "Health check duration for {$component}"
-                );
-            }
-        }
-    }
-
-    private function getOrCreateAggregate(): MonitoringAggregate
-    {
-        $sessionId = Cache::get('monitoring:session:id', Str::uuid()->toString());
-
-        $aggregate = $this->repository->findBySessionId($sessionId);
-
-        if (! $aggregate) {
-            $aggregate = MonitoringAggregate::fake(Str::uuid()->toString());
-            $aggregate->startSession($sessionId, [
-                'type'       => 'health_check',
-                'started_at' => now(),
+            $this->metricsCollector->recordBusinessEvent("health_check_{$component}", [
+                'healthy' => $check['healthy'],
+                'message' => $check['message'] ?? '',
             ]);
         }
-
-        return $aggregate;
     }
 }

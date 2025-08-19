@@ -246,11 +246,15 @@ return [
         // Monitoring & Observability events
         'monitoring_session_started'   => App\Domain\Monitoring\Events\MonitoringSessionStartedEvent::class,
         'monitoring_session_ended'     => App\Domain\Monitoring\Events\MonitoringSessionEndedEvent::class,
-        'metric_recorded'              => App\Domain\Monitoring\Events\MetricRecordedEvent::class,
+        'metric_recorded'              => App\Domain\Monitoring\Events\MetricRecorded::class,
         'health_check_performed'       => App\Domain\Monitoring\Events\HealthCheckPerformedEvent::class,
+        'health_check_failed'          => App\Domain\Monitoring\Events\HealthCheckFailed::class,
+        'health_check_passed'          => App\Domain\Monitoring\Events\HealthCheckPassed::class,
         'tracing_span_recorded'        => App\Domain\Monitoring\Events\TracingSpanRecordedEvent::class,
         'threshold_breached'           => App\Domain\Monitoring\Events\ThresholdBreachedEvent::class,
-        'alert_triggered'              => App\Domain\Monitoring\Events\AlertTriggeredEvent::class,
+        'threshold_exceeded'           => App\Domain\Monitoring\Events\ThresholdExceeded::class,
+        'alert_triggered'              => App\Domain\Monitoring\Events\AlertTriggered::class,
+        'alert_resolved'               => App\Domain\Monitoring\Events\AlertResolved::class,
     ],
 
     /*

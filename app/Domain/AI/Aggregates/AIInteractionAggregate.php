@@ -123,6 +123,38 @@ class AIInteractionAggregate extends AggregateRoot
         return $this;
     }
 
+    public function recordHumanOverride(
+        string $originalDecision,
+        string $overriddenDecision,
+        string $reason
+    ): self {
+        $this->recordThat(new HumanInterventionRequestedEvent(
+            $this->conversationId,
+            $reason,
+            [
+                'original_decision'   => $originalDecision,
+                'overridden_decision' => $overriddenDecision,
+                'intervention_type'   => 'override',
+            ],
+            0.5, // Default confidence for overrides
+            $overriddenDecision
+        ));
+
+        return $this;
+    }
+
+    public function requestHumanIntervention(string $reason, array $context = []): self
+    {
+        $this->recordThat(new HumanInterventionRequestedEvent(
+            $this->conversationId,
+            $reason,
+            array_merge(['intervention_type' => 'intervention_required'], $context),
+            $context['confidence'] ?? 0.5
+        ));
+
+        return $this;
+    }
+
     public function endConversation(array $summary = []): self
     {
         $this->recordThat(new ConversationEndedEvent(
