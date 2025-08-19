@@ -11,7 +11,30 @@ use Illuminate\Support\Facades\Cache;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    Cache::flush();
+    // Clear only monitoring-related cache keys to avoid conflicts in parallel tests
+    $keysToForget = [
+        'metrics:http:requests:total',
+        'metrics:http:requests:status:200',
+        'metrics:http:requests:status:201',
+        'metrics:http:requests:status:500',
+        'metrics:http:methods:GET',
+        'metrics:http:methods:POST',
+        'metrics:http:duration:average',
+        'metrics:http:duration:average:count',
+        'metrics:http:duration:average:sum',
+        'metrics:cache:hits',
+        'metrics:cache:misses',
+        'metrics:events:total',
+        'metrics:events:user_registered:total',
+        'metrics:events:order_placed:total',
+        'metrics:workflows:order_processing:started',
+        'metrics:workflows:order_processing:completed',
+        'metrics:workflows:order_processing:duration',
+    ];
+
+    foreach ($keysToForget as $key) {
+        Cache::forget($key);
+    }
 });
 
 it('can record and retrieve HTTP metrics', function () {

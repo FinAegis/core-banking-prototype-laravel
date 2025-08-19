@@ -14,7 +14,12 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->user = User::factory()->create();
-    Cache::flush();
+    // Clear only monitoring-related cache keys to avoid conflicts in parallel tests
+    Cache::forget('metrics:http:requests:total');
+    Cache::forget('metrics:http:requests:status:200');
+    Cache::forget('metrics:http:methods:GET');
+    Cache::forget('metrics:cache:hits');
+    Cache::forget('monitoring:traces:keys');
 });
 
 afterEach(function () {

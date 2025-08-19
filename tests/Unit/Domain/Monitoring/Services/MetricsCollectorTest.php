@@ -19,10 +19,52 @@ class MetricsCollectorTest extends TestCase
     {
         parent::setUp();
 
-        // Clear cache before each test to ensure isolation
-        Cache::flush();
+        // Clear only monitoring-related cache keys to avoid conflicts in parallel tests
+        $this->clearMonitoringCache();
 
         $this->collector = app(MetricsCollector::class);
+    }
+
+    /**
+     * Clear monitoring-specific cache keys for test isolation.
+     */
+    private function clearMonitoringCache(): void
+    {
+        $keysToForget = [
+            'metrics:http:requests:total',
+            'metrics:http:requests:success',
+            'metrics:http:requests:errors',
+            'metrics:http:requests:status:200',
+            'metrics:http:requests:status:201',
+            'metrics:http:requests:status:404',
+            'metrics:http:requests:status:500',
+            'metrics:http:methods:GET',
+            'metrics:http:methods:POST',
+            'metrics:http:duration:average',
+            'metrics:http:duration:average:count',
+            'metrics:http:duration:average:sum',
+            'metrics:cache:hits',
+            'metrics:cache:misses',
+            'metrics:events:total',
+            'metrics:events:UserRegistered:total',
+            'metrics:aggregates:TestAggregate:action:total',
+            'metrics:aggregates:TestAggregate:duration',
+            'metrics:aggregates:TestAggregate:duration:count',
+            'metrics:aggregates:TestAggregate:duration:sum',
+            'metrics:workflows:TestWorkflow:started',
+            'metrics:workflows:TestWorkflow:completed',
+            'metrics:workflows:TestWorkflow:failed',
+            'metrics:workflows:TestWorkflow:duration',
+            'metrics:queue:completed',
+            'metrics:queue:failed',
+            'metrics:queue:duration',
+            'metrics:queue:duration:count',
+            'metrics:queue:duration:sum',
+        ];
+
+        foreach ($keysToForget as $key) {
+            Cache::forget($key);
+        }
     }
 
     public function test_collects_http_request_metrics(): void
