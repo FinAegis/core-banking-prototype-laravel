@@ -35,7 +35,7 @@ class TracingService
         $this->currentTrace = TraceAggregate::createNew($traceId, $name);
 
         // Start OpenTelemetry span if available
-        if ($this->tracer) {
+        if ($this->tracer && $name !== '') {
             $span = $this->tracer->spanBuilder($name)
                 ->setSpanKind(SpanKind::KIND_SERVER)
                 ->setAttributes($attributes)
@@ -64,7 +64,7 @@ class TracingService
         $spanId = Str::uuid()->toString();
 
         // Start OpenTelemetry span if available
-        if ($this->tracer) {
+        if ($this->tracer && $name !== '') {
             $builder = $this->tracer->spanBuilder($name)
                 ->setAttributes($attributes);
 

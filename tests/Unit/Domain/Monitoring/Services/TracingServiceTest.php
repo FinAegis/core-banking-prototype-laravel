@@ -20,11 +20,11 @@ class TracingServiceTest extends TestCase
 
     private TracingService $service;
 
-    private TracerInterface&MockInterface $tracer;
+    private MockInterface $tracer;
 
-    private SpanInterface&MockInterface $span;
+    private MockInterface $span;
 
-    private SpanBuilderInterface&MockInterface $spanBuilder;
+    private MockInterface $spanBuilder;
 
     protected function setUp(): void
     {
@@ -34,7 +34,9 @@ class TracingServiceTest extends TestCase
         $this->span = Mockery::mock(SpanInterface::class);
         $this->spanBuilder = Mockery::mock(SpanBuilderInterface::class);
 
-        $this->service = new TracingService($this->tracer);
+        /** @var TracerInterface $tracer */
+        $tracer = $this->tracer;
+        $this->service = new TracingService($tracer);
     }
 
     public function test_start_trace_creates_new_trace_aggregate(): void
@@ -43,22 +45,22 @@ class TracingServiceTest extends TestCase
         $traceName = 'test-trace';
         $attributes = ['key' => 'value'];
 
-        $this->spanBuilder->shouldReceive('setSpanKind')->andReturnSelf();
-        $this->spanBuilder->shouldReceive('setAttributes')->with($attributes)->andReturnSelf();
+        $this->spanBuilder->shouldReceive('setSpanKind')->andReturn($this->spanBuilder);
+        $this->spanBuilder->shouldReceive('setAttributes')->with($attributes)->andReturn($this->spanBuilder);
         $this->spanBuilder->shouldReceive('startSpan')->andReturn($this->span);
 
         $this->tracer->shouldReceive('spanBuilder')
             ->with($traceName)
             ->andReturn($this->spanBuilder);
 
-        $this->span->shouldReceive('activate')->andReturn(null);
+        $scope = Mockery::mock(\OpenTelemetry\Context\ScopeInterface::class);
+        $this->span->shouldReceive('activate')->andReturn($scope);
 
         // Act
         $traceId = $this->service->startTrace($traceName, $attributes);
 
         // Assert
         $this->assertNotEmpty($traceId);
-        $this->assertIsString($traceId);
     }
 
     public function test_start_span_creates_child_span(): void
@@ -68,7 +70,7 @@ class TracingServiceTest extends TestCase
         $parentSpanId = 'parent-123';
         $attributes = ['operation' => 'test'];
 
-        $this->spanBuilder->shouldReceive('setAttributes')->with($attributes)->andReturnSelf();
+        $this->spanBuilder->shouldReceive('setAttributes')->with($attributes)->andReturn($this->spanBuilder);
         $this->spanBuilder->shouldReceive('startSpan')->andReturn($this->span);
 
         $this->tracer->shouldReceive('spanBuilder')
@@ -80,16 +82,17 @@ class TracingServiceTest extends TestCase
 
         // Assert
         $this->assertNotEmpty($spanId);
-        $this->assertIsString($spanId);
     }
 
     public function test_end_span_sets_status_and_ends_span(): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Arrange
         $spanName = 'test-span';
         $attributes = ['final' => 'value'];
 
-        $this->spanBuilder->shouldReceive('setAttributes')->andReturnSelf();
+        $this->spanBuilder->shouldReceive('setAttributes')->andReturn($this->spanBuilder);
         $this->spanBuilder->shouldReceive('startSpan')->andReturn($this->span);
 
         $this->tracer->shouldReceive('spanBuilder')
@@ -104,17 +107,16 @@ class TracingServiceTest extends TestCase
 
         // Act
         $this->service->endSpan($spanId, 'ok', $attributes);
-
-        // Assert - no exception thrown
-        $this->assertTrue(true);
     }
 
     public function test_record_error_records_exception_in_span(): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Arrange
         $spanName = 'error-span';
 
-        $this->spanBuilder->shouldReceive('setAttributes')->andReturnSelf();
+        $this->spanBuilder->shouldReceive('setAttributes')->andReturn($this->spanBuilder);
         $this->spanBuilder->shouldReceive('startSpan')->andReturn($this->span);
 
         $this->tracer->shouldReceive('spanBuilder')
@@ -133,17 +135,16 @@ class TracingServiceTest extends TestCase
 
         // Act
         $this->service->recordError($spanId, $exception, $context);
-
-        // Assert - no exception thrown
-        $this->assertTrue(true);
     }
 
     public function test_add_event_adds_event_to_span(): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Arrange
         $spanName = 'event-span';
 
-        $this->spanBuilder->shouldReceive('setAttributes')->andReturnSelf();
+        $this->spanBuilder->shouldReceive('setAttributes')->andReturn($this->spanBuilder);
         $this->spanBuilder->shouldReceive('startSpan')->andReturn($this->span);
 
         $this->tracer->shouldReceive('spanBuilder')
@@ -160,17 +161,16 @@ class TracingServiceTest extends TestCase
 
         // Act
         $this->service->addEvent($spanId, $eventName, $eventAttributes);
-
-        // Assert - no exception thrown
-        $this->assertTrue(true);
     }
 
     public function test_set_attribute_updates_span_attribute(): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Arrange
         $spanName = 'attribute-span';
 
-        $this->spanBuilder->shouldReceive('setAttributes')->andReturnSelf();
+        $this->spanBuilder->shouldReceive('setAttributes')->andReturn($this->spanBuilder);
         $this->spanBuilder->shouldReceive('startSpan')->andReturn($this->span);
 
         $this->tracer->shouldReceive('spanBuilder')
@@ -184,13 +184,12 @@ class TracingServiceTest extends TestCase
 
         // Act
         $this->service->setAttribute($spanId, 'http.status_code', 200);
-
-        // Assert - no exception thrown
-        $this->assertTrue(true);
     }
 
     public function test_end_trace_ends_all_active_spans(): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Arrange
         $span1Name = 'span-1';
         $span2Name = 'span-2';
@@ -201,10 +200,10 @@ class TracingServiceTest extends TestCase
         $builder1 = Mockery::mock(SpanBuilderInterface::class);
         $builder2 = Mockery::mock(SpanBuilderInterface::class);
 
-        $builder1->shouldReceive('setAttributes')->andReturnSelf();
+        $builder1->shouldReceive('setAttributes')->andReturn($builder1);
         $builder1->shouldReceive('startSpan')->andReturn($span1);
 
-        $builder2->shouldReceive('setAttributes')->andReturnSelf();
+        $builder2->shouldReceive('setAttributes')->andReturn($builder2);
         $builder2->shouldReceive('startSpan')->andReturn($span2);
 
         $this->tracer->shouldReceive('spanBuilder')
@@ -226,9 +225,6 @@ class TracingServiceTest extends TestCase
 
         // Act
         $this->service->endTrace();
-
-        // Assert - no exception thrown
-        $this->assertTrue(true);
     }
 
     public function test_service_works_without_tracer(): void

@@ -179,13 +179,15 @@ class TraceAggregateTest extends TestCase
         $timestamp = microtime(true);
 
         // Reconstitute from events
-        $aggregate = TraceAggregate::fake($this->traceId)
+        $fakeAggregate = TraceAggregate::fake($this->traceId)
             ->given([
                 new SpanStarted($this->traceId, $rootSpanId, null, 'root-span', [], $timestamp),
                 new SpanStarted($this->traceId, $childSpanId, $rootSpanId, 'child-span', [], $timestamp),
             ]);
 
         // Act
+        /** @var TraceAggregate $aggregate */
+        $aggregate = $fakeAggregate->aggregateRoot();
         $rootSpans = $aggregate->getRootSpans();
 
         // Assert
@@ -202,7 +204,7 @@ class TraceAggregateTest extends TestCase
         $timestamp = microtime(true);
 
         // Reconstitute from events
-        $aggregate = TraceAggregate::fake($this->traceId)
+        $fakeAggregate = TraceAggregate::fake($this->traceId)
             ->given([
                 new SpanStarted($this->traceId, $rootSpanId, null, 'root-span', [], $timestamp),
                 new SpanStarted($this->traceId, $childSpanId1, $rootSpanId, 'child-1', [], $timestamp),
@@ -210,6 +212,8 @@ class TraceAggregateTest extends TestCase
             ]);
 
         // Act
+        /** @var TraceAggregate $aggregate */
+        $aggregate = $fakeAggregate->aggregateRoot();
         $childSpans = $aggregate->getChildSpans($rootSpanId);
 
         // Assert
@@ -225,18 +229,20 @@ class TraceAggregateTest extends TestCase
         $spanId = Str::uuid()->toString();
         $timestamp = microtime(true);
 
-        $aggregate = TraceAggregate::fake($this->traceId)
+        $fakeAggregate = TraceAggregate::fake($this->traceId)
             ->given([
                 new SpanStarted($this->traceId, $spanId, null, 'test-span', ['key' => 'value'], $timestamp),
                 new SpanEnded($this->traceId, $spanId, 'ok', [], $timestamp + 1),
             ]);
 
         // Act
+        /** @var TraceAggregate $aggregate */
+        $aggregate = $fakeAggregate->aggregateRoot();
         $array = $aggregate->toArray();
 
         // Assert
         $this->assertEquals($this->traceId, $array['trace_id']);
-        $this->assertEquals('test-trace', $array['name']);
+        $this->assertEquals('test-span', $array['name']); // Name comes from the first span
         $this->assertFalse($array['has_errors']);
         $this->assertEquals(1, $array['span_count']);
         $this->assertCount(1, $array['spans']);

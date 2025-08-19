@@ -250,6 +250,14 @@ return [
         'threshold_exceeded'  => App\Domain\Monitoring\Events\ThresholdExceeded::class,
         'alert_triggered'     => App\Domain\Monitoring\Events\AlertTriggered::class,
         'alert_resolved'      => App\Domain\Monitoring\Events\AlertResolved::class,
+        
+        // Tracing events
+        'span_started'         => App\Domain\Monitoring\Events\SpanStarted::class,
+        'span_ended'           => App\Domain\Monitoring\Events\SpanEnded::class,
+        'span_error_occurred'  => App\Domain\Monitoring\Events\SpanErrorOccurred::class,
+        'span_event_recorded'  => App\Domain\Monitoring\Events\SpanEventRecorded::class,
+        'span_attribute_updated' => App\Domain\Monitoring\Events\SpanAttributeUpdated::class,
+        'trace_completed'      => App\Domain\Monitoring\Events\TraceCompleted::class,
     ],
 
     /*

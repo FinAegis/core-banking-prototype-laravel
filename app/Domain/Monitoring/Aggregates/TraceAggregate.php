@@ -144,6 +144,12 @@ class TraceAggregate extends AggregateRoot
 
     protected function applySpanStarted(SpanStarted $event): void
     {
+        // If this is the first span and we're reconstituting, set the trace name and start time
+        if (empty($this->spans) && ! $event->parentSpanId) {
+            $this->traceName = $event->name;
+            $this->startTime = $event->timestamp;
+        }
+        
         $this->spans[$event->spanId] = [
             'id'         => $event->spanId,
             'parent_id'  => $event->parentSpanId,

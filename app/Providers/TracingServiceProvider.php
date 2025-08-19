@@ -33,9 +33,9 @@ class TracingServiceProvider extends ServiceProvider
             // Create resource info
             $resource = ResourceInfoFactory::emptyResource()->merge(
                 ResourceInfo::create(Attributes::create([
-                    ResourceAttributes::SERVICE_NAME           => config('app.name', 'finaegis'),
-                    ResourceAttributes::SERVICE_VERSION        => config('app.version', '1.0.0'),
-                    'deployment.environment' => config('app.env', 'production'),
+                    ResourceAttributes::SERVICE_NAME    => config('app.name', 'finaegis'),
+                    ResourceAttributes::SERVICE_VERSION => config('app.version', '1.0.0'),
+                    'deployment.environment'            => config('app.env', 'production'),
                 ]))
             );
 
