@@ -26,8 +26,12 @@ class AssetFactory extends Factory
     {
         $type = fake()->randomElement(Asset::getTypes());
 
+        // Generate a unique code that avoids common asset codes
+        // Prefix with 'T' for test to avoid conflicts with seeded data
+        $code = 'T' . strtoupper(fake()->unique()->lexify('??'));
+
         return [
-            'code'      => strtoupper(fake()->unique()->lexify('???')),
+            'code'      => $code,
             'name'      => fake()->company() . ' ' . $this->getTypeLabel($type),
             'type'      => $type,
             'precision' => $this->getPrecisionForType($type),
