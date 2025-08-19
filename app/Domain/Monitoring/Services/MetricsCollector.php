@@ -43,7 +43,7 @@ class MetricsCollector
     public function recordWorkflowMetric(string $workflowName, string $status, float $duration): void
     {
         $this->increment("metrics:workflows:{$workflowName}:{$status}");
-        
+
         if ($duration > 0) {
             Cache::put("metrics:workflows:{$workflowName}:duration", $duration);
         }
@@ -98,13 +98,13 @@ class MetricsCollector
     {
         $countKey = "{$key}:count";
         $sumKey = "{$key}:sum";
-        
+
         $count = Cache::get($countKey, 0);
         $sum = Cache::get($sumKey, 0.0);
-        
+
         $count++;
         $sum += $value;
-        
+
         Cache::put($countKey, $count);
         Cache::put($sumKey, $sum);
         Cache::put($key, $sum / $count);
