@@ -40,6 +40,7 @@ class HealthChecker
 
         return [
             'status'    => $healthy ? 'healthy' : 'unhealthy',
+            'healthy'   => $healthy,
             'timestamp' => now()->toIso8601String(),
             'checks'    => $checks,
         ];

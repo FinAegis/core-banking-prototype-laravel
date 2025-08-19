@@ -45,6 +45,59 @@ class MonitoringController extends Controller
 
     /**
      * @OA\Get(
+     *     path="/api/monitoring/ready",
+     *     operationId="getReadyStatus",
+     *     tags={"Monitoring"},
+     *     summary="Get application readiness status",
+     *     description="Returns whether the application is ready to serve traffic",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application is ready",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="ready", type="boolean"),
+     *             @OA\Property(property="timestamp", type="string", format="date-time")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=503,
+     *         description="Application not ready"
+     *     )
+     * )
+     */
+    public function ready(HealthChecker $healthChecker): JsonResponse
+    {
+        $readiness = $healthChecker->checkReadiness();
+
+        return response()->json($readiness, $readiness['ready'] ? 200 : 503);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/monitoring/alive",
+     *     operationId="getAliveStatus",
+     *     tags={"Monitoring"},
+     *     summary="Get application liveness status",
+     *     description="Simple liveness check for Kubernetes",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application is alive",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="alive", type="boolean", example=true),
+     *             @OA\Property(property="timestamp", type="string", format="date-time")
+     *         )
+     *     )
+     * )
+     */
+    public function alive(): JsonResponse
+    {
+        return response()->json([
+            'alive'     => true,
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * @OA\Get(
      *     path="/api/monitoring/metrics",
      *     operationId="getMetrics",
      *     tags={"Monitoring"},

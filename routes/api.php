@@ -36,7 +36,6 @@ use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\UserVotingController;
 use App\Http\Controllers\Api\VoteController;
 use App\Http\Controllers\Api\WorkflowMonitoringController;
-use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\StatusController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -63,10 +62,10 @@ Route::get('/', function () {
 
 // Monitoring endpoints (public - for Prometheus and Kubernetes)
 Route::prefix('monitoring')->group(function () {
-    Route::get('/metrics', [MonitoringController::class, 'metrics'])->name('monitoring.metrics');
-    Route::get('/health', [MonitoringController::class, 'health'])->name('monitoring.health');
-    Route::get('/ready', [MonitoringController::class, 'ready'])->name('monitoring.ready');
-    Route::get('/alive', [MonitoringController::class, 'alive'])->name('monitoring.alive');
+    Route::get('/metrics', [App\Http\Controllers\Api\MonitoringController::class, 'metrics'])->name('monitoring.metrics');
+    Route::get('/health', [App\Http\Controllers\Api\MonitoringController::class, 'health'])->name('monitoring.health');
+    Route::get('/ready', [App\Http\Controllers\Api\MonitoringController::class, 'ready'])->name('monitoring.ready');
+    Route::get('/alive', [App\Http\Controllers\Api\MonitoringController::class, 'alive'])->name('monitoring.alive');
 });
 
 // Legacy authentication routes for backward compatibility
