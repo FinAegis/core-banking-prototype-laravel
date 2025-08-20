@@ -30,10 +30,12 @@ class SpreadManagementSagaTest extends TestCase
     {
         parent::setUp();
 
-        $this->poolService = Mockery::mock(LiquidityPoolService::class);
+        /** @var LiquidityPoolService&MockInterface $poolService */
+        $poolService = Mockery::mock(LiquidityPoolService::class);
+        $this->poolService = $poolService;
 
         $this->saga = new SpreadManagementSaga(
-            $this->poolService
+            $poolService
         );
 
         Event::fake();

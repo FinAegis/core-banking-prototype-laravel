@@ -22,74 +22,25 @@ class MarketMakerWorkflowTest extends TestCase
         Event::fake();
     }
 
-    public function test_market_maker_workflow_starts_successfully(): void
+    public function test_market_maker_workflow_can_be_instantiated(): void
     {
-        // Arrange
-        $config = [
-            'pool_id'                => 'pool-123',
-            'base_currency'          => 'BTC',
-            'quote_currency'         => 'USDT',
-            'spread_bps'             => 30,
-            'order_size'             => 0.1,
-            'max_inventory'          => 10,
-            'rebalance_threshold'    => 0.2,
-            'quote_refresh_interval' => 10,
-            'max_cycles'             => 1, // Run only one cycle for testing
-            'risk_limits'            => [
-                'max_inventory'  => ['BTC' => 10, 'USDT' => 500000],
-                'max_loss'       => 10000,
-                'max_volatility' => 0.1,
-            ],
-        ];
-
-        // Mock market conditions
-        $marketConditions = [
-            'mid_price'       => 50000,
-            'best_bid'        => 49900,
-            'best_ask'        => 50100,
-            'spread'          => 40,
-            'volatility'      => 0.02,
-            'volume_24h'      => 1000000,
-            'inventory'       => ['BTC' => 5, 'USDT' => 250000],
-            'order_imbalance' => 0.05,
-            'pool_tvl'        => 10000000,
-            'pool_apy'        => 15.5,
-            'pnl'             => 500,
-        ];
-
-        // Mock quotes
-        $quotes = [
-            'bids' => [
-                ['price' => 49970, 'size' => 0.1],
-                ['price' => 49950, 'size' => 0.08],
-                ['price' => 49930, 'size' => 0.06],
-            ],
-            'asks' => [
-                ['price' => 50030, 'size' => 0.1],
-                ['price' => 50050, 'size' => 0.08],
-                ['price' => 50070, 'size' => 0.06],
-            ],
-            'spread'    => 30,
-            'mid_price' => 50000,
-        ];
-
-        // Create workflow stub
-        $workflow = $this->createMock(MarketMakerWorkflow::class);
-        $workflow->expects($this->once())
-            ->method('execute')
-            ->with($config)
-            ->willReturn([
-                'status'           => 'completed',
-                'cycles_completed' => 1,
-                'final_conditions' => $marketConditions,
-            ]);
-
-        // Act
-        $result = $workflow->execute($config);
+        // Arrange & Act
+        $workflow = new MarketMakerWorkflow();
 
         // Assert
-        // Note: Workflows return Generators, not arrays directly
-        // In a real workflow test, we'd need to iterate the generator
+        $this->assertInstanceOf(MarketMakerWorkflow::class, $workflow);
+
+        // Test that execute method returns a generator
+        $config = [
+            'pool_id'        => 'pool-123',
+            'base_currency'  => 'BTC',
+            'quote_currency' => 'USDT',
+            'spread_bps'     => 30,
+            'order_size'     => 0.1,
+            'max_cycles'     => 0, // Don't actually run any cycles
+        ];
+
+        $result = $workflow->execute($config);
         $this->assertInstanceOf(\Generator::class, $result);
     }
 
