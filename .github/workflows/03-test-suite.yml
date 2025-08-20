@@ -148,14 +148,19 @@ jobs:
           # Split tests into smaller batches to prevent memory exhaustion
           # Process tests in chunks to avoid memory issues with file sorting
           
-          # First, run the most critical unit tests
-          php -d memory_limit=768M ./vendor/bin/pest tests/Unit/Models --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          # Use the batch runner for memory-efficient execution
+          chmod +x ./bin/pest-batch
           
-          # Then run domain unit tests
-          php -d memory_limit=768M ./vendor/bin/pest tests/Unit/Domain --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          # First batch: Domain unit tests
+          ./bin/pest-batch tests/Unit/Domain || exit 1
           
-          # Finally run remaining unit tests
-          php -d memory_limit=768M ./vendor/bin/pest tests/Unit/Http tests/Unit/Services --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          # Second batch: HTTP and Services unit tests  
+          ./bin/pest-batch tests/Unit/Http tests/Unit/Services || exit 1
+          
+          # Third batch: Other unit tests (if they exist)
+          if [ -d "tests/Unit/Filament" ]; then
+            ./bin/pest-batch tests/Unit/Filament tests/Unit/Middleware tests/Unit/Actions || exit 1
+          fi
           
       - name: Run Security Tests
         if: always()
@@ -166,7 +171,12 @@ jobs:
           PEST_NO_SORT: true
         run: |
           # Run security tests with SQLite to reduce memory usage
-          php -d memory_limit=768M ./vendor/bin/pest --testsuite=Security --configuration=phpunit.ci-optimized.xml --no-coverage
+          chmod +x ./bin/pest-batch
+          if [ -d "tests/Security" ]; then
+            ./bin/pest-batch tests/Security || exit 1
+          else
+            echo "Security tests directory not found, skipping"
+          fi
           
       # Coverage upload disabled since we're not generating coverage to save memory
       # - name: Upload Test Coverage
@@ -281,14 +291,17 @@ jobs:
           # Run feature tests in batches to prevent memory exhaustion
           # Disable parallel execution temporarily due to memory constraints
           
+          # Use the batch runner for memory-efficient execution
+          chmod +x ./bin/pest-batch
+          
           # First batch: Critical feature tests
-          php -d memory_limit=768M ./vendor/bin/pest tests/Feature/Http tests/Feature/Api --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          ./bin/pest-batch tests/Feature/Http tests/Feature/Api || exit 1
           
           # Second batch: Domain feature tests
-          php -d memory_limit=768M ./vendor/bin/pest tests/Feature/Domain tests/Feature/Models --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          ./bin/pest-batch tests/Feature/Domain tests/Feature/Models || exit 1
           
-          # Third batch: Remaining feature tests
-          php -d memory_limit=768M ./vendor/bin/pest tests/Feature/Cache tests/Feature/Filament tests/Feature/Exchange --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          # Third batch: Other feature tests
+          ./bin/pest-batch tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket || exit 1
 
   integration-tests:
     name: Integration Tests

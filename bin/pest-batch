@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Pest Batch Runner - Simple batch execution for CI
+# Usage: ./bin/pest-batch [directories...]
+
+set -e
+
+# Configuration
+MEMORY_LIMIT=${MEMORY_LIMIT:-768M}
+CONFIG_FILE=${CONFIG_FILE:-phpunit.ci-optimized.xml}
+
+# Export CI environment variables
+export CI=true
+export PEST_NO_SORT=true
+export PEST_PARALLEL=false
+
+# Check if directories were provided
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 [test directories...]"
+    echo "Example: $0 tests/Unit/Domain tests/Unit/Http"
+    exit 1
+fi
+
+# Run tests for specified directories
+echo "Running tests with memory limit: $MEMORY_LIMIT"
+echo "Directories: $@"
+echo ""
+
+php -d memory_limit=$MEMORY_LIMIT ./vendor/bin/pest "$@" \
+    --configuration=$CONFIG_FILE \
+    --no-coverage \
+    --stop-on-failure
+
+exit $?

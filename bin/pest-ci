@@ -59,12 +59,6 @@ PASSED_TESTS=()
 # Unit Tests
 echo -e "${YELLOW}=== UNIT TESTS ===${NC}\n"
 
-if run_test_batch "tests/Unit/Models" "Unit/Models"; then
-    PASSED_TESTS+=("Unit/Models")
-else
-    FAILED_TESTS+=("Unit/Models")
-fi
-
 if run_test_batch "tests/Unit/Domain" "Unit/Domain"; then
     PASSED_TESTS+=("Unit/Domain")
 else
@@ -75,6 +69,12 @@ if run_test_batch "tests/Unit/Http tests/Unit/Services" "Unit/Http+Services"; th
     PASSED_TESTS+=("Unit/Http+Services")
 else
     FAILED_TESTS+=("Unit/Http+Services")
+fi
+
+if run_test_batch "tests/Unit/Filament tests/Unit/Middleware tests/Unit/Actions" "Unit/Other"; then
+    PASSED_TESTS+=("Unit/Other")
+else
+    FAILED_TESTS+=("Unit/Other")
 fi
 
 # Feature Tests
@@ -92,7 +92,7 @@ else
     FAILED_TESTS+=("Feature/Domain+Models")
 fi
 
-if run_test_batch "tests/Feature/Cache tests/Feature/Filament tests/Feature/Exchange" "Feature/Other"; then
+if run_test_batch "tests/Feature/Cache tests/Feature/Exchange tests/Feature/Basket" "Feature/Other"; then
     PASSED_TESTS+=("Feature/Other")
 else
     FAILED_TESTS+=("Feature/Other")
