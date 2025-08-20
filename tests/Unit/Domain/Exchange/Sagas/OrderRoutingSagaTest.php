@@ -15,9 +15,9 @@ use App\Domain\Exchange\Services\OrderService;
 use Illuminate\Support\Facades\Event;
 use Mockery;
 use Mockery\MockInterface;
-use Tests\TestCase;
+use Tests\UnitTestCase;
 
-class OrderRoutingSagaTest extends TestCase
+class OrderRoutingSagaTest extends UnitTestCase
 {
     private OrderRoutingSaga $saga;
 
@@ -31,6 +31,9 @@ class OrderRoutingSagaTest extends TestCase
     {
         parent::setUp();
 
+        // Fake events first to capture all dispatched events
+        Event::fake();
+
         /** @var LiquidityPoolService&MockInterface $poolService */
         $poolService = Mockery::mock(LiquidityPoolService::class);
         $this->poolService = $poolService;
@@ -43,8 +46,6 @@ class OrderRoutingSagaTest extends TestCase
             $poolService,
             $orderService
         );
-
-        Event::fake();
     }
 
     public function test_routes_order_to_single_pool_with_best_price(): void
@@ -270,7 +271,7 @@ class OrderRoutingSagaTest extends TestCase
         $pool->quote_currency = $quoteCurrency;
         $pool->base_reserve = (string) $baseReserve;
         $pool->quote_reserve = (string) $quoteReserve;
-        $pool->status = $status;
+        $pool->is_active = ($status === 'active');
         $pool->metadata = ['fee_tier' => $feeTier];
 
         return $pool;

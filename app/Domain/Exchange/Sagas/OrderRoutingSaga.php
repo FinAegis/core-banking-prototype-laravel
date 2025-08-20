@@ -86,7 +86,7 @@ class OrderRoutingSaga extends Reactor
         return array_filter($pools, function ($pool) {
             $liquidity = $this->calculatePoolLiquidity($pool);
 
-            return $pool->status === 'active' && $liquidity > 1000; // Min $1000 liquidity
+            return $pool->is_active && $liquidity > 1000; // Min $1000 liquidity
         });
     }
 
@@ -306,7 +306,7 @@ class OrderRoutingSaga extends Reactor
         $basePrice = $this->getAssetPrice($pool->base_currency);
         $quotePrice = $this->getAssetPrice($pool->quote_currency);
 
-        return ($pool->base_reserve * $basePrice) + ($pool->quote_reserve * $quotePrice);
+        return ((float) $pool->base_reserve * $basePrice) + ((float) $pool->quote_reserve * $quotePrice);
     }
 
     /**

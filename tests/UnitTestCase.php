@@ -24,9 +24,9 @@ abstract class UnitTestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // Disable model events to prevent database operations
-        if (method_exists($this, 'withoutEvents')) {
-            $this->withoutEvents();
-        }
+        // Note: We do NOT call withoutEvents() here because some unit tests
+        // need to test event dispatching behavior (e.g., sagas)
+        // If you need to disable events in a specific test, call $this->withoutEvents()
+        // in that test's setUp() method.
     }
 }
