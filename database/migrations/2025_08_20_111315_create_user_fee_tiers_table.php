@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -27,13 +26,13 @@ return new class extends Migration
         // Add missing columns to orders table if they don't exist
         if (Schema::hasTable('orders')) {
             Schema::table('orders', function (Blueprint $table) {
-                if (!Schema::hasColumn('orders', 'user_id')) {
+                if (! Schema::hasColumn('orders', 'user_id')) {
                     $table->string('user_id')->nullable()->after('account_id');
                 }
-                if (!Schema::hasColumn('orders', 'fee_amount')) {
+                if (! Schema::hasColumn('orders', 'fee_amount')) {
                     $table->decimal('fee_amount', 36, 18)->nullable()->after('average_price');
                 }
-                if (!Schema::hasColumn('orders', 'executed_at')) {
+                if (! Schema::hasColumn('orders', 'executed_at')) {
                     $table->timestamp('executed_at')->nullable();
                 }
             });
@@ -75,13 +74,13 @@ return new class extends Migration
     {
         Schema::dropIfExists('pool_promotions');
         Schema::dropIfExists('promotions');
-        
+
         if (Schema::hasTable('orders')) {
             Schema::table('orders', function (Blueprint $table) {
                 $table->dropColumn(['user_id', 'fee_amount', 'executed_at']);
             });
         }
-        
+
         Schema::dropIfExists('user_fee_tiers');
     }
 };

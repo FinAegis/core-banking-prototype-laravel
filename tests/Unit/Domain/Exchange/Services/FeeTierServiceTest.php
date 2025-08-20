@@ -187,20 +187,20 @@ class FeeTierServiceTest extends TestCase
 
         for ($i = 0; $i < $ordersCount; $i++) {
             DB::table('orders')->insert([
-                'order_id'    => "order-{$i}",
-                'account_id'  => $userId, // Required field
-                'user_id'     => $userId,
-                'type'        => 'buy', // Required enum
-                'order_type'  => 'limit', // Required enum
-                'base_currency' => 'BTC', // Required field
+                'order_id'       => "order-{$i}",
+                'account_id'     => $userId, // Required field
+                'user_id'        => $userId,
+                'type'           => 'buy', // Required enum
+                'order_type'     => 'limit', // Required enum
+                'base_currency'  => 'BTC', // Required field
                 'quote_currency' => 'USDT', // Required field
-                'status'      => 'executed',
-                'amount'      => $volumePerOrder / 50000, // Assuming BTC price of $50k
-                'price'       => 50000,
-                'fee_amount'  => $volumePerOrder * 0.003,
-                'executed_at' => now()->subDays($i),
-                'created_at'  => now()->subDays($i),
-                'updated_at'  => now()->subDays($i),
+                'status'         => 'executed',
+                'amount'         => $volumePerOrder / 50000, // Assuming BTC price of $50k
+                'price'          => 50000,
+                'fee_amount'     => $volumePerOrder * 0.003,
+                'executed_at'    => now()->subDays($i),
+                'created_at'     => now()->subDays($i),
+                'updated_at'     => now()->subDays($i),
             ]);
         }
     }
@@ -224,20 +224,20 @@ class FeeTierServiceTest extends TestCase
     {
         for ($i = 0; $i < 5; $i++) {
             DB::table('orders')->insert([
-                'order_id'    => "stat-order-{$i}",
-                'account_id'  => "user-{$i}", // Required field
-                'user_id'     => "user-{$i}",
-                'type'        => 'buy', // Required enum
-                'order_type'  => 'limit', // Required enum
-                'base_currency' => 'BTC', // Required field
+                'order_id'       => "stat-order-{$i}",
+                'account_id'     => "user-{$i}", // Required field
+                'user_id'        => "user-{$i}",
+                'type'           => 'buy', // Required enum
+                'order_type'     => 'limit', // Required enum
+                'base_currency'  => 'BTC', // Required field
                 'quote_currency' => 'USDT', // Required field
-                'status'      => 'executed',
-                'amount'      => 1,
-                'price'       => 50000,
-                'fee_amount'  => 150,
-                'executed_at' => now()->subHours($i),
-                'created_at'  => now()->subHours($i),
-                'updated_at'  => now()->subHours($i),
+                'status'         => 'executed',
+                'amount'         => 1,
+                'price'          => 50000,
+                'fee_amount'     => 150,
+                'executed_at'    => now()->subHours($i),
+                'created_at'     => now()->subHours($i),
+                'updated_at'     => now()->subHours($i),
             ]);
         }
     }

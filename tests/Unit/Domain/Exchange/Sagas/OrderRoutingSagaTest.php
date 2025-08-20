@@ -168,7 +168,7 @@ class OrderRoutingSagaTest extends TestCase
 
         // Small pool with high impact
         $smallPool = $this->createPool('small-pool', 'ETH', 'USDT', 5, 15000);
-        
+
         // Large pool with low impact
         $largePool = $this->createPool('large-pool', 'ETH', 'USDT', 100, 300000);
 

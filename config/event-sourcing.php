@@ -187,11 +187,11 @@ return [
         'quotes_updated'               => App\Domain\Exchange\Events\QuotesUpdated::class,
 
         // Order Routing & Fee Tier events
-        'order_routed'                 => App\Domain\Exchange\Events\OrderRouted::class,
-        'order_split'                  => App\Domain\Exchange\Events\OrderSplit::class,
-        'routing_failed'               => App\Domain\Exchange\Events\RoutingFailed::class,
-        'fee_tier_updated'             => App\Domain\Exchange\Events\FeeTierUpdated::class,
-        'user_fee_tier_assigned'       => App\Domain\Exchange\Events\UserFeeTierAssigned::class,
+        'order_routed'           => App\Domain\Exchange\Events\OrderRouted::class,
+        'order_split'            => App\Domain\Exchange\Events\OrderSplit::class,
+        'routing_failed'         => App\Domain\Exchange\Events\RoutingFailed::class,
+        'fee_tier_updated'       => App\Domain\Exchange\Events\FeeTierUpdated::class,
+        'user_fee_tier_assigned' => App\Domain\Exchange\Events\UserFeeTierAssigned::class,
 
         // Stablecoin framework events
         'oracle_deviation_detected'       => App\Domain\Stablecoin\Events\OracleDeviationDetected::class,
