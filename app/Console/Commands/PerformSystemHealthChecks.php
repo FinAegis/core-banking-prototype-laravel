@@ -33,7 +33,7 @@ class PerformSystemHealthChecks extends Command
     {
         // Set a reasonable memory limit for health checks
         ini_set('memory_limit', '256M');
-        
+
         $service = $this->option('service');
 
         if ($service) {
@@ -43,7 +43,7 @@ class PerformSystemHealthChecks extends Command
         }
 
         $this->info('Health checks completed.');
-        
+
         // Clean up memory
         gc_collect_cycles();
     }
@@ -62,12 +62,12 @@ class PerformSystemHealthChecks extends Command
             $services['web'] = [$this, 'checkWebResponse'];
             $services['api'] = [$this, 'checkApiResponse'];
         }
-        
+
         $services['email'] = [$this, 'checkEmailService'];
 
         foreach ($services as $service => $method) {
             $this->performCheck($service, $method);
-            
+
             // Free memory after each check
             if (app()->environment('testing')) {
                 gc_collect_cycles();
