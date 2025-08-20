@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Exchange\Activities;
 
+use App\Domain\Exchange\Services\ExchangeService;
 use App\Domain\Exchange\Services\LiquidityPoolService;
-use App\Domain\Exchange\Services\OrderService;
 use Illuminate\Support\Facades\Cache;
 use Workflow\Activity\ActivityInterface;
 use Workflow\Activity\ActivityMethod;
@@ -15,7 +15,7 @@ class MonitorMarketConditionsActivity
 {
     public function __construct(
         private readonly LiquidityPoolService $poolService,
-        private readonly OrderService $orderService,
+        private readonly ExchangeService $exchangeService,
     ) {
     }
 
@@ -32,7 +32,7 @@ class MonitorMarketConditionsActivity
         $metrics = $this->poolService->getPoolMetrics($poolId);
 
         // Get order book depth
-        $orderBook = $this->orderService->getOrderBook(
+        $orderBook = $this->exchangeService->getOrderBook(
             $pool->base_currency,
             $pool->quote_currency
         );
@@ -44,7 +44,7 @@ class MonitorMarketConditionsActivity
 
         // If no orders, use pool price
         if ($midPrice == PHP_FLOAT_MAX / 2) {
-            $midPrice = $pool->quote_reserve / $pool->base_reserve;
+            $midPrice = (float) $pool->quote_reserve / (float) $pool->base_reserve;
         }
 
         // Calculate volatility from recent price history
@@ -127,8 +127,8 @@ class MonitorMarketConditionsActivity
         // This would normally get actual wallet balances
         // For now, use pool reserves as proxy
         return [
-            $pool->base_currency  => $pool->base_reserve * 0.1, // Assume 10% of pool is market maker inventory
-            $pool->quote_currency => $pool->quote_reserve * 0.1,
+            $pool->base_currency  => (float) $pool->base_reserve * 0.1, // Assume 10% of pool is market maker inventory
+            $pool->quote_currency => (float) $pool->quote_reserve * 0.1,
         ];
     }
 

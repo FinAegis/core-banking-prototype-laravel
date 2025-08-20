@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Exchange\Activities;
 
 use App\Domain\Exchange\Services\OrderService;
-use App\Models\Order;
 use Illuminate\Support\Str;
 use Workflow\Activity\ActivityInterface;
 use Workflow\Activity\ActivityMethod;
@@ -29,20 +28,16 @@ class PlaceOrderActivity
     {
         $orderId = Str::uuid()->toString();
 
-        $order = new Order([
-            'id'             => $orderId,
-            'user_id'        => $orderData['user_id'] ?? 'market-maker',
-            'type'           => $orderData['type'],
-            'side'           => $orderData['side'],
-            'base_currency'  => $orderData['base_currency'],
-            'quote_currency' => $orderData['quote_currency'],
-            'amount'         => $orderData['amount'],
-            'price'          => $orderData['price'] ?? null,
-            'status'         => 'pending',
-            'pool_id'        => $orderData['pool_id'] ?? null,
-        ]);
-
-        $this->orderService->placeOrder($order);
+        // Place order through service
+        $this->orderService->placeOrder(
+            accountId: $orderData['user_id'] ?? 'market-maker',
+            type: strtoupper($orderData['side']), // side 'buy' becomes 'BUY'
+            baseCurrency: $orderData['base_currency'],
+            quoteCurrency: $orderData['quote_currency'],
+            price: (string) ($orderData['price'] ?? '0'),
+            quantity: (string) $orderData['amount'],
+            orderType: strtoupper($orderData['type'] ?? 'LIMIT')
+        );
 
         return $orderId;
     }

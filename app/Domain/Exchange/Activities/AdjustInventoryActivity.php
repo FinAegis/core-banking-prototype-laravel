@@ -6,8 +6,6 @@ namespace App\Domain\Exchange\Activities;
 
 use App\Domain\Exchange\Services\LiquidityPoolService;
 use App\Domain\Exchange\Services\OrderService;
-use App\Models\Order;
-use Illuminate\Support\Str;
 use Workflow\Activity\ActivityInterface;
 use Workflow\Activity\ActivityMethod;
 
@@ -39,9 +37,9 @@ class AdjustInventoryActivity
         $pool = $this->poolService->getPool($poolId);
 
         // Calculate current ratio
-        $midPrice = $pool->quote_reserve / $pool->base_reserve;
-        $baseValue = $pool->base_reserve * $midPrice;
-        $totalValue = $baseValue + $pool->quote_reserve;
+        $midPrice = (float) $pool->quote_reserve / (float) $pool->base_reserve;
+        $baseValue = (float) $pool->base_reserve * $midPrice;
+        $totalValue = $baseValue + (float) $pool->quote_reserve;
         $currentRatio = $baseValue / $totalValue;
 
         // Determine adjustment needed
@@ -63,19 +61,16 @@ class AdjustInventoryActivity
             // Need more base currency - buy base
             $orderAmount = $adjustmentValue / $midPrice;
 
-            $order = new Order([
-                'id'             => Str::uuid()->toString(),
-                'user_id'        => 'market-maker-rebalance',
-                'type'           => 'market',
-                'side'           => 'buy',
-                'base_currency'  => $baseCurrency,
-                'quote_currency' => $quoteCurrency,
-                'amount'         => $orderAmount,
-                'status'         => 'pending',
-                'pool_id'        => $poolId,
-            ]);
-
-            $this->orderService->placeOrder($order);
+            // Place market buy order
+            $this->orderService->placeOrder(
+                accountId: 'market-maker-rebalance',
+                type: 'BUY',
+                baseCurrency: $baseCurrency,
+                quoteCurrency: $quoteCurrency,
+                price: (string) $midPrice,
+                quantity: (string) $orderAmount,
+                orderType: 'MARKET'
+            );
 
             return [
                 'status'        => 'rebalanced',
@@ -88,19 +83,16 @@ class AdjustInventoryActivity
             // Need more quote currency - sell base
             $orderAmount = $adjustmentValue / $midPrice;
 
-            $order = new Order([
-                'id'             => Str::uuid()->toString(),
-                'user_id'        => 'market-maker-rebalance',
-                'type'           => 'market',
-                'side'           => 'sell',
-                'base_currency'  => $baseCurrency,
-                'quote_currency' => $quoteCurrency,
-                'amount'         => $orderAmount,
-                'status'         => 'pending',
-                'pool_id'        => $poolId,
-            ]);
-
-            $this->orderService->placeOrder($order);
+            // Place market sell order
+            $this->orderService->placeOrder(
+                accountId: 'market-maker-rebalance',
+                type: 'SELL',
+                baseCurrency: $baseCurrency,
+                quoteCurrency: $quoteCurrency,
+                price: (string) $midPrice,
+                quantity: (string) $orderAmount,
+                orderType: 'MARKET'
+            );
 
             return [
                 'status'        => 'rebalanced',

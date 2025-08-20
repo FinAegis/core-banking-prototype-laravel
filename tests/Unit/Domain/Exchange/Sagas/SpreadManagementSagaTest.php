@@ -23,7 +23,11 @@ use Tests\TestCase;
 class SpreadManagementSagaTest extends TestCase
 {
     private SpreadManagementSaga $saga;
+
+    /** @var LiquidityPoolService&MockInterface */
     private MockInterface $poolService;
+
+    /** @var OrderService&MockInterface */
     private MockInterface $orderService;
 
     protected function setUp(): void
@@ -58,14 +62,14 @@ class SpreadManagementSagaTest extends TestCase
         );
 
         $pool = new LiquidityPool();
-        $pool->id = $poolId;
+        $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = 1000;
-        $pool->quote_reserve = 50000000;
+        $pool->base_reserve = '1000';
+        $pool->quote_reserve = '50000000';
 
         $metrics = [
-            'tvl' => 100000000,
+            'tvl'    => 100000000,
             'apy_7d' => 15.5,
         ];
 
@@ -85,7 +89,7 @@ class SpreadManagementSagaTest extends TestCase
 
         // Assert
         Event::assertDispatched(SpreadAdjusted::class, function ($event) use ($poolId) {
-            return $event->poolId === $poolId 
+            return $event->poolId === $poolId
                 && $event->reason === 'liquidity_added';
         });
     }
@@ -106,14 +110,14 @@ class SpreadManagementSagaTest extends TestCase
         );
 
         $pool = new LiquidityPool();
-        $pool->id = $poolId;
+        $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = 900; // Lower reserves after removal
-        $pool->quote_reserve = 45000000;
+        $pool->base_reserve = '900'; // Lower reserves after removal
+        $pool->quote_reserve = '45000000';
 
         $metrics = [
-            'tvl' => 90000000,
+            'tvl'    => 90000000,
             'apy_7d' => 12.5,
         ];
 
@@ -133,7 +137,7 @@ class SpreadManagementSagaTest extends TestCase
 
         // Assert
         Event::assertDispatched(SpreadAdjusted::class, function ($event) use ($poolId) {
-            return $event->poolId === $poolId 
+            return $event->poolId === $poolId
                 && $event->reason === 'liquidity_removed';
         });
     }
@@ -153,11 +157,11 @@ class SpreadManagementSagaTest extends TestCase
         );
 
         $pool = new LiquidityPool();
-        $pool->id = $poolId;
+        $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = 800; // Imbalanced after large buy
-        $pool->quote_reserve = 45000000;
+        $pool->base_reserve = '800'; // Imbalanced after large buy
+        $pool->quote_reserve = '45000000';
 
         $this->poolService->shouldReceive('getPoolByPair')
             ->with('BTC', 'USDT')
@@ -178,14 +182,14 @@ class SpreadManagementSagaTest extends TestCase
     {
         // Arrange
         $poolId = 'pool-123';
-        
+
         // Create severely imbalanced pool
         $pool = new LiquidityPool();
-        $pool->id = $poolId;
+        $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = 200; // Very low base reserve
-        $pool->quote_reserve = 50000000; // High quote reserve
+        $pool->base_reserve = '200'; // Very low base reserve
+        $pool->quote_reserve = '50000000'; // High quote reserve
 
         $event = new OrderExecuted(
             orderId: 'order-789',
@@ -281,14 +285,14 @@ class SpreadManagementSagaTest extends TestCase
 
         // Create moderately imbalanced pool (70% base, 30% quote by value)
         $pool = new LiquidityPool();
-        $pool->id = $poolId;
+        $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = 1400; // Higher base reserve
-        $pool->quote_reserve = 30000000; // Lower quote reserve
+        $pool->base_reserve = '1400'; // Higher base reserve
+        $pool->quote_reserve = '30000000'; // Lower quote reserve
 
         $metrics = [
-            'tvl' => 100000000,
+            'tvl'    => 100000000,
             'apy_7d' => 15.5,
         ];
 
@@ -308,7 +312,7 @@ class SpreadManagementSagaTest extends TestCase
 
         // Assert
         Event::assertDispatched(InventoryImbalanceDetected::class, function ($event) use ($poolId) {
-            return $event->poolId === $poolId 
+            return $event->poolId === $poolId
                 && $event->severity === 'moderate'
                 && $event->recommendedAction === 'monitor';
         });
@@ -331,14 +335,14 @@ class SpreadManagementSagaTest extends TestCase
 
         // Create critically imbalanced pool (90% base, 10% quote by value)
         $pool = new LiquidityPool();
-        $pool->id = $poolId;
+        $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = 1800; // Very high base reserve
-        $pool->quote_reserve = 10000000; // Very low quote reserve
+        $pool->base_reserve = '1800'; // Very high base reserve
+        $pool->quote_reserve = '10000000'; // Very low quote reserve
 
         $metrics = [
-            'tvl' => 100000000,
+            'tvl'    => 100000000,
             'apy_7d' => 15.5,
         ];
 
@@ -358,7 +362,7 @@ class SpreadManagementSagaTest extends TestCase
 
         // Assert
         Event::assertDispatched(InventoryImbalanceDetected::class, function ($event) use ($poolId) {
-            return $event->poolId === $poolId 
+            return $event->poolId === $poolId
                 && $event->severity === 'critical'
                 && $event->recommendedAction === 'rebalance_urgent';
         });

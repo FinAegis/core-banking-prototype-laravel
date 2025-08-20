@@ -89,11 +89,11 @@ class CalculateOptimalQuotesActivity
      */
     private function calculateMidPrice($pool): float
     {
-        if ($pool->base_reserve == 0 || $pool->quote_reserve == 0) {
+        if ((float) $pool->base_reserve == 0 || (float) $pool->quote_reserve == 0) {
             return 1.0;
         }
 
-        return $pool->quote_reserve / $pool->base_reserve;
+        return (float) $pool->quote_reserve / (float) $pool->base_reserve;
     }
 
     /**
