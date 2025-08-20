@@ -120,6 +120,17 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
     }
 
     /**
+     * Get all pools for a currency pair.
+     */
+    public function getPoolsForPair(string $baseCurrency, string $quoteCurrency): array
+    {
+        return PoolProjection::forPair($baseCurrency, $quoteCurrency)
+            ->where('is_active', true)
+            ->get()
+            ->toArray();
+    }
+
+    /**
      * Get all active pools.
      */
     public function getActivePools(): Collection

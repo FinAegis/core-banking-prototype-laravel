@@ -23,6 +23,9 @@ Last updated: 2025-01-08 (January 2025)
 - **Market Monitoring Activities**: Real-time tracking of market conditions
 - **Event Sourcing Events**: Complete event stream for spread and market making
 - **Risk Limits**: Configurable limits for inventory, volatility, and P&L
+- **Order Routing Saga**: Intelligent order routing across multiple pools with price impact analysis
+- **Fee Tier System**: Volume-based fee tiers with retail to VIP levels and pool-specific fees
+- **Order Splitting**: Automatic order splitting for large orders to minimize market impact
 
 #### Treasury Management System ✅ COMPLETED (January 2025)
 - **Complete Treasury Domain**: DDD implementation with event sourcing
@@ -269,7 +272,7 @@ When implementing new features, follow these patterns:
 1. Complete demo environment documentation
 2. Create user guides for all sub-products
 3. Update API documentation with new endpoints
-4. Begin liquidity pool implementation
+4. Implement advanced liquidity pool features (order routing, fee tiers)
 
 ### Technical Debt
 

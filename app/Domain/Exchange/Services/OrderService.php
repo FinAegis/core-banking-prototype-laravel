@@ -75,4 +75,36 @@ class OrderService
             'status' => 'open',
         ];
     }
+
+    /**
+     * Update order with routing information.
+     */
+    public function updateOrderRouting(string $orderId, string $poolId, float $effectivePrice): void
+    {
+        // This would update the order with routing details
+        // For now, this is a stub implementation
+    }
+
+    /**
+     * Create a child order for split routing.
+     */
+    public function createChildOrder(
+        string $childOrderId,
+        string $parentOrderId,
+        string $poolId,
+        float $amount,
+        float $estimatedPrice
+    ): void {
+        // This would create a child order linked to the parent
+        // For now, this is a stub implementation
+    }
+
+    /**
+     * Reject an order due to failure.
+     */
+    public function rejectOrder(string $orderId, string $reason): void
+    {
+        // This would mark the order as rejected with a reason
+        // For now, this is a stub implementation
+    }
 }
