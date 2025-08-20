@@ -141,19 +141,32 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
+          CI: true
+          PEST_NO_SORT: true
         run: |
           # Run unit tests using SQLite in-memory database to reduce memory usage
           # Split tests into smaller batches to prevent memory exhaustion
-          php -d memory_limit=1G ./vendor/bin/pest --testsuite=Unit --configuration=phpunit.ci-optimized.xml --exclude-group=slow --no-coverage
+          # Process tests in chunks to avoid memory issues with file sorting
+          
+          # First, run the most critical unit tests
+          php -d memory_limit=768M ./vendor/bin/pest tests/Unit/Models --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          
+          # Then run domain unit tests
+          php -d memory_limit=768M ./vendor/bin/pest tests/Unit/Domain --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          
+          # Finally run remaining unit tests
+          php -d memory_limit=768M ./vendor/bin/pest tests/Unit/Http tests/Unit/Services --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
           
       - name: Run Security Tests
         if: always()
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
+          CI: true
+          PEST_NO_SORT: true
         run: |
           # Run security tests with SQLite to reduce memory usage
-          ./vendor/bin/pest --testsuite=Security --configuration=phpunit.ci-optimized.xml --no-coverage
+          php -d memory_limit=768M ./vendor/bin/pest --testsuite=Security --configuration=phpunit.ci-optimized.xml --no-coverage
           
       # Coverage upload disabled since we're not generating coverage to save memory
       # - name: Upload Test Coverage
@@ -262,7 +275,20 @@ jobs:
           DB_DATABASE: testing
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Feature --configuration=phpunit.ci-optimized.xml --exclude-group=slow --parallel --processes=4
+          CI: true
+          PEST_NO_SORT: true
+        run: |
+          # Run feature tests in batches to prevent memory exhaustion
+          # Disable parallel execution temporarily due to memory constraints
+          
+          # First batch: Critical feature tests
+          php -d memory_limit=768M ./vendor/bin/pest tests/Feature/Http tests/Feature/Api --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          
+          # Second batch: Domain feature tests
+          php -d memory_limit=768M ./vendor/bin/pest tests/Feature/Domain tests/Feature/Models --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
+          
+          # Third batch: Remaining feature tests
+          php -d memory_limit=768M ./vendor/bin/pest tests/Feature/Cache tests/Feature/Filament tests/Feature/Exchange --configuration=phpunit.ci-optimized.xml --no-coverage --stop-on-failure || exit 1
 
   integration-tests:
     name: Integration Tests

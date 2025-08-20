@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# Pest CI Runner - Runs tests in batches to prevent memory exhaustion
+# This script is designed for CI environments with limited memory
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Configuration
+MEMORY_LIMIT=${MEMORY_LIMIT:-768M}
+CONFIG_FILE=${CONFIG_FILE:-phpunit.ci-optimized.xml}
+COVERAGE=${COVERAGE:-false}
+
+echo -e "${YELLOW}Starting Pest CI Test Runner${NC}"
+echo "Memory Limit: $MEMORY_LIMIT"
+echo "Config File: $CONFIG_FILE"
+echo "Coverage: $COVERAGE"
+echo ""
+
+# Export CI environment variables
+export CI=true
+export PEST_NO_SORT=true
+export PEST_PARALLEL=false
+
+# Function to run tests for a specific directory
+run_test_batch() {
+    local test_path=$1
+    local test_name=$2
+    
+    echo -e "${YELLOW}Running $test_name tests...${NC}"
+    
+    if [ "$COVERAGE" = "true" ]; then
+        php -d memory_limit=$MEMORY_LIMIT ./vendor/bin/pest "$test_path" \
+            --configuration=$CONFIG_FILE \
+            --stop-on-failure \
+            --coverage || return 1
+    else
+        php -d memory_limit=$MEMORY_LIMIT ./vendor/bin/pest "$test_path" \
+            --configuration=$CONFIG_FILE \
+            --stop-on-failure \
+            --no-coverage || return 1
+    fi
+    
+    echo -e "${GREEN}✓ $test_name tests passed${NC}\n"
+    
+    # Force garbage collection between batches
+    sleep 1
+}
+
+# Initialize test results
+FAILED_TESTS=()
+PASSED_TESTS=()
+
+# Unit Tests
+echo -e "${YELLOW}=== UNIT TESTS ===${NC}\n"
+
+if run_test_batch "tests/Unit/Models" "Unit/Models"; then
+    PASSED_TESTS+=("Unit/Models")
+else
+    FAILED_TESTS+=("Unit/Models")
+fi
+
+if run_test_batch "tests/Unit/Domain" "Unit/Domain"; then
+    PASSED_TESTS+=("Unit/Domain")
+else
+    FAILED_TESTS+=("Unit/Domain")
+fi
+
+if run_test_batch "tests/Unit/Http tests/Unit/Services" "Unit/Http+Services"; then
+    PASSED_TESTS+=("Unit/Http+Services")
+else
+    FAILED_TESTS+=("Unit/Http+Services")
+fi
+
+# Feature Tests
+echo -e "${YELLOW}=== FEATURE TESTS ===${NC}\n"
+
+if run_test_batch "tests/Feature/Http tests/Feature/Api" "Feature/Http+Api"; then
+    PASSED_TESTS+=("Feature/Http+Api")
+else
+    FAILED_TESTS+=("Feature/Http+Api")
+fi
+
+if run_test_batch "tests/Feature/Domain tests/Feature/Models" "Feature/Domain+Models"; then
+    PASSED_TESTS+=("Feature/Domain+Models")
+else
+    FAILED_TESTS+=("Feature/Domain+Models")
+fi
+
+if run_test_batch "tests/Feature/Cache tests/Feature/Filament tests/Feature/Exchange" "Feature/Other"; then
+    PASSED_TESTS+=("Feature/Other")
+else
+    FAILED_TESTS+=("Feature/Other")
+fi
+
+# Security Tests (if directory exists)
+if [ -d "tests/Security" ]; then
+    echo -e "${YELLOW}=== SECURITY TESTS ===${NC}\n"
+    
+    if run_test_batch "tests/Security" "Security"; then
+        PASSED_TESTS+=("Security")
+    else
+        FAILED_TESTS+=("Security")
+    fi
+fi
+
+# Summary
+echo -e "${YELLOW}=== TEST SUMMARY ===${NC}\n"
+
+if [ ${#PASSED_TESTS[@]} -gt 0 ]; then
+    echo -e "${GREEN}Passed Test Suites (${#PASSED_TESTS[@]}):${NC}"
+    for suite in "${PASSED_TESTS[@]}"; do
+        echo -e "  ${GREEN}✓${NC} $suite"
+    done
+    echo ""
+fi
+
+if [ ${#FAILED_TESTS[@]} -gt 0 ]; then
+    echo -e "${RED}Failed Test Suites (${#FAILED_TESTS[@]}):${NC}"
+    for suite in "${FAILED_TESTS[@]}"; do
+        echo -e "  ${RED}✗${NC} $suite"
+    done
+    echo ""
+    echo -e "${RED}Tests Failed!${NC}"
+    exit 1
+else
+    echo -e "${GREEN}All tests passed successfully!${NC}"
+    exit 0
+fi
