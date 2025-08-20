@@ -159,7 +159,6 @@ class SpreadManagementSaga extends Reactor
                 'trigger'         => $trigger,
                 'timestamp'       => now(),
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to recalculate spread', [
                 'pool_id' => $poolId,
@@ -358,8 +357,10 @@ class SpreadManagementSaga extends Reactor
         $pools = $this->poolService->getActivePools();
 
         foreach ($pools as $pool) {
-            if ($pool->base_currency === $event->assetCode ||
-                $pool->quote_currency === $event->assetCode) {
+            if (
+                $pool->base_currency === $event->assetCode ||
+                $pool->quote_currency === $event->assetCode
+            ) {
                 $this->recalculateSpread($pool->id, 'volatility_change');
             }
         }

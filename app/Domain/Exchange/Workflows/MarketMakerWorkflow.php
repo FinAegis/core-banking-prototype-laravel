@@ -132,7 +132,6 @@ class MarketMakerWorkflow
                     ]);
                 }
             }
-
         } catch (\Exception $e) {
             Log::error('Market maker workflow failed', [
                 'pool_id' => $config['pool_id'],
