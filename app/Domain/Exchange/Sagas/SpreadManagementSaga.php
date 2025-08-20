@@ -198,7 +198,7 @@ class SpreadManagementSaga extends Reactor
     {
         $cacheKey = self::CACHE_PREFIX . "volatility:{$poolId}";
 
-        return Cache::remember($cacheKey, 60, function () use ($poolId) {
+        return (float) Cache::remember($cacheKey, 60, function () use ($poolId) {
             // Get recent price history
             $prices = $this->getRecentPrices($poolId, 100);
 
@@ -362,7 +362,7 @@ class SpreadManagementSaga extends Reactor
                 $pool->base_currency === $event->assetCode ||
                 $pool->quote_currency === $event->assetCode
             ) {
-                $this->recalculateSpread($pool->id, 'volatility_change');
+                $this->recalculateSpread($pool->pool_id, 'volatility_change');
             }
         }
     }

@@ -206,7 +206,7 @@ class SpreadManagementSagaTest extends TestCase
             ->andReturn($pool);
 
         $this->poolService->shouldReceive('rebalancePool')
-            ->with($poolId)
+            ->with($poolId, '0.5')
             ->once();
 
         // Act
