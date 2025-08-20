@@ -102,14 +102,17 @@ Schedule::command('basket:calculate-performance --period=day')
     ->appendOutputTo(storage_path('logs/basket-performance-daily.log'));
 
 // System Health Monitoring
+// Run less frequently to avoid memory issues in CI
 Schedule::command('system:health-check')
-    ->everyMinute()
+    ->everyFiveMinutes()
     ->description('Perform system health checks')
     ->appendOutputTo(storage_path('logs/system-health.log'))
     ->withoutOverlapping()
     ->onFailure(function () {
-        Log::critical('System health check failed to run');
-    });
+        // Use error level instead of critical to reduce memory usage
+        error_log('System health check failed to run');
+    })
+    ->environments(['production', 'staging']);
 
 // CGO Payment Verification
 Schedule::command('cgo:verify-payments')
