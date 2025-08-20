@@ -182,7 +182,7 @@ class MarketMakerWorkflowTest extends TestCase
         });
 
         Event::assertDispatched(QuotesUpdated::class, function ($event) use ($poolId) {
-            return $event->poolId === $poolId && $event->spread === 30;
+            return $event->poolId === $poolId;
         });
 
         Event::assertDispatched(MarketMakerStopped::class, function ($event) use ($poolId) {

@@ -167,6 +167,11 @@ class SpreadManagementSagaTest extends TestCase
             ->with($poolId)
             ->andReturn($pool);
 
+        // Since this pool is critically imbalanced, rebalancePool will be called
+        $this->poolService->shouldReceive('rebalancePool')
+            ->with($poolId, '0.5')
+            ->once();
+
         // Act
         $this->saga->onOrderExecuted($event);
 
@@ -279,13 +284,13 @@ class SpreadManagementSagaTest extends TestCase
             newTotalShares: '1100'
         );
 
-        // Create moderately imbalanced pool (70% base, 30% quote by value)
+        // Create moderately imbalanced pool (25% base, 75% quote by value for 0.25 imbalance)
         $pool = new LiquidityPool();
         $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = '1400'; // Higher base reserve
-        $pool->quote_reserve = '30000000'; // Lower quote reserve
+        $pool->base_reserve = '10000'; // 25% of total value
+        $pool->quote_reserve = '30000'; // 75% of total value
 
         $metrics = [
             'tvl'    => 100000000,
@@ -329,13 +334,13 @@ class SpreadManagementSagaTest extends TestCase
             newTotalShares: '1100'
         );
 
-        // Create critically imbalanced pool (90% base, 10% quote by value)
+        // Create critically imbalanced pool (5% base, 95% quote by value for 0.45 imbalance)
         $pool = new LiquidityPool();
         $pool->pool_id = $poolId;
         $pool->base_currency = 'BTC';
         $pool->quote_currency = 'USDT';
-        $pool->base_reserve = '1800'; // Very high base reserve
-        $pool->quote_reserve = '10000000'; // Very low quote reserve
+        $pool->base_reserve = '5000'; // 5% of total value
+        $pool->quote_reserve = '95000'; // 95% of total value
 
         $metrics = [
             'tvl'    => 100000000,
