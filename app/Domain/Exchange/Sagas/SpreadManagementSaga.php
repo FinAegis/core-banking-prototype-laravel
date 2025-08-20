@@ -11,7 +11,6 @@ use App\Domain\Exchange\Events\MarketVolatilityChanged;
 use App\Domain\Exchange\Events\OrderExecuted;
 use App\Domain\Exchange\Events\SpreadAdjusted;
 use App\Domain\Exchange\Services\LiquidityPoolService;
-use App\Domain\Exchange\Services\OrderService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Reactors\Reactor;
@@ -45,7 +44,6 @@ class SpreadManagementSaga extends Reactor
 
     public function __construct(
         private readonly LiquidityPoolService $poolService,
-        private readonly OrderService $orderService,
     ) {
     }
 
@@ -80,8 +78,8 @@ class SpreadManagementSaga extends Reactor
             return;
         }
 
-        $this->checkInventoryBalance($pool->id);
-        $this->updateVolumeMetrics($pool->id, $event->amount, $event->price);
+        $this->checkInventoryBalance($pool->pool_id);
+        $this->updateVolumeMetrics($pool->pool_id, $event->amount, $event->price);
     }
 
     /**
@@ -183,7 +181,7 @@ class SpreadManagementSaga extends Reactor
 
         if ($imbalance > self::CRITICAL_IMBALANCE_THRESHOLD) {
             // Trigger automatic rebalancing
-            $this->poolService->rebalancePool($poolId);
+            $this->poolService->rebalancePool($poolId, '0.5');
 
             Log::warning('Critical inventory imbalance detected, triggering rebalance', [
                 'pool_id'         => $poolId,
@@ -226,13 +224,13 @@ class SpreadManagementSaga extends Reactor
      */
     private function calculateInventoryRatio($pool): float
     {
-        $totalValue = $pool->base_reserve + $pool->quote_reserve;
+        $totalValue = (float) $pool->base_reserve + (float) $pool->quote_reserve;
 
         if ($totalValue == 0) {
             return 0.5; // Default to balanced
         }
 
-        return $pool->base_reserve / $totalValue;
+        return (float) $pool->base_reserve / $totalValue;
     }
 
     /**
@@ -275,10 +273,13 @@ class SpreadManagementSaga extends Reactor
             timestamp: now()
         ));
 
-        // Update pool parameters
-        $this->poolService->updatePoolParameters($poolId, [
-            'spread_bps' => $newSpread,
-        ]);
+        // Update pool parameters with spread in metadata
+        $this->poolService->updatePoolParameters(
+            $poolId,
+            null,
+            null,
+            ['spread_bps' => $newSpread]
+        );
 
         Log::info('Spread adjusted', [
             'pool_id'    => $poolId,

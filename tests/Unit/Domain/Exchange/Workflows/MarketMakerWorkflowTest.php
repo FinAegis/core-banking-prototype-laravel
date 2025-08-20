@@ -186,8 +186,8 @@ class MarketMakerWorkflowTest extends TestCase
             $this->createMock(\App\Domain\Exchange\Services\OrderService::class)
         );
 
-        // Placeholder assertion for activity testing
-        $this->assertNotNull($cancelOrderActivity);
+        // Activity instance exists
+        $this->assertInstanceOf(CancelOrderActivity::class, $cancelOrderActivity);
     }
 
     public function test_market_maker_emits_correct_events(): void
@@ -243,8 +243,7 @@ class MarketMakerWorkflowTest extends TestCase
     {
         // Arrange
         $activity = new CalculateOptimalQuotesActivity(
-            $this->createMock(\App\Domain\Exchange\Services\LiquidityPoolService::class),
-            $this->createMock(\App\Domain\Exchange\Services\OrderService::class)
+            $this->createMock(\App\Domain\Exchange\Services\LiquidityPoolService::class)
         );
 
         $poolId = 'pool-123';

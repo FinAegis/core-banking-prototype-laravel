@@ -80,7 +80,7 @@ class MarketMakerWorkflow
 
                 // Step 2: Check inventory and rebalance if needed
                 if (now()->diffInMinutes($lastRebalance) > ($config['rebalance_interval'] ?? 60)) {
-                    $needsRebalance = yield from $this->checkInventoryBalance();
+                    $needsRebalance = $this->checkInventoryBalance();
 
                     if ($needsRebalance) {
                         yield from $this->rebalanceInventory();
@@ -208,7 +208,7 @@ class MarketMakerWorkflow
     /**
      * Check if inventory needs rebalancing.
      */
-    private function checkInventoryBalance(): \Generator
+    private function checkInventoryBalance(): bool
     {
         $inventory = $this->marketConditions['inventory'] ?? [];
 

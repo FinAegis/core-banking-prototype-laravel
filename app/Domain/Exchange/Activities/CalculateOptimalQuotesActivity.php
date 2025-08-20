@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Exchange\Activities;
 
 use App\Domain\Exchange\Services\LiquidityPoolService;
-use App\Domain\Exchange\Services\OrderService;
 use Workflow\Activity\ActivityInterface;
 use Workflow\Activity\ActivityMethod;
 
@@ -14,7 +13,6 @@ class CalculateOptimalQuotesActivity
 {
     public function __construct(
         private readonly LiquidityPoolService $poolService,
-        private readonly OrderService $orderService,
     ) {
     }
 

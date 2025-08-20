@@ -13,7 +13,6 @@ use App\Domain\Exchange\Events\SpreadAdjusted;
 use App\Domain\Exchange\Projections\LiquidityPool;
 use App\Domain\Exchange\Sagas\SpreadManagementSaga;
 use App\Domain\Exchange\Services\LiquidityPoolService;
-use App\Domain\Exchange\Services\OrderService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Mockery;
@@ -27,19 +26,14 @@ class SpreadManagementSagaTest extends TestCase
     /** @var LiquidityPoolService&MockInterface */
     private MockInterface $poolService;
 
-    /** @var OrderService&MockInterface */
-    private MockInterface $orderService;
-
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->poolService = Mockery::mock(LiquidityPoolService::class);
-        $this->orderService = Mockery::mock(OrderService::class);
 
         $this->saga = new SpreadManagementSaga(
-            $this->poolService,
-            $this->orderService
+            $this->poolService
         );
 
         Event::fake();
@@ -175,7 +169,7 @@ class SpreadManagementSagaTest extends TestCase
         $this->saga->onOrderExecuted($event);
 
         // Assert - No immediate assertion as this updates cache
-        $this->assertTrue(true);
+        $this->addToAssertionCount(1);
     }
 
     public function test_triggers_rebalancing_on_critical_imbalance(): void
@@ -217,7 +211,7 @@ class SpreadManagementSagaTest extends TestCase
         $this->saga->onOrderExecuted($event);
 
         // Assert - rebalancePool should be called due to critical imbalance
-        $this->assertTrue(true); // Assertion is in the mock expectation
+        $this->addToAssertionCount(1); // Assertion is in the mock expectation
     }
 
     public function test_adjusts_spread_for_market_volatility(): void
@@ -232,18 +226,18 @@ class SpreadManagementSagaTest extends TestCase
         );
 
         $pool1 = new LiquidityPool();
-        $pool1->id = 'pool-1';
+        $pool1->pool_id = 'pool-1';
         $pool1->base_currency = 'BTC';
         $pool1->quote_currency = 'USDT';
-        $pool1->base_reserve = 1000;
-        $pool1->quote_reserve = 50000000;
+        $pool1->base_reserve = '1000';
+        $pool1->quote_reserve = '50000000';
 
         $pool2 = new LiquidityPool();
-        $pool2->id = 'pool-2';
+        $pool2->pool_id = 'pool-2';
         $pool2->base_currency = 'ETH';
         $pool2->quote_currency = 'BTC';
-        $pool2->base_reserve = 10000;
-        $pool2->quote_reserve = 100;
+        $pool2->base_reserve = '10000';
+        $pool2->quote_reserve = '100';
 
         $pools = collect([$pool1, $pool2]);
 
