@@ -178,6 +178,14 @@ return [
         'pool_parameters_updated'       => App\Domain\Exchange\Events\PoolParametersUpdated::class,
         'liquidity_pool_rebalanced'     => App\Domain\Exchange\Events\LiquidityPoolRebalanced::class,
 
+        // Spread Management & Market Making events
+        'spread_adjusted'              => App\Domain\Exchange\Events\SpreadAdjusted::class,
+        'inventory_imbalance_detected' => App\Domain\Exchange\Events\InventoryImbalanceDetected::class,
+        'market_volatility_changed'    => App\Domain\Exchange\Events\MarketVolatilityChanged::class,
+        'market_maker_started'         => App\Domain\Exchange\Events\MarketMakerStarted::class,
+        'market_maker_stopped'         => App\Domain\Exchange\Events\MarketMakerStopped::class,
+        'quotes_updated'               => App\Domain\Exchange\Events\QuotesUpdated::class,
+
         // Stablecoin framework events
         'oracle_deviation_detected'       => App\Domain\Stablecoin\Events\OracleDeviationDetected::class,
         'reserve_pool_created'            => App\Domain\Stablecoin\Events\ReservePoolCreated::class,
