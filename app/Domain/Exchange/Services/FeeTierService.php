@@ -143,7 +143,7 @@ class FeeTierService
     {
         $cacheKey = self::CACHE_PREFIX . "pool:{$poolId}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($poolId) {
+        $result = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($poolId) {
             // Get pool details to determine pair type
             $pool = DB::table('liquidity_pools')
                 ->where('pool_id', $poolId)
@@ -151,6 +151,14 @@ class FeeTierService
 
             if (! $pool) {
                 return self::POOL_FEE_TIERS['standard'];
+            }
+
+            // Check if pool has a custom fee tier in metadata
+            if ($pool->metadata) {
+                $metadata = json_decode($pool->metadata, true);
+                if (isset($metadata['fee_tier'])) {
+                    return $metadata['fee_tier'];
+                }
             }
 
             // Check if it's a stable pair
@@ -173,6 +181,9 @@ class FeeTierService
 
             return self::POOL_FEE_TIERS['standard'];
         });
+
+        // Cast to float to ensure type consistency
+        return (float) $result;
     }
 
     /**
@@ -310,12 +321,25 @@ class FeeTierService
      */
     public function updatePoolFeeTier(string $poolId, float $newFeeBps): void
     {
-        DB::table('liquidity_pools')
+        // Get old fee before updating
+        $oldFee = $this->getPoolFeeTier($poolId);
+
+        // Get the pool and update metadata
+        $pool = DB::table('liquidity_pools')
             ->where('pool_id', $poolId)
-            ->update([
-                'metadata->fee_tier' => $newFeeBps,
-                'updated_at'         => now(),
-            ]);
+            ->first();
+
+        if ($pool) {
+            $metadata = json_decode($pool->metadata ?? '{}', true);
+            $metadata['fee_tier'] = $newFeeBps;
+
+            DB::table('liquidity_pools')
+                ->where('pool_id', $poolId)
+                ->update([
+                    'metadata'   => json_encode($metadata),
+                    'updated_at' => now(),
+                ]);
+        }
 
         // Clear cache
         Cache::forget(self::CACHE_PREFIX . "pool:{$poolId}");
@@ -323,7 +347,7 @@ class FeeTierService
         // Emit event
         event(new FeeTierUpdated(
             poolId: $poolId,
-            oldFee: $this->getPoolFeeTier($poolId),
+            oldFee: $oldFee,
             newFee: $newFeeBps,
             timestamp: now()
         ));

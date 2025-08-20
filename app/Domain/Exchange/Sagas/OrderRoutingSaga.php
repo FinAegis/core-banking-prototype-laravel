@@ -95,19 +95,20 @@ class OrderRoutingSaga extends Reactor
      */
     private function calculateOptimalRouting(OrderPlaced $event, array $pools): array
     {
-        $orderSize = (float) $event->amount * $this->getAssetPrice($event->baseCurrency);
+        $orderAmount = (float) $event->amount; // Order amount in base currency
+        $orderSizeUSD = $orderAmount * $this->getAssetPrice($event->baseCurrency);
         $routes = [];
 
         foreach ($pools as $pool) {
             $liquidity = $this->calculatePoolLiquidity($pool);
-            $priceImpact = $this->estimatePriceImpact($pool, (float) $event->amount);
+            $priceImpact = $this->estimatePriceImpact($pool, $orderAmount);
             $feeTier = $this->getPoolFeeTier($pool);
 
             // Calculate effective price including fees and slippage
             $effectivePrice = $this->calculateEffectivePrice(
                 $pool,
                 $event->type, // Using 'type' instead of 'side' (buy/sell)
-                (float) $event->amount,
+                $orderAmount,
                 $priceImpact,
                 $feeTier
             );
@@ -134,8 +135,8 @@ class OrderRoutingSaga extends Reactor
         // Take top routes
         $topRoutes = array_slice($routes, 0, self::MAX_ROUTES);
 
-        // Determine if order splitting is beneficial
-        $splitRequired = $this->shouldSplitOrder($orderSize, $topRoutes);
+        // Determine if order splitting is beneficial (pass amount in base currency, not USD)
+        $splitRequired = $this->shouldSplitOrder($orderAmount, $orderSizeUSD, $topRoutes);
 
         if ($splitRequired) {
             return $this->planSplitRouting($event, $topRoutes);
@@ -151,7 +152,7 @@ class OrderRoutingSaga extends Reactor
     /**
      * Determine if order should be split across multiple pools.
      */
-    private function shouldSplitOrder(float $orderSize, array $routes): bool
+    private function shouldSplitOrder(float $orderAmount, float $orderSizeUSD, array $routes): bool
     {
         if (count($routes) < 2) {
             return false;
@@ -159,14 +160,15 @@ class OrderRoutingSaga extends Reactor
 
         // Check if any single pool can handle the entire order without excessive impact
         foreach ($routes as $route) {
-            if ($route['max_size'] >= $orderSize && $route['price_impact'] < 0.02) {
+            // Compare order amount (in base currency) with max_size (also in base currency)
+            if ($route['max_size'] >= $orderAmount && $route['price_impact'] < 0.02) {
                 return false; // Single pool can handle it efficiently
             }
         }
 
         // Check if splitting would reduce overall costs
-        $singlePoolCost = $orderSize * $routes[0]['effective_price'];
-        $splitCost = $this->estimateSplitCost($orderSize, $routes);
+        $singlePoolCost = $orderSizeUSD * $routes[0]['effective_price'];
+        $splitCost = $this->estimateSplitCost($orderSizeUSD, $routes);
 
         return $splitCost < $singlePoolCost * 0.99; // Split if saves >1%
     }
