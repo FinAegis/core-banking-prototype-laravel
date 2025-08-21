@@ -31,8 +31,9 @@ class PasswordResetControllerTest extends ControllerTestCase
     #[Test]
     public function test_forgot_password_sends_reset_link(): void
     {
-        // Clear any previous rate limiting
-        RateLimiter::clear('password-reset:' . request()->ip());
+        // Clear any previous rate limiting (handle test environment)
+        $ip = request()->ip() ?? '127.0.0.1';
+        RateLimiter::clear('password-reset:' . $ip);
 
         Password::shouldReceive('sendResetLink')
             ->once()
@@ -53,8 +54,9 @@ class PasswordResetControllerTest extends ControllerTestCase
     #[Test]
     public function test_forgot_password_fails_for_invalid_email(): void
     {
-        // Clear any previous rate limiting
-        RateLimiter::clear('password-reset:' . request()->ip());
+        // Clear any previous rate limiting (handle test environment)
+        $ip = request()->ip() ?? '127.0.0.1';
+        RateLimiter::clear('password-reset:' . $ip);
 
         // Note: The controller no longer reveals if an email exists (security fix)
         // It always returns the same success message
@@ -255,8 +257,9 @@ class PasswordResetControllerTest extends ControllerTestCase
     #[Test]
     public function test_forgot_password_throttling(): void
     {
-        // Clear previous attempts and set up rate limiting
-        $key = 'password-reset:' . request()->ip();
+        // Clear previous attempts and set up rate limiting (handle test environment)
+        $ip = request()->ip() ?? '127.0.0.1';
+        $key = 'password-reset:' . $ip;
         RateLimiter::clear($key);
 
         // Make 5 attempts to hit the limit
@@ -313,8 +316,9 @@ class PasswordResetControllerTest extends ControllerTestCase
     #[Test]
     public function test_forgot_password_returns_success_even_for_nonexistent_email(): void
     {
-        // Clear any previous rate limiting
-        RateLimiter::clear('password-reset:' . request()->ip());
+        // Clear any previous rate limiting (handle test environment)
+        $ip = request()->ip() ?? '127.0.0.1';
+        RateLimiter::clear('password-reset:' . $ip);
 
         // This is a security feature - we don't want to reveal if an email exists
         Password::shouldReceive('sendResetLink')
