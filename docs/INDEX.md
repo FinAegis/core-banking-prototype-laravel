@@ -73,6 +73,8 @@
 - [CGO Payment Verification](06-DEVELOPMENT/CGO_PAYMENT_VERIFICATION.md)
 - [Email Setup](06-DEVELOPMENT/EMAIL-SETUP.md)
 - [Behat BDD Testing](06-DEVELOPMENT/BEHAT.md)
+- **Quality**:
+  - [Code Quality Workflow](06-DEVELOPMENT/QUALITY/code-quality-workflow.md) - **NEW**
 
 ### 07-IMPLEMENTATION - Implementation Details
 - [Implementation Summary](07-IMPLEMENTATION/IMPLEMENTATION_SUMMARY.md)
@@ -100,9 +102,13 @@
 - [Demo User Guide](11-USER-GUIDES/DEMO-USER-GUIDE.md)
 - [GCU User Guide](11-USER-GUIDES/GCU-USER-GUIDE.md)
 - [GCU Voting Guide](11-USER-GUIDES/GCU_VOTING_GUIDE.md)
+- [CGO Investment Guide](11-USER-GUIDES/CGO-USER-GUIDE.md)
+
+### 08-TROUBLESHOOTING - Troubleshooting & Support
+- [Troubleshooting Guide](08-TROUBLESHOOTING/TROUBLESHOOTING.md)
+- [Common Issues](08-TROUBLESHOOTING/COMMON-ISSUES.md)
 
 ### Additional Resources
-- [Troubleshooting](TROUBLESHOOTING.md)
 - [README](README.md)
 
 ## Key Updates (August 2025)

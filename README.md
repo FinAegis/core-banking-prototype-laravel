@@ -18,7 +18,12 @@ FinAegis is a comprehensive prototype of a core banking platform built with even
 
 **🤖 AI-Powered Banking Framework**: FinAegis now includes a complete AI Agent Framework for financial institutions. With full MCP (Model Context Protocol) server implementation, multi-LLM support (OpenAI GPT-4, Anthropic Claude), and event-sourced architecture, it enables banks to deploy intelligent AI agents for customer service, compliance, risk assessment, and automated trading. Every AI interaction is recorded for complete audit trails and regulatory compliance.
 
-**🤖 AI Coding Agent Support**: This repository follows the [AGENTS.md specification](https://agents.md/) to provide structured guidance for AI coding assistants. Look for `AGENTS.md` files throughout the codebase for context-aware instructions tailored to each component.
+**🤖 AI Coding Agent Support**: This repository fully implements the [AGENTS.md specification](https://agents.md/) to provide comprehensive support for AI coding assistants like Claude Code, GitHub Copilot, and Cursor. Features include:
+- **Automated Discovery API**: `/api/agents/discovery` endpoint for AI tools to discover all AGENTS.md files
+- **Domain-Specific Guidance**: AGENTS.md files in Exchange, Stablecoin, Lending, and other domains
+- **Artisan Generator**: `php artisan agents:generate` to create new AGENTS.md files
+- **Full Test Coverage**: All discovery features tested and validated
+Look for `AGENTS.md` files throughout the codebase for context-aware instructions tailored to each component.
 
 ## 🔗 Quick Links
 
