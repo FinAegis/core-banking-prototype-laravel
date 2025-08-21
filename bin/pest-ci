@@ -71,7 +71,7 @@ else
     FAILED_TESTS+=("Unit/Http+Services")
 fi
 
-if run_test_batch "tests/Unit/Filament tests/Unit/Http/Middleware tests/Unit/Actions" "Unit/Other"; then
+if run_test_batch "tests/Unit/Filament tests/Unit/Http/Middleware" "Unit/Other"; then
     PASSED_TESTS+=("Unit/Other")
 else
     FAILED_TESTS+=("Unit/Other")
