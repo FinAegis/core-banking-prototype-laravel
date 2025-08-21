@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Traits;
 
 use App\Models\User;
+use Carbon\Carbon;
 
 trait HasApiScopes
 {
@@ -50,7 +51,7 @@ trait HasApiScopes
     }
 
     /**
-     * Create a token with appropriate scopes.
+     * Create a token with appropriate scopes and expiration.
      *
      * @param  User  $user
      * @param  string  $tokenName
@@ -61,6 +62,18 @@ trait HasApiScopes
     {
         $scopes = $this->resolveScopes($requestedScopes, $user);
 
-        return $user->createToken($tokenName, $scopes)->plainTextToken;
+        // Get expiration from config (in minutes)
+        $expirationMinutes = config('sanctum.expiration');
+
+        // Create the token
+        $token = $user->createToken($tokenName, $scopes);
+
+        // Set expiration if configured
+        if ($expirationMinutes) {
+            $token->accessToken->expires_at = Carbon::now()->addMinutes($expirationMinutes);
+            $token->accessToken->save();
+        }
+
+        return $token->plainTextToken;
     }
 }

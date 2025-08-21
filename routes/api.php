@@ -93,7 +93,7 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
     Route::post('/social/{provider}/callback', [SocialAuthController::class, 'callback']);
 
     // Protected auth endpoints
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
         Route::post('/logout-all', [LoginController::class, 'logoutAll']);
         Route::post('/refresh', [LoginController::class, 'refresh']);
@@ -116,10 +116,10 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
 
 Route::get('/user', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
+})->middleware('auth:sanctum', 'check.token.expiration');
 
 // AI Agent endpoints (protected)
-Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->group(function () {
+Route::prefix('ai')->middleware(['auth:sanctum', 'check.token.expiration', 'api.rate_limit:private'])->group(function () {
     Route::post('/chat', [AIAgentController::class, 'chat'])->name('api.ai.chat');
     Route::get('/conversations', [AIAgentController::class, 'conversations'])->name('api.ai.conversations');
     Route::get('/conversations/{conversationId}', [AIAgentController::class, 'getConversation'])->name('api.ai.conversation');
@@ -159,9 +159,9 @@ Route::get('/profile', function (Request $request) {
             'updated_at' => $user->updated_at,
         ],
     ]);
-})->middleware('auth:sanctum');
+})->middleware('auth:sanctum', 'check.token.expiration');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
     // Sub-product status for authenticated users
     Route::get('/sub-products/enabled', [SubProductController::class, 'enabled']);
 
@@ -372,7 +372,7 @@ Route::middleware('api.rate_limit:public')->group(function () {
         Route::get('/markets', [App\Http\Controllers\Api\ExchangeController::class, 'getMarkets'])->name('markets');
 
         // Authenticated routes
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
             Route::post('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'placeOrder'])
                 ->middleware('transaction.rate_limit:exchange_order')
                 ->name('orders.place');
@@ -390,7 +390,7 @@ Route::middleware('api.rate_limit:public')->group(function () {
         Route::get('/orderbook/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'orderBook'])->name('orderbook');
 
         // Authenticated routes
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
             Route::get('/arbitrage/{base}/{quote}', [App\Http\Controllers\Api\ExternalExchangeController::class, 'arbitrage'])->name('arbitrage');
         });
     });
@@ -402,7 +402,7 @@ Route::middleware('api.rate_limit:public')->group(function () {
         Route::get('/pools/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'show'])->name('pools.show');
 
         // Authenticated routes
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
             Route::post('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'create'])->name('pools.create');
             Route::post('/add', [App\Http\Controllers\Api\LiquidityPoolController::class, 'addLiquidity'])->name('add');
             Route::post('/remove', [App\Http\Controllers\Api\LiquidityPoolController::class, 'removeLiquidity'])->name('remove');
@@ -424,7 +424,7 @@ Route::middleware('api.rate_limit:public')->group(function () {
 
 Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
     // Versioned accounts endpoint (requires authentication)
-    Route::middleware('auth:sanctum')->get('/accounts', [AccountController::class, 'index']);
+    Route::middleware('auth:sanctum', 'check.token.expiration')->get('/accounts', [AccountController::class, 'index']);
 
     // Asset management endpoints
     Route::get('/assets', [AssetController::class, 'index']);
@@ -441,7 +441,7 @@ Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
         Route::get('/{provider}/rate', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'getRate']);
         Route::get('/compare', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'compareRates']);
         Route::get('/aggregated', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'getAggregatedRate']);
-        Route::post('/refresh', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'refresh'])->middleware('auth:sanctum');
+        Route::post('/refresh', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'refresh'])->middleware('auth:sanctum', 'check.token.expiration');
         Route::get('/historical', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'historical']);
         Route::post('/validate', [App\Http\Controllers\Api\ExchangeRateProviderController::class, 'validateRate']);
     });
@@ -450,7 +450,7 @@ Route::prefix('v1')->middleware('api.rate_limit:public')->group(function () {
 // Basket endpoints
 Route::prefix('v2')->group(function () {
     // V2 accounts endpoint (requires authentication)
-    Route::middleware('auth:sanctum')->get('/accounts', [AccountController::class, 'index']);
+    Route::middleware('auth:sanctum', 'check.token.expiration')->get('/accounts', [AccountController::class, 'index']);
 
     // Public basket endpoints
     Route::prefix('baskets')->group(function () {
@@ -470,7 +470,7 @@ Route::prefix('v2')->group(function () {
     });
 
     // Protected basket endpoints
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
         Route::post('/baskets', [BasketController::class, 'store']);
         Route::post('/baskets/{code}/rebalance', [BasketController::class, 'rebalance']);
         Route::post('/baskets/{code}/performance/calculate', [BasketPerformanceController::class, 'calculate']);
@@ -501,7 +501,7 @@ Route::prefix('v2')->group(function () {
     });
 
     // Stablecoin operations endpoints (requires authentication and stablecoins sub-product to be enabled)
-    Route::middleware(['auth:sanctum', 'sub_product:stablecoins'])->prefix('stablecoin-operations')->group(function () {
+    Route::middleware(['auth:sanctum', 'check.token.expiration', 'sub_product:stablecoins'])->prefix('stablecoin-operations')->group(function () {
         Route::post('/mint', [StablecoinOperationsController::class, 'mint']);
         Route::post('/burn', [StablecoinOperationsController::class, 'burn']);
         Route::post('/add-collateral', [StablecoinOperationsController::class, 'addCollateral']);
@@ -523,10 +523,10 @@ Route::prefix('v2')->group(function () {
 });
 
 // Legacy KYC documents endpoint for backward compatibility
-Route::middleware('auth:sanctum')->post('/kyc/documents', [KycController::class, 'upload']);
+Route::middleware('auth:sanctum', 'check.token.expiration')->post('/kyc/documents', [KycController::class, 'upload']);
 
 // Compliance and KYC endpoints
-Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
+Route::middleware('auth:sanctum', 'check.token.expiration')->prefix('compliance')->group(function () {
     // KYC endpoints
     Route::prefix('kyc')->group(function () {
         Route::get('/status', [KycController::class, 'status']);
@@ -547,7 +547,7 @@ Route::middleware('auth:sanctum')->prefix('compliance')->group(function () {
 });
 
 // Risk Analysis endpoints
-Route::middleware('auth:sanctum')->prefix('risk')->group(function () {
+Route::middleware('auth:sanctum', 'check.token.expiration')->prefix('risk')->group(function () {
     // User risk endpoints
     Route::prefix('users/{userId}')->group(function () {
         Route::get('/profile', [RiskAnalysisController::class, 'getUserRiskProfile']);
@@ -582,7 +582,7 @@ Route::prefix('webhooks')->middleware(['api.rate_limit:webhook'])->group(functio
 });
 
 // Extended monitoring endpoints with authentication
-Route::prefix('monitoring')->middleware('auth:sanctum')->group(function () {
+Route::prefix('monitoring')->middleware('auth:sanctum', 'check.token.expiration')->group(function () {
     // JSON metrics endpoint (different from Prometheus format)
     Route::get('/metrics-json', [App\Http\Controllers\Api\MonitoringController::class, 'metrics']);
     Route::get('/traces', [App\Http\Controllers\Api\MonitoringController::class, 'traces']);
@@ -612,7 +612,7 @@ require __DIR__ . '/api/fraud.php';
 require __DIR__ . '/api/regulatory.php';
 
 // Blockchain wallet endpoints
-Route::prefix('blockchain-wallets')->middleware(['auth:sanctum', 'sub_product:blockchain'])->group(function () {
+Route::prefix('blockchain-wallets')->middleware(['auth:sanctum', 'check.token.expiration', 'sub_product:blockchain'])->group(function () {
     Route::middleware('api.rate_limit:query')->group(function () {
         Route::get('/', [App\Http\Controllers\Api\BlockchainWalletController::class, 'index']);
         Route::get('/{walletId}', [App\Http\Controllers\Api\BlockchainWalletController::class, 'show']);
@@ -631,7 +631,7 @@ Route::prefix('blockchain-wallets')->middleware(['auth:sanctum', 'sub_product:bl
 });
 
 // P2P Lending endpoints
-Route::prefix('lending')->middleware(['auth:sanctum', 'sub_product:lending'])->group(function () {
+Route::prefix('lending')->middleware(['auth:sanctum', 'check.token.expiration', 'sub_product:lending'])->group(function () {
     // Loan applications
     Route::middleware('api.rate_limit:query')->group(function () {
         Route::get('/applications', [App\Http\Controllers\Api\LoanApplicationController::class, 'index']);

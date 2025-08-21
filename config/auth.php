@@ -117,4 +117,17 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Maximum Concurrent Sessions
+    |--------------------------------------------------------------------------
+    |
+    | This value controls the maximum number of concurrent sessions a user
+    | can have active at the same time. When this limit is reached, the
+    | oldest sessions will be terminated to make room for new ones.
+    |
+    */
+
+    'max_concurrent_sessions' => env('AUTH_MAX_CONCURRENT_SESSIONS', 5),
+
 ];
