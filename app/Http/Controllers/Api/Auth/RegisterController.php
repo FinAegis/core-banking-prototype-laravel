@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Actions\Fortify\CreateNewUser;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\HasApiScopes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +18,8 @@ use Illuminate\Validation\ValidationException;
  */
 class RegisterController extends Controller
 {
+    use HasApiScopes;
+
     /**
      * Register a new user.
      *
@@ -108,8 +111,8 @@ class RegisterController extends Controller
             ]
         );
 
-        // Create a personal access token for the user
-        $token = $user->createToken('api-token')->plainTextToken;
+        // Create a personal access token for the user with appropriate scopes
+        $token = $this->createTokenWithScopes($user, 'api-token');
 
         return response()->json(
             [

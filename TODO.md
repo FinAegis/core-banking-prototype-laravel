@@ -6,6 +6,14 @@ Last updated: 2025-01-08 (January 2025)
 
 ### Recent Achievements (January 2025)
 
+#### Security Enhancements ✅ COMPLETED (January 2025)
+- **API Scope Enforcement**: Implemented comprehensive API scope enforcement with CheckApiScope middleware
+- **Role-Based Scopes**: Different default scopes for admin, business, and regular users
+- **Token Security**: Proper scope management with HasApiScopes trait
+- **Admin Operations**: Freeze/unfreeze operations with proper authorization
+- **Backward Compatibility**: Maintained test compatibility while enforcing production security
+- **Test Coverage**: Comprehensive security tests for all scope scenarios
+
 #### Distributed Tracing & Monitoring ✅ COMPLETED (January 2025)
 - **OpenTelemetry Integration**: Full distributed tracing with spans and traces
 - **Trace Aggregates**: Event sourcing for trace management and analysis
@@ -124,6 +132,39 @@ Last updated: 2025-01-08 (January 2025)
 - [ ] Share implementation on social media
 - [ ] Create case study for OpenAI
 - [ ] Contribute improvements back to AGENTS.md spec
+
+### 🔴 URGENT - Security Vulnerabilities to Address
+
+#### Remaining Security Issues (Identified January 2025)
+- [ ] **Fix Sanctum Token Expiration**: Tokens are not respecting configured expiration times
+  - Implement token expiration checking in middleware
+  - Add automatic token refresh mechanism
+  - Update authentication controllers to handle expired tokens
+  
+- [ ] **Fix User Enumeration Vulnerability**: Password reset endpoint reveals if email exists
+  - Always return success message regardless of email existence
+  - Implement rate limiting on password reset endpoint
+  - Add CAPTCHA for repeated attempts
+  
+- [ ] **Reduce Concurrent Session Limit**: Currently allows 10 sessions, should be 5
+  - Update LoginController to enforce stricter session limits
+  - Add configuration option for max concurrent sessions
+  - Implement session management UI for users
+
+- [ ] **Additional Security Hardening**
+  - Implement rate limiting on all authentication endpoints
+  - Add IP-based blocking for repeated failed attempts
+  - Implement 2FA requirement for admin accounts
+  - Add security headers (CSP, HSTS, etc.)
+  - Regular security audit scheduling
+
+### 🔴 URGENT - Development Environment Improvements
+
+- [ ] **Fix Test Timeout Configuration**
+  - Use @agent-tech-lead-orchestrator for analysis
+  - Change settings so tests don't timeout after 2 minutes locally
+  - Consider increasing timeout for parallel test execution
+  - Add configuration for different timeout values per test suite
 
 ### 🔴 URGENT - AI Agent Framework Implementation (DDD + Event Sourcing)
 

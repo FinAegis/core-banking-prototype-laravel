@@ -179,20 +179,33 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Account management endpoints (query rate limiting)
     Route::middleware('api.rate_limit:query')->group(function () {
-        Route::post('/accounts', [AccountController::class, 'store']);
-        Route::get('/accounts/{uuid}', [AccountController::class, 'show']);
-        Route::delete('/accounts/{uuid}', [AccountController::class, 'destroy']);
-        Route::post('/accounts/{uuid}/freeze', [AccountController::class, 'freeze']);
-        Route::post('/accounts/{uuid}/unfreeze', [AccountController::class, 'unfreeze']);
-        Route::get('/accounts/{uuid}/transactions', [TransactionController::class, 'history']);
+        // Write operations require 'write' scope
+        Route::post('/accounts', [AccountController::class, 'store'])->middleware('scope:write');
+
+        // Read operations require 'read' scope
+        Route::get('/accounts/{uuid}', [AccountController::class, 'show'])->middleware('scope:read');
+
+        // Delete operations require 'delete' scope
+        Route::delete('/accounts/{uuid}', [AccountController::class, 'destroy'])->middleware('scope:delete');
+
+        // Freeze/unfreeze operations require 'write' scope (users can freeze their own accounts)
+        // Admin scope is checked in the controller for freezing other users' accounts
+        Route::post('/accounts/{uuid}/freeze', [AccountController::class, 'freeze'])->middleware('scope:write');
+        Route::post('/accounts/{uuid}/unfreeze', [AccountController::class, 'unfreeze'])->middleware('scope:write');
+
+        // Read operations
+        Route::get('/accounts/{uuid}/transactions', [TransactionController::class, 'history'])->middleware('scope:read');
     });
 
-    // Transaction endpoints (transaction rate limiting)
-    Route::post('/accounts/{uuid}/deposit', [TransactionController::class, 'deposit'])->middleware('transaction.rate_limit:deposit');
-    Route::post('/accounts/{uuid}/withdraw', [TransactionController::class, 'withdraw'])->middleware('transaction.rate_limit:withdraw');
+    // Transaction endpoints (transaction rate limiting and write scope)
+    Route::post('/accounts/{uuid}/deposit', [TransactionController::class, 'deposit'])
+        ->middleware(['transaction.rate_limit:deposit', 'scope:write']);
+    Route::post('/accounts/{uuid}/withdraw', [TransactionController::class, 'withdraw'])
+        ->middleware(['transaction.rate_limit:withdraw', 'scope:write']);
 
-    // Transfer endpoints (transaction rate limiting and idempotency)
-    Route::post('/transfers', [TransferController::class, 'store'])->middleware(['transaction.rate_limit:transfer', 'idempotency']);
+    // Transfer endpoints (transaction rate limiting, idempotency, and write scope)
+    Route::post('/transfers', [TransferController::class, 'store'])
+        ->middleware(['transaction.rate_limit:transfer', 'idempotency', 'scope:write']);
     Route::middleware('api.rate_limit:query')->group(function () {
         Route::get('/transfers/{uuid}', [TransferController::class, 'show']);
         Route::get('/accounts/{uuid}/transfers', [TransferController::class, 'history']);

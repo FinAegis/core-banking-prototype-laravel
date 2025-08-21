@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\HasApiScopes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
+    use HasApiScopes;
+
     /**
      * Login user and create token.
      *
@@ -120,7 +123,13 @@ class LoginController extends Controller
                 ->delete();
         }
 
-        $token = $user->createToken($request->device_name ?? 'api-token')->plainTextToken;
+        // Create token with appropriate scopes based on user role
+        $requestedScopes = $request->input('scopes', null);
+        $token = $this->createTokenWithScopes(
+            $user,
+            $request->device_name ?? 'api-token',
+            $requestedScopes
+        );
 
         return response()->json(
             [
@@ -248,11 +257,14 @@ class LoginController extends Controller
         $user = $request->user();
         $tokenName = $request->user()->currentAccessToken()->name;
 
+        // Get current token's abilities/scopes before deleting it
+        $currentScopes = $request->user()->currentAccessToken()->abilities ?? [];
+
         // Delete current token
         $request->user()->currentAccessToken()->delete();
 
-        // Create new token
-        $token = $user->createToken($tokenName)->plainTextToken;
+        // Create new token with same scopes
+        $token = $this->createTokenWithScopes($user, $tokenName, $currentScopes);
 
         return response()->json(
             [

@@ -59,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook.signature' => \App\Http\Middleware\ValidateWebhookSignature::class,
             'validate.key.access' => \App\Http\Middleware\ValidateKeyAccess::class,
             'demo' => \App\Http\Middleware\DemoMode::class,
+            'scope' => \App\Http\Middleware\CheckApiScope::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware
