@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AccountBalanceController;
 use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\AgentsDiscoveryController;
 use App\Http\Controllers\Api\AIAgentController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\Auth\EmailVerificationController;
@@ -132,6 +133,13 @@ Route::prefix('ai')->middleware(['auth:sanctum', 'api.rate_limit:private'])->gro
         Route::post('/tools/{tool}/execute', [MCPToolsController::class, 'executeTool'])->name('api.ai.mcp.tool.execute');
         Route::post('/register', [MCPToolsController::class, 'registerTool'])->name('api.ai.mcp.register');
     });
+});
+
+// AGENTS.md Discovery endpoints (public for AI tools)
+Route::prefix('agents')->group(function () {
+    Route::get('/discovery', [AgentsDiscoveryController::class, 'discover'])->name('api.agents.discovery');
+    Route::get('/content/{path}', [AgentsDiscoveryController::class, 'getContent'])->name('api.agents.content');
+    Route::get('/summary', [AgentsDiscoveryController::class, 'summary'])->name('api.agents.summary');
 });
 
 // Legacy profile route for backward compatibility
