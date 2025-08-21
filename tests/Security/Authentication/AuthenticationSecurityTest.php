@@ -17,6 +17,8 @@ class AuthenticationSecurityTest extends TestCase
     {
         parent::setUp();
         RateLimiter::clear('login');
+        // Clear password reset rate limits for test IP
+        RateLimiter::clear('password-reset:127.0.0.1');
     }
 
     #[Test]
@@ -280,6 +282,9 @@ class AuthenticationSecurityTest extends TestCase
     {
         $user = User::factory()->create();
 
+        // Clear rate limits for test IP
+        RateLimiter::clear('password-reset:127.0.0.1');
+
         // Request password reset
         $response = $this->postJson('/api/auth/forgot-password', [
             'email' => $user->email,
@@ -304,31 +309,37 @@ class AuthenticationSecurityTest extends TestCase
     #[Test]
     public function test_user_enumeration_is_prevented()
     {
-        // WARNING: This test documents a security vulnerability that should be fixed
-        // The password reset endpoint currently allows user enumeration
-        // TODO: Fix PasswordResetController to always return the same response
+        // This test verifies that user enumeration is prevented
+        // The password reset endpoint should return the same response
+        // regardless of whether the email exists or not
 
         User::factory()->create(['email' => 'exists@example.com']);
+
+        // Clear rate limits for test IP
+        RateLimiter::clear('password-reset:127.0.0.1');
 
         // Test password reset with existing user
         $response1 = $this->postJson('/api/auth/forgot-password', [
             'email' => 'exists@example.com',
         ]);
 
+        // Clear rate limits between requests
+        RateLimiter::clear('password-reset:127.0.0.1');
+
         // Test password reset with non-existing user
         $response2 = $this->postJson('/api/auth/forgot-password', [
             'email' => 'doesnotexist@example.com',
         ]);
 
-        // Currently, these return different responses (vulnerability)
+        // Both should return the same status to prevent user enumeration
         $this->assertEquals(200, $response1->status());
-        $this->assertEquals(422, $response2->status());
+        $this->assertEquals(200, $response2->status());
 
-        // Document that this is a security issue
-        $this->assertTrue(
-            $response1->status() !== $response2->status(),
-            'SECURITY WARNING: Password reset endpoint allows user enumeration. ' .
-            'Both requests should return the same status code and message.'
+        // Verify the responses have the same structure
+        $this->assertEquals(
+            $response1->json('message'),
+            $response2->json('message'),
+            'Both responses should have identical messages to prevent user enumeration'
         );
     }
 
