@@ -26,26 +26,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Code Quality (ALWAYS RUN BEFORE COMMITTING)
 ```bash
-# Run PHPStan analysis (Level 5) - Xdebug disabled for performance
+# NEW: Comprehensive pre-commit check (RECOMMENDED)
+./bin/pre-commit-check.sh          # Check modified files only
+./bin/pre-commit-check.sh --fix    # Auto-fix issues where possible
+./bin/pre-commit-check.sh --all    # Check entire codebase
+
+# Individual Tools (if needed):
+
+# 1. PHP CS Fixer - Fix code style issues
+./vendor/bin/php-cs-fixer fix      # Fix issues
+./vendor/bin/php-cs-fixer fix --dry-run --diff  # Check without fixing
+
+# 2. PHP CodeSniffer (PHPCS) - Check PSR-12 compliance
+./vendor/bin/phpcs --standard=PSR12 app/        # Check compliance
+./vendor/bin/phpcbf --standard=PSR12 app/       # Auto-fix issues
+
+# 3. PHPStan - Static analysis (Level 5)
 XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
 
-# Stricter analysis for new/modified files (Level 7)
-XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [files] --level=7 --memory-limit=2G
+# 4. Tests - Run in parallel
+./vendor/bin/pest --parallel
 
-# Check for dead code and bleeding edge issues
-XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [files] --level=max --memory-limit=2G
+# Quick one-liner (old method - use pre-commit-check.sh instead)
+./vendor/bin/php-cs-fixer fix && ./vendor/bin/phpcbf --standard=PSR12 app/ && ./vendor/bin/pest --parallel && XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
 
-# Fix code style issues (IMPORTANT: Run before committing!)
-./vendor/bin/php-cs-fixer fix
-
-# Check style without fixing (use this to verify)
-./vendor/bin/php-cs-fixer fix --dry-run --diff
-
-# Quick validation before commit (one-liner - RECOMMENDED)
-./vendor/bin/pest --parallel && XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G && ./vendor/bin/php-cs-fixer fix
-
-# Full pre-commit validation (ensures all style issues are fixed)
-./vendor/bin/php-cs-fixer fix && ./vendor/bin/pest --parallel && XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
+# IMPORTANT: The correct order is:
+# 1. PHP CS Fixer (fixes most style issues)
+# 2. PHPCS/PHPCBF (catches PSR-12 issues CS Fixer might miss)
+# 3. PHPStan (static analysis)
+# 4. Tests (verify functionality)
 ```
 
 ### Development Server
@@ -293,17 +302,19 @@ class OrderMatchingService
 }
 ```
 
-### Testing Requirements
-- **Minimum Coverage**: 50% for all new code
-- **Test Location**: Mirror source structure in `tests/`
-- **Mocking**: Use PHPDoc for mock types
-```php
-/** @var ServiceClass&MockInterface */
-protected $mockService;
-```
+## Task Completion Checklist
 
-### Import Order
-1. App\Domain\...
+Before marking any task complete:
+
+1. **Run comprehensive pre-commit check**: `./bin/pre-commit-check.sh --fix`
+2. **Or run individual tools in correct order**:
+   - Fix code style: `./vendor/bin/php-cs-fixer fix`
+   - Fix PSR-12 issues: `./vendor/bin/phpcbf --standard=PSR12 app/`
+   - Check static analysis: `XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G`
+   - Run tests: `./vendor/bin/pest --parallel`
+3. **Update documentation** if needed
+4. **Verify coverage** for new features: `./vendor/bin/pest --parallel --coverage --min=50`
+5. **Update API docs** if endpoints changed: `php artisan l5-swagger:generate`
 2. App\Http\...
 3. App\Models\...
 4. App\Services\...

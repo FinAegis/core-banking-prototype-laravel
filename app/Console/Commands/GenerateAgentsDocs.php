@@ -123,7 +123,7 @@ class GenerateAgentsDocs extends Command
 
         /** @var string $result */
         $result = $this->choice('Which domain would you like to generate docs for?', $domains);
-        
+
         return $result;
     }
 
