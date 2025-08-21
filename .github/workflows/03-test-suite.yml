@@ -158,8 +158,8 @@ jobs:
           ./bin/pest-batch tests/Unit/Http tests/Unit/Services || exit 1
           
           # Third batch: Other unit tests (if they exist)
-          if [ -d "tests/Unit/Filament" ]; then
-            ./bin/pest-batch tests/Unit/Filament tests/Unit/Middleware tests/Unit/Actions || exit 1
+          if [ -d "tests/Unit/Filament" ] || [ -d "tests/Unit/Http/Middleware" ] || [ -d "tests/Unit/Actions" ]; then
+            ./bin/pest-batch tests/Unit/Filament tests/Unit/Http/Middleware tests/Unit/Actions || exit 1
           fi
           
       - name: Run Security Tests
