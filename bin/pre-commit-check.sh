@@ -56,14 +56,25 @@ FAILED=false
 # 1. PHP CS Fixer - Fix style issues first if auto-fix enabled
 echo -e "${YELLOW}[1/4] Running PHP CS Fixer...${NC}"
 if [ "$AUTO_FIX" = true ]; then
-    echo "$FILES" | xargs ./vendor/bin/php-cs-fixer fix || true
+    # For multiple files, we need to add --config parameter
+    if [ "$CHECK_ALL" = true ]; then
+        ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php app/ || true
+    else
+        echo "$FILES" | xargs ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php || true
+    fi
     echo -e "${GREEN}✓ PHP CS Fixer: Fixed style issues${NC}"
 else
-    if echo "$FILES" | xargs ./vendor/bin/php-cs-fixer fix --dry-run --diff > /dev/null 2>&1; then
+    if [ "$CHECK_ALL" = true ]; then
+        FIX_OUTPUT=$(./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php app/ --dry-run --diff 2>&1 || true)
+    else
+        FIX_OUTPUT=$(echo "$FILES" | xargs ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff 2>&1 || true)
+    fi
+    
+    if echo "$FIX_OUTPUT" | grep -q "Found 0 of"; then
         echo -e "${GREEN}✓ PHP CS Fixer: No issues found${NC}"
     else
         echo -e "${RED}✗ PHP CS Fixer: Issues found (run with --fix to auto-fix)${NC}"
-        echo "$FILES" | xargs ./vendor/bin/php-cs-fixer fix --dry-run --diff
+        echo "$FIX_OUTPUT"
         FAILED=true
     fi
 fi
@@ -73,34 +84,59 @@ echo ""
 echo -e "${YELLOW}[2/4] Running PHP CodeSniffer (PSR-12)...${NC}"
 if [ "$AUTO_FIX" = true ]; then
     # Try to auto-fix with PHPCBF
-    echo "$FILES" | xargs ./vendor/bin/phpcbf --standard=PSR12 2>/dev/null || true
+    if [ "$CHECK_ALL" = true ]; then
+        ./vendor/bin/phpcbf --standard=PSR12 app/ 2>/dev/null || true
+    else
+        echo "$FILES" | xargs ./vendor/bin/phpcbf --standard=PSR12 2>/dev/null || true
+    fi
 fi
 
 # Run PHPCS
-if echo "$FILES" | xargs ./vendor/bin/phpcs --standard=PSR12 --report=summary > /dev/null 2>&1; then
+if [ "$CHECK_ALL" = true ]; then
+    PHPCS_OUTPUT=$(./vendor/bin/phpcs --standard=PSR12 --report=summary app/ 2>&1 || true)
+else
+    PHPCS_OUTPUT=$(echo "$FILES" | xargs ./vendor/bin/phpcs --standard=PSR12 --report=summary 2>&1 || true)
+fi
+
+if echo "$PHPCS_OUTPUT" | grep -q "0 ERRORS AND 0 WARNINGS"; then
     echo -e "${GREEN}✓ PHPCS: PSR-12 compliant${NC}"
 else
     echo -e "${RED}✗ PHPCS: PSR-12 violations found${NC}"
-    echo "$FILES" | xargs ./vendor/bin/phpcs --standard=PSR12 --report=summary
-    if [ "$AUTO_FIX" = false ]; then
-        echo -e "${YELLOW}  Tip: Run with --fix to auto-fix some issues${NC}"
+    echo "$PHPCS_OUTPUT"
+    
+    # Check if only warnings (not errors)
+    if [ "$CHECK_ALL" = true ]; then
+        ERROR_CHECK=$(./vendor/bin/phpcs --standard=PSR12 -n app/ 2>&1 || true)
+    else
+        ERROR_CHECK=$(echo "$FILES" | xargs ./vendor/bin/phpcs --standard=PSR12 -n 2>&1 || true)
     fi
-    # Don't fail on warnings, only errors
-    if echo "$FILES" | xargs ./vendor/bin/phpcs --standard=PSR12 -n > /dev/null 2>&1; then
+    
+    if [ -z "$ERROR_CHECK" ] || echo "$ERROR_CHECK" | grep -q "0 ERRORS"; then
         echo -e "${YELLOW}  Note: Only warnings found, not blocking commit${NC}"
     else
         FAILED=true
+    fi
+    
+    if [ "$AUTO_FIX" = false ]; then
+        echo -e "${YELLOW}  Tip: Run with --fix to auto-fix some issues${NC}"
     fi
 fi
 echo ""
 
 # 3. PHPStan - Static analysis (on modified files only unless --all)
 echo -e "${YELLOW}[3/4] Running PHPStan...${NC}"
-if echo "$FILES" | xargs XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress 2>/dev/null; then
+if [ "$CHECK_ALL" = true ]; then
+    PHPSTAN_OUTPUT=$(XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress 2>&1 || true)
+else
+    # PHPStan with xargs needs special handling for environment variables
+    PHPSTAN_OUTPUT=$(echo "$FILES" | XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ xargs ./vendor/bin/phpstan analyse --memory-limit=2G --no-progress 2>&1 || true)
+fi
+
+if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
     echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
 else
     echo -e "${RED}✗ PHPStan: Issues found${NC}"
-    echo "$FILES" | xargs XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ ./vendor/bin/phpstan analyse --memory-limit=2G
+    echo "$PHPSTAN_OUTPUT"
     FAILED=true
 fi
 echo ""
