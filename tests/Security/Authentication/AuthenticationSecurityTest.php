@@ -194,9 +194,8 @@ class AuthenticationSecurityTest extends TestCase
     #[Test]
     public function test_token_expiration_is_enforced()
     {
-        // WARNING: This test documents that token expiration is not properly enforced
-        // The expires_at field exists but is not being checked by the Sanctum guard
-        // TODO: Investigate why Sanctum is not respecting the expires_at field
+        // This test verifies that token expiration is properly enforced
+        // Expired tokens should not be able to authenticate
 
         $user = User::factory()->create();
 
@@ -211,26 +210,32 @@ class AuthenticationSecurityTest extends TestCase
 
         // Token should work immediately
         $response = $this->withToken($token)->getJson('/api/auth/user');
-        $this->assertEquals(200, $response->status());
+        $this->assertEquals(200, $response->status(), 'Fresh token should authenticate successfully');
 
         // Simulate time passing beyond expiration
         $this->travel(2)->minutes();
 
-        // Token should be expired but currently isn't (vulnerability)
+        // Token should be expired and authentication should fail
         $response = $this->withToken($token)->getJson('/api/auth/user');
 
-        // Document the current behavior (should be 401 but returns 200)
+        // Expect 401 since we've fixed the token expiration vulnerability
         $this->assertEquals(
-            200,
+            401,
             $response->status(),
-            'SECURITY WARNING: Token expiration is not enforced. Expired tokens still authenticate.'
+            'Expired tokens should not authenticate'
         );
 
-        // Verify the token is actually expired in the database
-        $this->assertTrue(
-            $tokenResult->accessToken->fresh()->expires_at->isPast(),
-            'Token should be expired in database but still authenticates'
-        );
+        // Verify the token is actually expired in the database (or deleted)
+        $freshToken = $tokenResult->accessToken->fresh();
+        if ($freshToken) {
+            $this->assertTrue(
+                $freshToken->expires_at->isPast(),
+                'Token should be expired in database'
+            );
+        } else {
+            // Token may have been deleted as part of cleanup
+            $this->assertNull($freshToken, 'Token may have been deleted after expiration');
+        }
     }
 
     #[Test]
