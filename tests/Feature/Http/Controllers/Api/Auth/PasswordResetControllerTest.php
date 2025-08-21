@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -30,6 +31,9 @@ class PasswordResetControllerTest extends ControllerTestCase
     #[Test]
     public function test_forgot_password_sends_reset_link(): void
     {
+        // Clear any previous rate limiting
+        RateLimiter::clear('password-reset:' . request()->ip());
+
         Password::shouldReceive('sendResetLink')
             ->once()
             ->with(['email' => 'test@example.com'])
@@ -39,30 +43,32 @@ class PasswordResetControllerTest extends ControllerTestCase
             'email' => 'test@example.com',
         ]);
 
+        // Always returns success message to prevent user enumeration
         $response->assertStatus(200)
             ->assertJson([
-                'message' => __('passwords.sent'),
+                'message' => 'If your email address exists in our database, you will receive a password recovery link at your email address in a few minutes.',
             ]);
     }
 
     #[Test]
     public function test_forgot_password_fails_for_invalid_email(): void
     {
+        // Clear any previous rate limiting
+        RateLimiter::clear('password-reset:' . request()->ip());
+
+        // Note: The controller no longer reveals if an email exists (security fix)
+        // It always returns the same success message
         Password::shouldReceive('sendResetLink')
-            ->once()
-            ->with(['email' => 'invalid@example.com'])
-            ->andReturn(Password::INVALID_USER);
+            ->never(); // Won't be called for non-existent email
 
         $response = $this->postJson('/api/auth/forgot-password', [
             'email' => 'invalid@example.com',
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['email'])
+        // Always returns success message to prevent user enumeration
+        $response->assertStatus(200)
             ->assertJson([
-                'errors' => [
-                    'email' => [__('passwords.user')],
-                ],
+                'message' => 'If your email address exists in our database, you will receive a password recovery link at your email address in a few minutes.',
             ]);
     }
 
@@ -249,21 +255,28 @@ class PasswordResetControllerTest extends ControllerTestCase
     #[Test]
     public function test_forgot_password_throttling(): void
     {
+        // Clear previous attempts and set up rate limiting
+        $key = 'password-reset:' . request()->ip();
+        RateLimiter::clear($key);
+
+        // Make 5 attempts to hit the limit
+        for ($i = 0; $i < 5; $i++) {
+            RateLimiter::hit($key, 3600);
+        }
+
         Password::shouldReceive('sendResetLink')
-            ->once()
-            ->andReturn(Password::RESET_THROTTLED);
+            ->never(); // Should not be called when rate limited
 
         $response = $this->postJson('/api/auth/forgot-password', [
             'email' => 'test@example.com',
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['email'])
-            ->assertJson([
-                'errors' => [
-                    'email' => [__('passwords.throttled')],
-                ],
-            ]);
+        // Rate limiting returns 429 status
+        $response->assertStatus(429)
+            ->assertJsonStructure(['message']);
+
+        // Clean up
+        RateLimiter::clear($key);
     }
 
     #[Test]
@@ -300,19 +313,22 @@ class PasswordResetControllerTest extends ControllerTestCase
     #[Test]
     public function test_forgot_password_returns_success_even_for_nonexistent_email(): void
     {
+        // Clear any previous rate limiting
+        RateLimiter::clear('password-reset:' . request()->ip());
+
         // This is a security feature - we don't want to reveal if an email exists
         Password::shouldReceive('sendResetLink')
-            ->once()
-            ->with(['email' => 'doesnotexist@example.com'])
-            ->andReturn(Password::INVALID_USER);
+            ->never(); // Won't be called for non-existent email
 
         $response = $this->postJson('/api/auth/forgot-password', [
             'email' => 'doesnotexist@example.com',
         ]);
 
-        // Should return 422 with validation error, not success
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['email']);
+        // Should return success to prevent user enumeration (security fix)
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'If your email address exists in our database, you will receive a password recovery link at your email address in a few minutes.',
+            ]);
     }
 
     #[Test]
