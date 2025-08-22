@@ -46,7 +46,7 @@ return [
     |
     */
 
-    'expiration' => env('SANCTUM_TOKEN_EXPIRATION', 60),
+    'expiration' => env('SANCTUM_TOKEN_EXPIRATION', 1440), // 24 hours (1440 minutes) by default
 
     /*
     |--------------------------------------------------------------------------
