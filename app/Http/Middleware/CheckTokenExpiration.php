@@ -24,7 +24,8 @@ class CheckTokenExpiration
             }
 
             // Check if token has an expiration date and if it has expired
-            if (property_exists($token, 'expires_at') && $token->expires_at && $token->expires_at->isPast()) {
+            // For PersonalAccessToken models, expires_at is an Eloquent attribute, not a property
+            if (isset($token->expires_at) && $token->expires_at && $token->expires_at->isPast()) {
                 $token->delete();
 
                 return response()->json(
