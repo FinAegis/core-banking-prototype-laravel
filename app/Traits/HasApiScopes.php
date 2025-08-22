@@ -70,7 +70,7 @@ trait HasApiScopes
 
         // Set expiration if configured
         if ($expirationMinutes) {
-            $token->accessToken->expires_at = Carbon::now()->addMinutes($expirationMinutes);
+            $token->accessToken->expires_at = Carbon::now()->addMinutes((int) $expirationMinutes);
             $token->accessToken->save();
         }
 
