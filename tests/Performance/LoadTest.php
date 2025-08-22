@@ -43,13 +43,14 @@ class LoadTest extends DomainTestCase
     public function test_account_creation_performance()
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        // Create token with write scope for account creation
+        $token = $user->createToken('test-token', ['read', 'write'])->plainTextToken;
 
         $startTime = microtime(true);
         $iterations = 100;
 
         for ($i = 0; $i < $iterations; $i++) {
-            $response = $this->postJson('/api/accounts', [
+            $response = $this->withToken($token)->postJson('/api/accounts', [
                 'name' => "Performance Test Account $i",
                 'type' => 'savings',
             ]);
@@ -78,8 +79,9 @@ class LoadTest extends DomainTestCase
     {
         $users = User::factory()->count(10)->create();
         $accounts = [];
+        $tokens = [];
 
-        // Create accounts with balance
+        // Create accounts with balance and tokens
         foreach ($users as $user) {
             $account = Account::factory()->forUser($user)->create();
 
@@ -91,6 +93,8 @@ class LoadTest extends DomainTestCase
             ]);
 
             $accounts[] = $account;
+            // Create token with write scope for transfers
+            $tokens[$user->id] = $user->createToken('test-token', ['read', 'write'])->plainTextToken;
         }
 
         $iterations = 50;
@@ -105,15 +109,15 @@ class LoadTest extends DomainTestCase
                 continue;
             }
 
-            $this->actingAs($fromAccount->user);
-
-            $response = $this->postJson('/api/transfers', [
-                'from_account_uuid' => $fromAccount->uuid,
-                'to_account_uuid'   => $toAccount->uuid,
-                'asset_code'        => 'USD',
-                'amount'            => 10, // $10 in dollars
-                'reference'         => "Load test transfer $i",
-            ]);
+            // Use token authentication with proper scope
+            $response = $this->withToken($tokens[$fromAccount->user->id])
+                ->postJson('/api/transfers', [
+                    'from_account_uuid' => $fromAccount->uuid,
+                    'to_account_uuid'   => $toAccount->uuid,
+                    'asset_code'        => 'USD',
+                    'amount'            => 10, // $10 in dollars
+                    'reference'         => "Load test transfer $i",
+                ]);
 
             $response->assertStatus(201);
         }
@@ -196,10 +200,11 @@ class LoadTest extends DomainTestCase
     public function test_webhook_delivery_performance()
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        // Create token with write scope for webhook creation
+        $token = $user->createToken('test-token', ['read', 'write'])->plainTextToken;
 
         // Create a webhook
-        $response = $this->postJson('/api/v2/webhooks', [
+        $response = $this->withToken($token)->postJson('/api/v2/webhooks', [
             'url'         => 'https://httpbin.org/post',
             'events'      => ['account.created', 'transaction.completed'],
             'description' => 'Performance test webhook',
@@ -213,7 +218,7 @@ class LoadTest extends DomainTestCase
         $startTime = microtime(true);
 
         for ($i = 0; $i < $iterations; $i++) {
-            $response = $this->getJson('/api/v2/webhooks');
+            $response = $this->withToken($token)->getJson('/api/v2/webhooks');
             $response->assertStatus(200);
         }
 
