@@ -81,6 +81,9 @@ class LoadTest extends DomainTestCase
         $accounts = [];
         $tokens = [];
 
+        // Create a map of account UUID to user for quick lookup
+        $accountUserMap = [];
+
         // Create accounts with balance and tokens
         foreach ($users as $user) {
             $account = Account::factory()->forUser($user)->create();
@@ -93,8 +96,12 @@ class LoadTest extends DomainTestCase
             ]);
 
             $accounts[] = $account;
-            // Create token with write scope for transfers
-            $tokens[$user->id] = $user->createToken('test-token', ['read', 'write'])->plainTextToken;
+            // Map account to user for authentication
+            $accountUserMap[(string) $account->uuid] = $user;
+            // Create token with transfer scope
+            $tokens[(string) $user->uuid] = $user
+                ->createToken('test-token', ['read', 'write', 'transfer'])
+                ->plainTextToken;
         }
 
         $iterations = 50;
@@ -109,8 +116,14 @@ class LoadTest extends DomainTestCase
                 continue;
             }
 
-            // Use token authentication with proper scope
-            $response = $this->withToken($tokens[$fromAccount->user->id])
+            // Get the user who owns the from account
+            $fromUser = $accountUserMap[(string) $fromAccount->uuid];
+
+            // IMPORTANT: Reset authentication state between requests to avoid caching issues
+            $this->app['auth']->forgetGuards();
+
+            // Use token authentication with proper scope for the account owner
+            $response = $this->withToken($tokens[(string) $fromUser->uuid])
                 ->postJson('/api/transfers', [
                     'from_account_uuid' => $fromAccount->uuid,
                     'to_account_uuid'   => $toAccount->uuid,
@@ -314,9 +327,17 @@ class LoadTest extends DomainTestCase
         $avgReadTime = $readTime / $iterations;
 
         // Increased threshold for CI environment
-        $this->assertLessThan(0.01, $avgWriteTime, "Average cache write time ({$avgWriteTime}s) exceeds 10ms threshold");
+        $this->assertLessThan(
+            0.01,
+            $avgWriteTime,
+            "Average cache write time ({$avgWriteTime}s) exceeds 10ms threshold"
+        );
         // Increased threshold for CI environment
-        $this->assertLessThan(0.005, $avgReadTime, "Average cache read time ({$avgReadTime}s) exceeds 5ms threshold");
+        $this->assertLessThan(
+            0.005,
+            $avgReadTime,
+            "Average cache read time ({$avgReadTime}s) exceeds 5ms threshold"
+        );
 
         echo "\nCache Performance:";
         echo "\n- Write: " . round($avgWriteTime * 1000000, 2) . 'μs per operation';
