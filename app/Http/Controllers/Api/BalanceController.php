@@ -81,8 +81,8 @@ class BalanceController extends Controller
                     'frozen'       => $account->frozen ?? false,
                     'last_updated' => $account->updated_at,
                     'turnover'     => $turnover ? [
-                        'debit'        => $turnover->debit,
-                        'credit'       => $turnover->credit,
+                        'debit'        => number_format((float) $turnover->debit, 2, '.', ''),
+                        'credit'       => number_format((float) $turnover->credit, 2, '.', ''),
                         'period_start' => $turnover->created_at,
                         'period_end'   => $turnover->updated_at,
                     ] : null,

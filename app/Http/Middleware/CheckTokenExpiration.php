@@ -18,8 +18,13 @@ class CheckTokenExpiration
         if ($request->user() && $request->user()->currentAccessToken()) {
             $token = $request->user()->currentAccessToken();
 
+            // Skip expiration check for TransientToken (used in testing)
+            if ($token instanceof \Laravel\Sanctum\TransientToken) {
+                return $next($request);
+            }
+
             // Check if token has an expiration date and if it has expired
-            if ($token->expires_at && $token->expires_at->isPast()) {
+            if (property_exists($token, 'expires_at') && $token->expires_at && $token->expires_at->isPast()) {
                 $token->delete();
 
                 return response()->json(
