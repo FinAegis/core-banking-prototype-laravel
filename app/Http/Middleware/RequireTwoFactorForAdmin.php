@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -27,7 +28,7 @@ class RequireTwoFactorForAdmin
 
         // Check if user has admin role - support both methods
         $isAdmin = false;
-        
+
         // Check using UserRoles enum if available
         if (class_exists(UserRoles::class)) {
             $isAdmin = $user->hasRole(UserRoles::ADMIN->value);
