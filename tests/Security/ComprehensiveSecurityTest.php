@@ -122,7 +122,7 @@ class ComprehensiveSecurityTest extends TestCase
 
         // Test brute force protection
         for ($i = 0; $i < 6; $i++) {
-            $response = $this->postJson('/api/login', [
+            $response = $this->postJson('/api/auth/login', [
                 'email'    => $user->email,
                 'password' => 'WrongPassword',
             ]);
@@ -136,14 +136,14 @@ class ComprehensiveSecurityTest extends TestCase
 
         // Test timing attack prevention
         $validTime = $this->timeRequest(function () use ($user) {
-            return $this->postJson('/api/login', [
+            return $this->postJson('/api/auth/login', [
                 'email'    => $user->email,
                 'password' => 'SecurePassword123!',
             ]);
         });
 
         $invalidTime = $this->timeRequest(function () {
-            return $this->postJson('/api/login', [
+            return $this->postJson('/api/auth/login', [
                 'email'    => 'nonexistent@example.com',
                 'password' => 'WrongPassword',
             ]);
@@ -344,7 +344,7 @@ class ComprehensiveSecurityTest extends TestCase
         $user = User::factory()->create();
 
         // Login and get session
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson('/api/auth/login', [
             'email'    => $user->email,
             'password' => 'password',
         ]);
@@ -356,7 +356,7 @@ class ComprehensiveSecurityTest extends TestCase
         // Test session timeout (configured to 60 minutes in sanctum config)
         $this->travel(61)->minutes();
 
-        $response = $this->withToken($token)->getJson('/api/user');
+        $response = $this->withToken($token)->getJson('/api/auth/user');
         $response->assertStatus(401); // Session expired
 
         // Go back to present time
@@ -365,21 +365,23 @@ class ComprehensiveSecurityTest extends TestCase
         // Test concurrent session limit
         $tokens = [];
         for ($i = 0; $i < 6; $i++) {
-            $response = $this->postJson('/api/login', [
+            $response = $this->postJson('/api/auth/login', [
                 'email'    => $user->email,
                 'password' => 'password',
             ]);
 
             $response->assertSuccessful();
-            $tokens[] = $response->json('token');
+            $token = $response->json('access_token');
+            $this->assertNotNull($token, "Token should not be null for iteration $i");
+            $tokens[] = $token;
         }
 
         // Check that the oldest session is invalidated (only 5 sessions allowed)
-        $response = $this->withToken($tokens[0])->getJson('/api/user');
+        $response = $this->withToken($tokens[0])->getJson('/api/auth/user');
         $response->assertStatus(401);
 
         // But the latest sessions should still work
-        $response = $this->withToken($tokens[5])->getJson('/api/user');
+        $response = $this->withToken($tokens[5])->getJson('/api/auth/user');
         $response->assertSuccessful();
     }
 
