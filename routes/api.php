@@ -655,3 +655,13 @@ Route::prefix('lending')->middleware(['auth:sanctum', 'check.token.expiration', 
         Route::post('/loans/{id}/settle', [App\Http\Controllers\Api\LoanController::class, 'confirmSettlement'])->name('api.loans.confirm-settlement');
     });
 });
+
+// Admin dashboard endpoint (with 2FA requirement)
+Route::prefix('admin')->middleware(['auth:sanctum', 'check.token.expiration', 'require.2fa.admin'])->group(function () {
+    Route::get('/dashboard', function () {
+        return response()->json([
+            'message' => 'Admin dashboard',
+            'user' => auth()->user(),
+        ]);
+    });
+});

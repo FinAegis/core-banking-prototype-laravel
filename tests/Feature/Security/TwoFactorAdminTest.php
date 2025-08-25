@@ -24,7 +24,7 @@ class TwoFactorAdminTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson([
-                'error'          => 'Two-Factor Authentication Required',
+                'error'          => 'TWO_FACTOR_REQUIRED',
                 'setup_required' => true,
             ]);
     }
@@ -44,7 +44,7 @@ class TwoFactorAdminTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson([
-                'error'          => 'Two-Factor Authentication Required',
+                'error'          => 'TWO_FACTOR_REQUIRED',
                 'setup_required' => true,
             ]);
     }
@@ -64,7 +64,7 @@ class TwoFactorAdminTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson([
-                'error'                 => 'Two-Factor Verification Required',
+                'error'                 => 'TWO_FACTOR_VERIFICATION_REQUIRED',
                 'verification_required' => true,
             ]);
     }
