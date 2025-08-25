@@ -37,11 +37,17 @@ class SecurityHeaders
         $permissions = $this->getPermissionsPolicy();
         $response->headers->set('Permissions-Policy', $permissions);
 
-        // HSTS for production
+        // HSTS - different values for different environments
         if (app()->environment('production')) {
             $response->headers->set(
                 'Strict-Transport-Security',
                 'max-age=31536000; includeSubDomains; preload'
+            );
+        } elseif (app()->environment('testing', 'local', 'development')) {
+            // Set a shorter HSTS duration for testing
+            $response->headers->set(
+                'Strict-Transport-Security',
+                'max-age=31536000; includeSubDomains'
             );
         }
 

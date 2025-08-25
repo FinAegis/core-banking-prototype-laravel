@@ -308,28 +308,39 @@ class AuthenticationSecurityTest extends TestCase
     #[Test]
     public function test_secure_headers_are_present()
     {
-        $response = $this->getJson('/api/health');
+        // Ensure the SecurityHeaders middleware is applied in tests
+        $this->withMiddleware([\App\Http\Middleware\SecurityHeaders::class]);
 
-        // Check for security headers
+        $response = $this->getJson('/api/monitoring/health');
+
+        // Check for security headers set by SecurityHeaders middleware
         $headers = $response->headers->all();
 
-        // Security headers check
-        // Note: These headers might not be set in test environment
-        // This is a configuration issue to be addressed
+        // Required security headers
+        $this->assertArrayHasKey('x-content-type-options', $headers, 'X-Content-Type-Options header should be present');
+        $this->assertEquals('nosniff', $headers['x-content-type-options'][0], 'X-Content-Type-Options should be set to nosniff');
 
-        // Check if at least some security-related headers are present
-        $hasSecurityHeaders =
-            isset($headers['x-frame-options']) ||
-            isset($headers['x-content-type-options']) ||
-            isset($headers['strict-transport-security']) ||
-            isset($headers['x-xss-protection']);
+        $this->assertArrayHasKey('x-frame-options', $headers, 'X-Frame-Options header should be present');
+        $this->assertEquals('DENY', $headers['x-frame-options'][0], 'X-Frame-Options should be set to DENY');
 
-        // For now, we'll skip assertion since headers are typically set by web server
-        // TODO: Add middleware to set security headers in application
-        if (!$hasSecurityHeaders) {
-            $this->markTestIncomplete("Security headers are typically set by web server");
-        }
-        // If headers are present, test passes
+        $this->assertArrayHasKey('x-xss-protection', $headers, 'X-XSS-Protection header should be present');
+        $this->assertEquals('1; mode=block', $headers['x-xss-protection'][0], 'X-XSS-Protection should be properly configured');
+
+        $this->assertArrayHasKey('referrer-policy', $headers, 'Referrer-Policy header should be present');
+        $this->assertEquals('strict-origin-when-cross-origin', $headers['referrer-policy'][0], 'Referrer-Policy should be properly configured');
+
+        $this->assertArrayHasKey('content-security-policy', $headers, 'Content-Security-Policy header should be present');
+        $this->assertStringContainsString("default-src 'self'", $headers['content-security-policy'][0], 'CSP should have default-src policy');
+
+        $this->assertArrayHasKey('permissions-policy', $headers, 'Permissions-Policy header should be present');
+
+        // HSTS should be set in all environments (with different values)
+        $this->assertArrayHasKey('strict-transport-security', $headers, 'Strict-Transport-Security header should be present');
+        $this->assertStringContainsString('max-age=31536000', $headers['strict-transport-security'][0], 'HSTS should have max-age set');
+
+        // Ensure sensitive headers are removed
+        $this->assertArrayNotHasKey('x-powered-by', $headers, 'X-Powered-By header should be removed');
+        $this->assertArrayNotHasKey('server', $headers, 'Server header should be removed');
     }
 
     #[Test]
