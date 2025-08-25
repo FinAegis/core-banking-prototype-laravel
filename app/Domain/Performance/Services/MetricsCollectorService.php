@@ -37,7 +37,18 @@ class MetricsCollectorService
         $metricId = $this->getOrCreateMetricId($name);
 
         DB::transaction(function () use ($metricId, $name, $value, $type, $tags) {
-            $metrics = PerformanceMetrics::retrieve($metricId);
+            // First, check if any events exist for this aggregate
+            $eventCount = DB::table('stored_events')
+                ->where('aggregate_uuid', $metricId)
+                ->count();
+
+            if ($eventCount === 0) {
+                // No events exist, create a new aggregate
+                $metrics = PerformanceMetrics::createNew($metricId, $this->systemId);
+            } else {
+                // Events exist, retrieve the aggregate
+                $metrics = PerformanceMetrics::retrieve($metricId);
+            }
 
             // Set threshold if exists
             if (isset($this->thresholds[$name])) {
