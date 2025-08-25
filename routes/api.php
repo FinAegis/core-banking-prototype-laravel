@@ -661,7 +661,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'check.token.expiration', 'r
     Route::get('/dashboard', function () {
         return response()->json([
             'message' => 'Admin dashboard',
-            'user' => auth()->user(),
+            'user'    => auth()->user(),
         ]);
     });
 });

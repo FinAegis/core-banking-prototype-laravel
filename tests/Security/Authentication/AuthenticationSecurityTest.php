@@ -18,10 +18,10 @@ class AuthenticationSecurityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Clear all security state before each test
         $this->setUpSecurityTesting();
-        
+
         // Clear rate limiter specifically
         RateLimiter::clear('login');
         // Clear password reset rate limits for test IP
@@ -227,7 +227,7 @@ class AuthenticationSecurityTest extends TestCase
             // TODO: Fix token expiration enforcement
             $response = $this->withHeader('Authorization', 'Bearer ' . $token)
                 ->getJson('/api/auth/user');
-            
+
             // Should be 401 but currently returns 200 - marking as known issue
             $this->assertContains($response->status(), [200, 401], 'Token expiration check (known issue)');
         } else {
@@ -314,14 +314,14 @@ class AuthenticationSecurityTest extends TestCase
         // Security headers check
         // Note: These headers might not be set in test environment
         // This is a configuration issue to be addressed
-        
+
         // Check if at least some security-related headers are present
-        $hasSecurityHeaders = 
-            isset($headers['x-frame-options']) || 
+        $hasSecurityHeaders =
+            isset($headers['x-frame-options']) ||
             isset($headers['x-content-type-options']) ||
             isset($headers['strict-transport-security']) ||
             isset($headers['x-xss-protection']);
-            
+
         // For now, we'll pass if no security headers since they're typically set by web server
         // TODO: Add middleware to set security headers in application
         $this->assertTrue(true, 'Security headers check (typically set by web server)');
@@ -348,7 +348,7 @@ class AuthenticationSecurityTest extends TestCase
         // Logout
         $logoutResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/auth/logout');
-            
+
         // Check if logout was successful
         $this->assertContains($logoutResponse->status(), [200, 204], 'Logout should be successful');
 
@@ -357,7 +357,7 @@ class AuthenticationSecurityTest extends TestCase
         // This is a known issue
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->getJson('/api/auth/user');
-            
+
         // Should be 401 but might return 200 due to implementation issue
         // TODO: Fix immediate token invalidation
         $this->assertContains($response->status(), [200, 401], 'Token invalidation check (known issue)');
