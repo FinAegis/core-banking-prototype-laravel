@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Product;
 
-use App\Domain\Product\Services\ProductCatalogService;
 use App\Domain\Product\Models\Product;
-use App\Domain\Product\ValueObjects\Price;
+use App\Domain\Product\Services\ProductCatalogService;
 use App\Domain\Product\ValueObjects\Feature;
+use App\Domain\Product\ValueObjects\Price;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,12 +26,12 @@ class ProductCatalogTest extends TestCase
     public function test_can_create_product(): void
     {
         $product = $this->service->createProduct([
-            'name' => 'Premium Account',
+            'name'        => 'Premium Account',
             'description' => 'Premium banking account with advanced features',
-            'category' => 'Banking',
-            'type' => 'subscription',
-            'price' => [
-                'amount' => 9.99,
+            'category'    => 'Banking',
+            'type'        => 'subscription',
+            'price'       => [
+                'amount'   => 9.99,
                 'currency' => 'USD',
                 'interval' => 'monthly',
             ],
@@ -47,19 +47,19 @@ class ProductCatalogTest extends TestCase
     public function test_can_add_features_to_product(): void
     {
         $product = $this->service->createProduct([
-            'name' => 'Test Product',
+            'name'        => 'Test Product',
             'description' => 'Test description',
-            'category' => 'Test',
-            'type' => 'service',
+            'category'    => 'Test',
+            'type'        => 'service',
         ], 'admin');
 
         $updated = $this->service->addFeature($product->id, [
-            'code' => 'unlimited_transfers',
-            'name' => 'Unlimited Transfers',
+            'code'        => 'unlimited_transfers',
+            'name'        => 'Unlimited Transfers',
             'description' => 'No limit on transfers',
-            'enabled' => true,
-            'limits' => [
-                'daily' => null,
+            'enabled'     => true,
+            'limits'      => [
+                'daily'   => null,
                 'monthly' => null,
             ],
         ], 'admin');
@@ -72,16 +72,16 @@ class ProductCatalogTest extends TestCase
     public function test_can_update_pricing(): void
     {
         $product = $this->service->createProduct([
-            'name' => 'Test Product',
+            'name'        => 'Test Product',
             'description' => 'Test description',
-            'category' => 'Test',
-            'type' => 'service',
+            'category'    => 'Test',
+            'type'        => 'service',
         ], 'admin');
 
         $updated = $this->service->updatePricing($product->id, [
-            'amount' => 19.99,
+            'amount'   => 19.99,
             'currency' => 'EUR',
-            'type' => 'fixed',
+            'type'     => 'fixed',
             'interval' => 'yearly',
         ], 'admin');
 
@@ -94,16 +94,16 @@ class ProductCatalogTest extends TestCase
     public function test_can_activate_product(): void
     {
         $product = $this->service->createProduct([
-            'name' => 'Test Product',
+            'name'        => 'Test Product',
             'description' => 'Test description',
-            'category' => 'Test',
-            'type' => 'service',
+            'category'    => 'Test',
+            'type'        => 'service',
         ], 'admin');
 
         $this->assertEquals('draft', $product->status);
-        
+
         $activated = $this->service->activateProduct($product->id, 'admin');
-        
+
         $this->assertEquals('active', $activated->status);
         $this->assertNotNull($activated->activated_at);
     }
@@ -111,10 +111,10 @@ class ProductCatalogTest extends TestCase
     public function test_can_deactivate_product(): void
     {
         $product = $this->service->createProduct([
-            'name' => 'Test Product',
+            'name'        => 'Test Product',
             'description' => 'Test description',
-            'category' => 'Test',
-            'type' => 'service',
+            'category'    => 'Test',
+            'type'        => 'service',
         ], 'admin');
 
         $activated = $this->service->activateProduct($product->id, 'admin');
@@ -123,7 +123,7 @@ class ProductCatalogTest extends TestCase
             'Product discontinued',
             'admin'
         );
-        
+
         $this->assertEquals('inactive', $deactivated->status);
         $this->assertNotNull($deactivated->deactivated_at);
     }
@@ -132,17 +132,17 @@ class ProductCatalogTest extends TestCase
     {
         // Create some products
         $this->service->createProduct([
-            'name' => 'Banking Premium',
+            'name'        => 'Banking Premium',
             'description' => 'Premium banking features',
-            'category' => 'Banking',
-            'type' => 'subscription',
+            'category'    => 'Banking',
+            'type'        => 'subscription',
         ], 'admin');
 
         $product2 = $this->service->createProduct([
-            'name' => 'Investment Pro',
+            'name'        => 'Investment Pro',
             'description' => 'Professional investment tools',
-            'category' => 'Investment',
-            'type' => 'subscription',
+            'category'    => 'Investment',
+            'type'        => 'subscription',
         ], 'admin');
 
         // Activate the second product
@@ -150,7 +150,7 @@ class ProductCatalogTest extends TestCase
 
         // Search for "investment"
         $results = $this->service->searchProducts('investment');
-        
+
         $this->assertCount(1, $results);
         $this->assertEquals('Investment Pro', $results->first()->name);
     }
@@ -168,7 +168,7 @@ class ProductCatalogTest extends TestCase
         $this->assertEquals('USD', $price->getCurrency());
         $this->assertEquals('$99.99', $price->getFormattedAmount());
         $this->assertTrue($price->isRecurring());
-        
+
         $total = $price->calculateTotal(3);
         $this->assertEqualsWithDelta(299.97, $total, 0.01);
     }
@@ -182,7 +182,7 @@ class ProductCatalogTest extends TestCase
             enabled: true,
             limits: [
                 'requests_per_minute' => 100,
-                'requests_per_day' => 10000,
+                'requests_per_day'    => 10000,
             ]
         );
 

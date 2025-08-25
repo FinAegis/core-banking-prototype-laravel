@@ -106,9 +106,8 @@ class UserAnalyticsService
         $dailyActiveCount = UserActivity::forUser($userId)
             ->recent($days)
             ->select(DB::raw('DATE(tracked_at) as date'))
-            ->groupBy('date')
-            ->get()
-            ->count();
+            ->distinct('date')
+            ->count('date');
 
         $avgActivitiesPerDay = UserActivity::forUser($userId)
             ->recent($days)

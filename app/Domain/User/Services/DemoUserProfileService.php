@@ -61,7 +61,7 @@ class DemoUserProfileService
         );
 
         // Create some demo activities
-        $this->createDemoActivities($user->id);
+        $this->createDemoActivities(strval($user->id));
 
         return $profile;
     }

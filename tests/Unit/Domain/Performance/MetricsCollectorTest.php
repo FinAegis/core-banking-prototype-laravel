@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Performance;
 
+use App\Domain\Performance\Models\PerformanceMetric;
 use App\Domain\Performance\Services\MetricsCollectorService;
 use App\Domain\Performance\ValueObjects\MetricType;
 use App\Domain\Performance\ValueObjects\PerformanceThreshold;
-use App\Domain\Performance\Models\PerformanceMetric;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,7 +33,7 @@ class MetricsCollectorTest extends TestCase
         );
 
         $metric = PerformanceMetric::where('name', 'test.metric')->first();
-        
+
         $this->assertNotNull($metric);
         $this->assertEquals(100.5, $metric->value);
         $this->assertEquals('gauge', $metric->type);
@@ -45,7 +45,7 @@ class MetricsCollectorTest extends TestCase
         $this->service->recordResponseTime('/api/users', 250.5, ['method' => 'GET']);
 
         $metric = PerformanceMetric::where('name', 'response_time./api/users')->first();
-        
+
         $this->assertNotNull($metric);
         $this->assertEquals(250.5, $metric->value);
         $this->assertEquals('latency', $metric->type);
@@ -57,7 +57,7 @@ class MetricsCollectorTest extends TestCase
         $this->service->recordThroughput('transactions', 1000, ['type' => 'payment']);
 
         $metric = PerformanceMetric::where('name', 'throughput.transactions')->first();
-        
+
         $this->assertNotNull($metric);
         $this->assertEquals(1000, $metric->value);
         $this->assertEquals('throughput', $metric->type);
@@ -69,7 +69,7 @@ class MetricsCollectorTest extends TestCase
         $this->service->recordErrorRate('api', 2.5, ['endpoint' => '/users']);
 
         $metric = PerformanceMetric::where('name', 'error_rate.api')->first();
-        
+
         $this->assertNotNull($metric);
         $this->assertEquals(2.5, $metric->value);
         $this->assertEquals('error_rate', $metric->type);
@@ -83,7 +83,7 @@ class MetricsCollectorTest extends TestCase
         $this->service->recordMetric('cpu.usage', 70, MetricType::CPU_USAGE);
 
         $summary = $this->service->getMetricsSummary(5);
-        
+
         $this->assertArrayHasKey('cpu.usage', $summary);
         $this->assertEquals(60, $summary['cpu.usage']['average']);
         $this->assertEquals(50, $summary['cpu.usage']['min']);
@@ -101,13 +101,13 @@ class MetricsCollectorTest extends TestCase
         );
 
         $this->service->setThreshold('custom.metric', $threshold);
-        
+
         // This metric should not trigger alert (below threshold)
         $this->service->recordMetric('custom.metric', 80, MetricType::GAUGE);
-        
+
         // This metric should trigger alert (above threshold)
         $this->service->recordMetric('custom.metric', 95, MetricType::GAUGE);
-        
+
         $metrics = PerformanceMetric::where('name', 'custom.metric')->get();
         $this->assertCount(2, $metrics);
     }
@@ -131,7 +131,7 @@ class MetricsCollectorTest extends TestCase
         $this->assertEquals('milliseconds', MetricType::LATENCY->getUnit());
         $this->assertEquals('percentage', MetricType::CPU_USAGE->getUnit());
         $this->assertEquals('bytes', MetricType::MEMORY_USAGE->getUnit());
-        
+
         $this->assertTrue(MetricType::CPU_USAGE->isPercentage());
         $this->assertTrue(MetricType::LATENCY->isTime());
         $this->assertFalse(MetricType::GAUGE->isPercentage());

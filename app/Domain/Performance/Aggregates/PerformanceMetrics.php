@@ -25,11 +25,9 @@ class PerformanceMetrics extends AggregateRoot
 
     private array $alerts = [];
 
-    private ?DateTimeImmutable $lastRecordedAt = null;
-
     public static function create(string $metricId, string $systemId): self
     {
-        $metrics = new static();
+        $metrics = new self();
         $metrics->metricId = $metricId;
         $metrics->systemId = $systemId;
 
@@ -197,7 +195,6 @@ class PerformanceMetrics extends AggregateRoot
             'tags'      => $event->tags,
             'timestamp' => $event->timestamp,
         ];
-        $this->lastRecordedAt = $event->timestamp;
     }
 
     protected function applyThresholdExceeded(ThresholdExceeded $event): void

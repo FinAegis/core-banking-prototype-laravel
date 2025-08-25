@@ -188,7 +188,7 @@ class ProductCatalogService
     public function getProduct(string $productId): ?ProductModel
     {
         return Cache::remember("product.{$productId}", 3600, function () use ($productId) {
-            return ProductModel::with(['features', 'prices'])->find($productId);
+            return ProductModel::find($productId);
         });
     }
 

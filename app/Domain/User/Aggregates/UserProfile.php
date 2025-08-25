@@ -32,14 +32,19 @@ class UserProfile extends AggregateRoot
 
     private ?string $phoneNumber = null;
 
+    /** @phpstan-ignore-next-line */
     private ?DateTimeImmutable $dateOfBirth = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $country = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $city = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $address = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $postalCode = null;
 
     private string $status = 'active';
@@ -68,7 +73,7 @@ class UserProfile extends AggregateRoot
         ?string $phoneNumber = null,
         array $metadata = []
     ): self {
-        $profile = new static();
+        $profile = new self();
         $profile->recordThat(new UserProfileCreated(
             userId: $userId,
             email: $email,

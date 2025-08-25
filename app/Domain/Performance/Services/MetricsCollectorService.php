@@ -143,7 +143,7 @@ class MetricsCollectorService
     public function getKPIs(): array
     {
         $cache = Cache::remember('performance_kpis', 60, function () {
-            $last5Minutes = now()->subMinutes(5);
+            $last5Minutes = now()->subMinutes(5)->toDateTimeImmutable();
 
             return [
                 'response_time'        => $this->getAverageResponseTime($last5Minutes),
@@ -211,7 +211,7 @@ class MetricsCollectorService
      */
     private function getOrCreateMetricId(string $name): string
     {
-        return Cache::remember("metric_id.{$name}", 3600, function () use ($name) {
+        return Cache::remember("metric_id.{$name}", 3600, function () {
             return Str::uuid()->toString();
         });
     }
@@ -266,19 +266,19 @@ class MetricsCollectorService
     /**
      * Get average response time.
      */
-    private function getAverageResponseTime(DateTimeImmutable $since): float
+    private function getAverageResponseTime(\DateTimeInterface $since): float
     {
         $avg = PerformanceMetric::where('recorded_at', '>=', $since)
             ->where('name', 'like', 'response_time.%')
             ->avg('value');
 
-        return round($avg ?? 0, 2);
+        return round((float) ($avg ?? 0), 2);
     }
 
     /**
      * Get throughput.
      */
-    private function getThroughput(DateTimeImmutable $since): float
+    private function getThroughput(\DateTimeInterface $since): float
     {
         $sum = PerformanceMetric::where('recorded_at', '>=', $since)
             ->where('name', 'like', 'throughput.%')
@@ -286,19 +286,19 @@ class MetricsCollectorService
 
         $minutes = $since->diff(new DateTimeImmutable())->i + 1;
 
-        return round(($sum / $minutes) * 60, 2); // Convert to per hour
+        return round((float) (($sum / $minutes)) * 60, 2); // Convert to per hour
     }
 
     /**
      * Get error rate.
      */
-    private function getErrorRate(DateTimeImmutable $since): float
+    private function getErrorRate(\DateTimeInterface $since): float
     {
         $avg = PerformanceMetric::where('recorded_at', '>=', $since)
             ->where('name', 'like', 'error_rate.%')
             ->avg('value');
 
-        return round($avg ?? 0, 2);
+        return round((float) ($avg ?? 0), 2);
     }
 
     /**
@@ -348,7 +348,7 @@ class MetricsCollectorService
     /**
      * Get database performance metrics.
      */
-    private function getDatabasePerformance(DateTimeImmutable $since): array
+    private function getDatabasePerformance(\DateTimeInterface $since): array
     {
         $queries = DB::table('performance_metrics')
             ->where('recorded_at', '>=', $since)
@@ -357,8 +357,8 @@ class MetricsCollectorService
             ->first();
 
         return [
-            'avg_query_time'   => round($queries->avg_value ?? 0, 2),
-            'max_query_time'   => round($queries->max_value ?? 0, 2),
+            'avg_query_time'   => round((float) ($queries->avg_value ?? 0), 2),
+            'max_query_time'   => round((float) ($queries->max_value ?? 0), 2),
             'connection_count' => DB::connection()->select('show status like "Threads_connected"')[0]->Value ?? 0,
         ];
     }
