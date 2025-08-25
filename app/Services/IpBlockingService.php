@@ -117,7 +117,7 @@ class IpBlockingService
                 'reason'     => $blocked->reason,
                 'blocked_at' => $blocked->blocked_at,
                 'expires_at' => $blocked->expires_at,
-            ], now()->diffInSeconds($blocked->expires_at));
+            ], (int) now()->diffInSeconds($blocked->expires_at));
 
             return true;
         }
