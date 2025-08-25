@@ -73,7 +73,7 @@ class UserProfile extends AggregateRoot
         ?string $phoneNumber = null,
         array $metadata = []
     ): self {
-        $profile = new self();
+        $profile = (new self())->loadUuid($userId);
         $profile->recordThat(new UserProfileCreated(
             userId: $userId,
             email: $email,

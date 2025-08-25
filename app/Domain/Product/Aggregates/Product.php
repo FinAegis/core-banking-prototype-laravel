@@ -48,7 +48,7 @@ class Product extends AggregateRoot
         string $type,
         array $metadata = []
     ): self {
-        $product = new self();
+        $product = (new self())->loadUuid($productId);
         $product->recordThat(new ProductCreated(
             productId: $productId,
             name: $name,
