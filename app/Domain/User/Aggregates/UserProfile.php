@@ -22,9 +22,9 @@ use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class UserProfile extends AggregateRoot
 {
-    private string $userId;
+    private string $userId = '';
 
-    private string $email;
+    private string $email = '';
 
     private ?string $firstName = null;
 
@@ -32,19 +32,14 @@ class UserProfile extends AggregateRoot
 
     private ?string $phoneNumber = null;
 
-    /** @phpstan-ignore-next-line */
     private ?DateTimeImmutable $dateOfBirth = null;
 
-    /** @phpstan-ignore-next-line */
     private ?string $country = null;
 
-    /** @phpstan-ignore-next-line */
     private ?string $city = null;
 
-    /** @phpstan-ignore-next-line */
     private ?string $address = null;
 
-    /** @phpstan-ignore-next-line */
     private ?string $postalCode = null;
 
     private string $status = 'active';
@@ -89,6 +84,11 @@ class UserProfile extends AggregateRoot
 
     public function updateProfile(array $data, string $updatedBy): self
     {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         $allowedFields = [
             'firstName',
             'lastName',
@@ -118,6 +118,11 @@ class UserProfile extends AggregateRoot
 
     public function verify(string $verifiedBy, string $verificationType = 'email'): self
     {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         if ($this->isVerified) {
             throw UserProfileException::alreadyVerified($this->userId);
         }
@@ -134,6 +139,11 @@ class UserProfile extends AggregateRoot
 
     public function suspend(string $reason, string $suspendedBy): self
     {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         if ($this->status === 'suspended') {
             throw UserProfileException::alreadySuspended($this->userId);
         }
@@ -150,6 +160,11 @@ class UserProfile extends AggregateRoot
 
     public function updatePreferences(UserPreferences $preferences, string $updatedBy): self
     {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         $this->recordThat(new UserPreferencesUpdated(
             userId: $this->userId,
             preferences: $preferences->toArray(),
@@ -164,6 +179,11 @@ class UserProfile extends AggregateRoot
         NotificationPreferences $preferences,
         string $updatedBy
     ): self {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         $this->recordThat(new NotificationPreferencesUpdated(
             userId: $this->userId,
             preferences: $preferences->toArray(),
@@ -176,6 +196,11 @@ class UserProfile extends AggregateRoot
 
     public function updatePrivacySettings(PrivacySettings $settings, string $updatedBy): self
     {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         $this->recordThat(new PrivacySettingsUpdated(
             userId: $this->userId,
             settings: $settings->toArray(),
@@ -188,6 +213,11 @@ class UserProfile extends AggregateRoot
 
     public function trackActivity(string $activity, array $context = []): self
     {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         $this->recordThat(new UserActivityTracked(
             userId: $this->userId,
             activity: $activity,
@@ -200,6 +230,11 @@ class UserProfile extends AggregateRoot
 
     public function delete(string $deletedBy, string $reason = 'user_request'): self
     {
+        // Initialize userId if empty (for reconstituted aggregates)
+        if (empty($this->userId)) {
+            $this->userId = $this->uuid();
+        }
+
         if ($this->status === 'deleted') {
             throw UserProfileException::alreadyDeleted($this->userId);
         }
@@ -228,6 +263,11 @@ class UserProfile extends AggregateRoot
 
     protected function applyUserProfileUpdated(UserProfileUpdated $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         foreach ($event->updates as $field => $value) {
             if (property_exists($this, $field)) {
                 $this->$field = $value;
@@ -237,11 +277,21 @@ class UserProfile extends AggregateRoot
 
     protected function applyUserProfileVerified(UserProfileVerified $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         $this->isVerified = true;
     }
 
     protected function applyUserProfileSuspended(UserProfileSuspended $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         $this->status = 'suspended';
         $this->suspendedAt = $event->suspendedAt;
         $this->suspensionReason = $event->reason;
@@ -249,21 +299,41 @@ class UserProfile extends AggregateRoot
 
     protected function applyUserPreferencesUpdated(UserPreferencesUpdated $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         $this->preferences = $event->preferences;
     }
 
     protected function applyNotificationPreferencesUpdated(NotificationPreferencesUpdated $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         $this->notificationPreferences = $event->preferences;
     }
 
     protected function applyPrivacySettingsUpdated(PrivacySettingsUpdated $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         $this->privacySettings = $event->settings;
     }
 
     protected function applyUserActivityTracked(UserActivityTracked $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         $this->activityLog[] = [
             'activity'  => $event->activity,
             'context'   => $event->context,
@@ -274,6 +344,11 @@ class UserProfile extends AggregateRoot
 
     protected function applyUserProfileDeleted(UserProfileDeleted $event): void
     {
+        // Ensure userId is set
+        if (empty($this->userId)) {
+            $this->userId = $event->userId;
+        }
+
         $this->status = 'deleted';
     }
 

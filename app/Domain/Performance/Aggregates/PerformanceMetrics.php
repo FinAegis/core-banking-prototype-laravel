@@ -15,9 +15,9 @@ use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class PerformanceMetrics extends AggregateRoot
 {
-    private string $metricId;
+    private string $metricId = '';
 
-    private string $systemId;
+    private string $systemId = '';
 
     private array $metrics = [];
 
@@ -44,6 +44,14 @@ class PerformanceMetrics extends AggregateRoot
         array $tags = [],
         ?DateTimeImmutable $timestamp = null
     ): self {
+        // Initialize properties if empty (for reconstituted aggregates)
+        if (empty($this->metricId)) {
+            $this->metricId = $this->uuid();
+        }
+        if (empty($this->systemId)) {
+            $this->systemId = 'default';
+        }
+
         $timestamp = $timestamp ?? new DateTimeImmutable();
 
         $this->recordThat(new MetricRecorded(
@@ -115,6 +123,14 @@ class PerformanceMetrics extends AggregateRoot
 
     public function generateReport(string $reportType, DateTimeImmutable $from, DateTimeImmutable $to): self
     {
+        // Initialize properties if empty (for reconstituted aggregates)
+        if (empty($this->metricId)) {
+            $this->metricId = $this->uuid();
+        }
+        if (empty($this->systemId)) {
+            $this->systemId = 'default';
+        }
+
         $reportData = $this->aggregateMetrics($from, $to);
 
         $this->recordThat(new PerformanceReportGenerated(
@@ -191,13 +207,8 @@ class PerformanceMetrics extends AggregateRoot
     // Apply methods
     protected function applyMetricRecorded(MetricRecorded $event): void
     {
-        // Initialize properties if they are not set (when reconstituting from events)
-        if (! isset($this->metricId)) {
-            $this->metricId = $event->metricId;
-        }
-        if (! isset($this->systemId)) {
-            $this->systemId = $event->systemId;
-        }
+        $this->metricId = $event->metricId;
+        $this->systemId = $event->systemId;
 
         $this->metrics[] = [
             'name'      => $event->name,
@@ -210,13 +221,8 @@ class PerformanceMetrics extends AggregateRoot
 
     protected function applyThresholdExceeded(ThresholdExceeded $event): void
     {
-        // Initialize properties if they are not set (when reconstituting from events)
-        if (! isset($this->metricId)) {
-            $this->metricId = $event->metricId;
-        }
-        if (! isset($this->systemId)) {
-            $this->systemId = $event->systemId;
-        }
+        $this->metricId = $event->metricId;
+        $this->systemId = $event->systemId;
 
         // Track threshold violations
         $this->alerts[] = [
@@ -230,13 +236,8 @@ class PerformanceMetrics extends AggregateRoot
 
     protected function applyPerformanceAlertTriggered(PerformanceAlertTriggered $event): void
     {
-        // Initialize properties if they are not set (when reconstituting from events)
-        if (! isset($this->metricId)) {
-            $this->metricId = $event->metricId;
-        }
-        if (! isset($this->systemId)) {
-            $this->systemId = $event->systemId;
-        }
+        $this->metricId = $event->metricId;
+        $this->systemId = $event->systemId;
 
         $this->alerts[] = [
             'type'      => $event->alertType,
@@ -249,13 +250,8 @@ class PerformanceMetrics extends AggregateRoot
 
     protected function applyPerformanceReportGenerated(PerformanceReportGenerated $event): void
     {
-        // Initialize properties if they are not set (when reconstituting from events)
-        if (! isset($this->metricId)) {
-            $this->metricId = $event->metricId;
-        }
-        if (! isset($this->systemId)) {
-            $this->systemId = $event->systemId;
-        }
+        $this->metricId = $event->metricId;
+        $this->systemId = $event->systemId;
 
         // Report generation is tracked but doesn't modify state
     }
