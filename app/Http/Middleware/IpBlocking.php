@@ -123,7 +123,7 @@ class IpBlocking
         $blockedUntil = Cache::get("ip_blocked:{$ip}");
 
         if ($blockedUntil instanceof \Carbon\Carbon) {
-            return max(0, ceil($blockedUntil->diffInMinutes(now())));
+            return (int) max(0, ceil($blockedUntil->diffInMinutes(now())));
         }
 
         return 0;
@@ -230,7 +230,7 @@ class IpBlocking
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $ip = ip2long($ip);
             $subnet = ip2long($subnet);
-            $mask = -1 << (32 - $bits);
+            $mask = -1 << (32 - (int) $bits);
             $subnet &= $mask;
 
             return ($ip & $mask) == $subnet;
