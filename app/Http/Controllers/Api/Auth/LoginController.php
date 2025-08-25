@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\IpBlockingService;
 use App\Traits\HasApiScopes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,11 @@ use Illuminate\Validation\ValidationException;
 class LoginController extends Controller
 {
     use HasApiScopes;
+
+    public function __construct(
+        private readonly IpBlockingService $ipBlockingService
+    ) {
+    }
 
     /**
      * Login user and create token.
@@ -32,7 +38,8 @@ class LoginController extends Controller
      *
      * @OA\Property(property="email",             type="string", format="email", example="john@example.com"),
      * @OA\Property(property="password",          type="string", format="password", example="password123"),
-     * @OA\Property(property="device_name",       type="string", example="iPhone 12", description="Optional device name for token")
+     * @OA\Property(property="device_name", type="string", example="iPhone 12",
+     *             description="Optional device name for token")
      *         )
      *     ),
      *
@@ -49,10 +56,10 @@ class LoginController extends Controller
      * @OA\Property(property="name",              type="string", example="John Doe"),
      * @OA\Property(property="email",             type="string", example="john@example.com"),
      * @OA\Property(property="email_verified_at", type="string", nullable=true)
-     *             ),
-     * @OA\Property(property="access_token",      type="string", example="2|VVGVrIVokPBXkWLOi2yK13eHlQwQtQQONX5GCngZ..."),
-     * @OA\Property(property="token_type",        type="string", example="Bearer"),
-     * @OA\Property(property="expires_in",        type="integer", nullable=true, example=null, description="Token expiration time in seconds")
+     * @OA\Property(property="access_token", type="string",
+     *             example="2|VVGVrIVokPBXkWLOi2yK13eHlQwQtQQONX5GCngZ..."),
+     * @OA\Property(property="expires_in", type="integer", nullable=true, example=null,
+     *             description="Token expiration time in seconds")
      *         )
      *     ),
      *
@@ -89,9 +96,21 @@ class LoginController extends Controller
             ]
         );
 
+        // Check if IP is blocked
+        $ip = $request->ip();
+        if ($this->ipBlockingService->isBlocked($ip)) {
+            $blockInfo = $this->ipBlockingService->getBlockInfo($ip);
+            throw ValidationException::withMessages([
+                'email' => ['Your IP address has been temporarily blocked. Please try again later.'],
+            ]);
+        }
+
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
+            // Record failed attempt
+            $this->ipBlockingService->recordFailedAttempt($ip, $request->email);
+
             throw ValidationException::withMessages(
                 [
                     'email' => ['The provided credentials are incorrect.'],
