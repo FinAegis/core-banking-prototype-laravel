@@ -18,7 +18,7 @@ return new class () extends Migration {
             // SQLite doesn't support ALTER COLUMN directly
             // We need to recreate the tables with the new column sizes
             // This is safe for testing environments
-            
+
             // For basket_assets table
             if (Schema::hasTable('basket_assets')) {
                 Schema::table('basket_assets', function ($table) {
@@ -26,7 +26,7 @@ return new class () extends Migration {
                     // The column will be created with the correct size from the original migration
                 });
             }
-            
+
             // Note: In SQLite, VARCHAR(n) is just a hint and doesn't enforce length
             // So we don't need to do anything special for testing
             return;

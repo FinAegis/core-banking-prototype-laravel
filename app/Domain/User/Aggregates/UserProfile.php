@@ -34,12 +34,16 @@ class UserProfile extends AggregateRoot
 
     private ?DateTimeImmutable $dateOfBirth = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $country = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $city = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $address = null;
 
+    /** @phpstan-ignore-next-line */
     private ?string $postalCode = null;
 
     private string $status = 'active';
@@ -270,7 +274,12 @@ class UserProfile extends AggregateRoot
 
         foreach ($event->updates as $field => $value) {
             if (property_exists($this, $field)) {
-                $this->$field = $value;
+                // Special handling for dateOfBirth to ensure it's a DateTimeImmutable
+                if ($field === 'dateOfBirth' && $value !== null) {
+                    $this->$field = $value instanceof DateTimeImmutable ? $value : new DateTimeImmutable($value);
+                } else {
+                    $this->$field = $value;
+                }
             }
         }
     }

@@ -109,12 +109,12 @@ return new class () extends Migration {
         // For SQLite (used in testing)
         $connection = config('database.default');
         $driver = config("database.connections.{$connection}.driver");
-        
+
         if ($driver === 'sqlite') {
             // SQLite doesn't need reversal as column sizes are not enforced
             return;
         }
-        
+
         // This migration is considered a fix and should not be reversed
         // The original column sizes were too small for practical use
     }
