@@ -38,8 +38,7 @@ class LoginController extends Controller
      *
      * @OA\Property(property="email",             type="string", format="email", example="john@example.com"),
      * @OA\Property(property="password",          type="string", format="password", example="password123"),
-     * @OA\Property(property="device_name", type="string", example="iPhone 12",
-     *             description="Optional device name for token")
+     * @OA\Property(property="device_name",       type="string", example="iPhone 12", description="Optional device name for token")
      *         )
      *     ),
      *
@@ -56,10 +55,10 @@ class LoginController extends Controller
      * @OA\Property(property="name",              type="string", example="John Doe"),
      * @OA\Property(property="email",             type="string", example="john@example.com"),
      * @OA\Property(property="email_verified_at", type="string", nullable=true)
-     * @OA\Property(property="access_token", type="string",
-     *             example="2|VVGVrIVokPBXkWLOi2yK13eHlQwQtQQONX5GCngZ..."),
-     * @OA\Property(property="expires_in", type="integer", nullable=true, example=null,
-     *             description="Token expiration time in seconds")
+     *             ),
+     * @OA\Property(property="access_token",      type="string", example="2|VVGVrIVokPBXkWLOi2yK13eHlQwQtQQONX5GCngZ..."),
+     * @OA\Property(property="token_type",        type="string", example="Bearer"),
+     * @OA\Property(property="expires_in",        type="integer", nullable=true, example=null, description="Token expiration time in seconds")
      *         )
      *     ),
      *
@@ -68,15 +67,9 @@ class LoginController extends Controller
      *         description="Invalid credentials",
      *
      * @OA\JsonContent(
-     *
-     * @OA\Property(property="message",           type="string", example="The given data was invalid."),
-     * @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     * @OA\Property(
-     *                     property="email",
-     *                     type="array",
-     *
+     * @OA\Property(property="message",           type="string", example="The provided credentials are incorrect."),
+     * @OA\Property(property="errors",            type="object",
+     * @OA\Property(property="email",             type="array",
      * @OA\Items(type="string",                   example="The provided credentials are incorrect.")
      *                 )
      *             )
@@ -119,47 +112,19 @@ class LoginController extends Controller
         }
 
         // Regenerate session to prevent session fixation attacks
-        // Only applicable when sessions are available (e.g., SPA with Sanctum)
-        if ($request->hasSession() && $request->session()) {
-            $request->session()->regenerate();
-        }
+        $request->session()->regenerate();
 
-        // Revoke all tokens if requested
-        if ($request->has('revoke_tokens') && $request->revoke_tokens) {
-            $user->tokens()->delete();
-        }
+        // Create token with abilities based on user role
+        $abilities = $this->getDefaultScopesForUser($user);
+        $token = $user->createToken($request->device_name ?? 'web', $abilities);
 
-        // Implement concurrent session limit
-        $maxSessions = config('auth.max_concurrent_sessions', 5);
-        $currentTokenCount = $user->tokens()->count();
-
-        if ($currentTokenCount >= $maxSessions) {
-            // Delete oldest tokens to maintain the limit
-            $tokensToDelete = $currentTokenCount - $maxSessions + 1;
-            $user->tokens()
-                ->orderBy('created_at', 'asc')
-                ->limit($tokensToDelete)
-                ->delete();
-        }
-
-        // Create token with appropriate scopes based on user role
-        $requestedScopes = $request->input('scopes', null);
-        $token = $this->createTokenWithScopes(
-            $user,
-            $request->device_name ?? 'api-token',
-            $requestedScopes
-        );
+        // Check and enforce concurrent session limits
+        $this->enforceSessionLimits($user);
 
         return response()->json(
             [
-                'user' => [
-                    'id'                => $user->id,
-                    'name'              => $user->name,
-                    'email'             => $user->email,
-                    'email_verified_at' => $user->email_verified_at,
-                ],
-                'access_token' => $token,
-                'token'        => $token, // For backward compatibility
+                'user'         => $user,
+                'access_token' => $token->plainTextToken,
                 'token_type'   => 'Bearer',
                 'expires_in'   => config('sanctum.expiration') ? config('sanctum.expiration') * 60 : null,
             ]
@@ -167,135 +132,49 @@ class LoginController extends Controller
     }
 
     /**
-     * Logout user (revoke current token).
+     * Logout user and revoke tokens.
      *
      * @OA\Post(
      *     path="/api/auth/logout",
      *     summary="Logout user",
-     *     description="Revoke the current access token",
+     *     description="Logout the authenticated user and revoke all their tokens",
      *     operationId="logout",
      *     tags={"Authentication"},
      *     security={{"bearerAuth":{}}},
      *
      * @OA\Response(
      *         response=200,
-     *         description="Successfully logged out",
+     *         description="Logout successful",
      *
      * @OA\JsonContent(
-     *
-     * @OA\Property(property="message", type="string", example="Successfully logged out")
+     * @OA\Property(property="message", type="string", example="Logged out successfully")
      *         )
      *     ),
      *
      * @OA\Response(
      *         response=401,
-     *         description="Unauthenticated"
+     *         description="Unauthenticated",
+     *
+     * @OA\JsonContent(
+     * @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
      *     )
      * )
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json(
-            [
-                'message' => 'Successfully logged out',
-            ]
-        );
-    }
-
-    /**
-     * Logout from all devices.
-     *
-     * @OA\Post(
-     *     path="/api/auth/logout-all",
-     *     summary="Logout from all devices",
-     *     description="Revoke all access tokens for the user",
-     *     operationId="logoutAll",
-     *     tags={"Authentication"},
-     *     security={{"bearerAuth":{}}},
-     *
-     * @OA\Response(
-     *         response=200,
-     *         description="Successfully logged out from all devices",
-     *
-     * @OA\JsonContent(
-     *
-     * @OA\Property(property="message", type="string", example="Successfully logged out from all devices")
-     *         )
-     *     ),
-     *
-     * @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
-     * )
-     */
-    public function logoutAll(Request $request): JsonResponse
-    {
+        // Revoke all tokens for the user
         $request->user()->tokens()->delete();
 
-        return response()->json(
-            [
-                'message' => 'Successfully logged out from all devices',
-            ]
-        );
+        // Invalidate session
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Logged out successfully']);
     }
 
     /**
-     * Refresh access token.
-     *
-     * @OA\Post(
-     *     path="/api/auth/refresh",
-     *     summary="Refresh access token",
-     *     description="Get a new access token by revoking the current one",
-     *     operationId="refreshToken",
-     *     tags={"Authentication"},
-     *     security={{"bearerAuth":{}}},
-     *
-     * @OA\Response(
-     *         response=200,
-     *         description="Token refreshed successfully",
-     *
-     * @OA\JsonContent(
-     *
-     * @OA\Property(property="access_token", type="string", example="3|newTokenHere..."),
-     * @OA\Property(property="token_type",   type="string", example="Bearer"),
-     * @OA\Property(property="expires_in",   type="integer", nullable=true)
-     *         )
-     *     ),
-     *
-     * @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
-     * )
-     */
-    public function refresh(Request $request): JsonResponse
-    {
-        $user = $request->user();
-        $tokenName = $request->user()->currentAccessToken()->name;
-
-        // Get current token's abilities/scopes before deleting it
-        $currentScopes = $request->user()->currentAccessToken()->abilities ?? [];
-
-        // Delete current token
-        $request->user()->currentAccessToken()->delete();
-
-        // Create new token with same scopes
-        $token = $this->createTokenWithScopes($user, $tokenName, $currentScopes);
-
-        return response()->json(
-            [
-                'access_token' => $token,
-                'token_type'   => 'Bearer',
-                'expires_in'   => config('sanctum.expiration') ? config('sanctum.expiration') * 60 : null,
-            ]
-        );
-    }
-
-    /**
-     * Get authenticated user.
+     * Get current user.
      *
      * @OA\Get(
      *     path="/api/auth/user",
@@ -326,7 +205,11 @@ class LoginController extends Controller
      *
      * @OA\Response(
      *         response=401,
-     *         description="Unauthenticated"
+     *         description="Unauthenticated",
+     *
+     * @OA\JsonContent(
+     * @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
      *     )
      * )
      */
@@ -337,5 +220,23 @@ class LoginController extends Controller
                 'user' => $request->user(),
             ]
         );
+    }
+
+    /**
+     * Enforce concurrent session limits by removing oldest tokens.
+     */
+    private function enforceSessionLimits(User $user): void
+    {
+        $maxSessions = config('auth.max_concurrent_sessions', 5);
+        $tokenCount = $user->tokens()->count();
+
+        if ($tokenCount > $maxSessions) {
+            // Delete oldest tokens
+            $tokensToDelete = $tokenCount - $maxSessions;
+            $user->tokens()
+                ->orderBy('created_at', 'asc')
+                ->limit($tokensToDelete)
+                ->delete();
+        }
     }
 }
