@@ -2,6 +2,83 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CI/CD Troubleshooting Guide
+
+### Pre-Commit Checks (ALWAYS RUN BEFORE PUSHING)
+```bash
+# Enhanced pre-commit check that mirrors GitHub Actions
+./bin/pre-commit-check.sh          # Check modified files only
+./bin/pre-commit-check.sh --fix    # Auto-fix issues where possible
+./bin/pre-commit-check.sh --all    # Check entire codebase
+
+# If pre-commit times out on PHPStan, run manually:
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G
+```
+
+### Common CI Failures and Fixes
+
+#### 1. PHPStan Errors
+```bash
+# Fix type errors and undefined methods
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --level=5
+
+# Common issues:
+# - Cast return types: (int), (string), (float)
+# - Undefined methods: Check trait usage and method names
+# - Binary operations: Cast string variables to int/float
+```
+
+#### 2. Test Isolation Failures
+```bash
+# Security tests failing due to IP blocking or rate limiting?
+# Add to test setUp():
+\Illuminate\Support\Facades\Cache::flush();
+\Illuminate\Support\Facades\DB::table('blocked_ips')->truncate();
+
+# Or use the CleansUpSecurityState trait:
+use Tests\Traits\CleansUpSecurityState;
+```
+
+#### 3. Code Style Violations
+```bash
+# Auto-fix most issues:
+./vendor/bin/php-cs-fixer fix
+./vendor/bin/phpcbf --standard=PSR12 app/
+
+# Check without fixing:
+./vendor/bin/php-cs-fixer fix --dry-run --diff
+./vendor/bin/phpcs --standard=PSR12 app/
+```
+
+#### 4. GitHub Actions Status Check
+```bash
+# Check PR status
+gh pr list --state open
+gh pr checks <PR_NUMBER>
+
+# View failed logs
+gh run list --branch <BRANCH_NAME>
+gh run view <RUN_ID> --log-failed
+```
+
+### Preventing CI Failures
+
+1. **ALWAYS run pre-commit check before pushing:**
+   ```bash
+   ./bin/pre-commit-check.sh --fix
+   ```
+
+2. **Test locally with CI configuration:**
+   ```bash
+   # Run tests as CI does
+   ./vendor/bin/pest --configuration=phpunit.ci.xml --parallel
+   ```
+
+3. **Fix common issues proactively:**
+   - Clear test state in setUp() methods
+   - Cast types for PHPStan compliance
+   - Run code formatters before commit
+
 ## Essential Commands
 
 ### Testing
