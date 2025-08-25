@@ -8,16 +8,19 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Tests\Traits\CleansUpSecurityState;
 
 class TokenExpirationTest extends TestCase
 {
     use RefreshDatabase;
+    use CleansUpSecurityState;
 
     protected User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setUpSecurityTesting();
         $this->user = User::factory()->create();
     }
 

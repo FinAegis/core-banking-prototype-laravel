@@ -9,10 +9,12 @@ use App\Services\IpBlockingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
+use Tests\Traits\CleansUpSecurityState;
 
 class EnhancedSecurityTest extends TestCase
 {
     use RefreshDatabase;
+    use CleansUpSecurityState;
 
     protected User $user;
 
@@ -23,6 +25,7 @@ class EnhancedSecurityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setUpSecurityTesting();
 
         // Clear any cached IP blocks to prevent test interference
         \Illuminate\Support\Facades\Cache::flush();
