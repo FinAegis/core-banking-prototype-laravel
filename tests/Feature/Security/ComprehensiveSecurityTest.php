@@ -21,15 +21,15 @@ class ComprehensiveSecurityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Clear any cached IP blocks to prevent test interference
         \Illuminate\Support\Facades\Cache::flush();
-        
+
         // Clear database IP blocks if table exists
         if (\Illuminate\Support\Facades\Schema::hasTable('blocked_ips')) {
             \Illuminate\Support\Facades\DB::table('blocked_ips')->truncate();
         }
-        
+
         $this->user = User::factory()->create([
             'password' => Hash::make('password123'),
         ]);
@@ -46,7 +46,7 @@ class ComprehensiveSecurityTest extends TestCase
         // Create a token
         $token = $this->user->createToken('test-token');
         $plainTextToken = $token->plainTextToken;
-        
+
         // Manually set expiration to past
         $token->accessToken->expires_at = Carbon::now()->subMinute();
         $token->accessToken->save();
@@ -57,7 +57,7 @@ class ComprehensiveSecurityTest extends TestCase
 
         // Should be unauthorized
         $response->assertUnauthorized();
-        
+
         // Verify token still exists but is expired
         $dbToken = PersonalAccessToken::find($token->accessToken->id);
         $this->assertNotNull($dbToken);
@@ -102,8 +102,8 @@ class ComprehensiveSecurityTest extends TestCase
         $tokens = [];
         for ($i = 1; $i <= 5; $i++) {
             $response = $this->postJson('/api/auth/login', [
-                'email' => $this->user->email,
-                'password' => 'password123',
+                'email'       => $this->user->email,
+                'password'    => 'password123',
                 'device_name' => "device-{$i}",
             ]);
             $response->assertOk();
@@ -115,8 +115,8 @@ class ComprehensiveSecurityTest extends TestCase
 
         // Create a 6th session - should delete the oldest
         $response = $this->postJson('/api/auth/login', [
-            'email' => $this->user->email,
-            'password' => 'password123',
+            'email'       => $this->user->email,
+            'password'    => 'password123',
             'device_name' => 'device-6',
         ]);
         $response->assertOk();
@@ -213,8 +213,8 @@ class ComprehensiveSecurityTest extends TestCase
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/accounts', [
                 'account_number' => 'TEST123',
-                'account_type' => 'savings',
-                'currency' => 'USD',
+                'account_type'   => 'savings',
+                'currency'       => 'USD',
             ]);
 
         // Should be forbidden due to missing 'write' scope
@@ -239,12 +239,12 @@ class ComprehensiveSecurityTest extends TestCase
 
         // Simulate password reset
         $resetToken = app('auth.password.broker')->createToken($this->user);
-        
+
         $response = $this->postJson('/api/auth/reset-password', [
-            'email' => $this->user->email,
-            'password' => 'newpassword123',
+            'email'                 => $this->user->email,
+            'password'              => 'newpassword123',
             'password_confirmation' => 'newpassword123',
-            'token' => $resetToken,
+            'token'                 => $resetToken,
         ]);
 
         $response->assertOk();
@@ -268,7 +268,7 @@ class ComprehensiveSecurityTest extends TestCase
         // Multiple failed login attempts
         for ($i = 1; $i <= 5; $i++) {
             $response = $this->postJson('/api/auth/login', [
-                'email' => $this->user->email,
+                'email'    => $this->user->email,
                 'password' => 'wrongpassword',
             ]);
             // Should get validation error, not rate limit yet
@@ -298,12 +298,12 @@ class ComprehensiveSecurityTest extends TestCase
         $this->withSession(['test_value' => 'before_login']);
 
         $response = $this->postJson('/api/auth/login', [
-            'email' => $this->user->email,
+            'email'    => $this->user->email,
             'password' => 'password123',
         ]);
 
         $response->assertOk();
-        
+
         // Session should be regenerated (implementation detail of Laravel)
         // The session ID changes, preventing session fixation attacks
     }
@@ -315,10 +315,10 @@ class ComprehensiveSecurityTest extends TestCase
     {
         // Create a token with expiration
         config(['sanctum.expiration' => 60]);
-        
+
         $token = $this->user->createToken('test-token');
         $plainTextToken = $token->plainTextToken;
-        
+
         // Set expiration to past
         $token->accessToken->expires_at = Carbon::now()->subMinute();
         $token->accessToken->save();
@@ -349,14 +349,14 @@ class ComprehensiveSecurityTest extends TestCase
         // Try admin operation as regular user (should fail)
         $response = $this->withHeader('Authorization', 'Bearer ' . $userToken)
             ->postJson('/api/admin/accounts/1/freeze');
-        
+
         // Should be forbidden or not found (depends on route protection)
         $this->assertContains($response->status(), [403, 404]);
 
         // Try as admin (route may not exist, but we're testing the concept)
         $response = $this->withHeader('Authorization', 'Bearer ' . $adminToken)
             ->postJson('/api/admin/accounts/1/freeze');
-        
+
         // May be 404 if route doesn't exist, but shouldn't be 403
         $this->assertNotEquals(403, $response->status());
     }
