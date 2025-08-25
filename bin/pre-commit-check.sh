@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# Pre-Commit Quality Check Script
-# Runs all code quality tools in the correct order
+# Enhanced Pre-Commit Quality Check Script
+# Matches GitHub Actions CI Pipeline exactly
 #
-# Usage: ./bin/pre-commit-check.sh [--fix] [--all]
+# Usage: ./bin/pre-commit-check.sh [--fix] [--all] [--ci]
 #        --fix: Auto-fix issues where possible
 #        --all: Check all files (default: only modified files)
+#        --ci: Run in CI mode (stricter checks)
 
 set -e
 
@@ -17,11 +18,13 @@ cd "$PROJECT_ROOT"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Parse arguments
 AUTO_FIX=false
 CHECK_ALL=false
+CI_MODE=false
 for arg in "$@"; do
     case $arg in
         --fix)
@@ -30,11 +33,14 @@ for arg in "$@"; do
         --all)
             CHECK_ALL=true
             ;;
+        --ci)
+            CI_MODE=true
+            ;;
     esac
 done
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  Pre-Commit Quality Check${NC}"
+echo -e "${GREEN}  Enhanced Pre-Commit Quality Check${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 
@@ -56,173 +62,106 @@ echo ""
 
 # Track if any checks fail
 FAILED=false
+FAILURE_REASONS=""
 
-# 1. PHP CS Fixer - Fix style issues first if auto-fix enabled
-echo -e "${YELLOW}[1/4] Running PHP CS Fixer...${NC}"
+# Function to add failure reason
+add_failure() {
+    FAILED=true
+    FAILURE_REASONS="${FAILURE_REASONS}  - $1\n"
+}
+
+# 1. PHP CS Fixer - EXACTLY as CI runs it
+echo -e "${BLUE}[1/5] Running PHP CS Fixer (CI Standard)...${NC}"
 if [ "$AUTO_FIX" = true ]; then
-    # For multiple files, we need to add --config parameter
-    if [ "$CHECK_ALL" = true ]; then
-        ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php app/ || true
-        ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php tests/ || true
-    else
-        echo "$FILES" | xargs ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php || true
-    fi
+    ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php || true
     echo -e "${GREEN}✓ PHP CS Fixer: Fixed style issues${NC}"
 else
-    if [ "$CHECK_ALL" = true ]; then
-        FIX_OUTPUT=$(./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php app/ tests/ --dry-run --diff 2>&1 || true)
-    else
-        FIX_OUTPUT=$(echo "$FILES" | xargs ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff 2>&1 || true)
-    fi
-    
-    if echo "$FIX_OUTPUT" | grep -q "Found 0 of"; then
+    # CI runs with --dry-run --diff
+    if ./vendor/bin/php-cs-fixer fix --dry-run --diff > /dev/null 2>&1; then
         echo -e "${GREEN}✓ PHP CS Fixer: No issues found${NC}"
     else
-        echo -e "${RED}✗ PHP CS Fixer: Issues found (run with --fix to auto-fix)${NC}"
-        echo "$FIX_OUTPUT"
-        FAILED=true
+        echo -e "${RED}✗ PHP CS Fixer: Issues found${NC}"
+        ./vendor/bin/php-cs-fixer fix --dry-run --diff | head -50
+        add_failure "PHP CS Fixer violations"
     fi
 fi
 echo ""
 
-# 2. PHP CodeSniffer - Check PSR-12 compliance
-echo -e "${YELLOW}[2/4] Running PHP CodeSniffer (PSR-12)...${NC}"
-
-# Use project's phpcs.xml config if it exists
-PHPCS_STANDARD="PSR12"
-if [ -f "${PROJECT_ROOT}/phpcs.xml" ]; then
-    PHPCS_STANDARD="phpcs.xml"
-fi
-
+# 2. PHP CodeSniffer - EXACTLY as CI runs it (PSR12 on app/ only)
+echo -e "${BLUE}[2/5] Running PHP CodeSniffer (PSR-12)...${NC}"
 if [ "$AUTO_FIX" = true ]; then
-    # Try to auto-fix with PHPCBF
-    if [ "$CHECK_ALL" = true ]; then
-        ./vendor/bin/phpcbf --standard="$PHPCS_STANDARD" app/ tests/ 2>/dev/null || true
-    else
-        echo "$FILES" | xargs ./vendor/bin/phpcbf --standard="$PHPCS_STANDARD" 2>/dev/null || true
-    fi
+    ./vendor/bin/phpcbf --standard=PSR12 --exclude=Generic.Files.LineLength app/ 2>/dev/null || true
 fi
 
-# Run PHPCS
-if [ "$CHECK_ALL" = true ]; then
-    PHPCS_OUTPUT=$(./vendor/bin/phpcs --standard="$PHPCS_STANDARD" --report=summary app/ tests/ 2>&1 || true)
-else
-    PHPCS_OUTPUT=$(echo "$FILES" | xargs ./vendor/bin/phpcs --standard="$PHPCS_STANDARD" --report=summary 2>&1 || true)
-fi
-
-if echo "$PHPCS_OUTPUT" | grep -q "0 ERRORS AND 0 WARNINGS"; then
+# CI command: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/
+if ./vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/ > /dev/null 2>&1; then
     echo -e "${GREEN}✓ PHPCS: PSR-12 compliant${NC}"
 else
     echo -e "${RED}✗ PHPCS: PSR-12 violations found${NC}"
-    echo "$PHPCS_OUTPUT"
-    
-    # Check if only warnings (not errors)
-    if [ "$CHECK_ALL" = true ]; then
-        ERROR_CHECK=$(./vendor/bin/phpcs --standard="$PHPCS_STANDARD" -n app/ tests/ 2>&1 || true)
-    else
-        ERROR_CHECK=$(echo "$FILES" | xargs ./vendor/bin/phpcs --standard="$PHPCS_STANDARD" -n 2>&1 || true)
-    fi
-    
-    if [ -z "$ERROR_CHECK" ] || echo "$ERROR_CHECK" | grep -q "0 ERRORS"; then
-        echo -e "${YELLOW}  Note: Only warnings found, not blocking commit${NC}"
-    else
-        FAILED=true
-    fi
-    
-    if [ "$AUTO_FIX" = false ]; then
-        echo -e "${YELLOW}  Tip: Run with --fix to auto-fix some issues${NC}"
-    fi
+    ./vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/ | head -50
+    add_failure "PSR-12 violations"
 fi
 echo ""
 
-# 3. PHPStan - Static analysis (on modified files only unless --all)
-echo -e "${YELLOW}[3/4] Running PHPStan (Level 5)...${NC}"
-
-# Check for unused traits and trivial assertions using bleeding edge rules
-PHPSTAN_CONFIG="phpstan.neon"
-
-# Create a temporary PHPStan config with bleeding edge rules if checking tests
-if [ "$CHECK_ALL" = true ] || echo "$FILES" | grep -q "^tests/"; then
-    # Create temporary config with bleeding edge rules for better test coverage
-    cat > /tmp/phpstan-ci.neon << 'EOCONFIG'
-includes:
-    - phpstan.neon
-
-parameters:
-    # Additional rules for CI to catch more issues
-    reportUnmatchedIgnoredErrors: true
-    checkTooWideReturnTypesInProtectedAndPublicMethods: true
-    checkUninitializedProperties: true
-    checkMissingCallableSignature: true
-    
-rules:
-    # Detect trivial conditions and assertions
-    - PHPStan\Rules\Comparison\BooleanAndConstantConditionRule
-    - PHPStan\Rules\Comparison\BooleanOrConstantConditionRule
-    
-    # Ensure traits are used
-    - PHPStan\Rules\Classes\UnusedConstructorParametersRule
-EOCONFIG
-    PHPSTAN_CONFIG="/tmp/phpstan-ci.neon"
-fi
-
-if [ "$CHECK_ALL" = true ]; then
-    PHPSTAN_OUTPUT=$(XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ ./vendor/bin/phpstan analyse --configuration=$PHPSTAN_CONFIG --memory-limit=2G --no-progress 2>&1 || true)
-else
-    # PHPStan with specific files
-    PHPSTAN_OUTPUT=$(echo "$FILES" | XDEBUG_MODE=off TMPDIR=/tmp/phpstan-$$ xargs ./vendor/bin/phpstan analyse --configuration=$PHPSTAN_CONFIG --memory-limit=2G --no-progress 2>&1 || true)
-fi
-
-# Clean up temporary config
-[ -f "/tmp/phpstan-ci.neon" ] && rm -f /tmp/phpstan-ci.neon
-
-if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
+# 3. PHPStan - EXACTLY as CI runs it
+echo -e "${BLUE}[3/5] Running PHPStan (Level 5)...${NC}"
+# CI command: vendor/bin/phpstan analyse --memory-limit=2G
+if XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1 | grep -q "\[OK\] No errors"; then
     echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
 else
-    # Check for specific issues that CI catches
-    if echo "$PHPSTAN_OUTPUT" | grep -q "assertTrue() with true will always evaluate to true"; then
-        echo -e "${RED}✗ PHPStan: Trivial assertion detected (assertTrue(true))${NC}"
-        FAILED=true
-    fi
-    if echo "$PHPSTAN_OUTPUT" | grep -q "Trait.*is not used"; then
-        echo -e "${RED}✗ PHPStan: Unused trait detected${NC}"
-        FAILED=true
-    fi
-    if ! [ "$FAILED" = true ]; then
-        echo -e "${RED}✗ PHPStan: Issues found${NC}"
-        FAILED=true
-    fi
-    echo "$PHPSTAN_OUTPUT"
+    echo -e "${RED}✗ PHPStan: Issues found${NC}"
+    XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1 | head -50
+    add_failure "PHPStan errors"
 fi
 echo ""
 
-# 4. Tests - Run tests (quick mode for pre-commit)
-echo -e "${YELLOW}[4/4] Running Tests (quick mode)...${NC}"
-if [ "$CHECK_ALL" = true ]; then
-    # Run all tests
+# 4. Security Tests - Check if tests pass
+echo -e "${BLUE}[4/5] Running Security Tests...${NC}"
+if [ "$CI_MODE" = true ] || [ "$CHECK_ALL" = true ]; then
+    # Run security tests specifically
+    if ./vendor/bin/pest tests/Feature/Security --parallel --compact > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ Security Tests: All passed${NC}"
+    else
+        echo -e "${RED}✗ Security Tests: Some failed${NC}"
+        ./vendor/bin/pest tests/Feature/Security --parallel
+        add_failure "Security test failures"
+    fi
+else
+    echo -e "${YELLOW}  Skipping security tests (use --all or --ci to run)${NC}"
+fi
+echo ""
+
+# 5. All Tests - Run full test suite in CI mode
+echo -e "${BLUE}[5/5] Running Test Suite...${NC}"
+if [ "$CI_MODE" = true ]; then
+    echo -e "${YELLOW}  Running full test suite (CI mode)...${NC}"
     if ./vendor/bin/pest --parallel --compact > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Tests: All tests passed${NC}"
     else
         echo -e "${RED}✗ Tests: Some tests failed${NC}"
-        ./vendor/bin/pest --parallel
-        FAILED=true
+        # Show failing tests
+        ./vendor/bin/pest --parallel 2>&1 | grep -A 5 "FAILED\|Error"
+        add_failure "Test failures"
+    fi
+elif [ "$CHECK_ALL" = true ]; then
+    echo -e "${YELLOW}  Running all tests...${NC}"
+    if ./vendor/bin/pest --parallel --compact > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ Tests: All tests passed${NC}"
+    else
+        echo -e "${RED}✗ Tests: Some tests failed${NC}"
+        add_failure "Test failures"
     fi
 else
     # Check if any test files were modified
     TEST_FILES=$(echo "$FILES" | grep -E '^tests/.*Test\.php$' || true)
     if [ -n "$TEST_FILES" ]; then
         echo -e "${YELLOW}  Running tests for modified test files...${NC}"
-        # Extract unique directories from test files
         TEST_DIRS=$(echo "$TEST_FILES" | xargs -n1 dirname | sort -u | head -1)
-        if [ -n "$TEST_DIRS" ]; then
-            # Run tests for the first directory (Pest with --parallel only accepts single path)
-            if ./vendor/bin/pest "$TEST_DIRS" --parallel --compact > /dev/null 2>&1; then
-                echo -e "${GREEN}✓ Tests: Modified tests passed${NC}"
-            else
-                echo -e "${RED}✗ Tests: Some modified tests failed${NC}"
-                ./vendor/bin/pest "$TEST_DIRS" --parallel
-                FAILED=true
-            fi
+        if ./vendor/bin/pest "$TEST_DIRS" --parallel --compact > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ Tests: Modified tests passed${NC}"
+        else
+            echo -e "${RED}✗ Tests: Some modified tests failed${NC}"
+            add_failure "Modified test failures"
         fi
     else
         echo -e "${YELLOW}  No test files modified, skipping test run${NC}"
@@ -230,19 +169,54 @@ else
 fi
 echo ""
 
+# CI Simulation Summary
+if [ "$CI_MODE" = true ]; then
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}  CI Pipeline Simulation Results${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    
+    if [ "$FAILED" = false ]; then
+        echo -e "${GREEN}✓ All CI checks would PASS${NC}"
+        echo -e "${GREEN}  Your code is ready for GitHub Actions!${NC}"
+    else
+        echo -e "${RED}✗ CI checks would FAIL${NC}"
+        echo -e "${RED}  GitHub Actions will reject this code!${NC}"
+        echo ""
+        echo -e "${YELLOW}Failures:${NC}"
+        echo -e "$FAILURE_REASONS"
+    fi
+    echo -e "${BLUE}========================================${NC}"
+    echo ""
+fi
+
 # Summary
 echo -e "${GREEN}========================================${NC}"
 if [ "$FAILED" = true ]; then
     echo -e "${RED}✗ Pre-commit checks FAILED${NC}"
     echo -e "${YELLOW}Please fix the issues above before committing.${NC}"
+    
     if [ "$AUTO_FIX" = false ]; then
-        echo -e "${YELLOW}Tip: Run './bin/pre-commit-check.sh --fix' to auto-fix some issues${NC}"
+        echo -e "${YELLOW}Tip: Run with --fix to auto-fix style issues${NC}"
     fi
-    echo -e "${YELLOW}Note: CI runs PHPStan on both app/ and tests/ directories.${NC}"
-    echo -e "${YELLOW}      Ensure your changes pass all quality checks.${NC}"
+    
+    if [ "$CI_MODE" = false ]; then
+        echo -e "${YELLOW}Tip: Run with --ci to simulate full CI pipeline${NC}"
+    fi
+    
+    echo ""
+    echo -e "${YELLOW}GitHub Actions CI runs these exact commands:${NC}"
+    echo -e "  1. vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/"
+    echo -e "  2. vendor/bin/phpstan analyse --memory-limit=2G"
+    echo -e "  3. vendor/bin/php-cs-fixer fix --dry-run --diff"
+    echo -e "  4. vendor/bin/pest --parallel"
+    
     exit 1
 else
     echo -e "${GREEN}✓ All pre-commit checks PASSED${NC}"
     echo -e "${GREEN}Ready to commit!${NC}"
+    
+    if [ "$CI_MODE" = false ]; then
+        echo -e "${YELLOW}Tip: Run with --ci to ensure GitHub Actions will pass${NC}"
+    fi
 fi
 echo -e "${GREEN}========================================${NC}"

@@ -8,16 +8,19 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
+use Tests\Traits\CleansUpSecurityState;
 
 class ConcurrentSessionTest extends TestCase
 {
     use RefreshDatabase;
+    use CleansUpSecurityState;
 
     protected User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setUpSecurityTesting();
         $this->user = User::factory()->create();
     }
 
