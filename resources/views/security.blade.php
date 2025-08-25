@@ -191,85 +191,194 @@
     <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Advanced Security Features</h2>
-                <p class="text-xl text-gray-600">Protecting your assets with cutting-edge technology</p>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Security Features & Roadmap</h2>
+                <p class="text-xl text-gray-600">Implemented security measures and upcoming enhancements</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="security-feature bg-white rounded-xl shadow-lg p-8">
-                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
-                        </svg>
+            <!-- Currently Implemented -->
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+                    <span class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                        ✅ Currently Implemented
+                    </span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Performance Monitoring -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Performance Monitoring</h3>
+                        <p class="text-gray-600">
+                            Near real-time system monitoring with 5-minute granularity, tracking performance metrics and system health.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Biometric Authentication</h3>
-                    <p class="text-gray-600">
-                        Advanced biometric verification including fingerprint and facial recognition for secure access.
-                    </p>
+                    
+                    <!-- 2FA -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Two-Factor Authentication</h3>
+                        <p class="text-gray-600">
+                            Available for all users with enhanced security options for administrative accounts.
+                        </p>
+                    </div>
+                    
+                    <!-- Rate Limiting -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Advanced Rate Limiting</h3>
+                        <p class="text-gray-600">
+                            Dynamic rate limiting with user trust levels, protecting against DDoS and brute force attacks.
+                        </p>
+                    </div>
+                    
+                    <!-- IP Blocking -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">IP Blocking</h3>
+                        <p class="text-gray-600">
+                            Automatic IP blocking after 10 failed attempts, with temporary and permanent blacklist support.
+                        </p>
+                    </div>
+                    
+                    <!-- Session Management -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8">
+                        <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Session Security</h3>
+                        <p class="text-gray-600">
+                            Maximum 5 concurrent sessions per user with automatic cleanup of old sessions.
+                        </p>
+                    </div>
+                    
+                    <!-- Audit Logging -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Audit Logging</h3>
+                        <p class="text-gray-600">
+                            Comprehensive audit trails for all transactions and security-relevant events.
+                        </p>
+                    </div>
                 </div>
-                
-                <div class="security-feature bg-white rounded-xl shadow-lg p-8">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-                        </svg>
+            </div>
+            
+            <!-- Roadmap Features -->
+            <div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+                    <span class="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full">
+                        🚧 On Our Roadmap
+                    </span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Biometric Auth -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8 opacity-75">
+                        <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Biometric Authentication</h3>
+                        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full mb-3">Planned</span>
+                        <p class="text-gray-600">
+                            Support for fingerprint and facial recognition authentication methods.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Hardware Security</h3>
-                    <p class="text-gray-600">
-                        Support for hardware security keys and HSM integration for cryptographic operations.
-                    </p>
-                </div>
-                
-                <div class="security-feature bg-white rounded-xl shadow-lg p-8">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
+                    
+                    <!-- Hardware Security -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8 opacity-75">
+                        <div class="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Hardware Security Keys</h3>
+                        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full mb-3">Future</span>
+                        <p class="text-gray-600">
+                            Support for FIDO2/WebAuthn hardware security keys.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Real-time Monitoring</h3>
-                    <p class="text-gray-600">
-                        AI-powered fraud detection and real-time transaction monitoring for suspicious activities.
-                    </p>
-                </div>
-                
-                <div class="security-feature bg-white rounded-xl shadow-lg p-8">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-                        </svg>
+                    
+                    <!-- Zero Knowledge -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8 opacity-75">
+                        <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Zero-Knowledge Proofs</h3>
+                        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full mb-3">Research</span>
+                        <p class="text-gray-600">
+                            Privacy-preserving authentication and transaction verification.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Zero-Knowledge Proofs</h3>
-                    <p class="text-gray-600">
-                        Advanced cryptographic techniques ensuring privacy while maintaining transparency.
-                    </p>
-                </div>
-                
-                <div class="security-feature bg-white rounded-xl shadow-lg p-8">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"></path>
-                        </svg>
+                    
+                    <!-- AI Fraud Detection -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8 opacity-75">
+                        <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">AI Fraud Detection</h3>
+                        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full mb-3">In Development</span>
+                        <p class="text-gray-600">
+                            Machine learning models for real-time fraud detection and prevention.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Incident Response</h3>
-                    <p class="text-gray-600">
-                        24/7 security operations center with rapid incident response and recovery procedures.
-                    </p>
-                </div>
-                
-                <div class="security-feature bg-white rounded-xl shadow-lg p-8">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
-                        </svg>
+                    
+                    <!-- 24/7 SOC -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8 opacity-75">
+                        <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">24/7 Security Operations</h3>
+                        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full mb-3">Future</span>
+                        <p class="text-gray-600">
+                            Dedicated security operations center for incident response.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Audit Logging</h3>
-                    <p class="text-gray-600">
-                        Comprehensive audit trails with immutable logging for all transactions and access attempts.
-                    </p>
+                    
+                    <!-- Real-time Monitoring Upgrade -->
+                    <div class="security-feature bg-white rounded-xl shadow-lg p-8 opacity-75">
+                        <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Real-time Monitoring</h3>
+                        <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full mb-3">Upgrade Planned</span>
+                        <p class="text-gray-600">
+                            Enhance monitoring from 5-minute to sub-second granularity.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
+
 
     <!-- User Security Tips -->
     <section class="py-20 bg-white">

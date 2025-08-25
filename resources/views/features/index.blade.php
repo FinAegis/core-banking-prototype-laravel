@@ -46,6 +46,41 @@
         </div>
     </section>
 
+
+    <!-- Development Notice -->
+    <section class="py-8 bg-amber-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-400">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-semibold text-gray-900">Platform Under Active Development</h3>
+                        <p class="mt-2 text-gray-600">
+                            FinAegis is currently in active development. While core features are functional, 
+                            some advanced features are still being implemented. Features marked with badges 
+                            indicate their current status. The platform includes a comprehensive demo mode 
+                            for testing without external dependencies.
+                        </p>
+                        <div class="mt-3 flex gap-4">
+                            <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                ✅ Available - Fully implemented
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                🎭 Demo Mode - Available for testing
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                                🚧 In Progress - Under development
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <!-- Main Features -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -179,7 +214,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Instant Settlements</h3>
                     <p class="text-gray-600 mb-4">
-                        Experience sub-second transaction processing with our advanced settlement engine. No more waiting days for transfers.
+                        Experience instant transaction processing in demo mode, with production speeds dependent on bank integration.
                     </p>
                     <a href="{{ route('features.show', 'settlements') }}" class="text-green-600 font-medium hover:text-green-700">
                         Learn more →
