@@ -13,6 +13,25 @@ return new class () extends Migration {
         $connection = config('database.default');
         $driver = config("database.connections.{$connection}.driver");
 
+        // For SQLite (used in testing)
+        if ($driver === 'sqlite') {
+            // SQLite doesn't support ALTER COLUMN directly
+            // We need to recreate the tables with the new column sizes
+            // This is safe for testing environments
+            
+            // For basket_assets table
+            if (Schema::hasTable('basket_assets')) {
+                Schema::table('basket_assets', function ($table) {
+                    // SQLite will handle this automatically during testing
+                    // The column will be created with the correct size from the original migration
+                });
+            }
+            
+            // Note: In SQLite, VARCHAR(n) is just a hint and doesn't enforce length
+            // So we don't need to do anything special for testing
+            return;
+        }
+
         // For MariaDB/MySQL
         if (in_array($driver, ['mysql', 'mariadb'])) {
             // First, drop the foreign key constraints using raw SQL
@@ -77,6 +96,12 @@ return new class () extends Migration {
     {
         $connection = config('database.default');
         $driver = config("database.connections.{$connection}.driver");
+
+        // For SQLite (used in testing)
+        if ($driver === 'sqlite') {
+            // SQLite doesn't need reversal as column sizes are not enforced
+            return;
+        }
 
         if (in_array($driver, ['mysql', 'mariadb'])) {
             // Drop foreign key constraints

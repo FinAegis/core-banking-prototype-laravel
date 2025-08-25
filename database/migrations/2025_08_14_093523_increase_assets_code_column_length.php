@@ -13,6 +13,13 @@ return new class () extends Migration {
         $connection = config('database.default');
         $driver = config("database.connections.{$connection}.driver");
 
+        // For SQLite (used in testing)
+        if ($driver === 'sqlite') {
+            // SQLite doesn't enforce VARCHAR lengths, so we don't need to do anything
+            // The tests will work fine with the existing column definitions
+            return;
+        }
+
         // For MariaDB/MySQL
         if (in_array($driver, ['mysql', 'mariadb'])) {
             // Get database name
@@ -99,6 +106,15 @@ return new class () extends Migration {
      */
     public function down(): void
     {
+        // For SQLite (used in testing)
+        $connection = config('database.default');
+        $driver = config("database.connections.{$connection}.driver");
+        
+        if ($driver === 'sqlite') {
+            // SQLite doesn't need reversal as column sizes are not enforced
+            return;
+        }
+        
         // This migration is considered a fix and should not be reversed
         // The original column sizes were too small for practical use
     }
