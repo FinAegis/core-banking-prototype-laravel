@@ -128,7 +128,9 @@ class EnhancedSecurityTest extends TestCase
         });
 
         $this->assertEquals(403, $response->getStatusCode());
-        $responseData = json_decode($response->getContent(), true);
+        $content = $response->getContent();
+        $this->assertIsString($content);
+        $responseData = json_decode($content, true);
         $this->assertEquals('TWO_FACTOR_REQUIRED', $responseData['error']);
     }
 
