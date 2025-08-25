@@ -61,6 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'demo' => \App\Http\Middleware\DemoMode::class,
             'scope' => \App\Http\Middleware\CheckApiScope::class,
             'check.blocked.ip' => \App\Http\Middleware\CheckBlockedIp::class,
+            'ip.blocking' => \App\Http\Middleware\IpBlocking::class,
             'require.2fa.admin' => \App\Http\Middleware\RequireTwoFactorForAdmin::class,
         ]);
 
@@ -69,6 +70,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Apply middleware to API routes (no global throttling - use custom rate limiting)
         $middleware->group('api', [
+            \App\Http\Middleware\IpBlocking::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SecurityHeaders::class,
