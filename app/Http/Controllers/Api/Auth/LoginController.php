@@ -111,8 +111,10 @@ class LoginController extends Controller
             );
         }
 
-        // Regenerate session to prevent session fixation attacks
-        $request->session()->regenerate();
+        // Regenerate session to prevent session fixation attacks (only for web)
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         // Create token with abilities based on user role
         $abilities = $this->getDefaultScopesForUser($user);
@@ -166,9 +168,11 @@ class LoginController extends Controller
         // Revoke all tokens for the user
         $request->user()->tokens()->delete();
 
-        // Invalidate session
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Invalidate session (only for web)
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json(['message' => 'Logged out successfully']);
     }
