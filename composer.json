@@ -119,8 +119,8 @@
         "phpstan:baseline": "./vendor/bin/phpstan analyse --generate-baseline --memory-limit=2G",
         "phpcs": "./vendor/bin/phpcs",
         "phpcs:fix": "./vendor/bin/phpcbf",
-        "test": "./vendor/bin/pest --parallel",
-        "test:coverage": "./vendor/bin/pest --parallel --coverage",
+        "test": "php -d max_execution_time=300 -d memory_limit=2G ./vendor/bin/pest --parallel",
+        "test:coverage": "php -d max_execution_time=300 -d memory_limit=2G ./vendor/bin/pest --parallel --coverage",
         "quality": [
             "@phpcs",
             "@phpstan",
