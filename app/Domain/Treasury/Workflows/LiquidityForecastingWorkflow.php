@@ -7,7 +7,6 @@ namespace App\Domain\Treasury\Workflows;
 use App\Domain\Treasury\Activities\ApplyLiquidityMitigationActivity;
 use App\Domain\Treasury\Activities\GenerateLiquidityForecastActivity;
 use App\Domain\Treasury\Activities\SendLiquidityAlertActivity;
-use Workflow\Activity;
 use Workflow\ActivityStub;
 use Workflow\SignalMethod;
 use Workflow\Workflow;
@@ -72,7 +71,6 @@ class LiquidityForecastingWorkflow
         ];
     }
 
-    #[Activity]
     private function generateForecast(): \Generator
     {
         $activity = yield ActivityStub::make(
@@ -97,7 +95,6 @@ class LiquidityForecastingWorkflow
         return $result;
     }
 
-    #[Activity]
     private function triggerAlertNotifications(): \Generator
     {
         $activity = yield ActivityStub::make(
@@ -113,7 +110,6 @@ class LiquidityForecastingWorkflow
         );
     }
 
-    #[Activity]
     private function applyAutomaticMitigation(): \Generator
     {
         if (empty($this->alerts)) {

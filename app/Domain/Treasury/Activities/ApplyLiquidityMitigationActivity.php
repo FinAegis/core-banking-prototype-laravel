@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Treasury\Activities;
 
-use Workflow\Activity;
+use Workflow\ActivityInterface;
+use Workflow\ActivityMethod;
 
 /**
  * Activity for applying automatic liquidity mitigation.
  */
+#[ActivityInterface]
 class ApplyLiquidityMitigationActivity
 {
-    #[Activity]
+    #[ActivityMethod]
     public function execute(
         string $treasuryId,
         array $forecast,

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\Activities;
 
 use App\Domain\Treasury\Services\LiquidityForecastingService;
-use Workflow\Activity;
+use Workflow\ActivityInterface;
+use Workflow\ActivityMethod;
 
 /**
  * Activity for generating liquidity forecast.
  */
+#[ActivityInterface]
 class GenerateLiquidityForecastActivity
 {
     public function __construct(
@@ -17,7 +19,7 @@ class GenerateLiquidityForecastActivity
     ) {
     }
 
-    #[Activity]
+    #[ActivityMethod]
     public function execute(string $treasuryId, int $forecastDays): array
     {
         return $this->forecastingService->generateForecast(

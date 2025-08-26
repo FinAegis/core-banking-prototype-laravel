@@ -299,7 +299,7 @@ class LiquidityForecastingService
                 'description'          => $scenario['description'] ?? '',
                 'impact_factors'       => $scenario,
                 'adjusted_forecast'    => $adjustedForecast,
-                'minimum_balance'      => min(array_column($adjustedForecast, 'projected_balance')),
+                'minimum_balance'      => ! empty($adjustedForecast) ? min(array_column($adjustedForecast, 'projected_balance')) : 0.0,
                 'days_below_threshold' => $this->countDaysBelowThreshold($adjustedForecast),
                 'recovery_time'        => $this->estimateRecoveryTime($adjustedForecast),
             ];
@@ -448,7 +448,7 @@ class LiquidityForecastingService
         $aggregate = TreasuryAggregate::retrieve($treasuryId);
 
         // Record forecast generation event
-        $aggregate->recordEvent(new LiquidityForecastGenerated(
+        $aggregate->recordThat(new LiquidityForecastGenerated(
             aggregateRootUuid: $treasuryId,
             forecast: $forecast,
             riskMetrics: $riskMetrics,
@@ -611,14 +611,16 @@ class LiquidityForecastingService
         $totalScenarios = count($scenarios) + 1; // Include base case
 
         // Check base case
-        if (min(array_column($forecast, 'projected_balance')) < 0) {
+        $balances = array_column($forecast, 'projected_balance');
+        if (! empty($balances) && min($balances) < 0) {
             $shortageCount++;
         }
 
         // Check scenarios
         foreach ($scenarios as $scenario) {
             if (isset($scenario['adjusted_forecast'])) {
-                if (min(array_column($scenario['adjusted_forecast'], 'projected_balance')) < 0) {
+                $scenarioBalances = array_column($scenario['adjusted_forecast'], 'projected_balance');
+                if (! empty($scenarioBalances) && min($scenarioBalances) < 0) {
                     $shortageCount++;
                 }
             }
@@ -648,7 +650,8 @@ class LiquidityForecastingService
 
     private function assessBufferAdequacy(array $forecast): float
     {
-        $minBalance = min(array_column($forecast, 'projected_balance'));
+        $balances = array_column($forecast, 'projected_balance');
+        $minBalance = ! empty($balances) ? min($balances) : 0.0;
         $avgBalance = array_sum(array_column($forecast, 'projected_balance')) / count($forecast);
 
         return $avgBalance > 0 ? max(0, $minBalance / $avgBalance) : 0;
@@ -684,7 +687,7 @@ class LiquidityForecastingService
     private function getCommittedOutflows(string $treasuryId, int $days): float
     {
         // Fetch scheduled payments, bills, etc.
-        return DB::table('scheduled_payments')
+        return (float) DB::table('scheduled_payments')
             ->where('treasury_id', $treasuryId)
             ->where('due_date', '<=', now()->addDays($days))
             ->where('status', 'pending')
@@ -694,7 +697,7 @@ class LiquidityForecastingService
     private function getExpectedInflows(string $treasuryId, int $days): float
     {
         // Fetch expected receivables
-        return DB::table('expected_receivables')
+        return (float) DB::table('expected_receivables')
             ->where('treasury_id', $treasuryId)
             ->where('expected_date', '<=', now()->addDays($days))
             ->where('status', 'pending')
@@ -715,12 +718,11 @@ class LiquidityForecastingService
     private function calculateBufferDays(float $liquidity, string $treasuryId): int
     {
         $avgDailyOutflow = DB::table('transactions')
-            ->whereHas('account', function ($query) use ($treasuryId) {
-                $query->where('treasury_id', $treasuryId);
-            })
-            ->where('type', 'debit')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->avg('amount') ?? 0;
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->where('accounts.treasury_id', $treasuryId)
+            ->where('transactions.type', 'debit')
+            ->where('transactions.created_at', '>=', now()->subDays(30))
+            ->avg('transactions.amount') ?? 0;
 
         return $avgDailyOutflow > 0 ? (int) ($liquidity / $avgDailyOutflow) : 999;
     }
