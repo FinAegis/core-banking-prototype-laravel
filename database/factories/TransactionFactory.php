@@ -17,6 +17,7 @@ class TransactionFactory extends Factory
      * The name of the factory's corresponding model.
      *
      * @var string
+     * @phpstan-ignore property.phpDocType
      */
     protected $model = Transaction::class;
 
@@ -29,6 +30,7 @@ class TransactionFactory extends Factory
      * Define the model's default state.
      *
      * @return array<string, mixed>
+     * @phpstan-ignore method.childReturnType
      */
     public function definition(): array
     {
@@ -36,7 +38,7 @@ class TransactionFactory extends Factory
         $type = fake()->randomElement($types);
 
         // Generate amount based on type (deposits and transfers in are positive, withdrawals and transfers out are negative)
-        $amount = match($type) {
+        $amount = match($type) { // @phpstan-ignore match.unhandled
             'deposit', 'transfer_in' => fake()->numberBetween(100, 100000), // $1 to $1000
             'withdrawal', 'transfer_out' => -fake()->numberBetween(100, 50000), // -$1 to -$500
         };
@@ -154,9 +156,9 @@ class TransactionFactory extends Factory
 
     /**
      * Create a new instance of the model and filter out invalid attributes.
-     * 
+     *
      * Override parent create to handle amount attribute properly for event sourcing.
-     * 
+     *
      * @param array $attributes
      * @param Model|null $parent
      * @return Transaction|Collection
@@ -169,16 +171,16 @@ class TransactionFactory extends Factory
         if (is_array($attributes) && isset($attributes['amount'])) {
             $amount = $attributes['amount'];
             unset($attributes['amount']);
-            
+
             // Ensure event_properties exists in attributes
-            if (!isset($attributes['event_properties'])) {
+            if (! isset($attributes['event_properties'])) {
                 $attributes['event_properties'] = [];
             }
-            
+
             // Add amount to event_properties
             $attributes['event_properties']['amount'] = $amount;
         }
-        
+
         return parent::create($attributes, $parent);
     }
 
