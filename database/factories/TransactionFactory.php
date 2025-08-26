@@ -19,6 +19,11 @@ class TransactionFactory extends Factory
     protected $model = Transaction::class;
 
     /**
+     * Track aggregate versions for each account UUID to ensure they're sequential.
+     */
+    private static array $aggregateVersions = [];
+
+    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
@@ -38,7 +43,7 @@ class TransactionFactory extends Factory
 
         return [
             'aggregate_uuid'    => $accountUuid,
-            'aggregate_version' => fake()->numberBetween(1, 100),
+            'aggregate_version' => $this->getNextVersionForAggregate($accountUuid),
             'event_version'     => 1,
             'event_class'       => 'App\\Domain\\Account\\Events\\MoneyAdded',
             'event_properties'  => [
@@ -53,6 +58,23 @@ class TransactionFactory extends Factory
             ],
             'created_at' => now(),
         ];
+    }
+
+    /**
+     * Get the next version for an aggregate, ensuring sequential versions.
+     */
+    private function getNextVersionForAggregate(string $aggregateUuid): int
+    {
+        if (! isset(self::$aggregateVersions[$aggregateUuid])) {
+            // Check if there are existing transactions for this aggregate
+            $lastVersion = Transaction::where('aggregate_uuid', $aggregateUuid)
+                ->orderBy('aggregate_version', 'desc')
+                ->value('aggregate_version') ?? 0;
+
+            self::$aggregateVersions[$aggregateUuid] = $lastVersion;
+        }
+
+        return ++self::$aggregateVersions[$aggregateUuid];
     }
 
     /**
@@ -120,8 +142,19 @@ class TransactionFactory extends Factory
      */
     public function forAccount(Account $account): static
     {
-        return $this->state(fn (array $attributes) => [
-            'aggregate_uuid' => $account->uuid,
-        ]);
+        return $this->state(function (array $attributes) use ($account) {
+            return [
+                'aggregate_uuid'    => $account->uuid,
+                'aggregate_version' => $this->getNextVersionForAggregate($account->uuid),
+            ];
+        });
+    }
+
+    /**
+     * Clear the version cache (useful for tests).
+     */
+    public static function clearVersionCache(): void
+    {
+        self::$aggregateVersions = [];
     }
 }

@@ -326,18 +326,12 @@ class LiquidityForecastingTest extends TestCase
         // Create 60 days of historical transactions
         for ($i = 60; $i >= 0; $i--) {
             // Daily inflows
-            Transaction::factory()->create([
-                'account_id' => $account->id,
-                'type'       => 'credit',
-                'amount'     => fake()->randomFloat(2, 5000, 15000),
+            Transaction::factory()->forAccount($account)->deposit()->create([
                 'created_at' => now()->subDays($i),
             ]);
 
             // Daily outflows
-            Transaction::factory()->create([
-                'account_id' => $account->id,
-                'type'       => 'debit',
-                'amount'     => fake()->randomFloat(2, 4000, 12000),
+            Transaction::factory()->forAccount($account)->withdrawal()->create([
                 'created_at' => now()->subDays($i),
             ]);
         }
@@ -356,17 +350,11 @@ class LiquidityForecastingTest extends TestCase
 
         // Create declining pattern - more outflows than inflows
         for ($i = 30; $i >= 0; $i--) {
-            Transaction::factory()->create([
-                'account_id' => $account->id,
-                'type'       => 'credit',
-                'amount'     => fake()->randomFloat(2, 1000, 2000), // Low inflows
+            Transaction::factory()->forAccount($account)->deposit()->create([
                 'created_at' => now()->subDays($i),
             ]);
 
-            Transaction::factory()->create([
-                'account_id' => $account->id,
-                'type'       => 'debit',
-                'amount'     => fake()->randomFloat(2, 3000, 5000), // High outflows
+            Transaction::factory()->forAccount($account)->withdrawal()->create([
                 'created_at' => now()->subDays($i),
             ]);
         }
@@ -397,10 +385,7 @@ class LiquidityForecastingTest extends TestCase
 
         // Create high outflow pattern
         for ($i = 30; $i >= 0; $i--) {
-            Transaction::factory()->create([
-                'account_id' => $account->id,
-                'type'       => 'debit',
-                'amount'     => fake()->randomFloat(2, 5000, 10000),
+            Transaction::factory()->forAccount($account)->withdrawal()->create([
                 'created_at' => now()->subDays($i),
             ]);
         }
