@@ -359,6 +359,7 @@ class LiquidityForecastingTest extends TestCase
         for ($i = 30; $i >= 0; $i--) {
             // Small occasional deposits
             if ($i % 7 === 0) {
+                /** @phpstan-ignore-next-line */
                 Transaction::factory()->forAccount($account)->deposit()->create([
                     'amount'     => fake()->randomFloat(2, 100, 500),
                     'created_at' => now()->subDays($i),
@@ -366,6 +367,7 @@ class LiquidityForecastingTest extends TestCase
             }
 
             // Large consistent withdrawals
+            /** @phpstan-ignore-next-line */
             Transaction::factory()->forAccount($account)->withdrawal()->create([
                 'amount'     => fake()->randomFloat(2, 1000, 2000),
                 'created_at' => now()->subDays($i),
