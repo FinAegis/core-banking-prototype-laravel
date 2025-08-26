@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transaction;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -158,7 +159,8 @@ class TransactionFactory extends Factory
      * 
      * @param array $attributes
      * @param Model|null $parent
-     * @return Model|Collection
+     * @return Transaction|Collection
+     * @phpstan-return Transaction|Collection<int, Transaction>
      */
     public function create($attributes = [], ?Model $parent = null)
     {
