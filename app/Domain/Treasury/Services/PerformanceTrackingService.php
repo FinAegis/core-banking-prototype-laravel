@@ -497,6 +497,7 @@ class PerformanceTrackingService
         };
 
         $divisor = is_numeric($days) ? (float) $days : 365.0;
+
         return pow(1 + $totalReturn, 365.0 / $divisor) - 1;
     }
 

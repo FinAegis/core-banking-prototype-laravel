@@ -401,10 +401,6 @@ class PortfolioControllerTest extends TestCase
             'allocations' => $allocations,
         ]);
 
-        if ($response->status() === 500) {
-            dump('500 Error in allocate: ' . $response->content());
-        }
-
         $response->assertOk()
             ->assertJson([
                 'success' => true,
@@ -648,21 +644,13 @@ class PortfolioControllerTest extends TestCase
     public function it_can_get_portfolio_valuation(): void
     {
         $portfolioId = Str::uuid()->toString();
-        $valuationData = [
-            'total_value'  => 105000.0,
-            'asset_values' => [
-                'equities' => 63000.0,
-                'bonds'    => 42000.0,
-            ],
-            'currency'              => 'USD',
-            'market_data_timestamp' => '2024-01-20T15:30:00Z',
-        ];
+        $valuationAmount = 105000.0;
 
         $valuationService = $this->mock(AssetValuationService::class);
-        $valuationService->shouldReceive('getPortfolioValuation')
+        $valuationService->shouldReceive('calculatePortfolioValue')
             ->once()
             ->with($portfolioId)
-            ->andReturn($valuationData);
+            ->andReturn($valuationAmount);
 
         $response = $this->getJson("/api/treasury/portfolios/{$portfolioId}/valuation");
 
@@ -671,7 +659,7 @@ class PortfolioControllerTest extends TestCase
                 'success' => true,
                 'data'    => [
                     'portfolio_id' => $portfolioId,
-                    'valuation'    => $valuationData,
+                    'valuation'    => $valuationAmount,
                 ],
             ]);
     }

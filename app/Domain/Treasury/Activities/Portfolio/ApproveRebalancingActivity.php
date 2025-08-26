@@ -31,7 +31,7 @@ class ApproveRebalancingActivity
                 reason: $reason,
                 approvalId: $approvalId,
                 metadata: [
-                    'workflow_id' => $input['workflow_id'] ?? null,
+                    'workflow_id'  => $input['workflow_id'] ?? null,
                     'requested_at' => now()->toISOString(),
                 ],
                 requiredApprovers: []

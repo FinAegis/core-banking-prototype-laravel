@@ -23,7 +23,6 @@ class PortfolioRebalancingWorkflowTest extends TestCase
 
     private PortfolioManagementService $portfolioService;
 
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -431,7 +430,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     private function callPrivateMethod($object, $methodName, array $parameters = [])
     {
         $className = get_class($object);
-        $reflection = new \ReflectionClass($className);
+        $reflection = new ReflectionClass($className);
         $method = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 

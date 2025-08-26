@@ -62,7 +62,7 @@ class CheckRebalancingNeedActivity extends Activity
             // Calculate detailed drift analysis
             $driftAnalysis = $this->calculateDriftAnalysis($portfolio);
             $drifts = array_column($driftAnalysis['allocations'], 'drift');
-            $maxDrift = !empty($drifts) ? max($drifts) : 0.0;
+            $maxDrift = ! empty($drifts) ? max($drifts) : 0.0;
             $avgDrift = array_sum(array_column($driftAnalysis['allocations'], 'drift')) / count($driftAnalysis['allocations']);
 
             // Determine urgency level based on drift severity
@@ -132,7 +132,7 @@ class CheckRebalancingNeedActivity extends Activity
             'summary'     => [
                 'total_allocations'   => count($allocations),
                 'exceeding_threshold' => count(array_filter($allocations, fn ($a) => $a['exceeds_threshold'])),
-                'max_drift'           => !empty($allocations) ? max(array_column($allocations, 'drift')) : 0,
+                'max_drift'           => ! empty($allocations) ? max(array_column($allocations, 'drift')) : 0,
                 'avg_drift'           => array_sum(array_column($allocations, 'drift')) / count($allocations),
             ],
         ];

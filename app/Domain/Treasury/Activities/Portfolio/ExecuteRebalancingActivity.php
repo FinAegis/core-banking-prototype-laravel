@@ -216,31 +216,17 @@ class ExecuteRebalancingActivity extends Activity
      */
     private function checkForPartialExecution(string $portfolioId, string $rebalanceId): array
     {
-        try {
-            // In a real implementation, this would check:
-            // 1. Which actions were completed vs. failed
-            // 2. Current portfolio state vs. intended state
-            // 3. Transaction records and confirmations
+        // In a real implementation, this would check:
+        // 1. Which actions were completed vs. failed
+        // 2. Current portfolio state vs. intended state
+        // 3. Transaction records and confirmations
 
-            return [
-                'has_partial_execution' => false,
-                'completed_actions'     => [],
-                'failed_actions'        => [],
-                'rollback_required'     => false,
-                'manual_intervention'   => false,
-            ];
-        } catch (\Exception $e) {
-            \Log::error('Failed to check for partial execution', [
-                'portfolio_id' => $portfolioId,
-                'rebalance_id' => $rebalanceId,
-                'error'        => $e->getMessage(),
-            ]);
-
-            return [
-                'has_partial_execution' => true,
-                'error'                 => $e->getMessage(),
-                'manual_intervention'   => true,
-            ];
-        }
+        return [
+            'has_partial_execution' => false,
+            'completed_actions'     => [],
+            'failed_actions'        => [],
+            'rollback_required'     => false,
+            'manual_intervention'   => false,
+        ];
     }
 }

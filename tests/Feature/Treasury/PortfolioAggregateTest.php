@@ -17,12 +17,10 @@ use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    $this->portfolioId = Str::uuid()->toString();
-    $this->treasuryId = Str::uuid()->toString();
-});
-
 it('creates a portfolio with investment strategy', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_MODERATE,
         5.0, // 5% rebalance threshold
@@ -31,11 +29,11 @@ it('creates a portfolio with investment strategy', function () {
         ['manager'          => 'AI Portfolio Manager']
     );
 
-    PortfolioAggregate::fake($this->portfolioId)
-        ->when(function (PortfolioAggregate $aggregate) use ($strategy) {
+    PortfolioAggregate::fake($portfolioId)
+        ->when(function (PortfolioAggregate $aggregate) use ($portfolioId, $treasuryId, $strategy) {
             $aggregate->createPortfolio(
-                $this->portfolioId,
-                $this->treasuryId,
+                $portfolioId,
+                $treasuryId,
                 'Conservative Growth Portfolio',
                 $strategy,
                 ['created_by' => 'treasury_system']
@@ -43,8 +41,8 @@ it('creates a portfolio with investment strategy', function () {
         })
         ->assertRecorded([
             new PortfolioCreated(
-                $this->portfolioId,
-                $this->treasuryId,
+                $portfolioId,
+                $treasuryId,
                 'Conservative Growth Portfolio',
                 $strategy->toArray(),
                 ['created_by' => 'treasury_system']
@@ -53,6 +51,9 @@ it('creates a portfolio with investment strategy', function () {
 });
 
 it('allocates assets with proper validation', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_MODERATE,
         5.0,
@@ -67,11 +68,11 @@ it('allocates assets with proper validation', function () {
 
     $allocationId = Str::uuid()->toString();
 
-    PortfolioAggregate::fake($this->portfolioId)
+    PortfolioAggregate::fake($portfolioId)
         ->given([
             new PortfolioCreated(
-                $this->portfolioId,
-                $this->treasuryId,
+                $portfolioId,
+                $treasuryId,
                 'Growth Portfolio',
                 $strategy->toArray(),
                 []
@@ -87,7 +88,7 @@ it('allocates assets with proper validation', function () {
         })
         ->assertRecorded([
             new AssetsAllocated(
-                $this->portfolioId,
+                $portfolioId,
                 $allocationId,
                 [
                     new AssetAllocation('equities', 60.0, 0.0, 0.0),
@@ -101,16 +102,19 @@ it('allocates assets with proper validation', function () {
 });
 
 it('validates allocations sum to 100 percent', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_CONSERVATIVE,
         3.0,
         0.05
     );
 
-    $aggregate = PortfolioAggregate::retrieve($this->portfolioId);
+    $aggregate = PortfolioAggregate::retrieve($portfolioId);
     $aggregate->createPortfolio(
-        $this->portfolioId,
-        $this->treasuryId,
+        $portfolioId,
+        $treasuryId,
         'Test Portfolio',
         $strategy
     );
@@ -129,6 +133,9 @@ it('validates allocations sum to 100 percent', function () {
 });
 
 it('rebalances portfolio with new target allocations', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_MODERATE,
         5.0,
@@ -149,17 +156,17 @@ it('rebalances portfolio with new target allocations', function () {
 
     $rebalanceId = Str::uuid()->toString();
 
-    PortfolioAggregate::fake($this->portfolioId)
+    PortfolioAggregate::fake($portfolioId)
         ->given([
             new PortfolioCreated(
-                $this->portfolioId,
-                $this->treasuryId,
+                $portfolioId,
+                $treasuryId,
                 'Portfolio',
                 $strategy->toArray(),
                 []
             ),
             new AssetsAllocated(
-                $this->portfolioId,
+                $portfolioId,
                 Str::uuid()->toString(),
                 $currentAllocations,
                 1000000.0,
@@ -176,7 +183,7 @@ it('rebalances portfolio with new target allocations', function () {
         })
         ->assertRecorded([
             new PortfolioRebalanced(
-                $this->portfolioId,
+                $portfolioId,
                 $rebalanceId,
                 $targetAllocations,
                 $currentAllocations,
@@ -187,6 +194,9 @@ it('rebalances portfolio with new target allocations', function () {
 });
 
 it('updates investment strategy', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $originalStrategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_CONSERVATIVE,
         3.0,
@@ -199,11 +209,11 @@ it('updates investment strategy', function () {
         0.08
     );
 
-    PortfolioAggregate::fake($this->portfolioId)
+    PortfolioAggregate::fake($portfolioId)
         ->given([
             new PortfolioCreated(
-                $this->portfolioId,
-                $this->treasuryId,
+                $portfolioId,
+                $treasuryId,
                 'Portfolio',
                 $originalStrategy->toArray(),
                 []
@@ -218,7 +228,7 @@ it('updates investment strategy', function () {
         })
         ->assertRecorded([
             new StrategyUpdated(
-                $this->portfolioId,
+                $portfolioId,
                 $originalStrategy->toArray(),
                 $newStrategy->toArray(),
                 'increased_risk_tolerance',
@@ -228,6 +238,9 @@ it('updates investment strategy', function () {
 });
 
 it('records performance and triggers rebalancing on drift', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_MODERATE,
         5.0, // 5% threshold
@@ -246,11 +259,11 @@ it('records performance and triggers rebalancing on drift', function () {
 
     $metricsId = Str::uuid()->toString();
 
-    PortfolioAggregate::fake($this->portfolioId)
+    PortfolioAggregate::fake($portfolioId)
         ->given([
             new PortfolioCreated(
-                $this->portfolioId,
-                $this->treasuryId,
+                $portfolioId,
+                $treasuryId,
                 'Portfolio',
                 $strategy->toArray(),
                 []
@@ -266,7 +279,7 @@ it('records performance and triggers rebalancing on drift', function () {
         })
         ->assertRecorded([
             new PerformanceRecorded(
-                $this->portfolioId,
+                $portfolioId,
                 $metricsId,
                 $metrics->toArray(),
                 'monthly',
@@ -276,6 +289,9 @@ it('records performance and triggers rebalancing on drift', function () {
 });
 
 it('detects allocation drift and triggers rebalancing', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_MODERATE,
         3.0, // 3% threshold
@@ -288,11 +304,11 @@ it('detects allocation drift and triggers rebalancing', function () {
         ['assetClass' => 'cash', 'currentWeight' => 10.0, 'targetWeight' => 10.0, 'drift' => 0.0],
     ];
 
-    PortfolioAggregate::fake($this->portfolioId)
+    PortfolioAggregate::fake($portfolioId)
         ->given([
             new PortfolioCreated(
-                $this->portfolioId,
-                $this->treasuryId,
+                $portfolioId,
+                $treasuryId,
                 'Portfolio',
                 $strategy->toArray(),
                 []
@@ -303,7 +319,7 @@ it('detects allocation drift and triggers rebalancing', function () {
         })
         ->assertRecorded([
             new AllocationDriftDetected(
-                $this->portfolioId,
+                $portfolioId,
                 $driftLevels,
                 5.0, // max drift
                 3.0, // threshold
@@ -313,6 +329,9 @@ it('detects allocation drift and triggers rebalancing', function () {
 });
 
 it('maintains event sourcing with proper aggregate state', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_MODERATE,
         5.0,
@@ -320,17 +339,17 @@ it('maintains event sourcing with proper aggregate state', function () {
     );
 
     // Create portfolio
-    $aggregate = PortfolioAggregate::retrieve($this->portfolioId);
+    $aggregate = PortfolioAggregate::retrieve($portfolioId);
     $aggregate->createPortfolio(
-        $this->portfolioId,
-        $this->treasuryId,
+        $portfolioId,
+        $treasuryId,
         'Growth Portfolio',
         $strategy
     );
     $aggregate->persist();
 
     // Allocate assets
-    $aggregate = PortfolioAggregate::retrieve($this->portfolioId);
+    $aggregate = PortfolioAggregate::retrieve($portfolioId);
     $allocations = [
         ['assetClass' => 'equities', 'targetWeight' => 60.0],
         ['assetClass' => 'bonds', 'targetWeight' => 30.0],
@@ -346,25 +365,28 @@ it('maintains event sourcing with proper aggregate state', function () {
     $aggregate->persist();
 
     // Verify state
-    $aggregate = PortfolioAggregate::retrieve($this->portfolioId);
+    $aggregate = PortfolioAggregate::retrieve($portfolioId);
     expect($aggregate->getName())->toBe('Growth Portfolio');
-    expect($aggregate->getTreasuryId())->toBe($this->treasuryId);
+    expect($aggregate->getTreasuryId())->toBe($treasuryId);
     expect($aggregate->getStrategy())->toBeInstanceOf(InvestmentStrategy::class);
     expect($aggregate->getTotalValue())->toBe(1000000.0);
     expect($aggregate->getAssetAllocations())->toHaveCount(3);
 });
 
 it('prevents rebalancing when already in progress', function () {
+    $portfolioId = Str::uuid()->toString();
+    $treasuryId = Str::uuid()->toString();
+
     $strategy = new InvestmentStrategy(
         InvestmentStrategy::RISK_MODERATE,
         5.0,
         0.08
     );
 
-    $aggregate = PortfolioAggregate::retrieve($this->portfolioId);
+    $aggregate = PortfolioAggregate::retrieve($portfolioId);
     $aggregate->createPortfolio(
-        $this->portfolioId,
-        $this->treasuryId,
+        $portfolioId,
+        $treasuryId,
         'Portfolio',
         $strategy
     );
