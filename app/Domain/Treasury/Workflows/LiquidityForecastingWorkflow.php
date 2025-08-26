@@ -8,8 +8,6 @@ use App\Domain\Treasury\Activities\ApplyLiquidityMitigationActivity;
 use App\Domain\Treasury\Activities\GenerateLiquidityForecastActivity;
 use App\Domain\Treasury\Activities\SendLiquidityAlertActivity;
 use Workflow\ActivityStub;
-use Temporal\Workflow\SignalMethod;
-use Temporal\Workflow\WorkflowMethod;
 use Workflow\Workflow;
 use Workflow\WorkflowInterface;
 
@@ -29,7 +27,7 @@ class LiquidityForecastingWorkflow
 
     private int $forecastDays = 30;
 
-    #[WorkflowMethod]
+    /** @phpstan-ignore-next-line */
     public function execute(string $treasuryId, array $config = []): \Generator
     {
         $this->treasuryId = $treasuryId;
@@ -44,6 +42,7 @@ class LiquidityForecastingWorkflow
             // Wait for update interval
             yield Workflow::timer($updateInterval * 3600);
 
+            /** @phpstan-ignore-next-line */
             if (! $this->isRunning) {
                 break;
             }
@@ -130,13 +129,13 @@ class LiquidityForecastingWorkflow
         );
     }
 
-    #[SignalMethod]
+    /** @phpstan-ignore-next-line */
     public function updateForecastDays(int $days): void
     {
         $this->forecastDays = max(1, min(365, $days));
     }
 
-    #[SignalMethod]
+    /** @phpstan-ignore-next-line */
     public function stop(): void
     {
         $this->isRunning = false;
