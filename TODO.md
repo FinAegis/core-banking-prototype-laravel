@@ -34,6 +34,14 @@ Last updated: 2025-01-21
 
 ### Recent Achievements (January 2025)
 
+#### Treasury Portfolio Management ✅ COMPLETED (January 26, 2025)
+- **Portfolio Aggregate**: Full event sourcing with 13 domain events
+- **Core Services**: Portfolio Management, Rebalancing, Performance Tracking, Asset Valuation
+- **Workflow Integration**: 2 workflows with 8 activities for automation
+- **REST API**: 16 comprehensive endpoints for portfolio operations
+- **Test Coverage**: 24 tests with 100% pass rate
+- **Value Objects**: InvestmentStrategy, AssetAllocation, PortfolioMetrics
+
 #### Security Enhancements ✅ COMPLETED (January 2025)
 - **API Scope Enforcement**: Implemented comprehensive API scope enforcement with CheckApiScope middleware
 - **Role-Based Scopes**: Different default scopes for admin, business, and regular users
@@ -123,18 +131,20 @@ Last updated: 2025-01-21
 
 ## 🟡 MEDIUM PRIORITY - Feature Enhancement (Week 4-6)
 
-### Treasury Management Completion
+### Treasury Management Completion ✅ COMPLETED
 - [x] **Liquidity Forecasting**
   - [x] Implement cash flow prediction
   - [x] Add liquidity risk metrics
   - [x] Create forecasting workflows
   - [x] Add alerting for liquidity issues
 
-- [ ] **Investment Portfolio Management**
-  - [ ] Create portfolio aggregate
-  - [ ] Implement asset allocation
-  - [ ] Add performance tracking
-  - [ ] Create rebalancing workflows
+- [x] **Investment Portfolio Management** ✅ (January 2025)
+  - [x] Create portfolio aggregate with event sourcing
+  - [x] Implement asset allocation and valuation
+  - [x] Add performance tracking with metrics
+  - [x] Create rebalancing workflows with approval
+  - [x] Implement 16 REST API endpoints
+  - [x] Add comprehensive test coverage (24 tests)
 
 ### Compliance Enhancement
 - [ ] **Real-time Transaction Monitoring**
