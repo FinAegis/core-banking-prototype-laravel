@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="acceptance">
+  <testsuite name="Basket Asset Management" tests="1" skipped="0" failures="0" errors="0" time="0.484">
+    <testcase name="Creating a fixed basket" classname="Basket Asset Management" status="passed" time="0.483" file="features/basket_management.feature"></testcase>
+  </testsuite>
+</testsuites>

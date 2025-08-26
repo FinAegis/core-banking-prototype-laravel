@@ -25,28 +25,50 @@ class CheckApiScope
             return $next($request);
         }
 
-        // For backward compatibility with existing tests:
-        // If the request is from a test and using Sanctum::actingAs without explicit abilities,
-        // treat it as having default scopes (read, write) to maintain test compatibility
+        // In testing environment, handle Sanctum::actingAs tokens specially
         if (app()->environment('testing')) {
             $token = $request->user()->currentAccessToken();
 
-            // In tests, Sanctum::actingAs() without abilities creates a token that
-            // returns false for all tokenCan() checks. We'll treat this as having
-            // the default scopes to maintain backward compatibility with existing tests.
-            if ($token && ! $request->user()->tokenCan('read') && ! $request->user()->tokenCan('write') && ! $request->user()->tokenCan('delete')) {
-                // This is a test token with no explicit abilities
-                // For non-admin routes, allow through (admin routes still need explicit admin scope)
-                if (! in_array('admin', $scopes)) {
-                    return $next($request);
+            if ($token) {
+                // Check if the user's token has any of the required scopes
+                foreach ($scopes as $scope) {
+                    $canScope = $request->user()->tokenCan($scope);
+                    // Debug output for testing
+                    if (in_array('treasury', $scopes)) {
+                        \Log::debug("CheckApiScope: Checking scope '$scope', result: " . ($canScope ? 'true' : 'false'));
+                    }
+                    if ($canScope) {
+                        return $next($request);
+                    }
+                }
+
+                // For backward compatibility with existing tests:
+                // If no abilities match and this is a test token with NO abilities at all,
+                // allow through for standard read/write operations but not for special scopes
+                $hasAnyAbility = $request->user()->tokenCan('read') ||
+                                 $request->user()->tokenCan('write') ||
+                                 $request->user()->tokenCan('delete') ||
+                                 $request->user()->tokenCan('treasury') ||
+                                 $request->user()->tokenCan('admin');
+
+                if (! $hasAnyAbility) {
+                    // This is a test token with no explicit abilities (empty array passed to Sanctum::actingAs)
+                    // For backward compatibility, allow through ONLY if requesting standard read/write scopes
+                    $standardScopes = ['read', 'write'];
+                    $isStandardScope = count(array_intersect($scopes, $standardScopes)) > 0;
+                    $hasSpecialScope = count(array_diff($scopes, $standardScopes)) > 0;
+
+                    if ($isStandardScope && ! $hasSpecialScope) {
+                        return $next($request);
+                    }
                 }
             }
-        }
-
-        // Check if the user's token has any of the required scopes
-        foreach ($scopes as $scope) {
-            if ($request->user()->tokenCan($scope)) {
-                return $next($request);
+        } else {
+            // Production: Standard scope checking
+            foreach ($scopes as $scope) {
+                if ($request->user()->tokenCan($scope)) {
+                    return $next($request);
+                }
             }
         }
 

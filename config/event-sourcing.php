@@ -273,6 +273,14 @@ return [
         'alert_triggered'     => App\Domain\Monitoring\Events\AlertTriggered::class,
         'alert_resolved'      => App\Domain\Monitoring\Events\AlertResolved::class,
 
+        // Portfolio Management events
+        'portfolio_created'         => App\Domain\Treasury\Events\Portfolio\PortfolioCreated::class,
+        'assets_allocated'          => App\Domain\Treasury\Events\Portfolio\AssetsAllocated::class,
+        'portfolio_rebalanced'      => App\Domain\Treasury\Events\Portfolio\PortfolioRebalanced::class,
+        'strategy_updated'          => App\Domain\Treasury\Events\Portfolio\StrategyUpdated::class,
+        'performance_recorded'      => App\Domain\Treasury\Events\Portfolio\PerformanceRecorded::class,
+        'rebalancing_triggered'     => App\Domain\Treasury\Events\Portfolio\RebalancingTriggered::class,
+        'allocation_drift_detected' => App\Domain\Treasury\Events\Portfolio\AllocationDriftDetected::class,
         // Tracing events
         'span_started'           => App\Domain\Monitoring\Events\SpanStarted::class,
         'span_ended'             => App\Domain\Monitoring\Events\SpanEnded::class,

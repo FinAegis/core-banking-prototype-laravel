@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\SubProductController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\TransactionReversalController;
 use App\Http\Controllers\Api\TransferController;
+use App\Http\Controllers\Api\Treasury\PortfolioController;
 use App\Http\Controllers\Api\UserVotingController;
 use App\Http\Controllers\Api\VoteController;
 use App\Http\Controllers\Api\WorkflowMonitoringController;
@@ -666,22 +667,63 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'check.token.expiration', 'r
     });
 });
 
-    // Treasury Management endpoints
-    Route::prefix('treasury')->name('api.treasury.')->group(function () {
-        // Authenticated treasury routes
-        Route::middleware('auth:sanctum', 'check.token.expiration', 'check.api.scope:treasury')->group(function () {
-            // Liquidity Forecasting endpoints
-            Route::prefix('liquidity-forecast')->name('liquidity.')->group(function () {
-                Route::post('/generate', [App\Http\Controllers\Api\LiquidityForecastController::class, 'generateForecast'])->name('generate');
-                Route::get('/{treasuryId}/current', [App\Http\Controllers\Api\LiquidityForecastController::class, 'getCurrentLiquidity'])->name('current');
-                Route::post('/workflow/start', [App\Http\Controllers\Api\LiquidityForecastController::class, 'startForecastingWorkflow'])->name('workflow.start');
-                Route::get('/{treasuryId}/alerts', [App\Http\Controllers\Api\LiquidityForecastController::class, 'getAlerts'])->name('alerts');
-            });
+// Treasury Management endpoints
+Route::prefix('treasury')->name('api.treasury.')->group(function () {
+    // Authenticated treasury routes
+    Route::middleware('auth:sanctum', 'check.token.expiration', 'scope:treasury')->group(function () {
+        // Portfolio Management endpoints
+        Route::prefix('portfolios')->name('portfolios.')->group(function () {
+            Route::get('/', [PortfolioController::class, 'index'])->name('index');
+            Route::post('/', [PortfolioController::class, 'store'])
+                ->middleware('transaction.rate_limit:treasury')
+                ->name('store');
+            Route::get('/{id}', [PortfolioController::class, 'show'])->name('show');
+            Route::put('/{id}', [PortfolioController::class, 'update'])
+                ->middleware('transaction.rate_limit:treasury')
+                ->name('update');
+            Route::delete('/{id}', [PortfolioController::class, 'destroy'])
+                ->middleware('transaction.rate_limit:treasury')
+                ->name('destroy');
 
-            // Yield Optimization endpoints
-            Route::prefix('yield')->name('yield.')->group(function () {
-                Route::post('/optimize', [App\Http\Controllers\Api\YieldOptimizationController::class, 'optimizePortfolio'])->name('optimize');
-                Route::get('/{treasuryId}/portfolio', [App\Http\Controllers\Api\YieldOptimizationController::class, 'getPortfolio'])->name('portfolio');
-            });
+            // Asset allocation endpoints
+            Route::post('/{id}/allocate', [PortfolioController::class, 'allocate'])
+                ->middleware('transaction.rate_limit:treasury')
+                ->name('allocate');
+            Route::get('/{id}/allocations', [PortfolioController::class, 'getAllocations'])->name('allocations');
+
+            // Rebalancing endpoints
+            Route::post('/{id}/rebalance', [PortfolioController::class, 'triggerRebalancing'])
+                ->middleware('transaction.rate_limit:treasury')
+                ->name('rebalance');
+            Route::get('/{id}/rebalancing-plan', [PortfolioController::class, 'getRebalancingPlan'])->name('rebalancing-plan');
+            Route::post('/{id}/approve-rebalancing', [PortfolioController::class, 'approveRebalancing'])
+                ->middleware('transaction.rate_limit:treasury')
+                ->name('approve-rebalancing');
+
+            // Performance and analytics endpoints
+            Route::get('/{id}/performance', [PortfolioController::class, 'getPerformance'])->name('performance');
+            Route::get('/{id}/valuation', [PortfolioController::class, 'getValuation'])->name('valuation');
+            Route::get('/{id}/history', [PortfolioController::class, 'getHistory'])->name('history');
+
+            // Reporting endpoints
+            Route::post('/{id}/reports', [PortfolioController::class, 'generateReport'])
+                ->middleware('transaction.rate_limit:treasury')
+                ->name('generate-report');
+            Route::get('/{id}/reports', [PortfolioController::class, 'listReports'])->name('list-reports');
+        });
+
+        // Liquidity Forecasting endpoints
+        Route::prefix('liquidity-forecast')->name('liquidity.')->group(function () {
+            Route::post('/generate', [App\Http\Controllers\Api\LiquidityForecastController::class, 'generateForecast'])->name('generate');
+            Route::get('/{treasuryId}/current', [App\Http\Controllers\Api\LiquidityForecastController::class, 'getCurrentLiquidity'])->name('current');
+            Route::post('/workflow/start', [App\Http\Controllers\Api\LiquidityForecastController::class, 'startForecastingWorkflow'])->name('workflow.start');
+            Route::get('/{treasuryId}/alerts', [App\Http\Controllers\Api\LiquidityForecastController::class, 'getAlerts'])->name('alerts');
+        });
+
+        // Yield Optimization endpoints
+        Route::prefix('yield')->name('yield.')->group(function () {
+            Route::post('/optimize', [App\Http\Controllers\Api\YieldOptimizationController::class, 'optimizePortfolio'])->name('optimize');
+            Route::get('/{treasuryId}/portfolio', [App\Http\Controllers\Api\YieldOptimizationController::class, 'getPortfolio'])->name('portfolio');
         });
     });
+});
