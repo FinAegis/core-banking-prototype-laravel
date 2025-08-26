@@ -80,7 +80,7 @@ class PerformanceTrackingService
 
                     return [
                         'event_id'     => $event->id,
-                        'date'         => $event->created_at->toISOString(),
+                        'date'         => is_string($event->created_at) ? $event->created_at : $event->created_at->toISOString(),
                         'metrics'      => $properties['metrics'] ?? [],
                         'period'       => $properties['period'] ?? 'unknown',
                         'recorded_by'  => $properties['recordedBy'] ?? 'system',
@@ -492,11 +492,12 @@ class PerformanceTrackingService
             '30d'   => 30,
             '90d'   => 90,
             '1y'    => 365,
-            'ytd'   => now()->dayOfYear(),
+            'ytd'   => now()->dayOfYear,
             default => 365,
         };
 
-        return pow(1 + $totalReturn, 365 / $days) - 1;
+        $divisor = is_numeric($days) ? (float) $days : 365.0;
+        return pow(1 + $totalReturn, 365.0 / $divisor) - 1;
     }
 
     private function calculateMedian(Collection $values): float

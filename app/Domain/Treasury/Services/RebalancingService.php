@@ -210,7 +210,7 @@ class RebalancingService
                         'event_id'     => $event->id,
                         'event_type'   => class_basename($event->event_class),
                         'portfolio_id' => $event->aggregate_uuid,
-                        'timestamp'    => $event->created_at->toISOString(),
+                        'timestamp'    => is_string($event->created_at) ? $event->created_at : $event->created_at->toISOString(),
                         'data'         => $eventData,
                         'reason'       => $eventData['reason'] ?? 'unknown',
                         'initiated_by' => $eventData['initiatedBy'] ?? 'system',

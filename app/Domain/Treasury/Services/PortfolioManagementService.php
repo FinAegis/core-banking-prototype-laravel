@@ -164,7 +164,7 @@ class PortfolioManagementService
 
         $cacheKey = "portfolios:{$treasuryId}";
 
-        $portfolios = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($treasuryId) {
+        $portfolios = Cache::remember($cacheKey, self::CACHE_TTL, function () {
             // In a real implementation, this would query the event store or projections
             // For now, we'll return a basic structure
             return [];

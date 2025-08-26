@@ -847,7 +847,7 @@ class PortfolioController extends Controller
     public function getValuation(string $id): JsonResponse
     {
         try {
-            $valuation = $this->valuationService->getPortfolioValuation($id);
+            $valuation = $this->valuationService->calculatePortfolioValue($id);
 
             return response()->json([
                 'success' => true,

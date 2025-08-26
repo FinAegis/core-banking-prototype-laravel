@@ -23,7 +23,6 @@ class PortfolioRebalancingWorkflowTest extends TestCase
 
     private PortfolioManagementService $portfolioService;
 
-    private RebalancingService $rebalancingService;
 
     protected function setUp(): void
     {
@@ -31,7 +30,6 @@ class PortfolioRebalancingWorkflowTest extends TestCase
 
         $this->portfolioId = Str::uuid()->toString();
         $this->portfolioService = app(PortfolioManagementService::class);
-        $this->rebalancingService = app(RebalancingService::class);
 
         // Create a test portfolio
         $this->createTestPortfolio();
@@ -433,9 +431,6 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     private function callPrivateMethod($object, $methodName, array $parameters = [])
     {
         $className = get_class($object);
-        if ($className === false) {
-            throw new \RuntimeException('Could not determine object class');
-        }
         $reflection = new \ReflectionClass($className);
         $method = $reflection->getMethod($methodName);
         $method->setAccessible(true);
