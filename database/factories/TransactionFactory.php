@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Account\Models\Transaction>
@@ -148,6 +149,35 @@ class TransactionFactory extends Factory
                 'aggregate_version' => $this->getNextVersionForAggregate($account->uuid),
             ];
         });
+    }
+
+    /**
+     * Create a new instance of the model and filter out invalid attributes.
+     * 
+     * Override parent create to handle amount attribute properly for event sourcing.
+     * 
+     * @param array $attributes
+     * @param Model|null $parent
+     * @return Model|Collection
+     */
+    public function create($attributes = [], ?Model $parent = null)
+    {
+        // Transaction extends EloquentStoredEvent so it only has event sourcing columns
+        // If amount is passed as a direct attribute, move it to event_properties
+        if (is_array($attributes) && isset($attributes['amount'])) {
+            $amount = $attributes['amount'];
+            unset($attributes['amount']);
+            
+            // Ensure event_properties exists in attributes
+            if (!isset($attributes['event_properties'])) {
+                $attributes['event_properties'] = [];
+            }
+            
+            // Add amount to event_properties
+            $attributes['event_properties']['amount'] = $amount;
+        }
+        
+        return parent::create($attributes, $parent);
     }
 
     /**

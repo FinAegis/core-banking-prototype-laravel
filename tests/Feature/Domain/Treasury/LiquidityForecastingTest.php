@@ -116,7 +116,7 @@ class LiquidityForecastingTest extends TestCase
             $this->assertTrue($negativeBalanceAlert['action_required']);
         } else {
             // If no alerts, just verify forecast structure
-            $this->assertArrayHasKey('forecast_days', $forecast);
+            $this->assertArrayHasKey('base_forecast', $forecast);
             $this->assertArrayHasKey('risk_metrics', $forecast);
             $this->assertArrayHasKey('recommendations', $forecast);
         }
