@@ -92,9 +92,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
         // Create workflow with manual approval
         $workflow = WorkflowStub::make(PortfolioRebalancingWorkflow::class);
 
-        // Simulate approval signal
-        $approvalActivity = new ApproveRebalancingActivity();
-        $approvalActivity->approve('portfolio_manager_001', 'Approved for quarterly rebalancing');
+        // Approval will be simulated via event dispatching below
 
         // Act
         $result = $workflow->execute($this->portfolioId, 'quarterly_review');
@@ -193,7 +191,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     /** @test */
     public function it_calculates_approval_requirements_correctly()
     {
-        $workflow = new PortfolioRebalancingWorkflow();
+        $workflow = WorkflowStub::make(PortfolioRebalancingWorkflow::class);
 
         // Test cases for approval requirements
         $testCases = [
@@ -434,7 +432,11 @@ class PortfolioRebalancingWorkflowTest extends TestCase
 
     private function callPrivateMethod($object, $methodName, array $parameters = [])
     {
-        $reflection = new ReflectionClass(get_class($object));
+        $className = get_class($object);
+        if ($className === false) {
+            throw new \RuntimeException('Could not determine object class');
+        }
+        $reflection = new \ReflectionClass($className);
         $method = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 

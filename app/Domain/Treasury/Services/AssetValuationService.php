@@ -305,7 +305,8 @@ class AssetValuationService
         foreach ($assetIds as $assetId) {
             $basePrice = self::MOCK_ASSET_PRICES[$assetId] ?? $this->getDefaultAssetPrice($assetId);
 
-            if (is_numeric($basePrice)) {
+            // $basePrice is already a float from the array or method
+            if (true) { // Always true since we have a valid price
                 // Add small random variation to simulate market movement
                 $variation = (rand(-200, 200) / 10000); // -2% to +2% variation
                 $currentPrice = $basePrice * (1 + $variation);

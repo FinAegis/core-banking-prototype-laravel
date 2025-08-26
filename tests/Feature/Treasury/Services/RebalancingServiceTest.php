@@ -78,7 +78,7 @@ class RebalancingServiceTest extends TestCase
             $this->assertArrayHasKey('action_type', $action);
             $this->assertArrayHasKey('amount', $action);
             $this->assertArrayHasKey('priority', $action);
-            $this->assertIn($action['action_type'], ['buy', 'sell']);
+            $this->assertContains($action['action_type'], ['buy', 'sell']);
             $this->assertGreaterThan(0, $action['amount']);
         }
     }

@@ -29,7 +29,12 @@ class ApproveRebalancingActivity
                 rebalanceId: $rebalanceId,
                 rebalancingPlan: $rebalancingPlan,
                 reason: $reason,
-                approvalId: $approvalId
+                approvalId: $approvalId,
+                metadata: [
+                    'workflow_id' => $input['workflow_id'] ?? null,
+                    'requested_at' => now()->toISOString(),
+                ],
+                requiredApprovers: []
             ));
 
             // For automated approval in activities, check if it meets auto-approval criteria

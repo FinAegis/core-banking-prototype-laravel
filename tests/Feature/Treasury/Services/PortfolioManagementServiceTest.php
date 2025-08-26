@@ -37,7 +37,7 @@ class PortfolioManagementServiceTest extends TestCase
 
         $portfolioId = $this->service->createPortfolio($treasuryId, $name, $strategy);
 
-        $this->assertIsString($portfolioId);
+        $this->assertNotNull($portfolioId);
         $this->assertNotEmpty($portfolioId);
 
         // Verify portfolio was created

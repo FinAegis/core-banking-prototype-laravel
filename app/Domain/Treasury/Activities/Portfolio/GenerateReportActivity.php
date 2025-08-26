@@ -433,7 +433,7 @@ class GenerateReportActivity extends Activity
         // Rough estimation: ~500 words per page
         $wordCount = str_word_count(strip_tags($content));
 
-        return max(1, ceil($wordCount / 500));
+        return (int) max(1, ceil($wordCount / 500));
     }
 
     private function simulatePdfGeneration(string $htmlContent, array $options): string

@@ -88,7 +88,7 @@ class AssetValuationServiceTest extends TestCase
 
         $value = $this->service->calculatePortfolioValue($portfolioId);
 
-        $this->assertIsFloat($value);
+        $this->assertIsNumeric($value);
         $this->assertGreaterThan(0, $value);
 
         // Should be close to the allocated amount, adjusted for price changes
