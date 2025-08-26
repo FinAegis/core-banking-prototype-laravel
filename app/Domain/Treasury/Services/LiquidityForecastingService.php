@@ -117,10 +117,10 @@ class LiquidityForecastingService
 
         return [
             'timestamp'              => now()->toIso8601String(),
-            'available_liquidity'    => $availableLiquidity,
-            'committed_outflows_24h' => $committedOutflows,
-            'expected_inflows_24h'   => $expectedInflows,
-            'net_position_24h'       => $netPosition,
+            'available_liquidity'    => (float) $availableLiquidity,
+            'committed_outflows_24h' => (float) $committedOutflows,
+            'expected_inflows_24h'   => (float) $expectedInflows,
+            'net_position_24h'       => (float) $netPosition,
             'coverage_ratio'         => min((float) $coverageRatio, 100.0), // Cap at 100x for display
             'status'                 => $this->determineLiquidityStatus($coverageRatio),
             'buffer_days'            => $this->calculateBufferDays($availableLiquidity, $treasuryId),
