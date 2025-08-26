@@ -403,5 +403,4 @@ class LiquidityForecastingTest extends TestCase
             ]);
         }
     }
-
 }
