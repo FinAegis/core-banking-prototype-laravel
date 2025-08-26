@@ -13,25 +13,26 @@ use Illuminate\Support\Facades\Validator;
 use Workflow\WorkflowStub;
 
 /**
- * API Controller for Liquidity Forecasting
- * 
+ * API Controller for Liquidity Forecasting.
+ *
  * @group Treasury Management
  */
 class LiquidityForecastController extends Controller
 {
     public function __construct(
         private readonly LiquidityForecastingService $forecastingService
-    ) {}
-    
+    ) {
+    }
+
     /**
-     * Generate liquidity forecast
-     * 
+     * Generate liquidity forecast.
+     *
      * Generate a comprehensive liquidity forecast with risk metrics and scenarios
-     * 
+     *
      * @bodyParam treasury_id string required The treasury account ID
      * @bodyParam forecast_days integer The number of days to forecast (default: 30, max: 365)
      * @bodyParam scenarios array Optional custom scenarios for stress testing
-     * 
+     *
      * @response 200 {
      *   "treasury_id": "uuid",
      *   "forecast_period": 30,
@@ -47,44 +48,44 @@ class LiquidityForecastController extends Controller
     public function generateForecast(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'treasury_id' => 'required|uuid',
-            'forecast_days' => 'integer|min:1|max:365',
-            'scenarios' => 'array',
-            'scenarios.*.description' => 'required_with:scenarios|string',
-            'scenarios.*.inflow_adjustment' => 'required_with:scenarios|numeric|min:0|max:2',
+            'treasury_id'                    => 'required|uuid',
+            'forecast_days'                  => 'integer|min:1|max:365',
+            'scenarios'                      => 'array',
+            'scenarios.*.description'        => 'required_with:scenarios|string',
+            'scenarios.*.inflow_adjustment'  => 'required_with:scenarios|numeric|min:0|max:2',
             'scenarios.*.outflow_adjustment' => 'required_with:scenarios|numeric|min:0|max:3',
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
-                'error' => 'Validation failed',
+                'error'    => 'Validation failed',
                 'messages' => $validator->errors(),
             ], 422);
         }
-        
+
         try {
             $forecast = $this->forecastingService->generateForecast(
                 $request->input('treasury_id'),
                 $request->input('forecast_days', 30),
                 $request->input('scenarios', [])
             );
-            
+
             return response()->json($forecast);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to generate forecast',
+                'error'   => 'Failed to generate forecast',
                 'message' => $e->getMessage(),
             ], 500);
         }
     }
-    
+
     /**
-     * Get current liquidity position
-     * 
+     * Get current liquidity position.
+     *
      * Calculate real-time liquidity metrics and coverage ratios
-     * 
+     *
      * @urlParam treasury_id string required The treasury account ID
-     * 
+     *
      * @response 200 {
      *   "timestamp": "2024-01-01T00:00:00Z",
      *   "available_liquidity": 1000000.00,
@@ -100,26 +101,26 @@ class LiquidityForecastController extends Controller
     {
         try {
             $liquidity = $this->forecastingService->calculateCurrentLiquidity($treasuryId);
-            
+
             return response()->json($liquidity);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to calculate liquidity',
+                'error'   => 'Failed to calculate liquidity',
                 'message' => $e->getMessage(),
             ], 500);
         }
     }
-    
+
     /**
-     * Start automated forecasting workflow
-     * 
+     * Start automated forecasting workflow.
+     *
      * Initialize continuous liquidity monitoring and forecasting
-     * 
+     *
      * @bodyParam treasury_id string required The treasury account ID
      * @bodyParam forecast_days integer Days to forecast (default: 30)
      * @bodyParam update_interval_hours integer Hours between updates (default: 6)
      * @bodyParam auto_mitigation boolean Enable automatic mitigation (default: false)
-     * 
+     *
      * @response 200 {
      *   "workflow_id": "workflow-uuid",
      *   "status": "started",
@@ -130,54 +131,54 @@ class LiquidityForecastController extends Controller
     public function startForecastingWorkflow(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'treasury_id' => 'required|uuid',
-            'forecast_days' => 'integer|min:1|max:365',
+            'treasury_id'           => 'required|uuid',
+            'forecast_days'         => 'integer|min:1|max:365',
             'update_interval_hours' => 'integer|min:1|max:24',
-            'auto_mitigation' => 'boolean',
+            'auto_mitigation'       => 'boolean',
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
-                'error' => 'Validation failed',
+                'error'    => 'Validation failed',
                 'messages' => $validator->errors(),
             ], 422);
         }
-        
+
         try {
             $workflow = WorkflowStub::make(LiquidityForecastingWorkflow::class);
             $workflowId = uniqid('liq-forecast-');
-            
+
             $workflow->start(
                 $request->input('treasury_id'),
                 [
-                    'forecast_days' => $request->input('forecast_days', 30),
+                    'forecast_days'         => $request->input('forecast_days', 30),
                     'update_interval_hours' => $request->input('update_interval_hours', 6),
-                    'auto_mitigation' => $request->input('auto_mitigation', false),
+                    'auto_mitigation'       => $request->input('auto_mitigation', false),
                 ]
             );
-            
+
             return response()->json([
                 'workflow_id' => $workflowId,
-                'status' => 'started',
+                'status'      => 'started',
                 'treasury_id' => $request->input('treasury_id'),
-                'config' => $request->only(['forecast_days', 'update_interval_hours', 'auto_mitigation']),
+                'config'      => $request->only(['forecast_days', 'update_interval_hours', 'auto_mitigation']),
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to start workflow',
+                'error'   => 'Failed to start workflow',
                 'message' => $e->getMessage(),
             ], 500);
         }
     }
-    
+
     /**
-     * Get forecast alerts
-     * 
+     * Get forecast alerts.
+     *
      * Retrieve active liquidity alerts for a treasury account
-     * 
+     *
      * @urlParam treasury_id string required The treasury account ID
      * @queryParam level string Filter by alert level (critical, warning, info)
-     * 
+     *
      * @response 200 {
      *   "alerts": [
      *     {
@@ -196,25 +197,25 @@ class LiquidityForecastController extends Controller
     public function getAlerts(Request $request, string $treasuryId): JsonResponse
     {
         $level = $request->query('level');
-        
+
         try {
             // Generate fresh forecast to get current alerts
             $forecast = $this->forecastingService->generateForecast($treasuryId, 7);
             $alerts = $forecast['alerts'] ?? [];
-            
+
             // Filter by level if specified
             if ($level) {
-                $alerts = array_filter($alerts, fn($alert) => $alert['level'] === $level);
+                $alerts = array_filter($alerts, fn ($alert) => $alert['level'] === $level);
             }
-            
+
             return response()->json([
-                'alerts' => array_values($alerts),
-                'count' => count($alerts),
-                'has_critical' => !empty(array_filter($alerts, fn($a) => $a['level'] === 'critical')),
+                'alerts'       => array_values($alerts),
+                'count'        => count($alerts),
+                'has_critical' => ! empty(array_filter($alerts, fn ($a) => $a['level'] === 'critical')),
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to retrieve alerts',
+                'error'   => 'Failed to retrieve alerts',
                 'message' => $e->getMessage(),
             ], 500);
         }

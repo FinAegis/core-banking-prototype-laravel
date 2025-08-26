@@ -677,7 +677,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'check.token.expiration', 'r
                 Route::post('/workflow/start', [App\Http\Controllers\Api\LiquidityForecastController::class, 'startForecastingWorkflow'])->name('workflow.start');
                 Route::get('/{treasuryId}/alerts', [App\Http\Controllers\Api\LiquidityForecastController::class, 'getAlerts'])->name('alerts');
             });
-            
+
             // Yield Optimization endpoints
             Route::prefix('yield')->name('yield.')->group(function () {
                 Route::post('/optimize', [App\Http\Controllers\Api\YieldOptimizationController::class, 'optimizePortfolio'])->name('optimize');

@@ -19,23 +19,25 @@ use Tests\TestCase;
 class LiquidityForecastingTest extends TestCase
 {
     use RefreshDatabase;
-    
+
     private LiquidityForecastingService $service;
+
     private string $treasuryId;
+
     protected User $user;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->service = app(LiquidityForecastingService::class);
         $this->treasuryId = (string) Str::uuid();
         $this->user = User::factory()->create();
-        
+
         // Seed historical data for forecasting
         $this->seedHistoricalTransactions();
     }
-    
+
     /**
      * @test
      */
@@ -43,7 +45,7 @@ class LiquidityForecastingTest extends TestCase
     {
         // Act
         $forecast = $this->service->generateForecast($this->treasuryId, 30);
-        
+
         // Assert
         $this->assertIsArray($forecast);
         $this->assertEquals($this->treasuryId, $forecast['treasury_id']);
@@ -54,7 +56,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertArrayHasKey('alerts', $forecast);
         $this->assertArrayHasKey('confidence_level', $forecast);
         $this->assertArrayHasKey('recommendations', $forecast);
-        
+
         // Validate base forecast structure
         $this->assertCount(30, $forecast['base_forecast']);
         $firstDay = $forecast['base_forecast'][0];
@@ -65,7 +67,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertArrayHasKey('projected_balance', $firstDay);
         $this->assertArrayHasKey('confidence_interval', $firstDay);
     }
-    
+
     /**
      * @test
      */
@@ -73,10 +75,10 @@ class LiquidityForecastingTest extends TestCase
     {
         // Setup
         $this->createTreasuryAccounts();
-        
+
         // Act
         $liquidity = $this->service->calculateCurrentLiquidity($this->treasuryId);
-        
+
         // Assert
         $this->assertIsArray($liquidity);
         $this->assertArrayHasKey('timestamp', $liquidity);
@@ -87,12 +89,12 @@ class LiquidityForecastingTest extends TestCase
         $this->assertArrayHasKey('coverage_ratio', $liquidity);
         $this->assertArrayHasKey('status', $liquidity);
         $this->assertArrayHasKey('buffer_days', $liquidity);
-        
+
         $this->assertIsFloat($liquidity['available_liquidity']);
         $this->assertIsFloat($liquidity['coverage_ratio']);
         $this->assertContains($liquidity['status'], ['excellent', 'good', 'adequate', 'concerning', 'critical']);
     }
-    
+
     /**
      * @test
      */
@@ -100,19 +102,19 @@ class LiquidityForecastingTest extends TestCase
     {
         // Setup - Create transactions that will lead to negative balance
         $this->seedDecliningTransactions();
-        
+
         // Act
         $forecast = $this->service->generateForecast($this->treasuryId, 30);
-        
+
         // Assert
         $this->assertNotEmpty($forecast['alerts']);
-        
+
         $negativeBalanceAlert = collect($forecast['alerts'])->firstWhere('type', 'negative_balance');
         $this->assertNotNull($negativeBalanceAlert);
         $this->assertEquals('critical', $negativeBalanceAlert['level']);
         $this->assertTrue($negativeBalanceAlert['action_required']);
     }
-    
+
     /**
      * @test
      */
@@ -121,16 +123,16 @@ class LiquidityForecastingTest extends TestCase
         // Act
         $forecast = $this->service->generateForecast($this->treasuryId, 30, [
             'custom_stress' => [
-                'description' => 'Custom stress scenario',
-                'inflow_adjustment' => 0.5,
+                'description'        => 'Custom stress scenario',
+                'inflow_adjustment'  => 0.5,
                 'outflow_adjustment' => 1.5,
             ],
         ]);
-        
+
         // Assert
         $this->assertArrayHasKey('scenarios', $forecast);
         $this->assertArrayHasKey('custom_stress', $forecast['scenarios']);
-        
+
         $customScenario = $forecast['scenarios']['custom_stress'];
         $this->assertEquals('Custom stress scenario', $customScenario['description']);
         $this->assertArrayHasKey('adjusted_forecast', $customScenario);
@@ -138,7 +140,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertArrayHasKey('days_below_threshold', $customScenario);
         $this->assertArrayHasKey('recovery_time', $customScenario);
     }
-    
+
     /**
      * @test
      */
@@ -146,7 +148,7 @@ class LiquidityForecastingTest extends TestCase
     {
         // Act
         $forecast = $this->service->generateForecast($this->treasuryId, 30);
-        
+
         // Assert
         $metrics = $forecast['risk_metrics'];
         $this->assertArrayHasKey('liquidity_coverage_ratio', $metrics);
@@ -156,14 +158,14 @@ class LiquidityForecastingTest extends TestCase
         $this->assertArrayHasKey('value_at_risk_95', $metrics);
         $this->assertArrayHasKey('expected_shortfall', $metrics);
         $this->assertArrayHasKey('liquidity_buffer_adequacy', $metrics);
-        
+
         // Validate metric ranges
         $this->assertGreaterThanOrEqual(0, $metrics['liquidity_coverage_ratio']);
         $this->assertGreaterThanOrEqual(0, $metrics['stress_test_survival_days']);
         $this->assertGreaterThanOrEqual(0, $metrics['probability_of_shortage']);
         $this->assertLessThanOrEqual(1, $metrics['probability_of_shortage']);
     }
-    
+
     /**
      * @test
      */
@@ -171,23 +173,23 @@ class LiquidityForecastingTest extends TestCase
     {
         // Act
         $forecast = $this->service->generateForecast($this->treasuryId, 30);
-        
+
         // Assert
         $this->assertArrayHasKey('recommendations', $forecast);
         $this->assertIsArray($forecast['recommendations']);
-        
-        if (!empty($forecast['recommendations'])) {
+
+        if (! empty($forecast['recommendations'])) {
             $recommendation = $forecast['recommendations'][0];
             $this->assertArrayHasKey('priority', $recommendation);
             $this->assertArrayHasKey('category', $recommendation);
             $this->assertArrayHasKey('action', $recommendation);
             $this->assertArrayHasKey('rationale', $recommendation);
             $this->assertArrayHasKey('expected_impact', $recommendation);
-            
+
             $this->assertContains($recommendation['priority'], ['urgent', 'high', 'medium', 'low']);
         }
     }
-    
+
     /**
      * @test
      */
@@ -195,22 +197,22 @@ class LiquidityForecastingTest extends TestCase
     {
         // Setup - Use treasury with no historical data
         $emptyTreasuryId = (string) Str::uuid();
-        
+
         // Act
         $forecast = $this->service->generateForecast($emptyTreasuryId, 30);
-        
+
         // Assert
         $this->assertIsArray($forecast);
         $this->assertEquals($emptyTreasuryId, $forecast['treasury_id']);
         $this->assertLessThan(0.5, $forecast['confidence_level']); // Low confidence
         $this->assertNotEmpty($forecast['recommendations']);
-        
+
         // Should recommend data collection
         $dataRecommendation = collect($forecast['recommendations'])
             ->firstWhere('category', 'data_collection');
         $this->assertNotNull($dataRecommendation);
     }
-    
+
     /**
      * @test
      */
@@ -218,22 +220,22 @@ class LiquidityForecastingTest extends TestCase
     {
         // Clear cache first
         Cache::flush();
-        
+
         // Act - Generate forecast twice
         $forecast1 = $this->service->generateForecast($this->treasuryId, 30);
         $forecast2 = $this->service->generateForecast($this->treasuryId, 30);
-        
+
         // Assert - Should return same result (cached)
         $this->assertEquals($forecast1['generated_at'], $forecast2['generated_at']);
-        
+
         // Clear cache and generate again
         Cache::flush();
         $forecast3 = $this->service->generateForecast($this->treasuryId, 30);
-        
+
         // Should have different timestamp
         $this->assertNotEquals($forecast1['generated_at'], $forecast3['generated_at']);
     }
-    
+
     /**
      * @test
      */
@@ -249,10 +251,10 @@ class LiquidityForecastingTest extends TestCase
             expectedShortfall: 5000,
             liquidityBufferAdequacy: 0.8
         );
-        
+
         $this->assertTrue($metrics->isHealthy());
         $this->assertEquals('low', $metrics->getRiskLevel());
-        
+
         // Test unhealthy metrics
         $unhealthyMetrics = new LiquidityMetrics(
             liquidityCoverageRatio: 0.8,
@@ -263,11 +265,11 @@ class LiquidityForecastingTest extends TestCase
             expectedShortfall: 25000,
             liquidityBufferAdequacy: 0.3
         );
-        
+
         $this->assertFalse($unhealthyMetrics->isHealthy());
         $this->assertEquals('high', $unhealthyMetrics->getRiskLevel());
     }
-    
+
     /**
      * @test
      */
@@ -282,14 +284,14 @@ class LiquidityForecastingTest extends TestCase
             projectedBalance: 120000,
             confidenceInterval: ['lower' => 100000, 'upper' => 140000]
         );
-        
+
         $this->assertFalse($projection->isNegative());
         $this->assertTrue($projection->isWithinConfidence(110000));
         $this->assertFalse($projection->isWithinConfidence(150000));
         $this->assertEquals(40000, $projection->getConfidenceRange());
         $this->assertEqualsWithDelta(0.111, $projection->getNetMargin(), 0.001);
     }
-    
+
     /**
      * @test
      */
@@ -297,10 +299,10 @@ class LiquidityForecastingTest extends TestCase
     {
         // Setup - Create scenario with low liquid assets
         $this->seedLowLiquidityScenario();
-        
+
         // Act
         $forecast = $this->service->generateForecast($this->treasuryId, 30);
-        
+
         // Assert
         $lcrAlert = collect($forecast['alerts'])->firstWhere('type', 'lcr_breach');
         if ($forecast['risk_metrics']['liquidity_coverage_ratio'] < 1.0) {
@@ -309,96 +311,96 @@ class LiquidityForecastingTest extends TestCase
             $this->assertTrue($lcrAlert['action_required']);
         }
     }
-    
+
     /**
-     * Helper method to seed historical transactions
+     * Helper method to seed historical transactions.
      */
     private function seedHistoricalTransactions(): void
     {
         $account = Account::factory()->create([
-            'treasury_id' => $this->treasuryId,
-            'user_id' => $this->user->id,
+            'treasury_id'       => $this->treasuryId,
+            'user_id'           => $this->user->id,
             'available_balance' => 100000,
         ]);
-        
+
         // Create 60 days of historical transactions
         for ($i = 60; $i >= 0; $i--) {
             // Daily inflows
             Transaction::factory()->create([
                 'account_id' => $account->id,
-                'type' => 'credit',
-                'amount' => fake()->randomFloat(2, 5000, 15000),
+                'type'       => 'credit',
+                'amount'     => fake()->randomFloat(2, 5000, 15000),
                 'created_at' => now()->subDays($i),
             ]);
-            
+
             // Daily outflows
             Transaction::factory()->create([
                 'account_id' => $account->id,
-                'type' => 'debit',
-                'amount' => fake()->randomFloat(2, 4000, 12000),
+                'type'       => 'debit',
+                'amount'     => fake()->randomFloat(2, 4000, 12000),
                 'created_at' => now()->subDays($i),
             ]);
         }
     }
-    
+
     /**
-     * Helper method to seed declining transaction pattern
+     * Helper method to seed declining transaction pattern.
      */
     private function seedDecliningTransactions(): void
     {
         $account = Account::factory()->create([
-            'treasury_id' => $this->treasuryId,
-            'user_id' => $this->user->id,
+            'treasury_id'       => $this->treasuryId,
+            'user_id'           => $this->user->id,
             'available_balance' => 10000, // Low starting balance
         ]);
-        
+
         // Create declining pattern - more outflows than inflows
         for ($i = 30; $i >= 0; $i--) {
             Transaction::factory()->create([
                 'account_id' => $account->id,
-                'type' => 'credit',
-                'amount' => fake()->randomFloat(2, 1000, 2000), // Low inflows
+                'type'       => 'credit',
+                'amount'     => fake()->randomFloat(2, 1000, 2000), // Low inflows
                 'created_at' => now()->subDays($i),
             ]);
-            
+
             Transaction::factory()->create([
                 'account_id' => $account->id,
-                'type' => 'debit',
-                'amount' => fake()->randomFloat(2, 3000, 5000), // High outflows
+                'type'       => 'debit',
+                'amount'     => fake()->randomFloat(2, 3000, 5000), // High outflows
                 'created_at' => now()->subDays($i),
             ]);
         }
     }
-    
+
     /**
-     * Helper method to create treasury accounts
+     * Helper method to create treasury accounts.
      */
     private function createTreasuryAccounts(): void
     {
         Account::factory()->count(3)->create([
-            'treasury_id' => $this->treasuryId,
-            'user_id' => $this->user->id,
+            'treasury_id'       => $this->treasuryId,
+            'user_id'           => $this->user->id,
             'available_balance' => fake()->randomFloat(2, 50000, 200000),
         ]);
     }
-    
+
     /**
-     * Helper method to seed low liquidity scenario
+     * Helper method to seed low liquidity scenario.
      */
     private function seedLowLiquidityScenario(): void
     {
         $account = Account::factory()->create([
-            'treasury_id' => $this->treasuryId,
-            'user_id' => $this->user->id,
+            'treasury_id'       => $this->treasuryId,
+            'user_id'           => $this->user->id,
             'available_balance' => 5000, // Very low liquid assets
         ]);
-        
+
         // Create high outflow pattern
         for ($i = 30; $i >= 0; $i--) {
             Transaction::factory()->create([
                 'account_id' => $account->id,
-                'type' => 'debit',
-                'amount' => fake()->randomFloat(2, 5000, 10000),
+                'type'       => 'debit',
+                'amount'     => fake()->randomFloat(2, 5000, 10000),
                 'created_at' => now()->subDays($i),
             ]);
         }

@@ -15,5 +15,6 @@ class LiquidityForecastGenerated extends ShouldBeStored
         public readonly array $riskMetrics,
         public readonly Carbon $generatedAt,
         public readonly string $generatedBy
-    ) {}
+    ) {
+    }
 }

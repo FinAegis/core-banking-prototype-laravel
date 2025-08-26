@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -26,11 +25,11 @@ return new class extends Migration
             $table->timestamp('generated_at');
             $table->string('generated_by');
             $table->timestamps();
-            
+
             $table->index(['treasury_id', 'generated_at']);
             $table->index('status');
         });
-        
+
         // Table for liquidity alerts
         Schema::create('liquidity_alerts', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -49,12 +48,12 @@ return new class extends Migration
             $table->string('resolved_by')->nullable();
             $table->text('resolution_notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['treasury_id', 'status']);
             $table->index(['level', 'status']);
             $table->foreign('forecast_id')->references('id')->on('liquidity_forecasts')->onDelete('cascade');
         });
-        
+
         // Table for scheduled payments (for committed outflows)
         Schema::create('scheduled_payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -68,11 +67,11 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['treasury_id', 'due_date', 'status']);
             $table->index(['status', 'due_date']);
         });
-        
+
         // Table for expected receivables (for expected inflows)
         Schema::create('expected_receivables', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -86,11 +85,11 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamp('received_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['treasury_id', 'expected_date', 'status']);
             $table->index(['status', 'expected_date']);
         });
-        
+
         // Table for liquidity buffer configuration
         Schema::create('liquidity_buffers', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -108,7 +107,7 @@ return new class extends Migration
             $table->json('rebalance_rules')->nullable();
             $table->timestamps();
         });
-        
+
         // Table for liquidity mitigation actions
         Schema::create('liquidity_mitigation_actions', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -125,7 +124,7 @@ return new class extends Migration
             $table->string('initiated_by');
             $table->text('outcome_notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['treasury_id', 'status']);
             $table->index('status');
             $table->foreign('alert_id')->references('id')->on('liquidity_alerts')->onDelete('set null');
