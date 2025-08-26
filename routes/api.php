@@ -665,3 +665,23 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'check.token.expiration', 'r
         ]);
     });
 });
+
+    // Treasury Management endpoints
+    Route::prefix('treasury')->name('api.treasury.')->group(function () {
+        // Authenticated treasury routes
+        Route::middleware('auth:sanctum', 'check.token.expiration', 'check.api.scope:treasury')->group(function () {
+            // Liquidity Forecasting endpoints
+            Route::prefix('liquidity-forecast')->name('liquidity.')->group(function () {
+                Route::post('/generate', [App\Http\Controllers\Api\LiquidityForecastController::class, 'generateForecast'])->name('generate');
+                Route::get('/{treasuryId}/current', [App\Http\Controllers\Api\LiquidityForecastController::class, 'getCurrentLiquidity'])->name('current');
+                Route::post('/workflow/start', [App\Http\Controllers\Api\LiquidityForecastController::class, 'startForecastingWorkflow'])->name('workflow.start');
+                Route::get('/{treasuryId}/alerts', [App\Http\Controllers\Api\LiquidityForecastController::class, 'getAlerts'])->name('alerts');
+            });
+            
+            // Yield Optimization endpoints
+            Route::prefix('yield')->name('yield.')->group(function () {
+                Route::post('/optimize', [App\Http\Controllers\Api\YieldOptimizationController::class, 'optimizePortfolio'])->name('optimize');
+                Route::get('/{treasuryId}/portfolio', [App\Http\Controllers\Api\YieldOptimizationController::class, 'getPortfolio'])->name('portfolio');
+            });
+        });
+    });
