@@ -8,10 +8,10 @@ use App\Domain\Treasury\Activities\ApplyLiquidityMitigationActivity;
 use App\Domain\Treasury\Activities\GenerateLiquidityForecastActivity;
 use App\Domain\Treasury\Activities\SendLiquidityAlertActivity;
 use Workflow\ActivityStub;
-use Workflow\SignalMethod;
+use Temporal\Workflow\SignalMethod;
+use Temporal\Workflow\WorkflowMethod;
 use Workflow\Workflow;
 use Workflow\WorkflowInterface;
-use Workflow\WorkflowMethod;
 
 /**
  * Workflow for automated liquidity forecasting and alerting.

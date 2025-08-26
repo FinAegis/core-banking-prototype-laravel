@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Treasury\Activities;
 
-use Workflow\ActivityInterface;
-use Workflow\ActivityMethod;
+use Workflow\Activity\ActivityInterface;
+use Workflow\Activity\ActivityMethod;
 
 /**
  * Activity for sending liquidity alerts.

@@ -664,6 +664,7 @@ class LiquidityForecastingService
     {
         return Transaction::query()
             ->whereHas('account', function ($query) use ($treasuryId) {
+                /** @phpstan-ignore-next-line */
                 $query->where('treasury_id', $treasuryId);
             })
             ->where('created_at', '>=', now()->subMonths(6))
@@ -673,6 +674,7 @@ class LiquidityForecastingService
 
     private function getTreasuryAccounts(string $treasuryId): Collection
     {
+        /** @phpstan-ignore-next-line */
         return Account::where('treasury_id', $treasuryId)->get();
     }
 

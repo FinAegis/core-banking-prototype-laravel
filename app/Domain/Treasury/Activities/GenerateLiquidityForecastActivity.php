@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\Activities;
 
 use App\Domain\Treasury\Services\LiquidityForecastingService;
-use Workflow\ActivityInterface;
-use Workflow\ActivityMethod;
+use Workflow\Activity\ActivityInterface;
+use Workflow\Activity\ActivityMethod;
 
 /**
  * Activity for generating liquidity forecast.
