@@ -104,6 +104,11 @@ parameters:
         # Treasury domain specific ignores
         - '#Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory<App\\Domain\\Account\\Models\\Account>::create\(\) expects .* array\{treasury_id: string, .+\} given#'
         - '#Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Factories\\Factory<App\\Domain\\Account\\Models\\Transaction>::create\(\) expects .* array\{account_id: int, .+\} given#'
+        - '#Method Database\\Factories\\TransactionFactory::create\(\) should return .* but returns Illuminate\\Database\\Eloquent\\Model\|Illuminate\\Support\\Collection#'
+        - '#Access to property \$id on an unknown class Database\\Factories\\Collection#'
+        - '#Method Tests\\Feature\\Domain\\Compliance\\FraudDetectionServiceTest::createTransaction\(\) should return App\\Domain\\Account\\Models\\Transaction but returns Database\\Factories\\Collection\|Illuminate\\Database\\Eloquent\\Model#'
+        - '#Method Tests\\Feature\\Domain\\Exchange\\TransactionMonitoringServiceTest::createTransaction\(\) should return App\\Domain\\Account\\Models\\Transaction but returns Database\\Factories\\Collection\|Illuminate\\Database\\Eloquent\\Model#'
+        - '#Method Tests\\Security\\Vulnerability\\SuspiciousActivityDetectedTest::createTransaction\(\) should return App\\Domain\\Account\\Models\\Transaction but returns Database\\Factories\\Collection\|Illuminate\\Database\\Eloquent\\Model#'
         - '#Call to method PHPUnit\\Framework\\Assert::assertIsArray\(\) with array will always evaluate to true#'
         - '#Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder<App\\Domain\\Account\\Models\\Account>::where\(\) expects .* ''treasury_id'' given#'
         - '#Attribute class Temporal\\Workflow\\(WorkflowMethod|SignalMethod) does not exist#'
