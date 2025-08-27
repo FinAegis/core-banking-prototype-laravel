@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Schema;
 
 class TestSeeder extends Seeder
 {
@@ -15,17 +16,17 @@ class TestSeeder extends Seeder
         $seeders = [];
 
         // Only seed roles if the permission tables exist
-        if (\Schema::hasTable('roles')) {
+        if (Schema::hasTable('roles')) {
             $seeders[] = RolesSeeder::class;
         }
 
         // Only seed assets if the assets table exists
-        if (\Schema::hasTable('assets')) {
+        if (Schema::hasTable('assets')) {
             $seeders[] = AssetSeeder::class;
         }
 
         // Only seed settings if the settings table exists
-        if (\Schema::hasTable('settings')) {
+        if (Schema::hasTable('settings')) {
             $seeders[] = SettingSeeder::class;
         }
 

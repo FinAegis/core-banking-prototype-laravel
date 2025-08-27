@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Models\User;
+use DB;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -94,7 +95,7 @@ class AccountFactory extends Factory
             }
 
             // Get the balance from the raw attributes to avoid the accessor
-            $rawBalance = \DB::table('accounts')
+            $rawBalance = DB::table('accounts')
                 ->where('id', $account->id)
                 ->value('balance');
 

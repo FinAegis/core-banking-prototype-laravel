@@ -84,11 +84,11 @@ class BankAlertingControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->adminUser);
 
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('performHealthCheck');
         $expectation->once();
 
-        /** @var \Mockery\Expectation $expectation2 */
+        /** @var Mockery\Expectation $expectation2 */
         $expectation2 = $this->mockHealthMonitor->shouldReceive('getAllCustodiansHealth');
         $expectation2->once()->andReturn([
                 'paysera' => [
@@ -149,7 +149,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->adminUser);
 
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('performHealthCheck');
         $expectation->once()->andThrow(new Exception('Health check service unavailable'));
 
@@ -167,7 +167,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->adminUser);
 
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockHealthMonitor->shouldReceive('getAllCustodiansHealth');
         $expectation->once()->andReturn([
                 'paysera' => [
@@ -219,7 +219,7 @@ class BankAlertingControllerTest extends ControllerTestCase
             'last_check'           => now()->toISOString(),
         ];
 
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockHealthMonitor->shouldReceive('getCustodianHealth');
         $expectation->once()->with('paysera')->andReturn($health);
 
@@ -246,7 +246,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->adminUser);
 
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockHealthMonitor->shouldReceive('getCustodianHealth');
         $expectation->once()->with('unknown')->andReturn([]); // Return empty array which is falsy
 
@@ -269,7 +269,7 @@ class BankAlertingControllerTest extends ControllerTestCase
             ['alert_id' => '2', 'severity' => 'critical', 'timestamp' => now()->subDays(2)->toISOString()],
         ];
 
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('getAlertHistory');
         $expectation->once()->with('paysera', Mockery::type('int'))->andReturn($history);
 
@@ -298,7 +298,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->adminUser);
 
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('getAlertHistory');
         $expectation->once()->with('wise', Mockery::type('int'))->andReturn([]);
 

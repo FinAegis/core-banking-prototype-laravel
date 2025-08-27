@@ -46,13 +46,13 @@ echo ""
 
 # Get list of modified PHP files
 if [ "$CHECK_ALL" = true ]; then
-    FILES="app/ tests/"
-    echo -e "${YELLOW}Checking all files in app/ and tests/...${NC}"
+    FILES="app/ config/ database/ routes/ tests/"
+    echo -e "${YELLOW}Checking all files in app/, config/, database/, routes/, and tests/...${NC}"
 else
     # Get modified PHP files (staged and unstaged) from both app/ and tests/
-    FILES=$(git diff --name-only --diff-filter=ACMR HEAD -- '*.php' | grep -E '^(app|tests)/' || true)
+    FILES=$(git diff --name-only --diff-filter=ACMR HEAD -- '*.php' | grep -E '^(app|config|database|routes|tests)/' || true)
     if [ -z "$FILES" ]; then
-        echo -e "${GREEN}No PHP files modified in app/ or tests/. Skipping checks.${NC}"
+        echo -e "${GREEN}No PHP files modified in app/, config/, database/, routes/, or tests/. Skipping checks.${NC}"
         exit 0
     fi
     echo -e "${YELLOW}Checking modified files:${NC}"
@@ -79,10 +79,10 @@ echo -e "${BLUE}[1/6] Checking PHP CodeSniffer (PSR-12)...${NC}"
 PHPCS_HAD_ISSUES=false
 
 # Check app/ directory with standard rules
-if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
+if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
     PHPCS_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/${NC}"
-    ./vendor/bin/phpcs app/ | head -20
+    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/, database/, routes/, config/${NC}"
+    ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
 fi
 
 # Check tests/ directory with our custom ruleset (handles Pest patterns)
@@ -95,13 +95,13 @@ fi
 if [ "$PHPCS_HAD_ISSUES" = true ]; then
     if [ "$AUTO_FIX" = true ]; then
         echo -e "${BLUE}  Attempting auto-fix with PHPCBF...${NC}"
-        ./vendor/bin/phpcbf app/ 2>/dev/null || true
+        ./vendor/bin/phpcbf app/ database/ routes/ config/ 2>/dev/null || true
         ./vendor/bin/phpcbf tests/ 2>/dev/null || true
         ISSUES_FIXED=true
         
         # Re-check after fix
         STILL_HAS_ISSUES=false
-        if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
+        if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
             STILL_HAS_ISSUES=true
         fi
         if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
@@ -148,10 +148,10 @@ if [ "$AUTO_FIX" = true ] && [ "$ISSUES_FIXED" = true ]; then
     echo -e "${BLUE}[3/6] Final PSR-12 compliance check...${NC}"
     FINAL_ISSUES=false
     
-    if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
+    if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
         FINAL_ISSUES=true
-        echo -e "${RED}✗ Final check: Still has PSR-12 violations in app/${NC}"
-        ./vendor/bin/phpcs app/ | head -20
+        echo -e "${RED}✗ Final check: Still has PSR-12 violations in app/, database/, routes/, config/${NC}"
+        ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
     fi
     
     if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then

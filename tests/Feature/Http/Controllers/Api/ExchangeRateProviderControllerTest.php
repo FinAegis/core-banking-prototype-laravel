@@ -72,27 +72,27 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         );
 
         // Setup mock provider
-        /** @var \Mockery\Expectation $exp1 */
+        /** @var Mockery\Expectation $exp1 */
         $exp1 = $this->mockProvider->shouldReceive('getName');
         $exp1->andReturn('European Central Bank');
-        /** @var \Mockery\Expectation $exp2 */
+        /** @var Mockery\Expectation $exp2 */
         $exp2 = $this->mockProvider->shouldReceive('isAvailable');
         $exp2->andReturn(true);
-        /** @var \Mockery\Expectation $exp3 */
+        /** @var Mockery\Expectation $exp3 */
         $exp3 = $this->mockProvider->shouldReceive('getPriority');
         $exp3->andReturn(100);
-        /** @var \Mockery\Expectation $exp4 */
+        /** @var Mockery\Expectation $exp4 */
         $exp4 = $this->mockProvider->shouldReceive('getCapabilities');
         $exp4->andReturn($capabilities);
-        /** @var \Mockery\Expectation $exp5 */
+        /** @var Mockery\Expectation $exp5 */
         $exp5 = $this->mockProvider->shouldReceive('getSupportedCurrencies');
         $exp5->andReturn(['EUR', 'USD', 'GBP']);
 
         // Setup registry
-        /** @var \Mockery\Expectation $exp6 */
+        /** @var Mockery\Expectation $exp6 */
         $exp6 = $this->mockRegistry->shouldReceive('all');
         $exp6->andReturn(['ecb' => $this->mockProvider]);
-        /** @var \Mockery\Expectation $exp7 */
+        /** @var Mockery\Expectation $exp7 */
         $exp7 = $this->mockRegistry->shouldReceive('names');
         $exp7->andReturn(['ecb']);
 
@@ -126,15 +126,15 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         );
 
         // Setup mock provider
-        /** @var \Mockery\Expectation $exp1 */
+        /** @var Mockery\Expectation $exp1 */
         $exp1 = $this->mockProvider->shouldReceive('isAvailable');
         $exp1->andReturn(true);
-        /** @var \Mockery\Expectation $exp2 */
+        /** @var Mockery\Expectation $exp2 */
         $exp2 = $this->mockProvider->shouldReceive('getRate');
         $exp2->with('EUR', 'USD')->andReturn($quote);
 
         // Setup registry
-        /** @var \Mockery\Expectation $exp3 */
+        /** @var Mockery\Expectation $exp3 */
         $exp3 = $this->mockRegistry->shouldReceive('get');
         $exp3->with('ecb')->andReturn($this->mockProvider);
 
@@ -163,7 +163,7 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
     public function test_get_rate_validates_provider(): void
     {
         // Setup registry to throw exception for invalid provider
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockRegistry->shouldReceive('get');
         $expectation->with('invalid')->andThrow(new InvalidArgumentException('Provider not found'));
 
@@ -176,7 +176,7 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
     public function test_compare_rates_across_providers(): void
     {
         // Mock the service for compare rates
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockService->shouldReceive('compareRates');
         $expectation->with('EUR', 'USD')->andReturn([
                 'ecb'   => ['rate' => 1.0825, 'provider' => 'ecb'],

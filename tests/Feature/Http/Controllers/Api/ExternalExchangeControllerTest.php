@@ -66,16 +66,16 @@ class ExternalExchangeControllerTest extends ControllerTestCase
     public function test_get_connectors_returns_list(): void
     {
         // Setup mock connector
-        /** @var \Mockery\Expectation $exp1 */
+        /** @var Mockery\Expectation $exp1 */
         $exp1 = $this->mockConnector->shouldReceive('getName');
         $exp1->andReturn('Binance');
-        /** @var \Mockery\Expectation $exp2 */
+        /** @var Mockery\Expectation $exp2 */
         $exp2 = $this->mockConnector->shouldReceive('isAvailable');
         $exp2->andReturn(true);
 
         // Setup registry to return a collection of connectors
         $connectors = new Collection(['binance' => $this->mockConnector]);
-        /** @var \Mockery\Expectation $exp3 */
+        /** @var Mockery\Expectation $exp3 */
         $exp3 = $this->mockRegistry->shouldReceive('all');
         $exp3->andReturn($connectors);
 
@@ -112,18 +112,18 @@ class ExternalExchangeControllerTest extends ControllerTestCase
         );
 
         // Setup mock connector to return ticker
-        /** @var \Mockery\Expectation $exp1 */
+        /** @var Mockery\Expectation $exp1 */
         $exp1 = $this->mockConnector->shouldReceive('getTicker');
         $exp1->with('BTC', 'EUR')->andReturn($ticker);
 
         // Setup registry
-        /** @var \Mockery\Expectation $exp2 */
+        /** @var Mockery\Expectation $exp2 */
         $exp2 = $this->mockRegistry->shouldReceive('available');
         $exp2->andReturn(new Collection(['binance' => $this->mockConnector]));
-        /** @var \Mockery\Expectation $exp3 */
+        /** @var Mockery\Expectation $exp3 */
         $exp3 = $this->mockRegistry->shouldReceive('getBestBid');
         $exp3->with('BTC', 'EUR')->andReturn(['price' => 50000.00, 'exchange' => 'binance']);
-        /** @var \Mockery\Expectation $exp4 */
+        /** @var Mockery\Expectation $exp4 */
         $exp4 = $this->mockRegistry->shouldReceive('getBestAsk');
         $exp4->with('BTC', 'EUR')->andReturn(['price' => 50100.00, 'exchange' => 'binance']);
 
@@ -143,13 +143,13 @@ class ExternalExchangeControllerTest extends ControllerTestCase
     public function test_get_ticker_returns_error_for_invalid_pair(): void
     {
         // Setup registry to return empty collection (no connectors available)
-        /** @var \Mockery\Expectation $exp1 */
+        /** @var Mockery\Expectation $exp1 */
         $exp1 = $this->mockRegistry->shouldReceive('available');
         $exp1->andReturn(new Collection());
-        /** @var \Mockery\Expectation $exp2 */
+        /** @var Mockery\Expectation $exp2 */
         $exp2 = $this->mockRegistry->shouldReceive('getBestBid');
         $exp2->with('INVALID', 'EUR')->andReturn(null);
-        /** @var \Mockery\Expectation $exp3 */
+        /** @var Mockery\Expectation $exp3 */
         $exp3 = $this->mockRegistry->shouldReceive('getBestAsk');
         $exp3->with('INVALID', 'EUR')->andReturn(null);
 
@@ -166,7 +166,7 @@ class ExternalExchangeControllerTest extends ControllerTestCase
     public function test_get_order_book_returns_depth_data(): void
     {
         // Setup registry to return aggregated order book
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockRegistry->shouldReceive('getAggregatedOrderBook');
         $expectation->with('BTC', 'EUR', 20)->andReturn([
                 'bids' => [
@@ -193,7 +193,7 @@ class ExternalExchangeControllerTest extends ControllerTestCase
     public function test_get_order_book_returns_error_for_invalid_pair(): void
     {
         // Setup registry to return empty order book
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockRegistry->shouldReceive('getAggregatedOrderBook');
         $expectation->with('BTC', 'INVALID', 20)->andReturn([
                 'bids' => [],
@@ -218,7 +218,7 @@ class ExternalExchangeControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user);
 
         // Setup liquidity service to return arbitrage opportunities
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockLiquidityService->shouldReceive('findArbitrageOpportunities');
         $expectation->with('BTC', 'EUR')->andReturn([
                 [
@@ -253,7 +253,7 @@ class ExternalExchangeControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user);
 
         // Setup liquidity service to return empty opportunities
-        /** @var \Mockery\Expectation $expectation */
+        /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockLiquidityService->shouldReceive('findArbitrageOpportunities');
         $expectation->with('INVALID', 'INVALID')->andReturn([]);
 
