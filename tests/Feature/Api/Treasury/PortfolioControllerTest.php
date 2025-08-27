@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PortfolioControllerTest extends TestCase
@@ -45,7 +46,7 @@ class PortfolioControllerTest extends TestCase
         Cache::flush();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_list_treasury_portfolios(): void
     {
         $response = $this->getJson('/api/treasury/portfolios');
@@ -75,7 +76,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_list_portfolios_with_treasury_id_filter(): void
     {
         $response = $this->getJson("/api/treasury/portfolios?treasury_id={$this->treasuryId}");
@@ -86,7 +87,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_requires_authentication_to_list_portfolios(): void
     {
         Sanctum::actingAs($this->testUser, []);  // No treasury scope
@@ -96,7 +97,7 @@ class PortfolioControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_a_treasury_portfolio(): void
     {
         $portfolioData = [
@@ -169,7 +170,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_portfolio_creation_data(): void
     {
         $invalidData = [
@@ -194,7 +195,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_show_a_specific_portfolio(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -283,7 +284,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_404_for_non_existent_portfolio(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -303,7 +304,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_update_portfolio_strategy(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -352,7 +353,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_allocate_assets_to_portfolio(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -412,7 +413,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_asset_allocation_data(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -441,7 +442,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_current_allocations(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -476,7 +477,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_trigger_portfolio_rebalancing(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -501,7 +502,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_rebalancing_plan(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -536,7 +537,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_approve_rebalancing(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -576,7 +577,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_rebalancing_approval_requires_risk_acknowledgment(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -593,7 +594,7 @@ class PortfolioControllerTest extends TestCase
             ->assertJsonValidationErrors(['risk_acknowledgment']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_portfolio_performance(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -640,7 +641,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_portfolio_valuation(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -664,7 +665,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_generate_portfolio_report(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -691,7 +692,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_report_generation_parameters(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -710,7 +711,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_list_portfolio_reports(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -739,7 +740,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_delete_portfolio(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -762,7 +763,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_prevents_deletion_of_rebalancing_portfolio(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -785,7 +786,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_service_exceptions_gracefully(): void
     {
         $portfolioId = Str::uuid()->toString();
@@ -805,7 +806,7 @@ class PortfolioControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_requires_proper_permissions_for_sensitive_operations(): void
     {
         // Test without proper treasury permissions

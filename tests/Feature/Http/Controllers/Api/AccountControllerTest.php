@@ -279,14 +279,26 @@ class AccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_destroy_deletes_account_with_zero_balance(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
             'frozen'    => false,
         ]);
+        
+        // Debug: verify the UUIDs match
+        $this->assertEquals($this->user->uuid, $account->user_uuid, 'Account should belong to test user');
 
         $response = $this->deleteJson("/api/accounts/{$account->uuid}");
+        
+        // Debug response if not 200
+        if ($response->status() !== 200) {
+            dump('Response status: ' . $response->status());
+            dump('Response body: ' . $response->content());
+            dump('User UUID: ' . $this->user->uuid);
+            dump('Account UUID: ' . $account->uuid);
+            dump('Account user_uuid: ' . $account->user_uuid);
+        }
 
         $response->assertStatus(200)
             ->assertJson([
@@ -297,7 +309,7 @@ class AccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_destroy_prevents_deletion_with_positive_balance(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -327,7 +339,7 @@ class AccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_destroy_prevents_deletion_of_frozen_account(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -350,7 +362,7 @@ class AccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_destroy_returns_404_for_non_existent_account(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['delete']);
 
         $response = $this->deleteJson('/api/accounts/non-existent-uuid');
 
@@ -370,7 +382,7 @@ class AccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_destroy_prevents_deleting_other_users_accounts(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['delete']);
 
         $otherAccount = Account::factory()->create([
             'user_uuid' => $this->otherUser->uuid,

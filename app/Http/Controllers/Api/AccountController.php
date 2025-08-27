@@ -308,7 +308,12 @@ class AccountController extends Controller
             abort(403, 'Forbidden');
         }
 
-        if ($account->balance > 0) {
+        // Check if account has any positive balance in any asset
+        $hasPositiveBalance = $account->balances()
+            ->where('balance', '>', 0)
+            ->exists();
+            
+        if ($hasPositiveBalance) {
             return response()->json(
                 [
                     'message' => 'Cannot delete account with positive balance',
