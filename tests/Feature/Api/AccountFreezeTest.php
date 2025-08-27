@@ -72,6 +72,9 @@ it('cannot unfreeze an account that is not frozen', function () {
 });
 
 it('cannot delete a frozen account', function () {
+    // Re-authenticate with delete scope for this test
+    Sanctum::actingAs($this->user, ['delete']);
+    
     $account = Account::factory()->forUser($this->user)->zeroBalance()->create(['frozen' => true]);
 
     $response = $this->deleteJson("/api/accounts/{$account->uuid}");
