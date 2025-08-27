@@ -187,7 +187,7 @@ class AccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_cannot_delete_account_with_positive_balance()
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['delete']);
 
         $account = Account::factory()->forUser($this->user)->create();
 
@@ -210,7 +210,7 @@ class AccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_cannot_delete_frozen_account()
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['delete']);
 
         $account = Account::factory()->forUser($this->user)->create([
             'frozen' => true,
