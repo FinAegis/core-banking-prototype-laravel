@@ -138,7 +138,7 @@ class LiquidationServiceTest extends ServiceTestCase
 
         // Should check if position should be liquidated
         $this->assertStringContainsString('if (! $position->shouldAutoLiquidate())', $source);
-        $this->assertStringContainsString('throw new \RuntimeException', $source);
+        $this->assertStringContainsString('throw new RuntimeException', $source);
         $this->assertStringContainsString('Position is not eligible for liquidation', $source);
     }
 
