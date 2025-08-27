@@ -207,7 +207,6 @@ class RebalancingService
                     ->get();
 
                 /** @var Collection<int, array{event_id: int, event_type: string, portfolio_id: string|null, timestamp: string, data: array, reason: mixed, initiated_by: mixed}> */
-
                 $mappedEvents = $events->map(function ($event) {
                     $eventData = $event->event_properties;
 
