@@ -7,6 +7,7 @@ use App\Domain\Stablecoin\Oracles\BinanceOracle;
 use App\Domain\Stablecoin\ValueObjects\PriceData;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Mockery;
@@ -15,7 +16,7 @@ use Tests\TestCase;
 
 class BinanceOracleTest extends TestCase
 {
-    use Illuminate\Foundation\Testing\WithoutMiddleware;
+    use WithoutMiddleware;
 
     private BinanceOracle $oracle;
 
