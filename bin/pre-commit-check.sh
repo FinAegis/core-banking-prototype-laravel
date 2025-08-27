@@ -78,18 +78,18 @@ add_failure() {
 echo -e "${BLUE}[1/6] Checking PHP CodeSniffer (PSR-12)...${NC}"
 PHPCS_HAD_ISSUES=false
 
-# Check app/ directory
+# Check app/ directory with standard rules
 if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
     PHPCS_HAD_ISSUES=true
     echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/${NC}"
     ./vendor/bin/phpcs app/ | head -20
 fi
 
-# Check tests/ directory  
-if ! ./vendor/bin/phpcs tests/ > /dev/null 2>&1; then
+# Check tests/ directory with our custom ruleset (handles Pest patterns)
+if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
     PHPCS_HAD_ISSUES=true
     echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in tests/${NC}"
-    ./vendor/bin/phpcs tests/ | head -20
+    ./vendor/bin/phpcs tests/ --standard=phpcs.xml | head -20
 fi
 
 if [ "$PHPCS_HAD_ISSUES" = true ]; then
@@ -104,7 +104,7 @@ if [ "$PHPCS_HAD_ISSUES" = true ]; then
         if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
             STILL_HAS_ISSUES=true
         fi
-        if ! ./vendor/bin/phpcs tests/ > /dev/null 2>&1; then
+        if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
             STILL_HAS_ISSUES=true
         fi
         
@@ -154,10 +154,10 @@ if [ "$AUTO_FIX" = true ] && [ "$ISSUES_FIXED" = true ]; then
         ./vendor/bin/phpcs app/ | head -20
     fi
     
-    if ! ./vendor/bin/phpcs tests/ > /dev/null 2>&1; then
+    if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
         FINAL_ISSUES=true
         echo -e "${RED}✗ Final check: Still has PSR-12 violations in tests/${NC}"
-        ./vendor/bin/phpcs tests/ | head -20
+        ./vendor/bin/phpcs tests/ --standard=phpcs.xml | head -20
     fi
     
     if [ "$FINAL_ISSUES" = false ]; then

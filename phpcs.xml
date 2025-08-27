@@ -17,6 +17,12 @@
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
     
+    <!-- Exclude side effects warning for Pest PHP test files -->
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>tests/Pest.php</exclude-pattern>
+        <exclude-pattern>tests/**/*Test.php</exclude-pattern>
+    </rule>
+    
     <!-- Exclude vendor directory -->
     <exclude-pattern>vendor/</exclude-pattern>
     

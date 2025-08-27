@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Tests\Feature\Treasury\Workflows;
+
 use App\Domain\Treasury\Activities\Portfolio\ApproveRebalancingActivity;
 use App\Domain\Treasury\Events\Portfolio\RebalancingApprovalReceived;
 use App\Domain\Treasury\Events\Portfolio\RebalancingApprovalRequested;
@@ -12,6 +14,9 @@ use App\Domain\Treasury\Workflows\PortfolioRebalancingWorkflow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use Mockery;
+use ReflectionClass;
+use RuntimeException;
 use Tests\TestCase;
 use Workflow\WorkflowStub;
 
@@ -37,7 +42,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_completes_rebalancing_workflow_successfully_without_approval()
+    public function testCompletesRebalancingWorkflowSuccessfullyWithoutApproval()
     {
         // Arrange - Create a portfolio that needs minor rebalancing (auto-approved)
         $this->mockMinorRebalancingScenario();
@@ -58,7 +63,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_requires_approval_for_high_value_rebalancing()
+    public function testRequiresApprovalForHighValueRebalancing()
     {
         // Arrange - Create a portfolio that needs major rebalancing requiring approval
         $this->mockMajorRebalancingScenario();
@@ -81,7 +86,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_handles_manual_approval_successfully()
+    public function testHandlesManualApprovalSuccessfully()
     {
         // Arrange
         $this->mockMajorRebalancingScenario();
@@ -114,7 +119,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_skips_rebalancing_when_not_needed()
+    public function testSkipsRebalancingWhenNotNeeded()
     {
         // Arrange - Portfolio is already balanced
         $this->mockBalancedPortfolioScenario();
@@ -131,7 +136,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_handles_execution_failures_with_compensation()
+    public function testHandlesExecutionFailuresWithCompensation()
     {
         // Arrange - Set up scenario that will fail during execution
         $this->mockRebalancingExecutionFailure();
@@ -149,7 +154,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_handles_portfolio_already_rebalancing_scenario()
+    public function testHandlesPortfolioAlreadyRebalancingScenario()
     {
         // Arrange - Mark portfolio as currently rebalancing
         $this->mockPortfolioCurrentlyRebalancing();
@@ -165,7 +170,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_processes_force_rebalancing_override()
+    public function testProcessesForceRebalancingOverride()
     {
         // Arrange - Balanced portfolio but force rebalancing
         $this->mockBalancedPortfolioScenario();
@@ -186,7 +191,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_calculates_approval_requirements_correctly()
+    public function testCalculatesApprovalRequirementsCorrectly()
     {
         $workflow = WorkflowStub::make(PortfolioRebalancingWorkflow::class);
 

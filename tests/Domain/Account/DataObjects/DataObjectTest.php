@@ -1,30 +1,11 @@
 <?php
 
-namespace Tests\Domain\Account\DataObjects;
+declare(strict_types=1);
 
-use App\Domain\Account\DataObjects\DataObject;
 use JustSteveKing\DataObjects\Contracts\DataObjectContract;
-use ReflectionClass;
+use Tests\Domain\Account\DataObjects\TestDataObject;
 
-// Create a concrete implementation for testing
-readonly class TestDataObject extends DataObject
-{
-    public function __construct(
-        public string $name,
-        public int $value
-    ) {
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'name'  => $this->name,
-            'value' => $this->value,
-        ];
-    }
-}
-
-it('can create from array', function () {
+test('can create from array', function () {
     $data = ['name' => 'test', 'value' => 42];
 
     $object = TestDataObject::fromArray($data);
@@ -34,7 +15,7 @@ it('can create from array', function () {
     expect($object->value)->toBe(42);
 });
 
-it('can convert to array', function () {
+test('can convert to array', function () {
     $object = new TestDataObject('test', 42);
 
     $array = $object->toArray();
@@ -45,11 +26,11 @@ it('can convert to array', function () {
     ]);
 });
 
-it('implements DataObjectContract', function () {
+test('implements DataObjectContract', function () {
     expect(TestDataObject::class)->toImplement(DataObjectContract::class);
 });
 
-it('is readonly', function () {
-    $reflection = new ReflectionClass(TestDataObject::class);
+test('is readonly', function () {
+    $reflection = new \ReflectionClass(TestDataObject::class);
     expect($reflection->isReadOnly())->toBeTrue();
 });
