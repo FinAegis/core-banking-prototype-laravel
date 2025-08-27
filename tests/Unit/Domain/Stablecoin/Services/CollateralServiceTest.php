@@ -262,7 +262,7 @@ class CollateralServiceTest extends ServiceTestCase
 
         // Should use exchange rate service
         $this->assertStringContainsString('$this->exchangeRateService->getRate', $source);
-        $this->assertStringContainsString('throw new \RuntimeException', $source);
+        $this->assertStringContainsString('throw new RuntimeException', $source);
     }
 
     #[Test]
