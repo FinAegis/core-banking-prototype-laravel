@@ -429,8 +429,7 @@ class PortfolioRebalancingWorkflowTest extends TestCase
 
     private function callPrivateMethod($object, $methodName, array $parameters = [])
     {
-        $className = get_class($object);
-        $reflection = new ReflectionClass($className);
+        $reflection = new ReflectionClass($object);
         $method = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 

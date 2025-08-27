@@ -37,8 +37,9 @@ class PortfolioManagementServiceTest extends TestCase
 
         $portfolioId = $this->service->createPortfolio($treasuryId, $name, $strategy);
 
-        $this->assertNotNull($portfolioId);
+        // Portfolio ID should be a non-empty UUID string
         $this->assertNotEmpty($portfolioId);
+        $this->assertMatchesRegularExpression('/^[a-f0-9-]{36}$/', $portfolioId);
 
         // Verify portfolio was created
         $portfolio = $this->service->getPortfolio($portfolioId);

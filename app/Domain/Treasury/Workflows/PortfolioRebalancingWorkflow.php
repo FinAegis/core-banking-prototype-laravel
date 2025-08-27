@@ -94,7 +94,7 @@ class PortfolioRebalancingWorkflow extends Workflow
                 'portfolio_id'     => $this->portfolioId,
                 'rebalance_id'     => $this->rebalanceId,
                 'rebalancing_plan' => $this->rebalancingPlan,
-                'approved_by'      => $this->approved ? 'system' : 'manual',
+                'approved_by'      => $this->requiresHumanApproval($this->rebalancingPlan) ? 'manual' : 'system',
             ]);
 
             // Step 5: Notify stakeholders of completion
@@ -114,7 +114,7 @@ class PortfolioRebalancingWorkflow extends Workflow
                 'transaction_cost'  => $this->rebalancingPlan['total_transaction_cost'] ?? 0,
                 'actions_executed'  => count($this->rebalancingPlan['actions'] ?? []),
                 'approval_required' => $this->requiresHumanApproval($this->rebalancingPlan),
-                'approved_by'       => $this->approved ? 'system' : 'manual',
+                'approved_by'       => $this->requiresHumanApproval($this->rebalancingPlan) ? 'manual' : 'system',
             ];
         } catch (\Exception $e) {
             // Compensation: Rollback any partial changes

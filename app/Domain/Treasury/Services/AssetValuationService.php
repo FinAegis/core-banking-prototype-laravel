@@ -14,10 +14,6 @@ class AssetValuationService
 
     private const PRICE_CACHE_TTL = 60; // 1 minute cache for real-time prices
 
-    private const MAX_RETRIES = 3;
-
-    private const TIMEOUT_SECONDS = 10;
-
     // Demo/mock asset prices for development
     private const MOCK_ASSET_PRICES = [
         // Cash equivalents
@@ -306,24 +302,20 @@ class AssetValuationService
             $basePrice = self::MOCK_ASSET_PRICES[$assetId] ?? $this->getDefaultAssetPrice($assetId);
 
             // $basePrice is already a float from the array or method
-            if (true) { // Always true since we have a valid price
-                // Add small random variation to simulate market movement
-                $variation = (rand(-200, 200) / 10000); // -2% to +2% variation
-                $currentPrice = $basePrice * (1 + $variation);
+            // Add small random variation to simulate market movement
+            $variation = (rand(-200, 200) / 10000); // -2% to +2% variation
+            $currentPrice = $basePrice * (1 + $variation);
 
-                $prices[$assetId] = [
-                    'symbol'         => $assetId,
-                    'current_price'  => round($currentPrice, 2),
-                    'previous_close' => $basePrice,
-                    'change_amount'  => round($currentPrice - $basePrice, 2),
-                    'change_percent' => round($variation * 100, 2),
-                    'volume'         => rand(100000, 1000000),
-                    'last_updated'   => now()->toISOString(),
-                    'source'         => config('app.env') === 'demo' ? 'mock_data' : 'market_data',
-                ];
-            } else {
-                $prices[$assetId] = $basePrice;
-            }
+            $prices[$assetId] = [
+                'symbol'         => $assetId,
+                'current_price'  => round($currentPrice, 2),
+                'previous_close' => $basePrice,
+                'change_amount'  => round($currentPrice - $basePrice, 2),
+                'change_percent' => round($variation * 100, 2),
+                'volume'         => rand(100000, 1000000),
+                'last_updated'   => now()->toISOString(),
+                'source'         => config('app.env') === 'demo' ? 'mock_data' : 'market_data',
+            ];
         }
 
         return $prices;
