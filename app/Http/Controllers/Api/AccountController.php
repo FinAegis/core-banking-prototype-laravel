@@ -312,7 +312,7 @@ class AccountController extends Controller
         $hasPositiveBalance = $account->balances()
             ->where('balance', '>', 0)
             ->exists();
-            
+
         if ($hasPositiveBalance) {
             return response()->json(
                 [
