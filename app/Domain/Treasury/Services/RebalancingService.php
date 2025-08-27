@@ -183,6 +183,9 @@ class RebalancingService
         }
     }
 
+    /**
+     * @return Collection<int, array{event_id: int, event_type: string, portfolio_id: string|null, timestamp: string, data: array, reason: mixed, initiated_by: mixed}>
+     */
     public function getRebalancingHistory(string $portfolioId): Collection
     {
         if (empty($portfolioId)) {
@@ -203,7 +206,9 @@ class RebalancingService
                     ->limit(50)
                     ->get();
 
-                return $events->map(function ($event) {
+                /** @var Collection<int, array{event_id: int, event_type: string, portfolio_id: string|null, timestamp: string, data: array, reason: mixed, initiated_by: mixed}> */
+
+                $mappedEvents = $events->map(function ($event) {
                     $eventData = $event->event_properties;
 
                     return [
@@ -216,6 +221,9 @@ class RebalancingService
                         'initiated_by' => $eventData['initiatedBy'] ?? 'system',
                     ];
                 });
+
+                /** @phpstan-ignore-next-line */
+                return $mappedEvents;
             } catch (\Exception $e) {
                 throw new RuntimeException("Failed to get rebalancing history: {$e->getMessage()}", 0, $e);
             }
