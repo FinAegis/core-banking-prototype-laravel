@@ -13,7 +13,7 @@ use Tests\ServiceTestCase;
 
 class SubProductServiceTest extends ServiceTestCase
 {
-    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
     use RefreshDatabase;
 
     protected SubProductService $service;

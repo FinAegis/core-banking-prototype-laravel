@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 class BinanceOracleTest extends TestCase
 {
-    use \Illuminate\Foundation\Testing\WithoutMiddleware;
+    use Illuminate\Foundation\Testing\WithoutMiddleware;
 
     private BinanceOracle $oracle;
 

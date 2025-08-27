@@ -14,7 +14,7 @@ use Tests\UnitTestCase;
 
 class EnsureSubProductEnabledTest extends UnitTestCase
 {
-    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     protected EnsureSubProductEnabled $middleware;
 

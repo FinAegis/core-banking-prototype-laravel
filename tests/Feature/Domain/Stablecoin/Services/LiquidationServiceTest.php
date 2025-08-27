@@ -18,7 +18,7 @@ use Tests\ServiceTestCase;
 
 class LiquidationServiceTest extends ServiceTestCase
 {
-    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     protected LiquidationService $service;
 

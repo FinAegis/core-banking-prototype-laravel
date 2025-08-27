@@ -19,7 +19,7 @@ class KycControllerTest extends ControllerTestCase
 
     protected User $user;
 
-    protected KycService|\Mockery\MockInterface $kycService;
+    protected KycService|Mockery\MockInterface $kycService;
 
     protected function setUp(): void
     {

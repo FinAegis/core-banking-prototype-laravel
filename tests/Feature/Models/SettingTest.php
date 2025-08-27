@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 class SettingTest extends TestCase
 {
-    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     protected function setUp(): void
     {
