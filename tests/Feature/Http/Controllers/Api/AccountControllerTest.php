@@ -285,12 +285,12 @@ class AccountControllerTest extends ControllerTestCase
             'user_uuid' => $this->user->uuid,
             'frozen'    => false,
         ]);
-        
+
         // Debug: verify the UUIDs match
         $this->assertEquals($this->user->uuid, $account->user_uuid, 'Account should belong to test user');
 
         $response = $this->deleteJson("/api/accounts/{$account->uuid}");
-        
+
         // Debug response if not 200
         if ($response->status() !== 200) {
             dump('Response status: ' . $response->status());

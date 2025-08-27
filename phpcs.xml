@@ -1,47 +1,28 @@
 <?xml version="1.0"?>
-<ruleset name="FinAegis">
-    <description>The coding standard for FinAegis Core Banking Platform</description>
+<ruleset name="Laravel Banking App Standards">
+    <description>The coding standard for the Laravel banking application.</description>
     
-    <!-- Use PSR-12 as base standard -->
-    <rule ref="PSR12">
-        <!-- Allow snake_case test method names -->
-        <exclude name="PSR1.Methods.CamelCapsMethodName.NotCamelCaps"/>
-        <!-- Exclude strict line length check -->
-        <exclude name="Generic.Files.LineLength"/>
-    </rule>
-    
-    <!-- Configure line length with higher limits -->
-    <rule ref="Generic.Files.LineLength">
-        <properties>
-            <property name="lineLimit" value="150"/>
-            <property name="absoluteLineLimit" value="200"/>
-            <property name="ignoreComments" value="true"/>
-        </properties>
-    </rule>
-    
-    <!-- Apply the snake_case exclusion only to test files -->
-    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
-        <exclude-pattern>*/tests/*</exclude-pattern>
-    </rule>
-    
-    <!-- Allow side effects in test files -->
-    <rule ref="PSR1.Files.SideEffects">
-        <exclude-pattern>*/tests/*</exclude-pattern>
-    </rule>
-    
-    <!-- Include these directories -->
+    <!-- Directories to check -->
     <file>app</file>
     <file>tests</file>
     
-    <!-- Exclude these directories -->
-    <exclude-pattern>*/vendor/*</exclude-pattern>
-    <exclude-pattern>*/node_modules/*</exclude-pattern>
-    <exclude-pattern>*/storage/*</exclude-pattern>
-    <exclude-pattern>*/bootstrap/cache/*</exclude-pattern>
-    <exclude-pattern>*/database/migrations/*</exclude-pattern>
+    <!-- Apply PSR-12 standard -->
+    <rule ref="PSR12">
+        <!-- Exclude line length rule -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
     
-    <!-- Set additional arguments -->
-    <arg name="colors"/>
-    <arg value="p"/>
-    <arg name="parallel" value="75"/>
+    <!-- Allow test_ prefixed methods in test files (Laravel convention) -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    
+    <!-- Exclude vendor directory -->
+    <exclude-pattern>vendor/</exclude-pattern>
+    
+    <!-- Exclude storage directory -->
+    <exclude-pattern>storage/</exclude-pattern>
+    
+    <!-- Exclude bootstrap/cache -->
+    <exclude-pattern>bootstrap/cache/</exclude-pattern>
 </ruleset>

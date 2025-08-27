@@ -74,7 +74,7 @@ jobs:
           done
         
       - name: Run PHP Code Sniffer
-        run: vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength app/
+        run: vendor/bin/phpcs
         
       - name: Run PHP Static Analysis
         run: vendor/bin/phpstan analyse --memory-limit=2G
