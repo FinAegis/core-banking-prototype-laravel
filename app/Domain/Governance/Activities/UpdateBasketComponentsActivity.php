@@ -3,6 +3,7 @@
 namespace App\Domain\Governance\Activities;
 
 use App\Domain\Basket\Models\BasketAsset;
+use Exception;
 use Workflow\Activity;
 
 class UpdateBasketComponentsActivity extends Activity
@@ -16,7 +17,7 @@ class UpdateBasketComponentsActivity extends Activity
         $basket = BasketAsset::where('code', $basketCode)->first();
 
         if (! $basket) {
-            throw new \Exception("Basket {$basketCode} not found");
+            throw new Exception("Basket {$basketCode} not found");
         }
 
         foreach ($composition as $assetCode => $weight) {

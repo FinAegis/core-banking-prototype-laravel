@@ -14,6 +14,7 @@ use App\Domain\Product\Events\ProductUpdated;
 use App\Domain\Product\ValueObjects\Feature;
 use App\Domain\Product\ValueObjects\Price;
 use DateTimeImmutable;
+use DomainException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class Product extends AggregateRoot
@@ -82,7 +83,7 @@ class Product extends AggregateRoot
     public function addFeature(Feature $feature, string $addedBy): self
     {
         if (isset($this->features[$feature->getCode()])) {
-            throw new \DomainException("Feature {$feature->getCode()} already exists");
+            throw new DomainException("Feature {$feature->getCode()} already exists");
         }
 
         $this->recordThat(new FeatureAdded(
@@ -98,7 +99,7 @@ class Product extends AggregateRoot
     public function removeFeature(string $featureCode, string $removedBy): self
     {
         if (! isset($this->features[$featureCode])) {
-            throw new \DomainException("Feature {$featureCode} does not exist");
+            throw new DomainException("Feature {$featureCode} does not exist");
         }
 
         $this->recordThat(new FeatureRemoved(
@@ -126,7 +127,7 @@ class Product extends AggregateRoot
     public function activate(string $activatedBy): self
     {
         if ($this->status === 'active') {
-            throw new \DomainException('Product is already active');
+            throw new DomainException('Product is already active');
         }
 
         $this->recordThat(new ProductActivated(
@@ -141,7 +142,7 @@ class Product extends AggregateRoot
     public function deactivate(string $reason, string $deactivatedBy): self
     {
         if ($this->status !== 'active') {
-            throw new \DomainException('Product is not active');
+            throw new DomainException('Product is not active');
         }
 
         $this->recordThat(new ProductDeactivated(

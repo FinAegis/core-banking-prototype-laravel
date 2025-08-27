@@ -3,6 +3,7 @@
 namespace App\Domain\Lending\Services;
 
 use App\Models\User;
+use InvalidArgumentException;
 
 class MockCreditScoringService implements CreditScoringService
 {
@@ -11,7 +12,7 @@ class MockCreditScoringService implements CreditScoringService
         $user = User::find($borrowerId);
 
         if (! $user) {
-            throw new \InvalidArgumentException("User not found: {$borrowerId}");
+            throw new InvalidArgumentException("User not found: {$borrowerId}");
         }
 
         // Mock credit score based on user attributes

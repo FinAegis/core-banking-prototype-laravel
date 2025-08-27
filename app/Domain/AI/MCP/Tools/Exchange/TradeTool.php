@@ -9,6 +9,7 @@ use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Exchange\Services\ExchangeService;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -244,7 +245,7 @@ class TradeTool implements MCPToolInterface
             ];
 
             return ToolExecutionResult::success($response);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: exchange.trade', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,
@@ -373,7 +374,7 @@ class TradeTool implements MCPToolInterface
             $estimatedPrice = (string) ($marketData['last_price'] ?? '1');
 
             return bcmul($amount, $estimatedPrice, 18);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // If we can't get market data, use a conservative estimate
             return bcmul($amount, '10000', 18); // High estimate to ensure sufficient balance
         }

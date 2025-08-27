@@ -6,6 +6,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transaction;
 use App\Domain\Compliance\Events\SuspiciousActivityDetected;
 use App\Models\User;
+use Error;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
@@ -84,7 +85,7 @@ class SuspiciousActivityDetectedTest extends DomainTestCase
         $event = new SuspiciousActivityDetected($transaction, $alerts);
 
         // Properties are readonly, attempting to modify should cause error
-        $this->expectException(\Error::class);
+        $this->expectException(Error::class);
         $this->expectExceptionMessageMatches('/Cannot modify readonly property/');
         $event->transaction = $this->createTransaction();
     }

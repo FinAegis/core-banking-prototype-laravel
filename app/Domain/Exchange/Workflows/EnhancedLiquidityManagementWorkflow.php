@@ -14,8 +14,13 @@ use App\Domain\Exchange\Services\CircuitBreakerService;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use App\Domain\Exchange\Workflows\Policies\LiquidityRetryPolicy;
 use Brick\Math\BigDecimal;
+use DomainException;
+use Exception;
+use Generator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use RuntimeException;
 use Workflow\Activity;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
@@ -35,7 +40,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         $this->circuitBreaker = new CircuitBreakerService();
     }
 
-    public function addLiquidity(LiquidityAdditionInput $input): \Generator
+    public function addLiquidity(LiquidityAdditionInput $input): Generator
     {
         $startTime = microtime(true);
         $context = [
@@ -94,7 +99,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
                     $slippagePercentage->__toString()
                 );
 
-                throw new \DomainException('Slippage tolerance exceeded');
+                throw new DomainException('Slippage tolerance exceeded');
             }
 
             // Step 4: Transfer funds with circuit breaker
@@ -153,7 +158,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
                 'provider_id'       => $input->providerId,
                 'execution_time_ms' => (microtime(true) - $startTime) * 1000,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to add liquidity',
                 array_merge(
@@ -188,7 +193,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         string $amount,
         string $poolId,
         array $context
-    ): \Generator {
+    ): Generator {
         $maxAttempts = 3;
         $attempt = 0;
 
@@ -205,7 +210,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
                         'attempt'    => $attempt + 1,
                         ]
                     );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $attempt++;
 
                 if ($attempt >= $maxAttempts) {
@@ -230,7 +235,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         }
     }
 
-    private function updatePoolStateWithRetry(string $poolId, callable $operation): \Generator
+    private function updatePoolStateWithRetry(string $poolId, callable $operation): Generator
     {
         $maxAttempts = 5;
         $attempt = 0;
@@ -242,7 +247,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
                 $pool->persist();
 
                 return;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $attempt++;
 
                 if ($attempt >= $maxAttempts || ! $this->isRetryableError($e)) {
@@ -267,10 +272,10 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         string $service,
         callable $operation,
         array $context
-    ): \Generator {
+    ): Generator {
         try {
             return yield $this->circuitBreaker->call($service, $operation, $context);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             if (str_contains($e->getMessage(), 'Circuit breaker is')) {
                 Log::error(
                     'Circuit breaker preventing operation',
@@ -279,13 +284,13 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
                     'context' => $context,
                     ]
                 );
-                throw new \DomainException('Service temporarily unavailable due to high error rate');
+                throw new DomainException('Service temporarily unavailable due to high error rate');
             }
             throw $e;
         }
     }
 
-    private function compensateAddLiquidity(\Exception $error, array $context): \Generator
+    private function compensateAddLiquidity(Exception $error, array $context): Generator
     {
         $this->compensationLog[] = [
             'started_at' => now()->toIso8601String(),
@@ -305,7 +310,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         $results = yield Activity::all($releaseActivities);
 
         foreach ($results as $index => $result) {
-            if ($result instanceof \Exception) {
+            if ($result instanceof Exception) {
                 $this->compensationLog[] = [
                     'action' => 'release_lock_failed',
                     'lock'   => $this->lockedBalances[$index],
@@ -333,7 +338,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         ];
     }
 
-    private function shouldPausePool(\Exception $error, string $poolId): bool
+    private function shouldPausePool(Exception $error, string $poolId): bool
     {
         // Pause pool on critical errors
         $criticalErrors = [
@@ -357,7 +362,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         return false;
     }
 
-    private function pausePoolEmergency(string $poolId, string $reason): \Generator
+    private function pausePoolEmergency(string $poolId, string $reason): Generator
     {
         try {
             $pool = LiquidityPool::retrieve($poolId);
@@ -390,7 +395,7 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
             );
 
             yield; // Required for Generator return type
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to pause pool',
                 [
@@ -423,11 +428,11 @@ class EnhancedLiquidityManagementWorkflow extends Workflow
         );
     }
 
-    private function isRetryableError(\Exception $e): bool
+    private function isRetryableError(Exception $e): bool
     {
         $nonRetryableErrors = [
-            \DomainException::class,
-            \InvalidArgumentException::class,
+            DomainException::class,
+            InvalidArgumentException::class,
         ];
 
         foreach ($nonRetryableErrors as $errorClass) {

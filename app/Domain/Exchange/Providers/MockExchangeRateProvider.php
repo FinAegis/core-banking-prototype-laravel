@@ -7,6 +7,7 @@ namespace App\Domain\Exchange\Providers;
 use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
 use App\Domain\Exchange\ValueObjects\RateProviderCapabilities;
 use Carbon\Carbon;
+use Exception;
 
 class MockExchangeRateProvider extends BaseExchangeRateProvider
 {
@@ -121,7 +122,7 @@ class MockExchangeRateProvider extends BaseExchangeRateProvider
                 [$from, $to] = explode('/', $pair);
                 try {
                     $rates[$pair] = $this->getRate($from, $to);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Skip unsupported pairs
                 }
             }

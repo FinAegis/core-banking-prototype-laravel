@@ -15,6 +15,7 @@ use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Domain\Wallet\Services\WalletService;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Workflow\WorkflowStub;
 
 class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
@@ -40,11 +41,11 @@ class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
 
         // Validate stablecoin can be minted
         if (! $stablecoin->canMint()) {
-            throw new \RuntimeException("Minting is disabled for {$stablecoinCode}");
+            throw new RuntimeException("Minting is disabled for {$stablecoinCode}");
         }
 
         if ($stablecoin->hasReachedMaxSupply()) {
-            throw new \RuntimeException("Maximum supply reached for {$stablecoinCode}");
+            throw new RuntimeException("Maximum supply reached for {$stablecoinCode}");
         }
 
         // Validate collateral sufficiency
@@ -52,7 +53,7 @@ class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
 
         // Check account has sufficient collateral
         if (! $account->hasSufficientBalance($collateralAssetCode, $collateralAmount)) {
-            throw new \RuntimeException("Insufficient {$collateralAssetCode} balance for collateral");
+            throw new RuntimeException("Insufficient {$collateralAssetCode} balance for collateral");
         }
 
         // Find existing position if any
@@ -108,7 +109,7 @@ class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
         $stablecoin = Stablecoin::findOrFail($stablecoinCode);
 
         if (! $stablecoin->canBurn()) {
-            throw new \RuntimeException("Burning is disabled for {$stablecoinCode}");
+            throw new RuntimeException("Burning is disabled for {$stablecoinCode}");
         }
 
         // Find the position
@@ -119,12 +120,12 @@ class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
 
         // Validate burn amount
         if ($burnAmount > $position->debt_amount) {
-            throw new \RuntimeException('Cannot burn more than debt amount');
+            throw new RuntimeException('Cannot burn more than debt amount');
         }
 
         // Check account has sufficient stablecoin balance
         if (! $account->hasSufficientBalance($stablecoinCode, $burnAmount)) {
-            throw new \RuntimeException("Insufficient {$stablecoinCode} balance to burn");
+            throw new RuntimeException("Insufficient {$stablecoinCode} balance to burn");
         }
 
         // Calculate proportional collateral release if not specified
@@ -146,7 +147,7 @@ class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
             $newRatio = $newCollateralValue / $newDebtAmount;
 
             if ($newRatio < $stablecoin->collateral_ratio) {
-                throw new \RuntimeException('Collateral release would make position undercollateralized');
+                throw new RuntimeException('Collateral release would make position undercollateralized');
             }
         }
 
@@ -200,11 +201,11 @@ class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
             ->firstOrFail();
 
         if ($position->collateral_asset_code !== $collateralAssetCode) {
-            throw new \RuntimeException('Collateral asset mismatch');
+            throw new RuntimeException('Collateral asset mismatch');
         }
 
         if (! $account->hasSufficientBalance($collateralAssetCode, $collateralAmount)) {
-            throw new \RuntimeException("Insufficient {$collateralAssetCode} balance");
+            throw new RuntimeException("Insufficient {$collateralAssetCode} balance");
         }
 
         // Execute add collateral workflow
@@ -259,7 +260,7 @@ class StablecoinIssuanceService implements StablecoinIssuanceServiceInterface
 
         if ($collateralValueInPegAsset < $requiredCollateral) {
             $ratio = $collateralValueInPegAsset / $mintAmount;
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Insufficient collateral. Required ratio: {$stablecoin->collateral_ratio}, " .
                 "provided ratio: {$ratio}"
             );

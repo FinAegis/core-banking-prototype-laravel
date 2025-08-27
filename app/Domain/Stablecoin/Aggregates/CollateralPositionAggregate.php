@@ -22,6 +22,8 @@ use App\Domain\Stablecoin\ValueObjects\CollateralType;
 use App\Domain\Stablecoin\ValueObjects\LiquidationThreshold;
 use App\Domain\Stablecoin\ValueObjects\PositionHealth;
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
+use DomainException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\Snapshots\SnapshotRepository;
 use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
@@ -74,7 +76,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $initialDebt->toFloat(),
                 $collateralType->value,
             ]),
-            createdAt: new \DateTimeImmutable()
+            createdAt: new DateTimeImmutable()
         ));
 
         return $this;
@@ -83,11 +85,11 @@ class CollateralPositionAggregate extends AggregateRoot
     public function addCollateral(array $additionalCollateral): self
     {
         if (! $this->isActive) {
-            throw new \DomainException('Cannot add collateral to inactive position');
+            throw new DomainException('Cannot add collateral to inactive position');
         }
 
         if ($this->isBeingLiquidated) {
-            throw new \DomainException('Cannot add collateral during liquidation');
+            throw new DomainException('Cannot add collateral during liquidation');
         }
 
         $this->recordThat(new CollateralAdded(
@@ -99,7 +101,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $additionalCollateral,
                 time(),
             ]),
-            addedAt: new \DateTimeImmutable()
+            addedAt: new DateTimeImmutable()
         ));
 
         return $this;
@@ -108,21 +110,21 @@ class CollateralPositionAggregate extends AggregateRoot
     public function withdrawCollateral(array $withdrawalAmount): self
     {
         if (! $this->isActive) {
-            throw new \DomainException('Cannot withdraw from inactive position');
+            throw new DomainException('Cannot withdraw from inactive position');
         }
 
         if ($this->isBeingLiquidated) {
-            throw new \DomainException('Cannot withdraw during liquidation');
+            throw new DomainException('Cannot withdraw during liquidation');
         }
 
         if ($this->isUnderMarginCall) {
-            throw new \DomainException('Cannot withdraw while under margin call');
+            throw new DomainException('Cannot withdraw while under margin call');
         }
 
         // Check if withdrawal would make position unhealthy
         $remainingCollateral = $this->calculateRemainingCollateral($withdrawalAmount);
         if (! $this->wouldBeHealthyAfterWithdrawal($remainingCollateral)) {
-            throw new \DomainException('Withdrawal would make position unhealthy');
+            throw new DomainException('Withdrawal would make position unhealthy');
         }
 
         $this->recordThat(new CollateralWithdrawn(
@@ -134,7 +136,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $withdrawalAmount,
                 time(),
             ]),
-            withdrawnAt: new \DateTimeImmutable()
+            withdrawnAt: new DateTimeImmutable()
         ));
 
         return $this;
@@ -157,7 +159,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $newPrice->toFloat(),
                 time(),
             ]),
-            updatedAt: new \DateTimeImmutable()
+            updatedAt: new DateTimeImmutable()
         ));
 
         // Check health after price update
@@ -180,7 +182,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $health->ratio()->toFloat(),
                 time(),
             ]),
-            checkedAt: new \DateTimeImmutable()
+            checkedAt: new DateTimeImmutable()
         ));
 
         // Issue margin call if needed
@@ -214,7 +216,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $this->ownerId,
                 time(),
             ]),
-            issuedAt: new \DateTimeImmutable()
+            issuedAt: new DateTimeImmutable()
         ));
 
         return $this;
@@ -223,7 +225,7 @@ class CollateralPositionAggregate extends AggregateRoot
     public function startLiquidation(): self
     {
         if (! $this->isActive) {
-            throw new \DomainException('Cannot liquidate inactive position');
+            throw new DomainException('Cannot liquidate inactive position');
         }
 
         $this->recordThat(new CollateralLiquidationStarted(
@@ -237,7 +239,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $this->totalDebt->toFloat(),
                 time(),
             ]),
-            startedAt: new \DateTimeImmutable()
+            startedAt: new DateTimeImmutable()
         ));
 
         return $this;
@@ -259,7 +261,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $remainingDebt->toFloat(),
                 time(),
             ]),
-            completedAt: new \DateTimeImmutable()
+            completedAt: new DateTimeImmutable()
         ));
 
         if ($remainingDebt->isZero()) {
@@ -272,11 +274,11 @@ class CollateralPositionAggregate extends AggregateRoot
     public function rebalanceCollateral(array $newAllocation): self
     {
         if (! $this->isActive) {
-            throw new \DomainException('Cannot rebalance inactive position');
+            throw new DomainException('Cannot rebalance inactive position');
         }
 
         if ($this->isBeingLiquidated) {
-            throw new \DomainException('Cannot rebalance during liquidation');
+            throw new DomainException('Cannot rebalance during liquidation');
         }
 
         $this->recordThat(new CollateralRebalanced(
@@ -289,7 +291,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $newAllocation,
                 time(),
             ]),
-            rebalancedAt: new \DateTimeImmutable()
+            rebalancedAt: new DateTimeImmutable()
         ));
 
         return $this;
@@ -298,7 +300,7 @@ class CollateralPositionAggregate extends AggregateRoot
     public function closePosition(string $reason): self
     {
         if (! $this->isActive) {
-            throw new \DomainException('Position already closed');
+            throw new DomainException('Position already closed');
         }
 
         $this->recordThat(new EnhancedCollateralPositionClosed(
@@ -312,7 +314,7 @@ class CollateralPositionAggregate extends AggregateRoot
                 $reason,
                 time(),
             ]),
-            closedAt: new \DateTimeImmutable()
+            closedAt: new DateTimeImmutable()
         ));
 
         return $this;
@@ -401,7 +403,7 @@ class CollateralPositionAggregate extends AggregateRoot
         $remaining = $this->collateral;
         foreach ($withdrawal as $asset => $amount) {
             if (! isset($remaining[$asset]) || $remaining[$asset] < $amount) {
-                throw new \DomainException("Insufficient collateral for asset: $asset");
+                throw new DomainException("Insufficient collateral for asset: $asset");
             }
             $remaining[$asset] -= $amount;
         }

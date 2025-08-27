@@ -5,12 +5,14 @@ namespace App\Domain\Batch\Workflows;
 use App\Domain\Batch\Activities\CompleteBatchJobActivity;
 use App\Domain\Batch\Activities\ProcessBatchItemActivity;
 use App\Domain\Batch\Activities\ValidateBatchJobActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
 class ProcessBatchJobWorkflow extends Workflow
 {
-    public function execute(string $batchJobUuid): \Generator
+    public function execute(string $batchJobUuid): Generator
     {
         try {
             // Validate batch job
@@ -30,7 +32,7 @@ class ProcessBatchJobWorkflow extends Workflow
                         $item
                     );
                     $results[$index] = $result;
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // Continue processing other items even if one fails
                     $results[$index] = [
                         'status' => 'failed',
@@ -47,7 +49,7 @@ class ProcessBatchJobWorkflow extends Workflow
             );
 
             return $results;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Compensate if needed
             yield from $this->compensate();
             throw $th;

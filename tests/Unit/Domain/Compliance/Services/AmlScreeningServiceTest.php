@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\ServiceTestCase;
 
 class AmlScreeningServiceTest extends ServiceTestCase
@@ -80,7 +81,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
         $pepResults = ['total_matches' => 0];
         $adverseMediaResults = ['total_matches' => 0];
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
         $method->setAccessible(true);
 
@@ -96,7 +97,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
         $pepResults = ['total_matches' => 0];
         $adverseMediaResults = ['total_matches' => 0];
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
         $method->setAccessible(true);
 
@@ -112,7 +113,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
         $pepResults = ['is_pep' => true];
         $adverseMediaResults = ['total_matches' => 0];
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
         $method->setAccessible(true);
 
@@ -128,7 +129,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
         $pepResults = ['is_pep' => false];
         $adverseMediaResults = ['has_adverse_media' => true, 'serious_allegations' => 0];
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
         $method->setAccessible(true);
 
@@ -144,7 +145,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
         $pepResults = ['is_pep' => false];
         $adverseMediaResults = ['serious_allegations' => 2];
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('calculateOverallRisk');
         $method->setAccessible(true);
 
@@ -160,7 +161,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
         $pepResults = ['total_matches' => 1];
         $adverseMediaResults = ['total_matches' => 3];
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('countTotalMatches');
         $method->setAccessible(true);
 
@@ -172,7 +173,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     #[Test]
     public function test_generate_unique_screening_number(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('generateUniqueScreeningNumber');
         $method->setAccessible(true);
 
@@ -193,7 +194,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
             'country' => 'UK',
         ]);
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('buildSearchParameters');
         $method->setAccessible(true);
 
@@ -212,7 +213,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
             'fuzzy_matching'  => true,
         ];
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('buildSearchParameters');
         $method->setAccessible(true);
 
@@ -226,7 +227,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     #[Test]
     public function test_check_ofac_list_with_no_matches(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkOFACList');
         $method->setAccessible(true);
 
@@ -239,7 +240,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     #[Test]
     public function test_check_ofac_list_with_test_match(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkOFACList');
         $method->setAccessible(true);
 
@@ -255,7 +256,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     #[Test]
     public function test_check_pep_database_negative(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkPEPDatabase');
         $method->setAccessible(true);
 
@@ -267,7 +268,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     #[Test]
     public function test_check_pep_database_positive(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('checkPEPDatabase');
         $method->setAccessible(true);
 
@@ -280,7 +281,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     #[Test]
     public function test_search_adverse_media_no_results(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('searchAdverseMedia');
         $method->setAccessible(true);
 
@@ -293,7 +294,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     #[Test]
     public function test_search_adverse_media_with_results(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('searchAdverseMedia');
         $method->setAccessible(true);
 

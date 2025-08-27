@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Stablecoin\Repositories;
 use App\Domain\Stablecoin\Repositories\StablecoinSnapshotRepository;
 use App\Domain\Stablecoin\Snapshots\StablecoinSnapshot;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Spatie\EventSourcing\Snapshots\EloquentSnapshotRepository;
 use Tests\DomainTestCase;
 
@@ -26,14 +27,14 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_is_final_class(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
         $this->assertTrue($reflection->isFinal());
     }
 
     #[Test]
     public function test_constructor_has_correct_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
         $constructor = $reflection->getConstructor();
 
         $this->assertNotNull($constructor);
@@ -49,7 +50,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_constructor_property_is_protected(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
         $property = $reflection->getProperty('snapshotModel');
 
         $this->assertTrue($property->isProtected());
@@ -59,7 +60,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_uses_stablecoin_snapshot_model(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
 
         // Check that the class imports StablecoinSnapshot
         $fileName = $reflection->getFileName();
@@ -73,7 +74,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     public function test_constructor_validates_model(): void
     {
         // Test that constructor validates the model extends EloquentSnapshot
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
         $constructor = $reflection->getConstructor();
 
         $fileName = $reflection->getFileName();
@@ -88,7 +89,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_exception_message_format(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
         $constructor = $reflection->getConstructor();
 
         $fileName = $reflection->getFileName();
@@ -103,7 +104,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_has_phpdoc_annotations(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
         $constructor = $reflection->getConstructor();
 
         $docComment = $constructor->getDocComment();
@@ -117,7 +118,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_imports_correct_exceptions(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -128,7 +129,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_imports_correct_base_classes(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -140,7 +141,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_namespace_is_correct(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
         $this->assertEquals('App\Domain\Stablecoin\Repositories', $reflection->getNamespaceName());
     }
 
@@ -166,7 +167,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     #[Test]
     public function test_uses_strict_types(): void
     {
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -179,7 +180,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     public function test_property_names_differ_from_event_repository(): void
     {
         // Test that this uses 'snapshotModel' not 'storedEventModel'
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
 
         $this->assertTrue($reflection->hasProperty('snapshotModel'));
         $this->assertFalse($reflection->hasProperty('storedEventModel'));
@@ -190,7 +191,7 @@ class StablecoinSnapshotRepositoryTest extends DomainTestCase
     {
         // Note: Both repositories reuse InvalidEloquentStoredEventModel exception
         // even though this is for snapshots
-        $reflection = new \ReflectionClass(StablecoinSnapshotRepository::class);
+        $reflection = new ReflectionClass(StablecoinSnapshotRepository::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);

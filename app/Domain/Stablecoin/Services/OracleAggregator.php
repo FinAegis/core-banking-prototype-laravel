@@ -6,9 +6,11 @@ use App\Domain\Stablecoin\Contracts\OracleConnector;
 use App\Domain\Stablecoin\ValueObjects\AggregatedPrice;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class OracleAggregator
 {
@@ -48,7 +50,7 @@ class OracleAggregator
                 $prices = $this->collectPrices($base, $quote);
 
                 if ($prices->count() < $this->minOracles) {
-                    throw new \RuntimeException("Insufficient oracle responses. Got {$prices->count()}, need {$this->minOracles}");
+                    throw new RuntimeException("Insufficient oracle responses. Got {$prices->count()}, need {$this->minOracles}");
                 }
 
                 $this->validatePriceDeviation($prices);
@@ -77,7 +79,7 @@ class OracleAggregator
                 if (! $price->isStale()) {
                     $prices->push($price);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("Oracle {$oracle->getSourceName()} failed: {$e->getMessage()}");
             }
         }
@@ -207,13 +209,13 @@ class OracleAggregator
             try {
                 $price = $oracle->getHistoricalPrice($base, $quote, $timestamp);
                 $prices->push($price);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning("Oracle {$oracle->getSourceName()} historical price failed: {$e->getMessage()}");
             }
         }
 
         if ($prices->isEmpty()) {
-            throw new \RuntimeException('No historical prices available');
+            throw new RuntimeException('No historical prices available');
         }
 
         return $this->calculateAggregatedPrice($prices);

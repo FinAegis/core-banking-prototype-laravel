@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Monitoring\Services;
 
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -98,7 +99,7 @@ class PrometheusExporter
             $output .= "# HELP business_accounts_total Total number of accounts\n";
             $output .= "# TYPE business_accounts_total gauge\n";
             $output .= "business_accounts_total {$accountCount}\n";
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Skip if table doesn't exist
         }
 
@@ -108,7 +109,7 @@ class PrometheusExporter
             $output .= "# HELP business_transactions_total Total number of transactions\n";
             $output .= "# TYPE business_transactions_total gauge\n";
             $output .= "business_transactions_total {$transactionCount}\n";
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Skip if table doesn't exist
         }
 
@@ -128,7 +129,7 @@ class PrometheusExporter
             $output .= "# HELP infra_db_connections Current database connections\n";
             $output .= "# TYPE infra_db_connections gauge\n";
             $output .= "infra_db_connections {$connections}\n";
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $output .= "infra_db_connections 0\n";
         }
 
@@ -138,7 +139,7 @@ class PrometheusExporter
             $output .= "# HELP infra_queue_size Current queue size\n";
             $output .= "# TYPE infra_queue_size gauge\n";
             $output .= "infra_queue_size {$queueSize}\n";
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $output .= "infra_queue_size 0\n";
         }
 
@@ -148,7 +149,7 @@ class PrometheusExporter
             $output .= "# HELP infra_queue_failed_total Total failed jobs\n";
             $output .= "# TYPE infra_queue_failed_total counter\n";
             $output .= "infra_queue_failed_total {$failedJobs}\n";
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $output .= "infra_queue_failed_total 0\n";
         }
 

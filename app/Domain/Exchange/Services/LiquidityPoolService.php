@@ -11,8 +11,10 @@ use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use App\Domain\Exchange\Workflows\LiquidityManagementWorkflow;
 use Brick\Math\BigDecimal;
+use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Workflow\WorkflowStub;
 
 class LiquidityPoolService implements LiquidityPoolServiceInterface
@@ -36,7 +38,7 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
         /** @var \Illuminate\Database\Eloquent\Model|null $existingPool */
         $existingPool = PoolProjection::forPair($baseCurrency, $quoteCurrency)->first();
         if ($existingPool) {
-            throw new \DomainException('Liquidity pool already exists for this pair');
+            throw new DomainException('Liquidity pool already exists for this pair');
         }
 
         $poolId = Str::uuid()->toString();
@@ -221,7 +223,7 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
         $rewards = $provider->pending_rewards ?? [];
 
         if (empty($rewards)) {
-            throw new \DomainException('No rewards to claim');
+            throw new DomainException('No rewards to claim');
         }
 
         LiquidityPool::retrieve($poolId)
@@ -311,7 +313,7 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
     public function calculateImpermanentLoss(string $positionId): array
     {
         if (! $this->ilProtectionService) {
-            throw new \RuntimeException('Impermanent loss protection service not configured');
+            throw new RuntimeException('Impermanent loss protection service not configured');
         }
 
         $position = LiquidityProvider::findOrFail($positionId);
@@ -329,7 +331,7 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
     public function processImpermanentLossProtectionClaims(string $poolId): Collection
     {
         if (! $this->ilProtectionService) {
-            throw new \RuntimeException('Impermanent loss protection service not configured');
+            throw new RuntimeException('Impermanent loss protection service not configured');
         }
 
         $claims = $this->ilProtectionService->processProtectionClaims($poolId);
@@ -366,7 +368,7 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
     public function getImpermanentLossProtectionFundRequirements(string $poolId): array
     {
         if (! $this->ilProtectionService) {
-            throw new \RuntimeException('Impermanent loss protection service not configured');
+            throw new RuntimeException('Impermanent loss protection service not configured');
         }
 
         return $this->ilProtectionService->estimateProtectionFundRequirements($poolId);

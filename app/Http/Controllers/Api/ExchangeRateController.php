@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -496,7 +497,7 @@ class ExchangeRateController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Currency conversion failed',

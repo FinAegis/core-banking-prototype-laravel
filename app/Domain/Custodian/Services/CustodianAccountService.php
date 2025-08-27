@@ -8,8 +8,10 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class CustodianAccountService
 {
@@ -33,7 +35,7 @@ class CustodianAccountService
 
         // Validate the custodian account exists
         if (! $custodian->validateAccount($custodianAccountId)) {
-            throw new \InvalidArgumentException("Invalid custodian account: {$custodianAccountId}");
+            throw new InvalidArgumentException("Invalid custodian account: {$custodianAccountId}");
         }
 
         // Get account info from custodian
@@ -136,7 +138,7 @@ class CustodianAccountService
     ): string {
         // Ensure both accounts use the same custodian
         if ($fromAccount->custodian_name !== $toAccount->custodian_name) {
-            throw new \InvalidArgumentException('Cross-custodian transfers are not supported yet');
+            throw new InvalidArgumentException('Cross-custodian transfers are not supported yet');
         }
 
         $custodian = $this->custodianRegistry->get($fromAccount->custodian_name);
@@ -202,7 +204,7 @@ class CustodianAccountService
                     'new_status'           => $accountInfo->status,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to sync custodian account status',
                 [

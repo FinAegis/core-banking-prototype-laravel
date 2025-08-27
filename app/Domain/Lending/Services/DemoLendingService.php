@@ -13,6 +13,7 @@ use App\Domain\Lending\Events\RepaymentReceived;
 use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Models\LoanApplication;
 use Carbon\Carbon;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -48,7 +49,7 @@ class DemoLendingService
                 termMonths: $application->term_months,
                 purpose: $application->purpose,
                 borrowerInfo: $data['borrower_info'] ?? [],
-                submittedAt: new \DateTimeImmutable()
+                submittedAt: new DateTimeImmutable()
             ));
 
             // Auto-process application in demo mode
@@ -154,12 +155,12 @@ class DemoLendingService
                     'monthly_payment' => $this->calculateMonthlyPayment((float) $approvedAmount, $interestRate, $application->term_months),
                 ],
                 approvedBy: 'demo_system',
-                approvedAt: new \DateTimeImmutable()
+                approvedAt: new DateTimeImmutable()
             ));
             event(new LoanDisbursed(
                 loanId: (string) $loan->id,
                 amount: (string) $approvedAmount,
-                disbursedAt: new \DateTimeImmutable()
+                disbursedAt: new DateTimeImmutable()
             ));
 
             // Simulate disbursement to borrower's account
@@ -184,7 +185,7 @@ class DemoLendingService
             applicationId: (string) $application->id,
             reasons: $reasons,
             rejectedBy: 'demo_system',
-            rejectedAt: new \DateTimeImmutable()
+            rejectedAt: new DateTimeImmutable()
         ));
     }
 
@@ -226,7 +227,7 @@ class DemoLendingService
                 principalPortion: (string) $principalPortion,
                 interestPortion: (string) $interestPortion,
                 metadata: ['demo_mode' => true],
-                receivedAt: new \DateTimeImmutable()
+                receivedAt: new DateTimeImmutable()
             ));
 
             return [

@@ -10,6 +10,7 @@ use App\Domain\Banking\Services\BankIntegrationService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -73,14 +74,14 @@ class OpenBankingWithdrawalTest extends DomainTestCase
         $this->actingAs($this->user);
 
         // Mock bank connector
-        $mockConnector = \Mockery::mock(IBankConnector::class);
+        $mockConnector = Mockery::mock(IBankConnector::class);
         $mockConnector->shouldReceive('getAuthorizationUrl')
             ->once()
-            ->with(\Mockery::type('array'))
+            ->with(Mockery::type('array'))
             ->andReturn('https://bank.example.com/oauth/authorize?client_id=test&redirect_uri=...');
 
         // Mock bank integration service
-        $mockBankService = \Mockery::mock(BankIntegrationService::class);
+        $mockBankService = Mockery::mock(BankIntegrationService::class);
         $mockBankService->shouldReceive('getConnector')
             ->with('paysera')
             ->andReturn($mockConnector);
@@ -173,7 +174,7 @@ class OpenBankingWithdrawalTest extends DomainTestCase
             'holderName'    => 'Test User',
         ];
 
-        $mockConnector = \Mockery::mock(IBankConnector::class);
+        $mockConnector = Mockery::mock(IBankConnector::class);
         $mockConnector->shouldReceive('exchangeAuthorizationCode')
             ->once()
             ->andReturn(['access_token' => 'test-token']);
@@ -184,7 +185,7 @@ class OpenBankingWithdrawalTest extends DomainTestCase
             ->andReturn(['status' => 'initiated', 'reference' => 'WTH-123']);
 
         // Mock bank integration service
-        $mockBankService = \Mockery::mock(BankIntegrationService::class);
+        $mockBankService = Mockery::mock(BankIntegrationService::class);
         $mockBankService->shouldReceive('getConnector')
             ->with('paysera')
             ->andReturn($mockConnector);
@@ -198,7 +199,7 @@ class OpenBankingWithdrawalTest extends DomainTestCase
         $this->app->instance(BankIntegrationService::class, $mockBankService);
 
         // Mock payment gateway service
-        $mockPaymentGateway = \Mockery::mock(\App\Domain\Payment\Services\PaymentGatewayService::class);
+        $mockPaymentGateway = Mockery::mock(\App\Domain\Payment\Services\PaymentGatewayService::class);
         $mockPaymentGateway->shouldReceive('createWithdrawalRequest')
             ->once()
             ->andReturn(['reference' => 'WTH-123', 'status' => 'pending']);
@@ -236,7 +237,7 @@ class OpenBankingWithdrawalTest extends DomainTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

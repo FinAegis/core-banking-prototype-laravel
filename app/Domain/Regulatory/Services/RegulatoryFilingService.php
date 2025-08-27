@@ -7,6 +7,7 @@ use App\Domain\Regulatory\Events\ReportRejected;
 use App\Domain\Regulatory\Events\ReportSubmitted;
 use App\Domain\Regulatory\Models\RegulatoryFilingRecord;
 use App\Domain\Regulatory\Models\RegulatoryReport;
+use Exception;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +21,7 @@ class RegulatoryFilingService
     public function submitReport(RegulatoryReport $report, array $options = []): RegulatoryFilingRecord
     {
         if (! $report->canBeSubmitted()) {
-            throw new \Exception('Report cannot be submitted in current state');
+            throw new Exception('Report cannot be submitted in current state');
         }
 
         // Create filing record
@@ -41,7 +42,7 @@ class RegulatoryFilingService
                 RegulatoryFilingRecord::METHOD_API    => $this->submitViaApi($report, $filing),
                 RegulatoryFilingRecord::METHOD_PORTAL => $this->submitViaPortal($report, $filing),
                 RegulatoryFilingRecord::METHOD_EMAIL  => $this->submitViaEmail($report, $filing),
-                default                               => throw new \Exception("Unsupported filing method: {$filing->filing_method}"),
+                default                               => throw new Exception("Unsupported filing method: {$filing->filing_method}"),
             };
 
             // Process result
@@ -54,7 +55,7 @@ class RegulatoryFilingService
             );
 
             event(new ReportSubmitted($report, $filing));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $filing->markAsFailed($e->getMessage());
             throw $e;
         }
@@ -68,7 +69,7 @@ class RegulatoryFilingService
     public function retryFiling(RegulatoryFilingRecord $filing): RegulatoryFilingRecord
     {
         if (! $filing->canRetry()) {
-            throw new \Exception('Filing cannot be retried');
+            throw new Exception('Filing cannot be retried');
         }
 
         $filing->incrementRetryCount();
@@ -78,7 +79,7 @@ class RegulatoryFilingService
                 RegulatoryFilingRecord::METHOD_API    => $this->submitViaApi($filing->report, $filing),
                 RegulatoryFilingRecord::METHOD_PORTAL => $this->submitViaPortal($filing->report, $filing),
                 RegulatoryFilingRecord::METHOD_EMAIL  => $this->submitViaEmail($filing->report, $filing),
-                default                               => throw new \Exception("Unsupported filing method: {$filing->filing_method}"),
+                default                               => throw new Exception("Unsupported filing method: {$filing->filing_method}"),
             };
 
             $this->processFilingResult($filing, $result);
@@ -89,7 +90,7 @@ class RegulatoryFilingService
                     $filing->filing_reference
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $filing->markAsFailed($e->getMessage());
         }
 
@@ -133,7 +134,7 @@ class RegulatoryFilingService
             }
 
             return $status;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to check filing status',
                 [
@@ -425,7 +426,7 @@ class RegulatoryFilingService
         $endpoints = config('regulatory.api_endpoints', []);
 
         return $endpoints[$report->jurisdiction][$report->report_type] ??
-               throw new \Exception("No API endpoint configured for {$report->jurisdiction} {$report->report_type}");
+               throw new Exception("No API endpoint configured for {$report->jurisdiction} {$report->report_type}");
     }
 
     /**

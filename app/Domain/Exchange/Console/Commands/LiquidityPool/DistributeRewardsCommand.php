@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\Console\Commands\LiquidityPool;
 
 use App\Domain\Exchange\LiquidityPool\Services\LiquidityIncentivesService;
+use Exception;
 use Illuminate\Console\Command;
 
 class DistributeRewardsCommand extends Command
@@ -70,7 +71,7 @@ class DistributeRewardsCommand extends Command
             }
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Failed to distribute rewards: ' . $e->getMessage());
 
             return Command::FAILURE;

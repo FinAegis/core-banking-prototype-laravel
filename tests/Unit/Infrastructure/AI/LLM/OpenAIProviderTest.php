@@ -15,6 +15,7 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\TestCase;
 
 class OpenAIProviderTest extends TestCase
@@ -39,7 +40,7 @@ class OpenAIProviderTest extends TestCase
         $this->provider = new OpenAIProvider();
 
         // Use reflection to inject mock client
-        $reflection = new \ReflectionClass($this->provider);
+        $reflection = new ReflectionClass($this->provider);
         $property = $reflection->getProperty('client');
         $property->setAccessible(true);
         $property->setValue($this->provider, $client);

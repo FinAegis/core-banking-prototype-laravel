@@ -4,11 +4,13 @@ namespace Tests\Security\Cryptography;
 
 use App\Domain\Account\DataObjects\Hash;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash as HashFacade;
 use PHPUnit\Framework\Attributes\Test;
+use Storage;
 use Tests\TestCase;
 
 class CryptographySecurityTest extends TestCase
@@ -130,7 +132,7 @@ class CryptographySecurityTest extends TestCase
 
             // If no exception, test passes (no sensitive data exposed)
             $this->assertTrue(true);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Check if exception message contains sensitive data
             $message = $e->getMessage();
 
@@ -310,10 +312,10 @@ class CryptographySecurityTest extends TestCase
 
         // Store encrypted
         $path = 'encrypted/' . $filename;
-        \Storage::put($path, Crypt::encryptString($content));
+        Storage::put($path, Crypt::encryptString($content));
 
         // Verify it's encrypted on disk
-        $encryptedContent = \Storage::get($path);
+        $encryptedContent = Storage::get($path);
         $this->assertNotEquals($content, $encryptedContent);
 
         // Should be able to decrypt
@@ -321,6 +323,6 @@ class CryptographySecurityTest extends TestCase
         $this->assertEquals($content, $decrypted);
 
         // Clean up
-        \Storage::delete($path);
+        Storage::delete($path);
     }
 }

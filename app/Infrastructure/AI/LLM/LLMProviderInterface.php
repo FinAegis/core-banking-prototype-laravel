@@ -6,6 +6,7 @@ namespace App\Infrastructure\AI\LLM;
 
 use App\Domain\AI\ValueObjects\ConversationContext;
 use App\Domain\AI\ValueObjects\LLMResponse;
+use Generator;
 
 interface LLMProviderInterface
 {
@@ -21,13 +22,13 @@ interface LLMProviderInterface
     /**
      * Stream a response from the LLM.
      *
-     * @return \Generator<string>
+     * @return Generator<string>
      */
     public function stream(
         string $message,
         ConversationContext $context,
         array $options = []
-    ): \Generator;
+    ): Generator;
 
     /**
      * Generate embeddings for text.

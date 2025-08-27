@@ -3,7 +3,9 @@
 namespace Tests\Unit\Domain\Stablecoin\Events;
 
 use App\Domain\Stablecoin\Events\CollateralLocked;
+use Error;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 use Tests\DomainTestCase;
 
@@ -18,14 +20,14 @@ class CollateralLockedTest extends DomainTestCase
     #[Test]
     public function test_extends_should_be_stored(): void
     {
-        $reflection = new \ReflectionClass(CollateralLocked::class);
+        $reflection = new ReflectionClass(CollateralLocked::class);
         $this->assertTrue($reflection->isSubclassOf(ShouldBeStored::class));
     }
 
     #[Test]
     public function test_event_has_constructor_properties(): void
     {
-        $reflection = new \ReflectionClass(CollateralLocked::class);
+        $reflection = new ReflectionClass(CollateralLocked::class);
         $constructor = $reflection->getConstructor();
 
         $this->assertNotNull($constructor);
@@ -54,7 +56,7 @@ class CollateralLockedTest extends DomainTestCase
     #[Test]
     public function test_event_properties_are_public_readonly(): void
     {
-        $reflection = new \ReflectionClass(CollateralLocked::class);
+        $reflection = new ReflectionClass(CollateralLocked::class);
 
         $properties = [
             'position_uuid',
@@ -132,10 +134,10 @@ class CollateralLockedTest extends DomainTestCase
         );
 
         // Test that properties cannot be modified (readonly)
-        $reflection = new \ReflectionClass($event);
+        $reflection = new ReflectionClass($event);
         $property = $reflection->getProperty('position_uuid');
 
-        $this->expectException(\Error::class);
+        $this->expectException(Error::class);
         $this->expectExceptionMessage('Cannot modify readonly property');
 
         $property->setValue($event, 'new-pos-123');

@@ -4,6 +4,7 @@ namespace App\Domain\Webhook\Console\Commands;
 
 use App\Domain\Custodian\Jobs\ProcessCustodianWebhook;
 use App\Domain\Custodian\Models\CustodianWebhook;
+use Exception;
 use Illuminate\Console\Command;
 
 class RetryFailedWebhooks extends Command
@@ -63,7 +64,7 @@ class RetryFailedWebhooks extends Command
                 dispatch(new ProcessCustodianWebhook($webhook->uuid));
 
                 $dispatched++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->error("\nFailed to dispatch webhook {$webhook->id}: {$e->getMessage()}");
             }
 

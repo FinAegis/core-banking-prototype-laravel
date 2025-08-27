@@ -7,6 +7,7 @@ namespace App\Domain\Custodian\Services;
 use App\Domain\Custodian\Exceptions\CircuitOpenException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class CircuitBreakerService
 {
@@ -52,7 +53,7 @@ class CircuitBreakerService
      * @return T
      *
      * @throws CircuitOpenException When circuit is open and no fallback provided
-     * @throws \Throwable When operation fails and no fallback provided
+     * @throws Throwable When operation fails and no fallback provided
      */
     public function execute(string $service, callable $operation, ?callable $fallback = null): mixed
     {
@@ -87,7 +88,7 @@ class CircuitBreakerService
             }
 
             return $result;
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             // Record failure
             $this->recordFailure($service);
 

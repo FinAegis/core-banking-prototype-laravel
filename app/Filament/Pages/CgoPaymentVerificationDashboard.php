@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Domain\Cgo\Models\CgoInvestment;
+use Exception;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -250,7 +251,7 @@ class CgoPaymentVerificationDashboard extends Page implements Tables\Contracts\H
                 ->body("Verification for investment {$investment->uuid} has been queued.")
                 ->success()
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->title('Verification Failed')
                 ->body($e->getMessage())
@@ -293,7 +294,7 @@ class CgoPaymentVerificationDashboard extends Page implements Tables\Contracts\H
                 ->body("Investment {$investment->uuid} has been manually verified.")
                 ->success()
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->title('Verification Failed')
                 ->body($e->getMessage())
@@ -319,7 +320,7 @@ class CgoPaymentVerificationDashboard extends Page implements Tables\Contracts\H
                 ->body("Investment {$investment->uuid} has been marked as failed.")
                 ->warning()
                 ->send();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->title('Update Failed')
                 ->body($e->getMessage())

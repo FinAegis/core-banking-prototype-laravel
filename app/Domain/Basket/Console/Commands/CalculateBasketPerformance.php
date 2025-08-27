@@ -4,8 +4,10 @@ namespace App\Domain\Basket\Console\Commands;
 
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketPerformanceService;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class CalculateBasketPerformance extends Command
 {
@@ -63,7 +65,7 @@ class CalculateBasketPerformance extends Command
                         'month'   => [$now->copy()->subMonth(), $now],
                         'quarter' => [$now->copy()->subQuarter(), $now],
                         'year'    => [$now->copy()->subYear(), $now],
-                        default   => throw new \InvalidArgumentException("Invalid period: {$period}")
+                        default   => throw new InvalidArgumentException("Invalid period: {$period}")
                     };
 
                     $performance = $performanceService->calculatePerformance(
@@ -108,7 +110,7 @@ class CalculateBasketPerformance extends Command
                         $this->info("    - {$performer->asset_code}: {$performer->formatted_contribution}");
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->error("  Error calculating performance: {$e->getMessage()}");
                 Log::error(
                     'Basket performance calculation failed',

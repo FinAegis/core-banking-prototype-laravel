@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Monitoring\Services;
 
 use App\Domain\Monitoring\Services\HealthChecker;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -163,7 +164,7 @@ class HealthCheckerTest extends TestCase
         // Mock a failing database connection
         DB::shouldReceive('select')
             ->once()
-            ->andThrow(new \Exception('Database connection failed'));
+            ->andThrow(new Exception('Database connection failed'));
 
         $healthChecker = new HealthChecker();
 
@@ -244,7 +245,7 @@ class HealthCheckerTest extends TestCase
         // Mock Redis failure but keep other services working
         Redis::shouldReceive('ping')
             ->once()
-            ->andThrow(new \Exception('Redis not available'));
+            ->andThrow(new Exception('Redis not available'));
 
         $healthChecker = new HealthChecker();
 

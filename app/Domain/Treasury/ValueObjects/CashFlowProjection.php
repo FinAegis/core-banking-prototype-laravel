@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\ValueObjects;
 
 use Carbon\Carbon;
+use InvalidArgumentException;
 
 /**
  * Value object representing a cash flow projection.
@@ -26,23 +27,23 @@ final class CashFlowProjection
     private function validate(): void
     {
         if ($this->dayNumber < 1) {
-            throw new \InvalidArgumentException('Day number must be positive');
+            throw new InvalidArgumentException('Day number must be positive');
         }
 
         if ($this->projectedInflow < 0) {
-            throw new \InvalidArgumentException('Projected inflow cannot be negative');
+            throw new InvalidArgumentException('Projected inflow cannot be negative');
         }
 
         if ($this->projectedOutflow < 0) {
-            throw new \InvalidArgumentException('Projected outflow cannot be negative');
+            throw new InvalidArgumentException('Projected outflow cannot be negative');
         }
 
         if (! isset($this->confidenceInterval['lower']) || ! isset($this->confidenceInterval['upper'])) {
-            throw new \InvalidArgumentException('Confidence interval must have lower and upper bounds');
+            throw new InvalidArgumentException('Confidence interval must have lower and upper bounds');
         }
 
         if ($this->confidenceInterval['lower'] > $this->confidenceInterval['upper']) {
-            throw new \InvalidArgumentException('Lower confidence bound cannot exceed upper bound');
+            throw new InvalidArgumentException('Lower confidence bound cannot exceed upper bound');
         }
     }
 

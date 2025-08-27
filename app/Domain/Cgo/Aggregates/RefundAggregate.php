@@ -10,6 +10,7 @@ use App\Domain\Cgo\Events\RefundProcessed;
 use App\Domain\Cgo\Events\RefundRejected;
 use App\Domain\Cgo\Events\RefundRequested;
 use App\Domain\Cgo\Repositories\CgoEventRepository;
+use DomainException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
 
@@ -67,7 +68,7 @@ class RefundAggregate extends AggregateRoot
     public function approve(string $approvedBy, string $approvalNotes, array $metadata = []): self
     {
         if ($this->status !== 'pending') {
-            throw new \DomainException("Can only approve pending refunds. Current status: {$this->status}");
+            throw new DomainException("Can only approve pending refunds. Current status: {$this->status}");
         }
 
         $this->recordThat(
@@ -85,7 +86,7 @@ class RefundAggregate extends AggregateRoot
     public function reject(string $rejectedBy, string $rejectionReason, array $metadata = []): self
     {
         if ($this->status !== 'pending') {
-            throw new \DomainException("Can only reject pending refunds. Current status: {$this->status}");
+            throw new DomainException("Can only reject pending refunds. Current status: {$this->status}");
         }
 
         $this->recordThat(
@@ -108,7 +109,7 @@ class RefundAggregate extends AggregateRoot
         array $metadata = []
     ): self {
         if ($this->status !== 'approved') {
-            throw new \DomainException("Can only process approved refunds. Current status: {$this->status}");
+            throw new DomainException("Can only process approved refunds. Current status: {$this->status}");
         }
 
         $this->recordThat(
@@ -128,7 +129,7 @@ class RefundAggregate extends AggregateRoot
     public function complete(string $completedAt, array $metadata = []): self
     {
         if ($this->status !== 'processing') {
-            throw new \DomainException("Can only complete processing refunds. Current status: {$this->status}");
+            throw new DomainException("Can only complete processing refunds. Current status: {$this->status}");
         }
 
         $this->recordThat(
@@ -147,7 +148,7 @@ class RefundAggregate extends AggregateRoot
     public function fail(string $failureReason, string $failedAt, array $metadata = []): self
     {
         if (! in_array($this->status, ['approved', 'processing'])) {
-            throw new \DomainException("Can only fail approved or processing refunds. Current status: {$this->status}");
+            throw new DomainException("Can only fail approved or processing refunds. Current status: {$this->status}");
         }
 
         $this->recordThat(
@@ -165,7 +166,7 @@ class RefundAggregate extends AggregateRoot
     public function cancel(string $cancellationReason, string $cancelledBy, string $cancelledAt, array $metadata = []): self
     {
         if (in_array($this->status, ['completed', 'cancelled'])) {
-            throw new \DomainException("Cannot cancel refunds in status: {$this->status}");
+            throw new DomainException("Cannot cancel refunds in status: {$this->status}");
         }
 
         $this->recordThat(

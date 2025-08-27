@@ -9,6 +9,7 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Services\AccountService;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionMethod;
 use Tests\ServiceTestCase;
 
 class AccountServiceTest extends ServiceTestCase
@@ -80,7 +81,7 @@ class AccountServiceTest extends ServiceTestCase
     public function test_deposit_method_accepts_uuid_and_amount()
     {
         // Create reflection to test method signature
-        $reflection = new \ReflectionMethod($this->accountService, 'deposit');
+        $reflection = new ReflectionMethod($this->accountService, 'deposit');
         $parameters = $reflection->getParameters();
 
         $this->assertCount(2, $parameters);
@@ -92,7 +93,7 @@ class AccountServiceTest extends ServiceTestCase
     public function test_withdraw_method_accepts_uuid_and_amount()
     {
         // Create reflection to test method signature
-        $reflection = new \ReflectionMethod($this->accountService, 'withdraw');
+        $reflection = new ReflectionMethod($this->accountService, 'withdraw');
         $parameters = $reflection->getParameters();
 
         $this->assertCount(2, $parameters);
@@ -104,7 +105,7 @@ class AccountServiceTest extends ServiceTestCase
     public function test_destroy_method_accepts_uuid()
     {
         // Create reflection to test method signature
-        $reflection = new \ReflectionMethod($this->accountService, 'destroy');
+        $reflection = new ReflectionMethod($this->accountService, 'destroy');
         $parameters = $reflection->getParameters();
 
         $this->assertCount(1, $parameters);
@@ -115,7 +116,7 @@ class AccountServiceTest extends ServiceTestCase
     public function test_create_method_accepts_account_or_array()
     {
         // Create reflection to test method signature
-        $reflection = new \ReflectionMethod($this->accountService, 'create');
+        $reflection = new ReflectionMethod($this->accountService, 'create');
         $parameters = $reflection->getParameters();
 
         $this->assertCount(1, $parameters);

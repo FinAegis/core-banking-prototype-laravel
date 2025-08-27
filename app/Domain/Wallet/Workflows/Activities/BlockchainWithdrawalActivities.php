@@ -7,6 +7,7 @@ use App\Domain\Wallet\Services\BlockchainWalletService;
 use App\Domain\Wallet\Services\KeyManagementService;
 use App\Models\User;
 use Brick\Math\BigDecimal;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class BlockchainWithdrawalActivities
@@ -33,17 +34,17 @@ class BlockchainWithdrawalActivities
 
         // Check wallet status
         if ($wallet->status !== 'active') {
-            throw new \Exception('Wallet is not active');
+            throw new Exception('Wallet is not active');
         }
 
         // Basic address validation
         if (empty($toAddress)) {
-            throw new \Exception('Invalid destination address');
+            throw new Exception('Invalid destination address');
         }
 
         // Validate amount
         if (BigDecimal::of($amount)->isLessThanOrEqualTo(0)) {
-            throw new \Exception('Invalid withdrawal amount');
+            throw new Exception('Invalid withdrawal amount');
         }
     }
 
@@ -61,7 +62,7 @@ class BlockchainWithdrawalActivities
     public function verifyTwoFactorCode(string $userId, ?string $code): void
     {
         if (! $code) {
-            throw new \Exception('Two-factor authentication code required');
+            throw new Exception('Two-factor authentication code required');
         }
 
         // Verify 2FA code (placeholder - would integrate with actual 2FA service)
@@ -89,7 +90,7 @@ class BlockchainWithdrawalActivities
         $totalToday = BigDecimal::of($todayWithdrawals ?: '0')->plus($amount);
 
         if ($totalToday->isGreaterThan($dailyLimit)) {
-            throw new \Exception('Daily withdrawal limit exceeded');
+            throw new Exception('Daily withdrawal limit exceeded');
         }
     }
 
@@ -103,7 +104,7 @@ class BlockchainWithdrawalActivities
         $whitelistedAddresses = $settings['whitelisted_addresses'] ?? [];
 
         if (! empty($whitelistedAddresses) && ! in_array($toAddress, $whitelistedAddresses)) {
-            throw new \Exception('Address not whitelisted');
+            throw new Exception('Address not whitelisted');
         }
     }
 
@@ -116,7 +117,7 @@ class BlockchainWithdrawalActivities
             ->first();
 
         if (! $account) {
-            throw new \Exception('No active USD account found');
+            throw new Exception('No active USD account found');
         }
 
         return $account->id;
@@ -174,7 +175,7 @@ class BlockchainWithdrawalActivities
         /** @var Account|null $account */
         $account = Account::find($accountId);
         if (! $account) {
-            throw new \Exception('Account not found');
+            throw new Exception('Account not found');
         }
 
         // This would interact with the Account aggregate to lock funds
@@ -351,11 +352,11 @@ class BlockchainWithdrawalActivities
             ->first();
 
         if (! $account) {
-            throw new \Exception('Account not found');
+            throw new Exception('Account not found');
         }
 
         if (BigDecimal::of($account->balance)->isLessThan($amount)) {
-            throw new \Exception('Insufficient balance');
+            throw new Exception('Insufficient balance');
         }
     }
 
@@ -392,7 +393,7 @@ class BlockchainWithdrawalActivities
             ->first();
 
         if (! $hotWalletBalance || BigDecimal::of($hotWalletBalance->balance)->isLessThan($cryptoAmount)) {
-            throw new \Exception('Insufficient hot wallet balance');
+            throw new Exception('Insufficient hot wallet balance');
         }
     }
 
@@ -459,7 +460,7 @@ class BlockchainWithdrawalActivities
             ->first();
 
         if (! $hotWallet) {
-            throw new \Exception('No active hot wallet for chain');
+            throw new Exception('No active hot wallet for chain');
         }
 
         $fees = $this->calculateFees($chain, $cryptoAmount);
@@ -496,7 +497,7 @@ class BlockchainWithdrawalActivities
         $connector = $this->connectors[$chain] ?? null;
 
         if (! $connector) {
-            throw new \Exception("No connector available for chain: $chain");
+            throw new Exception("No connector available for chain: $chain");
         }
 
         // Broadcast the transaction (placeholder)

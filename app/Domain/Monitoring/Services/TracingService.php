@@ -12,6 +12,7 @@ use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
+use Throwable;
 
 class TracingService
 {
@@ -123,7 +124,7 @@ class TracingService
         }
     }
 
-    public function recordError(string $spanId, \Throwable $error, array $context = []): void
+    public function recordError(string $spanId, Throwable $error, array $context = []): void
     {
         // Record in OpenTelemetry span if available
         if (isset($this->activeSpans[$spanId])) {

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Domain\Cgo\Models\CgoInvestment;
 use App\Domain\Cgo\Services\PaymentVerificationService;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use Mail;
 
 class CgoPaymentVerificationController extends Controller
 {
@@ -76,7 +78,7 @@ class CgoPaymentVerificationController extends Controller
                     'status'  => $investment->payment_status,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'success' => false,
@@ -115,12 +117,12 @@ class CgoPaymentVerificationController extends Controller
             switch ($investment->payment_method) {
                 case 'bank_transfer':
                     // Send bank transfer instructions
-                    \Mail::to($user->email)->send(new \App\Mail\CgoBankTransferInstructions($investment));
+                    Mail::to($user->email)->send(new \App\Mail\CgoBankTransferInstructions($investment));
                     break;
 
                 case 'crypto':
                     // Send crypto payment instructions
-                    \Mail::to($user->email)->send(new \App\Mail\CgoCryptoPaymentInstructions($investment));
+                    Mail::to($user->email)->send(new \App\Mail\CgoCryptoPaymentInstructions($investment));
                     break;
             }
 
@@ -130,7 +132,7 @@ class CgoPaymentVerificationController extends Controller
                     'message' => 'Payment instructions have been sent to your email',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'success' => false,

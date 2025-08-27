@@ -4,6 +4,7 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows\Data;
 
 use App\Domain\Stablecoin\Workflows\Data\ReserveDepositData;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class ReserveDepositDataTest extends DomainTestCase
@@ -200,7 +201,7 @@ class ReserveDepositDataTest extends DomainTestCase
         );
 
         // All properties should be readonly
-        $reflection = new \ReflectionClass($data);
+        $reflection = new ReflectionClass($data);
 
         foreach ($reflection->getProperties() as $property) {
             $this->assertTrue($property->isReadOnly());

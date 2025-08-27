@@ -6,7 +6,9 @@ use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\Projections\LiquidityProvider;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Domain\Exchange\Services\LiquidityPoolService;
+use DomainException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
@@ -22,7 +24,7 @@ class LiquidityPoolServiceTest extends ServiceTestCase
     {
         parent::setUp();
 
-        $this->exchangeService = \Mockery::mock(ExchangeService::class);
+        $this->exchangeService = Mockery::mock(ExchangeService::class);
         $this->service = new LiquidityPoolService($this->exchangeService);
     }
 
@@ -55,7 +57,7 @@ class LiquidityPoolServiceTest extends ServiceTestCase
             'is_active'      => true,
         ]);
 
-        $this->expectException(\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Liquidity pool already exists for this pair');
 
         $this->service->createPool('BTC', 'USDT');
@@ -246,7 +248,7 @@ class LiquidityPoolServiceTest extends ServiceTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

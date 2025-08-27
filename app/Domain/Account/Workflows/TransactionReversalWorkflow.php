@@ -4,6 +4,8 @@ namespace App\Domain\Account\Workflows;
 
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -20,7 +22,7 @@ class TransactionReversalWorkflow extends Workflow
         string $transactionType,
         string $reversalReason,
         ?string $authorizedBy = null
-    ): \Generator {
+    ): Generator {
         try {
             $result = yield ActivityStub::make(
                 TransactionReversalActivity::class,
@@ -32,7 +34,7 @@ class TransactionReversalWorkflow extends Workflow
             );
 
             return $result;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Log reversal failure for audit
             logger()->error(
                 'Transaction reversal failed',

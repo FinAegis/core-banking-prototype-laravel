@@ -13,9 +13,11 @@ use App\Domain\Cgo\Services\CoinbaseCommerceService;
 use App\Domain\Cgo\Services\StripePaymentService;
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Log;
 
 class CgoController extends Controller
 {
@@ -75,15 +77,15 @@ class CgoController extends Controller
                     $request->ip(),
                     $request->userAgent()
                 );
-            } catch (\Exception $e) {
-                \Log::error('Failed to add CGO subscriber: ' . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Failed to add CGO subscriber: ' . $e->getMessage());
             }
 
             // Send confirmation email (keep existing functionality)
             try {
                 Mail::to($validated['email'])->send(new CgoNotificationReceived($validated['email']));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send CGO notification email: ' . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Failed to send CGO notification email: ' . $e->getMessage());
             }
         }
 
@@ -235,11 +237,11 @@ class CgoController extends Controller
                     return $this->processBankTransfer($investment);
 
                 default:
-                    throw new \Exception('Invalid payment method');
+                    throw new Exception('Invalid payment method');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
-            \Log::error('CGO investment error: ' . $e->getMessage());
+            Log::error('CGO investment error: ' . $e->getMessage());
 
             return redirect()->back()->withErrors(['error' => 'An error occurred processing your investment. Please try again.']);
         }
@@ -255,8 +257,8 @@ class CgoController extends Controller
 
                 // Redirect to Coinbase Commerce hosted checkout
                 return redirect($charge['hosted_url']);
-            } catch (\Exception $e) {
-                \Log::error('Coinbase Commerce error: ' . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Coinbase Commerce error: ' . $e->getMessage());
                 // Fall back to manual crypto payment
             }
         }
@@ -274,17 +276,17 @@ class CgoController extends Controller
 
         // Safety check - prevent using unconfigured addresses
         if ($cryptoAddress === 'NOT-CONFIGURED' || empty($cryptoAddress)) {
-            throw new \Exception("Crypto address for {$cryptoCurrency} is not configured. Please set CGO_{$cryptoCurrency}_ADDRESS in your .env file.");
+            throw new Exception("Crypto address for {$cryptoCurrency} is not configured. Please set CGO_{$cryptoCurrency}_ADDRESS in your .env file.");
         }
 
         // Additional safety for production
         if (app()->environment('production') && ! config('cgo.production_crypto_enabled', false)) {
-            throw new \Exception('Crypto payments are not enabled in production. Please use card or bank transfer.');
+            throw new Exception('Crypto payments are not enabled in production. Please use card or bank transfer.');
         }
 
         // Display warning in non-production environments
         if (! app()->environment('production')) {
-            \Log::warning(
+            Log::warning(
                 'CGO Crypto payment in non-production environment',
                 [
                     'investment_id' => $investment->id,
@@ -373,8 +375,8 @@ class CgoController extends Controller
             );
 
             return redirect($session->url);
-        } catch (\Exception $e) {
-            \Log::error('Error creating Stripe checkout session: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Error creating Stripe checkout session: ' . $e->getMessage());
 
             return redirect()->back()->withErrors(['error' => 'Unable to process card payment. Please try another payment method.']);
         }
@@ -400,12 +402,12 @@ class CgoController extends Controller
                     // Send confirmation email
                     try {
                         Mail::to($investment->email)->send(new CgoInvestmentReceived($investment));
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to send investment confirmation email: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        Log::error('Failed to send investment confirmation email: ' . $e->getMessage());
                     }
                 }
-            } catch (\Exception $e) {
-                \Log::error('Error verifying Stripe payment: ' . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Error verifying Stripe payment: ' . $e->getMessage());
             }
         }
 

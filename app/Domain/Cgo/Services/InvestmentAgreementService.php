@@ -4,6 +4,7 @@ namespace App\Domain\Cgo\Services;
 
 use App\Domain\Cgo\Models\CgoInvestment;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -54,7 +55,7 @@ class InvestmentAgreementService
             );
 
             return $path;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to generate CGO investment agreement',
                 [
@@ -75,7 +76,7 @@ class InvestmentAgreementService
         try {
             // Ensure investment is confirmed
             if ($investment->status !== 'confirmed') {
-                throw new \Exception('Investment must be confirmed to generate certificate');
+                throw new Exception('Investment must be confirmed to generate certificate');
             }
 
             // Load relationships
@@ -126,7 +127,7 @@ class InvestmentAgreementService
             );
 
             return $path;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to generate CGO investment certificate',
                 [

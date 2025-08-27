@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SystemHealthCheck;
 use App\Models\SystemIncident;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -102,7 +103,7 @@ class StatusController extends Controller
                 'response_time' => $time,
                 'message'       => $status === 'operational' ? 'Database connection successful' : 'Database response slow',
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'response_time' => null,
@@ -123,7 +124,7 @@ class StatusController extends Controller
                 'status'  => $result ? 'operational' : 'degraded',
                 'message' => $result ? 'Cache working properly' : 'Cache issues detected',
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'  => 'down',
                 'message' => 'Cache service unavailable',
@@ -153,7 +154,7 @@ class StatusController extends Controller
                 'pending_jobs' => $pendingJobs,
                 'message'      => $failedJobs > 0 ? "$failedJobs failed jobs" : 'Queue processing normally',
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'  => 'unknown',
                 'message' => 'Unable to check queue status',
@@ -174,7 +175,7 @@ class StatusController extends Controller
                 'usage'   => $used_percentage . '%',
                 'message' => "Disk usage: $used_percentage%",
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'  => 'unknown',
                 'message' => 'Unable to check storage',

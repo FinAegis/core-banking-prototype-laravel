@@ -10,6 +10,7 @@ use App\Domain\Batch\Events\BatchJobCreated;
 use App\Domain\Batch\Events\BatchJobStarted;
 use App\Domain\Batch\Repositories\BatchRepository;
 use App\Domain\Batch\Repositories\BatchSnapshotRepository;
+use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class BatchAggregate extends AggregateRoot
@@ -56,7 +57,7 @@ class BatchAggregate extends AggregateRoot
     public function startBatchJob(): static
     {
         if ($this->status !== 'pending') {
-            throw new \InvalidArgumentException('Can only start pending batch jobs');
+            throw new InvalidArgumentException('Can only start pending batch jobs');
         }
 
         $this->recordThat(
@@ -72,7 +73,7 @@ class BatchAggregate extends AggregateRoot
     public function processBatchItem(int $itemIndex, string $status, array $result = [], ?string $errorMessage = null): static
     {
         if ($this->status !== 'processing') {
-            throw new \InvalidArgumentException('Can only process items for processing batch jobs');
+            throw new InvalidArgumentException('Can only process items for processing batch jobs');
         }
 
         $this->recordThat(
@@ -88,7 +89,7 @@ class BatchAggregate extends AggregateRoot
     public function completeBatchJob(): static
     {
         if ($this->status !== 'processing') {
-            throw new \InvalidArgumentException('Can only complete processing batch jobs');
+            throw new InvalidArgumentException('Can only complete processing batch jobs');
         }
 
         $finalStatus = 'completed';
@@ -116,7 +117,7 @@ class BatchAggregate extends AggregateRoot
     public function cancelBatchJob(string $reason): static
     {
         if (! in_array($this->status, ['pending', 'processing'])) {
-            throw new \InvalidArgumentException('Can only cancel pending or processing batch jobs');
+            throw new InvalidArgumentException('Can only cancel pending or processing batch jobs');
         }
 
         $this->recordThat(

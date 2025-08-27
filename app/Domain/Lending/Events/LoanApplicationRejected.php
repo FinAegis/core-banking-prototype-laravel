@@ -2,6 +2,7 @@
 
 namespace App\Domain\Lending\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class LoanApplicationRejected extends ShouldBeStored
@@ -10,7 +11,7 @@ class LoanApplicationRejected extends ShouldBeStored
         public string $applicationId,
         public array $reasons,
         public string $rejectedBy,
-        public \DateTimeImmutable $rejectedAt
+        public DateTimeImmutable $rejectedAt
     ) {
     }
 }

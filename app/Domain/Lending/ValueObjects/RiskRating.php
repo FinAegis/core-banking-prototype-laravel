@@ -2,6 +2,8 @@
 
 namespace App\Domain\Lending\ValueObjects;
 
+use InvalidArgumentException;
+
 class RiskRating
 {
     private const VALID_RATINGS = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -12,11 +14,11 @@ class RiskRating
         public readonly array $riskFactors
     ) {
         if (! in_array($rating, self::VALID_RATINGS)) {
-            throw new \InvalidArgumentException('Invalid risk rating. Must be A-F');
+            throw new InvalidArgumentException('Invalid risk rating. Must be A-F');
         }
 
         if ($defaultProbability < 0 || $defaultProbability > 1) {
-            throw new \InvalidArgumentException('Default probability must be between 0 and 1');
+            throw new InvalidArgumentException('Default probability must be between 0 and 1');
         }
     }
 

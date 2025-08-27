@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Custodian\Services;
 
 use App\Domain\Custodian\Exceptions\MaxRetriesExceededException;
+use Exception;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class RetryService
 {
@@ -37,16 +39,16 @@ class RetryService
      * @template T
      *
      * @param  callable(): T  $operation  The operation to execute
-     * @param  array<class-string<\Throwable>>  $retryableExceptions  Exceptions that trigger retry
+     * @param  array<class-string<Throwable>>  $retryableExceptions  Exceptions that trigger retry
      * @param  string  $context  Context for logging
      * @return T
      *
      * @throws MaxRetriesExceededException When all retry attempts are exhausted
-     * @throws \Throwable When a non-retryable exception occurs
+     * @throws Throwable When a non-retryable exception occurs
      */
     public function execute(
         callable $operation,
-        array $retryableExceptions = [\Exception::class],
+        array $retryableExceptions = [Exception::class],
         string $context = 'operation'
     ): mixed {
         $attempt = 0;
@@ -71,7 +73,7 @@ class RetryService
                 }
 
                 return $result;
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 $lastException = $exception;
 
                 // Check if exception is retryable
@@ -140,7 +142,7 @@ class RetryService
 
         return $service->execute(
             $operation,
-            $config['retryableExceptions'] ?? [\Exception::class],
+            $config['retryableExceptions'] ?? [Exception::class],
             $config['context'] ?? 'operation'
         );
     }
@@ -169,7 +171,7 @@ class RetryService
     /**
      * Check if exception is retryable.
      */
-    private function isRetryable(\Throwable $exception, array $retryableExceptions): bool
+    private function isRetryable(Throwable $exception, array $retryableExceptions): bool
     {
         foreach ($retryableExceptions as $retryableClass) {
             if ($exception instanceof $retryableClass) {

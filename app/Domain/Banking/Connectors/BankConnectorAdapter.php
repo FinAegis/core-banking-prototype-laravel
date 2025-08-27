@@ -14,6 +14,8 @@ use App\Domain\Banking\Models\BankTransfer;
 use App\Domain\Custodian\Contracts\ICustodianConnector;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
 use Carbon\Carbon;
+use DateTime;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -157,7 +159,7 @@ class BankConnectorAdapter implements IBankConnector
                         asOf: Carbon::now()
                     )
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Skip if balance not available for this currency
                 continue;
             }
@@ -234,7 +236,7 @@ class BankConnectorAdapter implements IBankConnector
         return $this->custodianConnector->cancelTransaction($transferId);
     }
 
-    public function getTransactions(string $accountId, \DateTime $from, \DateTime $to, int $limit = 100): Collection
+    public function getTransactions(string $accountId, DateTime $from, DateTime $to, int $limit = 100): Collection
     {
         $history = $this->custodianConnector->getTransactionHistory($accountId, $limit);
 
@@ -269,7 +271,7 @@ class BankConnectorAdapter implements IBankConnector
         );
     }
 
-    public function getStatement(string $accountId, \DateTime $from, \DateTime $to, string $format = 'JSON'): BankStatement
+    public function getStatement(string $accountId, DateTime $from, DateTime $to, string $format = 'JSON'): BankStatement
     {
         /** @var array|null $firstTx */
         $firstTx = null;

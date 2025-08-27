@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Product\ValueObjects;
 
+use InvalidArgumentException;
+
 class Price
 {
     public function __construct(
@@ -22,7 +24,7 @@ class Price
     private function validateAmount(): void
     {
         if ($this->amount < 0) {
-            throw new \InvalidArgumentException('Price amount cannot be negative');
+            throw new InvalidArgumentException('Price amount cannot be negative');
         }
     }
 
@@ -30,7 +32,7 @@ class Price
     {
         $validCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD'];
         if (! in_array($this->currency, $validCurrencies, true)) {
-            throw new \InvalidArgumentException("Invalid currency: {$this->currency}");
+            throw new InvalidArgumentException("Invalid currency: {$this->currency}");
         }
     }
 
@@ -38,7 +40,7 @@ class Price
     {
         $validTypes = ['fixed', 'percentage', 'tiered'];
         if (! in_array($this->type, $validTypes, true)) {
-            throw new \InvalidArgumentException("Invalid price type: {$this->type}");
+            throw new InvalidArgumentException("Invalid price type: {$this->type}");
         }
     }
 

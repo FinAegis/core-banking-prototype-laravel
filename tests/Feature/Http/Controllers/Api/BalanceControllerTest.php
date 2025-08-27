@@ -12,6 +12,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -259,7 +260,7 @@ class BalanceControllerTest extends ControllerTestCase
         ]);
 
         // Mock the cache service to return specific statistics
-        $mockTurnoverCache = \Mockery::mock(TurnoverCacheService::class)->makePartial();
+        $mockTurnoverCache = Mockery::mock(TurnoverCacheService::class)->makePartial();
         $mockTurnoverCache->shouldReceive('getStatistics')
             ->with($this->account->uuid)
             ->andReturn([
@@ -396,7 +397,7 @@ class BalanceControllerTest extends ControllerTestCase
         Sanctum::actingAs($this->user);
 
         // Mock cache to return null
-        $mockAccountCache = \Mockery::mock(AccountCacheService::class)->makePartial();
+        $mockAccountCache = Mockery::mock(AccountCacheService::class)->makePartial();
         $mockAccountCache->shouldReceive('get')
             ->with($this->account->uuid)
             ->andReturn($this->account);

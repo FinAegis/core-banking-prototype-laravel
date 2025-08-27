@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Custodian\Services\CustodianRegistry;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
@@ -74,7 +75,7 @@ class CustodianServiceProvider extends ServiceProvider
                 }
 
                 Log::info("Registered custodian connector: {$name}");
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("Failed to register custodian {$name}: " . $e->getMessage());
             }
         }

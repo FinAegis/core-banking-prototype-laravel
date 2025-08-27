@@ -8,6 +8,7 @@ use App\Domain\Compliance\Models\AuditLog;
 use App\Domain\Compliance\Services\KycService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -248,7 +249,7 @@ class KycController extends Controller
                     'status'  => 'pending',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             AuditLog::log(
                 'kyc.submission_failed',
                 null,
@@ -388,7 +389,7 @@ class KycController extends Controller
                     'document_id' => $document->id,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             AuditLog::log(
                 'kyc.upload_failed',
                 null,

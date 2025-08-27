@@ -9,6 +9,7 @@ use App\Domain\Account\Models\Transaction;
 use App\Domain\Account\Models\Turnover;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 use Workflow\Activity;
 
 /**
@@ -73,7 +74,7 @@ class ReverseBatchOperationActivity extends Activity
                     'operation' => $operation,
                 ]
             );
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             logger()->error(
                 'Failed to reverse batch operation',
                 [

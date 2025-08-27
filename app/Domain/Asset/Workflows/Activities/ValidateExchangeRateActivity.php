@@ -6,6 +6,7 @@ namespace App\Domain\Asset\Workflows\Activities;
 
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Asset\Services\ExchangeRateService;
+use Exception;
 use Workflow\Activity;
 
 class ValidateExchangeRateActivity extends Activity
@@ -27,11 +28,11 @@ class ValidateExchangeRateActivity extends Activity
         $rate = $this->exchangeRateService->getRate($fromAssetCode, $toAssetCode);
 
         if (! $rate) {
-            throw new \Exception("No exchange rate available for {$fromAssetCode} to {$toAssetCode}");
+            throw new Exception("No exchange rate available for {$fromAssetCode} to {$toAssetCode}");
         }
 
         if (! $rate->isValid()) {
-            throw new \Exception("Exchange rate for {$fromAssetCode} to {$toAssetCode} is expired or invalid");
+            throw new Exception("Exchange rate for {$fromAssetCode} to {$toAssetCode} is expired or invalid");
         }
 
         // Calculate target amount using the exchange rate
@@ -40,7 +41,7 @@ class ValidateExchangeRateActivity extends Activity
 
         // Validate that the conversion is reasonable (not zero or negative)
         if ($toAmountValue <= 0) {
-            throw new \Exception("Invalid conversion result: {$fromAmount->getAmount()} {$fromAssetCode} converts to {$toAmountValue} {$toAssetCode}");
+            throw new Exception("Invalid conversion result: {$fromAmount->getAmount()} {$fromAssetCode} converts to {$toAmountValue} {$toAssetCode}");
         }
 
         return [

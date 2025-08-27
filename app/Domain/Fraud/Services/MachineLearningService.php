@@ -5,6 +5,7 @@ namespace App\Domain\Fraud\Services;
 use App\Domain\Account\Models\Transaction;
 use App\Domain\Fraud\Models\FraudScore;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -64,7 +65,7 @@ class MachineLearningService
                 'explanation'   => $prediction['explanation'] ?? null,
                 'risk_factors'  => $prediction['risk_factors'] ?? [],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'ML prediction failed',
                 [
@@ -249,7 +250,7 @@ class MachineLearningService
 
             // Update fraud score with outcome
             $fraudScore->update(['outcome' => $actualOutcome]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'ML training feedback failed',
                 [
@@ -371,7 +372,7 @@ class MachineLearningService
 
         try {
             return now()->diffInDays($device['first_seen_at']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 0;
         }
     }

@@ -8,6 +8,7 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Asset\Aggregates\AssetTransactionAggregate;
+use Exception;
 use Workflow\Activity;
 
 class WithdrawAssetActivity extends Activity
@@ -28,7 +29,7 @@ class WithdrawAssetActivity extends Activity
 
         if (! $accountBalance || ! $accountBalance->hasSufficientBalance($money->getAmount())) {
             $currentBalance = $accountBalance ? $accountBalance->balance : 0;
-            throw new \Exception(
+            throw new Exception(
                 "Insufficient balance for {$assetCode}. Required: {$money->getAmount()}, Available: {$currentBalance}"
             );
         }

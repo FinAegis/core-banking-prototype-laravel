@@ -3,6 +3,7 @@
 namespace App\Domain\Custodian\Console\Commands;
 
 use App\Domain\Custodian\Services\SettlementService;
+use Exception;
 use Illuminate\Console\Command;
 
 class ProcessSettlements extends Command
@@ -64,7 +65,7 @@ class ProcessSettlements extends Command
             $this->displayResults($results, $currentType);
 
             return self::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('❌ Settlement processing failed: ' . $e->getMessage());
 
             if ($this->option('verbose')) {

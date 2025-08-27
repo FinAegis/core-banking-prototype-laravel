@@ -4,12 +4,14 @@ namespace App\Domain\Exchange\Jobs;
 
 use App\Domain\Exchange\Services\ExternalLiquidityService;
 use App\Models\Currency;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class CheckArbitrageOpportunitiesJob implements ShouldQueue
 {
@@ -60,7 +62,7 @@ class CheckArbitrageOpportunitiesJob implements ShouldQueue
                     // Here you could dispatch jobs to execute arbitrage trades
                     // For now, we just log them
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Failed to check arbitrage opportunities',
                     [
@@ -72,7 +74,7 @@ class CheckArbitrageOpportunitiesJob implements ShouldQueue
         }
     }
 
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error(
             'Arbitrage check job failed',

@@ -13,6 +13,7 @@ use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Basket\Events\BasketDecomposed;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Wallet\Services\WalletService;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -33,11 +34,11 @@ class BasketAccountService
         $basket = BasketAsset::where('code', $basketCode)->first();
 
         if (! $basket) {
-            throw new \Exception("Basket not found: {$basketCode}");
+            throw new Exception("Basket not found: {$basketCode}");
         }
 
         if (! $basket->is_active) {
-            throw new \Exception("Basket {$basketCode} is not active");
+            throw new Exception("Basket {$basketCode} is not active");
         }
 
         // Ensure the basket exists as an asset
@@ -78,7 +79,7 @@ class BasketAccountService
             ->firstOrFail();
 
         if ($balance->balance < $amount) {
-            throw new \Exception("Insufficient basket balance. Available: {$balance->balance}, Requested: {$amount}");
+            throw new Exception("Insufficient basket balance. Available: {$balance->balance}, Requested: {$amount}");
         }
 
         $balance->debit($amount);
@@ -108,16 +109,16 @@ class BasketAccountService
         $basket = BasketAsset::where('code', $basketCode)->first();
 
         if (! $basket) {
-            throw new \Exception("Basket not found: {$basketCode}");
+            throw new Exception("Basket not found: {$basketCode}");
         }
 
         if (! $basket->is_active) {
-            throw new \Exception("Basket {$basketCode} is not active");
+            throw new Exception("Basket {$basketCode} is not active");
         }
 
         // Validate positive amount
         if ($amount <= 0) {
-            throw new \Exception('Amount must be positive');
+            throw new Exception('Amount must be positive');
         }
 
         // Note: We don't validate weights here since this is an operational function
@@ -130,7 +131,7 @@ class BasketAccountService
 
         if (! $basketBalance || $basketBalance->balance < $amount) {
             $availableBalance = $basketBalance ? $basketBalance->balance : 0;
-            throw new \Exception("Insufficient basket balance for decomposition. Required: {$amount}, Available: {$availableBalance}");
+            throw new Exception("Insufficient basket balance for decomposition. Required: {$amount}, Available: {$availableBalance}");
         }
 
         return DB::transaction(
@@ -187,21 +188,21 @@ class BasketAccountService
         $basket = BasketAsset::where('code', $basketCode)->first();
 
         if (! $basket) {
-            throw new \Exception("Basket not found: {$basketCode}");
+            throw new Exception("Basket not found: {$basketCode}");
         }
 
         if (! $basket->is_active) {
-            throw new \Exception("Basket {$basketCode} is not active");
+            throw new Exception("Basket {$basketCode} is not active");
         }
 
         // Validate positive amount
         if ($amount <= 0) {
-            throw new \Exception('Amount must be positive');
+            throw new Exception('Amount must be positive');
         }
 
         // Validate basket weights
         if (! $basket->validateWeights()) {
-            throw new \Exception("Basket {$basketCode} has invalid component weights");
+            throw new Exception("Basket {$basketCode} has invalid component weights");
         }
 
         return DB::transaction(
@@ -216,7 +217,7 @@ class BasketAccountService
                         ->first();
 
                     if (! $balance || $balance->balance < $requiredAmount) {
-                        throw new \Exception("Insufficient {$assetCode} balance. Required: {$requiredAmount}, Available: " . ($balance ? $balance->balance : 0));
+                        throw new Exception("Insufficient {$assetCode} balance. Required: {$requiredAmount}, Available: " . ($balance ? $balance->balance : 0));
                     }
                 }
 
@@ -326,7 +327,7 @@ class BasketAccountService
         $basket = BasketAsset::where('code', $basketCode)->first();
 
         if (! $basket) {
-            throw new \Exception("Basket not found: {$basketCode}");
+            throw new Exception("Basket not found: {$basketCode}");
         }
         $components = $basket->activeComponents;
         $required = [];

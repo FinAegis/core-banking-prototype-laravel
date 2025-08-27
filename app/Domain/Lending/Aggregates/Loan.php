@@ -15,6 +15,7 @@ use App\Domain\Lending\Repositories\LendingEventRepository;
 use App\Domain\Lending\ValueObjects\RepaymentSchedule;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use DateTimeImmutable;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
 
@@ -48,13 +49,13 @@ class Loan extends AggregateRoot
 
     private int $missedPayments = 0;
 
-    private ?\DateTimeImmutable $fundedAt = null;
+    private ?DateTimeImmutable $fundedAt = null;
 
-    private ?\DateTimeImmutable $disbursedAt = null;
+    private ?DateTimeImmutable $disbursedAt = null;
 
-    private ?\DateTimeImmutable $defaultedAt = null;
+    private ?DateTimeImmutable $defaultedAt = null;
 
-    private ?\DateTimeImmutable $completedAt = null;
+    private ?DateTimeImmutable $completedAt = null;
 
     protected function getStoredEventRepository(): StoredEventRepository
     {
@@ -97,7 +98,7 @@ class Loan extends AggregateRoot
                 termMonths: $termMonths,
                 repaymentSchedule: $schedule,
                 terms: $terms,
-                createdAt: new \DateTimeImmutable()
+                createdAt: new DateTimeImmutable()
             )
         );
 
@@ -119,7 +120,7 @@ class Loan extends AggregateRoot
                 loanId: $this->loanId,
                 investorIds: $investorIds,
                 fundedAmount: $fundedAmount,
-                fundedAt: new \DateTimeImmutable()
+                fundedAt: new DateTimeImmutable()
             )
         );
 
@@ -136,7 +137,7 @@ class Loan extends AggregateRoot
             new LoanDisbursed(
                 loanId: $this->loanId,
                 amount: $amount,
-                disbursedAt: new \DateTimeImmutable()
+                disbursedAt: new DateTimeImmutable()
             )
         );
 
@@ -171,7 +172,7 @@ class Loan extends AggregateRoot
                 principalAmount: $principalAmount,
                 interestAmount: $interestAmount,
                 remainingBalance: $remainingBalance,
-                paidAt: new \DateTimeImmutable()
+                paidAt: new DateTimeImmutable()
             )
         );
 
@@ -182,7 +183,7 @@ class Loan extends AggregateRoot
                     loanId: $this->loanId,
                     totalPrincipalPaid: $this->principal,
                     totalInterestPaid: bcadd($this->totalInterestPaid, $interestAmount, 2),
-                    completedAt: new \DateTimeImmutable()
+                    completedAt: new DateTimeImmutable()
                 )
             );
         }
@@ -200,7 +201,7 @@ class Loan extends AggregateRoot
             new LoanPaymentMissed(
                 loanId: $this->loanId,
                 paymentNumber: $paymentNumber,
-                missedAt: new \DateTimeImmutable()
+                missedAt: new DateTimeImmutable()
             )
         );
 
@@ -218,7 +219,7 @@ class Loan extends AggregateRoot
                 loanId: $this->loanId,
                 reason: $reason,
                 outstandingBalance: $this->outstandingBalance,
-                defaultedAt: new \DateTimeImmutable()
+                defaultedAt: new DateTimeImmutable()
             )
         );
 
@@ -241,7 +242,7 @@ class Loan extends AggregateRoot
                 settlementAmount: $settlementAmount,
                 outstandingBalance: $this->outstandingBalance,
                 settledBy: $settledBy,
-                settledAt: new \DateTimeImmutable()
+                settledAt: new DateTimeImmutable()
             )
         );
 

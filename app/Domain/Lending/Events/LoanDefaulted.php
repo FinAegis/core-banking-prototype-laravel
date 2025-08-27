@@ -2,6 +2,7 @@
 
 namespace App\Domain\Lending\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class LoanDefaulted extends ShouldBeStored
@@ -10,7 +11,7 @@ class LoanDefaulted extends ShouldBeStored
         public string $loanId,
         public string $reason,
         public string $outstandingBalance,
-        public \DateTimeImmutable $defaultedAt
+        public DateTimeImmutable $defaultedAt
     ) {
     }
 }

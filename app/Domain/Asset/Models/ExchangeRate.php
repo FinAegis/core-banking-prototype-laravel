@@ -7,6 +7,7 @@ namespace App\Domain\Asset\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use stdClass;
 
 /**
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, mixed $operator = null, mixed $value = null, string $boolean = 'and')
@@ -254,9 +255,9 @@ class ExchangeRate extends Model
     {
         $rates = self::valid()->latest()->get()->groupBy(['from_asset_code', 'to_asset_code']);
 
-        $result = new \stdClass();
+        $result = new stdClass();
         foreach ($rates as $fromAsset => $toAssets) {
-            $result->$fromAsset = new \stdClass();
+            $result->$fromAsset = new stdClass();
             foreach ($toAssets as $toAsset => $rateRecords) {
                 $result->$fromAsset->$toAsset = $rateRecords->first()->rate;
             }

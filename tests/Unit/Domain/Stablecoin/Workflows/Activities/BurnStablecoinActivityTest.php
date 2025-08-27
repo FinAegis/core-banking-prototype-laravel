@@ -7,6 +7,7 @@ use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Workflows\Activities\BurnStablecoinActivity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class BurnStablecoinActivityTest extends DomainTestCase
@@ -22,7 +23,7 @@ class BurnStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_activity(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinActivity::class);
+        $reflection = new ReflectionClass(BurnStablecoinActivity::class);
         $this->assertEquals('Workflow\Activity', $reflection->getParentClass()->getName());
     }
 
@@ -35,7 +36,7 @@ class BurnStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_has_correct_signature(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinActivity::class);
+        $reflection = new ReflectionClass(BurnStablecoinActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(4, $method->getNumberOfParameters());
@@ -58,7 +59,7 @@ class BurnStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_bool(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinActivity::class);
+        $reflection = new ReflectionClass(BurnStablecoinActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('bool', $method->getReturnType()->getName());
@@ -91,7 +92,7 @@ class BurnStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_activity_properties(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinActivity::class);
+        $reflection = new ReflectionClass(BurnStablecoinActivity::class);
 
         // Check for important properties inherited from Activity
         $this->assertTrue($reflection->hasProperty('tries'));

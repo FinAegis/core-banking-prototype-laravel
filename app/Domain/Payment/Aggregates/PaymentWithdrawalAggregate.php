@@ -7,6 +7,7 @@ use App\Domain\Payment\Events\WithdrawalCompleted;
 use App\Domain\Payment\Events\WithdrawalFailed;
 use App\Domain\Payment\Events\WithdrawalInitiated;
 use App\Domain\Payment\Repositories\PaymentWithdrawalRepository;
+use Exception;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class PaymentWithdrawalAggregate extends AggregateRoot
@@ -52,7 +53,7 @@ class PaymentWithdrawalAggregate extends AggregateRoot
     public function completeWithdrawal(string $transactionId): static
     {
         if ($this->withdrawalStatus !== 'pending') {
-            throw new \Exception('Cannot complete withdrawal that is not pending');
+            throw new Exception('Cannot complete withdrawal that is not pending');
         }
 
         $this->recordThat(
@@ -71,7 +72,7 @@ class PaymentWithdrawalAggregate extends AggregateRoot
     public function failWithdrawal(string $reason): static
     {
         if ($this->withdrawalStatus !== 'pending') {
-            throw new \Exception('Cannot fail withdrawal that is not pending');
+            throw new Exception('Cannot fail withdrawal that is not pending');
         }
 
         $this->recordThat(

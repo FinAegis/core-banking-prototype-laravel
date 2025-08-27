@@ -7,6 +7,7 @@ use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -100,7 +101,7 @@ class ExchangeController extends Controller
             );
 
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'success' => false,
@@ -165,7 +166,7 @@ class ExchangeController extends Controller
             $result = $this->exchangeService->cancelOrder($orderId);
 
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'success' => false,

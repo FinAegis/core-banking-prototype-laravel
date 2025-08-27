@@ -7,7 +7,10 @@ namespace Tests\Feature\Domain\Custodian\Services;
 use App\Domain\Custodian\Exceptions\MaxRetriesExceededException;
 use App\Domain\Custodian\Services\RetryService;
 use Illuminate\Support\Facades\Log;
+use LogicException;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\ServiceTestCase;
 
 class RetryServiceTest extends ServiceTestCase
@@ -54,12 +57,12 @@ class RetryServiceTest extends ServiceTestCase
                 $attempts++;
 
                 if ($attempts < 3) {
-                    throw new \RuntimeException('Transient error');
+                    throw new RuntimeException('Transient error');
                 }
 
                 return 'success after retries';
             },
-            retryableExceptions: [\RuntimeException::class]
+            retryableExceptions: [RuntimeException::class]
         );
 
         $this->assertEquals('success after retries', $result);
@@ -77,9 +80,9 @@ class RetryServiceTest extends ServiceTestCase
         $this->retryService->execute(
             operation: function () use (&$attempts) {
                 $attempts++;
-                throw new \RuntimeException('Persistent error');
+                throw new RuntimeException('Persistent error');
             },
-            retryableExceptions: [\RuntimeException::class]
+            retryableExceptions: [RuntimeException::class]
         );
 
         $this->assertEquals(3, $attempts); // Max attempts
@@ -90,14 +93,14 @@ class RetryServiceTest extends ServiceTestCase
     {
         $attempts = 0;
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(LogicException::class);
 
         $this->retryService->execute(
             operation: function () use (&$attempts) {
                 $attempts++;
-                throw new \LogicException('Non-retryable error');
+                throw new LogicException('Non-retryable error');
             },
-            retryableExceptions: [\RuntimeException::class] // Only RuntimeException is retryable
+            retryableExceptions: [RuntimeException::class] // Only RuntimeException is retryable
         );
 
         $this->assertEquals(1, $attempts); // No retries
@@ -115,9 +118,9 @@ class RetryServiceTest extends ServiceTestCase
                 operation: function () use (&$attempts, &$startTimes) {
                     $startTimes[] = microtime(true);
                     $attempts++;
-                    throw new \RuntimeException('Force retry');
+                    throw new RuntimeException('Force retry');
                 },
-                retryableExceptions: [\RuntimeException::class]
+                retryableExceptions: [RuntimeException::class]
             );
         } catch (MaxRetriesExceededException $e) {
             // Expected
@@ -156,9 +159,9 @@ class RetryServiceTest extends ServiceTestCase
                 operation: function () use (&$attempts, &$startTimes) {
                     $startTimes[] = microtime(true);
                     $attempts++;
-                    throw new \RuntimeException('Force retry');
+                    throw new RuntimeException('Force retry');
                 },
-                retryableExceptions: [\RuntimeException::class]
+                retryableExceptions: [RuntimeException::class]
             );
         } catch (MaxRetriesExceededException $e) {
             // Expected
@@ -198,9 +201,9 @@ class RetryServiceTest extends ServiceTestCase
                 $service->execute(
                     operation: function () use (&$startTimes) {
                         $startTimes[] = microtime(true);
-                        throw new \RuntimeException('Force retry');
+                        throw new RuntimeException('Force retry');
                     },
-                    retryableExceptions: [\RuntimeException::class]
+                    retryableExceptions: [RuntimeException::class]
                 );
             } catch (MaxRetriesExceededException $e) {
                 // Expected
@@ -227,14 +230,14 @@ class RetryServiceTest extends ServiceTestCase
     {
         Log::shouldReceive('warning')
             ->twice()
-            ->with('Operation failed, retrying', \Mockery::type('array'));
+            ->with('Operation failed, retrying', Mockery::type('array'));
 
         try {
             $this->retryService->execute(
                 operation: function () {
-                    throw new \RuntimeException('Test error');
+                    throw new RuntimeException('Test error');
                 },
-                retryableExceptions: [\RuntimeException::class],
+                retryableExceptions: [RuntimeException::class],
                 context: 'test-context'
             );
         } catch (MaxRetriesExceededException $e) {
@@ -253,9 +256,9 @@ class RetryServiceTest extends ServiceTestCase
         $service->execute(
             operation: function () use (&$attempts) {
                 $attempts++;
-                throw new \RuntimeException('Error');
+                throw new RuntimeException('Error');
             },
-            retryableExceptions: [\RuntimeException::class]
+            retryableExceptions: [RuntimeException::class]
         );
 
         $this->assertEquals(1, $attempts); // No retries with maxAttempts=1

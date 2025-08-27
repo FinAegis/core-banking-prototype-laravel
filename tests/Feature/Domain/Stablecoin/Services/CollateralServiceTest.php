@@ -11,6 +11,7 @@ use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use App\Domain\Stablecoin\Services\CollateralService;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
@@ -24,7 +25,7 @@ class CollateralServiceTest extends ServiceTestCase
     {
         parent::setUp();
 
-        $this->exchangeRateService = \Mockery::mock(ExchangeRateService::class);
+        $this->exchangeRateService = Mockery::mock(ExchangeRateService::class);
         $this->service = new CollateralService($this->exchangeRateService);
 
         // Create assets if they don't exist
@@ -51,7 +52,7 @@ class CollateralServiceTest extends ServiceTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 

@@ -9,6 +9,7 @@ use App\Domain\AI\Workflows\CustomerServiceWorkflow;
 use App\Domain\AI\Workflows\RiskAssessmentSaga;
 use App\Domain\AI\Workflows\TradingAgentWorkflow;
 use App\Models\User;
+use Exception;
 
 /**
  * Multi-Agent Coordination Service.
@@ -209,7 +210,7 @@ class MultiAgentCoordinationService
                 'task_id'    => $taskId,
                 'confidence' => $result['confidence'] ?? 0.8,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Handle failure
             $this->activeTasks[$taskId]['status'] = 'failed';
             $this->activeTasks[$taskId]['error'] = $e->getMessage();
@@ -267,7 +268,7 @@ class MultiAgentCoordinationService
                 ];
 
             default:
-                throw new \Exception("Unknown agent: {$agentName}");
+                throw new Exception("Unknown agent: {$agentName}");
         }
     }
 

@@ -13,6 +13,7 @@ use App\Domain\Compliance\Events\KycVerificationRejected;
 use App\Domain\Compliance\Events\RegulatoryReportGenerated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class ComplianceAggregateTest extends DomainTestCase
@@ -188,7 +189,7 @@ class ComplianceAggregateTest extends DomainTestCase
         $event = new KycSubmissionReceived($userUuid, $documents);
 
         // Use reflection to call protected method
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $method = $reflection->getMethod('applyKycSubmissionReceived');
         $method->setAccessible(true);
         $method->invoke($aggregate, $event);
@@ -210,7 +211,7 @@ class ComplianceAggregateTest extends DomainTestCase
         $event = new KycVerificationCompleted($userUuid, $level);
 
         // Use reflection to call protected method
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $method = $reflection->getMethod('applyKycVerificationCompleted');
         $method->setAccessible(true);
         $method->invoke($aggregate, $event);
@@ -234,7 +235,7 @@ class ComplianceAggregateTest extends DomainTestCase
         $event = new KycVerificationRejected($userUuid, $reason);
 
         // Use reflection to call protected method
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $method = $reflection->getMethod('applyKycVerificationRejected');
         $method->setAccessible(true);
         $method->invoke($aggregate, $event);

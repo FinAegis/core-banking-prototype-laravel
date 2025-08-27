@@ -5,6 +5,7 @@ namespace App\Domain\Wallet\Workflows;
 use App\Domain\Account\Aggregates\Account;
 use App\Domain\Wallet\Workflows\Activities\BlockchainWithdrawalActivities;
 use App\Models\User;
+use Exception;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 use Workflow\WorkflowStub;
@@ -149,7 +150,7 @@ class BlockchainWithdrawalWorkflow extends Workflow
                 'chain'            => $chain,
                 'to_address'       => $toAddress,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Rollback: Credit the account back
             yield $this->activities->creditFiatAccount(
                 $accountId,

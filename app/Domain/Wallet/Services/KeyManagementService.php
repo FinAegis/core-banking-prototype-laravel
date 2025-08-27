@@ -12,6 +12,7 @@ use Elliptic\EC;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use kornrunner\Keccak;
+use Log;
 
 /**
  * Handles cryptographic key management for blockchain wallets.
@@ -400,7 +401,7 @@ class KeyManagementService implements KeyManagementServiceInterface
         }
 
         // Log the key rotation event
-        \Log::info('Key rotation completed for wallet', ['wallet_id' => $walletId]);
+        Log::info('Key rotation completed for wallet', ['wallet_id' => $walletId]);
     }
 
     /**

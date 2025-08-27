@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Performance\ValueObjects;
 
+use InvalidArgumentException;
+
 class PerformanceThreshold
 {
     public function __construct(
@@ -22,7 +24,7 @@ class PerformanceThreshold
     {
         $validOperators = ['>', '>=', '<', '<=', '==', '!='];
         if (! in_array($this->operator, $validOperators, true)) {
-            throw new \InvalidArgumentException("Invalid operator: {$this->operator}");
+            throw new InvalidArgumentException("Invalid operator: {$this->operator}");
         }
     }
 
@@ -30,7 +32,7 @@ class PerformanceThreshold
     {
         $validSeverities = ['info', 'warning', 'critical', 'emergency'];
         if (! in_array($this->severity, $validSeverities, true)) {
-            throw new \InvalidArgumentException("Invalid severity: {$this->severity}");
+            throw new InvalidArgumentException("Invalid severity: {$this->severity}");
         }
     }
 

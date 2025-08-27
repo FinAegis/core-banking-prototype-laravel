@@ -13,6 +13,7 @@ use App\Domain\Governance\Strategies\AssetWeightedVoteStrategy;
 use App\Domain\Governance\Strategies\OneUserOneVoteStrategy;
 use App\Domain\Governance\ValueObjects\PollResult;
 use App\Models\User;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -60,7 +61,7 @@ class GovernanceService
             DB::commit();
 
             return $poll;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw new RuntimeException('Failed to create poll: ' . $e->getMessage(), 0, $e);
         }
@@ -128,7 +129,7 @@ class GovernanceService
             DB::commit();
 
             return $vote;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw new RuntimeException('Failed to cast vote: ' . $e->getMessage(), 0, $e);
         }
@@ -170,7 +171,7 @@ class GovernanceService
             DB::commit();
 
             return $result;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw new RuntimeException('Failed to complete poll: ' . $e->getMessage(), 0, $e);
         }
@@ -374,7 +375,7 @@ class GovernanceService
                     'result'    => $workflowResult,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error(
                 'Poll workflow execution failed',
                 [

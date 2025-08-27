@@ -9,6 +9,8 @@ use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Basket\Events\BasketRebalanced;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketRebalancingService;
+use DateTimeInterface;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
@@ -97,7 +99,7 @@ class BasketRebalancingServiceTest extends ServiceTestCase
     #[Test]
     public function it_cannot_rebalance_fixed_basket()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Only dynamic baskets can be rebalanced');
 
         $this->service->rebalance($this->fixedBasket);
@@ -291,7 +293,7 @@ class BasketRebalancingServiceTest extends ServiceTestCase
         Event::assertDispatched(function (BasketRebalanced $event) {
             return $event->basketCode === 'DYNAMIC_TEST' &&
                    count($event->adjustments) === 2 &&
-                   $event->timestamp instanceof \DateTimeInterface;
+                   $event->timestamp instanceof DateTimeInterface;
         });
     }
 

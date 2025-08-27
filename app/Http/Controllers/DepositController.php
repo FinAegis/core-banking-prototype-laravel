@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Log;
 
 class DepositController extends Controller
 {
@@ -77,7 +79,7 @@ class DepositController extends Controller
                     'currency'      => $request->currency,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => 'Failed to create payment intent. Please try again.',
@@ -103,7 +105,7 @@ class DepositController extends Controller
 
             return redirect()->route('wallet.index')
                 ->with('success', 'Deposit successful! Your account has been credited.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->route('wallet.deposit')
                 ->with('error', 'Failed to process deposit. Please contact support.');
         }
@@ -149,8 +151,8 @@ class DepositController extends Controller
             return redirect()->route('wallet.index')
                 ->with('success', 'Demo deposit successful! Your account has been credited with ' .
                     $request->currency . ' ' . number_format($request->amount, 2));
-        } catch (\Exception $e) {
-            \Log::error('Demo deposit failed', [
+        } catch (Exception $e) {
+            Log::error('Demo deposit failed', [
                 'error'   => $e->getMessage(),
                 'user_id' => $user->id,
             ]);
@@ -183,7 +185,7 @@ class DepositController extends Controller
                     'message' => 'Payment method added successfully.',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => 'Failed to add payment method.',
@@ -206,7 +208,7 @@ class DepositController extends Controller
 
             return redirect()->back()
                 ->with('success', 'Payment method removed successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()
                 ->with('error', 'Failed to remove payment method.');
         }

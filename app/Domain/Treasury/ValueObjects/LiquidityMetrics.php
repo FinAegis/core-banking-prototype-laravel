@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Treasury\ValueObjects;
 
+use InvalidArgumentException;
+
 /**
  * Value object representing liquidity metrics.
  */
@@ -24,31 +26,31 @@ final class LiquidityMetrics
     private function validate(): void
     {
         if ($this->liquidityCoverageRatio < 0) {
-            throw new \InvalidArgumentException('Liquidity Coverage Ratio cannot be negative');
+            throw new InvalidArgumentException('Liquidity Coverage Ratio cannot be negative');
         }
 
         if ($this->netStableFundingRatio < 0) {
-            throw new \InvalidArgumentException('Net Stable Funding Ratio cannot be negative');
+            throw new InvalidArgumentException('Net Stable Funding Ratio cannot be negative');
         }
 
         if ($this->stressTestSurvivalDays < 0) {
-            throw new \InvalidArgumentException('Stress Test Survival Days cannot be negative');
+            throw new InvalidArgumentException('Stress Test Survival Days cannot be negative');
         }
 
         if ($this->probabilityOfShortage < 0 || $this->probabilityOfShortage > 1) {
-            throw new \InvalidArgumentException('Probability of Shortage must be between 0 and 1');
+            throw new InvalidArgumentException('Probability of Shortage must be between 0 and 1');
         }
 
         if ($this->valueAtRisk95 < 0) {
-            throw new \InvalidArgumentException('Value at Risk cannot be negative');
+            throw new InvalidArgumentException('Value at Risk cannot be negative');
         }
 
         if ($this->expectedShortfall < 0) {
-            throw new \InvalidArgumentException('Expected Shortfall cannot be negative');
+            throw new InvalidArgumentException('Expected Shortfall cannot be negative');
         }
 
         if ($this->liquidityBufferAdequacy < 0 || $this->liquidityBufferAdequacy > 1) {
-            throw new \InvalidArgumentException('Liquidity Buffer Adequacy must be between 0 and 1');
+            throw new InvalidArgumentException('Liquidity Buffer Adequacy must be between 0 and 1');
         }
     }
 

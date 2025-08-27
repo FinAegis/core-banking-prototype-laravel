@@ -11,6 +11,7 @@ use App\Domain\AI\Services\WorkflowTestService;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -136,7 +137,7 @@ class WorkflowBusinessLogicTest extends TestCase
             ['type' => 'aml_screening', 'data' => ['transaction' => 'txn_456']],
             ['type' => 'risk_assessment', 'data' => ['score' => 85]],
         ];
-        $failure = new \RuntimeException('External service unavailable');
+        $failure = new RuntimeException('External service unavailable');
 
         // Act
         $compensated = $this->service->simulateSagaCompensation(

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -90,7 +91,7 @@ class BlogController extends Controller
                     'message' => $message,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Check if it's a member exists error
             if ($e->getMessage() === 'member_exists') {
                 return response()->json(
@@ -157,11 +158,11 @@ class BlogController extends Controller
 
             // Check if the response indicates member already exists
             if ($response->status() === 400 && $response->json('title') === 'Member Exists') {
-                throw new \Exception('member_exists');
+                throw new Exception('member_exists');
             }
 
             $response->throw(); // Throw for other errors
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($e->getMessage() === 'member_exists') {
                 throw $e; // Re-throw to be handled by subscribe method
             }
@@ -170,7 +171,7 @@ class BlogController extends Controller
             if ($e instanceof \Illuminate\Http\Client\RequestException) {
                 $response = $e->response;
                 if ($response && in_array($response->status(), [401, 403])) {
-                    throw new \Exception('mailchimp_api_error');
+                    throw new Exception('mailchimp_api_error');
                 }
             }
 

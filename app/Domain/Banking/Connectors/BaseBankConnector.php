@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Banking\Connectors;
 
 use App\Domain\Banking\Contracts\IBankConnector;
+use DateTime;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +21,7 @@ abstract class BaseBankConnector implements IBankConnector
 
     protected ?string $accessToken = null;
 
-    protected ?\DateTime $tokenExpiry = null;
+    protected ?DateTime $tokenExpiry = null;
 
     public function __construct(array $config)
     {
@@ -59,7 +61,7 @@ abstract class BaseBankConnector implements IBankConnector
                     $response = Http::timeout(5)->get($this->getHealthCheckUrl());
 
                     return $response->successful();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::warning(
                         "Bank availability check failed for {$this->bankCode}",
                         [
@@ -134,7 +136,7 @@ abstract class BaseBankConnector implements IBankConnector
                 ]
             );
 
-            throw new \Exception('Bank API request failed: ' . $response->body());
+            throw new Exception('Bank API request failed: ' . $response->body());
         }
 
         return $response->json();
@@ -145,7 +147,7 @@ abstract class BaseBankConnector implements IBankConnector
      */
     protected function ensureAuthenticated(): void
     {
-        if ($this->accessToken && $this->tokenExpiry && $this->tokenExpiry > new \DateTime()) {
+        if ($this->accessToken && $this->tokenExpiry && $this->tokenExpiry > new DateTime()) {
             return;
         }
 

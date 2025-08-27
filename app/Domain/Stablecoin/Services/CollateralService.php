@@ -9,6 +9,7 @@ use App\Domain\Stablecoin\Contracts\CollateralServiceInterface;
 use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class CollateralService implements CollateralServiceInterface
 {
@@ -28,7 +29,7 @@ class CollateralService implements CollateralServiceInterface
 
         $rateObject = $this->exchangeRateService->getRate($fromAsset, $pegAsset);
         if (! $rateObject) {
-            throw new \RuntimeException("Exchange rate not found for {$fromAsset} to {$pegAsset}");
+            throw new RuntimeException("Exchange rate not found for {$fromAsset} to {$pegAsset}");
         }
 
         $rate = $rateObject->rate;
@@ -316,7 +317,7 @@ class CollateralService implements CollateralServiceInterface
         );
 
         if (! $rateObject) {
-            throw new \RuntimeException('Exchange rate not available');
+            throw new RuntimeException('Exchange rate not available');
         }
 
         return (int) round($additionalValueNeeded * $rateObject->rate);

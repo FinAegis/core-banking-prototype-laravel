@@ -9,6 +9,7 @@ use App\Domain\Wallet\ValueObjects\GasEstimate;
 use App\Domain\Wallet\ValueObjects\SignedTransaction;
 use App\Domain\Wallet\ValueObjects\TransactionData;
 use App\Domain\Wallet\ValueObjects\TransactionResult;
+use Exception;
 use Illuminate\Support\Facades\Http;
 
 class SimpleBitcoinConnector implements BlockchainConnector
@@ -60,7 +61,7 @@ class SimpleBitcoinConnector implements BlockchainConnector
         $response = Http::get("{$this->apiUrl}/addrs/{$address}/balance");
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to fetch balance');
+            throw new Exception('Failed to fetch balance');
         }
 
         $data = $response->json();
@@ -114,7 +115,7 @@ class SimpleBitcoinConnector implements BlockchainConnector
         );
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to broadcast transaction: ' . $response->body());
+            throw new Exception('Failed to broadcast transaction: ' . $response->body());
         }
 
         $data = $response->json();
@@ -195,7 +196,7 @@ class SimpleBitcoinConnector implements BlockchainConnector
             $response = Http::timeout(5)->get($this->apiUrl);
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -205,7 +206,7 @@ class SimpleBitcoinConnector implements BlockchainConnector
         $response = Http::get("{$this->apiUrl}/txs/{$hash}");
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to fetch transaction status');
+            throw new Exception('Failed to fetch transaction status');
         }
 
         $data = $response->json();

@@ -6,8 +6,11 @@ namespace App\Domain\Stablecoin\Services;
 
 use App\Domain\Asset\Services\ExchangeRateService;
 use Brick\Math\BigDecimal;
+use DateTimeInterface;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class PriceOracleService
 {
@@ -91,7 +94,7 @@ class PriceOracleService
         foreach ($assets as $asset) {
             try {
                 $prices[$asset] = $this->getPrice($asset)->toFloat();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning("Failed to get price for {$asset}", ['error' => $e->getMessage()]);
                 $prices[$asset] = 1.0;
             }
@@ -105,7 +108,7 @@ class PriceOracleService
      */
     public function getHistoricalPrice(
         string $assetCode,
-        \DateTimeInterface $timestamp,
+        DateTimeInterface $timestamp,
         string $quoteCurrency = 'USD'
     ): ?BigDecimal {
         // In production, this would query historical price data
@@ -124,7 +127,7 @@ class PriceOracleService
         $prices = $this->fetchPricesFromAllSources($assetCode, $quoteCurrency);
 
         if (empty($prices)) {
-            throw new \RuntimeException("No price sources available for {$assetCode}");
+            throw new RuntimeException("No price sources available for {$assetCode}");
         }
 
         return $this->calculateWeightedAverage($prices);
@@ -143,28 +146,28 @@ class PriceOracleService
             if ($rate) {
                 $prices['internal'] = BigDecimal::of($rate->rate);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::debug('Internal price source unavailable', ['asset' => $assetCode]);
         }
 
         // Chainlink oracle (simulated)
         try {
             $prices['chainlink'] = $this->fetchChainlinkPrice($assetCode, $quoteCurrency);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::debug('Chainlink price source unavailable', ['asset' => $assetCode]);
         }
 
         // Binance API (simulated)
         try {
             $prices['binance'] = $this->fetchBinancePrice($assetCode, $quoteCurrency);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::debug('Binance price source unavailable', ['asset' => $assetCode]);
         }
 
         // Coinbase API (simulated)
         try {
             $prices['coinbase'] = $this->fetchCoinbasePrice($assetCode, $quoteCurrency);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::debug('Coinbase price source unavailable', ['asset' => $assetCode]);
         }
 
@@ -186,7 +189,7 @@ class PriceOracleService
         }
 
         if ($totalWeight->isZero()) {
-            throw new \RuntimeException('No valid price sources');
+            throw new RuntimeException('No valid price sources');
         }
 
         return $weightedSum->dividedBy($totalWeight, 8);

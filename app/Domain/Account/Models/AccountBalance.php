@@ -6,6 +6,7 @@ namespace App\Domain\Account\Models;
 
 use App\Domain\Asset\Models\Asset;
 use Database\Factories\AccountBalanceFactory;
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -130,12 +131,12 @@ class AccountBalance extends Model
      * Decrement the balance
      * NOTE: This method should only be used by projectors for event sourcing.
      *
-     * @throws \Exception if insufficient balance
+     * @throws Exception if insufficient balance
      */
     public function debit(int $amount): bool
     {
         if ($this->balance < $amount) {
-            throw new \Exception('Insufficient balance');
+            throw new Exception('Insufficient balance');
         }
 
         $this->balance -= $amount;

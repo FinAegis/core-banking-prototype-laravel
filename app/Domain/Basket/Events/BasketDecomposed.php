@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Basket\Events;
 
+use DateTimeInterface;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class BasketDecomposed extends ShouldBeStored
@@ -13,7 +14,7 @@ class BasketDecomposed extends ShouldBeStored
         public readonly string $basketCode,
         public readonly int $amount,
         public readonly array $componentAmounts,
-        public readonly \DateTimeInterface $decomposedAt
+        public readonly DateTimeInterface $decomposedAt
     ) {
     }
 

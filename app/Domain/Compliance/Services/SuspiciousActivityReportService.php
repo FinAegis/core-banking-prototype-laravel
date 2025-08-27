@@ -7,6 +7,7 @@ use App\Domain\Compliance\Events\SARCreated;
 use App\Domain\Compliance\Events\SARSubmitted;
 use App\Domain\Compliance\Models\SuspiciousActivityReport;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -140,7 +141,7 @@ class SuspiciousActivityReportService
         // Validate SAR is complete
         $validation = $this->validateForSubmission($sar);
         if (! $validation['valid']) {
-            throw new \Exception('SAR validation failed: ' . implode(', ', $validation['errors']));
+            throw new Exception('SAR validation failed: ' . implode(', ', $validation['errors']));
         }
 
         // In production, this would submit to FinCEN or appropriate regulator

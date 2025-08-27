@@ -10,6 +10,7 @@ use App\Domain\Exchange\Exceptions\RateProviderException;
 use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -152,7 +153,7 @@ class ExchangeRateProviderRegistry
                         return BigDecimal::of((string) $quote);
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $lastException = $e;
                 Log::warning(
                     "Provider {$name} failed to get rate",
@@ -190,7 +191,7 @@ class ExchangeRateProviderRegistry
                     $quote = $provider->getRate($fromCurrency, $toCurrency);
                     $results[$name] = $quote;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::debug(
                     "Provider {$name} failed to get rate",
                     [
@@ -333,12 +334,12 @@ class ExchangeRateProviderRegistry
                         $testStart = microtime(true);
                         $provider->getRate('USD', 'EUR');
                         $health['test_response_time'] = round((microtime(true) - $testStart) * 1000, 2);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $health['test_error'] = $e->getMessage();
                     }
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $health['available'] = false;
             $health['last_error'] = $e->getMessage();
         }

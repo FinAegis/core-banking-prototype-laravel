@@ -5,8 +5,11 @@ namespace Tests\Unit\Listeners;
 use App\Domain\Custodian\Events\CustodianHealthChanged;
 use App\Domain\Custodian\Listeners\HandleCustodianHealthChange;
 use App\Domain\Custodian\Services\BankAlertingService;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\Log;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 class HandleCustodianHealthChangeTest extends TestCase
@@ -19,7 +22,7 @@ class HandleCustodianHealthChangeTest extends TestCase
     {
         parent::setUp();
 
-        $this->alertingService = \Mockery::mock(BankAlertingService::class);
+        $this->alertingService = Mockery::mock(BankAlertingService::class);
         $this->listener = new HandleCustodianHealthChange($this->alertingService);
     }
 
@@ -30,7 +33,7 @@ class HandleCustodianHealthChangeTest extends TestCase
             custodian: 'test-custodian',
             previousStatus: 'healthy',
             newStatus: 'unhealthy',
-            timestamp: new \DateTimeImmutable()
+            timestamp: new DateTimeImmutable()
         );
 
         $this->alertingService->shouldReceive('handleHealthChange')
@@ -56,7 +59,7 @@ class HandleCustodianHealthChangeTest extends TestCase
                 custodian: 'test-custodian',
                 previousStatus: $previous,
                 newStatus: $current,
-                timestamp: new \DateTimeImmutable()
+                timestamp: new DateTimeImmutable()
             );
 
             $this->alertingService->shouldReceive('handleHealthChange')
@@ -76,10 +79,10 @@ class HandleCustodianHealthChangeTest extends TestCase
             custodian: 'failed-custodian',
             previousStatus: 'healthy',
             newStatus: 'unhealthy',
-            timestamp: new \DateTimeImmutable()
+            timestamp: new DateTimeImmutable()
         );
 
-        $exception = new \RuntimeException('Alert service unavailable');
+        $exception = new RuntimeException('Alert service unavailable');
 
         $this->listener->failed($event, $exception);
 
@@ -111,7 +114,7 @@ class HandleCustodianHealthChangeTest extends TestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

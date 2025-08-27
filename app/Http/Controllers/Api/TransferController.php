@@ -11,6 +11,8 @@ use App\Domain\Account\Models\Transfer;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
 use App\Http\Controllers\Controller;
+use DB;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -156,7 +158,7 @@ class TransferController extends Controller
             // Use our wallet transfer workflow for all assets
             $workflow = WorkflowStub::make(WalletTransferWorkflow::class);
             $workflow->start($fromUuid, $toUuid, $validated['asset_code'], $amountInMinorUnits);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Transfer failed',
@@ -194,7 +196,7 @@ class TransferController extends Controller
     public function show(string $uuid): JsonResponse
     {
         // Since transfers are event sourced, we need to query stored_events
-        $event = \DB::table('stored_events')
+        $event = DB::table('stored_events')
             ->where('event_class', 'App\Domain\Account\Events\MoneyTransferred')
             ->where('aggregate_uuid', $uuid)
             ->first();
@@ -228,7 +230,7 @@ class TransferController extends Controller
         $account = Account::where('uuid', $accountUuid)->firstOrFail();
 
         // Since transfers are event sourced, we need to query stored_events
-        $events = \DB::table('stored_events')
+        $events = DB::table('stored_events')
             ->where('event_class', 'App\Domain\Account\Events\MoneyTransferred')
             ->where(
                 function ($query) use ($accountUuid) {

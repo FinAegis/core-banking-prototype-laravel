@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Custodian\Console\Commands;
 
 use App\Domain\Custodian\Services\DailyReconciliationService;
+use Exception;
 use Illuminate\Console\Command;
 
 class PerformDailyReconciliation extends Command
@@ -65,7 +66,7 @@ class PerformDailyReconciliation extends Command
             $this->info("Duration: {$duration} seconds");
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Reconciliation failed: ' . $e->getMessage());
 
             return Command::FAILURE;

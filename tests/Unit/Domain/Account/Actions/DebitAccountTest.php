@@ -8,7 +8,9 @@ use App\Domain\Account\Events\AssetBalanceSubtracted;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Repositories\AccountRepository;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -101,7 +103,7 @@ class DebitAccountTest extends DomainTestCase
         $event = $this->createAssetBalanceSubtractedMock('account-456', 'EUR', 1000);
 
         // Assert exception
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Asset balance not found for EUR');
 
         // Execute
@@ -130,7 +132,7 @@ class DebitAccountTest extends DomainTestCase
         $event = $this->createAssetBalanceSubtractedMock('account-789', 'USD', 2000); // $20.00
 
         // Assert exception
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Insufficient balance for USD');
 
         // Execute
@@ -207,7 +209,7 @@ class DebitAccountTest extends DomainTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

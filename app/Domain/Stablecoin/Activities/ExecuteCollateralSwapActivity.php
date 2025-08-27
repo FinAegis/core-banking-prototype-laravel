@@ -9,6 +9,8 @@ use App\Domain\Stablecoin\Services\PriceOracleService;
 use Brick\Math\BigDecimal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
+use Throwable;
 use Workflow\Activity;
 
 class ExecuteCollateralSwapActivity extends Activity
@@ -75,7 +77,7 @@ class ExecuteCollateralSwapActivity extends Activity
             ];
 
             if ($executionResult['status'] !== 'filled') {
-                throw new \RuntimeException('Swap order failed to execute');
+                throw new RuntimeException('Swap order failed to execute');
             }
 
             DB::commit();
@@ -97,7 +99,7 @@ class ExecuteCollateralSwapActivity extends Activity
             Log::info('Collateral swap executed successfully', $result);
 
             return $result;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             DB::rollBack();
 
             Log::error('Failed to execute collateral swap', [

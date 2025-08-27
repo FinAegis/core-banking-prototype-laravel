@@ -2,6 +2,7 @@
 
 namespace App\Domain\Product\Services;
 
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Laravel\Pennant\Feature;
@@ -35,7 +36,7 @@ class SubProductService
                     if (Feature::inactive($featureKey)) {
                         return false;
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Feature not defined, fall back to config
                 }
 
@@ -72,7 +73,7 @@ class SubProductService
                     if (Feature::inactive($featureKey)) {
                         return false;
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Feature not defined, fall back to config
                 }
 
@@ -173,7 +174,7 @@ class SubProductService
             );
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to enable sub-product',
                 [
@@ -204,7 +205,7 @@ class SubProductService
             );
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to disable sub-product',
                 [
@@ -236,7 +237,7 @@ class SubProductService
             );
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to enable sub-product feature',
                 [
@@ -269,7 +270,7 @@ class SubProductService
             );
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to disable sub-product feature',
                 [

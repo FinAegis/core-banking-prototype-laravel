@@ -9,6 +9,7 @@ use App\Domain\FinancialInstitution\Events\PartnerActivated;
 use App\Domain\FinancialInstitution\Exceptions\OnboardingException;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionApplication;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionPartner;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -62,7 +63,7 @@ class OnboardingService
             );
 
             return $application;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'Failed to submit financial institution application',
@@ -229,7 +230,7 @@ class OnboardingService
             );
 
             return $partner;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'Failed to approve application',

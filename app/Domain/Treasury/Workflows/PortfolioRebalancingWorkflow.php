@@ -10,7 +10,10 @@ use App\Domain\Treasury\Activities\Portfolio\CheckRebalancingNeedActivity;
 use App\Domain\Treasury\Activities\Portfolio\ExecuteRebalancingActivity;
 use App\Domain\Treasury\Activities\Portfolio\NotifyRebalancingCompleteActivity;
 use App\Domain\Treasury\Aggregates\PortfolioAggregate;
+use Exception;
 use Illuminate\Support\Str;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 use Workflow\Workflow;
 
@@ -116,11 +119,11 @@ class PortfolioRebalancingWorkflow extends Workflow
                 'approval_required' => $this->requiresHumanApproval($this->rebalancingPlan),
                 'approved_by'       => $this->requiresHumanApproval($this->rebalancingPlan) ? 'manual' : 'system',
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Compensation: Rollback any partial changes
             yield from $this->compensate();
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Portfolio rebalancing workflow failed for portfolio {$this->portfolioId}: {$e->getMessage()}",
                 0,
                 $e
@@ -138,7 +141,7 @@ class PortfolioRebalancingWorkflow extends Workflow
             if ($aggregate->isRebalancing()) {
                 // Note: This would require implementing a failRebalancing method in the aggregate
                 // For now, we'll log the failure
-                \Log::warning('Rebalancing workflow failed, manual intervention may be required', [
+                Log::warning('Rebalancing workflow failed, manual intervention may be required', [
                     'portfolio_id' => $this->portfolioId,
                     'rebalance_id' => $this->rebalanceId,
                     'plan'         => $this->rebalancingPlan,

@@ -7,6 +7,7 @@ use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -308,7 +309,7 @@ class ExchangeRateControllerTest extends ControllerTestCase
     {
 
         // Mock the exchange rate service for cross rate calculation
-        $service = \Mockery::mock(ExchangeRateService::class);
+        $service = Mockery::mock(ExchangeRateService::class);
         $service->shouldReceive('getRate')
             ->with('USD', 'XXX')
             ->andReturn(null); // No direct rate

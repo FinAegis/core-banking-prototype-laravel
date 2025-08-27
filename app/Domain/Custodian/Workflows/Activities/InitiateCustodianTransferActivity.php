@@ -7,6 +7,7 @@ namespace App\Domain\Custodian\Workflows\Activities;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
+use Exception;
 use Workflow\Activity;
 
 class InitiateCustodianTransferActivity extends Activity
@@ -41,7 +42,7 @@ class InitiateCustodianTransferActivity extends Activity
         $receipt = $custodian->initiateTransfer($request);
 
         if ($receipt->isFailed()) {
-            throw new \Exception('Custodian transfer failed: ' . ($receipt->metadata['error'] ?? 'Unknown error'));
+            throw new Exception('Custodian transfer failed: ' . ($receipt->metadata['error'] ?? 'Unknown error'));
         }
 
         return $receipt->id;

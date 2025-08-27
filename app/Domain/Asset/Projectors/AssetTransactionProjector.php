@@ -8,6 +8,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\Transaction;
 use App\Domain\Asset\Events\AssetTransactionCreated;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
@@ -81,7 +82,7 @@ class AssetTransactionProjector extends Projector
                     'new_balance'  => $accountBalance->balance,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error processing asset transaction',
                 [

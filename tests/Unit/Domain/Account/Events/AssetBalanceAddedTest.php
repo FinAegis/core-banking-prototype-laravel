@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Account\Events;
 use App\Domain\Account\DataObjects\Hash;
 use App\Domain\Account\Events\AssetBalanceAdded;
 use App\Values\EventQueues;
+use Error;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -111,7 +112,7 @@ class AssetBalanceAddedTest extends DomainTestCase
         );
 
         // Properties are readonly, so we can't modify them
-        $this->expectException(\Error::class);
+        $this->expectException(Error::class);
         $this->expectExceptionMessageMatches('/Cannot modify readonly property/');
         $event->assetCode = 'EUR';
     }

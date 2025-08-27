@@ -6,6 +6,7 @@ use App\Domain\Cgo\DataObjects\RefundRequest;
 use App\Domain\Cgo\Models\CgoInvestment;
 use App\Domain\Cgo\Workflows\ProcessRefundWorkflow;
 use App\Models\User;
+use DomainException;
 use Temporal\Client\WorkflowClient;
 use Temporal\Client\WorkflowOptions;
 
@@ -25,12 +26,12 @@ class RequestRefundAction
     ): array {
         // Check if investment can be refunded
         if (! $investment->canBeRefunded()) {
-            throw new \DomainException('This investment cannot be refunded');
+            throw new DomainException('This investment cannot be refunded');
         }
 
         // Check for existing pending refunds
         if ($investment->refunds()->whereIn('status', ['pending', 'approved', 'processing'])->exists()) {
-            throw new \DomainException('A refund is already in progress for this investment');
+            throw new DomainException('A refund is already in progress for this investment');
         }
 
         // Determine if auto-approval is allowed

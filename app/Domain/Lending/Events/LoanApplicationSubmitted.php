@@ -2,6 +2,7 @@
 
 namespace App\Domain\Lending\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class LoanApplicationSubmitted extends ShouldBeStored
@@ -13,7 +14,7 @@ class LoanApplicationSubmitted extends ShouldBeStored
         public int $termMonths,
         public string $purpose,
         public array $borrowerInfo,
-        public \DateTimeImmutable $submittedAt
+        public DateTimeImmutable $submittedAt
     ) {
     }
 }

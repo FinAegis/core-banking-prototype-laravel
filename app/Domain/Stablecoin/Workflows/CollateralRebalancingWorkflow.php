@@ -9,7 +9,10 @@ use App\Domain\Stablecoin\Activities\CalculateRebalancingStrategyActivity;
 use App\Domain\Stablecoin\Activities\ExecuteCollateralSwapActivity;
 use App\Domain\Stablecoin\Activities\ValidateRebalancingActivity;
 use App\Domain\Stablecoin\Aggregates\CollateralPositionAggregate;
+use DomainException;
+use Generator;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
@@ -25,7 +28,7 @@ class CollateralRebalancingWorkflow extends Workflow
         string $positionId,
         array $targetAllocation,
         array $rebalancingParams = []
-    ): \Generator {
+    ): Generator {
         Log::info('Starting collateral rebalancing workflow', [
             'position_id'       => $positionId,
             'target_allocation' => $targetAllocation,
@@ -71,7 +74,7 @@ class CollateralRebalancingWorkflow extends Workflow
                     'health_ratio_after' => $validation['health_ratio_after'],
                 ]);
 
-                throw new \DomainException(
+                throw new DomainException(
                     'Rebalancing would reduce collateral ratio below safe threshold'
                 );
             }
@@ -140,7 +143,7 @@ class CollateralRebalancingWorkflow extends Workflow
                 'total_cost'          => $rebalancingStrategy['estimated_cost'],
                 'final_health_ratio'  => $finalHealth['health_ratio_after'],
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Rebalancing workflow failed', [
                 'position_id' => $positionId,
                 'error'       => $e->getMessage(),
@@ -156,7 +159,7 @@ class CollateralRebalancingWorkflow extends Workflow
     /**
      * Execute compensation actions in reverse order.
      */
-    public function compensate(): \Generator
+    public function compensate(): Generator
     {
         Log::info('Executing compensations', [
             'compensation_count' => count($this->compensations),
@@ -165,7 +168,7 @@ class CollateralRebalancingWorkflow extends Workflow
         foreach (array_reverse($this->compensations) as $compensation) {
             try {
                 yield $compensation();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error('Compensation failed', [
                     'error' => $e->getMessage(),
                 ]);
@@ -180,7 +183,7 @@ class CollateralRebalancingWorkflow extends Workflow
     public function rebalanceMultiplePositions(
         array $positions,
         array $globalTargetAllocation
-    ): \Generator {
+    ): Generator {
         $workflows = [];
 
         foreach ($positions as $position) {

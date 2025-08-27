@@ -11,6 +11,7 @@ use App\Domain\Compliance\Events\AmlScreeningMatchStatusUpdated;
 use App\Domain\Compliance\Events\AmlScreeningResultsRecorded;
 use App\Domain\Compliance\Events\AmlScreeningReviewed;
 use App\Domain\Compliance\Events\AmlScreeningStarted;
+use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 /**
@@ -132,7 +133,7 @@ class AmlScreeningAggregate extends AggregateRoot
      * @param  array  $details  Additional details about the action
      * @param  string|null  $reason  Reason for the action
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function updateMatchStatus(
         string $matchId,
@@ -141,7 +142,7 @@ class AmlScreeningAggregate extends AggregateRoot
         ?string $reason = null
     ): self {
         if (! in_array($action, ['confirm', 'dismiss', 'investigate'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Invalid action. Must be confirm, dismiss, or investigate.'
             );
         }
@@ -164,14 +165,14 @@ class AmlScreeningAggregate extends AggregateRoot
      * @param  string  $finalStatus  Final status (completed or failed)
      * @param  float|null  $processingTime  Processing time in seconds
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function completeScreening(
         string $finalStatus,
         ?float $processingTime = null
     ): self {
         if (! in_array($finalStatus, ['completed', 'failed'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Invalid status. Must be completed or failed.'
             );
         }
@@ -193,7 +194,7 @@ class AmlScreeningAggregate extends AggregateRoot
      * @param  string  $decision  Review decision (clear, escalate, block)
      * @param  string  $notes  Review notes
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function reviewScreening(
         string $reviewedBy,
@@ -201,7 +202,7 @@ class AmlScreeningAggregate extends AggregateRoot
         string $notes
     ): self {
         if (! in_array($decision, ['clear', 'escalate', 'block'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Invalid decision. Must be clear, escalate, or block.'
             );
         }

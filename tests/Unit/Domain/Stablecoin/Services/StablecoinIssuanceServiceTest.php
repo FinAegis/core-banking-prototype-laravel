@@ -10,6 +10,8 @@ use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Stablecoin\Services\StablecoinIssuanceService;
 use App\Domain\Wallet\Services\WalletService;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use ReflectionMethod;
 use Tests\ServiceTestCase;
 
 class StablecoinIssuanceServiceTest extends ServiceTestCase
@@ -51,7 +53,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_constructor_injects_dependencies(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
         $constructor = $reflection->getConstructor();
 
         $this->assertNotNull($constructor);
@@ -78,7 +80,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_mint_method_signature(): void
     {
-        $reflection = new \ReflectionMethod(StablecoinIssuanceService::class, 'mint');
+        $reflection = new ReflectionMethod(StablecoinIssuanceService::class, 'mint');
 
         $this->assertEquals(5, $reflection->getNumberOfParameters());
         $this->assertTrue($reflection->isPublic());
@@ -106,7 +108,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_service_properties_are_private_readonly(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
 
         $exchangeRateProperty = $reflection->getProperty('exchangeRateService');
         $this->assertTrue($exchangeRateProperty->isPrivate());
@@ -124,7 +126,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_service_imports(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -146,7 +148,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_mint_validates_stablecoin(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
         $method = $reflection->getMethod('mint');
 
         $fileName = $reflection->getFileName();
@@ -170,8 +172,8 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     public function test_has_additional_methods(): void
     {
         // Check if service likely has other methods beyond mint
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
-        $publicMethods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
+        $publicMethods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 
         $methodNames = array_map(fn ($method) => $method->getName(), $publicMethods);
 
@@ -187,7 +189,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_uses_workflow_pattern(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -204,7 +206,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_uses_strict_types(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -216,14 +218,14 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_namespace_is_correct(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
         $this->assertEquals('App\Domain\Stablecoin\Services', $reflection->getNamespaceName());
     }
 
     #[Test]
     public function test_mint_validates_collateral_sufficiency(): void
     {
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
         $method = $reflection->getMethod('mint');
 
         $fileName = $reflection->getFileName();
@@ -238,7 +240,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     #[Test]
     public function test_method_parameters_use_type_hints(): void
     {
-        $reflection = new \ReflectionMethod(StablecoinIssuanceService::class, 'mint');
+        $reflection = new ReflectionMethod(StablecoinIssuanceService::class, 'mint');
         $parameters = $reflection->getParameters();
 
         foreach ($parameters as $parameter) {
@@ -251,7 +253,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     public function test_service_likely_has_burn_method(): void
     {
         // Based on imports, service should have burn functionality
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -264,7 +266,7 @@ class StablecoinIssuanceServiceTest extends ServiceTestCase
     public function test_service_likely_has_add_collateral_method(): void
     {
         // Based on imports, service should have add collateral functionality
-        $reflection = new \ReflectionClass(StablecoinIssuanceService::class);
+        $reflection = new ReflectionClass(StablecoinIssuanceService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);

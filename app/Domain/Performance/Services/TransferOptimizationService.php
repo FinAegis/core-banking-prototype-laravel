@@ -7,6 +7,7 @@ namespace App\Domain\Performance\Services;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -87,32 +88,32 @@ class TransferOptimizationService
         );
 
         if (empty($result)) {
-            throw new \Exception('One or both accounts not found');
+            throw new Exception('One or both accounts not found');
         }
 
         $data = $result[0];
 
         // Validate accounts
         if (! $data->from_uuid) {
-            throw new \Exception("Source account not found: {$fromUuid}");
+            throw new Exception("Source account not found: {$fromUuid}");
         }
 
         if (! $data->to_uuid) {
-            throw new \Exception("Destination account not found: {$toUuid}");
+            throw new Exception("Destination account not found: {$toUuid}");
         }
 
         if ($data->from_frozen) {
-            throw new \Exception('Source account is frozen');
+            throw new Exception('Source account is frozen');
         }
 
         if ($data->to_frozen) {
-            throw new \Exception('Destination account is frozen');
+            throw new Exception('Destination account is frozen');
         }
 
         // Validate balance
         if (! $data->from_balance || $data->from_balance < $amount) {
             $balance = $data->from_balance ?? 0;
-            throw new \Exception(
+            throw new Exception(
                 "Insufficient {$fromAssetCode} balance. Required: {$amount}, Available: {$balance}"
             );
         }
@@ -175,22 +176,22 @@ class TransferOptimizationService
                 $toAccount = $accounts->firstWhere('uuid', $transfer['to_account']);
 
                 if (! $fromAccount || ! $toAccount) {
-                    throw new \Exception('Account not found');
+                    throw new Exception('Account not found');
                 }
 
                 if ($fromAccount->frozen || $toAccount->frozen) {
-                    throw new \Exception('Account is frozen');
+                    throw new Exception('Account is frozen');
                 }
 
                 $balanceKey = "{$transfer['from_account']}:{$transfer['from_asset']}";
                 $balance = $balances->get($balanceKey);
 
                 if (! $balance || $balance->balance < $transfer['amount']) {
-                    throw new \Exception('Insufficient balance');
+                    throw new Exception('Insufficient balance');
                 }
 
                 $results[$index] = ['valid' => true];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $results[$index] = ['valid' => false, 'error' => $e->getMessage()];
             }
         }

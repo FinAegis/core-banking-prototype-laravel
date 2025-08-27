@@ -8,6 +8,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -138,7 +139,7 @@ class AccountBalanceTool implements MCPToolInterface
             ];
 
             return ToolExecutionResult::success($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: account.balance', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,
@@ -257,7 +258,7 @@ class AccountBalanceTool implements MCPToolInterface
             }
 
             return 1.0;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning("Could not get exchange rate for {$assetCode}", [
                 'error' => $e->getMessage(),
             ]);

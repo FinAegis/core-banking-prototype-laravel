@@ -10,6 +10,7 @@ use App\Domain\Compliance\Services\CustomerRiskService;
 use App\Domain\Compliance\Services\EnhancedKycService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -105,7 +106,7 @@ class ComplianceController extends Controller
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to start KYC verification',
                 [
@@ -164,7 +165,7 @@ class ComplianceController extends Controller
                     storage_path('app/' . $documentPath),
                     $validated['document_type']
                 ),
-                default => throw new \Exception('Unsupported verification type'),
+                default => throw new Exception('Unsupported verification type'),
             };
 
             $responseData = [
@@ -178,7 +179,7 @@ class ComplianceController extends Controller
             }
 
             return response()->json(['data' => $responseData]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Document upload failed',
                 [
@@ -239,7 +240,7 @@ class ComplianceController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Selfie verification failed',
                 [
@@ -328,7 +329,7 @@ class ComplianceController extends Controller
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Screening request failed',
                 [

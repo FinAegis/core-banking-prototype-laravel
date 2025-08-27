@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Custodian\Services;
 
 use App\Domain\Custodian\Events\CustodianHealthChanged;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -89,7 +90,7 @@ class CustodianHealthMonitor
                 'last_check'              => now()->toIso8601String(),
                 'recommendations'         => $this->getRecommendations($status, $overallFailureRate),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 "Failed to get health for custodian: {$custodian}",
                 [

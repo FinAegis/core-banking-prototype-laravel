@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources;
 use App\Domain\Account\Models\Account;
 use App\Filament\Admin\Resources\AccountResource\Pages;
 use App\Filament\Admin\Resources\AccountResource\RelationManagers;
+use Exception;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
@@ -227,7 +228,7 @@ class AccountResource extends Resource
                                         ->success()
                                         ->body('$' . number_format($data['amount'], 2) . ' has been deposited.')
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     DB::rollBack();
 
                                     Notification::make()
@@ -269,7 +270,7 @@ class AccountResource extends Resource
                                         ->success()
                                         ->body('$' . number_format($data['amount'], 2) . ' has been withdrawn.')
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     DB::rollBack();
 
                                     Notification::make()
@@ -300,7 +301,7 @@ class AccountResource extends Resource
                                         ->success()
                                         ->body('The account has been frozen successfully.')
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     Notification::make()
                                         ->title('Failed to Freeze Account')
                                         ->danger()
@@ -329,7 +330,7 @@ class AccountResource extends Resource
                                         ->success()
                                         ->body('The account has been unfrozen successfully.')
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     Notification::make()
                                         ->title('Failed to Unfreeze Account')
                                         ->danger()
@@ -361,7 +362,7 @@ class AccountResource extends Resource
                                                 try {
                                                     $accountService->freeze($record->uuid);
                                                     $success++;
-                                                } catch (\Exception $e) {
+                                                } catch (Exception $e) {
                                                     $failed++;
                                                 }
                                             }

@@ -6,6 +6,7 @@ namespace Tests\Unit\Http\Middleware;
 
 use App\Domain\Monitoring\Services\MetricsCollector;
 use App\Http\Middleware\MetricsMiddleware;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -109,16 +110,16 @@ class MetricsMiddlewareTest extends TestCase
     {
         // Arrange
         $request = Request::create('/api/error', 'GET');
-        $exception = new \Exception('Something went wrong');
+        $exception = new Exception('Something went wrong');
 
         // Act & Assert
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         try {
             $this->middleware->handle($request, function ($req) use ($exception) {
                 throw $exception;
             });
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Verify metrics were still collected
             $this->assertEquals(1, Cache::get('metrics.http.total'));
             $this->assertEquals(1, Cache::get('metrics.http.errors'));

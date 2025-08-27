@@ -10,6 +10,7 @@ use App\Domain\Stablecoin\Events\ProposalVoteCast;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Carbon\Carbon;
+use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class GovernanceProposal extends AggregateRoot
@@ -83,23 +84,23 @@ class GovernanceProposal extends AggregateRoot
         string $reason = ''
     ): self {
         if ($this->status !== 'active') {
-            throw new \InvalidArgumentException('Proposal is not active for voting');
+            throw new InvalidArgumentException('Proposal is not active for voting');
         }
 
         if (! in_array($choice, ['for', 'against', 'abstain'])) {
-            throw new \InvalidArgumentException('Invalid vote choice');
+            throw new InvalidArgumentException('Invalid vote choice');
         }
 
         if (isset($this->votes[$voter])) {
-            throw new \InvalidArgumentException('Voter has already cast a vote');
+            throw new InvalidArgumentException('Voter has already cast a vote');
         }
 
         if (now()->isBefore($this->startTime)) {
-            throw new \InvalidArgumentException('Voting has not started yet');
+            throw new InvalidArgumentException('Voting has not started yet');
         }
 
         if (now()->isAfter($this->endTime)) {
-            throw new \InvalidArgumentException('Voting has ended');
+            throw new InvalidArgumentException('Voting has ended');
         }
 
         $this->recordThat(
@@ -119,11 +120,11 @@ class GovernanceProposal extends AggregateRoot
     public function finalize(): self
     {
         if ($this->status !== 'active') {
-            throw new \InvalidArgumentException('Proposal is not active');
+            throw new InvalidArgumentException('Proposal is not active');
         }
 
         if (now()->isBefore($this->endTime)) {
-            throw new \InvalidArgumentException('Voting period has not ended');
+            throw new InvalidArgumentException('Voting period has not ended');
         }
 
         $result = $this->calculateResult();
@@ -145,7 +146,7 @@ class GovernanceProposal extends AggregateRoot
     public function execute(array $executionData): self
     {
         if ($this->status !== 'passed') {
-            throw new \InvalidArgumentException('Only passed proposals can be executed');
+            throw new InvalidArgumentException('Only passed proposals can be executed');
         }
 
         $this->recordThat(
@@ -163,7 +164,7 @@ class GovernanceProposal extends AggregateRoot
     public function cancel(string $reason, string $cancelledBy): self
     {
         if (in_array($this->status, ['executed', 'cancelled'])) {
-            throw new \InvalidArgumentException('Cannot cancel proposal in current status');
+            throw new InvalidArgumentException('Cannot cancel proposal in current status');
         }
 
         $this->recordThat(

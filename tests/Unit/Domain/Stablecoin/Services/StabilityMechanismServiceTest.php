@@ -8,6 +8,8 @@ use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Stablecoin\Services\LiquidationService;
 use App\Domain\Stablecoin\Services\StabilityMechanismService;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use ReflectionMethod;
 use Tests\ServiceTestCase;
 
 class StabilityMechanismServiceTest extends ServiceTestCase
@@ -49,7 +51,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_constructor_injects_dependencies(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
         $constructor = $reflection->getConstructor();
 
         $this->assertNotNull($constructor);
@@ -81,7 +83,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_execute_stability_mechanisms_method_signature(): void
     {
-        $reflection = new \ReflectionMethod(StabilityMechanismService::class, 'executeStabilityMechanisms');
+        $reflection = new ReflectionMethod(StabilityMechanismService::class, 'executeStabilityMechanisms');
 
         $this->assertEquals(0, $reflection->getNumberOfParameters());
         $this->assertTrue($reflection->isPublic());
@@ -91,7 +93,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_service_properties_are_private_readonly(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
 
         $exchangeRateProperty = $reflection->getProperty('exchangeRateService');
         $this->assertTrue($exchangeRateProperty->isPrivate());
@@ -109,7 +111,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_service_imports(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -124,7 +126,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_execute_stability_mechanisms_handles_errors(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
         $method = $reflection->getMethod('executeStabilityMechanisms');
 
         $fileName = $reflection->getFileName();
@@ -146,7 +148,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_execute_stability_mechanisms_processes_active_stablecoins(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
         $method = $reflection->getMethod('executeStabilityMechanisms');
 
         $fileName = $reflection->getFileName();
@@ -167,7 +169,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_has_execute_stability_mechanism_for_stablecoin_method(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
 
         // Check if method is referenced in executeStabilityMechanisms
         $method = $reflection->getMethod('executeStabilityMechanisms');
@@ -182,7 +184,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_execute_stability_mechanisms_returns_results_array(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
         $method = $reflection->getMethod('executeStabilityMechanisms');
 
         $fileName = $reflection->getFileName();
@@ -203,7 +205,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_uses_strict_types(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -215,14 +217,14 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     #[Test]
     public function test_namespace_is_correct(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
         $this->assertEquals('App\Domain\Stablecoin\Services', $reflection->getNamespaceName());
     }
 
     #[Test]
     public function test_log_error_includes_context(): void
     {
-        $reflection = new \ReflectionClass(StabilityMechanismService::class);
+        $reflection = new ReflectionClass(StabilityMechanismService::class);
         $method = $reflection->getMethod('executeStabilityMechanisms');
 
         $fileName = $reflection->getFileName();

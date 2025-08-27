@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Exchange\Events;
 
+use DateTimeInterface;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class QuotesUpdated extends ShouldBeStored
@@ -13,7 +14,7 @@ class QuotesUpdated extends ShouldBeStored
         public readonly array $bids,
         public readonly array $asks,
         public readonly float $spread,
-        public readonly \DateTimeInterface $timestamp,
+        public readonly DateTimeInterface $timestamp,
     ) {
     }
 }

@@ -10,6 +10,7 @@ use App\Domain\Governance\Models\Poll;
 use App\Domain\Governance\Services\GovernanceService;
 use App\Filament\Admin\Resources\PollResource\Pages;
 use App\Filament\Admin\Resources\PollResource\RelationManagers;
+use Exception;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -294,7 +295,7 @@ class PollResource extends Resource
                                         ->title('Poll Activated')
                                         ->success()
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     Notification::make()
                                         ->title('Failed to Activate Poll')
                                         ->body($e->getMessage())
@@ -325,7 +326,7 @@ class PollResource extends Resource
                                         ->title('Poll Cancelled')
                                         ->success()
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     Notification::make()
                                         ->title('Failed to Cancel Poll')
                                         ->body($e->getMessage())
@@ -349,7 +350,7 @@ class PollResource extends Resource
                                         ->body("Winner: {$result->winningOption} with {$result->totalVotes} votes")
                                         ->success()
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     Notification::make()
                                         ->title('Failed to Complete Poll')
                                         ->body($e->getMessage())
@@ -388,7 +389,7 @@ class PollResource extends Resource
                                                 try {
                                                     $governanceService->activatePoll($record);
                                                     $success++;
-                                                } catch (\Exception $e) {
+                                                } catch (Exception $e) {
                                                     $errors++;
                                                 }
                                             }

@@ -7,6 +7,7 @@ namespace App\Domain\User\Services;
 use App\Domain\User\Models\UserActivity;
 use App\Domain\User\Models\UserProfile;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Str;
 
 class DemoUserProfileService
@@ -101,7 +102,7 @@ class DemoUserProfileService
         $profile = UserProfile::where('user_id', $userId)->first();
 
         if (! $profile) {
-            throw new \Exception("Profile not found for user {$userId}");
+            throw new Exception("Profile not found for user {$userId}");
         }
 
         // Simulate some updates

@@ -10,6 +10,8 @@ use App\Domain\Exchange\Services\LiquidityPoolService;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use App\Models\User;
+use DomainException;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -152,7 +154,7 @@ class LiquidityPoolTool implements MCPToolInterface
                 'my_positions'     => $this->getMyPositions($user),
                 default            => ToolExecutionResult::failure("Unknown action: {$action}"),
             };
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: exchange.liquidity_pool', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,
@@ -203,7 +205,7 @@ class LiquidityPoolTool implements MCPToolInterface
                 'status'         => $pool->status,
                 'message'        => 'Liquidity pool created successfully',
             ]);
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             return ToolExecutionResult::failure($e->getMessage());
         }
     }
@@ -261,7 +263,7 @@ class LiquidityPoolTool implements MCPToolInterface
                 'status'          => 'success',
                 'message'         => 'Liquidity added successfully',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ToolExecutionResult::failure($e->getMessage());
         }
     }
@@ -310,7 +312,7 @@ class LiquidityPoolTool implements MCPToolInterface
                 'status'         => 'success',
                 'message'        => 'Liquidity removed successfully',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ToolExecutionResult::failure($e->getMessage());
         }
     }
@@ -367,7 +369,7 @@ class LiquidityPoolTool implements MCPToolInterface
                 'k_value'      => $metrics['k_value'] ?? '0',
                 'message'      => 'Pool metrics retrieved',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ToolExecutionResult::failure($e->getMessage());
         }
     }

@@ -7,6 +7,7 @@ namespace App\Domain\Basket\Services;
 use App\Domain\Basket\Events\BasketRebalanced;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Models\BasketValue;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -43,14 +44,14 @@ class BasketRebalancingService
     public function rebalance(BasketAsset $basket): array
     {
         if ($basket->type !== 'dynamic') {
-            throw new \Exception('Only dynamic baskets can be rebalanced');
+            throw new Exception('Only dynamic baskets can be rebalanced');
         }
 
         // Calculate current value to get component weights
         $currentValue = $this->valueCalculationService->calculateValue($basket);
 
         if ($currentValue->value <= 0) {
-            throw new \Exception('Cannot rebalance basket with zero or negative value');
+            throw new Exception('Cannot rebalance basket with zero or negative value');
         }
 
         $adjustments = $this->calculateAdjustments($basket, $currentValue);
@@ -265,7 +266,7 @@ class BasketRebalancingService
                 } else {
                     $results['no_changes'][] = $result;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $results['failed'][] = [
                     'basket' => $basket->code,
                     'error'  => $e->getMessage(),
@@ -290,7 +291,7 @@ class BasketRebalancingService
     public function simulateRebalancing(BasketAsset $basket): array
     {
         if ($basket->type !== 'dynamic') {
-            throw new \Exception('Only dynamic baskets can be rebalanced');
+            throw new Exception('Only dynamic baskets can be rebalanced');
         }
 
         $currentValue = $this->valueCalculationService->calculateValue($basket);
@@ -337,7 +338,7 @@ class BasketRebalancingService
                 if ($this->needsRebalancing($basket)) {
                     $results[$basket->code] = $this->rebalance($basket);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("Failed to rebalance basket {$basket->code}: " . $e->getMessage());
                 $results[$basket->code] = [
                     'status' => 'failed',

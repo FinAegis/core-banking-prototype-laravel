@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Monitoring\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class ThresholdExceeded extends ShouldBeStored
@@ -14,7 +15,7 @@ class ThresholdExceeded extends ShouldBeStored
         public readonly float $value,
         public readonly float $threshold,
         public readonly string $level,
-        public readonly ?\DateTimeImmutable $exceededAt = null
+        public readonly ?DateTimeImmutable $exceededAt = null
     ) {
     }
 }

@@ -5,6 +5,7 @@ namespace Tests\Unit\Testing;
 use App\Testing\ArrayEventSerializer;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 use Tests\Unit\Testing\Support\EventWithCarbonDate;
 use Tests\Unit\Testing\Support\EventWithPrivateProperties;
@@ -70,7 +71,7 @@ class TestEventSerializerTest extends DomainTestCase
     public function test_serialize_ignores_private_properties(): void
     {
         $event = new EventWithPrivateProperties();
-        $reflection = new \ReflectionClass($event);
+        $reflection = new ReflectionClass($event);
         $privateProperty = $reflection->getProperty('privateData');
         $privateProperty->setAccessible(true);
         $privateProperty->setValue($event, 'secret');

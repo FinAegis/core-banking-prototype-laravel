@@ -2,8 +2,10 @@
 
 namespace App\Domain\Exchange\Services;
 
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class CircuitBreakerService
 {
@@ -25,14 +27,14 @@ class CircuitBreakerService
                 Cache::forget("circuit_breaker:{$service}:half_open_attempts");
                 $state = 'half-open'; // Update state for next check
             } else {
-                throw new \RuntimeException("Circuit breaker is OPEN for service: {$service}");
+                throw new RuntimeException("Circuit breaker is OPEN for service: {$service}");
             }
         }
 
         if ($state === 'half-open') {
             // Allow limited traffic through
             if ($this->isHalfOpenLimitReached($service)) {
-                throw new \RuntimeException("Circuit breaker is HALF-OPEN with limit reached for service: {$service}");
+                throw new RuntimeException("Circuit breaker is HALF-OPEN with limit reached for service: {$service}");
             }
         }
 
@@ -41,7 +43,7 @@ class CircuitBreakerService
             $this->recordSuccess($service);
 
             return $result;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->recordFailure($service, $e, $context);
             throw $e;
         }
@@ -88,7 +90,7 @@ class CircuitBreakerService
         }
     }
 
-    private function recordFailure(string $service, \Exception $exception, array $context): void
+    private function recordFailure(string $service, Exception $exception, array $context): void
     {
         $state = $this->getState($service);
 

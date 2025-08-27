@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Custodian\Events;
 
+use DateTimeInterface;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -16,7 +17,7 @@ class CustodianHealthChanged
         public readonly string $custodian,
         public readonly string $previousStatus,
         public readonly string $newStatus,
-        public readonly \DateTimeInterface $timestamp
+        public readonly DateTimeInterface $timestamp
     ) {
     }
 }

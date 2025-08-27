@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\Activities;
 
 use App\Models\AssetBalance;
+use Cache;
 use Illuminate\Support\Facades\DB;
 use Workflow\Activity;
 
@@ -12,7 +13,7 @@ class ReleaseAccountBalanceActivity extends Activity
     {
         return DB::transaction(
             function () use ($orderId, $lockId) {
-                $lockInfo = \Cache::get("order_lock:{$lockId}");
+                $lockInfo = Cache::get("order_lock:{$lockId}");
 
                 if (! $lockInfo) {
                     return (object) [
@@ -52,7 +53,7 @@ class ReleaseAccountBalanceActivity extends Activity
                 $balance->save();
 
                 // Remove lock from cache
-                \Cache::forget("order_lock:{$lockId}");
+                Cache::forget("order_lock:{$lockId}");
 
                 return (object) [
                 'success'        => true,

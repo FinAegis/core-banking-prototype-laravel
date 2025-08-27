@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Banking\Models\BankAccountModel;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -136,7 +137,7 @@ class WithdrawalController extends Controller
 
             return redirect()->route('wallet.index')
                 ->with('success', 'Withdrawal request submitted successfully. Processing time: 1-3 business days.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->with('error', 'Failed to process withdrawal: ' . $e->getMessage());
         }
     }

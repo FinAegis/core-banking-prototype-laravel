@@ -2,6 +2,8 @@
 
 namespace App\Domain\Compliance\Services;
 
+use InvalidArgumentException;
+
 class IdentityVerificationService
 {
     private array $providers = [
@@ -75,7 +77,7 @@ class IdentityVerificationService
             case 'onfido':
                 return $this->createOnfidoSession($userData);
             default:
-                throw new \InvalidArgumentException("Unknown provider: {$provider}");
+                throw new InvalidArgumentException("Unknown provider: {$provider}");
         }
     }
 
@@ -90,7 +92,7 @@ class IdentityVerificationService
             case 'onfido':
                 return $this->getOnfidoResult($sessionId);
             default:
-                throw new \InvalidArgumentException("Unknown provider: {$provider}");
+                throw new InvalidArgumentException("Unknown provider: {$provider}");
         }
     }
 

@@ -8,6 +8,10 @@ use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\Compliance\Services\AmlScreeningService;
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
+use Exception;
+use Generator;
+use InvalidArgumentException;
+use Log;
 use Workflow\Workflow;
 
 class ComplianceWorkflow extends Workflow
@@ -39,7 +43,7 @@ class ComplianceWorkflow extends Workflow
         string $userId,
         string $complianceType,
         array $parameters = []
-    ): \Generator {
+    ): Generator {
         $this->conversationId = $conversationId;
         $this->userId = $userId;
         $this->context = $parameters;
@@ -61,7 +65,7 @@ class ComplianceWorkflow extends Workflow
                 'aml' => yield $this->executeAMLCheck($user, $parameters),
                 'transaction_monitoring' => yield $this->executeTransactionMonitoring($user, $parameters),
                 'regulatory_reporting' => yield $this->executeRegulatoryReporting($user, $parameters),
-                default => throw new \InvalidArgumentException("Unknown compliance type: {$complianceType}")
+                default => throw new InvalidArgumentException("Unknown compliance type: {$complianceType}")
             };
 
             // Step 3: Record compliance decision
@@ -89,7 +93,7 @@ class ComplianceWorkflow extends Workflow
                     'duration_ms'     => $this->calculateDuration(),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Handle workflow failure with compensation
             yield $this->handleWorkflowFailure($e);
 
@@ -134,7 +138,7 @@ class ComplianceWorkflow extends Workflow
         // In production, implement proper permission checking
         $userRole = $user->getAttribute('role') ?? 'user';
         if ($userRole !== 'admin' && $userRole !== 'compliance_officer') {
-            \Log::warning('User lacks compliance permissions', [
+            Log::warning('User lacks compliance permissions', [
                 'user_id'         => $this->userId,
                 'conversation_id' => $this->conversationId,
                 'context'         => $this->context, // Use context to avoid phpstan warning
@@ -373,7 +377,7 @@ class ComplianceWorkflow extends Workflow
         ];
 
         // Store report (in production, save to database or file system)
-        \Log::info('Compliance report generated', $report);
+        Log::info('Compliance report generated', $report);
 
         return $report;
     }
@@ -403,7 +407,7 @@ class ComplianceWorkflow extends Workflow
     {
         foreach ($alerts as $alert) {
             // In production, send to alerting system
-            \Log::alert('Compliance alert triggered', [
+            Log::alert('Compliance alert triggered', [
                 'conversation_id' => $this->conversationId,
                 'user_id'         => $this->userId,
                 'alert'           => $alert,
@@ -421,10 +425,10 @@ class ComplianceWorkflow extends Workflow
         ];
     }
 
-    private function handleWorkflowFailure(\Exception $e)
+    private function handleWorkflowFailure(Exception $e)
     {
         // Log the failure
-        \Log::error('Compliance Workflow failed', [
+        Log::error('Compliance Workflow failed', [
             'conversation_id' => $this->conversationId,
             'error'           => $e->getMessage(),
             'trace'           => $e->getTraceAsString(),
@@ -449,19 +453,19 @@ class ComplianceWorkflow extends Workflow
                 switch ($action['type']) {
                     case 'kyc_verification':
                         // Rollback KYC status if needed
-                        \Log::info('Compensating KYC verification', $action);
+                        Log::info('Compensating KYC verification', $action);
                         break;
 
                     case 'aml_screening':
                         // Clear AML flags if transaction was blocked
-                        \Log::info('Compensating AML screening', $action);
+                        Log::info('Compensating AML screening', $action);
                         break;
 
                     case 'regulatory_report':
                         // Mark report as cancelled if not submitted
                         if (isset($action['report_id'])) {
                             // Simplified - in production would call actual service
-                            \Log::info('Cancelling regulatory report', $action);
+                            Log::info('Cancelling regulatory report', $action);
                         }
                         break;
                 }

@@ -5,6 +5,8 @@ namespace Tests\Unit\Helpers;
 use App\Helpers\SyntaxHighlighter;
 use Highlight\Highlighter;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class SyntaxHighlighterTest extends TestCase
@@ -25,7 +27,7 @@ class SyntaxHighlighterTest extends TestCase
     #[Test]
     public function test_has_protected_static_highlighter_property(): void
     {
-        $reflection = new \ReflectionClass(SyntaxHighlighter::class);
+        $reflection = new ReflectionClass(SyntaxHighlighter::class);
         $this->assertTrue($reflection->hasProperty('highlighter'));
 
         $property = $reflection->getProperty('highlighter');
@@ -36,7 +38,7 @@ class SyntaxHighlighterTest extends TestCase
     #[Test]
     public function test_highlight_method_signature(): void
     {
-        $reflection = new \ReflectionMethod(SyntaxHighlighter::class, 'highlight');
+        $reflection = new ReflectionMethod(SyntaxHighlighter::class, 'highlight');
 
         $this->assertEquals(2, $reflection->getNumberOfParameters());
         $this->assertTrue($reflection->isPublic());
@@ -55,7 +57,7 @@ class SyntaxHighlighterTest extends TestCase
     #[Test]
     public function test_get_language_class_method_signature(): void
     {
-        $reflection = new \ReflectionMethod(SyntaxHighlighter::class, 'getLanguageClass');
+        $reflection = new ReflectionMethod(SyntaxHighlighter::class, 'getLanguageClass');
 
         $this->assertEquals(1, $reflection->getNumberOfParameters());
         $this->assertTrue($reflection->isPublic());
@@ -68,7 +70,7 @@ class SyntaxHighlighterTest extends TestCase
     #[Test]
     public function test_highlight_initializes_highlighter_once(): void
     {
-        $reflection = new \ReflectionClass(SyntaxHighlighter::class);
+        $reflection = new ReflectionClass(SyntaxHighlighter::class);
         $highlighterProperty = $reflection->getProperty('highlighter');
         $highlighterProperty->setAccessible(true);
 
@@ -112,7 +114,7 @@ class SyntaxHighlighterTest extends TestCase
     #[Test]
     public function test_highlight_handles_exceptions(): void
     {
-        $reflection = new \ReflectionClass(SyntaxHighlighter::class);
+        $reflection = new ReflectionClass(SyntaxHighlighter::class);
         $method = $reflection->getMethod('highlight');
 
         $fileName = $reflection->getFileName();
@@ -185,7 +187,7 @@ class SyntaxHighlighterTest extends TestCase
     #[Test]
     public function test_highlight_uses_highlighter_library(): void
     {
-        $reflection = new \ReflectionClass(SyntaxHighlighter::class);
+        $reflection = new ReflectionClass(SyntaxHighlighter::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -203,7 +205,7 @@ class SyntaxHighlighterTest extends TestCase
     #[Test]
     public function test_language_map_is_comprehensive(): void
     {
-        $reflection = new \ReflectionClass(SyntaxHighlighter::class);
+        $reflection = new ReflectionClass(SyntaxHighlighter::class);
         $method = $reflection->getMethod('getLanguageClass');
 
         $fileName = $reflection->getFileName();
@@ -226,7 +228,7 @@ class SyntaxHighlighterTest extends TestCase
     protected function tearDown(): void
     {
         // Reset the static highlighter property
-        $reflection = new \ReflectionClass(SyntaxHighlighter::class);
+        $reflection = new ReflectionClass(SyntaxHighlighter::class);
         $highlighterProperty = $reflection->getProperty('highlighter');
         $highlighterProperty->setAccessible(true);
         $highlighterProperty->setValue(null, null);

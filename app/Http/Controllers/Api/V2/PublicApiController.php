@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
+use Cache;
+use DB;
+use Exception;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -148,10 +151,10 @@ class PublicApiController extends Controller
     private function checkDatabaseStatus(): string
     {
         try {
-            \DB::select('SELECT 1');
+            DB::select('SELECT 1');
 
             return 'operational';
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 'down';
         }
     }
@@ -159,10 +162,10 @@ class PublicApiController extends Controller
     private function checkRedisStatus(): string
     {
         try {
-            \Cache::store('redis')->get('health_check');
+            Cache::store('redis')->get('health_check');
 
             return 'operational';
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 'down';
         }
     }

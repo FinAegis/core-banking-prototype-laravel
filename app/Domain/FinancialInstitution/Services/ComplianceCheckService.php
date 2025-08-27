@@ -3,6 +3,7 @@
 namespace App\Domain\FinancialInstitution\Services;
 
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionApplication;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -325,7 +326,7 @@ class ComplianceCheckService
             */
 
             return null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'External compliance check failed',
                 [

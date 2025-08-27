@@ -12,6 +12,7 @@ use App\Domain\Wallet\ValueObjects\SignedTransaction;
 use App\Domain\Wallet\ValueObjects\TransactionData;
 use App\Domain\Wallet\ValueObjects\TransactionResult;
 use App\Domain\Wallet\ValueObjects\WalletAddress;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -118,7 +119,7 @@ class BlockchainWalletService implements WalletConnectorInterface
             DB::commit();
 
             return $wallet;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'Failed to create wallet',

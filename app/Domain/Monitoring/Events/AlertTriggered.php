@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Monitoring\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class AlertTriggered extends ShouldBeStored
@@ -14,7 +15,7 @@ class AlertTriggered extends ShouldBeStored
         public readonly string $level,
         public readonly string $message,
         public readonly array $context = [],
-        public readonly ?\DateTimeImmutable $triggeredAt = null
+        public readonly ?DateTimeImmutable $triggeredAt = null
     ) {
     }
 }

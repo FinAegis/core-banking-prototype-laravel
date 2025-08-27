@@ -4,6 +4,7 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows\Activities;
 
 use App\Domain\Stablecoin\Workflows\Activities\UpdatePositionActivity;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class UpdatePositionActivityTest extends DomainTestCase
@@ -17,7 +18,7 @@ class UpdatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_activity(): void
     {
-        $reflection = new \ReflectionClass(UpdatePositionActivity::class);
+        $reflection = new ReflectionClass(UpdatePositionActivity::class);
         $this->assertEquals('Workflow\Activity', $reflection->getParentClass()->getName());
     }
 
@@ -30,7 +31,7 @@ class UpdatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_has_correct_signature(): void
     {
-        $reflection = new \ReflectionClass(UpdatePositionActivity::class);
+        $reflection = new ReflectionClass(UpdatePositionActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -44,7 +45,7 @@ class UpdatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_bool(): void
     {
-        $reflection = new \ReflectionClass(UpdatePositionActivity::class);
+        $reflection = new ReflectionClass(UpdatePositionActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('bool', $method->getReturnType()->getName());
@@ -77,7 +78,7 @@ class UpdatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_activity_properties(): void
     {
-        $reflection = new \ReflectionClass(UpdatePositionActivity::class);
+        $reflection = new ReflectionClass(UpdatePositionActivity::class);
 
         // Check for important properties inherited from Activity
         $this->assertTrue($reflection->hasProperty('tries'));

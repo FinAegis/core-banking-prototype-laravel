@@ -8,6 +8,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Custodian\Events\ReconciliationCompleted;
 use App\Domain\Custodian\Events\ReconciliationDiscrepancyFound;
 use App\Domain\Custodian\Mail\ReconciliationReport;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -70,7 +71,7 @@ class DailyReconciliationService
             );
 
             return $report;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Daily reconciliation failed',
                 [
@@ -187,7 +188,7 @@ class DailyReconciliationService
                 foreach ($accountInfo->balances as $assetCode => $amount) {
                     $aggregatedBalances[$assetCode] = ($aggregatedBalances[$assetCode] ?? 0) + $amount;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Failed to get external balance',
                     [

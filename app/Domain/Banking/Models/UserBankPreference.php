@@ -3,6 +3,7 @@
 namespace App\Domain\Banking\Models;
 
 use App\Models\User;
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -202,12 +203,12 @@ class UserBankPreference extends Model
             ->get();
 
         if ($preferences->isEmpty()) {
-            throw new \Exception('No bank preferences found for user');
+            throw new Exception('No bank preferences found for user');
         }
 
         // Validate allocations sum to 100%
         if (! self::validateAllocations($userUuid)) {
-            throw new \Exception('Bank allocations do not sum to 100%');
+            throw new Exception('Bank allocations do not sum to 100%');
         }
 
         $distribution = [];
@@ -238,7 +239,7 @@ class UserBankPreference extends Model
 
         // Ensure total allocated equals original amount
         if ($totalAllocated !== $amountInCents) {
-            throw new \Exception('Distribution calculation error: amounts do not match');
+            throw new Exception('Distribution calculation error: amounts do not match');
         }
 
         return $distribution;

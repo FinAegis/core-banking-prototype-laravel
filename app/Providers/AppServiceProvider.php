@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\ServiceProvider;
+use URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -61,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
             // Force HTTPS in demo environment (but not for local development)
             $localHosts = explode(',', config('app.local_hostnames', 'localhost,127.0.0.1'));
             if (! in_array(request()->getHost(), $localHosts)) {
-                \URL::forceScheme('https');
+                URL::forceScheme('https');
             }
 
             // Apply demo-specific rate limits

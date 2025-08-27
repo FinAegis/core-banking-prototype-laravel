@@ -5,6 +5,7 @@ namespace App\Domain\Account\Workflows;
 use App\Domain\Account\Aggregates\TransactionAggregate;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 class TransactionReversalActivity extends Activity
@@ -27,7 +28,7 @@ class TransactionReversalActivity extends Activity
             // Original was credit, so we debit to reverse
             $aggregate->debit($originalAmount);
         } else {
-            throw new \InvalidArgumentException("Invalid transaction type: {$transactionType}");
+            throw new InvalidArgumentException("Invalid transaction type: {$transactionType}");
         }
 
         $aggregate->persist();

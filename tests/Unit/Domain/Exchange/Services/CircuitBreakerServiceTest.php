@@ -3,6 +3,7 @@
 namespace Tests\Unit\Domain\Exchange\Services;
 
 use App\Domain\Exchange\Services\CircuitBreakerService;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -36,9 +37,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 5; $i++) {
             try {
                 $this->circuitBreaker->call('test_service', function () {
-                    throw new \Exception('Service failure');
+                    throw new Exception('Service failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }
@@ -59,9 +60,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 5; $i++) {
             try {
                 $this->circuitBreaker->call('test_service', function () {
-                    throw new \Exception('Service failure');
+                    throw new Exception('Service failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }
@@ -120,9 +121,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         // Failure in half-open should reopen circuit
         try {
             $this->circuitBreaker->call('test_service', function () {
-                throw new \Exception('Service failure');
+                throw new Exception('Service failure');
             });
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Expected
         }
 

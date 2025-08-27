@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\ServiceTestCase;
 
 class KycServiceTest extends ServiceTestCase
@@ -189,7 +190,7 @@ class KycServiceTest extends ServiceTestCase
         ];
 
         // Use reflection to test protected method
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('storeDocument');
         $method->setAccessible(true);
 

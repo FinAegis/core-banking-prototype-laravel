@@ -7,6 +7,7 @@ use App\Domain\Exchange\ValueObjects\Money;
 use App\Domain\Transaction\Aggregates\Transaction;
 use App\Domain\Transaction\DataTransferObjects\TransactionData;
 use App\Domain\Transaction\Enums\TransactionType;
+use Exception;
 use Illuminate\Support\Str;
 use Workflow\Activity;
 
@@ -99,7 +100,7 @@ class TransferAssetsActivity extends Activity
                 'baseAmount'         => $baseAmount,
                 'quoteAmount'        => $quoteAmount,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return (object) [
                 'success' => false,
                 'error'   => $e->getMessage(),

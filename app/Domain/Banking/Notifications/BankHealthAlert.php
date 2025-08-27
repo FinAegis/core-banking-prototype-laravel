@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Banking\Notifications;
 
+use DateTimeInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -22,7 +23,7 @@ class BankHealthAlert extends Notification implements ShouldQueue
         public readonly string $newStatus,
         public readonly string $severity,
         public readonly array $healthData,
-        public readonly \DateTimeInterface $timestamp
+        public readonly DateTimeInterface $timestamp
     ) {
     }
 

@@ -9,10 +9,12 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Wallet\Contracts\WalletServiceInterface;
 use App\Domain\Wallet\Services\WalletService;
 use App\Models\User;
+use Error;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use TypeError;
 
 class WalletServiceTest extends TestCase
 {
@@ -48,7 +50,7 @@ class WalletServiceTest extends TestCase
         // in a unit test environment
         try {
             $this->walletService->deposit($this->testUuid, 'USD', 100.00);
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }
@@ -63,7 +65,7 @@ class WalletServiceTest extends TestCase
 
         try {
             $this->walletService->deposit($accountUuid, 'EUR', 50.00);
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }
@@ -90,7 +92,7 @@ class WalletServiceTest extends TestCase
         try {
             // This should pass validation but fail on workflow
             $this->walletService->withdraw($this->testUuid, 'USD', 50.00);
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }
@@ -165,7 +167,7 @@ class WalletServiceTest extends TestCase
                 75.00,
                 'Test transfer'
             );
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }
@@ -232,7 +234,7 @@ class WalletServiceTest extends TestCase
                 'EUR',
                 50.00
             );
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }
@@ -251,7 +253,7 @@ class WalletServiceTest extends TestCase
                 'EUR',
                 100.00
             );
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }
@@ -272,7 +274,7 @@ class WalletServiceTest extends TestCase
         foreach ($pairs as $pair) {
             try {
                 $this->walletService->convert($this->testUuid, $pair[0], $pair[1], $pair[2]);
-            } catch (\Error | \TypeError $e) {
+            } catch (Error | TypeError $e) {
                 // Expected - Workflow may fail with type error or other error
                 $this->addToAssertionCount(1);
             }
@@ -287,14 +289,14 @@ class WalletServiceTest extends TestCase
         // Test with decimal amounts
         try {
             $this->walletService->deposit($this->testUuid, 'USD', 99.99);
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }
 
         try {
             $this->walletService->convert($this->testUuid, 'USD', 'EUR', 123.45);
-        } catch (\Error | \TypeError $e) {
+        } catch (Error | TypeError $e) {
             // Expected - Workflow may fail with type error or other error
             $this->addToAssertionCount(1);
         }

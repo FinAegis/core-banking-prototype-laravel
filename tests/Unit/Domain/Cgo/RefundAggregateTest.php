@@ -10,6 +10,7 @@ use App\Domain\Cgo\Events\RefundFailed;
 use App\Domain\Cgo\Events\RefundProcessed;
 use App\Domain\Cgo\Events\RefundRejected;
 use App\Domain\Cgo\Events\RefundRequested;
+use DomainException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -101,7 +102,7 @@ class RefundAggregateTest extends DomainTestCase
     #[Test]
     public function test_cannot_approve_non_pending_refund()
     {
-        $this->expectException(\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Can only approve pending refunds');
 
         RefundAggregate::fake()
@@ -319,7 +320,7 @@ class RefundAggregateTest extends DomainTestCase
     #[Test]
     public function test_cannot_cancel_completed_refund()
     {
-        $this->expectException(\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Cannot cancel refunds in status: completed');
 
         RefundAggregate::fake()

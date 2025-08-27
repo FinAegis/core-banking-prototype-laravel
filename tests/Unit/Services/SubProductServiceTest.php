@@ -7,6 +7,7 @@ namespace Tests\Unit\Services;
 use App\Domain\Product\Services\SubProductService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Pennant\Feature;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
@@ -60,7 +61,7 @@ class SubProductServiceTest extends ServiceTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 

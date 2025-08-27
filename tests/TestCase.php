@@ -14,6 +14,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Str;
+use Mockery;
+use ReflectionClass;
 use Tests\Traits\TracksTestPerformance;
 use Throwable;
 
@@ -37,7 +39,7 @@ abstract class TestCase extends BaseTestCase
         parent::tearDown();
 
         // Close any Mockery mocks
-        \Mockery::close();
+        Mockery::close();
     }
 
     protected function setUp(): void
@@ -60,7 +62,7 @@ abstract class TestCase extends BaseTestCase
         }
 
         // Set up Filament panel if we're in a Filament test directory
-        $testFile = (new \ReflectionClass($this))->getFileName();
+        $testFile = (new ReflectionClass($this))->getFileName();
         if (str_contains($testFile, '/Filament/') || str_contains($testFile, '\\Filament\\')) {
             $this->setUpFilament();
         }
@@ -73,7 +75,7 @@ abstract class TestCase extends BaseTestCase
     protected function shouldCreateDefaultAccountsInSetup(): bool
     {
         // Don't create accounts for Security tests by default to avoid transaction conflicts
-        $testFile = (new \ReflectionClass($this))->getFileName();
+        $testFile = (new ReflectionClass($this))->getFileName();
         if (str_contains($testFile, '/Security/') || str_contains($testFile, '\\Security\\')) {
             return false;
         }

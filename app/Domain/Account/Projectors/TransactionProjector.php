@@ -9,6 +9,7 @@ use App\Domain\Asset\Events\AssetTransactionCreated;
 use App\Domain\Asset\Events\AssetTransferCompleted;
 use App\Domain\Payment\Events\PaymentDepositCreated;
 use App\Domain\Payment\Events\PaymentWithdrawalCreated;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
@@ -46,7 +47,7 @@ class TransactionProjector extends Projector
                     'amount'       => $event->getAmount(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error creating transaction projection',
                 [
@@ -110,7 +111,7 @@ class TransactionProjector extends Projector
                     'amount'       => $event->amount,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error creating transaction projections for transfer',
                 [
@@ -153,7 +154,7 @@ class TransactionProjector extends Projector
                     'amount'       => $event->amount,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error creating transaction projection for deposit',
                 [
@@ -196,7 +197,7 @@ class TransactionProjector extends Projector
                     'amount'       => $event->amount,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error creating transaction projection for withdrawal',
                 [

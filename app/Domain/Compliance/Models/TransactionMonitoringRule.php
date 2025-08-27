@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use InvalidArgumentException;
 
 /**
  * @method static int count(string $columns = '*')
@@ -291,7 +292,7 @@ class TransactionMonitoringRule extends Model
     public static function createFromTemplate(string $template, array $overrides = []): self
     {
         if (! isset(self::RULE_TEMPLATES[$template])) {
-            throw new \InvalidArgumentException("Unknown rule template: {$template}");
+            throw new InvalidArgumentException("Unknown rule template: {$template}");
         }
 
         $templateData = self::RULE_TEMPLATES[$template];

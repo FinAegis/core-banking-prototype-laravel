@@ -9,6 +9,7 @@ use App\Domain\Performance\Models\PerformanceMetric;
 use App\Domain\Performance\ValueObjects\MetricType;
 use App\Domain\Performance\ValueObjects\PerformanceThreshold;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -277,7 +278,7 @@ class MetricsCollectorService
     /**
      * Get average response time.
      */
-    private function getAverageResponseTime(\DateTimeInterface $since): float
+    private function getAverageResponseTime(DateTimeInterface $since): float
     {
         $avg = PerformanceMetric::where('recorded_at', '>=', $since)
             ->where('name', 'like', 'response_time.%')
@@ -289,7 +290,7 @@ class MetricsCollectorService
     /**
      * Get throughput.
      */
-    private function getThroughput(\DateTimeInterface $since): float
+    private function getThroughput(DateTimeInterface $since): float
     {
         $sum = PerformanceMetric::where('recorded_at', '>=', $since)
             ->where('name', 'like', 'throughput.%')
@@ -303,7 +304,7 @@ class MetricsCollectorService
     /**
      * Get error rate.
      */
-    private function getErrorRate(\DateTimeInterface $since): float
+    private function getErrorRate(DateTimeInterface $since): float
     {
         $avg = PerformanceMetric::where('recorded_at', '>=', $since)
             ->where('name', 'like', 'error_rate.%')
@@ -359,7 +360,7 @@ class MetricsCollectorService
     /**
      * Get database performance metrics.
      */
-    private function getDatabasePerformance(\DateTimeInterface $since): array
+    private function getDatabasePerformance(DateTimeInterface $since): array
     {
         $queries = DB::table('performance_metrics')
             ->where('recorded_at', '>=', $since)

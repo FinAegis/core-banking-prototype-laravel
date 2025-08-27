@@ -5,6 +5,8 @@ namespace App\Domain\Account\Workflows;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Payment\Workflows\TransferWorkflow;
+use Generator;
+use Throwable;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
 
@@ -15,9 +17,9 @@ class BulkTransferWorkflow extends Workflow
      *
      * @param  array  $transfers  - array of ['to' => AccountUuid, 'amount' => Money]
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function execute(AccountUuid $from, array $transfers): \Generator
+    public function execute(AccountUuid $from, array $transfers): Generator
     {
         $completedTransfers = [];
 
@@ -46,7 +48,7 @@ class BulkTransferWorkflow extends Workflow
             }
 
             return $completedTransfers;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Compensate all completed transfers
             yield from $this->compensate();
             throw $th;

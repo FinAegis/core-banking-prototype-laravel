@@ -10,6 +10,7 @@ use App\Domain\Custodian\ValueObjects\TransferRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use Mockery;
 use Tests\TestCase;
 
 class DemoBankConnectorTest extends TestCase
@@ -79,7 +80,7 @@ class DemoBankConnectorTest extends TestCase
         /** @phpstan-ignore-next-line */
         Log::shouldHaveReceived('info')
             ->times(4)
-            ->with('Demo bank account validation', \Mockery::any());
+            ->with('Demo bank account validation', Mockery::any());
     }
 
     public function test_get_account_info_returns_demo_data(): void
@@ -165,7 +166,7 @@ class DemoBankConnectorTest extends TestCase
         /** @phpstan-ignore-next-line */
         Log::shouldHaveReceived('info')
             ->once()
-            ->with('Demo bank transfer initiated', \Mockery::any());
+            ->with('Demo bank transfer initiated', Mockery::any());
     }
 
     public function test_initiate_transfer_updates_session_balances(): void

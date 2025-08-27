@@ -8,6 +8,7 @@ use App\Domain\Regulatory\Models\RegulatoryThreshold;
 use App\Domain\Regulatory\Services\EnhancedRegulatoryReportingService;
 use App\Domain\Regulatory\Services\ThresholdMonitoringService;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Console\Command;
 
 class RegulatoryManagement extends Command
@@ -96,7 +97,7 @@ class RegulatoryManagement extends Command
                     $report = $this->reportingService->generateEnhancedCTR($date);
                     $reports[] = $report;
                     $this->info("✓ CTR report generated: {$report->report_id}");
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->error("Failed to generate CTR: {$e->getMessage()}");
                 }
             }
@@ -114,7 +115,7 @@ class RegulatoryManagement extends Command
                     if ($report->report_data['requires_immediate_filing'] ?? false) {
                         $this->warn('⚠ SAR requires immediate filing!');
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->error("Failed to generate SAR: {$e->getMessage()}");
                 }
             }
@@ -128,7 +129,7 @@ class RegulatoryManagement extends Command
                         $report = $this->reportingService->generateAMLReport($date);
                         $reports[] = $report;
                         $this->info("✓ AML report generated: {$report->report_id}");
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $this->error("Failed to generate AML: {$e->getMessage()}");
                     }
                 }
@@ -146,7 +147,7 @@ class RegulatoryManagement extends Command
                     if ($report->report_data['requires_immediate_action'] ?? false) {
                         $this->error('⚠ OFAC matches found - immediate action required!');
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->error("Failed to generate OFAC: {$e->getMessage()}");
                 }
             }
@@ -160,7 +161,7 @@ class RegulatoryManagement extends Command
                         $report = $this->reportingService->generateBSAReport($date);
                         $reports[] = $report;
                         $this->info("✓ BSA report generated: {$report->report_id}");
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $this->error("Failed to generate BSA: {$e->getMessage()}");
                     }
                 }
@@ -251,7 +252,7 @@ class RegulatoryManagement extends Command
                     } elseif ($status['status'] === 'rejected') {
                         $this->error("    ✗ Filing rejected: {$status['reason']}");
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->error("  Failed to check {$filing->filing_id}: {$e->getMessage()}");
                 }
             }
@@ -270,7 +271,7 @@ class RegulatoryManagement extends Command
                             ->retryFiling($filing);
 
                         $this->info("  ✓ Retried {$filing->filing_id}");
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $this->error("  ✗ Failed to retry {$filing->filing_id}: {$e->getMessage()}");
                     }
                 }

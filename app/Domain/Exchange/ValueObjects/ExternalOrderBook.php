@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\ValueObjects;
 
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
 use Illuminate\Support\Collection;
 
 final class ExternalOrderBook
@@ -16,7 +17,7 @@ final class ExternalOrderBook
         public readonly string $quoteCurrency,
         public readonly Collection $bids,
         public readonly Collection $asks,
-        public readonly \DateTimeImmutable $timestamp,
+        public readonly DateTimeImmutable $timestamp,
         public readonly string $exchange,
         public readonly array $metadata = []
     ) {
@@ -39,7 +40,7 @@ final class ExternalOrderBook
                 'amount' => BigDecimal::of($ask['amount']),
                 ]
             ),
-            timestamp: new \DateTimeImmutable($data['timestamp']),
+            timestamp: new DateTimeImmutable($data['timestamp']),
             exchange: $data['exchange'],
             metadata: $data['metadata'] ?? []
         );

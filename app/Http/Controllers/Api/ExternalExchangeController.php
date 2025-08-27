@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Exchange\Services\ExternalExchangeConnectorRegistry;
 use App\Domain\Exchange\Services\ExternalLiquidityService;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Log;
 use OpenApi\Annotations as OA;
 
 /**
@@ -103,9 +105,9 @@ class ExternalExchangeController extends Controller
             try {
                 $ticker = $connector->getTicker($base, $quote);
                 $tickers[$name] = $ticker->toArray();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log but continue with other exchanges
-                \Log::warning("Failed to get ticker from {$name}", ['error' => $e->getMessage()]);
+                Log::warning("Failed to get ticker from {$name}", ['error' => $e->getMessage()]);
             }
         }
 

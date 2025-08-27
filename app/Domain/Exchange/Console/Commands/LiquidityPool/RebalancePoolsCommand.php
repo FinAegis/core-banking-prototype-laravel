@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\Console\Commands\LiquidityPool;
 
 use App\Domain\Exchange\LiquidityPool\Services\PoolRebalancingService;
+use Exception;
 use Illuminate\Console\Command;
 
 class RebalancePoolsCommand extends Command
@@ -64,7 +65,7 @@ class RebalancePoolsCommand extends Command
             }
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Failed to rebalance pools: ' . $e->getMessage());
 
             return Command::FAILURE;

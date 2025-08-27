@@ -13,7 +13,11 @@ use App\Domain\Exchange\Services\FeeCalculator;
 use Brick\Math\BigDecimal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use Str;
 use Tests\ServiceTestCase;
 use Workflow\WorkflowStub;
 
@@ -30,10 +34,10 @@ class ExchangeServiceTest extends ServiceTestCase
         parent::setUp();
 
         $this->service = new ExchangeService();
-        $this->feeCalculator = \Mockery::mock(FeeCalculator::class);
+        $this->feeCalculator = Mockery::mock(FeeCalculator::class);
 
         // Inject mocked fee calculator
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $property = $reflection->getProperty('feeCalculator');
         $property->setAccessible(true);
         $property->setValue($this->service, $this->feeCalculator);
@@ -42,7 +46,7 @@ class ExchangeServiceTest extends ServiceTestCase
     #[Test]
     public function test_place_order_validates_account_exists(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Account not found');
 
         $this->service->placeOrder(
@@ -60,7 +64,7 @@ class ExchangeServiceTest extends ServiceTestCase
     {
         $account = Account::factory()->create();
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid currency pair');
 
         $this->service->placeOrder(
@@ -94,7 +98,7 @@ class ExchangeServiceTest extends ServiceTestCase
             'precision'    => 2,
         ]);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Currency pair not available for trading');
 
         $this->service->placeOrder(
@@ -113,7 +117,7 @@ class ExchangeServiceTest extends ServiceTestCase
         $account = Account::factory()->create();
         $this->createTradeableAssets();
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Price is required for limit orders');
 
         $this->service->placeOrder(
@@ -133,7 +137,7 @@ class ExchangeServiceTest extends ServiceTestCase
         $account = Account::factory()->create();
         $this->createTradeableAssets();
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Stop price is required for stop orders');
 
         $this->service->placeOrder(
@@ -157,7 +161,7 @@ class ExchangeServiceTest extends ServiceTestCase
             ->with('BTC', 'USDT')
             ->andReturn(BigDecimal::of('0.001'));
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Minimum order amount is 0.001 BTC');
 
         $this->service->placeOrder(
@@ -181,14 +185,14 @@ class ExchangeServiceTest extends ServiceTestCase
             ->andReturn(BigDecimal::of('0.0001'));
 
         // Mock request
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('ip')->andReturn('127.0.0.1');
         $request->shouldReceive('userAgent')->andReturn('Test Browser');
         $request->shouldReceive('setUserResolver')->andReturnSelf();
         $this->app->instance('request', $request);
 
         // Use fake aggregates for event sourcing
-        $orderId = \Str::uuid()->toString();
+        $orderId = Str::uuid()->toString();
         $orderAggregate = Order::fake($orderId);
         $orderBookAggregate = OrderBook::fake('btc-usdt-book');
 
@@ -238,7 +242,7 @@ class ExchangeServiceTest extends ServiceTestCase
     #[Test]
     public function test_cancel_order_validates_order_exists(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Order not found');
 
         $this->service->cancelOrder('non-existent-order');
@@ -259,7 +263,7 @@ class ExchangeServiceTest extends ServiceTestCase
             'status'         => 'completed',
         ]);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Order cannot be cancelled. Status: completed');
 
         $this->service->cancelOrder('completed-order');
@@ -351,14 +355,14 @@ class ExchangeServiceTest extends ServiceTestCase
     private function mockOrderCreation(): void
     {
         // Mock request
-        $request = \Mockery::mock(Request::class);
+        $request = Mockery::mock(Request::class);
         $request->shouldReceive('ip')->andReturn('127.0.0.1');
         $request->shouldReceive('userAgent')->andReturn('Test Browser');
         $request->shouldReceive('setUserResolver')->andReturnSelf();
         $this->app->instance('request', $request);
 
         // Use fake aggregates for event sourcing
-        $orderId = \Str::uuid()->toString();
+        $orderId = Str::uuid()->toString();
         Order::fake($orderId);
         OrderBook::fake('btc-usdt-book');
 
@@ -368,7 +372,7 @@ class ExchangeServiceTest extends ServiceTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

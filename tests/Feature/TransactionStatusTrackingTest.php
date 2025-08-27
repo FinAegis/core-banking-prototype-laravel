@@ -7,8 +7,10 @@ use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Models\Transaction;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
+use DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Str;
 use Tests\DomainTestCase;
 
 class TransactionStatusTrackingTest extends DomainTestCase
@@ -247,8 +249,8 @@ class TransactionStatusTrackingTest extends DomainTestCase
         ]);
 
         // Create transaction for other user
-        $transactionUuid = \Str::uuid();
-        $transactionId = \DB::table('transaction_projections')->insertGetId([
+        $transactionUuid = Str::uuid();
+        $transactionId = DB::table('transaction_projections')->insertGetId([
             'uuid'         => $transactionUuid,
             'account_uuid' => $otherAccount->uuid,
             'asset_code'   => 'USD',
@@ -275,8 +277,8 @@ class TransactionStatusTrackingTest extends DomainTestCase
      */
     private function createRecentTestTransaction($status = 'pending', $type = 'deposit')
     {
-        $uuid = \Str::uuid();
-        $id = \DB::table('transaction_projections')->insertGetId([
+        $uuid = Str::uuid();
+        $id = DB::table('transaction_projections')->insertGetId([
             'uuid'         => $uuid,
             'account_uuid' => $this->account->uuid,
             'asset_code'   => 'USD',
@@ -301,8 +303,8 @@ class TransactionStatusTrackingTest extends DomainTestCase
      */
     private function createTestTransaction($status = 'pending', $type = 'deposit')
     {
-        $uuid = \Str::uuid();
-        $id = \DB::table('transaction_projections')->insertGetId([
+        $uuid = Str::uuid();
+        $id = DB::table('transaction_projections')->insertGetId([
             'uuid'         => $uuid,
             'account_uuid' => $this->account->uuid,
             'asset_code'   => 'USD',

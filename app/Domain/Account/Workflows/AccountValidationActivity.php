@@ -5,6 +5,7 @@ namespace App\Domain\Account\Workflows;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\Models\Account;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Workflow\Activity;
 
 class AccountValidationActivity extends Activity
@@ -20,7 +21,7 @@ class AccountValidationActivity extends Activity
         $$account = Account::where('uuid', $uuid->getUuid())->first();
 
         if (! $account) {
-            throw new \RuntimeException("Account not found: {$uuid->getUuid()}");
+            throw new RuntimeException("Account not found: {$uuid->getUuid()}");
         }
 
         $results = [];

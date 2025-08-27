@@ -2,6 +2,7 @@
 
 namespace App\Domain\Exchange\Activities;
 
+use DB;
 use Illuminate\Support\Facades\Log;
 use Workflow\Activity;
 
@@ -25,7 +26,7 @@ class LogMatchingErrorActivity extends Activity
         );
 
         // Also store in database for audit trail
-        \DB::table('exchange_matching_errors')->insert(
+        DB::table('exchange_matching_errors')->insert(
             [
             'buy_order_id'    => $match->buyOrderId ?? null,
             'sell_order_id'   => $match->sellOrderId ?? null,

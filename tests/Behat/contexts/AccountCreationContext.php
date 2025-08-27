@@ -6,6 +6,7 @@ use App\Domain\Account\Models\Account;
 use App\Models\User;
 use Behat\Behat\Context\Context;
 use Behat\MinkExtension\Context\MinkContext;
+use Exception;
 use PHPUnit\Framework\Assert;
 
 class AccountCreationContext extends MinkContext implements Context
@@ -59,7 +60,7 @@ class AccountCreationContext extends MinkContext implements Context
         if (! $button) {
             $link = $this->getSession()->getPage()->findLink($text);
             if (! $link) {
-                throw new \Exception("Could not find button or link with text: $text");
+                throw new Exception("Could not find button or link with text: $text");
             }
             $link->click();
         } else {

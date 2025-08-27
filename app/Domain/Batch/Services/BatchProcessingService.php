@@ -6,6 +6,7 @@ use App\Domain\Batch\Aggregates\BatchAggregate;
 use App\Domain\Batch\DataObjects\BatchJob as BatchJobData;
 use App\Domain\Batch\Models\BatchJob;
 use App\Domain\Batch\Workflows\ProcessBatchJobWorkflow;
+use InvalidArgumentException;
 use Workflow\WorkflowStub;
 
 class BatchProcessingService
@@ -72,7 +73,7 @@ class BatchProcessingService
         $batchJob = BatchJob::where('uuid', $batchJobUuid)->first();
 
         if (! $batchJob) {
-            throw new \InvalidArgumentException("Batch job not found: {$batchJobUuid}");
+            throw new InvalidArgumentException("Batch job not found: {$batchJobUuid}");
         }
 
         // Get failed items

@@ -5,6 +5,7 @@ namespace App\Domain\Newsletter\Services;
 use App\Domain\Newsletter\Mail\SubscriberNewsletter;
 use App\Domain\Newsletter\Mail\SubscriberWelcome;
 use App\Domain\Newsletter\Models\Subscriber;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -26,7 +27,7 @@ class SubscriberEmailService
                 'source'        => $subscriber->source,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to send welcome email',
                 [
@@ -77,7 +78,7 @@ class SubscriberEmailService
                     'subject'       => $subject,
                     ]
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Failed to send newsletter to subscriber',
                     [

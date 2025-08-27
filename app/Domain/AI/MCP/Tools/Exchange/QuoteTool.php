@@ -9,6 +9,7 @@ use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Exchange\Services\EnhancedExchangeRateService;
+use Exception;
 use Illuminate\Support\Facades\Log;
 
 class QuoteTool implements MCPToolInterface
@@ -162,7 +163,7 @@ class QuoteTool implements MCPToolInterface
             ];
 
             return ToolExecutionResult::success($response);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: exchange.quote', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,

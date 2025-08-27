@@ -8,6 +8,8 @@ use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\AI\ChildWorkflows\Trading\MarketAnalysisWorkflow;
 use App\Domain\AI\ChildWorkflows\Trading\StrategyGenerationWorkflow;
 use App\Domain\AI\Sagas\TradingExecutionSaga;
+use Exception;
+use Generator;
 use Workflow\Workflow;
 
 /**
@@ -39,14 +41,14 @@ class TradingAgentWorkflow extends Workflow
      * @param string $operation Trading operation type
      * @param array<string, mixed> $parameters Operation parameters
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
         string $userId,
         string $operation,
         array $parameters = []
-    ): \Generator {
+    ): Generator {
         // Initialize context
         $this->context = [
             'conversation_id' => $conversationId,
@@ -117,7 +119,7 @@ class TradingAgentWorkflow extends Workflow
             $aggregate->persist();
 
             return $result;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Record workflow failed
             $aggregate->makeDecision(
                 decision: 'workflow_failed',

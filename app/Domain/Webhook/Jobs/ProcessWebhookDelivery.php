@@ -4,6 +4,8 @@ namespace App\Domain\Webhook\Jobs;
 
 use App\Domain\Webhook\Models\WebhookDelivery;
 use App\Domain\Webhook\Services\WebhookService;
+use DateTime;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,6 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ProcessWebhookDelivery implements ShouldQueue
 {
@@ -87,7 +90,7 @@ class ProcessWebhookDelivery implements ShouldQueue
                 'duration_ms' => $duration,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $errorMessage = $e->getMessage();
             $statusCode = $e instanceof \Illuminate\Http\Client\RequestException
                 ? $e->response->status() ?? 0
@@ -119,7 +122,7 @@ class ProcessWebhookDelivery implements ShouldQueue
     /**
      * Determine the time at which the job should timeout.
      */
-    public function retryUntil(): \DateTime
+    public function retryUntil(): DateTime
     {
         // Allow retries for up to 24 hours
         return now()->addDay();
@@ -137,7 +140,7 @@ class ProcessWebhookDelivery implements ShouldQueue
     /**
      * Handle a job failure.
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error(
             'Webhook delivery job failed permanently',

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Exchange\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class ExternalLiquidityProvided extends ShouldBeStored
@@ -11,7 +12,7 @@ class ExternalLiquidityProvided extends ShouldBeStored
         public readonly string $quoteCurrency,
         public readonly int $buyOrdersAdded,
         public readonly int $sellOrdersAdded,
-        public readonly \DateTimeImmutable $timestamp
+        public readonly DateTimeImmutable $timestamp
     ) {
     }
 }

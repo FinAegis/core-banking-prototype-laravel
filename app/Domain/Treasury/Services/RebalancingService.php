@@ -6,6 +6,7 @@ namespace App\Domain\Treasury\Services;
 
 use App\Domain\Treasury\Aggregates\PortfolioAggregate;
 use App\Domain\Treasury\Models\PortfolioEvent;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -51,7 +52,7 @@ class RebalancingService
                 }
 
                 return false;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to check rebalancing need: {$e->getMessage()}", 0, $e);
             }
         });
@@ -126,7 +127,7 @@ class RebalancingService
                 'risk_impact'               => $this->assessRiskImpact($currentAllocations, $portfolio['strategy']),
                 'recommended'               => $this->shouldRecommendRebalancing($rebalancingActions, $totalTransactionCost),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to calculate rebalancing plan: {$e->getMessage()}", 0, $e);
         }
     }
@@ -178,7 +179,7 @@ class RebalancingService
             Cache::forget("portfolio:{$portfolioId}");
             Cache::forget("rebalancing_needed:{$portfolioId}");
             Cache::forget("rebalancing_history:{$portfolioId}");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to execute rebalancing: {$e->getMessage()}", 0, $e);
         }
     }
@@ -223,7 +224,7 @@ class RebalancingService
 
                 /** @phpstan-ignore-next-line */
                 return $mappedEvents;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to get rebalancing history: {$e->getMessage()}", 0, $e);
             }
         });

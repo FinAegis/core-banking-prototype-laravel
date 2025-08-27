@@ -8,6 +8,11 @@ use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\AI\ChildWorkflows\Risk\CreditRiskWorkflow;
 use App\Domain\AI\ChildWorkflows\Risk\FraudDetectionWorkflow;
 use App\Models\User;
+use Exception;
+use Generator;
+use InvalidArgumentException;
+use Log;
+use RuntimeException;
 use Workflow\Workflow;
 
 /**
@@ -31,14 +36,14 @@ class RiskAssessmentSaga extends Workflow
      * @param string $assessmentType
      * @param array $parameters
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
         string $userId,
         string $assessmentType,
         array $parameters = []
-    ): \Generator {
+    ): Generator {
         $aggregate = AIInteractionAggregate::retrieve($conversationId);
 
         try {
@@ -101,7 +106,7 @@ class RiskAssessmentSaga extends Workflow
                     'timestamp'       => now()->toIso8601String(),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Execute compensation in reverse order
             yield from $this->compensate();
 
@@ -117,7 +122,7 @@ class RiskAssessmentSaga extends Workflow
             );
             $aggregate->persist();
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Risk assessment failed: {$e->getMessage()}",
                 0,
                 $e
@@ -133,7 +138,7 @@ class RiskAssessmentSaga extends Workflow
         $user = User::find($userId);
 
         if (! $user) {
-            throw new \RuntimeException("User not found: {$userId}");
+            throw new RuntimeException("User not found: {$userId}");
         }
 
         $user->load(['accounts', 'transactions']);
@@ -162,7 +167,7 @@ class RiskAssessmentSaga extends Workflow
     /**
      * Perform assessment based on type.
      *
-     * @return \Generator
+     * @return Generator
      */
     private function performAssessment(
         string $type,
@@ -170,26 +175,26 @@ class RiskAssessmentSaga extends Workflow
         User $user,
         array $financialData,
         array $parameters
-    ): \Generator {
+    ): Generator {
         return match ($type) {
             'credit'        => yield from $this->assessCredit($conversationId, $user, $financialData, $parameters),
             'fraud'         => yield from $this->assessFraud($conversationId, $user, $parameters),
             'comprehensive' => yield from $this->assessComprehensive($conversationId, $user, $financialData, $parameters),
-            default         => throw new \InvalidArgumentException("Unknown assessment type: {$type}")
+            default         => throw new InvalidArgumentException("Unknown assessment type: {$type}")
         };
     }
 
     /**
      * Assess credit risk using Child Workflow.
      *
-     * @return \Generator
+     * @return Generator
      */
     private function assessCredit(
         string $conversationId,
         User $user,
         array $financialData,
         array $parameters
-    ): \Generator {
+    ): Generator {
         $creditAssessment = yield from app(CreditRiskWorkflow::class)->execute(
             $conversationId,
             $user,
@@ -205,13 +210,13 @@ class RiskAssessmentSaga extends Workflow
     /**
      * Assess fraud risk using Child Workflow.
      *
-     * @return \Generator
+     * @return Generator
      */
     private function assessFraud(
         string $conversationId,
         User $user,
         array $parameters
-    ): \Generator {
+    ): Generator {
         $fraudAssessment = yield from app(FraudDetectionWorkflow::class)->execute(
             $conversationId,
             $user,
@@ -226,14 +231,14 @@ class RiskAssessmentSaga extends Workflow
     /**
      * Perform comprehensive assessment.
      *
-     * @return \Generator
+     * @return Generator
      */
     private function assessComprehensive(
         string $conversationId,
         User $user,
         array $financialData,
         array $parameters
-    ): \Generator {
+    ): Generator {
         // Run both assessments
         $creditResult = yield from $this->assessCredit($conversationId, $user, $financialData, $parameters);
         $fraudResult = yield from $this->assessFraud($conversationId, $user, $parameters);
@@ -350,7 +355,7 @@ class RiskAssessmentSaga extends Workflow
      */
     private function logCompensation(string $action, string $entityId): void
     {
-        \Log::info('Risk assessment compensation', [
+        Log::info('Risk assessment compensation', [
             'action'    => $action,
             'entity_id' => $entityId,
         ]);
@@ -359,15 +364,15 @@ class RiskAssessmentSaga extends Workflow
     /**
      * Execute compensation actions in reverse order.
      *
-     * @return \Generator
+     * @return Generator
      */
-    public function compensate(): \Generator
+    public function compensate(): Generator
     {
         while ($compensation = array_pop($this->compensationStack)) {
             try {
                 yield $compensation();
-            } catch (\Exception $e) {
-                \Log::error('Compensation failed', [
+            } catch (Exception $e) {
+                Log::error('Compensation failed', [
                     'error' => $e->getMessage(),
                 ]);
             }

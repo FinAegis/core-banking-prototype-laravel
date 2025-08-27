@@ -4,6 +4,7 @@ namespace App\Domain\Account\Listeners;
 
 use App\Domain\Account\DataObjects\Account;
 use App\Domain\Account\Services\AccountService;
+use Exception;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Log;
 
@@ -37,7 +38,7 @@ class CreateAccountForNewUser
                     'user_email' => $user->email,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log the error but don't prevent user registration
             Log::error(
                 'Failed to create account for new user',

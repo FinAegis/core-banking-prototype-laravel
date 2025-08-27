@@ -8,6 +8,7 @@ use App\Domain\Wallet\Workflows\WalletConvertWorkflow;
 use App\Domain\Wallet\Workflows\WalletDepositWorkflow;
 use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
 use App\Domain\Wallet\Workflows\WalletWithdrawWorkflow;
+use Exception;
 use Workflow\WorkflowStub;
 
 class WalletService implements WalletServiceInterface
@@ -34,7 +35,7 @@ class WalletService implements WalletServiceInterface
         $account = Account::where('uuid', (string) $accountUuidObj)->first();
 
         if (! $account || ! $account->hasSufficientBalance($assetCode, $amount)) {
-            throw new \Exception('Insufficient balance');
+            throw new Exception('Insufficient balance');
         }
 
         $workflow = WorkflowStub::make(WalletWithdrawWorkflow::class);
@@ -54,7 +55,7 @@ class WalletService implements WalletServiceInterface
         $fromAccount = Account::where('uuid', (string) $fromAccountUuidObj)->first();
 
         if (! $fromAccount || ! $fromAccount->hasSufficientBalance($assetCode, $amount)) {
-            throw new \Exception('Insufficient balance');
+            throw new Exception('Insufficient balance');
         }
 
         $workflow = WorkflowStub::make(WalletTransferWorkflow::class);

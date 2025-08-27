@@ -6,6 +6,7 @@ namespace App\Domain\Governance\Workflows;
 
 use App\Domain\Governance\Models\Poll;
 use App\Domain\Governance\ValueObjects\PollResult;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Temporal\Workflow\WorkflowInterface;
@@ -53,7 +54,7 @@ class FeatureToggleWorkflow
                 'feature_key' => $featureConfig['feature_key'],
                 'enabled'     => $enabled,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error(
                 'Failed to toggle feature via governance poll',
                 [

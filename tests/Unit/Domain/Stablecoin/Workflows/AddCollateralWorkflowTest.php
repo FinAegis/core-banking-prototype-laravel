@@ -4,6 +4,7 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows;
 
 use App\Domain\Stablecoin\Workflows\AddCollateralWorkflow;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class AddCollateralWorkflowTest extends DomainTestCase
@@ -17,7 +18,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_class(): void
     {
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $this->assertEquals('Workflow\Workflow', $reflection->getParentClass()->getName());
     }
 
@@ -30,7 +31,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
     #[Test]
     public function test_execute_method_signature(): void
     {
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(4, $method->getNumberOfParameters());
@@ -53,7 +54,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_generator(): void
     {
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('Generator', $method->getReturnType()->getName());
@@ -62,7 +63,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_uses_compensation_pattern(): void
     {
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
 
         // Check if the workflow has compensation methods
         $this->assertTrue(method_exists(AddCollateralWorkflow::class, 'addCompensation'));
@@ -78,7 +79,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
             'UpdatePositionActivity',
         ];
 
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         // Get the method source code
@@ -99,7 +100,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
         // Test that the workflow has proper compensation activity
         $expectedCompensation = 'ReleaseCollateralActivity';
 
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();
@@ -115,7 +116,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_handles_exceptions(): void
     {
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();
@@ -132,7 +133,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_returns_boolean(): void
     {
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();
@@ -148,7 +149,7 @@ class AddCollateralWorkflowTest extends DomainTestCase
     public function test_workflow_simple_structure(): void
     {
         // AddCollateralWorkflow should be simpler than Mint/Burn workflows
-        $reflection = new \ReflectionClass(AddCollateralWorkflow::class);
+        $reflection = new ReflectionClass(AddCollateralWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         // This workflow should only have 2 main activities

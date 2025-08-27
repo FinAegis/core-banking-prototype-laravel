@@ -5,8 +5,10 @@ namespace App\Domain\Regulatory\Services;
 use App\Domain\Regulatory\Models\RegulatoryReport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use SimpleXMLElement;
 
 class ReportGeneratorService
 {
@@ -23,7 +25,7 @@ class ReportGeneratorService
             RegulatoryReport::FORMAT_CSV  => $this->generateCsvReport($report),
             RegulatoryReport::FORMAT_PDF  => $this->generatePdfReport($report),
             RegulatoryReport::FORMAT_XLSX => $this->generateExcelReport($report),
-            default                       => throw new \InvalidArgumentException("Unsupported format: {$format}"),
+            default                       => throw new InvalidArgumentException("Unsupported format: {$format}"),
         };
     }
 
@@ -51,7 +53,7 @@ class ReportGeneratorService
     {
         $data = $this->prepareReportData($report);
 
-        $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><report></report>');
+        $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><report></report>');
         $this->arrayToXml($data, $xml);
 
         $xmlString = $xml->asXML();
@@ -206,7 +208,7 @@ class ReportGeneratorService
     /**
      * Convert array to XML.
      */
-    protected function arrayToXml(array $data, \SimpleXMLElement $xml): void
+    protected function arrayToXml(array $data, SimpleXMLElement $xml): void
     {
         foreach ($data as $key => $value) {
             if (is_array($value)) {

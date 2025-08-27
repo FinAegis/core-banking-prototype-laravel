@@ -2,6 +2,8 @@
 
 namespace App\Domain\Exchange\Contracts;
 
+use DateTimeInterface;
+
 interface ExternalLiquidityServiceInterface
 {
     /**
@@ -51,5 +53,5 @@ interface ExternalLiquidityServiceInterface
     /**
      * Get arbitrage statistics.
      */
-    public function getArbitrageStats(?\DateTimeInterface $from = null, ?\DateTimeInterface $to = null): array;
+    public function getArbitrageStats(?DateTimeInterface $from = null, ?DateTimeInterface $to = null): array;
 }

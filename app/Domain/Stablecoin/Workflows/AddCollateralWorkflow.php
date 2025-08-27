@@ -8,6 +8,8 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Workflows\Activities\LockCollateralActivity;
 use App\Domain\Stablecoin\Workflows\Activities\ReleaseCollateralActivity;
 use App\Domain\Stablecoin\Workflows\Activities\UpdatePositionActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -21,7 +23,7 @@ class AddCollateralWorkflow extends Workflow
         string $positionUuid,
         string $collateralAssetCode,
         int $collateralAmount
-    ): \Generator {
+    ): Generator {
         try {
             // Lock additional collateral from account
             yield ActivityStub::make(
@@ -50,7 +52,7 @@ class AddCollateralWorkflow extends Workflow
             );
 
             return true;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Execute compensations in reverse order
             yield from $this->compensate();
             throw $th;

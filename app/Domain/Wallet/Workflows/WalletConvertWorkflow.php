@@ -4,6 +4,8 @@ namespace App\Domain\Wallet\Workflows;
 
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Wallet\Activities\ConvertAssetActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -18,7 +20,7 @@ class WalletConvertWorkflow extends Workflow
         string $fromAssetCode,
         string $toAssetCode,
         int $amount
-    ): \Generator {
+    ): Generator {
         try {
             $result = yield ActivityStub::make(
                 ConvertAssetActivity::class,
@@ -41,7 +43,7 @@ class WalletConvertWorkflow extends Workflow
             );
 
             return $result;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             yield from $this->compensate();
             throw $th;
         }

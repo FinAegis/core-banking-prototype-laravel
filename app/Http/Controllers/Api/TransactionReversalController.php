@@ -8,6 +8,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Workflows\TransactionReversalWorkflow;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -145,7 +146,7 @@ class TransactionReversalController extends Controller
                 ],
                 200
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error(
                 'Transaction reversal API failed',
                 [

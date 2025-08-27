@@ -13,6 +13,7 @@ use App\Domain\Lending\Repositories\LendingEventRepository;
 use App\Domain\Lending\ValueObjects\CreditScore;
 use App\Domain\Lending\ValueObjects\RiskRating;
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
 
@@ -68,7 +69,7 @@ class LoanApplication extends AggregateRoot
                 termMonths: $termMonths,
                 purpose: $purpose,
                 borrowerInfo: $borrowerInfo,
-                submittedAt: new \DateTimeImmutable()
+                submittedAt: new DateTimeImmutable()
             )
         );
 
@@ -94,7 +95,7 @@ class LoanApplication extends AggregateRoot
                 bureau: $bureau,
                 report: $creditReport,
                 checkedBy: $checkedBy,
-                checkedAt: new \DateTimeImmutable()
+                checkedAt: new DateTimeImmutable()
             )
         );
 
@@ -124,7 +125,7 @@ class LoanApplication extends AggregateRoot
                 defaultProbability: $defaultProbability,
                 riskFactors: $riskFactors,
                 assessedBy: $assessedBy,
-                assessedAt: new \DateTimeImmutable()
+                assessedAt: new DateTimeImmutable()
             )
         );
 
@@ -160,7 +161,7 @@ class LoanApplication extends AggregateRoot
                 interestRate: $interestRate,
                 terms: $terms,
                 approvedBy: $approvedBy,
-                approvedAt: new \DateTimeImmutable()
+                approvedAt: new DateTimeImmutable()
             )
         );
 
@@ -178,7 +179,7 @@ class LoanApplication extends AggregateRoot
                 applicationId: $this->applicationId,
                 reasons: $reasons,
                 rejectedBy: $rejectedBy,
-                rejectedAt: new \DateTimeImmutable()
+                rejectedAt: new DateTimeImmutable()
             )
         );
 
@@ -196,7 +197,7 @@ class LoanApplication extends AggregateRoot
                 applicationId: $this->applicationId,
                 reason: $reason,
                 withdrawnBy: $withdrawnBy,
-                withdrawnAt: new \DateTimeImmutable()
+                withdrawnAt: new DateTimeImmutable()
             )
         );
 

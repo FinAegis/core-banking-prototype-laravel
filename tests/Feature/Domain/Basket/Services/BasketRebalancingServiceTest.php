@@ -11,6 +11,7 @@ use App\Domain\Basket\Models\BasketComponent;
 use App\Domain\Basket\Models\BasketValue;
 use App\Domain\Basket\Services\BasketRebalancingService;
 use App\Domain\Basket\Services\BasketValueCalculationService;
+use Exception;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Mockery;
@@ -63,7 +64,7 @@ class BasketRebalancingServiceTest extends ServiceTestCase
             'type' => 'fixed',
         ]);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Only dynamic baskets can be rebalanced');
 
         $this->service->rebalance($basket);
@@ -221,7 +222,7 @@ class BasketRebalancingServiceTest extends ServiceTestCase
             ->with($basket)
             ->andReturn($mockValue);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Cannot rebalance basket with zero or negative value');
 
         $this->service->rebalance($basket);
@@ -459,7 +460,7 @@ class BasketRebalancingServiceTest extends ServiceTestCase
         // Mock value calculation to throw exception
         $this->valueCalculationService
             ->shouldReceive('calculateValue')
-            ->andThrow(new \Exception('Calculation error'));
+            ->andThrow(new Exception('Calculation error'));
 
         Log::shouldReceive('error')
             ->once()

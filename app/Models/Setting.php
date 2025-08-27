@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -122,7 +123,7 @@ class Setting extends Model
                 $decrypted = Crypt::decryptString($decoded);
 
                 return json_decode($decrypted, true);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 return $decoded;
             }
         }

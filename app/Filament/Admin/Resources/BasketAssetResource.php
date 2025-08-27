@@ -8,6 +8,7 @@ use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketValueCalculationService;
 use App\Filament\Admin\Resources\BasketAssetResource\Pages;
 use App\Filament\Admin\Resources\BasketAssetResource\RelationManagers;
+use Exception;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -368,7 +369,7 @@ class BasketAssetResource extends Resource
                                         ->title('Value Calculated')
                                         ->body("Current value: \${$value->value}")
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     \Filament\Notifications\Notification::make()
                                         ->danger()
                                         ->title('Calculation Failed')
@@ -398,7 +399,7 @@ class BasketAssetResource extends Resource
                                         ->title('Basket Rebalanced')
                                         ->body("Adjusted {$result['adjustments_count']} components")
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     \Filament\Notifications\Notification::make()
                                         ->danger()
                                         ->title('Rebalancing Failed')
@@ -445,7 +446,7 @@ class BasketAssetResource extends Resource
                                             try {
                                                 $service->calculateValue($basket, false);
                                                 $success++;
-                                            } catch (\Exception $e) {
+                                            } catch (Exception $e) {
                                                 $failed++;
                                             }
                                         }

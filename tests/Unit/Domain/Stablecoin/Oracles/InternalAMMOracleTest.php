@@ -10,7 +10,9 @@ use Brick\Math\BigDecimal;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 class InternalAMMOracleTest extends TestCase
@@ -91,7 +93,7 @@ class InternalAMMOracleTest extends TestCase
     #[Test]
     public function test_get_price_throws_exception_when_no_pool_found(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('No liquidity pool found for BTC/USDT');
 
         $this->oracle->getPrice('BTC', 'USDT');
@@ -137,11 +139,11 @@ class InternalAMMOracleTest extends TestCase
     {
         Log::shouldReceive('error')
             ->once()
-            ->with(\Mockery::pattern('/Internal AMM oracle error:/'));
+            ->with(Mockery::pattern('/Internal AMM oracle error:/'));
 
         Log::shouldReceive('warning')
             ->once()
-            ->with(\Mockery::pattern('/Failed to get AMM price for XRP\/USDT:/'));
+            ->with(Mockery::pattern('/Failed to get AMM price for XRP\/USDT:/'));
 
         LiquidityPool::create([
             'pool_id'        => 'pool-btc',
@@ -164,7 +166,7 @@ class InternalAMMOracleTest extends TestCase
     #[Test]
     public function test_get_historical_price_throws_exception(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Historical AMM prices not yet implemented');
 
         $this->oracle->getHistoricalPrice('ETH', 'USDT', Carbon::now()->subDay());
@@ -301,7 +303,7 @@ class InternalAMMOracleTest extends TestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

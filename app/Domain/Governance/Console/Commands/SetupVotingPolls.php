@@ -4,6 +4,7 @@ namespace App\Domain\Governance\Console\Commands;
 
 use App\Domain\Governance\Services\VotingTemplateService;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Console\Command;
 
 class SetupVotingPolls extends Command
@@ -62,7 +63,7 @@ class SetupVotingPolls extends Command
 
             $this->info("Created voting poll: {$poll->title}");
             $this->line("Voting period: {$poll->start_date->format('M d, Y')} - {$poll->end_date->format('M d, Y')}");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Invalid month format. Please use YYYY-MM format.');
         }
     }

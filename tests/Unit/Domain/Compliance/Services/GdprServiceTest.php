@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\ServiceTestCase;
 
 class GdprServiceTest extends ServiceTestCase
@@ -157,7 +158,7 @@ class GdprServiceTest extends ServiceTestCase
             'remember_token' => 'token123',
         ]);
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getUserData');
         $method->setAccessible(true);
 
@@ -207,7 +208,7 @@ class GdprServiceTest extends ServiceTestCase
         $user = User::factory()->create();
         $account = Account::factory()->create(['user_uuid' => $user->uuid]);
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('anonymizeUser');
         $method->setAccessible(true);
 

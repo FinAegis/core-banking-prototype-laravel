@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Custodian\Workflows\Activities;
 
 use App\Domain\Custodian\Services\CustodianRegistry;
+use Exception;
 use Workflow\Activity;
 
 class VerifyCustodianTransferActivity extends Activity
@@ -28,7 +29,7 @@ class VerifyCustodianTransferActivity extends Activity
             }
 
             if ($receipt->isFailed()) {
-                throw new \Exception(
+                throw new Exception(
                     "Custodian transfer {$transactionId} failed: " .
                     ($receipt->metadata['error'] ?? 'Unknown error')
                 );
@@ -39,7 +40,7 @@ class VerifyCustodianTransferActivity extends Activity
             $retries++;
         }
 
-        throw new \Exception(
+        throw new Exception(
             "Custodian transfer {$transactionId} timed out after " .
             (self::MAX_RETRIES * self::RETRY_DELAY) . ' seconds'
         );

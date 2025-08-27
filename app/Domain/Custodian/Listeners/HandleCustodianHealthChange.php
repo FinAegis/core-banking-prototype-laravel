@@ -8,6 +8,8 @@ use App\Domain\Custodian\Events\CustodianHealthChanged;
 use App\Domain\Custodian\Services\BankAlertingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Log;
+use Throwable;
 
 class HandleCustodianHealthChange implements ShouldQueue
 {
@@ -32,9 +34,9 @@ class HandleCustodianHealthChange implements ShouldQueue
     /**
      * Handle a job failure.
      */
-    public function failed(CustodianHealthChanged $event, \Throwable $exception): void
+    public function failed(CustodianHealthChanged $event, Throwable $exception): void
     {
-        \Log::error(
+        Log::error(
             'Failed to handle custodian health change',
             [
             'custodian' => $event->custodian,

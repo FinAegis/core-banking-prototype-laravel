@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Services\RebalancingService;
+use Exception;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class CalculateRebalancingPlanActivity extends Activity
@@ -48,7 +51,7 @@ class CalculateRebalancingPlanActivity extends Activity
             ]);
 
             // Log plan creation for audit trail
-            \Log::info('Rebalancing plan calculated', [
+            Log::info('Rebalancing plan calculated', [
                 'portfolio_id'      => $portfolioId,
                 'rebalance_id'      => $rebalanceId,
                 'action_count'      => count($enhancedPlan['actions']),
@@ -58,14 +61,14 @@ class CalculateRebalancingPlanActivity extends Activity
             ]);
 
             return $enhancedPlan;
-        } catch (\Exception $e) {
-            \Log::error('Failed to calculate rebalancing plan', [
+        } catch (Exception $e) {
+            Log::error('Failed to calculate rebalancing plan', [
                 'portfolio_id' => $portfolioId,
                 'rebalance_id' => $rebalanceId,
                 'error'        => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to calculate rebalancing plan for portfolio {$portfolioId}: {$e->getMessage()}",
                 0,
                 $e

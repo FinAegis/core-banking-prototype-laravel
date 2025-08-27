@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Custodian\Services;
 
 use App\Domain\Account\DataObjects\Money;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 /**
  * Settlement Service.
@@ -69,7 +71,7 @@ class SettlementService
             self::SETTLEMENT_REALTIME => $this->processRealtimeSettlements(),
             self::SETTLEMENT_BATCH    => $this->processBatchSettlements(),
             self::SETTLEMENT_NET      => $this->processNetSettlements(),
-            default                   => throw new \RuntimeException("Unknown settlement type: {$settlementType}"),
+            default                   => throw new RuntimeException("Unknown settlement type: {$settlementType}"),
         };
     }
 
@@ -95,7 +97,7 @@ class SettlementService
                 $this->settleTransferImmediately($transfer);
                 $results['processed']++;
                 $results['total_amount'] += $transfer->amount;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Failed to settle transfer',
                     [
@@ -199,7 +201,7 @@ class SettlementService
                 }
 
                 $results['total_gross'] += $position->gross_amount;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Failed to process net settlement',
                     [
@@ -425,7 +427,7 @@ class SettlementService
         $settlement = DB::table('settlements')->where('id', $settlementId)->first();
 
         if (! $settlement) {
-            throw new \RuntimeException("Settlement not found: {$settlementId}");
+            throw new RuntimeException("Settlement not found: {$settlementId}");
         }
 
         try {
@@ -481,7 +483,7 @@ class SettlementService
             );
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Settlement execution failed',
                 [

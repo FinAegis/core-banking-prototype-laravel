@@ -9,6 +9,7 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Asset\Aggregates\AssetTransferAggregate;
+use Exception;
 use Workflow\Activity;
 
 class InitiateAssetTransferActivity extends Activity
@@ -31,11 +32,11 @@ class InitiateAssetTransferActivity extends Activity
         $$toAccount = Account::where('uuid', $toAccountUuid->toString())->first();
 
         if (! $fromAccount) {
-            throw new \Exception("Source account not found: {$fromAccountUuid->toString()}");
+            throw new Exception("Source account not found: {$fromAccountUuid->toString()}");
         }
 
         if (! $toAccount) {
-            throw new \Exception("Destination account not found: {$toAccountUuid->toString()}");
+            throw new Exception("Destination account not found: {$toAccountUuid->toString()}");
         }
 
         // Check if source account has sufficient balance
@@ -45,7 +46,7 @@ class InitiateAssetTransferActivity extends Activity
 
         if (! $fromBalance || ! $fromBalance->hasSufficientBalance($fromAmount->getAmount())) {
             $currentBalance = $fromBalance ? $fromBalance->balance : 0;
-            throw new \Exception(
+            throw new Exception(
                 "Insufficient {$fromAssetCode} balance. Required: {$fromAmount->getAmount()}, Available: {$currentBalance}"
             );
         }

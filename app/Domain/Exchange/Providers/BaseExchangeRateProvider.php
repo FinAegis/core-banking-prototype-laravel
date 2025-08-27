@@ -7,6 +7,8 @@ namespace App\Domain\Exchange\Providers;
 use App\Domain\Exchange\Contracts\IExchangeRateProvider;
 use App\Domain\Exchange\Exceptions\RateLimitException;
 use App\Domain\Exchange\Exceptions\RateProviderException;
+use Closure;
+use Exception;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -60,7 +62,7 @@ abstract class BaseExchangeRateProvider implements IExchangeRateProvider
             $response = $this->client->get($this->getHealthCheckEndpoint());
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 "Exchange rate provider {$this->getName()} health check failed",
                 [
@@ -120,7 +122,7 @@ abstract class BaseExchangeRateProvider implements IExchangeRateProvider
     /**
      * Remember value in cache.
      */
-    protected function remember(string $key, \Closure $callback, ?int $minutes = null): mixed
+    protected function remember(string $key, Closure $callback, ?int $minutes = null): mixed
     {
         $fullKey = "{$this->cachePrefix}:{$this->getName()}:{$key}";
 

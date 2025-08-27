@@ -11,6 +11,7 @@ use App\Domain\Exchange\Projections\OrderBook as OrderBookProjection;
 use App\Domain\Exchange\ValueObjects\OrderMatchingInput;
 use App\Domain\Exchange\Workflows\OrderMatchingWorkflow;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Workflow\WorkflowStub;
 
 class ExchangeService implements ExchangeServiceInterface
@@ -37,7 +38,7 @@ class ExchangeService implements ExchangeServiceInterface
         /** @var Account|null $account */
         $account = Account::find($accountId);
         if (! $account) {
-            throw new \InvalidArgumentException('Account not found');
+            throw new InvalidArgumentException('Account not found');
         }
 
         // Validate currencies
@@ -47,26 +48,26 @@ class ExchangeService implements ExchangeServiceInterface
         $quoteAsset = Asset::where('code', $quoteCurrency)->first();
 
         if (! $baseAsset || ! $quoteAsset) {
-            throw new \InvalidArgumentException('Invalid currency pair');
+            throw new InvalidArgumentException('Invalid currency pair');
         }
 
         if (! $baseAsset->is_tradeable || ! $quoteAsset->is_tradeable) {
-            throw new \InvalidArgumentException('Currency pair not available for trading');
+            throw new InvalidArgumentException('Currency pair not available for trading');
         }
 
         // Validate order type and price
         if ($orderType === 'limit' && ! $price) {
-            throw new \InvalidArgumentException('Price is required for limit orders');
+            throw new InvalidArgumentException('Price is required for limit orders');
         }
 
         if ($orderType === 'stop' && ! $stopPrice) {
-            throw new \InvalidArgumentException('Stop price is required for stop orders');
+            throw new InvalidArgumentException('Stop price is required for stop orders');
         }
 
         // Check minimum order value
         $minimumAmount = $this->feeCalculator->calculateMinimumOrderValue($baseCurrency, $quoteCurrency);
         if (bccomp($amount, $minimumAmount->__toString(), 18) < 0) {
-            throw new \InvalidArgumentException("Minimum order amount is {$minimumAmount->__toString()} {$baseCurrency}");
+            throw new InvalidArgumentException("Minimum order amount is {$minimumAmount->__toString()} {$baseCurrency}");
         }
 
         // Generate order ID
@@ -125,11 +126,11 @@ class ExchangeService implements ExchangeServiceInterface
         $orderProjection = \App\Domain\Exchange\Projections\Order::where('order_id', $orderId)->first();
 
         if (! $orderProjection) {
-            throw new \InvalidArgumentException('Order not found');
+            throw new InvalidArgumentException('Order not found');
         }
 
         if (! $orderProjection->canBeCancelled()) {
-            throw new \InvalidArgumentException("Order cannot be cancelled. Status: {$orderProjection->status}");
+            throw new InvalidArgumentException("Order cannot be cancelled. Status: {$orderProjection->status}");
         }
 
         // Cancel the order

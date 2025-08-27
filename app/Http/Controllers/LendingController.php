@@ -9,6 +9,7 @@ use App\Domain\Lending\Services\CreditScoringService;
 use App\Domain\Lending\Services\LoanApplicationService;
 use App\Domain\Lending\Services\RiskAssessmentService;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -123,7 +124,7 @@ class LendingController extends Controller
             return redirect()
                 ->route('lending.application', $applicationData['application_id'])
                 ->with('success', 'Loan application submitted successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to submit application: ' . $e->getMessage()]);
@@ -223,7 +224,7 @@ class LendingController extends Controller
             return redirect()
                 ->route('lending.loan', $loanId)
                 ->with('success', 'Payment processed successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to process payment: ' . $e->getMessage()]);

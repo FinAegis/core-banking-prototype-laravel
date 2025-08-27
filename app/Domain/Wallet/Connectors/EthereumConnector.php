@@ -9,6 +9,7 @@ use App\Domain\Wallet\ValueObjects\GasEstimate;
 use App\Domain\Wallet\ValueObjects\SignedTransaction;
 use App\Domain\Wallet\ValueObjects\TransactionData;
 use App\Domain\Wallet\ValueObjects\TransactionResult;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use kornrunner\Keccak;
 use Web3\Web3;
@@ -59,7 +60,7 @@ class EthereumConnector implements BlockchainConnector
             $address,
             function ($err, $result) use (&$balance) {
                 if ($err !== null) {
-                    throw new \Exception('Failed to get balance: ' . $err->getMessage());
+                    throw new Exception('Failed to get balance: ' . $err->getMessage());
                 }
                 $balance = $result->toString();
             }
@@ -160,7 +161,7 @@ class EthereumConnector implements BlockchainConnector
             $transaction->rawTransaction,
             function ($err, $result) use (&$hash) {
                 if ($err !== null) {
-                    throw new \Exception('Failed to broadcast transaction: ' . $err->getMessage());
+                    throw new Exception('Failed to broadcast transaction: ' . $err->getMessage());
                 }
                 $hash = $result;
             }
@@ -236,7 +237,7 @@ class EthereumConnector implements BlockchainConnector
         $this->web3->eth->gasPrice(
             function ($err, $result) use (&$gasPrice) {
                 if ($err !== null) {
-                    throw new \Exception('Failed to get gas price: ' . $err->getMessage());
+                    throw new Exception('Failed to get gas price: ' . $err->getMessage());
                 }
                 $gasPrice = $result->toString();
             }
@@ -294,7 +295,7 @@ class EthereumConnector implements BlockchainConnector
             $this->web3->eth->syncing(
                 function ($err, $result) use (&$syncing) {
                     if ($err !== null) {
-                        throw new \Exception($err->getMessage());
+                        throw new Exception($err->getMessage());
                     }
                     $syncing = $result;
                 }
@@ -302,7 +303,7 @@ class EthereumConnector implements BlockchainConnector
 
             // If not syncing (false) or synced, consider healthy
             return $syncing === false || (is_object($syncing) && $syncing->currentBlock === $syncing->highestBlock);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Ethereum connector health check failed: ' . $e->getMessage());
 
             return false;
@@ -317,7 +318,7 @@ class EthereumConnector implements BlockchainConnector
             $hash,
             function ($err, $result) use (&$receipt) {
                 if ($err !== null) {
-                    throw new \Exception('Failed to get transaction receipt: ' . $err->getMessage());
+                    throw new Exception('Failed to get transaction receipt: ' . $err->getMessage());
                 }
                 $receipt = $result;
             }

@@ -11,6 +11,7 @@ use App\Domain\Exchange\Events\MarketVolatilityChanged;
 use App\Domain\Exchange\Events\OrderExecuted;
 use App\Domain\Exchange\Events\SpreadAdjusted;
 use App\Domain\Exchange\Services\LiquidityPoolService;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Reactors\Reactor;
@@ -157,7 +158,7 @@ class SpreadManagementSaga extends Reactor
                 'trigger'         => $trigger,
                 'timestamp'       => now(),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to recalculate spread', [
                 'pool_id' => $poolId,
                 'trigger' => $trigger,

@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\ValueObjects;
 
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
 
 final class ExternalTrade
 {
@@ -13,7 +14,7 @@ final class ExternalTrade
         public readonly BigDecimal $price,
         public readonly BigDecimal $amount,
         public readonly string $side, // 'buy' or 'sell'
-        public readonly \DateTimeImmutable $timestamp,
+        public readonly DateTimeImmutable $timestamp,
         public readonly string $exchange,
         public readonly array $metadata = []
     ) {
@@ -28,7 +29,7 @@ final class ExternalTrade
             price: BigDecimal::of($data['price']),
             amount: BigDecimal::of($data['amount']),
             side: $data['side'],
-            timestamp: new \DateTimeImmutable($data['timestamp']),
+            timestamp: new DateTimeImmutable($data['timestamp']),
             exchange: $data['exchange'],
             metadata: $data['metadata'] ?? []
         );

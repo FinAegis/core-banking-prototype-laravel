@@ -6,6 +6,7 @@ namespace App\Domain\AI\Workflows;
 
 use App\Domain\AI\Events\HumanApprovalReceivedEvent;
 use App\Domain\AI\Events\HumanInterventionRequestedEvent;
+use Generator;
 use Workflow\SignalMethod;
 use Workflow\Workflow;
 use Workflow\WorkflowStub;
@@ -29,7 +30,7 @@ class HumanApprovalWorkflow extends Workflow
         string $action,
         array $context,
         float $timeout = 3600 // 1 hour default timeout
-    ): \Generator {
+    ): Generator {
         $this->conversationId = $conversationId;
         $this->approvalId = uniqid('approval_');
 
@@ -79,7 +80,7 @@ class HumanApprovalWorkflow extends Workflow
         $this->comments = $comments;
     }
 
-    private function requestHumanIntervention(string $action, array $context): \Generator
+    private function requestHumanIntervention(string $action, array $context): Generator
     {
         event(new HumanInterventionRequestedEvent(
             $this->conversationId,
@@ -92,7 +93,7 @@ class HumanApprovalWorkflow extends Workflow
         yield;
     }
 
-    private function recordApproval(): \Generator
+    private function recordApproval(): Generator
     {
         event(new HumanApprovalReceivedEvent(
             $this->conversationId,

@@ -10,6 +10,7 @@ use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -231,7 +232,7 @@ class CreateAccountTool implements MCPToolInterface
                         number_format($parameters['initial_deposit'], 2),
                         $parameters['currency'] ?? 'USD'
                     );
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Account created but deposit failed
                     $response['initial_deposit'] = $parameters['initial_deposit'];
                     $response['deposit_status'] = 'failed';
@@ -246,7 +247,7 @@ class CreateAccountTool implements MCPToolInterface
             }
 
             return ToolExecutionResult::success($response);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: account.create', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,

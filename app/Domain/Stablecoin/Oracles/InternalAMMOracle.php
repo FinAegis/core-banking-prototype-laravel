@@ -7,7 +7,9 @@ use App\Domain\Stablecoin\Contracts\OracleConnector;
 use App\Domain\Stablecoin\ValueObjects\PriceData;
 use Brick\Math\BigDecimal;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class InternalAMMOracle implements OracleConnector
 {
@@ -26,7 +28,7 @@ class InternalAMMOracle implements OracleConnector
             )->first();
 
             if (! $pool) {
-                throw new \RuntimeException("No liquidity pool found for {$base}/{$quote}");
+                throw new RuntimeException("No liquidity pool found for {$base}/{$quote}");
             }
 
             // Calculate price from pool reserves
@@ -49,7 +51,7 @@ class InternalAMMOracle implements OracleConnector
                         ->__toString(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Internal AMM oracle error: {$e->getMessage()}");
             throw $e;
         }
@@ -63,7 +65,7 @@ class InternalAMMOracle implements OracleConnector
             try {
                 [$base, $quote] = explode('/', $pair);
                 $prices[$pair] = $this->getPrice($base, $quote);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning("Failed to get AMM price for {$pair}: {$e->getMessage()}");
             }
         }
@@ -74,7 +76,7 @@ class InternalAMMOracle implements OracleConnector
     public function getHistoricalPrice(string $base, string $quote, Carbon $timestamp): PriceData
     {
         // For historical prices, we'd need to implement pool state snapshots
-        throw new \RuntimeException('Historical AMM prices not yet implemented');
+        throw new RuntimeException('Historical AMM prices not yet implemented');
     }
 
     public function isHealthy(): bool
@@ -82,7 +84,7 @@ class InternalAMMOracle implements OracleConnector
         try {
             // Check if we have active pools
             return LiquidityPool::where('is_active', true)->exists();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

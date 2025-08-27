@@ -10,7 +10,11 @@ use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Domain\Wallet\Workflows\WalletDepositWorkflow;
 use App\Domain\Wallet\Workflows\WalletWithdrawWorkflow;
+use Exception;
+use Generator;
 use Illuminate\Support\Facades\Log;
+use Str;
+use Throwable;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
 
@@ -35,9 +39,9 @@ class StablecoinIssuanceSaga extends Workflow
      *   - collateral_amount: float
      *   - compliance_check: bool
      */
-    public function execute(array $input): \Generator
+    public function execute(array $input): Generator
     {
-        $sagaId = \Str::uuid()->toString();
+        $sagaId = Str::uuid()->toString();
 
         Log::info('Starting StablecoinIssuanceSaga', [
             'saga_id'         => $sagaId,
@@ -51,7 +55,7 @@ class StablecoinIssuanceSaga extends Workflow
             if ($input['compliance_check'] ?? true) {
                 $complianceResult = yield from $this->verifyCompliance($input['account_id']);
                 if (! $complianceResult['success']) {
-                    throw new \Exception(
+                    throw new Exception(
                         'Compliance verification failed: ' . ($complianceResult['message'] ?? 'Unknown reason')
                     );
                 }
@@ -65,7 +69,7 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['collateral_amount']
             );
             if (! $lockResult['success']) {
-                throw new \Exception('Failed to lock collateral: ' . ($lockResult['message'] ?? 'Unknown reason'));
+                throw new Exception('Failed to lock collateral: ' . ($lockResult['message'] ?? 'Unknown reason'));
             }
             $this->completedSteps[] = 'lock_collateral';
 
@@ -77,7 +81,7 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['collateral_amount']
             );
             if (! $collateralResult) {
-                throw new \Exception('Failed to add collateral to system');
+                throw new Exception('Failed to add collateral to system');
             }
             $this->completedSteps[] = 'add_collateral_to_system';
 
@@ -90,7 +94,7 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['collateral_amount']
             );
             if (! $mintResult) {
-                throw new \Exception('Failed to mint stablecoins');
+                throw new Exception('Failed to mint stablecoins');
             }
             $this->completedSteps[] = 'mint_stablecoins';
 
@@ -101,7 +105,7 @@ class StablecoinIssuanceSaga extends Workflow
                 $input['amount']
             );
             if (! $depositResult['success']) {
-                throw new \Exception(
+                throw new Exception(
                     'Failed to deposit stablecoins: ' . ($depositResult['message'] ?? 'Unknown reason')
                 );
             }
@@ -124,7 +128,7 @@ class StablecoinIssuanceSaga extends Workflow
                 'collateral_locked' => $input['collateral_amount'],
                 'completed_steps'   => $this->completedSteps,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('StablecoinIssuanceSaga failed, executing compensations', [
                 'saga_id'         => $sagaId,
                 'account_id'      => $input['account_id'],
@@ -147,7 +151,7 @@ class StablecoinIssuanceSaga extends Workflow
     /**
      * Verify compliance for the account.
      */
-    private function verifyCompliance(string $accountId): \Generator
+    private function verifyCompliance(string $accountId): Generator
     {
         $workflow = yield ChildWorkflowStub::make(
             KycVerificationWorkflow::class
@@ -171,7 +175,7 @@ class StablecoinIssuanceSaga extends Workflow
         string $accountId,
         string $collateralAsset,
         float $amount
-    ): \Generator {
+    ): Generator {
         $workflow = yield ChildWorkflowStub::make(
             WalletWithdrawWorkflow::class
         );
@@ -203,7 +207,7 @@ class StablecoinIssuanceSaga extends Workflow
         string $stablecoinCode,
         string $collateralAsset,
         float $amount
-    ): \Generator {
+    ): Generator {
         $workflow = yield ChildWorkflowStub::make(
             AddCollateralWorkflow::class
         );
@@ -244,7 +248,7 @@ class StablecoinIssuanceSaga extends Workflow
         float $amount,
         string $collateralAsset,
         float $collateralAmount
-    ): \Generator {
+    ): Generator {
         $workflow = yield ChildWorkflowStub::make(
             MintStablecoinWorkflow::class
         );
@@ -277,7 +281,7 @@ class StablecoinIssuanceSaga extends Workflow
         string $accountId,
         string $stablecoinCode,
         float $amount
-    ): \Generator {
+    ): Generator {
         $workflow = yield ChildWorkflowStub::make(
             WalletDepositWorkflow::class
         );
@@ -312,7 +316,7 @@ class StablecoinIssuanceSaga extends Workflow
     /**
      * Execute all compensations in reverse order.
      */
-    private function executeCompensations(): \Generator
+    private function executeCompensations(): Generator
     {
         $compensations = array_reverse($this->compensations, true);
 
@@ -321,7 +325,7 @@ class StablecoinIssuanceSaga extends Workflow
                 Log::info("Executing compensation for step: {$step}");
                 yield $compensation();
                 Log::info("Compensation successful for step: {$step}");
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error("Compensation failed for step: {$step}", [
                     'error' => $e->getMessage(),
                 ]);

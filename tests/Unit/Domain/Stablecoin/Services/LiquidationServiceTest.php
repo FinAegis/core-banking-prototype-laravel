@@ -11,6 +11,8 @@ use App\Domain\Stablecoin\Services\LiquidationService;
 use App\Domain\Wallet\Services\WalletService;
 use App\Traits\HandlesNestedTransactions;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use ReflectionMethod;
 use Tests\ServiceTestCase;
 
 class LiquidationServiceTest extends ServiceTestCase
@@ -52,7 +54,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_uses_handles_nested_transactions_trait(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
         $traits = $reflection->getTraitNames();
 
         $this->assertContains(HandlesNestedTransactions::class, $traits);
@@ -61,7 +63,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_constructor_injects_dependencies(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
         $constructor = $reflection->getConstructor();
 
         $this->assertNotNull($constructor);
@@ -88,7 +90,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_liquidate_position_method_signature(): void
     {
-        $reflection = new \ReflectionMethod(LiquidationService::class, 'liquidatePosition');
+        $reflection = new ReflectionMethod(LiquidationService::class, 'liquidatePosition');
 
         $this->assertEquals(2, $reflection->getNumberOfParameters());
         $this->assertTrue($reflection->isPublic());
@@ -111,7 +113,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_service_imports_required_models(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -126,7 +128,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_liquidate_position_validates_eligibility(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
         $method = $reflection->getMethod('liquidatePosition');
 
         $fileName = $reflection->getFileName();
@@ -143,7 +145,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_liquidate_position_uses_callback_pattern(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
         $method = $reflection->getMethod('liquidatePosition');
 
         $fileName = $reflection->getFileName();
@@ -158,7 +160,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_liquidate_position_calculates_amounts(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
         $method = $reflection->getMethod('liquidatePosition');
 
         $fileName = $reflection->getFileName();
@@ -178,7 +180,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_liquidate_position_handles_liquidation_penalty(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
         $method = $reflection->getMethod('liquidatePosition');
 
         $fileName = $reflection->getFileName();
@@ -197,7 +199,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_service_uses_dependency_injection(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
 
         // Check properties are private readonly
         $this->assertTrue($reflection->hasProperty('exchangeRateService'));
@@ -220,7 +222,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_service_uses_account_data_objects(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -233,8 +235,8 @@ class LiquidationServiceTest extends ServiceTestCase
     public function test_has_additional_methods(): void
     {
         // Check if there are other methods beyond liquidatePosition
-        $reflection = new \ReflectionClass(LiquidationService::class);
-        $publicMethods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
+        $reflection = new ReflectionClass(LiquidationService::class);
+        $publicMethods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 
         $methodNames = array_map(fn ($method) => $method->getName(), $publicMethods);
 
@@ -246,7 +248,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_uses_strict_types(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
 
         $fileName = $reflection->getFileName();
         $fileContent = file_get_contents($fileName);
@@ -258,7 +260,7 @@ class LiquidationServiceTest extends ServiceTestCase
     #[Test]
     public function test_namespace_is_correct(): void
     {
-        $reflection = new \ReflectionClass(LiquidationService::class);
+        $reflection = new ReflectionClass(LiquidationService::class);
         $this->assertEquals('App\Domain\Stablecoin\Services', $reflection->getNamespaceName());
     }
 }

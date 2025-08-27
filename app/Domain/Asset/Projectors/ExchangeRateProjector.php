@@ -6,6 +6,7 @@ namespace App\Domain\Asset\Projectors;
 
 use App\Domain\Asset\Events\ExchangeRateUpdated;
 use App\Domain\Asset\Models\ExchangeRate;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
@@ -80,7 +81,7 @@ class ExchangeRateProjector extends Projector
                     ]
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error processing exchange rate update',
                 [

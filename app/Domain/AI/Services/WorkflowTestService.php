@@ -8,7 +8,10 @@ use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\CompensationExecutedEvent;
 use App\Domain\AI\Events\HumanInterventionRequestedEvent;
+use Exception;
 use Illuminate\Support\Facades\Event;
+use InvalidArgumentException;
+use ReflectionClass;
 
 /**
  * Service to test workflow business logic without workflow engine overhead
@@ -42,7 +45,7 @@ class WorkflowTestService
             'kyc'                    => $this->simulateKycCheck($parameters),
             'aml'                    => $this->simulateAmlCheck($parameters),
             'transaction_monitoring' => $this->simulateTransactionMonitoring($parameters),
-            default                  => throw new \InvalidArgumentException("Unknown compliance type: {$complianceType}")
+            default                  => throw new InvalidArgumentException("Unknown compliance type: {$complianceType}")
         };
 
         // Calculate confidence for decision
@@ -80,7 +83,7 @@ class WorkflowTestService
     public function simulateSagaCompensation(
         string $conversationId,
         array $completedSteps,
-        \Exception $failure
+        Exception $failure
     ): bool {
         // Simulate compensation in reverse order (saga pattern)
         foreach (array_reverse($completedSteps) as $step) {
@@ -111,7 +114,7 @@ class WorkflowTestService
         // Initialize the aggregate if it's new
         // Check if aggregate has been initialized with a conversation
         // Using reflection to check if property is initialized since ?? doesn't throw
-        $reflectionClass = new \ReflectionClass($aggregate);
+        $reflectionClass = new ReflectionClass($aggregate);
         $conversationIdInitialized = false;
 
         if ($reflectionClass->hasProperty('conversationId')) {

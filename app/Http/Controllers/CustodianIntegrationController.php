@@ -8,6 +8,7 @@ use App\Domain\Custodian\Models\CustodianWebhook;
 use App\Domain\Custodian\Services\CustodianHealthMonitor;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -132,7 +133,7 @@ class CustodianIntegrationController extends Controller
                     'data'    => $result,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'success' => false,
@@ -161,7 +162,7 @@ class CustodianIntegrationController extends Controller
             return redirect()
                 ->route('custodian-integration.show', $custodianCode)
                 ->with('success', 'Synchronization initiated successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()
                 ->route('custodian-integration.show', $custodianCode)
                 ->with('error', 'Failed to initiate synchronization: ' . $e->getMessage());

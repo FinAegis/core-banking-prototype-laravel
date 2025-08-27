@@ -6,6 +6,8 @@ use App\Domain\Stablecoin\Activities\ReserveManagementActivity;
 use App\Domain\Stablecoin\Workflows\Data\ReserveDepositData;
 use App\Domain\Stablecoin\Workflows\Data\ReserveRebalanceData;
 use App\Domain\Stablecoin\Workflows\Data\ReserveWithdrawalData;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -23,7 +25,7 @@ class ReserveManagementWorkflow extends Workflow
         );
     }
 
-    public function depositReserve(ReserveDepositData $data): \Generator
+    public function depositReserve(ReserveDepositData $data): Generator
     {
         try {
             // Verify deposit on blockchain
@@ -62,7 +64,7 @@ class ReserveManagementWorkflow extends Workflow
                 'amount'    => $data->amount,
                 'timestamp' => now()->toIso8601String(),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             yield Workflow::asyncDetached(
                 fn () => $this->compensateDeposit($data, $e->getMessage())
             );
@@ -71,7 +73,7 @@ class ReserveManagementWorkflow extends Workflow
         }
     }
 
-    public function withdrawReserve(ReserveWithdrawalData $data): \Generator
+    public function withdrawReserve(ReserveWithdrawalData $data): Generator
     {
         try {
             // Verify collateralization ratio
@@ -112,7 +114,7 @@ class ReserveManagementWorkflow extends Workflow
                 'transaction_hash' => $txHash,
                 'timestamp'        => now()->toIso8601String(),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             yield Workflow::asyncDetached(
                 fn () => $this->compensateWithdrawal($data, $e->getMessage())
             );
@@ -121,7 +123,7 @@ class ReserveManagementWorkflow extends Workflow
         }
     }
 
-    public function rebalanceReserves(ReserveRebalanceData $data): \Generator
+    public function rebalanceReserves(ReserveRebalanceData $data): Generator
     {
         $executedSwaps = [];
 
@@ -163,7 +165,7 @@ class ReserveManagementWorkflow extends Workflow
                 'new_allocations' => yield $this->activity->getReserveAllocations($data->poolId),
                 'timestamp' => now()->toIso8601String(),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Reverse executed swaps
             yield Workflow::asyncDetached(
                 fn () => $this->compensateRebalance($executedSwaps, $e->getMessage())
@@ -173,7 +175,7 @@ class ReserveManagementWorkflow extends Workflow
         }
     }
 
-    private function compensateDeposit(ReserveDepositData $data, string $error): \Generator
+    private function compensateDeposit(ReserveDepositData $data, string $error): Generator
     {
         try {
             // Unlock funds if they were locked
@@ -189,7 +191,7 @@ class ReserveManagementWorkflow extends Workflow
                 $data->toArray(),
                 $error
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Log critical compensation failure
             yield $this->activity->logCriticalError(
                 'deposit_compensation_failed',
@@ -198,7 +200,7 @@ class ReserveManagementWorkflow extends Workflow
         }
     }
 
-    private function compensateWithdrawal(ReserveWithdrawalData $data, string $error): \Generator
+    private function compensateWithdrawal(ReserveWithdrawalData $data, string $error): Generator
     {
         try {
             // Restore reserve balance if it was updated
@@ -221,7 +223,7 @@ class ReserveManagementWorkflow extends Workflow
                 $data->toArray(),
                 $error
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             yield $this->activity->logCriticalError(
                 'withdrawal_compensation_failed',
                 ['original_error' => $error, 'compensation_error' => $e->getMessage()]
@@ -229,7 +231,7 @@ class ReserveManagementWorkflow extends Workflow
         }
     }
 
-    private function compensateRebalance(array $executedSwaps, string $error): \Generator
+    private function compensateRebalance(array $executedSwaps, string $error): Generator
     {
         try {
             // Reverse swaps in opposite order
@@ -247,7 +249,7 @@ class ReserveManagementWorkflow extends Workflow
                 ['swaps' => $executedSwaps],
                 $error
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             yield $this->activity->logCriticalError(
                 'rebalance_compensation_failed',
                 ['original_error' => $error, 'compensation_error' => $e->getMessage()]

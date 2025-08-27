@@ -9,6 +9,8 @@ use App\Domain\Exchange\Services\ArbitrageService;
 use App\Domain\Exchange\Workflows\LiquidityManagementWorkflow;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use DB;
+use Exception;
 use Illuminate\Support\Collection;
 use Workflow\WorkflowStub;
 
@@ -192,7 +194,7 @@ class PoolRebalancingService
     private function calculatePriceTrend(PoolProjection $pool): BigDecimal
     {
         // Get price 1 hour ago
-        $priceHistory = \DB::table('pool_swaps')
+        $priceHistory = DB::table('pool_swaps')
             ->where('pool_id', $pool->pool_id)
             ->where('created_at', '>=', now()->subHours(2))
             ->where('created_at', '<=', now()->subHour())
@@ -314,7 +316,7 @@ class PoolRebalancingService
                 'executed_currency' => $rebalanceAmounts['currency'],
                 'new_ratio'         => $this->calculateCurrentInventoryRatio($pool->fresh())->__toString(),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status' => 'failed',
                 'error'  => $e->getMessage(),
@@ -377,7 +379,7 @@ class PoolRebalancingService
     private function canRebalance(PoolProjection $pool): bool
     {
         // Get last rebalancing event
-        $lastRebalancing = \DB::table('exchange_events')
+        $lastRebalancing = DB::table('exchange_events')
             ->where('aggregate_uuid', $pool->pool_id)
             ->where('event_class', 'LIKE', '%LiquidityPoolRebalanced%')
             ->orderBy('created_at', 'desc')
@@ -397,7 +399,7 @@ class PoolRebalancingService
      */
     public function getRebalancingHistory(string $poolId, int $days = 30): Collection
     {
-        return \DB::table('exchange_events')
+        return DB::table('exchange_events')
             ->where('aggregate_uuid', $poolId)
             ->where('event_class', 'LIKE', '%LiquidityPoolRebalanced%')
             ->where('created_at', '>=', now()->subDays($days))

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Monitoring\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class MetricRecorded extends ShouldBeStored
@@ -16,7 +17,7 @@ class MetricRecorded extends ShouldBeStored
         public readonly float $value,
         public readonly array $labels = [],
         public readonly ?string $unit = null,
-        public readonly ?\DateTimeImmutable $recordedAt = null
+        public readonly ?DateTimeImmutable $recordedAt = null
     ) {
     }
 }

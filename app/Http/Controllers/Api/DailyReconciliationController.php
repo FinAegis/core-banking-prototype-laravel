@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Custodian\Services\DailyReconciliationService;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -93,7 +94,7 @@ class DailyReconciliationController extends Controller
                     'message' => 'Daily reconciliation completed successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Manual reconciliation failed',
                 [
@@ -194,7 +195,7 @@ class DailyReconciliationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve latest report',
@@ -347,7 +348,7 @@ class DailyReconciliationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve reconciliation history',
@@ -487,7 +488,7 @@ class DailyReconciliationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve reconciliation report',
@@ -704,7 +705,7 @@ class DailyReconciliationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to calculate reconciliation metrics',
@@ -805,7 +806,7 @@ class DailyReconciliationController extends Controller
                     'data' => $status,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to get reconciliation status',

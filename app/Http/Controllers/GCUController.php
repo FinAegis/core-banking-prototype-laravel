@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Log;
 
 class GCUController extends Controller
 {
@@ -29,8 +31,8 @@ class GCUController extends Controller
                     if ($response->successful()) {
                         return $response->json();
                     }
-                } catch (\Exception $e) {
-                    \Log::error('Failed to fetch GCU composition data: ' . $e->getMessage());
+                } catch (Exception $e) {
+                    Log::error('Failed to fetch GCU composition data: ' . $e->getMessage());
                 }
 
                 // Fallback to static config if API fails

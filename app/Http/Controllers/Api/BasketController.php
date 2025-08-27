@@ -6,6 +6,7 @@ use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketRebalancingService;
 use App\Domain\Basket\Services\BasketValueCalculationService;
 use App\Http\Controllers\Controller;
+use DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -258,7 +259,7 @@ class BasketController extends Controller
             );
         }
 
-        $basket = \DB::transaction(
+        $basket = DB::transaction(
             function () use ($validated, $request) {
                 $basket = BasketAsset::create(
                     [

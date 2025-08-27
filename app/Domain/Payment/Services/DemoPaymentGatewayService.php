@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Payment\Services;
 
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\PaymentMethod as CashierPaymentMethod;
 use Stripe\PaymentIntent;
@@ -82,12 +83,12 @@ class DemoPaymentGatewayService extends PaymentGatewayService
                 // If no stored intent, use first user/account (backward compatibility)
                 $user = User::first();
                 if (! $user) {
-                    throw new \Exception('No users found for demo deposit');
+                    throw new Exception('No users found for demo deposit');
                 }
 
                 $account = $user->accounts()->first();
                 if (! $account) {
-                    throw new \Exception('No accounts found for demo deposit');
+                    throw new Exception('No accounts found for demo deposit');
                 }
 
                 $intentData = [
@@ -116,7 +117,7 @@ class DemoPaymentGatewayService extends PaymentGatewayService
                 'reference' => $reference,
                 'status'    => 'succeeded',
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Demo deposit failed', [
                 'error'             => $e->getMessage(),
                 'payment_intent_id' => $paymentIntentId,

@@ -9,6 +9,8 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Asset\Workflows\AssetTransferWorkflow;
 use App\Http\Controllers\Controller;
+use DB;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -174,7 +176,7 @@ class PaymentInitiationController extends Controller
                     $validated['paymentPurpose'] ?? 'BIAN Payment Initiation'
                 );
                 $status = 'completed';
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $status = 'failed';
             }
         } else {
@@ -371,7 +373,7 @@ class PaymentInitiationController extends Controller
     public function retrieve(string $crReferenceId): JsonResponse
     {
         // Query stored events for transfer details
-        $event = \DB::table('stored_events')
+        $event = DB::table('stored_events')
             ->where('event_class', 'App\Domain\Account\Events\MoneyTransferred')
             ->where('aggregate_uuid', $crReferenceId)
             ->first();
@@ -541,7 +543,7 @@ class PaymentInitiationController extends Controller
     public function requestPaymentStatus(string $crReferenceId): JsonResponse
     {
         // Query for payment events
-        $events = \DB::table('stored_events')
+        $events = DB::table('stored_events')
             ->where('aggregate_uuid', $crReferenceId)
             ->whereIn(
                 'event_class',
@@ -686,7 +688,7 @@ class PaymentInitiationController extends Controller
         );
 
         // Query stored events for payment history
-        $query = \DB::table('stored_events')
+        $query = DB::table('stored_events')
             ->where('event_class', 'App\Domain\Account\Events\MoneyTransferred')
             ->where(
                 function ($q) use ($accountReference) {

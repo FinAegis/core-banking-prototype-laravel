@@ -10,6 +10,7 @@ use App\Domain\Account\Models\Transfer;
 use App\Domain\Asset\Events\AssetTransferCompleted;
 use App\Domain\Asset\Events\AssetTransferFailed;
 use App\Domain\Asset\Events\AssetTransferInitiated;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
@@ -59,7 +60,7 @@ class AssetTransferProjector extends Projector
                     'exchange_rate' => $event->exchangeRate,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error processing asset transfer initiation',
                 [
@@ -173,7 +174,7 @@ class AssetTransferProjector extends Projector
                     'to_new_balance'   => $toBalance->balance,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error processing asset transfer completion',
                 [
@@ -225,7 +226,7 @@ class AssetTransferProjector extends Projector
                     'reason'       => $event->reason,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error processing asset transfer failure',
                 [

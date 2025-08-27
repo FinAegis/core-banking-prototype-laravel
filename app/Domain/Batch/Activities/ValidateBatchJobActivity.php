@@ -5,6 +5,7 @@ namespace App\Domain\Batch\Activities;
 use App\Domain\Batch\Aggregates\BatchAggregate;
 use App\Domain\Batch\DataObjects\BatchJob;
 use App\Domain\Batch\Models\BatchJob as BatchJobModel;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 class ValidateBatchJobActivity extends Activity
@@ -17,11 +18,11 @@ class ValidateBatchJobActivity extends Activity
         $$batchJobModel = BatchJobModel::where('uuid', $batchJobUuid)->with('items')->first();
 
         if (! $batchJobModel) {
-            throw new \InvalidArgumentException("Batch job not found: {$batchJobUuid}");
+            throw new InvalidArgumentException("Batch job not found: {$batchJobUuid}");
         }
 
         if ($batchJobModel->status !== 'pending') {
-            throw new \InvalidArgumentException("Batch job is not in pending status: {$batchJobModel->status}");
+            throw new InvalidArgumentException("Batch job is not in pending status: {$batchJobModel->status}");
         }
 
         // Start the batch job

@@ -7,6 +7,7 @@ namespace App\Domain\Treasury\Workflows;
 use App\Domain\Treasury\Activities\ApplyLiquidityMitigationActivity;
 use App\Domain\Treasury\Activities\GenerateLiquidityForecastActivity;
 use App\Domain\Treasury\Activities\SendLiquidityAlertActivity;
+use Generator;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 use Workflow\WorkflowInterface;
@@ -28,7 +29,7 @@ class LiquidityForecastingWorkflow
     private int $forecastDays = 30;
 
     /** @phpstan-ignore-next-line */
-    public function execute(string $treasuryId, array $config = []): \Generator
+    public function execute(string $treasuryId, array $config = []): Generator
     {
         $this->treasuryId = $treasuryId;
         $this->forecastDays = $config['forecast_days'] ?? 30;
@@ -70,7 +71,7 @@ class LiquidityForecastingWorkflow
         ];
     }
 
-    private function generateForecast(): \Generator
+    private function generateForecast(): Generator
     {
         $activity = yield ActivityStub::make(
             GenerateLiquidityForecastActivity::class,
@@ -94,7 +95,7 @@ class LiquidityForecastingWorkflow
         return $result;
     }
 
-    private function triggerAlertNotifications(): \Generator
+    private function triggerAlertNotifications(): Generator
     {
         $activity = yield ActivityStub::make(
             SendLiquidityAlertActivity::class,
@@ -109,7 +110,7 @@ class LiquidityForecastingWorkflow
         );
     }
 
-    private function applyAutomaticMitigation(): \Generator
+    private function applyAutomaticMitigation(): Generator
     {
         if (empty($this->alerts)) {
             return null;

@@ -6,6 +6,9 @@ namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Services\PerformanceTrackingService;
 use App\Domain\Treasury\Services\PortfolioManagementService;
+use Exception;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class CalculatePerformanceActivity extends Activity
@@ -25,7 +28,7 @@ class CalculatePerformanceActivity extends Activity
         $options = $input['options'] ?? [];
 
         try {
-            \Log::info('Calculating performance metrics', [
+            Log::info('Calculating performance metrics', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'period'       => $period,
@@ -108,7 +111,7 @@ class CalculatePerformanceActivity extends Activity
                 ],
             ];
 
-            \Log::info('Performance calculation completed', [
+            Log::info('Performance calculation completed', [
                 'portfolio_id'      => $portfolioId,
                 'report_id'         => $reportId,
                 'total_return'      => $returns['total_return'],
@@ -118,15 +121,15 @@ class CalculatePerformanceActivity extends Activity
             ]);
 
             return $performanceData;
-        } catch (\Exception $e) {
-            \Log::error('Performance calculation failed', [
+        } catch (Exception $e) {
+            Log::error('Performance calculation failed', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'period'       => $period,
                 'error'        => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to calculate performance for portfolio {$portfolioId}: {$e->getMessage()}",
                 0,
                 $e

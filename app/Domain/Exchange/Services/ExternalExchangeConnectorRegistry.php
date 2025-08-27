@@ -6,6 +6,7 @@ use App\Domain\Exchange\Connectors\BinanceConnector;
 use App\Domain\Exchange\Connectors\KrakenConnector;
 use App\Domain\Exchange\Contracts\IExternalExchangeConnector;
 use App\Domain\Exchange\Exceptions\ExternalExchangeException;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -100,7 +101,7 @@ class ExternalExchangeConnectorRegistry
                     $bestBid = $ticker->bid;
                     $bestExchange = $name;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log and continue with other exchanges
                 Log::warning("Failed to get ticker from {$name}", ['error' => $e->getMessage()]);
             }
@@ -128,7 +129,7 @@ class ExternalExchangeConnectorRegistry
                     $bestAsk = $ticker->ask;
                     $bestExchange = $name;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log and continue with other exchanges
                 Log::warning("Failed to get ticker from {$name}", ['error' => $e->getMessage()]);
             }
@@ -166,7 +167,7 @@ class ExternalExchangeConnectorRegistry
                         $aggregatedAsks->push($ask);
                     }
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log and continue with other exchanges
                 Log::warning("Failed to get order book from {$name}", ['error' => $e->getMessage()]);
             }

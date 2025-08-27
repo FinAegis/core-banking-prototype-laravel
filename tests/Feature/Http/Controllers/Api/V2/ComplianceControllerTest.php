@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -37,9 +38,9 @@ class ComplianceControllerTest extends ControllerTestCase
         $this->user = User::factory()->create();
 
         // Mock compliance services
-        $this->mockKycService = \Mockery::mock(EnhancedKycService::class);
-        $this->mockAmlService = \Mockery::mock(AmlScreeningService::class);
-        $this->mockRiskService = \Mockery::mock(CustomerRiskService::class);
+        $this->mockKycService = Mockery::mock(EnhancedKycService::class);
+        $this->mockAmlService = Mockery::mock(AmlScreeningService::class);
+        $this->mockRiskService = Mockery::mock(CustomerRiskService::class);
 
         $this->app->instance(EnhancedKycService::class, $this->mockKycService);
         $this->app->instance(AmlScreeningService::class, $this->mockAmlService);
@@ -50,7 +51,7 @@ class ComplianceControllerTest extends ControllerTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 
@@ -122,7 +123,7 @@ class ComplianceControllerTest extends ControllerTestCase
 
         $this->mockKycService
             ->shouldReceive('startVerification')
-            ->with($this->user, 'identity', \Mockery::type('array'))
+            ->with($this->user, 'identity', Mockery::type('array'))
             ->once()
             ->andReturn($verification);
 
@@ -188,7 +189,7 @@ class ComplianceControllerTest extends ControllerTestCase
 
         $this->mockKycService
             ->shouldReceive('verifyIdentityDocument')
-            ->with(\Mockery::type(KycVerification::class), \Mockery::type('string'), 'passport')
+            ->with(Mockery::type(KycVerification::class), Mockery::type('string'), 'passport')
             ->once()
             ->andReturn([
                 'success'          => true,
@@ -277,7 +278,7 @@ class ComplianceControllerTest extends ControllerTestCase
 
         $this->mockKycService
             ->shouldReceive('verifyBiometrics')
-            ->with(\Mockery::type(KycVerification::class), \Mockery::type('string'), null)
+            ->with(Mockery::type(KycVerification::class), Mockery::type('string'), null)
             ->once()
             ->andReturn([
                 'success'          => true,
@@ -287,7 +288,7 @@ class ComplianceControllerTest extends ControllerTestCase
 
         $this->mockKycService
             ->shouldReceive('completeVerification')
-            ->with(\Mockery::type(KycVerification::class))
+            ->with(Mockery::type(KycVerification::class))
             ->once();
 
         $response = $this->postJson(
@@ -348,7 +349,7 @@ class ComplianceControllerTest extends ControllerTestCase
 
         $this->mockAmlService
             ->shouldReceive('performComprehensiveScreening')
-            ->with($this->user, \Mockery::type('array'))
+            ->with($this->user, Mockery::type('array'))
             ->once()
             ->andReturn($screening);
 

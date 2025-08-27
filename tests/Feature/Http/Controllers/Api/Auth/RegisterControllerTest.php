@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api\Auth;
 
 use App\Models\User;
+use Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
@@ -262,6 +263,6 @@ class RegisterControllerTest extends ControllerTestCase
 
         // The CreateNewUser action should handle password hashing
         $user = User::where('email', 'john@example.com')->first();
-        $this->assertTrue(\Hash::check('MySecure#Pass2024!', $user->password));
+        $this->assertTrue(Hash::check('MySecure#Pass2024!', $user->password));
     }
 }

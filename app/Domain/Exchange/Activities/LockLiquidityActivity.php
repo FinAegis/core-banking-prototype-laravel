@@ -4,7 +4,9 @@ namespace App\Domain\Exchange\Activities;
 
 use App\Domain\Account\Models\AccountBalance;
 use Brick\Math\BigDecimal;
+use DomainException;
 use Illuminate\Support\Facades\DB;
+use Str;
 use Workflow\Activity;
 
 class LockLiquidityActivity extends Activity
@@ -22,7 +24,7 @@ class LockLiquidityActivity extends Activity
                 $available = BigDecimal::of($balance->available_balance);
 
                 if ($available->isLessThan($amount)) {
-                    throw new \DomainException('Insufficient available balance');
+                    throw new DomainException('Insufficient available balance');
                 }
 
                 // Update balance
@@ -33,7 +35,7 @@ class LockLiquidityActivity extends Activity
                 $balance->save();
 
                 // Create lock record for compensation
-                $lockId = \Str::uuid()->toString();
+                $lockId = Str::uuid()->toString();
 
                 \DB::table('balance_locks')->insert(
                     [

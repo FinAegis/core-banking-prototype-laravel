@@ -2,6 +2,8 @@
 
 namespace App\Domain\Account\Workflows;
 
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -12,7 +14,7 @@ class BatchProcessingWorkflow extends Workflow
      *
      * @param  array  $operations  - array of batch operations to perform
      */
-    public function execute(array $operations, ?string $batchId = null): \Generator
+    public function execute(array $operations, ?string $batchId = null): Generator
     {
         $batchId = $batchId ?? \Illuminate\Support\Str::uuid();
         $completedOperations = [];
@@ -50,7 +52,7 @@ class BatchProcessingWorkflow extends Workflow
             );
 
             return $summary;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Execute compensations in reverse order
             yield from $this->compensate();
 

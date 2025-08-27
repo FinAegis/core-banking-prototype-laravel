@@ -6,6 +6,7 @@ namespace App\Domain\Banking\Services;
 
 use App\Domain\Banking\Contracts\IBankConnector;
 use App\Domain\Banking\Events\BankHealthChanged;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -65,7 +66,7 @@ class BankHealthMonitor
                     $this->recordHealthCheck($bankCode, $health);
 
                     return $health;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::error(
                         'Bank health check failed',
                         [

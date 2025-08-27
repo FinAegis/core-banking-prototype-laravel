@@ -8,9 +8,11 @@ use App\Domain\Exchange\Services\ExternalLiquidityService;
 use App\Domain\Exchange\ValueObjects\ExternalTicker;
 use App\Models\User;
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
@@ -44,15 +46,15 @@ class ExternalExchangeControllerTest extends ControllerTestCase
 
         // Create mocks
         /** @var ExternalExchangeConnectorRegistry&MockInterface $mockRegistry */
-        $mockRegistry = \Mockery::mock(ExternalExchangeConnectorRegistry::class);
+        $mockRegistry = Mockery::mock(ExternalExchangeConnectorRegistry::class);
         $this->mockRegistry = $mockRegistry;
 
         /** @var ExternalLiquidityService&MockInterface $mockLiquidityService */
-        $mockLiquidityService = \Mockery::mock(ExternalLiquidityService::class);
+        $mockLiquidityService = Mockery::mock(ExternalLiquidityService::class);
         $this->mockLiquidityService = $mockLiquidityService;
 
         /** @var IExternalExchangeConnector&MockInterface $mockConnector */
-        $mockConnector = \Mockery::mock(IExternalExchangeConnector::class);
+        $mockConnector = Mockery::mock(IExternalExchangeConnector::class);
         $this->mockConnector = $mockConnector;
 
         // Register mocks with the container
@@ -105,7 +107,7 @@ class ExternalExchangeControllerTest extends ControllerTestCase
             high24h: BigDecimal::of('51000.00'),
             low24h: BigDecimal::of('49000.00'),
             change24h: BigDecimal::of('2.5'),
-            timestamp: new \DateTimeImmutable(),
+            timestamp: new DateTimeImmutable(),
             exchange: 'binance'
         );
 

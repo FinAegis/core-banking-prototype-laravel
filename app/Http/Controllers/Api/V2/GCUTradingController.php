@@ -13,9 +13,11 @@ use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Models\BasketValue;
 use App\Domain\Wallet\Workflows\WalletConvertWorkflow;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Str;
 use Workflow\WorkflowStub;
 
 /**
@@ -170,7 +172,7 @@ class GCUTradingController extends Controller
         DB::beginTransaction();
         try {
             // Create transaction ID
-            $transactionId = \Str::uuid()->toString();
+            $transactionId = Str::uuid()->toString();
 
             // Execute the buy operation using workflows
             // We're converting EUR to GCU
@@ -209,7 +211,7 @@ class GCUTradingController extends Controller
                     'message' => sprintf('Successfully purchased %.4f GCU', $gcuAmount),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return response()->json(
@@ -359,7 +361,7 @@ class GCUTradingController extends Controller
         DB::beginTransaction();
         try {
             // Create transaction ID
-            $transactionId = \Str::uuid()->toString();
+            $transactionId = Str::uuid()->toString();
 
             // Execute the sell operation using workflows
             $workflow = WorkflowStub::make(WalletConvertWorkflow::class);
@@ -397,7 +399,7 @@ class GCUTradingController extends Controller
                     'message' => sprintf('Successfully sold %.4f GCU', $validated['amount']),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return response()->json(
@@ -660,7 +662,7 @@ class GCUTradingController extends Controller
         // Get exchange rate from currency to USD
         $currencyToUsdRate = $this->exchangeRateService->getRate($currency, 'USD');
         if (! $currencyToUsdRate) {
-            throw new \Exception("Exchange rate not available for {$currency} to USD");
+            throw new Exception("Exchange rate not available for {$currency} to USD");
         }
 
         // Calculate how many GCU per 1 unit of currency

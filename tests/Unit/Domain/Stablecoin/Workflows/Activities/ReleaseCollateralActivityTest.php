@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows\Activities;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Workflows\Activities\ReleaseCollateralActivity;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class ReleaseCollateralActivityTest extends DomainTestCase
@@ -18,7 +19,7 @@ class ReleaseCollateralActivityTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_activity(): void
     {
-        $reflection = new \ReflectionClass(ReleaseCollateralActivity::class);
+        $reflection = new ReflectionClass(ReleaseCollateralActivity::class);
         $this->assertEquals('Workflow\Activity', $reflection->getParentClass()->getName());
     }
 
@@ -31,7 +32,7 @@ class ReleaseCollateralActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_has_correct_signature(): void
     {
-        $reflection = new \ReflectionClass(ReleaseCollateralActivity::class);
+        $reflection = new ReflectionClass(ReleaseCollateralActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(4, $method->getNumberOfParameters());
@@ -55,7 +56,7 @@ class ReleaseCollateralActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_bool(): void
     {
-        $reflection = new \ReflectionClass(ReleaseCollateralActivity::class);
+        $reflection = new ReflectionClass(ReleaseCollateralActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('bool', $method->getReturnType()->getName());
@@ -107,7 +108,7 @@ class ReleaseCollateralActivityTest extends DomainTestCase
     #[Test]
     public function test_activity_properties(): void
     {
-        $reflection = new \ReflectionClass(ReleaseCollateralActivity::class);
+        $reflection = new ReflectionClass(ReleaseCollateralActivity::class);
 
         // Check for important properties inherited from Activity
         $this->assertTrue($reflection->hasProperty('tries'));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Traits;
 
 use App\Domain\AI\Services\WorkflowTestService;
+use Exception;
 use Mockery;
 use Workflow\WorkflowStub;
 
@@ -69,7 +70,7 @@ trait WorkflowTestHelpers
     /**
      * Fast-track saga compensation testing.
      */
-    protected function runSagaCompensation(array $completedSteps, \Exception $failure): bool
+    protected function runSagaCompensation(array $completedSteps, Exception $failure): bool
     {
         return $this->workflowTestService->simulateSagaCompensation(
             'conv_saga_' . uniqid(),

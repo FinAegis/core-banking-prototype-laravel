@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Monitoring\Services;
 
+use Artisan;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -82,7 +84,7 @@ class HealthChecker
                 'message'     => 'Database connection successful',
                 'duration_ms' => round($duration, 2),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'name'    => 'database',
                 'healthy' => false,
@@ -111,7 +113,7 @@ class HealthChecker
                 'message'     => 'Cache is operational',
                 'duration_ms' => round($duration, 2),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'name'    => 'cache',
                 'healthy' => false,
@@ -137,7 +139,7 @@ class HealthChecker
                 'message'     => 'Redis connection successful',
                 'duration_ms' => round($duration, 2),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'name'    => 'redis',
                 'healthy' => false,
@@ -168,7 +170,7 @@ class HealthChecker
                 'failed_jobs'  => $failedJobs,
                 'pending_jobs' => $pendingJobs,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'name'    => 'queue',
                 'healthy' => false,
@@ -199,7 +201,7 @@ class HealthChecker
                 'total_gb'     => round($total / 1073741824, 2),
                 'used_percent' => round($usedPercent, 2),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'name'    => 'storage',
                 'healthy' => false,
@@ -215,7 +217,7 @@ class HealthChecker
     protected function checkMigrations(): array
     {
         try {
-            $pending = \Artisan::call('migrate:status', ['--pending' => true]);
+            $pending = Artisan::call('migrate:status', ['--pending' => true]);
 
             $healthy = $pending === 0;
 
@@ -225,7 +227,7 @@ class HealthChecker
                 'message'            => $healthy ? 'All migrations are up to date' : 'Pending migrations found',
                 'pending_migrations' => $pending,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'name'    => 'migrations',
                 'healthy' => false,

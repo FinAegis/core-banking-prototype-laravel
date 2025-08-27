@@ -6,6 +6,7 @@ namespace Tests\Feature\Security;
 
 use App\Models\User;
 use App\Services\IpBlockingService;
+use DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -204,7 +205,7 @@ class EnhancedSecurityTest extends TestCase
     public function test_cleanup_expired_blocks(): void
     {
         // Create a block that's already expired
-        \DB::table('blocked_ips')->insert([
+        DB::table('blocked_ips')->insert([
             'ip_address'      => '192.168.1.50',
             'reason'          => 'Test expired block',
             'failed_attempts' => 10,

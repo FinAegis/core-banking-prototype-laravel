@@ -12,6 +12,7 @@ use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketAccountService;
 use App\Domain\Basket\Services\BasketValueCalculationService;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
@@ -114,7 +115,7 @@ class BasketAccountServiceTest extends ServiceTestCase
             'balance'      => 1000,
         ]); // 10.00 basket units
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Insufficient basket balance');
 
         $this->service->decomposeBasket($this->account, 'STABLE_BASKET', 2000); // 20.00 units
@@ -179,7 +180,7 @@ class BasketAccountServiceTest extends ServiceTestCase
             'balance'      => 2500,
         ]);  // 25.00 GBP
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Insufficient USD balance');
 
         $this->service->composeBasket($this->account, 'STABLE_BASKET', 5000);
@@ -263,7 +264,7 @@ class BasketAccountServiceTest extends ServiceTestCase
     #[Test]
     public function it_handles_basket_not_found()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Basket not found: INVALID_BASKET');
 
         $this->service->decomposeBasket($this->account, 'INVALID_BASKET', 1000);
@@ -274,7 +275,7 @@ class BasketAccountServiceTest extends ServiceTestCase
     {
         $this->basket->update(['is_active' => false]);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Basket STABLE_BASKET is not active');
 
         $this->service->decomposeBasket($this->account, 'STABLE_BASKET', 1000);
@@ -283,7 +284,7 @@ class BasketAccountServiceTest extends ServiceTestCase
     #[Test]
     public function it_validates_positive_amounts()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Amount must be positive');
 
         $this->service->decomposeBasket($this->account, 'STABLE_BASKET', -1000);

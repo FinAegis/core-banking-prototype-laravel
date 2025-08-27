@@ -3,8 +3,10 @@
 namespace App\Domain\Cgo\Services;
 
 use App\Domain\Cgo\Models\CgoInvestment;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Mail;
 
 class CoinbaseCommerceService
 {
@@ -26,7 +28,7 @@ class CoinbaseCommerceService
     public function createCharge(CgoInvestment $investment): array
     {
         if (empty($this->apiKey)) {
-            throw new \Exception('Coinbase Commerce API key not configured');
+            throw new Exception('Coinbase Commerce API key not configured');
         }
 
         $response = Http::withHeaders(
@@ -65,7 +67,7 @@ class CoinbaseCommerceService
                 'error'         => $response->json(),
                 ]
             );
-            throw new \Exception('Failed to create Coinbase Commerce charge: ' . $response->body());
+            throw new Exception('Failed to create Coinbase Commerce charge: ' . $response->body());
         }
 
         $chargeData = $response->json()['data'];
@@ -95,7 +97,7 @@ class CoinbaseCommerceService
         )->get($this->apiUrl . '/charges/' . $chargeId);
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to fetch charge details');
+            throw new Exception('Failed to fetch charge details');
         }
 
         return $response->json()['data'];
@@ -208,8 +210,8 @@ class CoinbaseCommerceService
 
         // Send confirmation email
         try {
-            \Mail::to($investment->email)->send(new \App\Mail\CgoInvestmentReceived($investment));
-        } catch (\Exception $e) {
+            Mail::to($investment->email)->send(new \App\Mail\CgoInvestmentReceived($investment));
+        } catch (Exception $e) {
             Log::error(
                 'Failed to send investment confirmation email',
                 [

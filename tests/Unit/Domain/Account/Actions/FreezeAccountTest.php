@@ -6,6 +6,7 @@ use App\Domain\Account\Actions\FreezeAccount;
 use App\Domain\Account\Events\AccountFrozen;
 use App\Domain\Account\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -32,7 +33,7 @@ class FreezeAccountTest extends DomainTestCase
         ]);
 
         // Create event
-        $event = \Mockery::mock(AccountFrozen::class);
+        $event = Mockery::mock(AccountFrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('account-123');
 
         // Execute
@@ -54,7 +55,7 @@ class FreezeAccountTest extends DomainTestCase
         ]);
 
         // Create event
-        $event = \Mockery::mock(AccountFrozen::class);
+        $event = Mockery::mock(AccountFrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('frozen-account');
 
         // Execute
@@ -69,7 +70,7 @@ class FreezeAccountTest extends DomainTestCase
     public function test_throws_exception_if_account_not_found(): void
     {
         // Create event for non-existent account
-        $event = \Mockery::mock(AccountFrozen::class);
+        $event = Mockery::mock(AccountFrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('non-existent-uuid');
 
         // Assert exception
@@ -101,7 +102,7 @@ class FreezeAccountTest extends DomainTestCase
         ]);
 
         // Create event
-        $event = \Mockery::mock(AccountFrozen::class);
+        $event = Mockery::mock(AccountFrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('account-with-balance');
 
         // Execute
@@ -118,7 +119,7 @@ class FreezeAccountTest extends DomainTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

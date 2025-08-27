@@ -14,6 +14,8 @@ use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Workflows\AssetDepositWorkflow;
 use App\Domain\Asset\Workflows\AssetWithdrawWorkflow;
 use App\Http\Controllers\Controller;
+use DB;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Workflow\WorkflowStub;
@@ -262,7 +264,7 @@ class TransactionController extends Controller
                 $workflow = WorkflowStub::make(AssetWithdrawWorkflow::class);
                 $workflow->start($accountUuid, $validated['asset_code'], $amountInMinorUnits);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Withdrawal failed',
@@ -365,7 +367,7 @@ class TransactionController extends Controller
             'App\Domain\Account\Events\AssetTransferred',
         ];
 
-        $query = \DB::table('stored_events')
+        $query = DB::table('stored_events')
             ->where('aggregate_uuid', $uuid)
             ->whereIn('event_class', $eventClasses)
             ->orderBy('created_at', 'desc');

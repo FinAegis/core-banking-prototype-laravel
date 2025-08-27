@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Compliance\Services\RegulatoryReportingService;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use ReflectionClass;
 
 /**
  * @OA\Tag(
@@ -110,7 +112,7 @@ class RegulatoryReportingController extends Controller
                     'message' => 'Currency Transaction Report generated successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to generate CTR report',
@@ -205,7 +207,7 @@ class RegulatoryReportingController extends Controller
                     'message' => 'SAR candidates report generated successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to generate SAR candidates report',
@@ -300,7 +302,7 @@ class RegulatoryReportingController extends Controller
                     'message' => 'Compliance summary report generated successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to generate compliance summary report',
@@ -370,7 +372,7 @@ class RegulatoryReportingController extends Controller
                     'message' => 'KYC compliance report generated successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to generate KYC compliance report',
@@ -545,7 +547,7 @@ class RegulatoryReportingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to list regulatory reports',
@@ -674,7 +676,7 @@ class RegulatoryReportingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve report',
@@ -791,7 +793,7 @@ class RegulatoryReportingController extends Controller
                     'Content-Disposition' => 'attachment; filename="' . $filename . '"',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to download report',
@@ -910,7 +912,7 @@ class RegulatoryReportingController extends Controller
                     'message' => 'Report deleted successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to delete report',
@@ -1002,7 +1004,7 @@ class RegulatoryReportingController extends Controller
             };
 
             // Get summary metrics using reflection to access protected methods
-            $reflection = new \ReflectionClass($this->regulatoryReportingService);
+            $reflection = new ReflectionClass($this->regulatoryReportingService);
 
             $kycMetrics = $reflection->getMethod('getKycMetrics');
             $kycMetrics->setAccessible(true);
@@ -1036,7 +1038,7 @@ class RegulatoryReportingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve regulatory metrics',

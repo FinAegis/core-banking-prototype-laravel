@@ -4,6 +4,7 @@ namespace App\Domain\Fraud\Services;
 
 use App\Domain\Fraud\Models\DeviceFingerprint;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -211,7 +212,7 @@ class DeviceFingerprintService
                         'is_tor'     => false,
                         'risk_score' => 10,
                     ];
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::error('IP data lookup failed', ['ip' => $ip, 'error' => $e->getMessage()]);
 
                     return null;

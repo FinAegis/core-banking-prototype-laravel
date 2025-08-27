@@ -7,6 +7,7 @@ use App\Domain\Compliance\Events\SuspiciousActivityDetected;
 use App\Domain\Compliance\Events\TransactionBlocked;
 use App\Domain\Compliance\Models\CustomerRiskProfile;
 use App\Domain\Compliance\Models\TransactionMonitoringRule;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -63,7 +64,7 @@ class TransactionMonitoringService
                 'alerts'  => $alerts,
                 'actions' => array_unique($actions),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Transaction monitoring failed',
                 [

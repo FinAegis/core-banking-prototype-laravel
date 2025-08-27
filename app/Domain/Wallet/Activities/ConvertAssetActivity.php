@@ -6,6 +6,7 @@ use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Asset\Aggregates\AssetTransferAggregate;
 use App\Domain\Asset\Models\ExchangeRate;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 class ConvertAssetActivity extends Activity
@@ -22,7 +23,7 @@ class ConvertAssetActivity extends Activity
         // Get exchange rate
         $exchangeRate = ExchangeRate::getRate($fromAssetCode, $toAssetCode);
         if (! $exchangeRate) {
-            throw new \InvalidArgumentException("Exchange rate not available for {$fromAssetCode} to {$toAssetCode}");
+            throw new InvalidArgumentException("Exchange rate not available for {$fromAssetCode} to {$toAssetCode}");
         }
 
         // Calculate converted amount

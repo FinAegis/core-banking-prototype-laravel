@@ -8,6 +8,8 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Batch\Aggregates\BatchAggregate;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Throwable;
 use Workflow\Activity;
 
 class ProcessBatchItemActivity extends Activity
@@ -19,7 +21,7 @@ class ProcessBatchItemActivity extends Activity
                 'transfer'   => $this->processTransfer($item),
                 'payment'    => $this->processPayment($item),
                 'conversion' => $this->processConversion($item),
-                default      => throw new \InvalidArgumentException("Unknown item type: {$item['type']}")
+                default      => throw new InvalidArgumentException("Unknown item type: {$item['type']}")
             };
 
             // Record success
@@ -28,7 +30,7 @@ class ProcessBatchItemActivity extends Activity
                 ->persist();
 
             return $result;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Record failure
             BatchAggregate::retrieve($batchJobUuid)
                 ->processBatchItem($itemIndex, 'failed', [], $e->getMessage())
@@ -51,7 +53,7 @@ class ProcessBatchItemActivity extends Activity
         $$toAccount = Account::where('uuid', $item['to_account'])->first();
 
         if (! $fromAccount || ! $toAccount) {
-            throw new \InvalidArgumentException('Invalid account specified');
+            throw new InvalidArgumentException('Invalid account specified');
         }
 
         // Check balance
@@ -59,7 +61,7 @@ class ProcessBatchItemActivity extends Activity
         $amount = (int) ($item['amount'] * 100); // Convert to cents
 
         if ($balance < $amount) {
-            throw new \InvalidArgumentException('Insufficient balance');
+            throw new InvalidArgumentException('Insufficient balance');
         }
 
         // Execute transfer using the TransferAggregate
@@ -97,7 +99,7 @@ class ProcessBatchItemActivity extends Activity
         $$account = Account::where('uuid', $item['from_account'])->first();
 
         if (! $account) {
-            throw new \InvalidArgumentException('Invalid account specified');
+            throw new InvalidArgumentException('Invalid account specified');
         }
 
         // Check balance for from currency
@@ -105,7 +107,7 @@ class ProcessBatchItemActivity extends Activity
         $amount = (int) ($item['amount'] * 100); // Convert to cents
 
         if ($balance < $amount) {
-            throw new \InvalidArgumentException('Insufficient balance');
+            throw new InvalidArgumentException('Insufficient balance');
         }
 
         // Calculate conversion (simplified)

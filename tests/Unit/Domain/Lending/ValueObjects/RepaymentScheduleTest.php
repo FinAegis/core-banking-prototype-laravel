@@ -3,6 +3,7 @@
 namespace Tests\Unit\Domain\Lending\ValueObjects;
 
 use App\Domain\Lending\ValueObjects\RepaymentSchedule;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -36,7 +37,7 @@ class RepaymentScheduleTest extends TestCase
     #[Test]
     public function test_throws_exception_for_empty_payments(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Repayment schedule cannot be empty');
 
         new RepaymentSchedule([]);
@@ -87,7 +88,7 @@ class RepaymentScheduleTest extends TestCase
 
         $schedule = new RepaymentSchedule($payments);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Payment number 3 not found in schedule');
 
         $schedule->getPayment(3);
@@ -102,7 +103,7 @@ class RepaymentScheduleTest extends TestCase
 
         $schedule = new RepaymentSchedule($payments);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Payment number 0 not found in schedule');
 
         $schedule->getPayment(0);

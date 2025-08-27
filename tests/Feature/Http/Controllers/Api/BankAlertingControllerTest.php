@@ -7,8 +7,10 @@ use App\Domain\Custodian\Services\CircuitBreakerService;
 use App\Domain\Custodian\Services\CustodianHealthMonitor;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
@@ -55,19 +57,19 @@ class BankAlertingControllerTest extends ControllerTestCase
 
         // Create mocks
         /** @var BankAlertingService&MockInterface $mockAlertingService */
-        $mockAlertingService = \Mockery::mock(BankAlertingService::class);
+        $mockAlertingService = Mockery::mock(BankAlertingService::class);
         $this->mockAlertingService = $mockAlertingService;
 
         /** @var CustodianHealthMonitor&MockInterface $mockHealthMonitor */
-        $mockHealthMonitor = \Mockery::mock(CustodianHealthMonitor::class);
+        $mockHealthMonitor = Mockery::mock(CustodianHealthMonitor::class);
         $this->mockHealthMonitor = $mockHealthMonitor;
 
         /** @var CustodianRegistry&MockInterface $mockRegistry */
-        $mockRegistry = \Mockery::mock(CustodianRegistry::class);
+        $mockRegistry = Mockery::mock(CustodianRegistry::class);
         $this->mockRegistry = $mockRegistry;
 
         /** @var CircuitBreakerService&MockInterface $mockCircuitBreaker */
-        $mockCircuitBreaker = \Mockery::mock(CircuitBreakerService::class);
+        $mockCircuitBreaker = Mockery::mock(CircuitBreakerService::class);
         $this->mockCircuitBreaker = $mockCircuitBreaker;
 
         // Register mocks with the container
@@ -149,7 +151,7 @@ class BankAlertingControllerTest extends ControllerTestCase
 
         /** @var \Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('performHealthCheck');
-        $expectation->once()->andThrow(new \Exception('Health check service unavailable'));
+        $expectation->once()->andThrow(new Exception('Health check service unavailable'));
 
         $response = $this->postJson('/api/bank-health/check');
 
@@ -269,7 +271,7 @@ class BankAlertingControllerTest extends ControllerTestCase
 
         /** @var \Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('getAlertHistory');
-        $expectation->once()->with('paysera', \Mockery::type('int'))->andReturn($history);
+        $expectation->once()->with('paysera', Mockery::type('int'))->andReturn($history);
 
         $response = $this->getJson('/api/bank-health/alerts/paysera/history');
 
@@ -298,7 +300,7 @@ class BankAlertingControllerTest extends ControllerTestCase
 
         /** @var \Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('getAlertHistory');
-        $expectation->once()->with('wise', \Mockery::type('int'))->andReturn([]);
+        $expectation->once()->with('wise', Mockery::type('int'))->andReturn([]);
 
         $response = $this->getJson('/api/bank-health/alerts/wise/history?days=30');
 

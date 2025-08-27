@@ -7,6 +7,8 @@ namespace App\Domain\Basket\Services;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Models\BasketValue;
+use DateTimeInterface;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -59,7 +61,7 @@ class BasketValueCalculationService
                 $componentData = $this->calculateComponentValue($component);
                 $totalValue += $componentData['weighted_value'];
                 $componentValues[$component->asset_code] = $componentData;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Error calculating component value',
                     [
@@ -113,7 +115,7 @@ class BasketValueCalculationService
         $asset = $component->asset;
 
         if (! $asset) {
-            throw new \Exception("Asset {$component->asset_code} not found");
+            throw new Exception("Asset {$component->asset_code} not found");
         }
 
         // Get the value in USD
@@ -144,7 +146,7 @@ class BasketValueCalculationService
         $rate = $this->exchangeRateService->getRate($assetCode, 'USD');
 
         if (! $rate) {
-            throw new \Exception("No exchange rate available for {$assetCode} to USD");
+            throw new Exception("No exchange rate available for {$assetCode} to USD");
         }
 
         return (float) $rate->rate;
@@ -190,7 +192,7 @@ class BasketValueCalculationService
                     'value'         => $value->value,
                     'calculated_at' => $value->calculated_at,
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $results['failed'][] = [
                     'basket' => $basket->code,
                     'error'  => $e->getMessage(),
@@ -206,8 +208,8 @@ class BasketValueCalculationService
      */
     public function getHistoricalValues(
         BasketAsset $basket,
-        \DateTimeInterface $startDate,
-        \DateTimeInterface $endDate
+        DateTimeInterface $startDate,
+        DateTimeInterface $endDate
     ): array {
         return $basket->values()
             ->betweenDates($startDate, $endDate)
@@ -230,8 +232,8 @@ class BasketValueCalculationService
      */
     public function calculatePerformance(
         BasketAsset $basket,
-        \DateTimeInterface $startDate,
-        \DateTimeInterface $endDate
+        DateTimeInterface $startDate,
+        DateTimeInterface $endDate
     ): array {
         $startValue = $basket->values()
             ->where('calculated_at', '>=', $startDate)

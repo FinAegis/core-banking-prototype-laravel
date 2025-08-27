@@ -11,6 +11,7 @@ use App\Domain\Exchange\Events\MarketMakerStarted;
 use App\Domain\Exchange\Events\MarketMakerStopped;
 use App\Domain\Exchange\Events\QuotesUpdated;
 use App\Domain\Exchange\Workflows\MarketMakerWorkflow;
+use Generator;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
@@ -41,7 +42,7 @@ class MarketMakerWorkflowTest extends TestCase
         ];
 
         $result = $workflow->execute($config);
-        $this->assertInstanceOf(\Generator::class, $result);
+        $this->assertInstanceOf(Generator::class, $result);
     }
 
     public function test_market_maker_detects_inventory_imbalance(): void

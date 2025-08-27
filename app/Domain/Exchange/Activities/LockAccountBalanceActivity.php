@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\Activities;
 
 use App\Models\AssetBalance;
+use Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Workflow\Activity;
@@ -79,7 +80,7 @@ class LockAccountBalanceActivity extends Activity
                 $balance->save();
 
                 // Store lock information for later release
-                \Cache::put(
+                Cache::put(
                     "order_lock:{$lockId}",
                     [
                     'order_id'   => $orderId,

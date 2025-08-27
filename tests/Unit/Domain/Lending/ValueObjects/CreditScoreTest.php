@@ -3,6 +3,8 @@
 namespace Tests\Unit\Domain\Lending\ValueObjects;
 
 use App\Domain\Lending\ValueObjects\CreditScore;
+use Error;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -29,7 +31,7 @@ class CreditScoreTest extends TestCase
     #[Test]
     public function test_throws_exception_for_score_below_minimum(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Credit score must be between 300 and 850');
 
         new CreditScore(299, 'Equifax', []);
@@ -38,7 +40,7 @@ class CreditScoreTest extends TestCase
     #[Test]
     public function test_throws_exception_for_score_above_maximum(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Credit score must be between 300 and 850');
 
         new CreditScore(851, 'TransUnion', []);
@@ -200,7 +202,7 @@ class CreditScoreTest extends TestCase
         $creditScore = new CreditScore(700, 'Bureau', []);
 
         // PHP 8.1+ readonly properties throw Error when attempting to modify
-        $this->expectException(\Error::class);
+        $this->expectException(Error::class);
         $creditScore->score = 750;
     }
 }

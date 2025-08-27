@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use JustSteveKing\DataObjects\Contracts\DataObjectContract;
+use ReflectionClass;
 use Tests\Domain\Account\DataObjects\TestDataObject;
 
 test('can create from array', function () {
@@ -31,6 +32,6 @@ test('implements DataObjectContract', function () {
 });
 
 test('is readonly', function () {
-    $reflection = new \ReflectionClass(TestDataObject::class);
+    $reflection = new ReflectionClass(TestDataObject::class);
     expect($reflection->isReadOnly())->toBeTrue();
 });

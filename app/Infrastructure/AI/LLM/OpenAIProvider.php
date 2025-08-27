@@ -7,10 +7,14 @@ namespace App\Infrastructure\AI\LLM;
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\AI\ValueObjects\ConversationContext;
 use App\Domain\AI\ValueObjects\LLMResponse;
+use DB;
+use Exception;
+use Generator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class OpenAIProvider implements LLMProviderInterface
 {
@@ -128,7 +132,7 @@ class OpenAIProvider implements LLMProviderInterface
             $aggregate->recordLLMError('openai', $e->getMessage());
             $aggregate->persist();
 
-            throw new \RuntimeException('Failed to get response from OpenAI: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to get response from OpenAI: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -136,7 +140,7 @@ class OpenAIProvider implements LLMProviderInterface
         string $message,
         ConversationContext $context,
         array $options = []
-    ): \Generator {
+    ): Generator {
         // Build messages array
         $messages = [];
 
@@ -194,7 +198,7 @@ class OpenAIProvider implements LLMProviderInterface
                 'conversation_id' => $context->getConversationId(),
                 'error'           => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to stream from OpenAI: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to stream from OpenAI: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -213,7 +217,7 @@ class OpenAIProvider implements LLMProviderInterface
             return $data['data'][0]['embedding'];
         } catch (RequestException $e) {
             Log::error('OpenAI embeddings generation failed', ['error' => $e->getMessage()]);
-            throw new \RuntimeException('Failed to generate embeddings: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to generate embeddings: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -227,7 +231,7 @@ class OpenAIProvider implements LLMProviderInterface
             $response = $this->client->get('models');
 
             return $response->getStatusCode() === 200;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('OpenAI availability check failed', ['error' => $e->getMessage()]);
 
             return false;
@@ -243,7 +247,7 @@ class OpenAIProvider implements LLMProviderInterface
     {
         // Aggregate usage stats from events
         $stats = Cache::remember('openai:usage:stats', 300, function () {
-            $events = \DB::table('ai_events')
+            $events = DB::table('ai_events')
                 ->where('event_type', 'like', '%LLM%')
                 ->where('metadata->provider', 'openai')
                 ->where('created_at', '>=', now()->subDay())

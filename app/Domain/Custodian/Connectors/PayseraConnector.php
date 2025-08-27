@@ -10,8 +10,10 @@ use App\Domain\Custodian\ValueObjects\AccountInfo;
 use App\Domain\Custodian\ValueObjects\TransactionReceipt;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class PayseraConnector extends BaseCustodianConnector
 {
@@ -41,7 +43,7 @@ class PayseraConnector extends BaseCustodianConnector
 
         // Allow empty credentials in testing/development environments
         if ((empty($this->clientId) || empty($this->clientSecret)) && ! app()->environment(['local', 'testing'])) {
-            throw new \InvalidArgumentException('Paysera client_id and client_secret are required');
+            throw new InvalidArgumentException('Paysera client_id and client_secret are required');
         }
     }
 
@@ -78,7 +80,7 @@ class PayseraConnector extends BaseCustodianConnector
         );
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to obtain access token: ' . $response->body());
+            throw new Exception('Failed to obtain access token: ' . $response->body());
         }
 
         $data = $response->json();
@@ -111,7 +113,7 @@ class PayseraConnector extends BaseCustodianConnector
             $response = $this->apiRequest('GET', "/accounts/{$accountId}/balance");
 
             if (! $response->successful()) {
-                throw new \Exception('Failed to get balance: ' . $response->body());
+                throw new Exception('Failed to get balance: ' . $response->body());
             }
 
             $data = $response->json();
@@ -130,7 +132,7 @@ class PayseraConnector extends BaseCustodianConnector
             $fallbackService->cacheBalance($this->getName(), $accountId, $assetCode, $balance);
 
             return $balance;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Try fallback
             $fallbackBalance = $fallbackService->getFallbackBalance($this->getName(), $accountId, $assetCode);
 
@@ -157,7 +159,7 @@ class PayseraConnector extends BaseCustodianConnector
         $response = $this->apiRequest('GET', "/accounts/{$accountId}");
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to get account info: ' . $response->body());
+            throw new Exception('Failed to get account info: ' . $response->body());
         }
 
         $data = $response->json();
@@ -206,7 +208,7 @@ class PayseraConnector extends BaseCustodianConnector
                 $response = $this->apiRequest('POST', '/payments', $paymentData);
 
                 if (! $response->successful()) {
-                    throw new \Exception('Failed to initiate transfer: ' . $response->body());
+                    throw new Exception('Failed to initiate transfer: ' . $response->body());
                 }
 
                 $data = $response->json();
@@ -263,7 +265,7 @@ class PayseraConnector extends BaseCustodianConnector
                 $response = $this->apiRequest('GET', "/payments/{$transactionId}");
 
                 if (! $response->successful()) {
-                    throw new \Exception('Failed to get transaction status: ' . $response->body());
+                    throw new Exception('Failed to get transaction status: ' . $response->body());
                 }
 
                 $data = $response->json();
@@ -301,7 +303,7 @@ class PayseraConnector extends BaseCustodianConnector
                     return $status;
                 }
 
-                throw new \Exception('Cannot retrieve transaction status, service unavailable');
+                throw new Exception('Cannot retrieve transaction status, service unavailable');
             }
         );
     }
@@ -329,7 +331,7 @@ class PayseraConnector extends BaseCustodianConnector
 
                 return ($data['status'] ?? '') === 'active';
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning(
                 'Account validation failed',
                 [
@@ -354,7 +356,7 @@ class PayseraConnector extends BaseCustodianConnector
         );
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to get transaction history: ' . $response->body());
+            throw new Exception('Failed to get transaction history: ' . $response->body());
         }
 
         $data = $response->json();

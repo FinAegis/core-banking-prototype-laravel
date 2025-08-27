@@ -8,6 +8,7 @@ use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use App\Domain\Stablecoin\Services\DemoStablecoinService;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
@@ -140,7 +141,7 @@ class DemoStablecoinServiceTest extends TestCase
     #[Test]
     public function it_throws_exception_for_insufficient_collateral()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Insufficient collateral');
 
         $this->service->mint(
@@ -376,7 +377,7 @@ class DemoStablecoinServiceTest extends TestCase
             collateral: 1
         );
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Cannot burn more than debt amount');
 
         // Try to burn more than what was minted
@@ -390,7 +391,7 @@ class DemoStablecoinServiceTest extends TestCase
     #[Test]
     public function it_throws_exception_when_no_position_exists_for_burn()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('No active position found');
 
         $this->service->burn(

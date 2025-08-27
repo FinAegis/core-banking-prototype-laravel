@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Domain\Cgo\Actions\RequestRefundAction;
 use App\Domain\Cgo\Models\CgoInvestment;
 use App\Filament\Resources\CgoInvestmentResource\Pages;
+use Exception;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -425,7 +426,7 @@ class CgoInvestmentResource extends Resource
                                         ->title('Refund request initiated')
                                         ->success()
                                         ->send();
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     Notification::make()
                                         ->title('Refund request failed')
                                         ->body($e->getMessage())

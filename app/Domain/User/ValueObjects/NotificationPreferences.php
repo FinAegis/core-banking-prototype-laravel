@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\User\ValueObjects;
 
+use DateTimeImmutable;
+
 class NotificationPreferences
 {
     public function __construct(
@@ -79,7 +81,7 @@ class NotificationPreferences
         return $this->notificationTypes[$type] ?? false;
     }
 
-    public function isInQuietHours(\DateTimeImmutable $time): bool
+    public function isInQuietHours(DateTimeImmutable $time): bool
     {
         if (! ($this->quietHours['enabled'] ?? false)) {
             return false;

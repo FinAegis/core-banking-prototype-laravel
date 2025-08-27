@@ -6,6 +6,7 @@ use App\Domain\FinancialInstitution\Models\FinancialInstitutionApplication;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class DocumentVerificationService
 {
@@ -20,7 +21,7 @@ class DocumentVerificationService
         // Validate document type
         $requiredDocs = $application->getRequiredDocuments();
         if (! isset($requiredDocs[$documentType])) {
-            throw new \InvalidArgumentException("Invalid document type: {$documentType}");
+            throw new InvalidArgumentException("Invalid document type: {$documentType}");
         }
 
         // Generate secure filename
@@ -67,7 +68,7 @@ class DocumentVerificationService
         $documents = $application->submitted_documents ?? [];
 
         if (! isset($documents[$documentType])) {
-            throw new \InvalidArgumentException("Document not found: {$documentType}");
+            throw new InvalidArgumentException("Document not found: {$documentType}");
         }
 
         $documents[$documentType]['verified'] = true;

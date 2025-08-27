@@ -9,6 +9,7 @@ use App\Domain\Account\Models\Transfer;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -143,7 +144,7 @@ class PaymentStatusTool implements MCPToolInterface
             $response = $this->buildResponse($result, $includeDetails, $includeRelated);
 
             return ToolExecutionResult::success($response);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: payment.status', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,

@@ -16,6 +16,7 @@ use App\Domain\Fraud\Services\MachineLearningService;
 use App\Domain\Fraud\Services\RuleEngineService;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
@@ -37,11 +38,11 @@ class FraudDetectionServiceTest extends ServiceTestCase
     {
         parent::setUp();
 
-        $this->ruleEngine = \Mockery::mock(RuleEngineService::class);
-        $this->behavioralAnalysis = \Mockery::mock(BehavioralAnalysisService::class);
-        $this->deviceService = \Mockery::mock(DeviceFingerprintService::class);
-        $this->mlService = \Mockery::mock(MachineLearningService::class);
-        $this->caseService = \Mockery::mock(FraudCaseService::class);
+        $this->ruleEngine = Mockery::mock(RuleEngineService::class);
+        $this->behavioralAnalysis = Mockery::mock(BehavioralAnalysisService::class);
+        $this->deviceService = Mockery::mock(DeviceFingerprintService::class);
+        $this->mlService = Mockery::mock(MachineLearningService::class);
+        $this->caseService = Mockery::mock(FraudCaseService::class);
 
         $this->service = new FraudDetectionService(
             $this->ruleEngine,
@@ -172,7 +173,7 @@ class FraudDetectionServiceTest extends ServiceTestCase
 
         $this->caseService->shouldReceive('createFromFraudScore')
             ->withAnyArgs()
-            ->andReturn(\Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
+            ->andReturn(Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
 
         $fraudScore = $this->service->analyzeTransaction($transaction);
 
@@ -200,7 +201,7 @@ class FraudDetectionServiceTest extends ServiceTestCase
 
         $this->mockServicesForLowRisk();
         $this->deviceService->shouldReceive('analyzeDevice')
-            ->with(\Mockery::on(function ($data) use ($deviceData) {
+            ->with(Mockery::on(function ($data) use ($deviceData) {
                 return $data['fingerprint'] === $deviceData['fingerprint'];
             }))
             ->andReturn(['risk_score' => 10, 'is_known' => true]);
@@ -327,7 +328,7 @@ class FraudDetectionServiceTest extends ServiceTestCase
 
         $this->caseService->shouldReceive('createFromFraudScore')
             ->withAnyArgs()
-            ->andReturn(\Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
+            ->andReturn(Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
     }
 
     private function mockServicesForMediumRisk(): void
@@ -365,7 +366,7 @@ class FraudDetectionServiceTest extends ServiceTestCase
 
         $this->caseService->shouldReceive('createFromFraudScore')
             ->withAnyArgs()
-            ->andReturn(\Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
+            ->andReturn(Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
     }
 
     private function mockServicesForHighRisk(): void
@@ -404,7 +405,7 @@ class FraudDetectionServiceTest extends ServiceTestCase
 
         $this->caseService->shouldReceive('createFromFraudScore')
             ->withAnyArgs()
-            ->andReturn(\Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
+            ->andReturn(Mockery::mock(\App\Domain\Fraud\Models\FraudCase::class));
 
         // No need for createCase expectation - createFromFraudScore is called instead
     }
@@ -417,7 +418,7 @@ class FraudDetectionServiceTest extends ServiceTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

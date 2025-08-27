@@ -3,6 +3,8 @@
 namespace App\Domain\Wallet\Workflows;
 
 use App\Domain\Account\DataObjects\AccountUuid;
+use Generator;
+use Throwable;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
 
@@ -18,7 +20,7 @@ class WalletTransferWorkflow extends Workflow
         string $assetCode,
         int $amount,
         ?string $reference = null
-    ): \Generator {
+    ): Generator {
         try {
             // Step 1: Withdraw from source account
             yield ChildWorkflowStub::make(
@@ -55,7 +57,7 @@ class WalletTransferWorkflow extends Workflow
                     $amount
                 )
             );
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Execute compensation workflows in reverse order
             yield from $this->compensate();
             throw $th;

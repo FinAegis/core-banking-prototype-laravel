@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use Exception;
 use Highlight\Highlighter;
 
 class SyntaxHighlighter
@@ -22,7 +23,7 @@ class SyntaxHighlighter
             }
 
             return $highlighted->value;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback to plain text if highlighting fails
             return htmlspecialchars($code);
         }

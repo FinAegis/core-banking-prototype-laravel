@@ -7,6 +7,7 @@ use App\Domain\Exchange\Contracts\ExternalExchangeServiceInterface;
 use App\Domain\Exchange\Contracts\PriceAggregatorInterface;
 use App\Domain\Exchange\Services\OrderService;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -109,7 +110,7 @@ class ExternalExchangeController extends Controller
             return redirect()
                 ->route('exchange.external.arbitrage')
                 ->with('success', 'Arbitrage trade executed successfully. Profit: ' . $result['profit']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to execute arbitrage: ' . $e->getMessage()]);
@@ -173,7 +174,7 @@ class ExternalExchangeController extends Controller
             return redirect()
                 ->route('exchange.external.price-alignment')
                 ->with('success', 'Price alignment settings updated successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to update settings: ' . $e->getMessage()]);
@@ -209,7 +210,7 @@ class ExternalExchangeController extends Controller
             return redirect()
                 ->route('exchange.external.index')
                 ->with('success', 'Successfully connected to ' . ucfirst($validated['exchange']));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to connect: ' . $e->getMessage()]);
@@ -230,7 +231,7 @@ class ExternalExchangeController extends Controller
             return redirect()
                 ->route('exchange.external.index')
                 ->with('success', 'Successfully disconnected from ' . ucfirst($exchange));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->withErrors(['error' => 'Failed to disconnect: ' . $e->getMessage()]);
         }
     }
@@ -256,7 +257,7 @@ class ExternalExchangeController extends Controller
                         ];
                     }
                 );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Return empty collection if table doesn't exist
             return collect();
         }
@@ -300,7 +301,7 @@ class ExternalExchangeController extends Controller
                     $connection['exchange']
                 );
                 $balances[$connection['exchange']] = $exchangeBalances;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $balances[$connection['exchange']] = ['error' => true];
             }
         }
@@ -319,7 +320,7 @@ class ExternalExchangeController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->limit(20)
                 ->get();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return collect([]);
         }
     }

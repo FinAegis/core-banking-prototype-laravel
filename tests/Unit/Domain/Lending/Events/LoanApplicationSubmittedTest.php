@@ -3,6 +3,8 @@
 namespace Tests\Unit\Domain\Lending\Events;
 
 use App\Domain\Lending\Events\LoanApplicationSubmitted;
+use DateTimeImmutable;
+use DateTimeZone;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -22,7 +24,7 @@ class LoanApplicationSubmittedTest extends DomainTestCase
             'credit_score'      => 720,
             'debt_to_income'    => 0.35,
         ];
-        $submittedAt = new \DateTimeImmutable('2024-01-15 10:30:00');
+        $submittedAt = new DateTimeImmutable('2024-01-15 10:30:00');
 
         $event = new LoanApplicationSubmitted(
             $applicationId,
@@ -53,7 +55,7 @@ class LoanApplicationSubmittedTest extends DomainTestCase
             12,
             'personal',
             [],
-            new \DateTimeImmutable()
+            new DateTimeImmutable()
         );
 
         $this->assertInstanceOf(\Spatie\EventSourcing\StoredEvents\ShouldBeStored::class, $event);
@@ -80,7 +82,7 @@ class LoanApplicationSubmittedTest extends DomainTestCase
                 24,
                 $purpose,
                 [],
-                new \DateTimeImmutable()
+                new DateTimeImmutable()
             );
 
             $this->assertEquals($purpose, $event->purpose);
@@ -105,7 +107,7 @@ class LoanApplicationSubmittedTest extends DomainTestCase
                 $case['term'],
                 'test',
                 [],
-                new \DateTimeImmutable()
+                new DateTimeImmutable()
             );
 
             $this->assertEquals($case['amount'], $event->requestedAmount);
@@ -149,7 +151,7 @@ class LoanApplicationSubmittedTest extends DomainTestCase
             48,
             'business',
             $complexBorrowerInfo,
-            new \DateTimeImmutable()
+            new DateTimeImmutable()
         );
 
         $this->assertEquals($complexBorrowerInfo, $event->borrowerInfo);
@@ -161,8 +163,8 @@ class LoanApplicationSubmittedTest extends DomainTestCase
     #[Test]
     public function test_submitted_at_preserves_timezone(): void
     {
-        $timezone = new \DateTimeZone('America/New_York');
-        $submittedAt = new \DateTimeImmutable('2024-01-15 15:30:00', $timezone);
+        $timezone = new DateTimeZone('America/New_York');
+        $submittedAt = new DateTimeImmutable('2024-01-15 15:30:00', $timezone);
 
         $event = new LoanApplicationSubmitted(
             'tz-app',
@@ -188,7 +190,7 @@ class LoanApplicationSubmittedTest extends DomainTestCase
             18,
             'auto',
             ['test' => 'data'],
-            new \DateTimeImmutable()
+            new DateTimeImmutable()
         );
 
         // Direct property access should work

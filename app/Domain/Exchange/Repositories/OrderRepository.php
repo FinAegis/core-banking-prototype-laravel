@@ -7,6 +7,8 @@ namespace App\Domain\Exchange\Repositories;
 use App\Domain\Exchange\Aggregates\Order;
 use App\Domain\Exchange\Contracts\OrderRepositoryInterface;
 use App\Domain\Exchange\Projections\Order as OrderProjection;
+use DateTimeInterface;
+use Exception;
 use Illuminate\Support\Collection;
 
 /**
@@ -21,7 +23,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         try {
             return Order::retrieve($orderId);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -86,7 +88,7 @@ class OrderRepository implements OrderRepositoryInterface
     /**
      * Find orders placed within a time range.
      */
-    public function findByTimeRange(\DateTimeInterface $from, \DateTimeInterface $to): Collection
+    public function findByTimeRange(DateTimeInterface $from, DateTimeInterface $to): Collection
     {
         return OrderProjection::whereBetween('created_at', [$from, $to])
             ->get()

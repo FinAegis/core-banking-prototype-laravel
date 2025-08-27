@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 
 /**
  * @OA\Tag(
@@ -322,7 +323,7 @@ class PollController extends Controller
                     'message' => 'Poll activated successfully',
                 ]
             );
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return response()->json(
                 [
                     'message' => $e->getMessage(),
@@ -411,7 +412,7 @@ class PollController extends Controller
                 ],
                 201
             );
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             // Check if this is an invalid option error
             if (str_contains($e->getMessage(), 'Invalid option')) {
                 return response()->json(

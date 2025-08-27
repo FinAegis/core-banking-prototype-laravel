@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V2;
 
 use App\Domain\Banking\Contracts\IBankIntegrationService;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -46,7 +47,7 @@ class BankIntegrationController extends Controller
                     'data' => $banks->values(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to get available banks', ['error' => $e->getMessage()]);
 
             return response()->json(
@@ -86,7 +87,7 @@ class BankIntegrationController extends Controller
                     'data' => $connections,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to get user bank connections',
                 [
@@ -135,7 +136,7 @@ class BankIntegrationController extends Controller
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to connect to bank',
                 [
@@ -179,7 +180,7 @@ class BankIntegrationController extends Controller
                     404
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to disconnect from bank',
                 [
@@ -228,7 +229,7 @@ class BankIntegrationController extends Controller
                     'data' => $accounts,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to get bank accounts',
                 [
@@ -261,7 +262,7 @@ class BankIntegrationController extends Controller
                     'accounts_synced' => $accounts->count(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to sync bank accounts',
                 [
@@ -306,7 +307,7 @@ class BankIntegrationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to get aggregated balance',
                 [
@@ -375,7 +376,7 @@ class BankIntegrationController extends Controller
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to initiate transfer',
                 [
@@ -407,7 +408,7 @@ class BankIntegrationController extends Controller
                     'data' => $health,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to get bank health',
                 [
@@ -453,7 +454,7 @@ class BankIntegrationController extends Controller
                     'data' => $recommendations,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to get bank recommendations',
                 [

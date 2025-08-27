@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Exchange\Services\EnhancedExchangeRateService;
 use App\Domain\Exchange\Services\ExchangeRateProviderRegistry;
 use App\Http\Controllers\Controller;
+use DateTime;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -201,7 +203,7 @@ class ExchangeRateProviderController extends Controller
                     'data' => $quote->toArray(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to get exchange rate',
@@ -277,7 +279,7 @@ class ExchangeRateProviderController extends Controller
                     'timestamp' => now()->toISOString(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to compare rates',
@@ -359,7 +361,7 @@ class ExchangeRateProviderController extends Controller
                     'data' => $quote->toArray(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to get aggregated rate',
@@ -455,7 +457,7 @@ class ExchangeRateProviderController extends Controller
                     try {
                         $this->service->fetchAndStoreRate($from, $to);
                         $results['refreshed'][] = $pair;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $results['failed'][] = [
                             'pair'  => $pair,
                             'error' => $e->getMessage(),
@@ -473,7 +475,7 @@ class ExchangeRateProviderController extends Controller
                     'data'    => $results,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to refresh rates',
@@ -568,8 +570,8 @@ class ExchangeRateProviderController extends Controller
             $rates = $this->service->getHistoricalRates(
                 $validated['from'],
                 $validated['to'],
-                new \DateTime($validated['start_date']),
-                new \DateTime($validated['end_date'])
+                new DateTime($validated['start_date']),
+                new DateTime($validated['end_date'])
             );
 
             return response()->json(
@@ -582,7 +584,7 @@ class ExchangeRateProviderController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to get historical rates',
@@ -669,7 +671,7 @@ class ExchangeRateProviderController extends Controller
                     'data' => $validation,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to validate rate',

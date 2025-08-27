@@ -14,9 +14,11 @@ use App\Domain\AI\ValueObjects\MCPResponse;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Shared\CQRS\CommandBus;
 use App\Domain\Shared\Events\DomainEventBus;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class MCPServer implements MCPServerInterface
 {
@@ -64,7 +66,7 @@ class MCPServer implements MCPServerInterface
                 'completion'     => $this->handleCompletion($request),
                 default          => throw new MCPException("Unknown method: {$request->getMethod()}"),
             };
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Server error', [
                 'method' => $request->getMethod(),
                 'error'  => $e->getMessage(),
@@ -173,7 +175,7 @@ class MCPServer implements MCPServerInterface
 
         // Additional validation using tool's validateInput method
         if (! $tool->validateInput($arguments)) {
-            throw new \InvalidArgumentException("Tool input validation failed for: {$toolName}");
+            throw new InvalidArgumentException("Tool input validation failed for: {$toolName}");
         }
 
         // Check authorization after validation
@@ -228,7 +230,7 @@ class MCPServer implements MCPServerInterface
                     'conversation_id' => $this->currentConversationId,
                 ],
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $duration = (int) ((microtime(true) - $startTime) * 1000);
 
             // Record failed execution
@@ -485,7 +487,7 @@ class MCPServer implements MCPServerInterface
         $response = $this->handleToolCall($request);
 
         if ($response->isError()) {
-            throw new \Exception($response->getError());
+            throw new Exception($response->getError());
         }
 
         return $response->getData()['toolResult'] ?? [];
@@ -500,7 +502,7 @@ class MCPServer implements MCPServerInterface
         $response = $this->handleResourceRead($request);
 
         if ($response->isError()) {
-            throw new \Exception($response->getError());
+            throw new Exception($response->getError());
         }
 
         return $response->getData()['contents'] ?? [];

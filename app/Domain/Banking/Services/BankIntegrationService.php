@@ -14,6 +14,7 @@ use App\Domain\Banking\Models\BankConnection;
 use App\Domain\Banking\Models\BankConnectionModel;
 use App\Domain\Banking\Models\BankTransfer;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -107,7 +108,7 @@ class BankIntegrationService implements IBankIntegrationService
             DB::commit();
 
             return BankConnection::fromArray($connectionModel->toArray());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'Failed to connect user to bank',
@@ -204,7 +205,7 @@ class BankIntegrationService implements IBankIntegrationService
             DB::commit();
 
             return $bankAccount;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
@@ -322,7 +323,7 @@ class BankIntegrationService implements IBankIntegrationService
             // Check balance
             $balance = $fromConnector->getBalance($fromAccountId, $currency);
             if (! $balance->hasSufficientFunds($amount)) {
-                throw new \Exception('Insufficient funds');
+                throw new Exception('Insufficient funds');
             }
 
             // Determine transfer type
@@ -369,7 +370,7 @@ class BankIntegrationService implements IBankIntegrationService
             DB::commit();
 
             return $transfer;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
@@ -427,7 +428,7 @@ class BankIntegrationService implements IBankIntegrationService
                                 $totalBalance += $balance->available;
                             }
                         }
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         Log::warning(
                             'Failed to get balance from bank',
                             [

@@ -10,6 +10,8 @@ use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Models\CustodianWebhook;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use RuntimeException;
 
 class WebhookProcessorService
 {
@@ -28,7 +30,7 @@ class WebhookProcessorService
             'paysera'   => $this->processPayseraWebhook(...),
             'santander' => $this->processSantanderWebhook(...),
             'mock'      => $this->processMockWebhook(...),
-            default     => throw new \InvalidArgumentException("Unknown custodian: {$webhook->custodian_name}"),
+            default     => throw new InvalidArgumentException("Unknown custodian: {$webhook->custodian_name}"),
         };
 
         $handler($webhook);
@@ -164,7 +166,7 @@ class WebhookProcessorService
                     ->first();
 
                 if (! $custodianAccount) {
-                    throw new \RuntimeException("Custodian account not found: {$accountId}");
+                    throw new RuntimeException("Custodian account not found: {$accountId}");
                 }
 
                 // Update webhook with account reference
@@ -207,7 +209,7 @@ class WebhookProcessorService
                     ->first();
 
                 if (! $custodianAccount) {
-                    throw new \RuntimeException("Custodian account not found: {$accountId}");
+                    throw new RuntimeException("Custodian account not found: {$accountId}");
                 }
 
                 // Update webhook with account reference
@@ -249,10 +251,10 @@ class WebhookProcessorService
     private function extractTransactionId(string $custodianName, array $payload): string
     {
         return match ($custodianName) {
-            'paysera'   => $payload['payment_id'] ?? throw new \RuntimeException('Missing payment_id'),
-            'santander' => $payload['transfer_id'] ?? throw new \RuntimeException('Missing transfer_id'),
-            'mock'      => $payload['transaction_id'] ?? throw new \RuntimeException('Missing transaction_id'),
-            default     => throw new \InvalidArgumentException("Unknown custodian: {$custodianName}"),
+            'paysera'   => $payload['payment_id'] ?? throw new RuntimeException('Missing payment_id'),
+            'santander' => $payload['transfer_id'] ?? throw new RuntimeException('Missing transfer_id'),
+            'mock'      => $payload['transaction_id'] ?? throw new RuntimeException('Missing transaction_id'),
+            default     => throw new InvalidArgumentException("Unknown custodian: {$custodianName}"),
         };
     }
 
@@ -262,10 +264,10 @@ class WebhookProcessorService
     private function extractAccountId(string $custodianName, array $payload): string
     {
         return match ($custodianName) {
-            'paysera'   => $payload['account_id'] ?? throw new \RuntimeException('Missing account_id'),
-            'santander' => $payload['account_number'] ?? throw new \RuntimeException('Missing account_number'),
-            'mock'      => $payload['account'] ?? throw new \RuntimeException('Missing account'),
-            default     => throw new \InvalidArgumentException("Unknown custodian: {$custodianName}"),
+            'paysera'   => $payload['account_id'] ?? throw new RuntimeException('Missing account_id'),
+            'santander' => $payload['account_number'] ?? throw new RuntimeException('Missing account_number'),
+            'mock'      => $payload['account'] ?? throw new RuntimeException('Missing account'),
+            default     => throw new InvalidArgumentException("Unknown custodian: {$custodianName}"),
         };
     }
 

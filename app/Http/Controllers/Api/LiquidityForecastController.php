@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Treasury\Services\LiquidityForecastingService;
 use App\Domain\Treasury\Workflows\LiquidityForecastingWorkflow;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -71,7 +72,7 @@ class LiquidityForecastController extends Controller
             );
 
             return response()->json($forecast);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to generate forecast',
                 'message' => $e->getMessage(),
@@ -103,7 +104,7 @@ class LiquidityForecastController extends Controller
             $liquidity = $this->forecastingService->calculateCurrentLiquidity($treasuryId);
 
             return response()->json($liquidity);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to calculate liquidity',
                 'message' => $e->getMessage(),
@@ -163,7 +164,7 @@ class LiquidityForecastController extends Controller
                 'treasury_id' => $request->input('treasury_id'),
                 'config'      => $request->only(['forecast_days', 'update_interval_hours', 'auto_mitigation']),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to start workflow',
                 'message' => $e->getMessage(),
@@ -213,7 +214,7 @@ class LiquidityForecastController extends Controller
                 'count'        => count($alerts),
                 'has_critical' => ! empty(array_filter($alerts, fn ($a) => $a['level'] === 'critical')),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to retrieve alerts',
                 'message' => $e->getMessage(),

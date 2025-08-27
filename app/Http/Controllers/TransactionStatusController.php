@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Domain\Account\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Log;
+use Schema;
+use Str;
 
 class TransactionStatusController extends Controller
 {
@@ -153,7 +157,7 @@ class TransactionStatusController extends Controller
                     'message' => 'Transaction cancelled successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return response()->json(['error' => 'Failed to cancel transaction'], 500);
@@ -199,7 +203,7 @@ class TransactionStatusController extends Controller
                     'new_transaction_id' => $newTransaction->id,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return response()->json(['error' => 'Failed to retry transaction'], 500);
@@ -349,7 +353,7 @@ class TransactionStatusController extends Controller
 
         // Check payment requests (if table exists)
         try {
-            if (\Schema::hasTable('payment_requests')) {
+            if (Schema::hasTable('payment_requests')) {
                 $payment = DB::table('payment_requests')
                     ->join('accounts', 'payment_requests.account_uuid', '=', 'accounts.uuid')
                     ->where('accounts.user_uuid', $user->uuid)
@@ -363,13 +367,13 @@ class TransactionStatusController extends Controller
                     return $payment;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Table doesn't exist, skip
         }
 
         // Check bank transfers (if table exists)
         try {
-            if (\Schema::hasTable('bank_transfers')) {
+            if (Schema::hasTable('bank_transfers')) {
                 $transfer = DB::table('bank_transfers')
                     ->where('user_uuid', $user->uuid)
                     ->where('id', $transactionId)
@@ -381,7 +385,7 @@ class TransactionStatusController extends Controller
                     return $transfer;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Table doesn't exist, skip
         }
 
@@ -624,7 +628,7 @@ class TransactionStatusController extends Controller
     {
         // This would implement the actual reversal logic
         // For now, just log the reversal
-        \Log::info(
+        Log::info(
             'Transaction reversed',
             [
                 'transaction_id' => $transaction->id,
@@ -658,7 +662,7 @@ class TransactionStatusController extends Controller
         $data['status'] = 'pending';
         $data['parent_transaction_id'] = $originalTransaction->uuid; // Use UUID instead of ID
         $data['reference'] = 'RETRY-' . $originalTransaction->reference;
-        $data['uuid'] = \Str::uuid();
+        $data['uuid'] = Str::uuid();
         $data['created_at'] = now();
         $data['updated_at'] = now();
 

@@ -5,6 +5,7 @@ namespace App\Domain\Wallet\Workflows\Activities;
 use App\Domain\Wallet\Services\BlockchainWalletService;
 use App\Models\User;
 use Brick\Math\BigDecimal;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class BlockchainDepositActivities
@@ -43,13 +44,13 @@ class BlockchainDepositActivities
             ->first();
 
         if ($existing) {
-            throw new \Exception('Transaction already processed');
+            throw new Exception('Transaction already processed');
         }
 
         // Get connector for chain
         $connector = $this->connectors[$chain] ?? null;
         if (! $connector) {
-            throw new \Exception("No connector available for chain: $chain");
+            throw new Exception("No connector available for chain: $chain");
         }
 
         // In production, this would query the blockchain
@@ -291,11 +292,11 @@ class BlockchainDepositActivities
     ): void {
         // Validate that transaction details match expected values
         if ($transactionData['to_address'] !== $toAddress) {
-            throw new \Exception('Transaction recipient address does not match');
+            throw new Exception('Transaction recipient address does not match');
         }
 
         if ($transactionData['amount'] !== $amount) {
-            throw new \Exception('Transaction amount does not match');
+            throw new Exception('Transaction amount does not match');
         }
     }
 
@@ -341,7 +342,7 @@ class BlockchainDepositActivities
             ->first();
 
         if (! $wallet) {
-            throw new \Exception('Wallet not found');
+            throw new Exception('Wallet not found');
         }
 
         return $wallet->user_id;
@@ -357,7 +358,7 @@ class BlockchainDepositActivities
             ->first();
 
         if (! $account) {
-            throw new \Exception('No active USD account found');
+            throw new Exception('No active USD account found');
         }
 
         return $account->id;

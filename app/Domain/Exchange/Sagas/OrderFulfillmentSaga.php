@@ -10,7 +10,11 @@ use App\Domain\Exchange\ValueObjects\OrderMatchingInput;
 use App\Domain\Exchange\Workflows\OrderMatchingWorkflow;
 use App\Domain\Payment\Workflows\TransferWorkflow;
 use App\Domain\Wallet\Workflows\WalletTransferWorkflow;
+use Exception;
+use Generator;
 use Illuminate\Support\Facades\Log;
+use Str;
+use Throwable;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
 
@@ -37,9 +41,9 @@ class OrderFulfillmentSaga extends Workflow
      *   - price: float
      *   - type: 'buy' | 'sell'
      */
-    public function execute(array $input): \Generator
+    public function execute(array $input): Generator
     {
-        $sagaId = \Str::uuid()->toString();
+        $sagaId = Str::uuid()->toString();
 
         Log::info('Starting OrderFulfillmentSaga', [
             'saga_id'  => $sagaId,
@@ -50,14 +54,14 @@ class OrderFulfillmentSaga extends Workflow
             // Step 1: Lock buyer's funds
             $lockResult = yield from $this->lockBuyerFunds($input);
             if (! $lockResult['success']) {
-                throw new \Exception('Failed to lock buyer funds: ' . $lockResult['message']);
+                throw new Exception('Failed to lock buyer funds: ' . $lockResult['message']);
             }
             $this->completedSteps[] = 'lock_buyer_funds';
 
             // Step 2: Match the order
             $matchResult = yield from $this->matchOrder($input);
             if (! $matchResult->success) {
-                throw new \Exception('Order matching failed: ' . $matchResult->message);
+                throw new Exception('Order matching failed: ' . $matchResult->message);
             }
             $this->completedSteps[] = 'match_order';
 
@@ -69,7 +73,7 @@ class OrderFulfillmentSaga extends Workflow
                 $input['amount']
             );
             if (! $transferResult['success']) {
-                throw new \Exception('Asset transfer failed: ' . $transferResult['message']);
+                throw new Exception('Asset transfer failed: ' . $transferResult['message']);
             }
             $this->completedSteps[] = 'transfer_assets';
 
@@ -81,7 +85,7 @@ class OrderFulfillmentSaga extends Workflow
                 $input['amount'] * $input['price']
             );
             if (! $paymentResult['success']) {
-                throw new \Exception('Payment transfer failed: ' . $paymentResult['message']);
+                throw new Exception('Payment transfer failed: ' . $paymentResult['message']);
             }
             $this->completedSteps[] = 'transfer_payment';
 
@@ -102,7 +106,7 @@ class OrderFulfillmentSaga extends Workflow
                 'matched_orders'  => $matchResult->matchedOrders ?? [],
                 'completed_steps' => $this->completedSteps,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('OrderFulfillmentSaga failed, executing compensations', [
                 'saga_id'         => $sagaId,
                 'order_id'        => $input['order_id'],
@@ -126,7 +130,7 @@ class OrderFulfillmentSaga extends Workflow
     /**
      * Lock buyer's funds for the order.
      */
-    private function lockBuyerFunds(array $input): \Generator
+    private function lockBuyerFunds(array $input): Generator
     {
         $workflow = yield ChildWorkflowStub::make(
             WithdrawAccountWorkflow::class
@@ -158,7 +162,7 @@ class OrderFulfillmentSaga extends Workflow
     /**
      * Match the order in the order book.
      */
-    private function matchOrder(array $input): \Generator
+    private function matchOrder(array $input): Generator
     {
         $workflow = yield ChildWorkflowStub::make(
             OrderMatchingWorkflow::class
@@ -187,7 +191,7 @@ class OrderFulfillmentSaga extends Workflow
         string $toAccount,
         string $currency,
         float $amount
-    ): \Generator {
+    ): Generator {
         $workflow = yield ChildWorkflowStub::make(
             WalletTransferWorkflow::class
         );
@@ -221,7 +225,7 @@ class OrderFulfillmentSaga extends Workflow
         string $toAccount,
         string $currency,
         float $amount
-    ): \Generator {
+    ): Generator {
         $workflow = yield ChildWorkflowStub::make(
             TransferWorkflow::class
         );
@@ -252,7 +256,7 @@ class OrderFulfillmentSaga extends Workflow
     /**
      * Update order status.
      */
-    private function updateOrderStatus(string $orderId, string $status): \Generator
+    private function updateOrderStatus(string $orderId, string $status): Generator
     {
         // This would typically call an activity to update the order
         // For now, we'll simulate it without delay
@@ -276,7 +280,7 @@ class OrderFulfillmentSaga extends Workflow
     /**
      * Execute all compensations in reverse order.
      */
-    private function executeCompensations(): \Generator
+    private function executeCompensations(): Generator
     {
         $compensations = array_reverse($this->compensations, true);
 
@@ -285,7 +289,7 @@ class OrderFulfillmentSaga extends Workflow
                 Log::info("Executing compensation for step: {$step}");
                 yield $compensation();
                 Log::info("Compensation successful for step: {$step}");
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error("Compensation failed for step: {$step}", [
                     'error' => $e->getMessage(),
                 ]);

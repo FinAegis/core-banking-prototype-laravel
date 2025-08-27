@@ -6,6 +6,7 @@ namespace App\Domain\Exchange\Repositories;
 
 use App\Domain\Exchange\Aggregates\LiquidityPool;
 use App\Domain\Exchange\Contracts\LiquidityPoolRepositoryInterface;
+use Exception;
 use Illuminate\Support\Collection;
 
 /**
@@ -20,7 +21,7 @@ class LiquidityPoolRepository implements LiquidityPoolRepositoryInterface
     {
         try {
             return LiquidityPool::retrieve($poolId);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }

@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Account\Workflows\BatchProcessingWorkflow;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Workflow\WorkflowStub;
 
 /**
@@ -135,7 +137,7 @@ class BatchProcessingController extends Controller
                 ],
                 202
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error(
                 'Batch processing initiation failed',
                 [
@@ -464,7 +466,7 @@ class BatchProcessingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Failed to cancel batch operation',
@@ -486,22 +488,22 @@ class BatchProcessingController extends Controller
         switch ($type) {
             case 'account_interest':
                 if (! isset($parameters['rate']) || ! is_numeric($parameters['rate'])) {
-                    throw new \InvalidArgumentException('Interest rate is required for account_interest operation');
+                    throw new InvalidArgumentException('Interest rate is required for account_interest operation');
                 }
                 break;
             case 'fee_collection':
                 if (! isset($parameters['fee_type'])) {
-                    throw new \InvalidArgumentException('Fee type is required for fee_collection operation');
+                    throw new InvalidArgumentException('Fee type is required for fee_collection operation');
                 }
                 break;
             case 'balance_reconciliation':
                 if (! isset($parameters['date'])) {
-                    throw new \InvalidArgumentException('Date is required for balance_reconciliation operation');
+                    throw new InvalidArgumentException('Date is required for balance_reconciliation operation');
                 }
                 break;
             case 'report_generation':
                 if (! isset($parameters['report_type'])) {
-                    throw new \InvalidArgumentException('Report type is required for report_generation operation');
+                    throw new InvalidArgumentException('Report type is required for report_generation operation');
                 }
                 break;
         }

@@ -6,6 +6,7 @@ use App\Domain\Exchange\Services\LiquidityPoolService;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
@@ -172,7 +173,7 @@ class LiquidityPoolController extends Controller
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -235,7 +236,7 @@ class LiquidityPoolController extends Controller
             );
 
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -291,7 +292,7 @@ class LiquidityPoolController extends Controller
             );
 
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -345,7 +346,7 @@ class LiquidityPoolController extends Controller
             );
 
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -436,7 +437,7 @@ class LiquidityPoolController extends Controller
                     'rewards' => $rewards,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -475,7 +476,7 @@ class LiquidityPoolController extends Controller
             $ilData = $this->liquidityService->calculateImpermanentLoss($positionId);
 
             return response()->json($ilData);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -528,7 +529,7 @@ class LiquidityPoolController extends Controller
                 'success' => true,
                 'message' => 'IL protection enabled for pool',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -578,7 +579,7 @@ class LiquidityPoolController extends Controller
                 'claims'            => $claims,
                 'total_compensated' => $claims->sum('compensation'),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -614,7 +615,7 @@ class LiquidityPoolController extends Controller
             $requirements = $this->liquidityService->getImpermanentLossProtectionFundRequirements($poolId);
 
             return response()->json($requirements);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
@@ -668,7 +669,7 @@ class LiquidityPoolController extends Controller
             ];
 
             return response()->json($metrics);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }

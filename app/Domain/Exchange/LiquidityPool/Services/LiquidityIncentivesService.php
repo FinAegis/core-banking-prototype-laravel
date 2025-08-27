@@ -7,6 +7,7 @@ use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\Projections\LiquidityProvider;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Exception;
 
 class LiquidityIncentivesService
 {
@@ -42,7 +43,7 @@ class LiquidityIncentivesService
                         'rewards' => $rewards,
                     ];
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $results[$pool->pool_id] = [
                     'status' => 'error',
                     'error'  => $e->getMessage(),

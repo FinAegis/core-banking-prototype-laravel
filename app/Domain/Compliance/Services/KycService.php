@@ -9,6 +9,7 @@ use App\Domain\Compliance\Models\KycDocument;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
 
 class KycService
 {
@@ -204,7 +205,7 @@ class KycService
                     'max_balance'         => null, // No limit
                 ],
             ],
-            default => throw new \InvalidArgumentException("Unknown KYC level: {$level}"),
+            default => throw new InvalidArgumentException("Unknown KYC level: {$level}"),
         };
     }
 

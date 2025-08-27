@@ -9,8 +9,10 @@ use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Models\CustodianTransfer;
 use App\Domain\Custodian\ValueObjects\AccountInfo;
 use App\Domain\Custodian\ValueObjects\TransactionReceipt;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Str;
 
 class FallbackService
 {
@@ -181,7 +183,7 @@ class FallbackService
         $toCustodianAccountId = 2;
 
         // Create a pending transfer record
-        $transferId = 'QUEUED_' . \Str::uuid()->toString();
+        $transferId = 'QUEUED_' . Str::uuid()->toString();
         $transfer = CustodianTransfer::create(
             [
                 'id'                        => $transferId,
@@ -266,7 +268,7 @@ class FallbackService
 
                     return $alternative;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 continue;
             }
         }

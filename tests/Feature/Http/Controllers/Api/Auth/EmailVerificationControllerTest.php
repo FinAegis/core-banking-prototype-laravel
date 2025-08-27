@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -267,7 +268,7 @@ class EmailVerificationControllerTest extends ControllerTestCase
     {
         Sanctum::actingAs($this->unverifiedUser);
 
-        $mock = \Mockery::mock($this->unverifiedUser)->makePartial();
+        $mock = Mockery::mock($this->unverifiedUser)->makePartial();
         $mock->shouldReceive('sendEmailVerificationNotification')->once();
 
         $this->app->instance(User::class, $mock);

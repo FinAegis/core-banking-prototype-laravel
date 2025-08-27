@@ -9,6 +9,8 @@ use App\Domain\Exchange\ValueObjects\ExternalTicker;
 use App\Domain\Exchange\ValueObjects\ExternalTrade;
 use App\Domain\Exchange\ValueObjects\MarketPair;
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -45,7 +47,7 @@ class KrakenConnector implements IExternalExchangeConnector
     {
         try {
             return $this->ping();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Kraken connectivity check failed', ['error' => $e->getMessage()]);
 
             return false;
@@ -125,7 +127,7 @@ class KrakenConnector implements IExternalExchangeConnector
                 ->minus($tickerData['o'])
                 ->dividedBy($tickerData['o'], 18)
                 ->multipliedBy(100),
-            timestamp: new \DateTimeImmutable(),
+            timestamp: new DateTimeImmutable(),
             exchange: $this->getName(),
             metadata: [
                 'pair'       => $pair,
@@ -172,7 +174,7 @@ class KrakenConnector implements IExternalExchangeConnector
                 'amount' => BigDecimal::of($ask[1]),
                 ]
             ),
-            timestamp: new \DateTimeImmutable('@' . $bid[2]),
+            timestamp: new DateTimeImmutable('@' . $bid[2]),
             exchange: $this->getName(),
             metadata: ['pair' => $pair]
         );
@@ -205,7 +207,7 @@ class KrakenConnector implements IExternalExchangeConnector
                     price: BigDecimal::of($trade[0]),
                     amount: BigDecimal::of($trade[1]),
                     side: $trade[3] === 'b' ? 'buy' : 'sell',
-                    timestamp: new \DateTimeImmutable('@' . $trade[2]),
+                    timestamp: new DateTimeImmutable('@' . $trade[2]),
                     exchange: $this->getName(),
                     metadata: [
                     'pair'       => $pair,

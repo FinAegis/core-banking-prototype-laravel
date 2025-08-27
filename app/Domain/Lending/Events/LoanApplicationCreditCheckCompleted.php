@@ -2,6 +2,7 @@
 
 namespace App\Domain\Lending\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class LoanApplicationCreditCheckCompleted extends ShouldBeStored
@@ -12,7 +13,7 @@ class LoanApplicationCreditCheckCompleted extends ShouldBeStored
         public string $bureau,
         public array $report,
         public string $checkedBy,
-        public \DateTimeImmutable $checkedAt
+        public DateTimeImmutable $checkedAt
     ) {
     }
 }

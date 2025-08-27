@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Compliance\Services\GdprService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -194,7 +195,7 @@ class GdprController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => 'Failed to process data export request',
@@ -296,7 +297,7 @@ class GdprController extends Controller
                     'message' => 'Account deletion request processed. Your account will be deleted within 30 days.',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => 'Failed to process deletion request',

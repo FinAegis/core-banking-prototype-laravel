@@ -8,6 +8,7 @@ use App\Domain\AI\Activities\Trading\CalculateMACDActivity;
 use App\Domain\AI\Activities\Trading\CalculateRSIActivity;
 use App\Domain\AI\Activities\Trading\IdentifyPatternsActivity;
 use App\Domain\AI\Events\Trading\MarketAnalyzedEvent;
+use Generator;
 use Workflow\Workflow;
 
 /**
@@ -24,13 +25,13 @@ class MarketAnalysisWorkflow extends Workflow
      * @param string $symbol
      * @param array{prices: array, volumes: array, timeframe: string} $marketData
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
         string $symbol,
         array $marketData
-    ): \Generator {
+    ): Generator {
         // Calculate RSI
         $rsiResult = yield app(CalculateRSIActivity::class)->execute([
             'prices' => $marketData['prices'] ?? [],

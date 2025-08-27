@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Monitoring\Services;
 
 use App\Domain\Monitoring\Services\TracingService;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
@@ -125,7 +126,7 @@ class TracingServiceTest extends TestCase
 
         $spanId = $this->service->startSpan($spanName);
 
-        $exception = new \Exception('Test error');
+        $exception = new Exception('Test error');
         $context = ['user' => 'test'];
 
         $this->span->shouldReceive('recordException')
@@ -237,7 +238,7 @@ class TracingServiceTest extends TestCase
         $spanId = $service->startSpan('test-span');
         $service->addEvent($spanId, 'test-event', []);
         $service->setAttribute($spanId, 'key', 'value');
-        $service->recordError($spanId, new \Exception('test'), []);
+        $service->recordError($spanId, new Exception('test'), []);
         $service->endSpan($spanId);
         $service->endTrace();
 

@@ -3,6 +3,7 @@
 namespace App\Domain\Exchange\ValueObjects;
 
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
 
 final class ExternalTicker
 {
@@ -16,7 +17,7 @@ final class ExternalTicker
         public readonly BigDecimal $high24h,
         public readonly BigDecimal $low24h,
         public readonly BigDecimal $change24h,
-        public readonly \DateTimeImmutable $timestamp,
+        public readonly DateTimeImmutable $timestamp,
         public readonly string $exchange,
         public readonly array $metadata = []
     ) {
@@ -34,7 +35,7 @@ final class ExternalTicker
             high24h: BigDecimal::of($data['high_24h']),
             low24h: BigDecimal::of($data['low_24h']),
             change24h: BigDecimal::of($data['change_24h']),
-            timestamp: new \DateTimeImmutable($data['timestamp']),
+            timestamp: new DateTimeImmutable($data['timestamp']),
             exchange: $data['exchange'],
             metadata: $data['metadata'] ?? []
         );

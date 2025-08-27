@@ -4,6 +4,7 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows;
 
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class MintStablecoinWorkflowTest extends DomainTestCase
@@ -17,7 +18,7 @@ class MintStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_class(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(MintStablecoinWorkflow::class);
         $this->assertEquals('Workflow\Workflow', $reflection->getParentClass()->getName());
     }
 
@@ -30,7 +31,7 @@ class MintStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_execute_method_signature(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(MintStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(6, $method->getNumberOfParameters());
@@ -60,7 +61,7 @@ class MintStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_generator(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(MintStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('Generator', $method->getReturnType()->getName());
@@ -69,7 +70,7 @@ class MintStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_uses_compensation_pattern(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(MintStablecoinWorkflow::class);
 
         // Check if the workflow has compensation methods
         $this->assertTrue(method_exists(MintStablecoinWorkflow::class, 'addCompensation'));
@@ -86,7 +87,7 @@ class MintStablecoinWorkflowTest extends DomainTestCase
             'MintStablecoinActivity',
         ];
 
-        $reflection = new \ReflectionClass(MintStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(MintStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         // Get the method source code
@@ -111,7 +112,7 @@ class MintStablecoinWorkflowTest extends DomainTestCase
             'BurnStablecoinActivity',
         ];
 
-        $reflection = new \ReflectionClass(MintStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(MintStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();
@@ -128,7 +129,7 @@ class MintStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_handles_exceptions(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(MintStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();

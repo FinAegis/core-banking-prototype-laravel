@@ -4,6 +4,7 @@ namespace App\Domain\Cgo\Services;
 
 use App\Domain\Cgo\Mail\CgoInvestmentConfirmed;
 use App\Domain\Cgo\Models\CgoInvestment;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -83,7 +84,7 @@ class PaymentVerificationService
 
         try {
             return $this->stripeService->verifyPayment($investment);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Stripe payment verification failed',
                 [
@@ -119,7 +120,7 @@ class PaymentVerificationService
             }
 
             return false;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Coinbase payment verification failed',
                 [
@@ -175,7 +176,7 @@ class PaymentVerificationService
         // Send confirmation email
         try {
             Mail::to($investment->email)->send(new CgoInvestmentConfirmed($investment));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to send investment confirmation email',
                 [

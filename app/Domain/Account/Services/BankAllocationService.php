@@ -5,6 +5,7 @@ namespace App\Domain\Account\Services;
 use App\Domain\Banking\Models\UserBankPreference;
 use App\Models\User;
 use App\Traits\HandlesNestedTransactions;
+use Exception;
 use Illuminate\Support\Collection;
 
 class BankAllocationService
@@ -45,23 +46,23 @@ class BankAllocationService
      *
      * @param  array  $allocations  Array of ['bank_code' => percentage]
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function updateAllocations(User $user, array $allocations): Collection
     {
         // Validate total equals 100%
         $total = array_sum($allocations);
         if (abs($total - 100) > 0.01) {
-            throw new \Exception("Allocations must sum to 100%, got {$total}%");
+            throw new Exception("Allocations must sum to 100%, got {$total}%");
         }
 
         // Validate all banks are available
         foreach ($allocations as $bankCode => $percentage) {
             if (! isset(UserBankPreference::AVAILABLE_BANKS[$bankCode])) {
-                throw new \Exception("Invalid bank code: {$bankCode}");
+                throw new Exception("Invalid bank code: {$bankCode}");
             }
             if ($percentage < 0 || $percentage > 100) {
-                throw new \Exception("Invalid allocation percentage: {$percentage}%");
+                throw new Exception("Invalid allocation percentage: {$percentage}%");
             }
         }
 
@@ -106,7 +107,7 @@ class BankAllocationService
     public function addBank(User $user, string $bankCode, float $percentage): UserBankPreference
     {
         if (! isset(UserBankPreference::AVAILABLE_BANKS[$bankCode])) {
-            throw new \Exception("Invalid bank code: {$bankCode}");
+            throw new Exception("Invalid bank code: {$bankCode}");
         }
 
         // Check if bank already exists
@@ -116,7 +117,7 @@ class BankAllocationService
             ->first();
 
         if ($existing) {
-            throw new \Exception("Bank {$bankCode} is already in user's allocation");
+            throw new Exception("Bank {$bankCode} is already in user's allocation");
         }
 
         // Validate new total
@@ -125,7 +126,7 @@ class BankAllocationService
             ->sum('allocation_percentage');
 
         if (($currentTotal + $percentage) > 100.01) {
-            throw new \Exception("Adding {$percentage}% would exceed 100% total allocation");
+            throw new Exception("Adding {$percentage}% would exceed 100% total allocation");
         }
 
         $bankInfo = UserBankPreference::AVAILABLE_BANKS[$bankCode];
@@ -153,11 +154,11 @@ class BankAllocationService
             ->first();
 
         if (! $preference) {
-            throw new \Exception("Bank {$bankCode} not found in user's allocation");
+            throw new Exception("Bank {$bankCode} not found in user's allocation");
         }
 
         if ($preference->is_primary) {
-            throw new \Exception('Cannot remove primary bank');
+            throw new Exception('Cannot remove primary bank');
         }
 
         // Deactivate the bank preference
@@ -167,7 +168,7 @@ class BankAllocationService
         if (! UserBankPreference::validateAllocations($user->uuid)) {
             // Reactivate if removal breaks allocation
             $preference->update(['status' => 'active']);
-            throw new \Exception('Removing bank would break 100% allocation requirement');
+            throw new Exception('Removing bank would break 100% allocation requirement');
         }
 
         return true;
@@ -184,7 +185,7 @@ class BankAllocationService
             ->first();
 
         if (! $preference) {
-            throw new \Exception("Bank {$bankCode} not found in user's active allocation");
+            throw new Exception("Bank {$bankCode} not found in user's active allocation");
         }
 
         $this->executeInTransaction(
@@ -217,7 +218,7 @@ class BankAllocationService
                 'is_diversified'           => $isDiversified,
                 'bank_count'               => count($distribution),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'error'                    => $e->getMessage(),
                 'distribution'             => [],

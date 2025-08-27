@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\CQRS;
 
+use DateTimeInterface;
+
 /**
  * Base interface for all commands in the CQRS pattern.
  */
@@ -17,7 +19,7 @@ interface Command
     /**
      * Get the timestamp when this command was created.
      */
-    public function getTimestamp(): \DateTimeInterface;
+    public function getTimestamp(): DateTimeInterface;
 
     /**
      * Get metadata associated with this command.

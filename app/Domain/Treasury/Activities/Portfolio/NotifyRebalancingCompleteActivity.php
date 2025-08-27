@@ -6,6 +6,9 @@ namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Events\Portfolio\RebalancingCompleted;
 use App\Domain\Treasury\Events\Portfolio\RebalancingFailed;
+use Exception;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class NotifyRebalancingCompleteActivity extends Activity
@@ -26,14 +29,14 @@ class NotifyRebalancingCompleteActivity extends Activity
             } else {
                 return $this->handleFailure($portfolioId, $rebalanceId, $executionResults, $originalPlan, $status);
             }
-        } catch (\Exception $e) {
-            \Log::error('Failed to send rebalancing completion notifications', [
+        } catch (Exception $e) {
+            Log::error('Failed to send rebalancing completion notifications', [
                 'portfolio_id' => $portfolioId,
                 'rebalance_id' => $rebalanceId,
                 'error'        => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to notify rebalancing completion for portfolio {$portfolioId}: {$e->getMessage()}",
                 0,
                 $e
@@ -69,7 +72,7 @@ class NotifyRebalancingCompleteActivity extends Activity
         // Send notifications to stakeholders
         $notifications = $this->sendSuccessNotifications($portfolioId, $rebalanceId, $executionResults, $originalPlan);
 
-        \Log::info('Rebalancing completion notifications sent', [
+        Log::info('Rebalancing completion notifications sent', [
             'portfolio_id'       => $portfolioId,
             'rebalance_id'       => $rebalanceId,
             'notifications_sent' => count($notifications),
@@ -129,7 +132,7 @@ class NotifyRebalancingCompleteActivity extends Activity
         // Send failure notifications to stakeholders
         $notifications = $this->sendFailureNotifications($portfolioId, $rebalanceId, $reason, $status, $originalPlan);
 
-        \Log::warning('Rebalancing failure notifications sent', [
+        Log::warning('Rebalancing failure notifications sent', [
             'portfolio_id'       => $portfolioId,
             'rebalance_id'       => $rebalanceId,
             'status'             => $status,
@@ -181,8 +184,8 @@ class NotifyRebalancingCompleteActivity extends Activity
             try {
                 $notification = $this->sendNotification($recipient, 'rebalancing_success', $notificationData);
                 $notifications[] = $notification;
-            } catch (\Exception $e) {
-                \Log::warning('Failed to send success notification', [
+            } catch (Exception $e) {
+                Log::warning('Failed to send success notification', [
                     'recipient'    => $recipient,
                     'portfolio_id' => $portfolioId,
                     'error'        => $e->getMessage(),
@@ -223,8 +226,8 @@ class NotifyRebalancingCompleteActivity extends Activity
             try {
                 $notification = $this->sendNotification($recipient, 'rebalancing_failure', $notificationData);
                 $notifications[] = $notification;
-            } catch (\Exception $e) {
-                \Log::warning('Failed to send failure notification', [
+            } catch (Exception $e) {
+                Log::warning('Failed to send failure notification', [
                     'recipient'    => $recipient,
                     'portfolio_id' => $portfolioId,
                     'error'        => $e->getMessage(),
@@ -302,7 +305,7 @@ class NotifyRebalancingCompleteActivity extends Activity
         ];
 
         // Simulate notification sending
-        \Log::info('Notification sent', [
+        Log::info('Notification sent', [
             'recipient'    => $recipient,
             'type'         => $type,
             'portfolio_id' => $data['portfolio_id'] ?? null,

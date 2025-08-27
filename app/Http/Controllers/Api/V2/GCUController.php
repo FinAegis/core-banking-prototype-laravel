@@ -9,6 +9,7 @@ use App\Domain\Account\Models\Poll;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Models\BasketValue;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -595,7 +596,7 @@ class GCUController extends Controller
                 'unhealthy' => 'maintenance',
                 default     => 'unknown',
             };
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 'unknown';
         }
     }

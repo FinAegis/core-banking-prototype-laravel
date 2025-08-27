@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Newsletter\Services\SubscriberEmailService;
+use Exception;
 use Illuminate\Http\Request;
 
 class SubscriberController extends Controller
@@ -37,7 +38,7 @@ class SubscriberController extends Controller
                     'message' => 'You are already unsubscribed or we could not find your subscription.',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return view(
                 'subscriber.unsubscribed',
                 [
@@ -74,7 +75,7 @@ class SubscriberController extends Controller
                     'message' => 'Thank you for subscribing! Please check your email.',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'success' => false,

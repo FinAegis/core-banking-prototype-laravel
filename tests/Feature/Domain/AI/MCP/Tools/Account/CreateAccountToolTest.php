@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 class CreateAccountToolTest extends TestCase
@@ -288,7 +289,7 @@ class CreateAccountToolTest extends TestCase
         // Arrange - Mock AccountService to throw exception
         $mockService = $this->createMock(AccountService::class);
         $mockService->method('create')
-            ->willThrowException(new \RuntimeException('Database connection failed'));
+            ->willThrowException(new RuntimeException('Database connection failed'));
 
         // Create a new registry and server for this test to avoid conflicts
         $newRegistry = new ToolRegistry();

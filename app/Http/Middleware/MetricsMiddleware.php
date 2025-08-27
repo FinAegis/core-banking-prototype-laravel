@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Domain\Monitoring\Services\MetricsCollector;
 use Closure;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -64,7 +65,7 @@ class MetricsMiddleware
             Cache::put('metrics:requests:total', Cache::get('metrics:http:requests:total', 0), 60);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $duration = microtime(true) - $startTime;
 
             // Record exception metrics

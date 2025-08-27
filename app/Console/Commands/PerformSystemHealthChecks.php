@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\SystemHealthCheck;
 use App\Models\SystemIncident;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -115,7 +116,7 @@ class PerformSystemHealthChecks extends Command
 
             // Check if we need to create or resolve an incident
             $this->manageIncidents($service, $result['status']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error("  Error checking $service: " . $e->getMessage());
 
             SystemHealthCheck::create(
@@ -150,7 +151,7 @@ class PerformSystemHealthChecks extends Command
                     'connection' => config('database.default'),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'error_message' => $e->getMessage(),
@@ -179,7 +180,7 @@ class PerformSystemHealthChecks extends Command
                     'driver' => config('cache.default'),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'error_message' => $e->getMessage(),
@@ -206,7 +207,7 @@ class PerformSystemHealthChecks extends Command
                     'driver'       => config('queue.default'),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'error_message' => $e->getMessage(),
@@ -236,7 +237,7 @@ class PerformSystemHealthChecks extends Command
                     'free_space_gb'      => round($free / 1024 / 1024 / 1024, 2),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'error_message' => $e->getMessage(),
@@ -273,7 +274,7 @@ class PerformSystemHealthChecks extends Command
                     'http_status' => $response->status(),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'error_message' => $e->getMessage(),
@@ -310,7 +311,7 @@ class PerformSystemHealthChecks extends Command
                     'http_status' => $response->status(),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'error_message' => $e->getMessage(),
@@ -341,7 +342,7 @@ class PerformSystemHealthChecks extends Command
                     'driver' => $driver,
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'status'        => 'down',
                 'error_message' => $e->getMessage(),

@@ -7,8 +7,11 @@ namespace App\Domain\Stablecoin\Services;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Stablecoin\Contracts\StabilityMechanismServiceInterface;
 use App\Domain\Stablecoin\Models\Stablecoin;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use RuntimeException;
 
 class StabilityMechanismService implements StabilityMechanismServiceInterface
 {
@@ -31,7 +34,7 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
             try {
                 $result = $this->executeStabilityMechanismForStablecoin($stablecoin);
                 $results[$stablecoin->code] = $result;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Stability mechanism failed',
                     [
@@ -61,7 +64,7 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
             'collateralized' => $this->executeCollateralizedMechanism($stablecoin),
             'algorithmic'    => $this->executeAlgorithmicMechanism($stablecoin),
             'hybrid'         => $this->executeHybridMechanism($stablecoin),
-            default          => throw new \InvalidArgumentException("Unknown stability mechanism: {$mechanism}")
+            default          => throw new InvalidArgumentException("Unknown stability mechanism: {$mechanism}")
         };
     }
 
@@ -483,7 +486,7 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
         $rateObject = $this->exchangeRateService->getRate($stablecoin->code, $stablecoin->peg_asset_code);
 
         if (! $rateObject) {
-            throw new \RuntimeException("Exchange rate not found for {$stablecoin->code} to {$stablecoin->peg_asset_code}");
+            throw new RuntimeException("Exchange rate not found for {$stablecoin->code} to {$stablecoin->peg_asset_code}");
         }
 
         $currentPrice = $rateObject->rate;
@@ -704,7 +707,7 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
                                (abs($deviation['percentage']) <= 5.0 ? 'warning' : 'critical'),
                     'last_checked' => now(),
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $monitoring[] = [
                     'stablecoin_code' => $stablecoin->code,
                     'status'          => 'error',
@@ -724,7 +727,7 @@ class StabilityMechanismService implements StabilityMechanismServiceInterface
     {
         $stablecoinCode = $params['stablecoin_code'] ?? null;
         if (! $stablecoinCode) {
-            throw new \InvalidArgumentException('stablecoin_code is required in params');
+            throw new InvalidArgumentException('stablecoin_code is required in params');
         }
 
         $stablecoin = Stablecoin::findOrFail($stablecoinCode);

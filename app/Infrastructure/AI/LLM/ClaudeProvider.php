@@ -7,10 +7,14 @@ namespace App\Infrastructure\AI\LLM;
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\AI\ValueObjects\ConversationContext;
 use App\Domain\AI\ValueObjects\LLMResponse;
+use DB;
+use Exception;
+use Generator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class ClaudeProvider implements LLMProviderInterface
 {
@@ -136,7 +140,7 @@ class ClaudeProvider implements LLMProviderInterface
             $aggregate->recordLLMError('claude', $e->getMessage());
             $aggregate->persist();
 
-            throw new \RuntimeException('Failed to get response from Claude: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to get response from Claude: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -144,7 +148,7 @@ class ClaudeProvider implements LLMProviderInterface
         string $message,
         ConversationContext $context,
         array $options = []
-    ): \Generator {
+    ): Generator {
         $messages = [];
 
         foreach ($context->getMessages() as $msg) {
@@ -203,7 +207,7 @@ class ClaudeProvider implements LLMProviderInterface
                 'conversation_id' => $context->getConversationId(),
                 'error'           => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to stream from Claude: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to stream from Claude: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -211,7 +215,7 @@ class ClaudeProvider implements LLMProviderInterface
     {
         // Claude doesn't provide embeddings API directly
         // We can use a fallback or throw an exception
-        throw new \RuntimeException('Claude does not support embeddings generation. Use OpenAI provider instead.');
+        throw new RuntimeException('Claude does not support embeddings generation. Use OpenAI provider instead.');
     }
 
     public function isAvailable(): bool
@@ -231,7 +235,7 @@ class ClaudeProvider implements LLMProviderInterface
             ]);
 
             return $response->getStatusCode() === 200;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Claude availability check failed', ['error' => $e->getMessage()]);
 
             return false;
@@ -247,7 +251,7 @@ class ClaudeProvider implements LLMProviderInterface
     {
         // Aggregate usage stats from events
         $stats = Cache::remember('claude:usage:stats', 300, function () {
-            $events = \DB::table('ai_events')
+            $events = DB::table('ai_events')
                 ->where('event_type', 'like', '%LLM%')
                 ->where('metadata->provider', 'claude')
                 ->where('created_at', '>=', now()->subDay())

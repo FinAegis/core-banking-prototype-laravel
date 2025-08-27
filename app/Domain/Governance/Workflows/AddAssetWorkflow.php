@@ -7,6 +7,7 @@ namespace App\Domain\Governance\Workflows;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Governance\Models\Poll;
 use App\Domain\Governance\ValueObjects\PollResult;
+use Exception;
 use Temporal\Workflow\WorkflowInterface;
 use Temporal\Workflow\WorkflowMethod;
 
@@ -75,7 +76,7 @@ class AddAssetWorkflow
                 'asset_code' => $asset->code,
                 'asset_id'   => $asset->id,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error(
                 'Failed to add asset via governance poll',
                 [

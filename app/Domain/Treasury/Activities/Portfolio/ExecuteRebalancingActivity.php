@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Services\RebalancingService;
+use Exception;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class ExecuteRebalancingActivity extends Activity
@@ -22,7 +25,7 @@ class ExecuteRebalancingActivity extends Activity
         $approvedBy = $input['approved_by'] ?? 'system';
 
         try {
-            \Log::info('Starting rebalancing execution', [
+            Log::info('Starting rebalancing execution', [
                 'portfolio_id' => $portfolioId,
                 'rebalance_id' => $rebalanceId,
                 'action_count' => count($rebalancingPlan['actions'] ?? []),
@@ -33,7 +36,7 @@ class ExecuteRebalancingActivity extends Activity
             // Validate the plan before execution
             $validationResult = $this->validatePlanForExecution($rebalancingPlan);
             if (! $validationResult['is_valid']) {
-                throw new \RuntimeException('Rebalancing plan validation failed: ' . implode(', ', $validationResult['errors']));
+                throw new RuntimeException('Rebalancing plan validation failed: ' . implode(', ', $validationResult['errors']));
             }
 
             // Execute the rebalancing using the service
@@ -58,7 +61,7 @@ class ExecuteRebalancingActivity extends Activity
                 'estimated_benefit' => $rebalancingPlan['net_benefit'] ?? 0,
             ];
 
-            \Log::info('Rebalancing execution completed successfully', [
+            Log::info('Rebalancing execution completed successfully', [
                 'portfolio_id'     => $portfolioId,
                 'rebalance_id'     => $rebalanceId,
                 'actions_executed' => $result['actions_executed'],
@@ -67,8 +70,8 @@ class ExecuteRebalancingActivity extends Activity
             ]);
 
             return $result;
-        } catch (\Exception $e) {
-            \Log::error('Rebalancing execution failed', [
+        } catch (Exception $e) {
+            Log::error('Rebalancing execution failed', [
                 'portfolio_id' => $portfolioId,
                 'rebalance_id' => $rebalanceId,
                 'error'        => $e->getMessage(),
@@ -130,7 +133,7 @@ class ExecuteRebalancingActivity extends Activity
 
         if ($totalTransactionCost > $netBenefit && $netBenefit > 0) {
             // This is a warning, not an error
-            \Log::warning('Transaction costs exceed net benefit', [
+            Log::warning('Transaction costs exceed net benefit', [
                 'total_cost'  => $totalTransactionCost,
                 'net_benefit' => $netBenefit,
             ]);
@@ -186,7 +189,7 @@ class ExecuteRebalancingActivity extends Activity
                 if ($portfolio['is_rebalancing']) {
                     $warnings[] = 'Portfolio is still marked as rebalancing';
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $issues[] = 'Failed to verify portfolio state: ' . $e->getMessage();
             }
 
@@ -200,7 +203,7 @@ class ExecuteRebalancingActivity extends Activity
                     'rebalancing_state',
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'verified'    => false,
                 'verified_at' => now()->toISOString(),

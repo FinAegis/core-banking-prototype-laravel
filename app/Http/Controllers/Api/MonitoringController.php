@@ -8,6 +8,7 @@ use App\Domain\Monitoring\Services\HealthChecker;
 use App\Domain\Monitoring\Services\MetricsCollector;
 use App\Domain\Monitoring\Services\PrometheusExporter;
 use App\Http\Controllers\Controller;
+use DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -294,7 +295,7 @@ class MonitoringController extends Controller
      */
     public function alerts(Request $request): JsonResponse
     {
-        $query = \DB::table('monitoring_alerts')
+        $query = DB::table('monitoring_alerts')
             ->where('acknowledged', false)
             ->orderBy('created_at', 'desc');
 
@@ -342,7 +343,7 @@ class MonitoringController extends Controller
      */
     public function acknowledgeAlert(int $alertId): JsonResponse
     {
-        $updated = \DB::table('monitoring_alerts')
+        $updated = DB::table('monitoring_alerts')
             ->where('id', $alertId)
             ->update([
                 'acknowledged'    => true,

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Exchange\Jobs;
 
 use App\Domain\Exchange\Services\EnhancedExchangeRateService;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class RefreshExchangeRatesJob implements ShouldQueue
 {
@@ -61,7 +63,7 @@ class RefreshExchangeRatesJob implements ShouldQueue
                     try {
                         $service->fetchAndStoreRate($from, $to);
                         $results['refreshed'][] = $pair;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $results['failed'][] = [
                             'pair'  => $pair,
                             'error' => $e->getMessage(),
@@ -85,7 +87,7 @@ class RefreshExchangeRatesJob implements ShouldQueue
     /**
      * Handle job failure.
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error(
             'Exchange rate refresh job failed',

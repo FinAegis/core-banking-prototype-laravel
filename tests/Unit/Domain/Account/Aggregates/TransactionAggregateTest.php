@@ -8,8 +8,10 @@ use App\Domain\Account\Events\MoneyAdded;
 use App\Domain\Account\Events\MoneySubtracted;
 use App\Domain\Account\Events\TransactionThresholdReached;
 use App\Domain\Account\Exceptions\NotEnoughFunds;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class TransactionAggregateTest extends DomainTestCase
@@ -102,7 +104,7 @@ class TransactionAggregateTest extends DomainTestCase
         $money = new Money(2500); // €25.00
 
         // First set the currentHash to a known value
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $currentHashProperty = $reflection->getProperty('currentHash');
         $currentHashProperty->setAccessible(true);
         $currentHashProperty->setValue($aggregate, '');
@@ -130,7 +132,7 @@ class TransactionAggregateTest extends DomainTestCase
         $money = new Money(1500); // $15.00
 
         // First set the currentHash to a known value
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $currentHashProperty = $reflection->getProperty('currentHash');
         $currentHashProperty->setAccessible(true);
         $currentHashProperty->setValue($aggregate, '');
@@ -187,7 +189,7 @@ class TransactionAggregateTest extends DomainTestCase
         $aggregate->count = TransactionAggregate::COUNT_THRESHOLD - 1;
 
         // First set the currentHash to a known value
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $currentHashProperty = $reflection->getProperty('currentHash');
         $currentHashProperty->setAccessible(true);
         $currentHashProperty->setValue($aggregate, '');
@@ -233,7 +235,7 @@ class TransactionAggregateTest extends DomainTestCase
         $money = new Money(1000);
 
         // Use reflection to access protected methods
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
 
         // First set the currentHash to a known value
         $currentHashProperty = $reflection->getProperty('currentHash');
@@ -249,7 +251,7 @@ class TransactionAggregateTest extends DomainTestCase
         $storeMethod->invoke($aggregate, $hash);
 
         // Try to use same hash again
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $validateMethod = $reflection->getMethod('validateHash');
         $validateMethod->setAccessible(true);
@@ -284,7 +286,7 @@ class TransactionAggregateTest extends DomainTestCase
     public function test_maintains_balance_across_multiple_operations(): void
     {
         $aggregate = new TransactionAggregate();
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
 
         // Helper to generate valid hash for each operation
         $generateValidHash = function ($money) use ($aggregate, $reflection) {

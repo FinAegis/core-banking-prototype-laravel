@@ -14,6 +14,7 @@ use App\Domain\Account\Workflows\FreezeAccountWorkflow;
 use App\Domain\Account\Workflows\UnfreezeAccountWorkflow;
 use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
 use App\Http\Controllers\Controller;
+use DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -896,7 +897,7 @@ class CurrentAccountController extends Controller
         );
 
         // Query stored events for transaction history
-        $query = \DB::table('stored_events')
+        $query = DB::table('stored_events')
             ->where('aggregate_uuid', $crReferenceId)
             ->whereIn(
                 'event_class',

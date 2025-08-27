@@ -9,6 +9,7 @@ use App\Domain\Shared\Events\DomainEventBus;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Queue;
+use InvalidArgumentException;
 
 /**
  * Laravel implementation of the Domain Event Bus.
@@ -63,7 +64,7 @@ class LaravelDomainEventBus implements DomainEventBus
     {
         foreach ($events as $event) {
             if (! $event instanceof DomainEvent) {
-                throw new \InvalidArgumentException('All items must be DomainEvent instances');
+                throw new InvalidArgumentException('All items must be DomainEvent instances');
             }
 
             $this->publish($event);

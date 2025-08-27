@@ -11,6 +11,8 @@ use App\Domain\Stablecoin\Workflows\Activities\LockCollateralActivity;
 use App\Domain\Stablecoin\Workflows\Activities\MintStablecoinActivity;
 use App\Domain\Stablecoin\Workflows\Activities\ReleaseCollateralActivity;
 use App\Domain\Stablecoin\Workflows\Activities\UpdatePositionActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -26,7 +28,7 @@ class BurnStablecoinWorkflow extends Workflow
         int $burnAmount,
         int $collateralReleaseAmount,
         bool $closePosition = false
-    ): \Generator {
+    ): Generator {
         try {
             // Burn stablecoins from account
             yield ActivityStub::make(
@@ -84,7 +86,7 @@ class BurnStablecoinWorkflow extends Workflow
             }
 
             return true;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Execute compensations in reverse order
             yield from $this->compensate();
             throw $th;

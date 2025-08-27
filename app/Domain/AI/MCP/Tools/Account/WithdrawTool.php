@@ -9,6 +9,7 @@ use App\Domain\Account\Services\AccountService;
 use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Asset\Models\Asset;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -164,7 +165,7 @@ class WithdrawTool implements MCPToolInterface
             ];
 
             return ToolExecutionResult::success($response);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: account.withdraw', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,

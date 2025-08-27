@@ -7,6 +7,7 @@ use App\Domain\Exchange\Projections\LiquidityPool;
 use App\Domain\Exchange\Projections\OrderBook;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use DB;
 
 class AutomatedMarketMakerService
 {
@@ -333,7 +334,7 @@ class AutomatedMarketMakerService
     private function analyzeMarketMakingPerformance(LiquidityPool $pool): array
     {
         // Get recent AMM orders
-        $recentOrders = \DB::table('orders')
+        $recentOrders = DB::table('orders')
             ->where('pool_id', $pool->pool_id)
             ->where('source', 'amm')
             ->where('created_at', '>=', now()->subHours(24))

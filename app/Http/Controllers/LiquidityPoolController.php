@@ -7,6 +7,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Exchange\Contracts\ExchangeServiceInterface;
 use App\Domain\Exchange\Contracts\LiquidityPoolServiceInterface;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -126,7 +127,7 @@ class LiquidityPoolController extends Controller
             return redirect()
                 ->route('liquidity.show', $poolId)
                 ->with('success', 'Successfully added liquidity to the pool');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to add liquidity: ' . $e->getMessage()]);
@@ -206,7 +207,7 @@ class LiquidityPoolController extends Controller
             return redirect()
                 ->route('liquidity.show', $poolId)
                 ->with('success', 'Successfully removed liquidity from the pool');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to remove liquidity: ' . $e->getMessage()]);

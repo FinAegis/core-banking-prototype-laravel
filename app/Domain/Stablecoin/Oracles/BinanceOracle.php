@@ -5,6 +5,7 @@ namespace App\Domain\Stablecoin\Oracles;
 use App\Domain\Stablecoin\Contracts\OracleConnector;
 use App\Domain\Stablecoin\ValueObjects\PriceData;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -51,7 +52,7 @@ class BinanceOracle implements OracleConnector
                     'count'        => $response['count'],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Binance oracle error: {$e->getMessage()}");
             throw $e;
         }
@@ -67,7 +68,7 @@ class BinanceOracle implements OracleConnector
             try {
                 [$base, $quote] = explode('/', $pair);
                 $prices[$pair] = $this->getPrice($base, $quote);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning("Failed to get price for {$pair}: {$e->getMessage()}");
             }
         }
@@ -99,7 +100,7 @@ class BinanceOracle implements OracleConnector
                     'low'    => $response['low'],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Binance historical oracle error: {$e->getMessage()}");
             throw $e;
         }
@@ -112,7 +113,7 @@ class BinanceOracle implements OracleConnector
             $response = Http::timeout(5)->get("{$this->baseUrl}/ping");
 
             return $response->successful();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

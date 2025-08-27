@@ -7,6 +7,7 @@ use App\Domain\Account\DataObjects\Account;
 use App\Domain\Account\Workflows\CreateAccountActivity;
 use App\Domain\Account\Workflows\CreateAccountWorkflow;
 use App\Models\User;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 use Workflow\Models\StoredWorkflow;
@@ -21,13 +22,13 @@ class CreateAccountActivityTest extends DomainTestCase
     #[Test]
     public function it_creates_account_using_ledger(): void
     {
-        $ledgerMock = \Mockery::mock(LedgerAggregate::class);
+        $ledgerMock = Mockery::mock(LedgerAggregate::class);
         $ledgerMock->expects('retrieve')
-            ->with(\Mockery::type('string'))
+            ->with(Mockery::type('string'))
             ->andReturnSelf();
 
         $ledgerMock->expects('createAccount')
-            ->with(\Mockery::type(Account::class))
+            ->with(Mockery::type(Account::class))
             ->andReturnSelf();
 
         $ledgerMock->expects('persist')

@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Setting;
 use App\Services\SettingsService;
+use Cache;
+use DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -77,7 +79,7 @@ class SettingsTest extends TestCase
         $this->assertEquals($value1, $value2);
 
         // Clear cache and get new value
-        \Cache::forget('setting.platform_name');
+        Cache::forget('setting.platform_name');
         $value3 = Setting::get('platform_name');
         $this->assertEquals('Direct Update', $value3);
     }
@@ -132,7 +134,7 @@ class SettingsTest extends TestCase
         ]);
 
         // Direct database query should show encrypted value
-        $dbValue = \DB::table('settings')->where('key', 'api_key')->value('value');
+        $dbValue = DB::table('settings')->where('key', 'api_key')->value('value');
         $decodedDb = json_decode($dbValue, true);
         $this->assertIsString($decodedDb);
         $this->assertStringStartsWith('eyJpdiI6', $decodedDb); // Laravel encrypted strings start with this

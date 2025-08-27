@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Middleware;
 use App\Domain\Product\Services\SubProductService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -24,7 +25,7 @@ class EnsureSubProductEnabledTest extends TestCase
 
         // Create mock SubProductService
         /** @var SubProductService&MockInterface $mock */
-        $mock = \Mockery::mock(SubProductService::class);
+        $mock = Mockery::mock(SubProductService::class);
         $this->subProductService = $mock;
         $this->app->instance(SubProductService::class, $this->subProductService);
 

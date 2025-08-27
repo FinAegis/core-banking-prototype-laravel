@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Custodian\Services\BankAlertingService;
 use App\Domain\Custodian\Services\CustodianHealthMonitor;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -104,7 +105,7 @@ class BankAlertingController extends Controller
                     'message' => 'Bank health check completed successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Bank health check failed',
                 [
@@ -215,7 +216,7 @@ class BankAlertingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve health status',
@@ -292,7 +293,7 @@ class BankAlertingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve custodian health',
@@ -373,7 +374,7 @@ class BankAlertingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve alert history',
@@ -484,7 +485,7 @@ class BankAlertingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to calculate alerting statistics',
@@ -589,7 +590,7 @@ class BankAlertingController extends Controller
                     'message' => 'Alert configuration updated successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to update alert configuration',
@@ -664,7 +665,7 @@ class BankAlertingController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve alert configuration',
@@ -757,7 +758,7 @@ class BankAlertingController extends Controller
                     'message' => 'Test alert sent successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to send test alert',
@@ -850,7 +851,7 @@ class BankAlertingController extends Controller
                     'message' => 'Alert acknowledged successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to acknowledge alert',

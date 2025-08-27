@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Events\Portfolio\RebalancingApprovalRequested;
+use Exception;
+use Log;
 use Workflow\Activity\ActivityInterface;
 use Workflow\Activity\ActivityMethod;
 
@@ -78,8 +80,8 @@ class ApproveRebalancingActivity
                     'complexity_score' => $rebalancingPlan['workflow_metadata']['complexity_score'] ?? 1,
                 ],
             ];
-        } catch (\Exception $e) {
-            \Log::error('Approval process failed', [
+        } catch (Exception $e) {
+            Log::error('Approval process failed', [
                 'portfolio_id' => $portfolioId,
                 'rebalance_id' => $rebalanceId,
                 'approval_id'  => $approvalId,

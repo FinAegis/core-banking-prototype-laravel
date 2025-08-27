@@ -4,10 +4,12 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -28,7 +30,7 @@ class KycControllerTest extends ControllerTestCase
             'kyc_level'  => 'basic',
         ]);
 
-        $this->kycService = \Mockery::mock(KycService::class);
+        $this->kycService = Mockery::mock(KycService::class);
         $this->app->instance(KycService::class, $this->kycService);
 
         Storage::fake('private');
@@ -136,7 +138,7 @@ class KycControllerTest extends ControllerTestCase
 
         $this->kycService->shouldReceive('submitKyc')
             ->once()
-            ->with(\Mockery::type(User::class), \Mockery::any());
+            ->with(Mockery::type(User::class), Mockery::any());
 
         $file1 = UploadedFile::fake()->image('passport.jpg', 800, 600)->size(1000);
         $file2 = UploadedFile::fake()->create('utility_bill.pdf', 500);
@@ -263,7 +265,7 @@ class KycControllerTest extends ControllerTestCase
 
         $this->kycService->shouldReceive('submitKyc')
             ->once()
-            ->andThrow(new \Exception('Service error'));
+            ->andThrow(new Exception('Service error'));
 
         $file = UploadedFile::fake()->image('passport.jpg');
 

@@ -9,6 +9,7 @@ use App\Domain\AI\Events\HumanInterventionRequestedEvent;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 use Tests\Traits\WorkflowTestHelpers;
 
@@ -134,7 +135,7 @@ class FastAgentWorkflowTest extends TestCase
         // Act - Test compensation without workflow engine
         $compensated = $this->runSagaCompensation(
             $completedSteps,
-            new \RuntimeException('Service unavailable')
+            new RuntimeException('Service unavailable')
         );
 
         // Assert

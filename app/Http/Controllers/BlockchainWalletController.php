@@ -7,6 +7,7 @@ use App\Domain\Account\Models\BlockchainTransaction;
 use App\Domain\Wallet\Contracts\KeyManagementServiceInterface;
 use App\Domain\Wallet\Contracts\WalletConnectorInterface;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -102,7 +103,7 @@ class BlockchainWalletController extends Controller
             return redirect()
                 ->route('wallet.blockchain.show', $address->uuid)
                 ->with('success', 'Blockchain address generated successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to generate address: ' . $e->getMessage()]);
@@ -225,7 +226,7 @@ class BlockchainWalletController extends Controller
             return redirect()
                 ->route('wallet.blockchain.show', $address->uuid)
                 ->with('success', 'Transaction sent successfully. Transaction hash: ' . $transaction->hash);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to send transaction: ' . $e->getMessage()]);
@@ -286,7 +287,7 @@ class BlockchainWalletController extends Controller
                     'addresses_count' => $addresses->count(),
                 ]
             )->header('Content-Disposition', 'attachment; filename="wallet-backup-' . now()->format('Y-m-d') . '.json"');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->withErrors(['error' => 'Failed to export backup: ' . $e->getMessage()]);
         }
     }
@@ -302,7 +303,7 @@ class BlockchainWalletController extends Controller
             try {
                 $balance = $this->walletConnector->getBalance($address->chain, $address->address);
                 $balances[$address->uuid] = $balance;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $balances[$address->uuid] = [
                     'balance'   => 0,
                     'available' => 0,

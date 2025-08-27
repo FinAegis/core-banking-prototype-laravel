@@ -3,6 +3,7 @@
 namespace App\Domain\Newsletter\Console\Commands;
 
 use App\Domain\Newsletter\Services\SubscriberEmailService;
+use Exception;
 use Illuminate\Console\Command;
 
 class SendNewsletter extends Command
@@ -97,7 +98,7 @@ class SendNewsletter extends Command
             $this->info("Newsletter sent successfully to $sentCount subscribers!");
 
             return 0;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Failed to send newsletter: ' . $e->getMessage());
 
             return 1;

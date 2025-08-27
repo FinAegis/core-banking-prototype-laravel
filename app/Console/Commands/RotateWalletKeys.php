@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Domain\Wallet\Models\SecureKeyStorage;
 use App\Domain\Wallet\Services\SecureKeyStorageService;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -92,7 +93,7 @@ class RotateWalletKeys extends Command
                 $successful++;
 
                 $this->line(PHP_EOL . "✓ Rotated keys for wallet: {$walletId}");
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $failed++;
                 $this->error(PHP_EOL . "✗ Failed to rotate keys for wallet: {$walletId}");
                 $this->error('  Error: ' . $e->getMessage());

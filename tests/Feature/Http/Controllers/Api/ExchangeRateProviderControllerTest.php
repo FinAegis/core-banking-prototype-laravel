@@ -9,7 +9,9 @@ use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
 use App\Domain\Exchange\ValueObjects\RateProviderCapabilities;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use InvalidArgumentException;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
@@ -43,15 +45,15 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
 
         // Create mocks
         /** @var ExchangeRateProviderRegistry&MockInterface $mockRegistry */
-        $mockRegistry = \Mockery::mock(ExchangeRateProviderRegistry::class);
+        $mockRegistry = Mockery::mock(ExchangeRateProviderRegistry::class);
         $this->mockRegistry = $mockRegistry;
 
         /** @var EnhancedExchangeRateService&MockInterface $mockService */
-        $mockService = \Mockery::mock(EnhancedExchangeRateService::class);
+        $mockService = Mockery::mock(EnhancedExchangeRateService::class);
         $this->mockService = $mockService;
 
         /** @var IExchangeRateProvider&MockInterface $mockProvider */
-        $mockProvider = \Mockery::mock(IExchangeRateProvider::class);
+        $mockProvider = Mockery::mock(IExchangeRateProvider::class);
         $this->mockProvider = $mockProvider;
 
         // Register mocks with the container
@@ -163,7 +165,7 @@ class ExchangeRateProviderControllerTest extends ControllerTestCase
         // Setup registry to throw exception for invalid provider
         /** @var \Mockery\Expectation $expectation */
         $expectation = $this->mockRegistry->shouldReceive('get');
-        $expectation->with('invalid')->andThrow(new \InvalidArgumentException('Provider not found'));
+        $expectation->with('invalid')->andThrow(new InvalidArgumentException('Provider not found'));
 
         $response = $this->getJson('/api/v1/exchange-providers/invalid/rate?from=EUR&to=USD');
 

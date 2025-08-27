@@ -7,6 +7,7 @@ use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Webhook\Models\Webhook;
 use App\Models\User;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -208,7 +209,7 @@ class RunLoadTests extends Command
                         new \App\Domain\Account\DataObjects\AccountUuid($to->uuid),
                         new \App\Domain\Account\DataObjects\Money(1000)
                     );
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Log but continue testing
                     $this->warn('Transfer failed: ' . $e->getMessage());
                 }

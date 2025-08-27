@@ -9,6 +9,7 @@ use App\Domain\Treasury\Events\RiskAssessmentCompleted;
 use App\Domain\Treasury\Events\TreasuryAccountCreated;
 use App\Domain\Treasury\Events\YieldOptimizationStarted;
 use App\Domain\Treasury\ValueObjects\RiskProfile;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\EventSourcing\EventHandlers\Reactors\Reactor;
@@ -103,7 +104,7 @@ class RiskManagementSaga extends Reactor
                 'account_id' => $accountId,
                 'risk_score' => $riskScore,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Risk assessment failed', [
                 'saga_id'    => $this->sagaId,
                 'account_id' => $accountId,

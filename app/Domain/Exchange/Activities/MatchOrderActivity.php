@@ -6,6 +6,7 @@ use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\OrderBook;
 use App\Domain\Exchange\Services\FeeCalculator;
 use Brick\Math\BigDecimal;
+use Cache;
 use Illuminate\Support\Str;
 use Workflow\Activity;
 
@@ -174,11 +175,11 @@ class MatchOrderActivity extends Activity
     {
         // Store in cache for the workflow to process
         $key = "order_updates:{$orderId}";
-        $updates = \Cache::get($key, []);
+        $updates = Cache::get($key, []);
         $updates[] = [
             'executed_amount' => $executedAmount->__toString(),
             'timestamp'       => now()->toIso8601String(),
         ];
-        \Cache::put($key, $updates, now()->addMinutes(10));
+        Cache::put($key, $updates, now()->addMinutes(10));
     }
 }

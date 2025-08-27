@@ -9,6 +9,7 @@ use App\Domain\AI\Activities\Risk\CalculateDebtRatiosActivity;
 use App\Domain\AI\Activities\Risk\EvaluateLoanAffordabilityActivity;
 use App\Domain\AI\Events\Risk\CreditAssessedEvent;
 use App\Models\User;
+use Generator;
 use Workflow\Workflow;
 
 /**
@@ -26,14 +27,14 @@ class CreditRiskWorkflow extends Workflow
      * @param array $financialData
      * @param array $parameters
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
         User $user,
         array $financialData,
         array $parameters
-    ): \Generator {
+    ): Generator {
         // Calculate credit score
         // Prepare credit score inputs from financial data
         $paymentHistory = $this->extractPaymentHistory($financialData);

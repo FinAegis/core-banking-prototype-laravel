@@ -2,6 +2,8 @@
 
 namespace App\Domain\Exchange\ValueObjects;
 
+use InvalidArgumentException;
+
 final class LiquidityAdditionInput
 {
     public function __construct(
@@ -15,7 +17,7 @@ final class LiquidityAdditionInput
         public readonly array $metadata = []
     ) {
         if ($baseAmount <= 0 || $quoteAmount <= 0) {
-            throw new \InvalidArgumentException('Liquidity amounts must be positive');
+            throw new InvalidArgumentException('Liquidity amounts must be positive');
         }
     }
 

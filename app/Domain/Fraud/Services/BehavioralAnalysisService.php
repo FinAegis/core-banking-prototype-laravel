@@ -6,6 +6,7 @@ use App\Domain\Account\Models\Transaction;
 use App\Domain\Fraud\Models\BehavioralProfile;
 use App\Domain\Fraud\Models\FraudScore;
 use App\Models\User;
+use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
 class BehavioralAnalysisService
@@ -644,7 +645,7 @@ class BehavioralAnalysisService
     /**
      * Get historical behavior for user.
      */
-    public function getHistoricalBehavior(User $user, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    public function getHistoricalBehavior(User $user, DateTimeInterface $startDate, DateTimeInterface $endDate): array
     {
         $transactions = Transaction::whereHas('account', function ($query) use ($user) {
                 $query->where('user_uuid', $user->uuid);
@@ -666,7 +667,7 @@ class BehavioralAnalysisService
             $prevCreatedAt = $transactions[$i - 1]->created_at;
             $currCreatedAt = $transactions[$i]->created_at;
 
-            if ($prevCreatedAt instanceof \DateTimeInterface && $currCreatedAt instanceof \DateTimeInterface) {
+            if ($prevCreatedAt instanceof DateTimeInterface && $currCreatedAt instanceof DateTimeInterface) {
                 $timeDiff = \Carbon\Carbon::instance($prevCreatedAt)->diffInMinutes(\Carbon\Carbon::instance($currCreatedAt));
                 if ($timeDiff < 5) {
                     $rapidTransactions++;

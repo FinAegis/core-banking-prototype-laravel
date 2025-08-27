@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Exchange\Events;
 
+use DateTimeInterface;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class SpreadAdjusted extends ShouldBeStored
@@ -13,7 +14,7 @@ class SpreadAdjusted extends ShouldBeStored
         public readonly float $oldSpread,
         public readonly float $newSpread,
         public readonly string $reason,
-        public readonly \DateTimeInterface $timestamp,
+        public readonly DateTimeInterface $timestamp,
     ) {
     }
 }

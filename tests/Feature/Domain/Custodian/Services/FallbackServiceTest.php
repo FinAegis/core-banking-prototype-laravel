@@ -15,6 +15,7 @@ use App\Domain\Custodian\ValueObjects\TransactionReceipt;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\ServiceTestCase;
 
 class FallbackServiceTest extends ServiceTestCase
@@ -420,7 +421,7 @@ class FallbackServiceTest extends ServiceTestCase
     public function test_cache_ttl_values(): void
     {
         // Verify that cache TTL constants are properly set
-        $reflection = new \ReflectionClass(FallbackService::class);
+        $reflection = new ReflectionClass(FallbackService::class);
 
         $this->assertEquals(300, $reflection->getConstant('BALANCE_CACHE_TTL'));
         $this->assertEquals(3600, $reflection->getConstant('ACCOUNT_INFO_CACHE_TTL'));

@@ -6,6 +6,7 @@ namespace App\Domain\AI\ChildWorkflows\Trading;
 
 use App\Domain\AI\Activities\Trading\GenerateMomentumStrategyActivity;
 use App\Domain\AI\Events\Trading\StrategyGeneratedEvent;
+use Generator;
 use Workflow\Workflow;
 
 /**
@@ -21,12 +22,12 @@ class StrategyGenerationWorkflow extends Workflow
      * @param string $conversationId
      * @param array $marketAnalysis
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
         array $marketAnalysis
-    ): \Generator {
+    ): Generator {
         $strategies = [];
 
         // Generate momentum strategy

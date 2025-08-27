@@ -2,6 +2,8 @@
 
 namespace App\Domain\Lending\ValueObjects;
 
+use InvalidArgumentException;
+
 class CreditScore
 {
     public function __construct(
@@ -10,7 +12,7 @@ class CreditScore
         public readonly array $creditReport
     ) {
         if ($score < 300 || $score > 850) {
-            throw new \InvalidArgumentException('Credit score must be between 300 and 850');
+            throw new InvalidArgumentException('Credit score must be between 300 and 850');
         }
     }
 

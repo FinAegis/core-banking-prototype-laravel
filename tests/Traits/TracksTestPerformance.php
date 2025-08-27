@@ -3,6 +3,7 @@
 namespace Tests\Traits;
 
 use Illuminate\Support\Facades\Log;
+use ReflectionClass;
 
 trait TracksTestPerformance
 {
@@ -59,7 +60,7 @@ trait TracksTestPerformance
                 }
             }
             // Fallback: use the test file and line number
-            $reflection = new \ReflectionClass($this);
+            $reflection = new ReflectionClass($this);
 
             return basename($reflection->getFileName()) . ':' . __LINE__;
         }

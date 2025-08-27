@@ -5,6 +5,7 @@ namespace App\Domain\Lending\Services;
 use App\Domain\Lending\Aggregates\Loan;
 use App\Domain\Lending\Aggregates\LoanApplication;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -160,7 +161,7 @@ class LoanApplicationService
                     'reasons'       => $decision['rejectionReasons'],
                 ];
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
@@ -275,7 +276,7 @@ class LoanApplicationService
                 'amount'           => $amount,
                 'remainingBalance' => $loan->getState()['remainingBalance'],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }

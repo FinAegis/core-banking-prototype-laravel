@@ -8,6 +8,8 @@ use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
 use Brick\Math\RoundingMode;
+use DateTimeInterface;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -37,14 +39,14 @@ class EnhancedExchangeRateService extends ExchangeRateService
             if ($exchangeRate && $exchangeRate->created_at->diffInMinutes(now()) <= 5) {
                 return $rate;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::debug("No valid rate in database for {$from}/{$to}");
         }
 
         // Fallback to external providers
         $exchangeRate = $this->fetchAndStoreRate($from, $to);
 
-        return $exchangeRate ? $exchangeRate->rate : throw new \Exception('Failed to fetch exchange rate');
+        return $exchangeRate ? $exchangeRate->rate : throw new Exception('Failed to fetch exchange rate');
     }
 
     /**
@@ -73,7 +75,7 @@ class EnhancedExchangeRateService extends ExchangeRateService
 
             // Store in database
             return $this->storeQuote($quote);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to fetch exchange rate',
                 [
@@ -95,7 +97,7 @@ class EnhancedExchangeRateService extends ExchangeRateService
         $rate = $this->providerRegistry->getRate($from, $to);
 
         if ($rate === null) {
-            throw new \Exception("Failed to fetch exchange rate for {$from}/{$to}");
+            throw new Exception("Failed to fetch exchange rate for {$from}/{$to}");
         }
 
         // Create a quote object from the rate
@@ -180,7 +182,7 @@ class EnhancedExchangeRateService extends ExchangeRateService
                         'error' => 'Failed to fetch rate',
                     ];
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $failed[] = [
                     'pair'  => "{$pair->from_asset_code}/{$pair->to_asset_code}",
                     'error' => $e->getMessage(),
@@ -226,7 +228,7 @@ class EnhancedExchangeRateService extends ExchangeRateService
                 'spread_percentage' => $aggregated->getSpreadPercentage(),
                 'providers_used'    => $aggregated->metadata['providers'],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::debug('Failed to calculate aggregated rate', ['error' => $e->getMessage()]);
         }
 
@@ -239,8 +241,8 @@ class EnhancedExchangeRateService extends ExchangeRateService
     public function getHistoricalRates(
         string $from,
         string $to,
-        \DateTimeInterface $startDate,
-        \DateTimeInterface $endDate
+        DateTimeInterface $startDate,
+        DateTimeInterface $endDate
     ): array {
         return ExchangeRate::where('from_asset_code', $from)
             ->where('to_asset_code', $to)

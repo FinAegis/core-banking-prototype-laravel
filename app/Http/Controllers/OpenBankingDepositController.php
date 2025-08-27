@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Services\PaymentGatewayService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -110,7 +111,7 @@ class OpenBankingDepositController extends Controller
                         number_format($depositData['amount'] / 100, 2),
                         $depositData['bank']
                     ));
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('OpenBanking deposit failed', [
                     'error'        => $e->getMessage(),
                     'deposit_data' => $depositData,

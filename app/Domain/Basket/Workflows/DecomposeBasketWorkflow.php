@@ -5,12 +5,14 @@ namespace App\Domain\Basket\Workflows;
 use App\Domain\Account\ValueObjects\AccountUuid;
 use App\Domain\Basket\Activities\ComposeBasketActivity;
 use App\Domain\Basket\Activities\DecomposeBasketActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
 class DecomposeBasketWorkflow extends Workflow
 {
-    public function execute(AccountUuid $accountUuid, string $basketCode, int $amount): \Generator
+    public function execute(AccountUuid $accountUuid, string $basketCode, int $amount): Generator
     {
         try {
             $result = yield ActivityStub::make(
@@ -31,7 +33,7 @@ class DecomposeBasketWorkflow extends Workflow
             );
 
             return $result;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             yield from $this->compensate();
             throw $th;
         }

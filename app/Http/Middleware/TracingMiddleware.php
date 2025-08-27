@@ -8,6 +8,7 @@ use App\Domain\Monitoring\Services\TracingService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class TracingMiddleware
 {
@@ -56,7 +57,7 @@ class TracingMiddleware
             }
 
             return $response;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Record error
             $this->tracingService->recordError($traceId, $e, [
                 'request' => [

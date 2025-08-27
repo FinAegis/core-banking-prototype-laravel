@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\AccountResource\Widgets;
 
 use App\Domain\Account\Models\Transaction as TransactionEvent;
+use Exception;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
@@ -53,7 +54,7 @@ class SystemHealthWidget extends BaseWidget
             Redis::ping();
 
             return 'Operational';
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 'Degraded';
         }
     }
@@ -64,13 +65,13 @@ class SystemHealthWidget extends BaseWidget
 
         try {
             DB::select('SELECT 1');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $issues[] = 'Database';
         }
 
         try {
             Redis::ping();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $issues[] = 'Redis';
         }
 
@@ -148,7 +149,7 @@ class SystemHealthWidget extends BaseWidget
             } else {
                 return 'Busy';
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 'Unknown';
         }
     }
@@ -164,7 +165,7 @@ class SystemHealthWidget extends BaseWidget
             }
 
             return $totalJobs . ' jobs pending';
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 'Queue status unavailable';
         }
     }

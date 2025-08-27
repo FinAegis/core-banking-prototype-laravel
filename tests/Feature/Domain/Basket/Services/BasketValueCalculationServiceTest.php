@@ -12,6 +12,7 @@ use App\Domain\Basket\Models\BasketComponent;
 use App\Domain\Basket\Models\BasketValue;
 use App\Domain\Basket\Services\BasketValueCalculationService;
 use Illuminate\Support\Facades\Cache;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
@@ -25,13 +26,13 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
     {
         parent::setUp();
 
-        $this->exchangeRateService = \Mockery::mock(ExchangeRateService::class);
+        $this->exchangeRateService = Mockery::mock(ExchangeRateService::class);
         $this->service = new BasketValueCalculationService($this->exchangeRateService);
     }
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 

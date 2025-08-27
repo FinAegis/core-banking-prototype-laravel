@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Mockery;
 use Tests\TestCase;
 
 class SecureKeyStorageServiceTest extends TestCase
@@ -133,7 +134,7 @@ class SecureKeyStorageServiceTest extends TestCase
         // Configure encrypter mock
         $this->encrypter->shouldReceive('encrypt')
             ->once()
-            ->with(\Mockery::on(function ($data) use ($privateKey, $permissions) {
+            ->with(Mockery::on(function ($data) use ($privateKey, $permissions) {
                 return $data['key'] === $privateKey
                     && $data['permissions'] === $permissions;
             }))
@@ -314,7 +315,7 @@ class SecureKeyStorageServiceTest extends TestCase
 
         // Verify log entry
         Log::shouldHaveReceived('info')
-            ->with('Wallet keys rotated', \Mockery::on(function ($context) use ($walletId, $userId, $reason) {
+            ->with('Wallet keys rotated', Mockery::on(function ($context) use ($walletId, $userId, $reason) {
                 return $context['wallet_id'] === $walletId
                     && $context['user_id'] === $userId
                     && $context['reason'] === $reason;
@@ -340,7 +341,7 @@ class SecureKeyStorageServiceTest extends TestCase
 
         // Verify log entry
         Log::shouldHaveReceived('info')
-            ->with('HSM storage simulated for wallet', \Mockery::on(function ($context) use ($walletId) {
+            ->with('HSM storage simulated for wallet', Mockery::on(function ($context) use ($walletId) {
                 return $context['wallet_id'] === $walletId
                     && array_key_exists('timestamp', $context);
             }));

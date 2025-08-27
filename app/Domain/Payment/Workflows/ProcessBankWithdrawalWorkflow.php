@@ -10,6 +10,9 @@ use App\Domain\Payment\DataObjects\BankWithdrawal;
 use App\Domain\Payment\Workflow\Activities\CompleteWithdrawalActivity;
 use App\Domain\Payment\Workflow\Activities\FailWithdrawalActivity;
 use App\Domain\Payment\Workflow\Activities\InitiateWithdrawalActivity;
+use Exception;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -18,7 +21,7 @@ class ProcessBankWithdrawalWorkflow extends Workflow
     /**
      * Process a bank withdrawal through the complete workflow.
      */
-    public function execute(BankWithdrawal $withdrawal): \Generator
+    public function execute(BankWithdrawal $withdrawal): Generator
     {
         $withdrawalUuid = null;
 
@@ -30,7 +33,7 @@ class ProcessBankWithdrawalWorkflow extends Workflow
             );
 
             if (! $validation['valid']) {
-                throw new \Exception($validation['message'] ?? 'Withdrawal validation failed');
+                throw new Exception($validation['message'] ?? 'Withdrawal validation failed');
             }
 
             // Step 2: Initiate the withdrawal using event sourcing
@@ -90,7 +93,7 @@ class ProcessBankWithdrawalWorkflow extends Workflow
                 'transfer_id'    => $transferId,
                 'reference'      => $withdrawal->getReference(),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // If we have initiated a withdrawal, mark it as failed
             if ($withdrawalUuid !== null) {
                 yield ActivityStub::make(

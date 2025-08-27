@@ -2,6 +2,8 @@
 
 namespace App\Domain\Exchange\ValueObjects;
 
+use InvalidArgumentException;
+
 final class LiquidityRemovalInput
 {
     public function __construct(
@@ -13,7 +15,7 @@ final class LiquidityRemovalInput
         public readonly array $metadata = []
     ) {
         if ($shares <= 0) {
-            throw new \InvalidArgumentException('Shares must be positive');
+            throw new InvalidArgumentException('Shares must be positive');
         }
     }
 

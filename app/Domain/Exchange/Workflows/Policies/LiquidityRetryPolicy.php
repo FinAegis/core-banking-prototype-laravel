@@ -2,6 +2,9 @@
 
 namespace App\Domain\Exchange\Workflows\Policies;
 
+use DomainException;
+use InvalidArgumentException;
+
 // TODO: Implement RetryOptions when available in laravel-workflow package
 // use Workflow\Exception\RetryOptions;
 
@@ -18,8 +21,8 @@ class LiquidityRetryPolicy
             'maximum_interval'         => 60000, // 60 seconds
             'maximum_attempts'         => 3,
             'non_retryable_exceptions' => [
-                \DomainException::class,
-                \InvalidArgumentException::class,
+                DomainException::class,
+                InvalidArgumentException::class,
             ],
         ];
         // return RetryOptions::new()
@@ -44,7 +47,7 @@ class LiquidityRetryPolicy
             'maximum_interval'         => 120000, // 2 minutes
             'maximum_attempts'         => 5,
             'non_retryable_exceptions' => [
-                \DomainException::class,
+                DomainException::class,
             ],
         ];
         // return RetryOptions::new()

@@ -8,6 +8,7 @@ use App\Domain\Stablecoin\Models\StablecoinOperation;
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use App\Domain\Stablecoin\Workflows\MintStablecoinWorkflow;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -179,7 +180,7 @@ class StablecoinOperationsController extends Controller
             return redirect()
                 ->route('stablecoin-operations.index')
                 ->with('success', "Successfully minted {$validated['amount']} {$validated['stablecoin']}");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return back()
@@ -309,7 +310,7 @@ class StablecoinOperationsController extends Controller
             return redirect()
                 ->route('stablecoin-operations.index')
                 ->with('success', "Successfully burned {$validated['amount']} {$validated['stablecoin']}");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return back()

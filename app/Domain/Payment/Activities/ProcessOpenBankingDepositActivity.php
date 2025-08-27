@@ -7,6 +7,7 @@ namespace App\Domain\Payment\Activities;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Payment\DataObjects\OpenBankingDeposit;
+use Exception;
 use Illuminate\Support\Facades\Log;
 
 class ProcessOpenBankingDepositActivity
@@ -16,7 +17,7 @@ class ProcessOpenBankingDepositActivity
         $account = Account::where('uuid', $accountUuid)->first();
 
         if (! $account) {
-            throw new \Exception("Account not found: {$accountUuid}");
+            throw new Exception("Account not found: {$accountUuid}");
         }
 
         // Account validation - in production, check status
@@ -56,7 +57,7 @@ class ProcessOpenBankingDepositActivity
         }
 
         // Production implementation would go here
-        throw new \Exception('Production OpenBanking integration not implemented');
+        throw new Exception('Production OpenBanking integration not implemented');
     }
 
     public function completeTransaction(OpenBankingDeposit $deposit, string $bankReference): void
@@ -103,7 +104,7 @@ class ProcessOpenBankingDepositActivity
                     'reference' => $deposit->reference,
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to reverse transaction', [
                 'reference' => $deposit->reference,
                 'error'     => $e->getMessage(),

@@ -10,6 +10,8 @@ use App\Domain\Account\Models\Turnover;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Throwable;
 use Workflow\Activity;
 
 /**
@@ -56,7 +58,7 @@ class SingleBatchOperationActivity extends Activity
                 'start_time' => $startTime->toISOString(),
                 'end_time'   => $endTime->toISOString(),
             ];
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             logger()->error(
                 'Batch operation failed',
                 [
@@ -86,7 +88,7 @@ class SingleBatchOperationActivity extends Activity
             case 'generate_regulatory_reports':
                 return $this->generateRegulatoryReports();
             default:
-                throw new \InvalidArgumentException("Unknown batch operation: {$operation}");
+                throw new InvalidArgumentException("Unknown batch operation: {$operation}");
         }
     }
 

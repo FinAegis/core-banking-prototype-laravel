@@ -10,6 +10,7 @@ use App\Domain\Banking\Models\BankCapabilities;
 use App\Domain\Banking\Models\BankStatement;
 use App\Domain\Banking\Models\BankTransaction;
 use App\Domain\Banking\Models\BankTransfer;
+use DateTime;
 use Illuminate\Support\Collection;
 
 interface IBankConnector
@@ -95,22 +96,22 @@ interface IBankConnector
      * Get transaction history.
      *
      * @param  string  $accountId  External bank account ID
-     * @param  \DateTime  $from  Start date
-     * @param  \DateTime  $to  End date
+     * @param  DateTime  $from  Start date
+     * @param  DateTime  $to  End date
      * @param  int  $limit  Maximum number of transactions
      * @return Collection<BankTransaction>
      */
-    public function getTransactions(string $accountId, \DateTime $from, \DateTime $to, int $limit = 100): Collection;
+    public function getTransactions(string $accountId, DateTime $from, DateTime $to, int $limit = 100): Collection;
 
     /**
      * Get account statement.
      *
      * @param  string  $accountId  External bank account ID
-     * @param  \DateTime  $from  Start date
-     * @param  \DateTime  $to  End date
+     * @param  DateTime  $from  Start date
+     * @param  DateTime  $to  End date
      * @param  string  $format  Statement format (PDF, CSV, JSON)
      */
-    public function getStatement(string $accountId, \DateTime $from, \DateTime $to, string $format = 'JSON'): BankStatement;
+    public function getStatement(string $accountId, DateTime $from, DateTime $to, string $format = 'JSON'): BankStatement;
 
     /**
      * Validate IBAN.

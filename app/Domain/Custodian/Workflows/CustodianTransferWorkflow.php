@@ -10,6 +10,8 @@ use App\Domain\Account\Workflows\DepositAccountWorkflow;
 use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
 use App\Domain\Custodian\Workflows\Activities\InitiateCustodianTransferActivity;
 use App\Domain\Custodian\Workflows\Activities\VerifyCustodianTransferActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\ChildWorkflowStub;
 use Workflow\Workflow;
@@ -27,7 +29,7 @@ class CustodianTransferWorkflow extends Workflow
         string $custodianName,
         string $direction = 'deposit', // 'deposit' or 'withdraw'
         ?string $reference = null
-    ): \Generator {
+    ): Generator {
         try {
             if ($direction === 'deposit') {
                 // Deposit from custodian to internal account
@@ -117,7 +119,7 @@ class CustodianTransferWorkflow extends Workflow
                 'amount'         => $amount->getAmount(),
                 'asset_code'     => $assetCode,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Execute compensations
             yield from $this->compensate();
 

@@ -10,6 +10,7 @@ use App\Domain\Stablecoin\Events\MarginCallIssued;
 use App\Domain\Stablecoin\Services\LiquidationAuctionService;
 use App\Domain\Stablecoin\Services\PriceOracleService;
 use Brick\Math\BigDecimal;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Reactors\Reactor;
 
@@ -88,7 +89,7 @@ class CollateralLiquidationSaga extends Reactor
 
             // Step 2.6: Set auction timeout (typically 1 hour)
             $this->scheduleAuctionTimeout($auctionId, 3600);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to start liquidation auction', [
                 'position_id' => $event->positionId,
                 'error'       => $e->getMessage(),
@@ -165,7 +166,7 @@ class CollateralLiquidationSaga extends Reactor
                 'auction_id'     => $auctionId,
                 'remaining_debt' => $remainingDebt->toFloat(),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to execute liquidation', [
                 'position_id' => $positionId,
                 'auction_id'  => $auctionId,

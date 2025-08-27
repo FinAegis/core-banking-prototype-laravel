@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use DB;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -184,7 +186,7 @@ class DynamicRateLimitService
 
             // Assume high load if many clients connected
             return min(1.0, $connectedClients / 100);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Failed to get Redis load metrics', ['error' => $e->getMessage()]);
 
             return 0.5;
@@ -198,12 +200,12 @@ class DynamicRateLimitService
     {
         try {
             // Count active connections (MySQL specific)
-            $result = \DB::select("SHOW STATUS LIKE 'Threads_connected'");
+            $result = DB::select("SHOW STATUS LIKE 'Threads_connected'");
             $connections = $result[0]->Value ?? 10;
 
             // Assume high load with many connections
             return min(1.0, $connections / 50);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Failed to get database load metrics', ['error' => $e->getMessage()]);
 
             return 0.5;
@@ -269,7 +271,7 @@ class DynamicRateLimitService
             }
 
             return 'new';
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning(
                 'Failed to calculate user trust level',
                 [

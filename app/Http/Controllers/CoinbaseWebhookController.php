@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Cgo\Services\CoinbaseCommerceService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -37,7 +38,7 @@ class CoinbaseWebhookController extends Controller
             $this->coinbaseService->processWebhookEvent($event['event'] ?? []);
 
             return response()->json(['success' => true], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error processing Coinbase webhook',
                 [

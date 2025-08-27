@@ -7,6 +7,7 @@ use App\Domain\Payment\Events\DepositCompleted;
 use App\Domain\Payment\Events\DepositFailed;
 use App\Domain\Payment\Events\DepositInitiated;
 use App\Domain\Payment\Repositories\PaymentDepositRepository;
+use Exception;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class PaymentDepositAggregate extends AggregateRoot
@@ -52,7 +53,7 @@ class PaymentDepositAggregate extends AggregateRoot
     public function completeDeposit(string $transactionId): static
     {
         if ($this->depositStatus !== 'pending') {
-            throw new \Exception('Cannot complete deposit that is not pending');
+            throw new Exception('Cannot complete deposit that is not pending');
         }
 
         $this->recordThat(
@@ -71,7 +72,7 @@ class PaymentDepositAggregate extends AggregateRoot
     public function failDeposit(string $reason): static
     {
         if ($this->depositStatus !== 'pending') {
-            throw new \Exception('Cannot fail deposit that is not pending');
+            throw new Exception('Cannot fail deposit that is not pending');
         }
 
         $this->recordThat(

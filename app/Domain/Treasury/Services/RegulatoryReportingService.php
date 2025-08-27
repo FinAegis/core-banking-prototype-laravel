@@ -7,6 +7,8 @@ namespace App\Domain\Treasury\Services;
 use App\Domain\Treasury\Aggregates\TreasuryAggregate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use RuntimeException;
 
 class RegulatoryReportingService
 {
@@ -46,7 +48,7 @@ class RegulatoryReportingService
     ): array {
         // Validate report type
         if (! isset($this->reportTemplates[$reportType])) {
-            throw new \InvalidArgumentException("Invalid report type: {$reportType}");
+            throw new InvalidArgumentException("Invalid report type: {$reportType}");
         }
 
         $template = $this->reportTemplates[$reportType];
@@ -58,7 +60,7 @@ class RegulatoryReportingService
         $validation = $this->validateReportData($reportData, $template);
 
         if (! $validation['is_complete']) {
-            throw new \RuntimeException('Report data incomplete: ' . implode(', ', $validation['missing']));
+            throw new RuntimeException('Report data incomplete: ' . implode(', ', $validation['missing']));
         }
 
         // Format report according to template

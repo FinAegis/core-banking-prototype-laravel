@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Treasury\Services;
 
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use RuntimeException;
@@ -133,7 +134,7 @@ class AssetValuationService
                 }
 
                 return $totalValue;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to calculate portfolio value: {$e->getMessage()}", 0, $e);
             }
         });
@@ -229,7 +230,7 @@ class AssetValuationService
                 'valuation_method'    => 'mark_to_market',
                 'confidence_level'    => $this->calculateConfidenceLevel($assetPrices),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to mark portfolio to market: {$e->getMessage()}", 0, $e);
         }
     }

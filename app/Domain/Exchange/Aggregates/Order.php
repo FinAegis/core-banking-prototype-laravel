@@ -7,6 +7,7 @@ use App\Domain\Exchange\Events\OrderMatched;
 use App\Domain\Exchange\Events\OrderPlaced;
 use App\Domain\Exchange\ValueObjects\OrderStatus;
 use Brick\Math\BigDecimal;
+use DomainException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class Order extends AggregateRoot
@@ -105,7 +106,7 @@ class Order extends AggregateRoot
     public function cancelOrder(string $reason, array $metadata = []): self
     {
         if ($this->status->isFinal()) {
-            throw new \DomainException('Cannot cancel order in final status: ' . $this->status->value);
+            throw new DomainException('Cannot cancel order in final status: ' . $this->status->value);
         }
 
         $this->recordThat(

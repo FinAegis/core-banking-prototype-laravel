@@ -3,6 +3,7 @@
 namespace App\Domain\Governance\Activities;
 
 use App\Models\Poll;
+use Exception;
 use Workflow\Activity;
 
 class CalculateBasketCompositionActivity extends Activity
@@ -16,7 +17,7 @@ class CalculateBasketCompositionActivity extends Activity
         $poll = Poll::where('uuid', $pollUuid)->with('votes')->first();
 
         if (! $poll) {
-            throw new \Exception('Poll not found');
+            throw new Exception('Poll not found');
         }
 
         // Initialize total voting power and weighted sums
@@ -26,7 +27,7 @@ class CalculateBasketCompositionActivity extends Activity
         // Get the basket voting options structure
         $basketOption = collect($poll->options)->firstWhere('id', 'basket_weights');
         if (! $basketOption) {
-            throw new \Exception('Invalid poll structure - missing basket weights option');
+            throw new Exception('Invalid poll structure - missing basket weights option');
         }
 
         // Initialize weighted sums for each currency

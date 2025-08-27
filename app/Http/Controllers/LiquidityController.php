@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Exchange\Services\LiquidityPoolService;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -76,7 +77,7 @@ class LiquidityController extends Controller
             } else {
                 return back()->with('error', 'Failed to add liquidity: ' . $result['error']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
@@ -119,7 +120,7 @@ class LiquidityController extends Controller
             } else {
                 return back()->with('error', 'Failed to remove liquidity: ' . $result['error']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
@@ -145,7 +146,7 @@ class LiquidityController extends Controller
             return redirect()
                 ->route('liquidity.pool', $validated['pool_id'])
                 ->with('success', "Rewards claimed: $rewardText");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }

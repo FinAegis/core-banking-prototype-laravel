@@ -12,6 +12,8 @@ use App\Domain\Exchange\Activities\PlaceOrderActivity;
 use App\Domain\Exchange\Events\MarketMakerStarted;
 use App\Domain\Exchange\Events\MarketMakerStopped;
 use App\Domain\Exchange\Events\QuotesUpdated;
+use Exception;
+use Generator;
 use Illuminate\Support\Facades\Log;
 use Workflow\Activity\ActivityOptions;
 use Workflow\Workflow;
@@ -46,9 +48,9 @@ class MarketMakerWorkflow
      *   - quote_refresh_interval: int - Seconds between quote updates
      *   - risk_limits: array - Risk management parameters
      *
-     * @return \Generator
+     * @return Generator
      */
-    public function execute(array $config): \Generator
+    public function execute(array $config): Generator
     {
         $this->config = $config;
 
@@ -132,7 +134,7 @@ class MarketMakerWorkflow
                     ]);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Market maker workflow failed', [
                 'pool_id' => $config['pool_id'],
                 'error'   => $e->getMessage(),
@@ -165,7 +167,7 @@ class MarketMakerWorkflow
     /**
      * Cancel orders that are too far from current market price.
      */
-    private function cancelStaleOrders(): \Generator
+    private function cancelStaleOrders(): Generator
     {
         $cancelledCount = 0;
 
@@ -232,7 +234,7 @@ class MarketMakerWorkflow
     /**
      * Rebalance inventory to maintain target ratio.
      */
-    private function rebalanceInventory(): \Generator
+    private function rebalanceInventory(): Generator
     {
         Log::info('Rebalancing inventory', [
             'pool_id'           => $this->config['pool_id'],
@@ -256,7 +258,7 @@ class MarketMakerWorkflow
     /**
      * Place bid and ask orders based on calculated quotes.
      */
-    private function placeQuoteOrders(array $quotes): \Generator
+    private function placeQuoteOrders(array $quotes): Generator
     {
         // Cancel existing orders if we're updating quotes
         if (! empty($this->activeOrders)) {
@@ -335,7 +337,7 @@ class MarketMakerWorkflow
     /**
      * Check if any risk limits are breached.
      */
-    private function checkRiskLimits(): \Generator
+    private function checkRiskLimits(): Generator
     {
         $riskLimits = $this->config['risk_limits'] ?? [];
 
@@ -390,7 +392,7 @@ class MarketMakerWorkflow
     /**
      * Cancel all active orders.
      */
-    private function cancelAllOrders(): \Generator
+    private function cancelAllOrders(): Generator
     {
         foreach (array_keys($this->activeOrders) as $orderId) {
             yield Workflow::executeActivity(

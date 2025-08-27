@@ -2,8 +2,10 @@
 
 namespace Tests\Unit\Helpers;
 
+use DateTime;
 use Faker\Generator;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionFunction;
 use Tests\TestCase;
 
 class FakerHelperTest extends TestCase
@@ -69,7 +71,7 @@ class FakerHelperTest extends TestCase
     #[Test]
     public function test_faker_has_proper_documentation(): void
     {
-        $reflection = new \ReflectionFunction('faker');
+        $reflection = new ReflectionFunction('faker');
         $docComment = $reflection->getDocComment();
 
         $this->assertNotFalse($docComment);
@@ -80,7 +82,7 @@ class FakerHelperTest extends TestCase
     #[Test]
     public function test_faker_function_return_type(): void
     {
-        $reflection = new \ReflectionFunction('faker');
+        $reflection = new ReflectionFunction('faker');
 
         $this->assertTrue($reflection->hasReturnType());
         $returnType = $reflection->getReturnType();
@@ -90,7 +92,7 @@ class FakerHelperTest extends TestCase
     #[Test]
     public function test_faker_function_has_no_parameters(): void
     {
-        $reflection = new \ReflectionFunction('faker');
+        $reflection = new ReflectionFunction('faker');
 
         $this->assertEquals(0, $reflection->getNumberOfParameters());
     }
@@ -139,10 +141,10 @@ class FakerHelperTest extends TestCase
         $faker = faker();
 
         $dateTime = $faker->dateTime();
-        $this->assertInstanceOf(\DateTime::class, $dateTime);
+        $this->assertInstanceOf(DateTime::class, $dateTime);
 
         $dateTimeThisYear = $faker->dateTimeThisYear();
-        $this->assertInstanceOf(\DateTime::class, $dateTimeThisYear);
+        $this->assertInstanceOf(DateTime::class, $dateTimeThisYear);
         $this->assertEquals(date('Y'), $dateTimeThisYear->format('Y'));
     }
 

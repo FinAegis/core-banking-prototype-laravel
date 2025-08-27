@@ -12,12 +12,14 @@ use App\Domain\Exchange\Aggregates\Order;
 use App\Domain\Exchange\ValueObjects\OrderMatchingInput;
 use App\Domain\Exchange\ValueObjects\OrderMatchingResult;
 use Carbon\CarbonInterval;
+use Exception;
+use Generator;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
 class OrderMatchingWorkflow extends Workflow
 {
-    public function execute(OrderMatchingInput $input): \Generator
+    public function execute(OrderMatchingInput $input): Generator
     {
         // Step 1: Validate order
         $validationResult = yield ActivityStub::make(ValidateOrderActivity::class, $input->orderId);
@@ -131,7 +133,7 @@ class OrderMatchingWorkflow extends Workflow
                     makerFee: $match->makerFee,
                     takerFee: $match->takerFee
                 )->persist();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log error and continue
                 yield ActivityStub::make(
                     'App\Domain\Exchange\Activities\LogMatchingErrorActivity',

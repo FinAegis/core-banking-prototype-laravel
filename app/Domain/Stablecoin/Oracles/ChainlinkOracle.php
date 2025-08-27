@@ -5,7 +5,10 @@ namespace App\Domain\Stablecoin\Oracles;
 use App\Domain\Stablecoin\Contracts\OracleConnector;
 use App\Domain\Stablecoin\ValueObjects\PriceData;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use RuntimeException;
 
 class ChainlinkOracle implements OracleConnector
 {
@@ -35,7 +38,7 @@ class ChainlinkOracle implements OracleConnector
         $pair = "{$base}/{$quote}";
 
         if (! isset($this->priceFeedMap[$pair])) {
-            throw new \InvalidArgumentException("Price feed not available for {$pair}");
+            throw new InvalidArgumentException("Price feed not available for {$pair}");
         }
 
         try {
@@ -57,7 +60,7 @@ class ChainlinkOracle implements OracleConnector
                     'updated_at'   => $response['updatedAt'],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Chainlink oracle error: {$e->getMessage()}");
             throw $e;
         }
@@ -71,7 +74,7 @@ class ChainlinkOracle implements OracleConnector
             try {
                 [$base, $quote] = explode('/', $pair);
                 $prices[$pair] = $this->getPrice($base, $quote);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning("Failed to get price for {$pair}: {$e->getMessage()}");
             }
         }
@@ -83,7 +86,7 @@ class ChainlinkOracle implements OracleConnector
     {
         // Chainlink doesn't provide historical data via API
         // In production, this would query on-chain historical rounds
-        throw new \RuntimeException('Historical prices not available from Chainlink oracle');
+        throw new RuntimeException('Historical prices not available from Chainlink oracle');
     }
 
     public function isHealthy(): bool
@@ -93,7 +96,7 @@ class ChainlinkOracle implements OracleConnector
             $this->getPrice('ETH', 'USD');
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

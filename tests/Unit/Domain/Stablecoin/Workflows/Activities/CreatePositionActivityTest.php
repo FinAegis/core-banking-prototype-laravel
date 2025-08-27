@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows\Activities;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Workflows\Activities\CreatePositionActivity;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class CreatePositionActivityTest extends DomainTestCase
@@ -18,7 +19,7 @@ class CreatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_activity(): void
     {
-        $reflection = new \ReflectionClass(CreatePositionActivity::class);
+        $reflection = new ReflectionClass(CreatePositionActivity::class);
         $this->assertEquals('Workflow\Activity', $reflection->getParentClass()->getName());
     }
 
@@ -31,7 +32,7 @@ class CreatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_has_correct_signature(): void
     {
-        $reflection = new \ReflectionClass(CreatePositionActivity::class);
+        $reflection = new ReflectionClass(CreatePositionActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(6, $method->getNumberOfParameters());
@@ -61,7 +62,7 @@ class CreatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_array(): void
     {
-        $reflection = new \ReflectionClass(CreatePositionActivity::class);
+        $reflection = new ReflectionClass(CreatePositionActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('array', $method->getReturnType()->getName());
@@ -86,7 +87,7 @@ class CreatePositionActivityTest extends DomainTestCase
     #[Test]
     public function test_activity_properties(): void
     {
-        $reflection = new \ReflectionClass(CreatePositionActivity::class);
+        $reflection = new ReflectionClass(CreatePositionActivity::class);
 
         // Check for important properties inherited from Activity
         $this->assertTrue($reflection->hasProperty('tries'));

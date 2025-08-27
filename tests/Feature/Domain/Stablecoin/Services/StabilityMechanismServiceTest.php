@@ -13,6 +13,7 @@ use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Stablecoin\Services\StabilityMechanismService;
 use Illuminate\Support\Facades\Event;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
@@ -34,8 +35,8 @@ class StabilityMechanismServiceTest extends ServiceTestCase
     {
         parent::setUp();
 
-        $this->exchangeRateService = \Mockery::mock(ExchangeRateService::class);
-        $this->collateralService = \Mockery::mock(CollateralService::class);
+        $this->exchangeRateService = Mockery::mock(ExchangeRateService::class);
+        $this->collateralService = Mockery::mock(CollateralService::class);
         $this->service = new StabilityMechanismService(
             $this->exchangeRateService,
             $this->collateralService
@@ -122,7 +123,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 

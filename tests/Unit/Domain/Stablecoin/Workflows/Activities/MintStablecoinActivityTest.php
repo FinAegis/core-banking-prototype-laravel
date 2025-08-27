@@ -7,6 +7,7 @@ use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Workflows\Activities\MintStablecoinActivity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class MintStablecoinActivityTest extends DomainTestCase
@@ -22,7 +23,7 @@ class MintStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_activity(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinActivity::class);
+        $reflection = new ReflectionClass(MintStablecoinActivity::class);
         $this->assertEquals('Workflow\Activity', $reflection->getParentClass()->getName());
     }
 
@@ -35,7 +36,7 @@ class MintStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_has_correct_signature(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinActivity::class);
+        $reflection = new ReflectionClass(MintStablecoinActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(4, $method->getNumberOfParameters());
@@ -58,7 +59,7 @@ class MintStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_bool(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinActivity::class);
+        $reflection = new ReflectionClass(MintStablecoinActivity::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('bool', $method->getReturnType()->getName());
@@ -107,7 +108,7 @@ class MintStablecoinActivityTest extends DomainTestCase
     #[Test]
     public function test_activity_has_correct_properties(): void
     {
-        $reflection = new \ReflectionClass(MintStablecoinActivity::class);
+        $reflection = new ReflectionClass(MintStablecoinActivity::class);
 
         // Check for properties that should be inherited from Activity
         $this->assertTrue($reflection->hasProperty('tries'));

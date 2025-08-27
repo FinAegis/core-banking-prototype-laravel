@@ -9,6 +9,8 @@ use App\Domain\Account\Models\Turnover;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Throwable;
 use Workflow\Activity;
 
 class BatchProcessingActivity extends Activity
@@ -35,7 +37,7 @@ class BatchProcessingActivity extends Activity
                     'status'    => 'success',
                     'result'    => $result,
                 ];
-            } catch (\Throwable $th) {
+            } catch (Throwable $th) {
                 $results[] = [
                     'operation' => $operation,
                     'status'    => 'failed',
@@ -88,7 +90,7 @@ class BatchProcessingActivity extends Activity
             case 'generate_regulatory_reports':
                 return $this->generateRegulatoryReports();
             default:
-                throw new \InvalidArgumentException("Unknown batch operation: {$operation}");
+                throw new InvalidArgumentException("Unknown batch operation: {$operation}");
         }
     }
 

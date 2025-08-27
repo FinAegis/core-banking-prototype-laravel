@@ -9,6 +9,7 @@ use App\Domain\Payment\Services\SandboxPaymentService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Mockery;
 use Tests\TestCase;
 
 class SandboxPaymentServiceTest extends TestCase
@@ -59,7 +60,7 @@ class SandboxPaymentServiceTest extends TestCase
         /** @phpstan-ignore-next-line */
         Log::shouldHaveReceived('info')
             ->once()
-            ->with('Processing sandbox Stripe deposit', \Mockery::on(function ($arg) use ($data) {
+            ->with('Processing sandbox Stripe deposit', Mockery::on(function ($arg) use ($data) {
                 return $arg['environment'] === 'sandbox'
                     && $arg['account_uuid'] === $data['account_uuid']
                     && $arg['amount'] === $data['amount'];
@@ -94,7 +95,7 @@ class SandboxPaymentServiceTest extends TestCase
         /** @phpstan-ignore-next-line */
         Log::shouldHaveReceived('info')
             ->once()
-            ->with('Processing sandbox bank withdrawal', \Mockery::on(function ($arg) use ($data) {
+            ->with('Processing sandbox bank withdrawal', Mockery::on(function ($arg) use ($data) {
                 return $arg['environment'] === 'sandbox'
                     && $arg['account_uuid'] === $data['account_uuid']
                     && $arg['amount'] === $data['amount'];
@@ -164,7 +165,7 @@ class SandboxPaymentServiceTest extends TestCase
         /** @phpstan-ignore-next-line */
         Log::shouldHaveReceived('info')
             ->once()
-            ->with('Processing sandbox Stripe deposit', \Mockery::on(function ($arg) {
+            ->with('Processing sandbox Stripe deposit', Mockery::on(function ($arg) {
                 // The metadata in the log doesn't include the merged data,
                 // but the original metadata should be present
                 return isset($arg['metadata'])

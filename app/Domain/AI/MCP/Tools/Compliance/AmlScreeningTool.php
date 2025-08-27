@@ -9,8 +9,10 @@ use App\Domain\AI\Contracts\MCPToolInterface;
 use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use App\Domain\Compliance\Services\AmlScreeningService;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class AmlScreeningTool implements MCPToolInterface
 {
@@ -152,7 +154,7 @@ class AmlScreeningTool implements MCPToolInterface
                 'pep_only'       => $this->performPepOnlyScreening($entity, $screeningParams),
                 'adverse_media'  => $this->performAdverseMediaScreening($entity, $screeningParams),
                 'quick_check'    => $this->performQuickCheck($entity, $screeningParams),
-                default          => throw new \InvalidArgumentException("Unknown screening type: {$screeningType}"),
+                default          => throw new InvalidArgumentException("Unknown screening type: {$screeningType}"),
             };
 
             // Calculate next review date based on risk
@@ -184,7 +186,7 @@ class AmlScreeningTool implements MCPToolInterface
             ];
 
             return ToolExecutionResult::success($response);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('MCP Tool error: compliance.aml_screening', [
                 'error'      => $e->getMessage(),
                 'parameters' => $parameters,

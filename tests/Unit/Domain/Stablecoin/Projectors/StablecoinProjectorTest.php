@@ -12,6 +12,7 @@ use App\Domain\Stablecoin\Events\StablecoinBurned;
 use App\Domain\Stablecoin\Events\StablecoinMinted;
 use App\Domain\Stablecoin\Projectors\StablecoinProjector;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 use Tests\TestCase;
 
@@ -59,7 +60,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_collateral_position_created_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralPositionCreated');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -72,7 +73,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_collateral_locked_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralLocked');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -85,7 +86,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_stablecoin_minted_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onStablecoinMinted');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -98,7 +99,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_stablecoin_burned_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onStablecoinBurned');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -111,7 +112,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_collateral_released_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralReleased');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -124,7 +125,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_collateral_position_updated_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralPositionUpdated');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -137,7 +138,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_collateral_position_closed_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralPositionClosed');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -150,7 +151,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_on_collateral_position_liquidated_method_signature(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralPositionLiquidated');
 
         $this->assertEquals(1, $method->getNumberOfParameters());
@@ -163,7 +164,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_uses_model(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
 
         // Check that the projector references the model
         $fileName = $reflection->getFileName();
@@ -176,7 +177,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_handles_create_operations(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralPositionCreated');
 
         $fileName = $reflection->getFileName();
@@ -191,7 +192,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_handles_increment_operations(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
 
         // Check onCollateralLocked method
         $method = $reflection->getMethod('onCollateralLocked');
@@ -214,7 +215,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_handles_decrement_operations(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
 
         // Check onStablecoinBurned method
         $method = $reflection->getMethod('onStablecoinBurned');
@@ -237,7 +238,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_handles_update_operations(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
 
         // Check onCollateralPositionUpdated method
         $method = $reflection->getMethod('onCollateralPositionUpdated');
@@ -256,7 +257,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_handles_status_changes(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
 
         // Check onCollateralPositionClosed method
         $method = $reflection->getMethod('onCollateralPositionClosed');
@@ -283,7 +284,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_finds_positions_by_uuid(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
 
         $methodsToCheck = [
             'onCollateralLocked',
@@ -312,7 +313,7 @@ class StablecoinProjectorTest extends TestCase
     #[Test]
     public function test_projector_field_mappings(): void
     {
-        $reflection = new \ReflectionClass(StablecoinProjector::class);
+        $reflection = new ReflectionClass(StablecoinProjector::class);
         $method = $reflection->getMethod('onCollateralPositionCreated');
 
         $fileName = $reflection->getFileName();

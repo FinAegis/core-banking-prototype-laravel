@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Exchange\Contracts;
 
 use App\Domain\Exchange\Aggregates\Order;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -45,7 +46,7 @@ interface OrderRepositoryInterface
     /**
      * Find orders placed within a time range.
      */
-    public function findByTimeRange(\DateTimeInterface $from, \DateTimeInterface $to): Collection;
+    public function findByTimeRange(DateTimeInterface $from, DateTimeInterface $to): Collection;
 
     /**
      * Get order statistics for a currency pair.

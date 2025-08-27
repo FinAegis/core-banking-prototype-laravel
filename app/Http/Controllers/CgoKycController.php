@@ -7,6 +7,7 @@ use App\Domain\Cgo\Services\CgoKycService;
 use App\Domain\Compliance\Models\KycDocument;
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -151,7 +152,7 @@ class CgoKycController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'CGO KYC submission failed',

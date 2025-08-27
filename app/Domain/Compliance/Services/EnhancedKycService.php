@@ -7,6 +7,7 @@ use App\Domain\Compliance\Events\KycVerificationStarted;
 use App\Domain\Compliance\Models\CustomerRiskProfile;
 use App\Domain\Compliance\Models\KycVerification;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -104,7 +105,7 @@ class EnhancedKycService
                 'confidence_score' => $confidenceScore,
                 'extracted_data'   => $extractedData,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Identity document verification failed',
                 [
@@ -131,7 +132,7 @@ class EnhancedKycService
             $livenessCheck = $this->biometricService->checkLiveness($selfiePath);
 
             if (! $livenessCheck['is_live']) {
-                throw new \Exception('Liveness check failed');
+                throw new Exception('Liveness check failed');
             }
 
             // Face matching if document image provided
@@ -159,7 +160,7 @@ class EnhancedKycService
                 'liveness_score'   => $livenessCheck['confidence'],
                 'face_match_score' => $faceMatch['similarity'] ?? null,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Biometric verification failed',
                 [
@@ -214,7 +215,7 @@ class EnhancedKycService
                 'is_valid'  => $validationResult['is_valid'],
                 'is_recent' => $recencyCheck['is_recent'],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Address verification failed',
                 [

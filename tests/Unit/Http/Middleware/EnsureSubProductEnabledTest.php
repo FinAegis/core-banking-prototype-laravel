@@ -8,6 +8,7 @@ use App\Domain\Product\Services\SubProductService;
 use App\Http\Middleware\EnsureSubProductEnabled;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\UnitTestCase;
 
@@ -23,13 +24,13 @@ class EnsureSubProductEnabledTest extends UnitTestCase
     {
         parent::setUp();
 
-        $this->subProductService = \Mockery::mock(SubProductService::class);
+        $this->subProductService = Mockery::mock(SubProductService::class);
         $this->middleware = new EnsureSubProductEnabled($this->subProductService);
     }
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 

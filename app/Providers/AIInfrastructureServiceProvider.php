@@ -11,7 +11,9 @@ use App\Infrastructure\AI\Storage\ConversationStore;
 use App\Infrastructure\AI\Storage\ConversationStoreInterface;
 use App\Infrastructure\AI\VectorDB\PineconeProvider;
 use App\Infrastructure\AI\VectorDB\VectorDatabaseInterface;
+use Exception;
 use Illuminate\Support\ServiceProvider;
+use Log;
 
 class AIInfrastructureServiceProvider extends ServiceProvider
 {
@@ -63,8 +65,8 @@ class AIInfrastructureServiceProvider extends ServiceProvider
                     1536, // OpenAI embedding dimensions
                     'cosine'
                 );
-            } catch (\Exception $e) {
-                \Log::warning('Could not create vector database index', [
+            } catch (Exception $e) {
+                Log::warning('Could not create vector database index', [
                     'error' => $e->getMessage(),
                 ]);
             }

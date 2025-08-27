@@ -8,7 +8,10 @@ use App\Domain\Stablecoin\ValueObjects\PriceData;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 class ChainlinkOracleTest extends TestCase
@@ -72,7 +75,7 @@ class ChainlinkOracleTest extends TestCase
     #[Test]
     public function test_get_price_throws_exception_for_unsupported_pair(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Price feed not available for XRP/USD');
 
         $this->oracle->getPrice('XRP', 'USD');
@@ -98,7 +101,7 @@ class ChainlinkOracleTest extends TestCase
     {
         Log::shouldReceive('warning')
             ->once()
-            ->with(\Mockery::pattern('/Failed to get price for XRP\/USD/'));
+            ->with(Mockery::pattern('/Failed to get price for XRP\/USD/'));
 
         $pairs = ['BTC/USD', 'XRP/USD', 'ETH/USD'];
 
@@ -113,7 +116,7 @@ class ChainlinkOracleTest extends TestCase
     #[Test]
     public function test_get_historical_price_throws_exception(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Historical prices not available from Chainlink oracle');
 
         $this->oracle->getHistoricalPrice('BTC', 'USD', Carbon::now()->subDay());
@@ -210,7 +213,7 @@ class ChainlinkOracleTest extends TestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

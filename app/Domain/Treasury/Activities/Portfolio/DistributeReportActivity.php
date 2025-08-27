@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Events\Portfolio\ReportDistributed;
+use Exception;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class DistributeReportActivity extends Activity
@@ -19,7 +22,7 @@ class DistributeReportActivity extends Activity
         $notificationType = $input['notification_type'] ?? 'report';
 
         try {
-            \Log::info('Distributing performance report', [
+            Log::info('Distributing performance report', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'format'       => $generatedReport['format'] ?? 'unknown',
@@ -83,7 +86,7 @@ class DistributeReportActivity extends Activity
                 ]
             ));
 
-            \Log::info('Report distribution completed', [
+            Log::info('Report distribution completed', [
                 'portfolio_id'        => $portfolioId,
                 'report_id'           => $reportId,
                 'total_recipients'    => count($recipients),
@@ -107,14 +110,14 @@ class DistributeReportActivity extends Activity
                     'total_recipients'    => count($recipients),
                 ],
             ];
-        } catch (\Exception $e) {
-            \Log::error('Report distribution failed', [
+        } catch (Exception $e) {
+            Log::error('Report distribution failed', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'error'        => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to distribute report for portfolio {$portfolioId}: {$e->getMessage()}",
                 0,
                 $e
@@ -137,8 +140,8 @@ class DistributeReportActivity extends Activity
                     $result = $this->sendReportEmail($email, $reportId, $report, $notificationType, $recipient);
                     $emailResults[] = $result;
                 }
-            } catch (\Exception $e) {
-                \Log::warning('Failed to send email to recipient', [
+            } catch (Exception $e) {
+                Log::warning('Failed to send email to recipient', [
                     'recipient' => $recipient,
                     'report_id' => $reportId,
                     'error'     => $e->getMessage(),
@@ -188,7 +191,7 @@ class DistributeReportActivity extends Activity
             ];
 
             // Simulate dashboard update
-            \Log::info('Dashboard updated with report', $dashboardData);
+            Log::info('Dashboard updated with report', $dashboardData);
 
             return [
                 'method'     => 'dashboard',
@@ -196,7 +199,7 @@ class DistributeReportActivity extends Activity
                 'updated_at' => now()->toISOString(),
                 'data'       => $dashboardData,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'method'  => 'dashboard',
                 'success' => false,
@@ -215,7 +218,7 @@ class DistributeReportActivity extends Activity
             $sourceFile = $report['file_path'] ?? null;
 
             if (! $sourceFile || ! file_exists($sourceFile)) {
-                throw new \RuntimeException('Source report file not found');
+                throw new RuntimeException('Source report file not found');
             }
 
             // Ensure archive directory exists
@@ -246,7 +249,7 @@ class DistributeReportActivity extends Activity
                 'archive_path' => $archivePath,
                 'metadata'     => $metadata,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'method'  => 'archive',
                 'success' => false,
@@ -282,7 +285,7 @@ class DistributeReportActivity extends Activity
 
                 $result = $this->sendWebhook($url, $payload, $config);
                 $webhookResults[] = $result;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $webhookResults[] = [
                     'url'     => $url,
                     'success' => false,
@@ -310,7 +313,7 @@ class DistributeReportActivity extends Activity
             $message = $this->buildChatMessage($portfolioId, $reportId, $report, $notificationType);
 
             // In a real implementation, would integrate with Slack/Teams APIs
-            \Log::info('Team chat notification sent', [
+            Log::info('Team chat notification sent', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'message'      => $message,
@@ -322,7 +325,7 @@ class DistributeReportActivity extends Activity
                 'message' => $message,
                 'sent_at' => now()->toISOString(),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'method'  => 'team_chat',
                 'success' => false,
@@ -356,7 +359,7 @@ class DistributeReportActivity extends Activity
                     $result = $this->sendSms($phone, $message);
                     $smsResults[] = $result;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $smsResults[] = [
                     'recipient' => $recipient,
                     'success'   => false,

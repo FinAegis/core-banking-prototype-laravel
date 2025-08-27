@@ -6,6 +6,7 @@ use App\Domain\Exchange\Contracts\PriceAggregatorInterface;
 use App\Domain\Exchange\LiquidityPool\Services\AutomatedMarketMakerService;
 use App\Domain\Exchange\Projections\LiquidityPool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
@@ -21,7 +22,7 @@ class AutomatedMarketMakerServiceTest extends ServiceTestCase
     {
         parent::setUp();
 
-        $this->priceAggregator = \Mockery::mock(PriceAggregatorInterface::class);
+        $this->priceAggregator = Mockery::mock(PriceAggregatorInterface::class);
         $this->service = new AutomatedMarketMakerService($this->priceAggregator);
     }
 
@@ -154,7 +155,7 @@ class AutomatedMarketMakerServiceTest extends ServiceTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

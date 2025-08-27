@@ -7,6 +7,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -184,7 +185,7 @@ class DemoDepositCommand extends Command
             }
 
             return 0;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Failed to create deposit: ' . $e->getMessage());
 
             return 1;

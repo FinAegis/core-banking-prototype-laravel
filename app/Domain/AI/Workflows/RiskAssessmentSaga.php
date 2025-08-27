@@ -6,6 +6,11 @@ namespace App\Domain\AI\Workflows;
 
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Models\User;
+use Exception;
+use Generator;
+use InvalidArgumentException;
+use Log;
+use RuntimeException;
 use Workflow\Workflow;
 
 class RiskAssessmentSaga extends Workflow
@@ -39,7 +44,7 @@ class RiskAssessmentSaga extends Workflow
         string $userId,
         string $assessmentType,
         array $parameters = []
-    ): \Generator {
+    ): Generator {
         $this->conversationId = $conversationId;
         $this->userId = $userId;
         $this->context = $parameters;
@@ -58,7 +63,7 @@ class RiskAssessmentSaga extends Workflow
                 'fraud' => yield $this->assessFraudRisk($user, $financialData, $parameters),
                 'portfolio' => yield $this->assessPortfolioRisk($user, $financialData, $parameters),
                 'comprehensive' => yield $this->performComprehensiveAssessment($user, $financialData, $parameters),
-                default => throw new \InvalidArgumentException("Unknown assessment type: {$assessmentType}")
+                default => throw new InvalidArgumentException("Unknown assessment type: {$assessmentType}")
             };
 
             // Step 3: Analyze behavioral patterns
@@ -91,7 +96,7 @@ class RiskAssessmentSaga extends Workflow
                     'duration_ms'     => $this->calculateDuration(),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Handle workflow failure with compensation
             yield $this->handleWorkflowFailure($e);
 
@@ -129,7 +134,7 @@ class RiskAssessmentSaga extends Workflow
         $user = User::where('uuid', $this->userId)->first();
 
         if (! $user) {
-            throw new \RuntimeException('User not found');
+            throw new RuntimeException('User not found');
         }
 
         // Load user's related data
@@ -453,7 +458,7 @@ class RiskAssessmentSaga extends Workflow
     private function triggerAlert(array $alert)
     {
         // In production, send to alerting system
-        \Log::log(
+        Log::log(
             $alert['level'] === 'critical' ? 'critical' : 'warning',
             'Risk alert triggered',
             [
@@ -532,10 +537,10 @@ class RiskAssessmentSaga extends Workflow
         return $recommendations;
     }
 
-    private function handleWorkflowFailure(\Exception $e)
+    private function handleWorkflowFailure(Exception $e)
     {
         // Log the failure
-        \Log::error('Risk Assessment Saga failed', [
+        Log::error('Risk Assessment Saga failed', [
             'conversation_id' => $this->conversationId,
             'error'           => $e->getMessage(),
             'trace'           => $e->getTraceAsString(),
@@ -560,12 +565,12 @@ class RiskAssessmentSaga extends Workflow
                 switch ($action['type']) {
                     case 'credit_assessment':
                         // Clear any provisional credit decisions
-                        \Log::info('Compensating credit assessment', $action);
+                        Log::info('Compensating credit assessment', $action);
                         break;
 
                     case 'risk_alert':
                         // Cancel any pending alerts
-                        \Log::info('Compensating risk alerts', $action);
+                        Log::info('Compensating risk alerts', $action);
                         break;
                 }
             }

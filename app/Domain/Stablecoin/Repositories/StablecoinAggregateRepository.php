@@ -6,6 +6,7 @@ namespace App\Domain\Stablecoin\Repositories;
 
 use App\Domain\Stablecoin\Aggregates\StablecoinAggregate;
 use App\Domain\Stablecoin\Contracts\StablecoinAggregateRepositoryInterface;
+use Exception;
 use Illuminate\Support\Collection;
 
 /**
@@ -20,7 +21,7 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
     {
         try {
             return StablecoinAggregate::retrieve($stablecoinId);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }

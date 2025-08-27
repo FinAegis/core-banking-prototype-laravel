@@ -9,6 +9,7 @@ use App\Domain\Regulatory\Services\EnhancedRegulatoryReportingService;
 use App\Domain\Regulatory\Services\RegulatoryFilingService;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -114,7 +115,7 @@ class EnhancedRegulatoryController extends Controller
                 'report'                  => $report,
                 'fraud_analysis_included' => true,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to generate enhanced CTR',
                 'message' => $e->getMessage(),
@@ -143,7 +144,7 @@ class EnhancedRegulatoryController extends Controller
                 'report'                    => $report,
                 'requires_immediate_filing' => $report->report_data['requires_immediate_filing'] ?? false,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to generate enhanced SAR',
                 'message' => $e->getMessage(),
@@ -168,7 +169,7 @@ class EnhancedRegulatoryController extends Controller
                 'message' => 'AML report generated successfully',
                 'report'  => $report,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to generate AML report',
                 'message' => $e->getMessage(),
@@ -194,7 +195,7 @@ class EnhancedRegulatoryController extends Controller
                 'report'                    => $report,
                 'requires_immediate_action' => $report->report_data['requires_immediate_action'] ?? false,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to generate OFAC report',
                 'message' => $e->getMessage(),
@@ -220,7 +221,7 @@ class EnhancedRegulatoryController extends Controller
                 'message' => 'BSA report generated successfully',
                 'report'  => $report,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to generate BSA report',
                 'message' => $e->getMessage(),
@@ -248,7 +249,7 @@ class EnhancedRegulatoryController extends Controller
                 'filing'    => $filing,
                 'reference' => $filing->filing_reference,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to submit report',
                 'message' => $e->getMessage(),
@@ -270,7 +271,7 @@ class EnhancedRegulatoryController extends Controller
                 'filing'       => $filing->fresh(),
                 'status_check' => $status,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to check filing status',
                 'message' => $e->getMessage(),
@@ -292,7 +293,7 @@ class EnhancedRegulatoryController extends Controller
                 'message' => 'Filing retry initiated',
                 'filing'  => $filing,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error'   => 'Failed to retry filing',
                 'message' => $e->getMessage(),

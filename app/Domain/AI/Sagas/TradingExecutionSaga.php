@@ -9,6 +9,11 @@ use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Domain\AI\Events\Trading\TradeExecutedEvent;
 use App\Domain\Exchange\Services\OrderService;
 use App\Models\User;
+use Exception;
+use Generator;
+use InvalidArgumentException;
+use Log;
+use RuntimeException;
 use Workflow\Workflow;
 
 /**
@@ -37,13 +42,13 @@ class TradingExecutionSaga extends Workflow
      * @param string $userId
      * @param array{action: string, size: float, symbol: string, risk_parameters: array} $strategy
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
         string $userId,
         array $strategy
-    ): \Generator {
+    ): Generator {
         $aggregate = AIInteractionAggregate::retrieve($conversationId);
 
         try {
@@ -87,7 +92,7 @@ class TradingExecutionSaga extends Workflow
                 'executed_at' => now()->toIso8601String(),
                 'risk_params' => $strategy['risk_parameters'],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Execute compensation in reverse order
             yield from $this->compensate();
 
@@ -104,7 +109,7 @@ class TradingExecutionSaga extends Workflow
             );
             $aggregate->persist();
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Trading execution failed: {$e->getMessage()}",
                 0,
                 $e
@@ -120,13 +125,13 @@ class TradingExecutionSaga extends Workflow
         $user = User::find($userId);
 
         if (! $user) {
-            throw new \InvalidArgumentException("User not found: {$userId}");
+            throw new InvalidArgumentException("User not found: {$userId}");
         }
 
         // Check if user is active (users don't have status field by default)
         // You could check email_verified_at or other indicators
         if (! $user->email_verified_at) {
-            throw new \InvalidArgumentException('User email is not verified');
+            throw new InvalidArgumentException('User email is not verified');
         }
 
         return $user;
@@ -142,23 +147,23 @@ class TradingExecutionSaga extends Workflow
         // Get user's account
         $user = User::find($userId);
         if (! $user) {
-            throw new \RuntimeException('User not found');
+            throw new RuntimeException('User not found');
         }
 
         // Get the user's primary account
         $account = $user->accounts()->first();
         if (! $account) {
-            throw new \RuntimeException('User account not found');
+            throw new RuntimeException('User account not found');
         }
 
         // Check account balance
         $balanceEntry = $account->balances()->where('asset_code', 'USD')->first();
         if (! $balanceEntry || $balanceEntry->balance < $amount) {
-            throw new \RuntimeException('Insufficient funds for trading');
+            throw new RuntimeException('Insufficient funds for trading');
         }
 
         // Record the lock (would implement actual locking mechanism)
-        \Log::info('Funds locked for trading', [
+        Log::info('Funds locked for trading', [
             'user_id' => $userId,
             'amount'  => $amount,
             'lock_id' => $lockId,
@@ -174,7 +179,7 @@ class TradingExecutionSaga extends Workflow
     private function unlockFunds(string $lockId)
     {
         // Release the locked funds
-        \Log::info('Funds unlocked', ['lock_id' => $lockId]);
+        Log::info('Funds unlocked', ['lock_id' => $lockId]);
 
         return true;
     }
@@ -252,7 +257,7 @@ class TradingExecutionSaga extends Workflow
     {
         // Create a compensating order to reverse the trade
         // This would place an opposite order to neutralize the position
-        \Log::warning('Trade execution reversal initiated', [
+        Log::warning('Trade execution reversal initiated', [
             'execution_id' => $executionId,
             'reason'       => 'Saga compensation',
         ]);
@@ -309,7 +314,7 @@ class TradingExecutionSaga extends Workflow
     {
         $orderId = uniqid("{$type}_");
 
-        \Log::info('Risk order created', [
+        Log::info('Risk order created', [
             'order_id'     => $orderId,
             'execution_id' => $executionId,
             'type'         => $type,
@@ -353,7 +358,7 @@ class TradingExecutionSaga extends Workflow
      */
     private function logValidationRollback(string $userId)
     {
-        \Log::info('Trading validation rolled back', ['user_id' => $userId]);
+        Log::info('Trading validation rolled back', ['user_id' => $userId]);
 
         return true;
     }
@@ -361,15 +366,15 @@ class TradingExecutionSaga extends Workflow
     /**
      * Execute compensation actions in reverse order.
      *
-     * @return \Generator
+     * @return Generator
      */
-    public function compensate(): \Generator
+    public function compensate(): Generator
     {
         while ($compensation = array_pop($this->compensationStack)) {
             try {
                 yield $compensation();
-            } catch (\Exception $e) {
-                \Log::error('Compensation failed', [
+            } catch (Exception $e) {
+                Log::error('Compensation failed', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                 ]);

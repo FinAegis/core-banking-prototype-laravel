@@ -14,7 +14,9 @@ use App\Domain\AI\ValueObjects\ToolExecutionResult;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 class MCPServerTest extends TestCase
@@ -141,7 +143,7 @@ class MCPServerTest extends TestCase
         $this->toolRegistry->register($mockTool);
 
         // Act & Assert
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->mcpServer->executeTool('validated_tool', ['invalid' => 'params']);
     }
 
@@ -233,7 +235,7 @@ class MCPServerTest extends TestCase
             ->with(Mockery::on(function ($args) use ($params) {
                 return $args === $params;
             }), Mockery::type('string'))
-            ->andThrow(new \RuntimeException($errorMessage));
+            ->andThrow(new RuntimeException($errorMessage));
 
         /** @var MCPToolInterface $mockTool */
         $this->toolRegistry->register($mockTool);
@@ -242,7 +244,7 @@ class MCPServerTest extends TestCase
         try {
             $this->mcpServer->executeTool($toolName, $params);
             $this->fail('Expected exception was not thrown');
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $this->assertEquals($errorMessage, $e->getMessage());
         }
 

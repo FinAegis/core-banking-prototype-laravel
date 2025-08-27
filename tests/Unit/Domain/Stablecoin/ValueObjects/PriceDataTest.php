@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Stablecoin\ValueObjects;
 use App\Domain\Stablecoin\ValueObjects\PriceData;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\TestCase;
 
 class PriceDataTest extends TestCase
@@ -241,7 +242,7 @@ class PriceDataTest extends TestCase
 
         // Properties are readonly, so we can't modify them
         // This test verifies that the object is immutable
-        $reflection = new \ReflectionClass($priceData);
+        $reflection = new ReflectionClass($priceData);
 
         foreach ($reflection->getProperties() as $property) {
             $this->assertTrue($property->isReadOnly());

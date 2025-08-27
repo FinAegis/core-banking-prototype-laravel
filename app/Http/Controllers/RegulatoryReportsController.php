@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Regulatory\Models\RegulatoryReport;
 use App\Domain\Regulatory\Models\RegulatoryThreshold;
 use App\Domain\Regulatory\Services\ReportGenerator;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -104,7 +105,7 @@ class RegulatoryReportsController extends Controller
 
             return redirect()->route('regulatory.reports.show', $report)
                 ->with('success', 'Report generated successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->with('error', 'Failed to generate report: ' . $e->getMessage());
         }
     }
@@ -155,7 +156,7 @@ class RegulatoryReportsController extends Controller
             );
 
             return back()->with('success', 'Report submitted successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->with('error', 'Failed to submit report: ' . $e->getMessage());
         }
     }

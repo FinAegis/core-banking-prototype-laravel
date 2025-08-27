@@ -11,6 +11,7 @@ use App\Domain\Stablecoin\Events\ReserveRebalanced;
 use App\Domain\Stablecoin\Events\ReserveWithdrawn;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class ReservePool extends AggregateRoot
@@ -56,11 +57,11 @@ class ReservePool extends AggregateRoot
         array $metadata = []
     ): self {
         if (! isset($this->custodians[$custodianId])) {
-            throw new \InvalidArgumentException("Custodian {$custodianId} not authorized");
+            throw new InvalidArgumentException("Custodian {$custodianId} not authorized");
         }
 
         if (BigDecimal::of($amount)->isLessThanOrEqualTo(0)) {
-            throw new \InvalidArgumentException('Deposit amount must be positive');
+            throw new InvalidArgumentException('Deposit amount must be positive');
         }
 
         $this->recordThat(
@@ -86,20 +87,20 @@ class ReservePool extends AggregateRoot
         array $metadata = []
     ): self {
         if (! isset($this->custodians[$custodianId])) {
-            throw new \InvalidArgumentException("Custodian {$custodianId} not authorized");
+            throw new InvalidArgumentException("Custodian {$custodianId} not authorized");
         }
 
         $currentBalance = BigDecimal::of($this->reserves[$asset] ?? '0');
         $withdrawAmount = BigDecimal::of($amount);
 
         if ($withdrawAmount->isGreaterThan($currentBalance)) {
-            throw new \InvalidArgumentException('Insufficient reserve balance');
+            throw new InvalidArgumentException('Insufficient reserve balance');
         }
 
         // Check if withdrawal maintains minimum collateralization
         $newBalance = $currentBalance->minus($withdrawAmount);
         if (! $this->wouldMaintainMinimumCollateralization($asset, $newBalance->__toString())) {
-            throw new \InvalidArgumentException('Withdrawal would breach minimum collateralization ratio');
+            throw new InvalidArgumentException('Withdrawal would breach minimum collateralization ratio');
         }
 
         $this->recordThat(
@@ -132,7 +133,7 @@ class ReservePool extends AggregateRoot
         );
 
         if (! BigDecimal::of($total)->isEqualTo('1')) {
-            throw new \InvalidArgumentException('Target allocations must sum to 100%');
+            throw new InvalidArgumentException('Target allocations must sum to 100%');
         }
 
         $this->recordThat(
@@ -155,7 +156,7 @@ class ReservePool extends AggregateRoot
         array $config
     ): self {
         if (isset($this->custodians[$custodianId])) {
-            throw new \InvalidArgumentException("Custodian {$custodianId} already exists");
+            throw new InvalidArgumentException("Custodian {$custodianId} already exists");
         }
 
         $this->recordThat(
@@ -174,7 +175,7 @@ class ReservePool extends AggregateRoot
     public function removeCustodian(string $custodianId, string $reason): self
     {
         if (! isset($this->custodians[$custodianId])) {
-            throw new \InvalidArgumentException("Custodian {$custodianId} not found");
+            throw new InvalidArgumentException("Custodian {$custodianId} not found");
         }
 
         $this->recordThat(
@@ -194,11 +195,11 @@ class ReservePool extends AggregateRoot
         string $approvedBy
     ): self {
         if (BigDecimal::of($newMinimumRatio)->isGreaterThanOrEqualTo($newTargetRatio)) {
-            throw new \InvalidArgumentException('Minimum ratio must be less than target ratio');
+            throw new InvalidArgumentException('Minimum ratio must be less than target ratio');
         }
 
         if (BigDecimal::of($newMinimumRatio)->isLessThan('1')) {
-            throw new \InvalidArgumentException('Minimum ratio cannot be less than 100%');
+            throw new InvalidArgumentException('Minimum ratio cannot be less than 100%');
         }
 
         $this->recordThat(
@@ -221,13 +222,13 @@ class ReservePool extends AggregateRoot
         $currentCollateralization = $this->calculateCollateralizationRatio($collateralPrices);
 
         if ($currentCollateralization->isLessThan($this->minimumCollateralizationRatio)) {
-            throw new \InvalidArgumentException('Insufficient collateralization for minting');
+            throw new InvalidArgumentException('Insufficient collateralization for minting');
         }
 
         // Calculate how much can be minted while maintaining minimum ratio
         $maxMintable = $this->calculateMaxMintable($collateralPrices);
         if ($mintAmount->isGreaterThan($maxMintable)) {
-            throw new \InvalidArgumentException("Cannot mint more than {$maxMintable} while maintaining collateralization");
+            throw new InvalidArgumentException("Cannot mint more than {$maxMintable} while maintaining collateralization");
         }
 
         $this->totalMinted = BigDecimal::of($this->totalMinted)->plus($mintAmount)->__toString();
@@ -241,7 +242,7 @@ class ReservePool extends AggregateRoot
         $currentMinted = BigDecimal::of($this->totalMinted);
 
         if ($burnAmount->isGreaterThan($currentMinted)) {
-            throw new \InvalidArgumentException('Cannot burn more than total minted');
+            throw new InvalidArgumentException('Cannot burn more than total minted');
         }
 
         $this->totalMinted = $currentMinted->minus($burnAmount)->__toString();

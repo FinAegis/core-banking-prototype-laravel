@@ -7,7 +7,10 @@ namespace App\Domain\Treasury\Workflows;
 use App\Domain\Treasury\Activities\Portfolio\CalculatePerformanceActivity;
 use App\Domain\Treasury\Activities\Portfolio\DistributeReportActivity;
 use App\Domain\Treasury\Activities\Portfolio\GenerateReportActivity;
+use Exception;
 use Illuminate\Support\Str;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 use Workflow\Workflow;
 
@@ -104,11 +107,11 @@ class PerformanceReportingWorkflow extends Workflow
                 'distribution_results' => $distribution,
                 'recipients_notified'  => count($distribution['successful_deliveries'] ?? []),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Compensation: Clean up any generated files or partial reports
             yield from $this->compensate();
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Performance reporting workflow failed for portfolio {$this->portfolioId}: {$e->getMessage()}",
                 0,
                 $e
@@ -124,8 +127,8 @@ class PerformanceReportingWorkflow extends Workflow
                 if (file_exists($this->generatedReport['file_path'])) {
                     unlink($this->generatedReport['file_path']);
                 }
-            } catch (\Exception $e) {
-                \Log::warning('Failed to clean up report file during compensation', [
+            } catch (Exception $e) {
+                Log::warning('Failed to clean up report file during compensation', [
                     'report_id' => $this->reportId,
                     'file_path' => $this->generatedReport['file_path'],
                     'error'     => $e->getMessage(),
@@ -134,7 +137,7 @@ class PerformanceReportingWorkflow extends Workflow
         }
 
         // Log the failure for audit purposes
-        \Log::error('Performance reporting workflow failed and was compensated', [
+        Log::error('Performance reporting workflow failed and was compensated', [
             'portfolio_id' => $this->portfolioId,
             'report_id'    => $this->reportId,
             'report_type'  => $this->reportType,

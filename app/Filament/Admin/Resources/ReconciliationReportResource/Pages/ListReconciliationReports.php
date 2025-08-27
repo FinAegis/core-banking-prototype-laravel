@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources\ReconciliationReportResource\Pages;
 
 use App\Domain\Custodian\Services\DailyReconciliationService;
 use App\Filament\Admin\Resources\ReconciliationReportResource;
+use Exception;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Collection;
@@ -32,7 +33,7 @@ class ListReconciliationReports extends ListRecords
 
                             // Refresh the page
                             $this->redirect(static::getResource()::getUrl('index'));
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->notify('danger', 'Reconciliation failed: ' . $e->getMessage());
                         }
                     }

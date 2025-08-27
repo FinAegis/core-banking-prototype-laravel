@@ -4,6 +4,7 @@ namespace App\Domain\Exchange\Console\Commands\LiquidityPool;
 
 use App\Domain\Exchange\LiquidityPool\Services\AutomatedMarketMakerService;
 use App\Domain\Exchange\Services\OrderService;
+use Exception;
 use Illuminate\Console\Command;
 
 class UpdateMarketMakingCommand extends Command
@@ -73,7 +74,7 @@ class UpdateMarketMakingCommand extends Command
                             ]
                         );
                         $placedOrders++;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $this->warn('Failed to place order: ' . $e->getMessage());
                     }
                 }
@@ -91,7 +92,7 @@ class UpdateMarketMakingCommand extends Command
             }
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Failed to update market making: ' . $e->getMessage());
 
             return Command::FAILURE;
@@ -113,7 +114,7 @@ class UpdateMarketMakingCommand extends Command
         foreach ($existingOrders as $order) {
             try {
                 $orderService->cancelOrder($order->order_id);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->warn("Failed to cancel order {$order->order_id}: " . $e->getMessage());
             }
         }

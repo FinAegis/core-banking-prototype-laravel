@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\AI\VectorDB;
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class PineconeProvider implements VectorDatabaseInterface
 {
@@ -62,7 +64,7 @@ class PineconeProvider implements VectorDatabaseInterface
                 'id'    => $id,
                 'error' => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to store vector: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to store vector: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -101,7 +103,7 @@ class PineconeProvider implements VectorDatabaseInterface
                 'count' => count($items),
                 'error' => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to store batch vectors: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to store batch vectors: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -149,7 +151,7 @@ class PineconeProvider implements VectorDatabaseInterface
             Log::error('Failed to search vectors in Pinecone', [
                 'error' => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to search vectors: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to search vectors: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -168,7 +170,7 @@ class PineconeProvider implements VectorDatabaseInterface
                 'id'    => $id,
                 'error' => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to delete vector: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to delete vector: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -195,7 +197,7 @@ class PineconeProvider implements VectorDatabaseInterface
                 'filters' => $filters,
                 'error'   => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Failed to delete vectors by filter: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to delete vectors by filter: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -274,10 +276,10 @@ class PineconeProvider implements VectorDatabaseInterface
                         'name'  => $name,
                         'error' => $createError->getMessage(),
                     ]);
-                    throw new \RuntimeException('Failed to create index: ' . $createError->getMessage(), 0, $createError);
+                    throw new RuntimeException('Failed to create index: ' . $createError->getMessage(), 0, $createError);
                 }
             } else {
-                throw new \RuntimeException('Failed to check index: ' . $e->getMessage(), 0, $e);
+                throw new RuntimeException('Failed to check index: ' . $e->getMessage(), 0, $e);
             }
         }
     }
@@ -296,7 +298,7 @@ class PineconeProvider implements VectorDatabaseInterface
             ]);
 
             return $response->getStatusCode() === 200;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Pinecone availability check failed', ['error' => $e->getMessage()]);
 
             return false;

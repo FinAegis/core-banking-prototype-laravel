@@ -3,6 +3,7 @@
 namespace App\Domain\Fraud\Services;
 
 use App\Domain\Fraud\Models\FraudRule;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -52,7 +53,7 @@ class RuleEngineService
                     // Execute rule actions
                     $this->executeRuleActions($rule, $context);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error(
                     'Rule evaluation failed',
                     [

@@ -7,6 +7,7 @@
 namespace App\Domain\Compliance\Repositories;
 
 use App\Domain\Compliance\Models\AmlScreeningEvent;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 use Spatie\EventSourcing\StoredEvents\Repositories\EloquentStoredEventRepository;
 
@@ -94,12 +95,12 @@ class AmlScreeningRepository extends EloquentStoredEventRepository
     /**
      * Retrieve screening events by date range.
      *
-     * @param  \DateTimeInterface  $startDate  The start date
-     * @param  \DateTimeInterface  $endDate  The end date
+     * @param  DateTimeInterface  $startDate  The start date
+     * @param  DateTimeInterface  $endDate  The end date
      */
     public function getByDateRange(
-        \DateTimeInterface $startDate,
-        \DateTimeInterface $endDate
+        DateTimeInterface $startDate,
+        DateTimeInterface $endDate
     ): Collection {
         return $this->storedEventModel::query()
             ->whereBetween('created_at', [$startDate, $endDate])
@@ -139,12 +140,12 @@ class AmlScreeningRepository extends EloquentStoredEventRepository
      *
      * @param  string  $entityType  The entity type
      * @param  string  $entityId  The entity ID
-     * @param  \DateTimeInterface  $since  The date to check from
+     * @param  DateTimeInterface  $since  The date to check from
      */
     public function hasRecentScreening(
         string $entityType,
         string $entityId,
-        \DateTimeInterface $since
+        DateTimeInterface $since
     ): bool {
         return $this->storedEventModel::query()
             ->where('meta_data->entity_type', $entityType)

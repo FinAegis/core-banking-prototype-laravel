@@ -4,8 +4,10 @@ namespace Tests\Unit\Console\Commands;
 
 use App\Domain\Wallet\Models\SecureKeyStorage;
 use App\Domain\Wallet\Services\SecureKeyStorageService;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Mockery;
 use Tests\TestCase;
 
 class RotateWalletKeysTest extends TestCase
@@ -143,7 +145,7 @@ class RotateWalletKeysTest extends TestCase
         $this->keyStorage->shouldReceive('rotateKeys')
             ->with('wallet-123', 'system', 'Scheduled key rotation')
             ->once()
-            ->andThrow(new \Exception('Rotation failed'));
+            ->andThrow(new Exception('Rotation failed'));
 
         $this->keyStorage->shouldReceive('rotateKeys')
             ->with('wallet-456', 'system', 'Scheduled key rotation')
@@ -171,7 +173,7 @@ class RotateWalletKeysTest extends TestCase
 
         // Verify error was logged
         Log::shouldHaveReceived('error')
-            ->with('Key rotation failed', \Mockery::on(function ($context) {
+            ->with('Key rotation failed', Mockery::on(function ($context) {
                 return $context['wallet_id'] === 'wallet-123'
                     && $context['error'] === 'Rotation failed'
                     && isset($context['trace']);

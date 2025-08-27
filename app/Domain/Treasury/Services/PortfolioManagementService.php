@@ -6,6 +6,7 @@ namespace App\Domain\Treasury\Services;
 
 use App\Domain\Treasury\Aggregates\PortfolioAggregate;
 use App\Domain\Treasury\ValueObjects\InvestmentStrategy;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -52,7 +53,7 @@ class PortfolioManagementService
             $this->clearPortfoliosCache($treasuryId);
 
             return $portfolioId;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to create portfolio: {$e->getMessage()}", 0, $e);
         }
     }
@@ -84,7 +85,7 @@ class PortfolioManagementService
                     'is_rebalancing'      => $aggregate->isRebalancing(),
                     'last_rebalance_date' => $aggregate->getLastRebalanceDate(),
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to retrieve portfolio {$portfolioId}: {$e->getMessage()}", 0, $e);
             }
         });
@@ -117,7 +118,7 @@ class PortfolioManagementService
 
             // Clear portfolio cache
             Cache::forget("portfolio:{$portfolioId}");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to update portfolio strategy: {$e->getMessage()}", 0, $e);
         }
     }
@@ -151,7 +152,7 @@ class PortfolioManagementService
 
             // Clear portfolio cache
             Cache::forget("portfolio:{$portfolioId}");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to allocate assets: {$e->getMessage()}", 0, $e);
         }
     }

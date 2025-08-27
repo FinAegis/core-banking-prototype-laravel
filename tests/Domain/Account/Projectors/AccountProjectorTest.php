@@ -7,6 +7,7 @@ use App\Domain\Account\Aggregates\LedgerAggregate;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Utils\ValidatesHash;
+use DB;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -41,7 +42,7 @@ class AccountProjectorTest extends TestCase
 
         // Use a completely fresh aggregate UUID to avoid any existing state
         $freshUuid = Str::uuid()->toString();
-        \DB::table('accounts')->where('uuid', $this->account->uuid)->update(['uuid' => $freshUuid]);
+        DB::table('accounts')->where('uuid', $this->account->uuid)->update(['uuid' => $freshUuid]);
         $this->account->uuid = $freshUuid;
         $this->account->save();
         $this->account->refresh();

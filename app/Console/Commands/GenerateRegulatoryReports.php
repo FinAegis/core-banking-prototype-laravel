@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Domain\Compliance\Services\RegulatoryReportingService;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Console\Command;
 
 class GenerateRegulatoryReports extends Command
@@ -80,7 +81,7 @@ class GenerateRegulatoryReports extends Command
             $this->info('✅ All reports generated successfully!');
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('❌ Error generating reports: ' . $e->getMessage());
 
             return Command::FAILURE;

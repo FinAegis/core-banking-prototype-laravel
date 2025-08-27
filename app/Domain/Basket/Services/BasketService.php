@@ -8,6 +8,8 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Workflows\ComposeBasketWorkflow;
 use App\Domain\Basket\Workflows\DecomposeBasketWorkflow;
+use Exception;
+use InvalidArgumentException;
 use Workflow\WorkflowStub;
 
 class BasketService
@@ -26,7 +28,7 @@ class BasketService
         $basket = null;
         // Validate inputs
         if ($amount <= 0) {
-            throw new \InvalidArgumentException('Amount must be positive');
+            throw new InvalidArgumentException('Amount must be positive');
         }
 
         $accountUuidObj = __account_uuid($accountUuid);
@@ -36,12 +38,12 @@ class BasketService
         /** @var BasketAsset $$basket */
         $$basket = BasketAsset::where('code', $basketCode)->firstOrFail();
         if (! $basket->is_active) {
-            throw new \Exception("Basket {$basketCode} is not active");
+            throw new Exception("Basket {$basketCode} is not active");
         }
 
         // Validate basket weights before composition
         if (! $basket->validateWeights()) {
-            throw new \Exception("Basket {$basketCode} has invalid component weights");
+            throw new Exception("Basket {$basketCode} has invalid component weights");
         }
 
         // Calculate required component amounts and validate sufficient balances
@@ -49,7 +51,7 @@ class BasketService
         foreach ($requiredAmounts as $assetCode => $requiredAmount) {
             if (! $account->hasSufficientBalance($assetCode, $requiredAmount)) {
                 $availableBalance = $account->getBalance($assetCode);
-                throw new \Exception("Insufficient {$assetCode} balance. Required: {$requiredAmount}, Available: {$availableBalance}");
+                throw new Exception("Insufficient {$assetCode} balance. Required: {$requiredAmount}, Available: {$availableBalance}");
             }
         }
 
@@ -69,7 +71,7 @@ class BasketService
         $basket = null;
         // Validate inputs
         if ($amount <= 0) {
-            throw new \InvalidArgumentException('Amount must be positive');
+            throw new InvalidArgumentException('Amount must be positive');
         }
 
         $accountUuidObj = __account_uuid($accountUuid);
@@ -79,13 +81,13 @@ class BasketService
         /** @var BasketAsset $$basket */
         $$basket = BasketAsset::where('code', $basketCode)->firstOrFail();
         if (! $basket->is_active) {
-            throw new \Exception("Basket {$basketCode} is not active");
+            throw new Exception("Basket {$basketCode} is not active");
         }
 
         // Validate sufficient basket balance
         if (! $account->hasSufficientBalance($basketCode, $amount)) {
             $availableBalance = $account->getBalance($basketCode);
-            throw new \Exception("Insufficient basket balance for decomposition. Required: {$amount}, Available: {$availableBalance}");
+            throw new Exception("Insufficient basket balance for decomposition. Required: {$amount}, Available: {$availableBalance}");
         }
 
         // Start workflow - this handles the actual business logic with proper compensation
@@ -119,7 +121,7 @@ class BasketService
         /** @var BasketAsset|null $basket */
         $basket = null;
         if ($amount <= 0) {
-            throw new \InvalidArgumentException('Amount must be positive');
+            throw new InvalidArgumentException('Amount must be positive');
         }
 
         /** @var BasketAsset $$basket */
@@ -155,7 +157,7 @@ class BasketService
         foreach ($dynamicBaskets as $basket) {
             try {
                 $this->rebalanceBasket($basket->code);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Failed to rebalance basket', [
                     'basket_code' => $basket->code,
                     'error'       => $e->getMessage(),

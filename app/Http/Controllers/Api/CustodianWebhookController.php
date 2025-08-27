@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Domain\Custodian\Models\CustodianWebhook;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -261,7 +262,7 @@ class CustodianWebhookController extends Controller
             }
 
             throw $e;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to store webhook',
                 [

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 class PortfolioControllerTest extends TestCase
@@ -293,7 +294,7 @@ class PortfolioControllerTest extends TestCase
         $portfolioService->shouldReceive('getPortfolio')
             ->once()
             ->with($portfolioId)
-            ->andThrow(new \RuntimeException('Portfolio not found'));
+            ->andThrow(new RuntimeException('Portfolio not found'));
 
         $response = $this->getJson("/api/treasury/portfolios/{$portfolioId}");
 
@@ -795,7 +796,7 @@ class PortfolioControllerTest extends TestCase
         $portfolioService->shouldReceive('getPortfolio')
             ->once()
             ->with($portfolioId)
-            ->andThrow(new \RuntimeException('Database connection failed'));
+            ->andThrow(new RuntimeException('Database connection failed'));
 
         $response = $this->getJson("/api/treasury/portfolios/{$portfolioId}");
 

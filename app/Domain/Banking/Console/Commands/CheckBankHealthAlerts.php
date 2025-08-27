@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Banking\Console\Commands;
 
 use App\Domain\Custodian\Services\BankAlertingService;
+use Exception;
 use Illuminate\Console\Command;
 
 class CheckBankHealthAlerts extends Command
@@ -42,7 +43,7 @@ class CheckBankHealthAlerts extends Command
             $this->info('Bank health check completed successfully.');
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Failed to check bank health: ' . $e->getMessage());
 
             return Command::FAILURE;

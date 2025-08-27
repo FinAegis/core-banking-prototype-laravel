@@ -3,12 +3,14 @@
 namespace App\Domain\Account\Workflows;
 
 use App\Domain\Account\DataObjects\Account;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
 class CreateAccountWorkflow extends Workflow
 {
-    public function execute(Account $account): \Generator
+    public function execute(Account $account): Generator
     {
         try {
             $result = yield ActivityStub::make(
@@ -25,7 +27,7 @@ class CreateAccountWorkflow extends Workflow
             );
 
             return $result;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             yield from $this->compensate();
             throw $th;
         }

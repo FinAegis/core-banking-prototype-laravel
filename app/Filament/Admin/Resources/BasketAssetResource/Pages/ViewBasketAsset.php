@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\BasketAssetResource\Pages;
 
 use App\Filament\Admin\Resources\BasketAssetResource;
+use Exception;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -26,7 +27,7 @@ class ViewBasketAsset extends ViewRecord
                             $value = $service->calculateValue($this->getRecord(), false);
 
                             $this->notify('success', "Current value: \${$value->value}");
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->notify('danger', $e->getMessage());
                         }
                     }
@@ -48,7 +49,7 @@ class ViewBasketAsset extends ViewRecord
                             $result = $service->rebalance($this->getRecord());
 
                             $this->notify('success', "Basket rebalanced: {$result['adjustments_count']} components adjusted");
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->notify('danger', $e->getMessage());
                         }
                     }
@@ -65,7 +66,7 @@ class ViewBasketAsset extends ViewRecord
                             $performances = $service->calculateAllPeriods($this->getRecord());
 
                             $this->notify('success', "Calculated performance for {$performances->count()} periods");
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->notify('danger', $e->getMessage());
                         }
                     }

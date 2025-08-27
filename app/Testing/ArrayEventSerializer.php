@@ -3,6 +3,10 @@
 namespace App\Testing;
 
 use Carbon\Carbon;
+use Exception;
+use ReflectionClass;
+use ReflectionNamedType;
+use ReflectionProperty;
 
 /**
  * Array-based event serializer for testing purposes.
@@ -13,7 +17,7 @@ class ArrayEventSerializer
     public function serialize(object $event): array
     {
         $data = [];
-        $reflection = new \ReflectionClass($event);
+        $reflection = new ReflectionClass($event);
 
         foreach ($reflection->getProperties() as $property) {
             // Skip private properties
@@ -53,17 +57,17 @@ class ArrayEventSerializer
         $data = $serialized['data'];
 
         // Create instance without constructor
-        $event = (new \ReflectionClass($eventClass))->newInstanceWithoutConstructor();
+        $event = (new ReflectionClass($eventClass))->newInstanceWithoutConstructor();
 
         // Set properties directly
         foreach ($data as $property => $value) {
             if (property_exists($event, $property)) {
-                $reflection = new \ReflectionProperty($event, $property);
+                $reflection = new ReflectionProperty($event, $property);
                 $reflection->setAccessible(true);
 
                 // Handle type hints
                 $type = $reflection->getType();
-                if ($type && $type instanceof \ReflectionNamedType && ! $type->isBuiltin()) {
+                if ($type && $type instanceof ReflectionNamedType && ! $type->isBuiltin()) {
                     $typeName = $type->getName();
 
                     // Handle Carbon instances
@@ -74,7 +78,7 @@ class ArrayEventSerializer
                         try {
                             /** @var class-string<\JustSteveKing\DataObjects\Contracts\DataObjectContract> $typeName */
                             $value = hydrate($typeName, $value);
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             // If hydration fails, try to create instance if it has fromArray method
                             if (method_exists($typeName, 'fromArray')) {
                                 $value = $typeName::fromArray($value);
@@ -98,7 +102,7 @@ class ArrayEventSerializer
     {
         // Create instance without constructor
         /** @var class-string $className */
-        $reflection = new \ReflectionClass($className);
+        $reflection = new ReflectionClass($className);
         $instance = $reflection->newInstanceWithoutConstructor();
 
         // Set properties
@@ -109,7 +113,7 @@ class ArrayEventSerializer
 
                 // Handle type hints
                 $type = $prop->getType();
-                if ($type && $type instanceof \ReflectionNamedType && ! $type->isBuiltin()) {
+                if ($type && $type instanceof ReflectionNamedType && ! $type->isBuiltin()) {
                     $typeName = $type->getName();
 
                     // Handle Carbon instances

@@ -8,6 +8,7 @@ use App\Domain\AI\ValueObjects\ConversationContext;
 use App\Infrastructure\AI\Storage\ConversationStore;
 use Illuminate\Support\Facades\Redis;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 class ConversationStoreTest extends TestCase
@@ -108,7 +109,7 @@ class ConversationStoreTest extends TestCase
     public function it_throws_exception_when_adding_message_to_non_existent_conversation(): void
     {
         // Arrange & Act & Assert
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Conversation non-existent not found');
 
         $this->store->addMessage('non-existent', 'user', 'test');

@@ -3,6 +3,8 @@
 namespace Tests\Unit\Domain\Lending\ValueObjects;
 
 use App\Domain\Lending\ValueObjects\RiskRating;
+use Error;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -29,7 +31,7 @@ class RiskRatingTest extends TestCase
     #[Test]
     public function test_throws_exception_for_invalid_rating(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid risk rating. Must be A-F');
 
         new RiskRating('G', 0.1, []);
@@ -38,7 +40,7 @@ class RiskRatingTest extends TestCase
     #[Test]
     public function test_throws_exception_for_invalid_rating_lowercase(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid risk rating. Must be A-F');
 
         new RiskRating('a', 0.1, []);
@@ -47,7 +49,7 @@ class RiskRatingTest extends TestCase
     #[Test]
     public function test_throws_exception_for_numeric_rating(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid risk rating. Must be A-F');
 
         new RiskRating('1', 0.1, []);
@@ -56,7 +58,7 @@ class RiskRatingTest extends TestCase
     #[Test]
     public function test_throws_exception_for_empty_rating(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid risk rating. Must be A-F');
 
         new RiskRating('', 0.1, []);
@@ -65,7 +67,7 @@ class RiskRatingTest extends TestCase
     #[Test]
     public function test_throws_exception_for_negative_default_probability(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Default probability must be between 0 and 1');
 
         new RiskRating('A', -0.1, []);
@@ -74,7 +76,7 @@ class RiskRatingTest extends TestCase
     #[Test]
     public function test_throws_exception_for_default_probability_above_one(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Default probability must be between 0 and 1');
 
         new RiskRating('A', 1.1, []);
@@ -256,7 +258,7 @@ class RiskRatingTest extends TestCase
         $riskRating = new RiskRating('C', 0.05, ['factor' => 'value']);
 
         // PHP 8.1+ readonly properties throw Error when attempting to modify
-        $this->expectException(\Error::class);
+        $this->expectException(Error::class);
         $riskRating->rating = 'D';
     }
 

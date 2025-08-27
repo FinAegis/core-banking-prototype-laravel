@@ -10,8 +10,10 @@ use App\Domain\Custodian\Contracts\ICustodianConnector;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\ValueObjects\TransactionReceipt;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 /**
  * Multi-Custodian Transfer Service.
@@ -73,7 +75,7 @@ class MultiCustodianTransferService
         $route = $this->findOptimalRoute($fromAccount, $toAccount, $amount, $assetCode);
 
         if (! $route) {
-            throw new \RuntimeException('No valid transfer route found');
+            throw new RuntimeException('No valid transfer route found');
         }
 
         // Execute transfer based on route type
@@ -81,7 +83,7 @@ class MultiCustodianTransferService
             'internal' => $this->executeInternalTransfer($route, $amount, $assetCode, $reference, $description),
             'external' => $this->executeExternalTransfer($route, $amount, $assetCode, $reference, $description),
             'bridge'   => $this->executeBridgeTransfer($route, $amount, $assetCode, $reference, $description),
-            default    => throw new \RuntimeException("Unknown route type: {$route['type']}"),
+            default    => throw new RuntimeException("Unknown route type: {$route['type']}"),
         };
     }
 
@@ -272,7 +274,7 @@ class MultiCustodianTransferService
             }
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning(
                 'Failed to check transfer capability',
                 [
@@ -450,7 +452,7 @@ class MultiCustodianTransferService
             $this->recordTransfer($route['route']['from'], $route['route']['to'], $bridgeReceipt, 'bridge');
 
             return $bridgeReceipt;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             Log::error(
@@ -461,7 +463,7 @@ class MultiCustodianTransferService
                 ]
             );
 
-            throw new \RuntimeException('Bridge transfer failed: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Bridge transfer failed: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -483,14 +485,14 @@ class MultiCustodianTransferService
             }
 
             if ($status->isFailed()) {
-                throw new \RuntimeException("Transfer {$transferId} failed: " . $status->failureReason);
+                throw new RuntimeException("Transfer {$transferId} failed: " . $status->failureReason);
             }
 
             // Wait before checking again
             sleep(1);
         }
 
-        throw new \RuntimeException("Transfer {$transferId} timed out after {$maxWaitSeconds} seconds");
+        throw new RuntimeException("Transfer {$transferId} timed out after {$maxWaitSeconds} seconds");
     }
 
     /**

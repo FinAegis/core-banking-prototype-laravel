@@ -9,6 +9,7 @@ use App\Domain\Exchange\Events\UserFeeTierAssigned;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * Service for managing fee tiers based on trading volume and user status.
@@ -192,7 +193,7 @@ class FeeTierService
     public function assignUserFeeTier(string $userId, string $tierKey, ?string $reason = null): void
     {
         if (! isset(self::FEE_TIERS[$tierKey])) {
-            throw new \InvalidArgumentException("Invalid fee tier: {$tierKey}");
+            throw new InvalidArgumentException("Invalid fee tier: {$tierKey}");
         }
 
         DB::table('user_fee_tiers')->updateOrInsert(

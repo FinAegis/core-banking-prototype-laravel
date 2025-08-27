@@ -4,6 +4,7 @@ namespace App\Domain\Cgo\Services;
 
 use App\Domain\Cgo\Models\CgoInvestment;
 use App\Domain\Cgo\Models\CgoRefund;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Refund as StripeRefund;
@@ -39,7 +40,7 @@ class RefundProcessingService
                 'stripe'        => $this->processStripeRefund($investment, $refund),
                 'crypto'        => $this->processCryptoRefund($investment, $refund),
                 'bank_transfer' => $this->processBankTransferRefund($investment, $refund),
-                default         => throw new \Exception("Unsupported payment method for refund: {$investment->payment_method}")
+                default         => throw new Exception("Unsupported payment method for refund: {$investment->payment_method}")
             };
 
             // Update refund with processing result
@@ -64,7 +65,7 @@ class RefundProcessingService
             DB::commit();
 
             return $refund;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'Refund processing failed',
@@ -84,11 +85,11 @@ class RefundProcessingService
     {
         // Check investment status
         if ($investment->status === 'refunded') {
-            throw new \Exception('Investment has already been refunded');
+            throw new Exception('Investment has already been refunded');
         }
 
         if ($investment->payment_status !== 'completed') {
-            throw new \Exception('Only completed payments can be refunded');
+            throw new Exception('Only completed payments can be refunded');
         }
 
         // Check for existing pending refund
@@ -97,18 +98,18 @@ class RefundProcessingService
             ->exists();
 
         if ($pendingRefund) {
-            throw new \Exception('A refund is already in progress for this investment');
+            throw new Exception('A refund is already in progress for this investment');
         }
 
         // Check refund window (e.g., 30 days)
         $refundDeadline = $investment->payment_completed_at->addDays(30);
         if (now()->isAfter($refundDeadline)) {
-            throw new \Exception('Refund window has expired (30 days)');
+            throw new Exception('Refund window has expired (30 days)');
         }
 
         // Check if agreements have been signed
         if ($investment->agreement_signed_at) {
-            throw new \Exception('Cannot refund after investment agreement has been signed');
+            throw new Exception('Cannot refund after investment agreement has been signed');
         }
     }
 
@@ -143,7 +144,7 @@ class RefundProcessingService
     {
         try {
             if (! $investment->stripe_payment_intent_id) {
-                throw new \Exception('Missing Stripe payment intent ID');
+                throw new Exception('Missing Stripe payment intent ID');
             }
 
             // Create Stripe refund
@@ -169,7 +170,7 @@ class RefundProcessingService
                     'amount' => $stripeRefund->amount,
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Stripe refund failed',
                 [
@@ -248,7 +249,7 @@ class RefundProcessingService
     public function completeManualRefund(CgoRefund $refund, array $data): CgoRefund
     {
         if (! in_array($refund->status, ['processing', 'pending'])) {
-            throw new \Exception('Refund cannot be completed in current status');
+            throw new Exception('Refund cannot be completed in current status');
         }
 
         $refund->update(
@@ -284,7 +285,7 @@ class RefundProcessingService
     public function cancelRefund(CgoRefund $refund, string $reason): CgoRefund
     {
         if (! in_array($refund->status, ['pending', 'processing'])) {
-            throw new \Exception('Only pending or processing refunds can be cancelled');
+            throw new Exception('Only pending or processing refunds can be cancelled');
         }
 
         $refund->update(

@@ -4,6 +4,7 @@ namespace Tests\Unit\Helpers;
 
 use App\Helpers\SchemaHelper;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\TestCase;
 
 class SchemaHelperTest extends TestCase
@@ -262,7 +263,7 @@ class SchemaHelperTest extends TestCase
     #[Test]
     public function test_generate_script_method_exists(): void
     {
-        $reflection = new \ReflectionClass(SchemaHelper::class);
+        $reflection = new ReflectionClass(SchemaHelper::class);
         $this->assertTrue($reflection->hasMethod('generateScript'));
 
         $method = $reflection->getMethod('generateScript');

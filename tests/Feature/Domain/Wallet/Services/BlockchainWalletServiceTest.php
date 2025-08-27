@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Config;
 use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\TestCase;
 
 class BlockchainWalletServiceTest extends TestCase
@@ -191,7 +192,7 @@ class BlockchainWalletServiceTest extends TestCase
     public function test_format_balance_internal_method()
     {
         // Use reflection to test protected method
-        $reflection = new \ReflectionClass($this->blockchainWalletService);
+        $reflection = new ReflectionClass($this->blockchainWalletService);
         $method = $reflection->getMethod('formatBalance');
         $method->setAccessible(true);
 
@@ -212,7 +213,7 @@ class BlockchainWalletServiceTest extends TestCase
     public function test_get_connector_returns_correct_instance()
     {
         // Use reflection to test protected method
-        $reflection = new \ReflectionClass($this->blockchainWalletService);
+        $reflection = new ReflectionClass($this->blockchainWalletService);
         $method = $reflection->getMethod('getConnector');
         $method->setAccessible(true);
 
@@ -230,7 +231,7 @@ class BlockchainWalletServiceTest extends TestCase
     public function test_get_connector_throws_exception_for_unsupported_blockchain()
     {
         // Use reflection to test protected method
-        $reflection = new \ReflectionClass($this->blockchainWalletService);
+        $reflection = new ReflectionClass($this->blockchainWalletService);
         $method = $reflection->getMethod('getConnector');
         $method->setAccessible(true);
 

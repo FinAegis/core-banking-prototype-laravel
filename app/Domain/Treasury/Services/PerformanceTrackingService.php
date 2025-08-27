@@ -7,6 +7,7 @@ namespace App\Domain\Treasury\Services;
 use App\Domain\Treasury\Aggregates\PortfolioAggregate;
 use App\Domain\Treasury\Models\PortfolioEvent;
 use App\Domain\Treasury\ValueObjects\PortfolioMetrics;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -56,7 +57,7 @@ class PerformanceTrackingService
                     'benchmark_comparisons' => $benchmarkComparisons,
                     'generated_at'          => now()->toISOString(),
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to get portfolio performance: {$e->getMessage()}", 0, $e);
             }
         });
@@ -140,7 +141,7 @@ class PerformanceTrackingService
                         ],
                     ],
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to get portfolio reports: {$e->getMessage()}", 0, $e);
             }
         });
@@ -207,7 +208,7 @@ class PerformanceTrackingService
                         'total_days'    => $dailyReturns->count(),
                     ],
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to calculate returns: {$e->getMessage()}", 0, $e);
             }
         });
@@ -254,7 +255,7 @@ class PerformanceTrackingService
 
             // Clear performance caches
             $this->clearPerformanceCache($portfolioId);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to track performance: {$e->getMessage()}", 0, $e);
         }
     }
@@ -306,7 +307,7 @@ class PerformanceTrackingService
                     ],
                     'benchmark_comparison' => $this->compareToBusinessary($portfolioId, ['sp500', 'balanced']),
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new RuntimeException("Failed to get performance metrics: {$e->getMessage()}", 0, $e);
             }
         });
@@ -360,7 +361,7 @@ class PerformanceTrackingService
                 'benchmarks'        => $comparisons,
                 'summary'           => $this->generateComparisonSummary($comparisons),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new RuntimeException("Failed to compare to benchmarks: {$e->getMessage()}", 0, $e);
         }
     }
@@ -479,7 +480,7 @@ class PerformanceTrackingService
             }
 
             return min($equityWeight * 1.2, 2.0); // Simplified beta estimate
-        } catch (\Exception) {
+        } catch (Exception) {
             return 1.0; // Default beta
         }
     }

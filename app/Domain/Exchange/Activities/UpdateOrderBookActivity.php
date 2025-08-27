@@ -4,6 +4,8 @@ namespace App\Domain\Exchange\Activities;
 
 use App\Domain\Exchange\Aggregates\OrderBook;
 use App\Domain\Exchange\Projections\Order;
+use Exception;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 class UpdateOrderBookActivity extends Activity
@@ -114,7 +116,7 @@ class UpdateOrderBookActivity extends Activity
                     break;
 
                 default:
-                    throw new \InvalidArgumentException("Unknown action: {$action}");
+                    throw new InvalidArgumentException("Unknown action: {$action}");
             }
 
             return (object) [
@@ -122,7 +124,7 @@ class UpdateOrderBookActivity extends Activity
                 'action'  => $action,
                 'orderId' => $orderId,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return (object) [
                 'success' => false,
                 'error'   => $e->getMessage(),

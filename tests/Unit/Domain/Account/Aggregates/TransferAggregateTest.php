@@ -8,9 +8,11 @@ use App\Domain\Account\DataObjects\Hash;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Events\MoneyTransferred;
 use App\Domain\Account\Events\TransferThresholdReached;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class TransferAggregateTest extends DomainTestCase
@@ -61,7 +63,7 @@ class TransferAggregateTest extends DomainTestCase
         $aggregate->count = 0;
 
         // First set the currentHash to a known value
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $currentHashProperty = $reflection->getProperty('currentHash');
         $currentHashProperty->setAccessible(true);
         $currentHashProperty->setValue($aggregate, '');
@@ -123,7 +125,7 @@ class TransferAggregateTest extends DomainTestCase
         $money = new Money(100);
 
         // First set the currentHash to a known value
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $currentHashProperty = $reflection->getProperty('currentHash');
         $currentHashProperty->setAccessible(true);
         $currentHashProperty->setValue($aggregate, '');
@@ -153,7 +155,7 @@ class TransferAggregateTest extends DomainTestCase
         $money = new Money(1000);
 
         // Use reflection to access protected methods
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
 
         // First set the currentHash to a known value
         $currentHashProperty = $reflection->getProperty('currentHash');
@@ -169,7 +171,7 @@ class TransferAggregateTest extends DomainTestCase
         $storeMethod->invoke($aggregate, $hash);
 
         // Try to use same hash again
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $validateMethod = $reflection->getMethod('validateHash');
         $validateMethod->setAccessible(true);
@@ -215,7 +217,7 @@ class TransferAggregateTest extends DomainTestCase
         $to = new AccountUuid('counter-to');
 
         // Use reflection to access protected methods
-        $reflection = new \ReflectionClass($aggregate);
+        $reflection = new ReflectionClass($aggregate);
         $currentHashProperty = $reflection->getProperty('currentHash');
         $currentHashProperty->setAccessible(true);
         $generateMethod = $reflection->getMethod('generateHash');

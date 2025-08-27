@@ -7,11 +7,13 @@ namespace App\Domain\Custodian\Connectors;
 use App\Domain\Custodian\Contracts\ICustodianConnector;
 use App\Domain\Custodian\Services\CircuitBreakerService;
 use App\Domain\Custodian\Services\RetryService;
+use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 abstract class BaseCustodianConnector implements ICustodianConnector
 {
@@ -78,7 +80,7 @@ abstract class BaseCustodianConnector implements ICustodianConnector
                     return false;
                 }
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 "Custodian {$this->getName()} health check failed",
                 [
@@ -188,7 +190,7 @@ abstract class BaseCustodianConnector implements ICustodianConnector
                     'POST'   => $this->client->post($endpoint, $data),
                     'PUT'    => $this->client->put($endpoint, $data),
                     'DELETE' => $this->client->delete($endpoint),
-                    default  => throw new \InvalidArgumentException("Unsupported HTTP method: {$method}"),
+                    default  => throw new InvalidArgumentException("Unsupported HTTP method: {$method}"),
                 };
 
                 $this->logResponse($method, $endpoint, $response);

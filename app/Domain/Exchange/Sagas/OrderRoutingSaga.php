@@ -10,6 +10,7 @@ use App\Domain\Exchange\Events\OrderSplit;
 use App\Domain\Exchange\Events\RoutingFailed;
 use App\Domain\Exchange\Services\LiquidityPoolService;
 use App\Domain\Exchange\Services\OrderService;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Spatie\EventSourcing\EventHandlers\Reactors\Reactor;
 
@@ -61,7 +62,7 @@ class OrderRoutingSaga extends Reactor
             } else {
                 $this->executeSingleRouting($event, $routingStrategy);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Order routing failed', [
                 'order_id' => $event->orderId,
                 'error'    => $e->getMessage(),

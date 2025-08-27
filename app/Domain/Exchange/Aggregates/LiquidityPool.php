@@ -15,6 +15,7 @@ use App\Domain\Exchange\Events\PoolParametersUpdated;
 use App\Domain\Exchange\LiquidityPool\Repositories\LiquidityPoolEventRepository;
 use App\Domain\Exchange\LiquidityPool\Repositories\LiquidityPoolSnapshotRepository;
 use Brick\Math\BigDecimal;
+use DomainException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class LiquidityPool extends AggregateRoot
@@ -75,7 +76,7 @@ class LiquidityPool extends AggregateRoot
         array $metadata = []
     ): self {
         if ($this->poolId !== null) {
-            throw new \DomainException('Pool already created');
+            throw new DomainException('Pool already created');
         }
 
         $this->recordThat(
@@ -99,7 +100,7 @@ class LiquidityPool extends AggregateRoot
         array $metadata = []
     ): self {
         if (! $this->isActive) {
-            throw new \DomainException('Pool is not active');
+            throw new DomainException('Pool is not active');
         }
 
         $baseAmountDecimal = BigDecimal::of($baseAmount);
@@ -115,7 +116,7 @@ class LiquidityPool extends AggregateRoot
             $deviation = $inputRatio->minus($currentRatio)->abs()->dividedBy($currentRatio, 18, \Brick\Math\RoundingMode::UP);
 
             if ($deviation->isGreaterThan($tolerance)) {
-                throw new \DomainException('Input amounts deviate too much from pool ratio');
+                throw new DomainException('Input amounts deviate too much from pool ratio');
             }
         }
 
@@ -123,7 +124,7 @@ class LiquidityPool extends AggregateRoot
         $shares = $this->calculateSharesForLiquidity($baseAmountDecimal, $quoteAmountDecimal);
 
         if ($shares->isLessThan($minShares)) {
-            throw new \DomainException('Slippage tolerance exceeded');
+            throw new DomainException('Slippage tolerance exceeded');
         }
 
         $this->recordThat(
@@ -151,14 +152,14 @@ class LiquidityPool extends AggregateRoot
         array $metadata = []
     ): self {
         if (! $this->isActive) {
-            throw new \DomainException('Pool is not active');
+            throw new DomainException('Pool is not active');
         }
 
         $sharesDecimal = BigDecimal::of($shares);
         $providerShares = BigDecimal::of($this->providers[$providerId]['shares'] ?? '0');
 
         if ($providerShares->isLessThan($sharesDecimal)) {
-            throw new \DomainException('Insufficient shares');
+            throw new DomainException('Insufficient shares');
         }
 
         // Calculate amounts to return
@@ -167,7 +168,7 @@ class LiquidityPool extends AggregateRoot
         $quoteAmount = $this->quoteReserve->multipliedBy($shareRatio)->toScale(2, \Brick\Math\RoundingMode::DOWN);
 
         if ($baseAmount->isLessThan($minBaseAmount) || $quoteAmount->isLessThan($minQuoteAmount)) {
-            throw new \DomainException('Slippage tolerance exceeded');
+            throw new DomainException('Slippage tolerance exceeded');
         }
 
         $this->recordThat(
@@ -193,7 +194,7 @@ class LiquidityPool extends AggregateRoot
         string $minOutputAmount = '0'
     ): array {
         if (! $this->isActive) {
-            throw new \DomainException('Pool is not active');
+            throw new DomainException('Pool is not active');
         }
 
         $inputAmountDecimal = BigDecimal::of($inputAmount);
@@ -217,7 +218,7 @@ class LiquidityPool extends AggregateRoot
         }
 
         if ($outputAmount->isLessThan($minOutputAmount)) {
-            throw new \DomainException('Slippage tolerance exceeded');
+            throw new DomainException('Slippage tolerance exceeded');
         }
 
         // Collect fee
@@ -247,7 +248,7 @@ class LiquidityPool extends AggregateRoot
         array $metadata = []
     ): self {
         if (! $this->isActive) {
-            throw new \DomainException('Pool is not active');
+            throw new DomainException('Pool is not active');
         }
 
         $targetRatioDecimal = BigDecimal::of($targetRatio);
@@ -278,7 +279,7 @@ class LiquidityPool extends AggregateRoot
         array $metadata = []
     ): self {
         if ($this->totalShares->isZero()) {
-            throw new \DomainException('No liquidity providers to distribute rewards to');
+            throw new DomainException('No liquidity providers to distribute rewards to');
         }
 
         $this->recordThat(
@@ -300,12 +301,12 @@ class LiquidityPool extends AggregateRoot
     ): self {
         $provider = $this->providers[$providerId] ?? null;
         if (! $provider) {
-            throw new \DomainException('Provider not found in pool');
+            throw new DomainException('Provider not found in pool');
         }
 
         $pendingRewards = $provider['pending_rewards'] ?? [];
         if (empty($pendingRewards)) {
-            throw new \DomainException('No rewards to claim');
+            throw new DomainException('No rewards to claim');
         }
 
         $this->recordThat(
@@ -509,15 +510,15 @@ class LiquidityPool extends AggregateRoot
         array $metadata = []
     ): self {
         if (! $this->isActive) {
-            throw new \DomainException('Cannot claim IL protection from inactive pool');
+            throw new DomainException('Cannot claim IL protection from inactive pool');
         }
 
         if (! isset($this->providers[$providerId])) {
-            throw new \DomainException('Provider not found in pool');
+            throw new DomainException('Provider not found in pool');
         }
 
         if (BigDecimal::of($compensation)->isLessThanOrEqualTo(0)) {
-            throw new \DomainException('Invalid compensation amount');
+            throw new DomainException('Invalid compensation amount');
         }
 
         $this->recordThat(new ImpermanentLossProtectionClaimed(

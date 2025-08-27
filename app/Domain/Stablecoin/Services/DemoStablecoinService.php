@@ -9,6 +9,7 @@ use App\Domain\Stablecoin\Events\CollateralPositionUpdated;
 use App\Domain\Stablecoin\Events\StablecoinBurned;
 use App\Domain\Stablecoin\Events\StablecoinMinted;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
@@ -27,7 +28,7 @@ class DemoStablecoinService
         $requiredCollateral = $amount * $minRatio;
 
         if ($collateralValue < $requiredCollateral) {
-            throw new \Exception('Insufficient collateral. Required: $' . $requiredCollateral);
+            throw new Exception('Insufficient collateral. Required: $' . $requiredCollateral);
         }
 
         return DB::transaction(function () use ($accountId, $stablecoinId, $amount, $collateral, $collateralPrice, $requiredCollateral, $collateralValue) {
@@ -97,13 +98,13 @@ class DemoStablecoinService
             ->first();
 
         if (! $position) {
-            throw new \Exception('No active position found for this account and stablecoin');
+            throw new Exception('No active position found for this account and stablecoin');
         }
 
         // Check if we can burn the requested amount
         $burnAmount = (int) $amount;
         if ($position->debt_amount < $burnAmount) {
-            throw new \Exception('Cannot burn more than debt amount');
+            throw new Exception('Cannot burn more than debt amount');
         }
 
         return DB::transaction(function () use ($accountId, $stablecoinId, $amount, $position, $burnAmount) {

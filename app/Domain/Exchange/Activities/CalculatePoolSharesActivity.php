@@ -5,6 +5,8 @@ namespace App\Domain\Exchange\Activities;
 use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use Brick\Math\BigDecimal;
+use DomainException;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 /**
@@ -39,7 +41,7 @@ class CalculatePoolSharesActivity extends Activity
             return $this->getPoolState($pool);
         }
 
-        throw new \InvalidArgumentException('Invalid operation for pool shares calculation');
+        throw new InvalidArgumentException('Invalid operation for pool shares calculation');
     }
 
     /**
@@ -96,7 +98,7 @@ class CalculatePoolSharesActivity extends Activity
         $totalShares = BigDecimal::of($pool->total_shares);
 
         if ($sharesDecimal->isGreaterThan($totalShares)) {
-            throw new \DomainException('Shares exceed total pool shares');
+            throw new DomainException('Shares exceed total pool shares');
         }
 
         $shareRatio = $sharesDecimal->dividedBy($totalShares, 18);

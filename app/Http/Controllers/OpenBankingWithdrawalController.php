@@ -6,6 +6,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Banking\Services\BankIntegrationService;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -120,7 +121,7 @@ class OpenBankingWithdrawalController extends Controller
             );
 
             return redirect($authUrl);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to initiate OpenBanking connection',
                 [
@@ -185,7 +186,7 @@ class OpenBankingWithdrawalController extends Controller
             $bankAccounts = $this->bankIntegration->getUserBankAccounts($user, $withdrawalDetails['bank_code']);
 
             if ($bankAccounts->isEmpty()) {
-                throw new \Exception('No bank accounts found.');
+                throw new Exception('No bank accounts found.');
             }
 
             // For simplicity, use the first account
@@ -232,7 +233,7 @@ class OpenBankingWithdrawalController extends Controller
 
             return redirect()->route('wallet.index')
                 ->with('success', 'Withdrawal initiated successfully via OpenBanking. You will receive the funds within 1-2 business days.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'OpenBanking withdrawal failed',
@@ -356,7 +357,7 @@ class OpenBankingWithdrawalController extends Controller
 
             return redirect()->route('wallet.index')
                 ->with('success', 'Withdrawal initiated successfully. Funds will arrive in 1-2 business days.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             Log::error(
                 'OpenBanking withdrawal failed',

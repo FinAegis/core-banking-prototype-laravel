@@ -2,12 +2,14 @@
 
 namespace App\Domain\Compliance\Workflows;
 
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
 class KycSubmissionWorkflow extends Workflow
 {
-    public function execute(array $input): \Generator
+    public function execute(array $input): Generator
     {
         try {
             $result = yield ActivityStub::make(
@@ -30,7 +32,7 @@ class KycSubmissionWorkflow extends Workflow
             );
 
             return $result;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             yield from $this->compensate();
             throw $th;
         }

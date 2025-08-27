@@ -8,6 +8,8 @@ use App\Domain\Payment\DataObjects\StripeDeposit;
 use App\Domain\Payment\Workflow\Activities\CompleteDepositActivity;
 use App\Domain\Payment\Workflow\Activities\FailDepositActivity;
 use App\Domain\Payment\Workflow\Activities\InitiateDepositActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -16,7 +18,7 @@ class ProcessStripeDepositWorkflow extends Workflow
     /**
      * Process a Stripe deposit through the complete workflow.
      */
-    public function execute(StripeDeposit $deposit): \Generator
+    public function execute(StripeDeposit $deposit): Generator
     {
         try {
             // Step 1: Initiate the deposit using event sourcing
@@ -64,7 +66,7 @@ class ProcessStripeDepositWorkflow extends Workflow
             );
 
             return $transactionId;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // If we have initiated a deposit, mark it as failed
             if (isset($depositUuid)) {
                 yield ActivityStub::make(

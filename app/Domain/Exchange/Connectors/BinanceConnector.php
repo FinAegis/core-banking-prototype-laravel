@@ -9,6 +9,8 @@ use App\Domain\Exchange\ValueObjects\ExternalTicker;
 use App\Domain\Exchange\ValueObjects\ExternalTrade;
 use App\Domain\Exchange\ValueObjects\MarketPair;
 use Brick\Math\BigDecimal;
+use DateTimeImmutable;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -53,7 +55,7 @@ class BinanceConnector implements IExternalExchangeConnector
     {
         try {
             return $this->ping();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Binance connectivity check failed', ['error' => $e->getMessage()]);
 
             return false;
@@ -119,7 +121,7 @@ class BinanceConnector implements IExternalExchangeConnector
             high24h: BigDecimal::of($data['highPrice']),
             low24h: BigDecimal::of($data['lowPrice']),
             change24h: BigDecimal::of($data['priceChangePercent']),
-            timestamp: new \DateTimeImmutable('@' . intval($data['closeTime'] / 1000)),
+            timestamp: new DateTimeImmutable('@' . intval($data['closeTime'] / 1000)),
             exchange: $this->getName(),
             metadata: [
                 'symbol'       => $symbol,
@@ -161,7 +163,7 @@ class BinanceConnector implements IExternalExchangeConnector
                 'amount' => BigDecimal::of($ask[1]),
                 ]
             ),
-            timestamp: new \DateTimeImmutable(),
+            timestamp: new DateTimeImmutable(),
             exchange: $this->getName(),
             metadata: [
                 'symbol'         => $symbol,
@@ -195,7 +197,7 @@ class BinanceConnector implements IExternalExchangeConnector
                 price: BigDecimal::of($trade['price']),
                 amount: BigDecimal::of($trade['qty']),
                 side: $trade['isBuyerMaker'] ? 'sell' : 'buy',
-                timestamp: new \DateTimeImmutable('@' . intval($trade['time'] / 1000)),
+                timestamp: new DateTimeImmutable('@' . intval($trade['time'] / 1000)),
                 exchange: $this->getName(),
                 metadata: [
                 'symbol'        => $symbol,

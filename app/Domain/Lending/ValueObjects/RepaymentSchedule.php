@@ -2,13 +2,15 @@
 
 namespace App\Domain\Lending\ValueObjects;
 
+use InvalidArgumentException;
+
 class RepaymentSchedule
 {
     public function __construct(
         private readonly array $payments
     ) {
         if (empty($payments)) {
-            throw new \InvalidArgumentException('Repayment schedule cannot be empty');
+            throw new InvalidArgumentException('Repayment schedule cannot be empty');
         }
     }
 
@@ -20,7 +22,7 @@ class RepaymentSchedule
             }
         }
 
-        throw new \InvalidArgumentException("Payment number {$paymentNumber} not found in schedule");
+        throw new InvalidArgumentException("Payment number {$paymentNumber} not found in schedule");
     }
 
     public function getPayments(): array

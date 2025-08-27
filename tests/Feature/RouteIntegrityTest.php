@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Exception;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -71,7 +72,7 @@ class RouteIntegrityTest extends TestCase
             try {
                 $url = route($routeName);
                 $this->assertNotEmpty($url, "Route {$routeName} exists but returns empty URL");
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->fail("Route [{$routeName}] is used in navigation but not defined");
             }
         }

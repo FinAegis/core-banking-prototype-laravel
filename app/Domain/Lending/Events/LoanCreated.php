@@ -3,6 +3,7 @@
 namespace App\Domain\Lending\Events;
 
 use App\Domain\Lending\ValueObjects\RepaymentSchedule;
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class LoanCreated extends ShouldBeStored
@@ -16,7 +17,7 @@ class LoanCreated extends ShouldBeStored
         public int $termMonths,
         public RepaymentSchedule $repaymentSchedule,
         public array $terms,
-        public \DateTimeImmutable $createdAt
+        public DateTimeImmutable $createdAt
     ) {
     }
 }

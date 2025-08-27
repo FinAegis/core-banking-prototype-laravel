@@ -3,6 +3,7 @@
 namespace App\Domain\Payment\Activities;
 
 use App\Domain\Account\Models\Account;
+use Exception;
 use Workflow\Activity;
 
 class DebitAccountActivity extends Activity
@@ -21,7 +22,7 @@ class DebitAccountActivity extends Activity
             ->firstOrFail();
 
         if ($balance->balance < $amount) {
-            throw new \Exception('Insufficient balance');
+            throw new Exception('Insufficient balance');
         }
 
         $balance->balance -= $amount;

@@ -10,6 +10,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Asset\Workflows\AssetTransferWorkflow;
 use App\Domain\Asset\Workflows\OptimizedAssetTransferWorkflow;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -145,7 +146,7 @@ class BenchmarkTransferPerformance extends Command
                 'time_ms'  => round($transferTime * 1000, 2),
                 'workflow' => $workflowClass,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $transferTime = microtime(true) - $transferStart;
 
             return [

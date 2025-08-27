@@ -11,6 +11,7 @@ use App\Domain\Account\Utils\ValidatesHash;
 use App\Domain\Asset\Events\AssetTransferCompleted;
 use App\Domain\Asset\Events\AssetTransferFailed;
 use App\Domain\Asset\Events\AssetTransferInitiated;
+use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class AssetTransferAggregate extends AggregateRoot
@@ -79,7 +80,7 @@ class AssetTransferAggregate extends AggregateRoot
         ?array $metadata = null
     ): self {
         if ($this->status !== 'initiated') {
-            throw new \InvalidArgumentException('Transfer must be initiated before it can be completed');
+            throw new InvalidArgumentException('Transfer must be initiated before it can be completed');
         }
 
         $this->recordThat(
@@ -108,7 +109,7 @@ class AssetTransferAggregate extends AggregateRoot
         ?array $metadata = null
     ): self {
         if ($this->status !== 'initiated') {
-            throw new \InvalidArgumentException('Transfer must be initiated before it can fail');
+            throw new InvalidArgumentException('Transfer must be initiated before it can fail');
         }
 
         $this->recordThat(

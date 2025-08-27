@@ -7,6 +7,7 @@ use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -161,7 +162,7 @@ class ExchangeController extends Controller
                     'quote' => $validated['quote_currency'],
                 ]
             )->with('success', 'Order placed successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', $e->getMessage());
@@ -189,7 +190,7 @@ class ExchangeController extends Controller
             $this->exchangeService->cancelOrder($orderId);
 
             return redirect()->back()->with('success', 'Order cancelled successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }

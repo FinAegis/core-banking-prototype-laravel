@@ -4,6 +4,7 @@ namespace App\Domain\Exchange\Activities;
 
 use App\Domain\Account\Models\AccountBalance;
 use Brick\Math\BigDecimal;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 use Workflow\Activity;
 
@@ -19,7 +20,7 @@ class ReleaseLiquidityActivity extends Activity
                     ->first();
 
                 if (! $lockRecord) {
-                    throw new \DomainException('Lock record not found');
+                    throw new DomainException('Lock record not found');
                 }
 
                 // Update balance

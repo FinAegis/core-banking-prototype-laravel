@@ -7,8 +7,10 @@ use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
@@ -35,7 +37,7 @@ class ExchangeControllerTest extends ControllerTestCase
         // The account is automatically associated through the user_uuid foreign key
         // No need to manually associate
 
-        $this->exchangeService = \Mockery::mock(ExchangeService::class);
+        $this->exchangeService = Mockery::mock(ExchangeService::class);
         $this->app->instance(ExchangeService::class, $this->exchangeService);
     }
 
@@ -55,7 +57,7 @@ class ExchangeControllerTest extends ControllerTestCase
                 0.01,
                 null,
                 null,
-                \Mockery::any()
+                Mockery::any()
             )
             ->andReturn([
                 'success'  => true,
@@ -95,7 +97,7 @@ class ExchangeControllerTest extends ControllerTestCase
                 0.5,
                 50000,
                 null,
-                \Mockery::any()
+                Mockery::any()
             )
             ->andReturn([
                 'success'  => true,
@@ -135,7 +137,7 @@ class ExchangeControllerTest extends ControllerTestCase
                 0.1,
                 50000,
                 49000,
-                \Mockery::any()
+                Mockery::any()
             )
             ->andReturn(['success' => true, 'order_id' => 'order-789']);
 
@@ -228,7 +230,7 @@ class ExchangeControllerTest extends ControllerTestCase
 
         $this->exchangeService->shouldReceive('placeOrder')
             ->once()
-            ->andThrow(new \Exception('Insufficient balance'));
+            ->andThrow(new Exception('Insufficient balance'));
 
         $response = $this->postJson('/api/exchange/orders', [
             'type'           => 'buy',

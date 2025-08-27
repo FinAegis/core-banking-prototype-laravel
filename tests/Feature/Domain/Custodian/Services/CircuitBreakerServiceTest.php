@@ -6,6 +6,7 @@ namespace Tests\Feature\Domain\Custodian\Services;
 
 use App\Domain\Custodian\Exceptions\CircuitOpenException;
 use App\Domain\Custodian\Services\CircuitBreakerService;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
@@ -57,9 +58,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 3; $i++) {
             try {
                 $this->circuitBreaker->execute('test-service', function () {
-                    throw new \Exception('Test failure');
+                    throw new Exception('Test failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }
@@ -85,12 +86,12 @@ class CircuitBreakerServiceTest extends ServiceTestCase
             try {
                 $this->circuitBreaker->execute('test-service', function () use ($shouldSucceed) {
                     if (! $shouldSucceed) {
-                        throw new \Exception('Test failure');
+                        throw new Exception('Test failure');
                     }
 
                     return 'success';
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected for failures
             }
         }
@@ -106,9 +107,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 3; $i++) {
             try {
                 $this->circuitBreaker->execute('test-service', function () {
-                    throw new \Exception('Test failure');
+                    throw new Exception('Test failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }
@@ -130,9 +131,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 3; $i++) {
             try {
                 $this->circuitBreaker->execute('test-service', function () {
-                    throw new \Exception('Test failure');
+                    throw new Exception('Test failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }
@@ -158,9 +159,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 3; $i++) {
             try {
                 $this->circuitBreaker->execute('test-service', function () {
-                    throw new \Exception('Test failure');
+                    throw new Exception('Test failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }
@@ -193,12 +194,12 @@ class CircuitBreakerServiceTest extends ServiceTestCase
             try {
                 $this->circuitBreaker->execute('test-service', function () use ($op) {
                     if (! $op['success']) {
-                        throw new \Exception($op['value']);
+                        throw new Exception($op['value']);
                     }
 
                     return $op['value'];
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected for failures
             }
         }
@@ -219,9 +220,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 3; $i++) {
             try {
                 $this->circuitBreaker->execute('test-service', function () {
-                    throw new \Exception('Test failure');
+                    throw new Exception('Test failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }
@@ -246,9 +247,9 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         for ($i = 0; $i < 3; $i++) {
             try {
                 $this->circuitBreaker->execute('service1', function () {
-                    throw new \Exception('Test failure');
+                    throw new Exception('Test failure');
                 });
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Expected
             }
         }

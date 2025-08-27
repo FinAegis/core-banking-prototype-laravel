@@ -4,6 +4,7 @@ namespace App\Domain\Compliance\Activities;
 
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 class KycSubmissionActivity extends Activity
@@ -29,7 +30,7 @@ class KycSubmissionActivity extends Activity
         $documents = $input['documents'] ?? [];
 
         if (! $userUuid || empty($documents)) {
-            throw new \InvalidArgumentException('Missing required parameters: user_uuid, documents');
+            throw new InvalidArgumentException('Missing required parameters: user_uuid, documents');
         }
 
         /** @var User $$user */

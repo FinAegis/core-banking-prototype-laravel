@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Events\Portfolio\ReportGenerated;
+use Exception;
+use InvalidArgumentException;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class GenerateReportActivity extends Activity
@@ -19,7 +23,7 @@ class GenerateReportActivity extends Activity
         $formatOptions = $input['format_options'] ?? [];
 
         try {
-            \Log::info('Generating performance report', [
+            Log::info('Generating performance report', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'report_type'  => $reportType,
@@ -33,7 +37,7 @@ class GenerateReportActivity extends Activity
                 'html'  => $this->generateHtmlReport($reportId, $reportType, $performanceData, $formatOptions),
                 'excel' => $this->generateExcelReport($reportId, $reportType, $performanceData, $formatOptions),
                 'json'  => $this->generateJsonReport($reportId, $reportType, $performanceData, $formatOptions),
-                default => throw new \InvalidArgumentException("Unsupported report format: {$format}"),
+                default => throw new InvalidArgumentException("Unsupported report format: {$format}"),
             };
 
             // Dispatch event for successful report generation
@@ -51,7 +55,7 @@ class GenerateReportActivity extends Activity
                 ]
             ));
 
-            \Log::info('Performance report generated successfully', [
+            Log::info('Performance report generated successfully', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'file_path'    => $generatedReport['file_path'],
@@ -60,14 +64,14 @@ class GenerateReportActivity extends Activity
             ]);
 
             return $generatedReport;
-        } catch (\Exception $e) {
-            \Log::error('Report generation failed', [
+        } catch (Exception $e) {
+            Log::error('Report generation failed', [
                 'portfolio_id' => $portfolioId,
                 'report_id'    => $reportId,
                 'error'        => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to generate report for portfolio {$portfolioId}: {$e->getMessage()}",
                 0,
                 $e

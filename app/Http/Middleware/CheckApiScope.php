@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckApiScope
@@ -35,7 +36,7 @@ class CheckApiScope
                     $canScope = $request->user()->tokenCan($scope);
                     // Debug output for testing
                     if (in_array('treasury', $scopes)) {
-                        \Log::debug("CheckApiScope: Checking scope '$scope', result: " . ($canScope ? 'true' : 'false'));
+                        Log::debug("CheckApiScope: Checking scope '$scope', result: " . ($canScope ? 'true' : 'false'));
                     }
                     if ($canScope) {
                         return $next($request);

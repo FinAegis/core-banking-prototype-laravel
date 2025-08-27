@@ -8,6 +8,8 @@ use App\Domain\Fraud\Events\FraudDetected;
 use App\Domain\Fraud\Events\TransactionBlocked;
 use App\Domain\Fraud\Models\FraudScore;
 use App\Models\User;
+use DateTimeInterface;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -139,7 +141,7 @@ class FraudDetectionService
                     $this->behavioralAnalysis->updateProfile($user, $transaction, $fraudScore);
 
                     return $fraudScore;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::error(
                         'Fraud detection failed',
                         [
@@ -678,7 +680,7 @@ class FraudDetectionService
     /**
      * Analyze user activity for historical analysis.
      */
-    public function analyzeUserActivity(User $user, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    public function analyzeUserActivity(User $user, DateTimeInterface $startDate, DateTimeInterface $endDate): array
     {
         $behavioralData = $this->behavioralAnalysis->getHistoricalBehavior($user, $startDate, $endDate);
 
@@ -805,7 +807,7 @@ class FraudDetectionService
         $indicators = [];
 
         $createdAt = $transaction->created_at;
-        if ($createdAt instanceof \DateTimeInterface) {
+        if ($createdAt instanceof DateTimeInterface) {
             $carbonDate = \Carbon\Carbon::instance($createdAt);
             if ($carbonDate->isWeekend()) {
                 $indicators[] = 'weekend_transaction';

@@ -5,8 +5,11 @@ namespace Tests\Unit\Domain\Lending\Aggregates;
 use App\Domain\Lending\Aggregates\LoanApplication;
 use App\Domain\Lending\Events\LoanApplicationSubmitted;
 use App\Domain\Lending\Exceptions\LoanApplicationException;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use ReflectionMethod;
 use Tests\DomainTestCase;
 
 class LoanApplicationTest extends DomainTestCase
@@ -205,16 +208,16 @@ class LoanApplicationTest extends DomainTestCase
             48,
             'education',
             [],
-            new \DateTimeImmutable()
+            new DateTimeImmutable()
         );
 
         // Use reflection to call the protected method
-        $reflection = new \ReflectionMethod($loanApp, 'applyLoanApplicationSubmitted');
+        $reflection = new ReflectionMethod($loanApp, 'applyLoanApplicationSubmitted');
         $reflection->setAccessible(true);
         $reflection->invoke($loanApp, $submittedEvent);
 
         // Use reflection to check private properties
-        $reflection = new \ReflectionClass($loanApp);
+        $reflection = new ReflectionClass($loanApp);
 
         $statusProperty = $reflection->getProperty('status');
         $statusProperty->setAccessible(true);

@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Account\Events;
 use App\Domain\Account\DataObjects\Hash;
 use App\Domain\Account\Events\AssetBalanceSubtracted;
 use App\Values\EventQueues;
+use Error;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -126,7 +127,7 @@ class AssetBalanceSubtractedTest extends DomainTestCase
         );
 
         // Attempting to modify readonly property should cause error
-        $this->expectException(\Error::class);
+        $this->expectException(Error::class);
         $this->expectExceptionMessageMatches('/Cannot modify readonly property/');
         $event->amount = 4000;
     }

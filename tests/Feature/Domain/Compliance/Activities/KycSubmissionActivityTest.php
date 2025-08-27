@@ -6,7 +6,10 @@ namespace Tests\Feature\Domain\Compliance\Activities;
 
 use App\Domain\Compliance\Activities\KycSubmissionActivity;
 use App\Domain\Compliance\Services\KycService;
+use InvalidArgumentException;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\TestCase;
 use Workflow\Activity;
 
@@ -15,7 +18,7 @@ class KycSubmissionActivityTest extends TestCase
     #[Test]
     public function test_activity_extends_workflow_activity()
     {
-        $kycService = \Mockery::mock(KycService::class);
+        $kycService = Mockery::mock(KycService::class);
         $activity = new KycSubmissionActivity($kycService);
 
         $this->assertInstanceOf(Activity::class, $activity);
@@ -24,10 +27,10 @@ class KycSubmissionActivityTest extends TestCase
     #[Test]
     public function test_execute_method_validates_required_parameters()
     {
-        $kycService = \Mockery::mock(KycService::class);
+        $kycService = Mockery::mock(KycService::class);
         $activity = new KycSubmissionActivity($kycService);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Missing required parameters: user_uuid, documents');
 
         $activity->execute([]);
@@ -36,10 +39,10 @@ class KycSubmissionActivityTest extends TestCase
     #[Test]
     public function test_execute_method_validates_missing_user_uuid()
     {
-        $kycService = \Mockery::mock(KycService::class);
+        $kycService = Mockery::mock(KycService::class);
         $activity = new KycSubmissionActivity($kycService);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $activity->execute([
             'documents' => [['type' => 'passport']],
@@ -49,10 +52,10 @@ class KycSubmissionActivityTest extends TestCase
     #[Test]
     public function test_execute_method_validates_empty_documents()
     {
-        $kycService = \Mockery::mock(KycService::class);
+        $kycService = Mockery::mock(KycService::class);
         $activity = new KycSubmissionActivity($kycService);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $activity->execute([
             'user_uuid' => 'test-uuid',
@@ -63,10 +66,10 @@ class KycSubmissionActivityTest extends TestCase
     #[Test]
     public function test_execute_method_has_correct_signature()
     {
-        $kycService = \Mockery::mock(KycService::class);
+        $kycService = Mockery::mock(KycService::class);
         $activity = new KycSubmissionActivity($kycService);
 
-        $reflection = new \ReflectionClass($activity);
+        $reflection = new ReflectionClass($activity);
         $executeMethod = $reflection->getMethod('execute');
 
         $this->assertTrue($executeMethod->isPublic());

@@ -8,6 +8,7 @@ use App\Domain\Compliance\Events\AmlScreeningMatchStatusUpdated;
 use App\Domain\Compliance\Events\AmlScreeningResultsRecorded;
 use App\Domain\Compliance\Events\AmlScreeningReviewed;
 use App\Domain\Compliance\Events\AmlScreeningStarted;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -102,7 +103,7 @@ class AmlScreeningAggregateTest extends DomainTestCase
         $uuid = 'test-uuid';
         $aggregate = AmlScreeningAggregate::fake($uuid);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid action. Must be confirm, dismiss, or investigate.');
 
         $aggregate->updateMatchStatus(
@@ -132,7 +133,7 @@ class AmlScreeningAggregateTest extends DomainTestCase
         $uuid = 'test-uuid';
         $aggregate = AmlScreeningAggregate::fake($uuid);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid status. Must be completed or failed.');
 
         $aggregate->completeScreening('invalid-status', null);
@@ -165,7 +166,7 @@ class AmlScreeningAggregateTest extends DomainTestCase
         $uuid = 'test-uuid';
         $aggregate = AmlScreeningAggregate::fake($uuid);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid decision. Must be clear, escalate, or block.');
 
         $aggregate->reviewScreening(

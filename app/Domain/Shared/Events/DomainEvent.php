@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Events;
 
+use DateTimeInterface;
+
 /**
  * Base interface for all domain events.
  */
@@ -27,7 +29,7 @@ interface DomainEvent
     /**
      * Get when the event occurred.
      */
-    public function getOccurredAt(): \DateTimeInterface;
+    public function getOccurredAt(): DateTimeInterface;
 
     /**
      * Get the event version for schema evolution.

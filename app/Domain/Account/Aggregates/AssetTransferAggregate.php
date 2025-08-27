@@ -9,6 +9,7 @@ use App\Domain\Account\Events\TransferThresholdReached;
 use App\Domain\Account\Repositories\TransferRepository;
 use App\Domain\Account\Repositories\TransferSnapshotRepository;
 use App\Domain\Account\Utils\ValidatesHash;
+use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 
 class AssetTransferAggregate extends AggregateRoot
@@ -125,7 +126,7 @@ class AssetTransferAggregate extends AggregateRoot
         // For now, just validate that the hash exists and is in correct format
         // In production, you would implement proper hash validation logic
         if (! $hash->getHash() || strlen($hash->getHash()) !== 128) {
-            throw new \InvalidArgumentException('Invalid hash format');
+            throw new InvalidArgumentException('Invalid hash format');
         }
     }
 }

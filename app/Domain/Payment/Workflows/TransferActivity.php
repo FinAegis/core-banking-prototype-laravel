@@ -10,6 +10,8 @@ use App\Domain\Account\Exceptions\NotEnoughFunds;
 use App\Domain\Account\Workflows\DepositAccountActivity;
 use App\Domain\Account\Workflows\WithdrawAccountActivity;
 use App\Domain\Payment\Services\TransferService;
+use Exception;
+use Generator;
 use Workflow\Activity;
 use Workflow\ActivityStub;
 
@@ -24,9 +26,9 @@ class TransferActivity extends Activity
      * Execute a transfer between two accounts.
      *
      * @throws NotEnoughFunds
-     * @throws \Exception
+     * @throws Exception
      */
-    public function execute(AccountUuid $from, AccountUuid $to, Money $money): \Generator
+    public function execute(AccountUuid $from, AccountUuid $to, Money $money): Generator
     {
         // Validate the transfer can be performed
         $this->transferService->validateTransfer($from, $to, $money);

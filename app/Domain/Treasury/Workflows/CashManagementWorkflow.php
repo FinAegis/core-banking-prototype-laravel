@@ -11,7 +11,9 @@ use App\Domain\Treasury\Activities\ValidateAllocationActivity;
 use App\Domain\Treasury\Aggregates\TreasuryAggregate;
 use App\Domain\Treasury\ValueObjects\AllocationStrategy;
 use App\Domain\Treasury\ValueObjects\RiskProfile;
+use Exception;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Workflow\Activity;
 use Workflow\Workflow;
 
@@ -54,7 +56,7 @@ class CashManagementWorkflow extends Workflow
             ]);
 
             if (! $validation['is_valid']) {
-                throw new \RuntimeException('Allocation validation failed: ' . $validation['reason']);
+                throw new RuntimeException('Allocation validation failed: ' . $validation['reason']);
             }
 
             // Step 3: Allocate cash based on strategy
@@ -110,11 +112,11 @@ class CashManagementWorkflow extends Workflow
                 'liquidity'    => $liquidityAnalysis,
                 'risk_profile' => $validation['risk_profile'],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Compensation: Reverse allocations if any step fails
             yield from $this->compensate();
 
-            throw new \RuntimeException('Cash management workflow failed: ' . $e->getMessage());
+            throw new RuntimeException('Cash management workflow failed: ' . $e->getMessage());
         }
     }
 

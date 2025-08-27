@@ -6,6 +6,7 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Asset\Models\Asset;
 use Database\Factories\AccountBalanceFactory;
+use Exception;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -74,7 +75,7 @@ class AccountBalanceTest extends TestCase
             ->withBalance(1000)
             ->create();
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Insufficient balance');
 
         $balance->debit(2000);

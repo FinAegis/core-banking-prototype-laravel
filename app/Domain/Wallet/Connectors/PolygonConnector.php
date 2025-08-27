@@ -3,6 +3,7 @@
 namespace App\Domain\Wallet\Connectors;
 
 use App\Domain\Wallet\ValueObjects\AddressData;
+use Exception;
 
 class PolygonConnector extends EthereumConnector
 {
@@ -63,7 +64,7 @@ class PolygonConnector extends EthereumConnector
             $this->web3->eth->gasPrice(
                 function ($err, $price) use (&$gasPrice) {
                     if ($err !== null) {
-                        throw new \Exception('Failed to get gas price: ' . $err->getMessage());
+                        throw new Exception('Failed to get gas price: ' . $err->getMessage());
                     }
                     $gasPrice = $price;
                 }
@@ -76,7 +77,7 @@ class PolygonConnector extends EthereumConnector
             );
 
             return gmp_strval($bufferedPrice);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback to default Polygon gas price (30 Gwei)
             return '30000000000';
         }
@@ -89,7 +90,7 @@ class PolygonConnector extends EthereumConnector
         $this->web3->eth->blockNumber(
             function ($err, $number) use (&$blockNumber) {
                 if ($err !== null) {
-                    throw new \Exception('Failed to get block number: ' . $err->getMessage());
+                    throw new Exception('Failed to get block number: ' . $err->getMessage());
                 }
                 $blockNumber = hexdec($number->toString());
             }

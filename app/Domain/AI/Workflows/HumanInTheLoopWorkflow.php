@@ -6,6 +6,8 @@ namespace App\Domain\AI\Workflows;
 
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
 use App\Models\User;
+use Exception;
+use Generator;
 use Workflow\Workflow;
 
 /**
@@ -72,7 +74,7 @@ class HumanInTheLoopWorkflow extends Workflow
      * @param array<string, mixed> $aiDecision AI's proposed decision
      * @param array<string, mixed> $parameters Additional parameters
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
@@ -80,7 +82,7 @@ class HumanInTheLoopWorkflow extends Workflow
         string $operationType,
         array $aiDecision,
         array $parameters = []
-    ): \Generator {
+    ): Generator {
         // Initialize workflow context
         $this->initializeContext($conversationId, $userId, $operationType, $aiDecision, $parameters);
 
@@ -160,7 +162,7 @@ class HumanInTheLoopWorkflow extends Workflow
     /**
      * Evaluate AI confidence against thresholds.
      */
-    private function evaluateConfidence(array $aiDecision, string $operationType): \Generator
+    private function evaluateConfidence(array $aiDecision, string $operationType): Generator
     {
         $aiConfidence = $aiDecision['confidence'] ?? 0.5;
         $threshold = self::CONFIDENCE_THRESHOLDS[$operationType]
@@ -188,7 +190,7 @@ class HumanInTheLoopWorkflow extends Workflow
     /**
      * Check if operation exceeds value thresholds.
      */
-    private function checkValueThresholds(string $operationType, array $parameters): \Generator
+    private function checkValueThresholds(string $operationType, array $parameters): Generator
     {
         $operationValue = $parameters['value'] ?? 0;
         $threshold = $this->getValueThreshold($operationType);
@@ -289,7 +291,7 @@ class HumanInTheLoopWorkflow extends Workflow
         string $operationType,
         array $aiDecision,
         array $parameters
-    ): \Generator {
+    ): Generator {
         $requestId = uniqid('approval_');
 
         $request = [
@@ -373,7 +375,7 @@ class HumanInTheLoopWorkflow extends Workflow
     /**
      * Wait for human decision (simulated for demo).
      */
-    private function waitForHumanDecision(array $approvalRequest): \Generator
+    private function waitForHumanDecision(array $approvalRequest): Generator
     {
         // In production, this would wait for actual human input
         // For demo, simulate human decision based on risk factors
@@ -469,7 +471,7 @@ class HumanInTheLoopWorkflow extends Workflow
         array $humanDecision,
         array $aiDecision,
         string $operationType
-    ): \Generator {
+    ): Generator {
         $result = [
             'final_decision'    => $humanDecision['decision'],
             'decision_maker'    => 'human',
@@ -501,7 +503,7 @@ class HumanInTheLoopWorkflow extends Workflow
     /**
      * Collect feedback for AI improvement.
      */
-    private function collectFeedback(array $humanDecision, array $aiDecision): \Generator
+    private function collectFeedback(array $humanDecision, array $aiDecision): Generator
     {
         $feedback = [
             'conversation_id'   => $this->context['conversation_id'],
@@ -608,7 +610,7 @@ class HumanInTheLoopWorkflow extends Workflow
     /**
      * Auto-approve with high confidence.
      */
-    private function autoApprove(array $aiDecision, array $confidenceCheck): \Generator
+    private function autoApprove(array $aiDecision, array $confidenceCheck): Generator
     {
         $result = [
             'final_decision'    => 'approved',
@@ -652,7 +654,7 @@ class HumanInTheLoopWorkflow extends Workflow
             );
 
             $aggregate->persist();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error('Failed to record human-in-loop decision', [
                 'conversation_id' => $conversationId,
                 'error'           => $e->getMessage(),
@@ -689,7 +691,7 @@ class HumanInTheLoopWorkflow extends Workflow
         string $reason
     ): array {
         if (! isset($this->pendingApprovals[$approvalId])) {
-            throw new \Exception("Approval request not found: {$approvalId}");
+            throw new Exception("Approval request not found: {$approvalId}");
         }
 
         $this->pendingApprovals[$approvalId]['status'] = $decision;

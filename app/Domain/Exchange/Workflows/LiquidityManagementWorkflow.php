@@ -11,6 +11,8 @@ use App\Domain\Exchange\Aggregates\LiquidityPool;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use Brick\Math\BigDecimal;
+use Exception;
+use Generator;
 use Illuminate\Support\Facades\Log;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
@@ -21,7 +23,7 @@ class LiquidityManagementWorkflow extends Workflow
 
     private bool $liquidityTransferred = false;
 
-    public function addLiquidity(LiquidityAdditionInput $input): \Generator
+    public function addLiquidity(LiquidityAdditionInput $input): Generator
     {
         try {
             // Step 1: Validate liquidity parameters
@@ -87,7 +89,7 @@ class LiquidityManagementWorkflow extends Workflow
                 'pool_id'       => $input->poolId,
                 'provider_id'   => $input->providerId,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Compensate on failure
             yield from $this->compensateAddLiquidity($e->getMessage());
 
@@ -98,7 +100,7 @@ class LiquidityManagementWorkflow extends Workflow
         }
     }
 
-    public function removeLiquidity(LiquidityRemovalInput $input): \Generator
+    public function removeLiquidity(LiquidityRemovalInput $input): Generator
     {
         try {
             // Step 1: Validate removal parameters
@@ -147,7 +149,7 @@ class LiquidityManagementWorkflow extends Workflow
                 'quote_amount'  => $amounts['quote_amount'],
                 'shares_burned' => $input->shares,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'error'   => $e->getMessage(),
@@ -155,7 +157,7 @@ class LiquidityManagementWorkflow extends Workflow
         }
     }
 
-    public function rebalancePool(string $poolId, string $targetRatio): \Generator
+    public function rebalancePool(string $poolId, string $targetRatio): Generator
     {
         try {
             // Step 1: Get current pool state
@@ -216,7 +218,7 @@ class LiquidityManagementWorkflow extends Workflow
                 'rebalance_amount'   => $rebalanceAmount,
                 'rebalance_currency' => $rebalanceCurrency,
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'error'   => $e->getMessage(),
@@ -224,13 +226,13 @@ class LiquidityManagementWorkflow extends Workflow
         }
     }
 
-    private function compensateAddLiquidity(string $reason): \Generator
+    private function compensateAddLiquidity(string $reason): Generator
     {
         // Release any locked balances
         foreach ($this->lockedBalances as $lock) {
             try {
                 yield ActivityStub::make(ReleaseLiquidityActivity::class, $lock);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log compensation failure
                 Log::error(
                     'Failed to release locked balance during compensation',

@@ -8,6 +8,7 @@ use App\Domain\Stablecoin\Models\LiquidationAuction;
 use App\Domain\Stablecoin\ValueObjects\AuctionResult;
 use Brick\Math\BigDecimal;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class LiquidationAuctionService
 {
@@ -93,7 +94,7 @@ class LiquidationAuctionService
             ->firstOrFail();
 
         if ($bidAmount < $auction->minimum_bid) {
-            throw new \InvalidArgumentException('Bid amount below minimum');
+            throw new InvalidArgumentException('Bid amount below minimum');
         }
 
         $auction->bids()->create([

@@ -6,6 +6,7 @@ use App\Domain\FinancialInstitution\Models\FinancialInstitutionApplication;
 use App\Domain\FinancialInstitution\Services\DocumentVerificationService;
 use App\Domain\FinancialInstitution\Services\OnboardingService;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -179,7 +180,7 @@ class FinancialInstitutionController extends Controller
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Failed to submit FI application',
                 [
@@ -283,7 +284,7 @@ class FinancialInstitutionController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => $e->getMessage(),

@@ -6,6 +6,7 @@ namespace App\Domain\Governance\Workflows;
 
 use App\Domain\Governance\Models\Poll;
 use App\Domain\Governance\ValueObjects\PollResult;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Temporal\Workflow\WorkflowInterface;
 use Temporal\Workflow\WorkflowMethod;
@@ -79,7 +80,7 @@ class UpdateConfigurationWorkflow
                 'applied_changes' => $appliedChanges,
                 'changes_count'   => count($appliedChanges),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error(
                 'Failed to update configuration via governance poll',
                 [

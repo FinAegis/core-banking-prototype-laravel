@@ -9,6 +9,7 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Domain\Custodian\Workflows\CustodianTransferWorkflow;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Workflow\WorkflowStub;
@@ -161,7 +162,7 @@ class CustodianController extends Controller
                     'data' => $accountInfo->toArray(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve account information',
@@ -255,7 +256,7 @@ class CustodianController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve balance',
@@ -380,7 +381,7 @@ class CustodianController extends Controller
                     'message' => "Transfer {$validated['direction']} initiated successfully",
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Transfer failed',
@@ -501,7 +502,7 @@ class CustodianController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve transaction history',
@@ -576,7 +577,7 @@ class CustodianController extends Controller
                     'data' => $receipt->toArray(),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error'   => 'Failed to retrieve transaction status',

@@ -11,6 +11,8 @@ use App\Domain\Stablecoin\Workflows\Activities\CreatePositionActivity;
 use App\Domain\Stablecoin\Workflows\Activities\LockCollateralActivity;
 use App\Domain\Stablecoin\Workflows\Activities\MintStablecoinActivity;
 use App\Domain\Stablecoin\Workflows\Activities\ReleaseCollateralActivity;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -26,7 +28,7 @@ class MintStablecoinWorkflow extends Workflow
         int $collateralAmount,
         int $mintAmount,
         ?string $positionUuid = null
-    ): \Generator {
+    ): Generator {
         try {
             // Create or update position
             $positionResult = yield ActivityStub::make(
@@ -90,7 +92,7 @@ class MintStablecoinWorkflow extends Workflow
             );
 
             return $positionUuid;
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             // Execute compensations in reverse order
             yield from $this->compensate();
             throw $th;

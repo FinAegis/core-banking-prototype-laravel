@@ -6,6 +6,7 @@ use App\Domain\Account\Actions\UnfreezeAccount;
 use App\Domain\Account\Events\AccountUnfrozen;
 use App\Domain\Account\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
@@ -32,7 +33,7 @@ class UnfreezeAccountTest extends DomainTestCase
         ]);
 
         // Create event
-        $event = \Mockery::mock(AccountUnfrozen::class);
+        $event = Mockery::mock(AccountUnfrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('frozen-account-123');
 
         // Execute
@@ -54,7 +55,7 @@ class UnfreezeAccountTest extends DomainTestCase
         ]);
 
         // Create event
-        $event = \Mockery::mock(AccountUnfrozen::class);
+        $event = Mockery::mock(AccountUnfrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('active-account');
 
         // Execute
@@ -69,7 +70,7 @@ class UnfreezeAccountTest extends DomainTestCase
     public function test_throws_exception_if_account_not_found(): void
     {
         // Create event for non-existent account
-        $event = \Mockery::mock(AccountUnfrozen::class);
+        $event = Mockery::mock(AccountUnfrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('non-existent-uuid');
 
         // Assert exception
@@ -101,7 +102,7 @@ class UnfreezeAccountTest extends DomainTestCase
         ]);
 
         // Create event
-        $event = \Mockery::mock(AccountUnfrozen::class);
+        $event = Mockery::mock(AccountUnfrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('frozen-with-balance');
 
         // Execute
@@ -127,7 +128,7 @@ class UnfreezeAccountTest extends DomainTestCase
         ]);
 
         // Create event
-        $event = \Mockery::mock(AccountUnfrozen::class);
+        $event = Mockery::mock(AccountUnfrozen::class);
         $event->shouldReceive('aggregateRootUuid')->andReturn('frozen-business');
 
         // Execute
@@ -140,7 +141,7 @@ class UnfreezeAccountTest extends DomainTestCase
 
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
         parent::tearDown();
     }
 }

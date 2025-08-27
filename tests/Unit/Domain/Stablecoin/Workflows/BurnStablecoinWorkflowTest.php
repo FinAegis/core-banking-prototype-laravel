@@ -4,6 +4,7 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows;
 
 use App\Domain\Stablecoin\Workflows\BurnStablecoinWorkflow;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class BurnStablecoinWorkflowTest extends DomainTestCase
@@ -17,7 +18,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_extends_workflow_class(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
         $this->assertEquals('Workflow\Workflow', $reflection->getParentClass()->getName());
     }
 
@@ -30,7 +31,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_execute_method_signature(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals(6, $method->getNumberOfParameters());
@@ -61,7 +62,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_execute_method_returns_generator(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $this->assertEquals('Generator', $method->getReturnType()->getName());
@@ -70,7 +71,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_uses_compensation_pattern(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
 
         // Check if the workflow has compensation methods
         $this->assertTrue(method_exists(BurnStablecoinWorkflow::class, 'addCompensation'));
@@ -88,7 +89,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
             'ClosePositionActivity',
         ];
 
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         // Get the method source code
@@ -112,7 +113,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
             'LockCollateralActivity',
         ];
 
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();
@@ -129,7 +130,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_handles_exceptions(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();
@@ -146,7 +147,7 @@ class BurnStablecoinWorkflowTest extends DomainTestCase
     #[Test]
     public function test_workflow_conditional_logic(): void
     {
-        $reflection = new \ReflectionClass(BurnStablecoinWorkflow::class);
+        $reflection = new ReflectionClass(BurnStablecoinWorkflow::class);
         $method = $reflection->getMethod('execute');
 
         $fileName = $reflection->getFileName();

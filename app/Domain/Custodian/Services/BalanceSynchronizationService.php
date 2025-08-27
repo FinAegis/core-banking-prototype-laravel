@@ -10,6 +10,7 @@ use App\Domain\Custodian\Events\AccountBalanceUpdated;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\ValueObjects\AccountInfo;
 use App\Domain\Wallet\Services\WalletService;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -102,7 +103,7 @@ class BalanceSynchronizationService
             $this->recordSyncResult($custodianAccount, 'synchronized', 'Success');
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Balance synchronization failed',
                 [

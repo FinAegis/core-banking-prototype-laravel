@@ -9,8 +9,10 @@ use App\Domain\Custodian\ValueObjects\AccountInfo;
 use App\Domain\Custodian\ValueObjects\TransactionReceipt;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class SantanderConnector extends BaseCustodianConnector
 {
@@ -43,7 +45,7 @@ class SantanderConnector extends BaseCustodianConnector
 
         // Only validate credentials in production
         if (app()->environment('production') && (empty($this->apiKey) || empty($this->apiSecret))) {
-            throw new \InvalidArgumentException('Santander api_key and api_secret are required');
+            throw new InvalidArgumentException('Santander api_key and api_secret are required');
         }
     }
 
@@ -94,7 +96,7 @@ class SantanderConnector extends BaseCustodianConnector
             );
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to obtain access token: ' . $response->body());
+            throw new Exception('Failed to obtain access token: ' . $response->body());
         }
 
         $data = $response->json();
@@ -138,7 +140,7 @@ class SantanderConnector extends BaseCustodianConnector
             'POST'   => $request->post(self::API_BASE_URL . $endpoint, $data),
             'PUT'    => $request->put(self::API_BASE_URL . $endpoint, $data),
             'DELETE' => $request->delete(self::API_BASE_URL . $endpoint),
-            default  => throw new \InvalidArgumentException("Unsupported HTTP method: {$method}"),
+            default  => throw new InvalidArgumentException("Unsupported HTTP method: {$method}"),
         };
     }
 
@@ -147,7 +149,7 @@ class SantanderConnector extends BaseCustodianConnector
         $response = $this->apiRequest('GET', "/aisp/accounts/{$accountId}/balances");
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to get balance: ' . $response->body());
+            throw new Exception('Failed to get balance: ' . $response->body());
         }
 
         $data = $response->json();
@@ -171,7 +173,7 @@ class SantanderConnector extends BaseCustodianConnector
         $response = $this->apiRequest('GET', "/aisp/accounts/{$accountId}");
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to get account info: ' . $response->body());
+            throw new Exception('Failed to get account info: ' . $response->body());
         }
 
         $data = $response->json();
@@ -243,7 +245,7 @@ class SantanderConnector extends BaseCustodianConnector
         $response = $this->apiRequest('POST', '/pisp/domestic-payments', $paymentData);
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to initiate transfer: ' . $response->body());
+            throw new Exception('Failed to initiate transfer: ' . $response->body());
         }
 
         $data = $response->json();
@@ -275,7 +277,7 @@ class SantanderConnector extends BaseCustodianConnector
         $response = $this->apiRequest('GET', "/pisp/domestic-payments/{$transactionId}");
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to get transaction status: ' . $response->body());
+            throw new Exception('Failed to get transaction status: ' . $response->body());
         }
 
         $data = $response->json();
@@ -332,7 +334,7 @@ class SantanderConnector extends BaseCustodianConnector
 
                 return in_array($status, ['Enabled', 'Active']);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning(
                 'Account validation failed',
                 [
@@ -357,7 +359,7 @@ class SantanderConnector extends BaseCustodianConnector
         );
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to get transaction history: ' . $response->body());
+            throw new Exception('Failed to get transaction history: ' . $response->body());
         }
 
         $data = $response->json();
@@ -421,7 +423,7 @@ class SantanderConnector extends BaseCustodianConnector
         $response = $this->apiRequest('POST', '/pisp/domestic-payment-consents', $consentData);
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to create payment consent: ' . $response->body());
+            throw new Exception('Failed to create payment consent: ' . $response->body());
         }
 
         return $response->json();

@@ -6,6 +6,7 @@ use App\Domain\Account\Services\BankAllocationService;
 use App\Domain\Banking\Models\UserBankPreference;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -202,7 +203,7 @@ class BankAllocationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Failed to update bank allocations',
@@ -282,7 +283,7 @@ class BankAllocationController extends Controller
                 ],
                 201
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Failed to add bank to allocation',
@@ -346,7 +347,7 @@ class BankAllocationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Failed to remove bank from allocation',
@@ -414,7 +415,7 @@ class BankAllocationController extends Controller
                     ],
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Failed to set primary bank',

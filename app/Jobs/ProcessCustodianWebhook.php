@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Domain\Custodian\Models\CustodianWebhook;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -56,7 +57,7 @@ class ProcessCustodianWebhook implements ShouldQueue
                 'status'       => 'processed',
                 'processed_at' => now(),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to process webhook', [
                 'webhook_id' => $webhook->id,
                 'error'      => $e->getMessage(),

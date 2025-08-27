@@ -10,6 +10,8 @@ use App\Domain\Asset\Workflows\Activities\CompleteAssetTransferActivity;
 use App\Domain\Asset\Workflows\Activities\FailAssetTransferActivity;
 use App\Domain\Asset\Workflows\Activities\OptimizedInitiateAssetTransferActivity;
 use App\Domain\Performance\Services\TransferOptimizationService;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -37,7 +39,7 @@ class OptimizedAssetTransferWorkflow extends Workflow
         string $toAssetCode,
         Money $fromAmount,
         ?string $description = null
-    ): \Generator {
+    ): Generator {
         $startTime = microtime(true);
 
         // Pre-warm caches for better performance
@@ -98,7 +100,7 @@ class OptimizedAssetTransferWorkflow extends Workflow
                 'execution_time_ms' => round($executionTime * 1000, 2),
                 'optimized'         => true,
             ];
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             // Compensate on failure
             yield from $this->compensate();
 

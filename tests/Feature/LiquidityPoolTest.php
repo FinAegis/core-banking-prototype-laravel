@@ -10,6 +10,7 @@ use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\Projections\LiquidityProvider;
 use App\Domain\Exchange\Services\LiquidityPoolService;
 use App\Models\User;
+use DomainException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\DomainTestCase;
@@ -84,7 +85,7 @@ class LiquidityPoolTest extends DomainTestCase
     {
         $this->liquidityService->createPool('BTC', 'EUR');
 
-        $this->expectException(\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->liquidityService->createPool('BTC', 'EUR');
     }
 
@@ -259,7 +260,7 @@ class LiquidityPoolTest extends DomainTestCase
         ]);
 
         // Try to add liquidity with wrong ratio (should fail)
-        $this->expectException(\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Input amounts deviate too much from pool ratio');
 
         $pool->addLiquidity(

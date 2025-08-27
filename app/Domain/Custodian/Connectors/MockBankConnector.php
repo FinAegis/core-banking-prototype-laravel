@@ -9,6 +9,7 @@ use App\Domain\Custodian\ValueObjects\AccountInfo;
 use App\Domain\Custodian\ValueObjects\TransactionReceipt;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Str;
 
 class MockBankConnector extends BaseCustodianConnector
@@ -84,7 +85,7 @@ class MockBankConnector extends BaseCustodianConnector
         $this->logRequest('GET', "/accounts/{$accountId}");
 
         if (! isset($this->mockAccounts[$accountId])) {
-            throw new \Exception("Account {$accountId} not found");
+            throw new Exception("Account {$accountId} not found");
         }
 
         $account = $this->mockAccounts[$accountId];
@@ -176,7 +177,7 @@ class MockBankConnector extends BaseCustodianConnector
         $this->logRequest('GET', "/transactions/{$transactionId}");
 
         if (! isset($this->mockTransactions[$transactionId])) {
-            throw new \Exception("Transaction {$transactionId} not found");
+            throw new Exception("Transaction {$transactionId} not found");
         }
 
         return $this->mockTransactions[$transactionId];

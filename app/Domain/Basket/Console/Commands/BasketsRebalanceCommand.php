@@ -4,6 +4,7 @@ namespace App\Domain\Basket\Console\Commands;
 
 use App\Domain\Basket\Services\BasketRebalancingService;
 use App\Domain\Governance\Models\GcuVotingProposal;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -99,7 +100,7 @@ class BasketsRebalanceCommand extends Command
             );
 
             $this->info("\nSuccessfully implemented proposal and rebalanced baskets.");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error("Failed to implement proposal: {$e->getMessage()}");
 
             return 1;

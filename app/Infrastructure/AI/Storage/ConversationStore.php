@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Infrastructure\AI\Storage;
 
 use App\Domain\AI\ValueObjects\ConversationContext;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use RuntimeException;
 
 class ConversationStore implements ConversationStoreInterface
 {
@@ -36,7 +38,7 @@ class ConversationStore implements ConversationStoreInterface
                 'conversation_id' => $context->getConversationId(),
                 'user_id'         => $context->getUserId(),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to store conversation', [
                 'conversation_id' => $context->getConversationId(),
                 'error'           => $e->getMessage(),
@@ -68,7 +70,7 @@ class ConversationStore implements ConversationStoreInterface
                 $array['system_prompt'] ?? [],
                 $array['metadata'] ?? []
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to retrieve conversation', [
                 'conversation_id' => $conversationId,
                 'error'           => $e->getMessage(),
@@ -86,7 +88,7 @@ class ConversationStore implements ConversationStoreInterface
         $context = $this->retrieve($conversationId);
 
         if (! $context) {
-            throw new \RuntimeException("Conversation {$conversationId} not found");
+            throw new RuntimeException("Conversation {$conversationId} not found");
         }
 
         $updatedContext = $context->withMessage($role, $content);
@@ -119,7 +121,7 @@ class ConversationStore implements ConversationStoreInterface
             }
 
             return $conversations;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to get user conversations', [
                 'user_id' => $userId,
                 'error'   => $e->getMessage(),
@@ -149,7 +151,7 @@ class ConversationStore implements ConversationStoreInterface
             Redis::del($key);
 
             Log::info('Conversation deleted', ['conversation_id' => $conversationId]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to delete conversation', [
                 'conversation_id' => $conversationId,
                 'error'           => $e->getMessage(),
@@ -177,7 +179,7 @@ class ConversationStore implements ConversationStoreInterface
             Redis::del($userKey);
 
             Log::info('User conversations cleared', ['user_id' => $userId]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to clear user conversations', [
                 'user_id' => $userId,
                 'error'   => $e->getMessage(),

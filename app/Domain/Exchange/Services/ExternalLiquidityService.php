@@ -8,6 +8,8 @@ use App\Domain\Exchange\Models\Order;
 use App\Domain\Exchange\Models\Trade;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use DateTimeInterface;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -357,7 +359,7 @@ class ExternalLiquidityService implements ExternalLiquidityServiceInterface
                         'amount'   => $ask['amount'],
                     ];
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log error but continue with other exchanges
                 Log::error("Failed to get order book from {$connector->getName()}: {$e->getMessage()}");
             }
@@ -432,7 +434,7 @@ class ExternalLiquidityService implements ExternalLiquidityServiceInterface
                                 ->__toString(),
                         ];
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Skip failed exchanges
                 }
             }
@@ -465,7 +467,7 @@ class ExternalLiquidityService implements ExternalLiquidityServiceInterface
     /**
      * Get arbitrage statistics.
      */
-    public function getArbitrageStats(?\DateTimeInterface $from = null, ?\DateTimeInterface $to = null): array
+    public function getArbitrageStats(?DateTimeInterface $from = null, ?DateTimeInterface $to = null): array
     {
         $query = Trade::where('metadata->source', 'arbitrage');
 

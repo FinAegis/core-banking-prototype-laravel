@@ -2,6 +2,7 @@
 
 namespace App\Domain\Lending\Events;
 
+use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class LoanApplicationRiskAssessmentCompleted extends ShouldBeStored
@@ -12,7 +13,7 @@ class LoanApplicationRiskAssessmentCompleted extends ShouldBeStored
         public float $defaultProbability,
         public array $riskFactors,
         public string $assessedBy,
-        public \DateTimeImmutable $assessedAt
+        public DateTimeImmutable $assessedAt
     ) {
     }
 }

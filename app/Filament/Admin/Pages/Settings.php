@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Pages;
 
 use App\Domain\Account\Models\Setting;
 use App\Services\SettingsService;
+use Exception;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -160,7 +161,7 @@ class Settings extends Page
                     'user' => auth()->user()->email ?? 'system',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Notification::make()
                 ->title('Error resetting settings')
                 ->body($e->getMessage())

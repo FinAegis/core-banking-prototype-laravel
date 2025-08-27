@@ -11,6 +11,7 @@ use App\Domain\Stablecoin\Services\CollateralService;
 use App\Domain\Stablecoin\Services\LiquidationService;
 use App\Domain\Stablecoin\Services\StablecoinIssuanceService;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -117,7 +118,7 @@ class StablecoinOperationsController extends Controller
                     'data'    => $position->load(['stablecoin', 'collateralAsset']),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => $e->getMessage(),
@@ -210,7 +211,7 @@ class StablecoinOperationsController extends Controller
                     'data'    => $position->load(['stablecoin', 'collateralAsset']),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => $e->getMessage(),
@@ -301,7 +302,7 @@ class StablecoinOperationsController extends Controller
                     'data'    => $position->load(['stablecoin', 'collateralAsset']),
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => $e->getMessage(),
@@ -603,7 +604,7 @@ class StablecoinOperationsController extends Controller
                     'data'    => $result,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => $e->getMessage(),
@@ -796,7 +797,7 @@ class StablecoinOperationsController extends Controller
                     'data'    => $result,
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'error' => $e->getMessage(),

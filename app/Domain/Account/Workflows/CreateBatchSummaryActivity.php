@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Account\Workflows;
 
+use DateTime;
 use Workflow\Activity;
 
 /**
@@ -49,8 +50,8 @@ class CreateBatchSummaryActivity extends Activity
         // Calculate duration
         $duration = null;
         if ($startTime && $endTime) {
-            $start = new \DateTime($startTime);
-            $end = new \DateTime($endTime);
+            $start = new DateTime($startTime);
+            $end = new DateTime($endTime);
             $duration = $end->getTimestamp() - $start->getTimestamp();
         }
 

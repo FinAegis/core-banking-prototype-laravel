@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -59,7 +60,7 @@ class SocialAuthController extends Controller
             $url = Socialite::driver($provider)->stateless()->redirect()->getTargetUrl();
 
             return response()->json(['url' => $url]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['message' => 'Provider not configured'], 500);
         }
     }
@@ -174,7 +175,7 @@ class SocialAuthController extends Controller
                     'message' => 'Authenticated successfully',
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => 'Authentication failed',

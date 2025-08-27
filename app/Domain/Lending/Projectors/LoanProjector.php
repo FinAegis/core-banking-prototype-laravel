@@ -12,6 +12,7 @@ use App\Domain\Lending\Events\LoanRepaymentMade;
 use App\Domain\Lending\Events\LoanSettledEarly;
 use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Models\LoanRepayment;
+use DB;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
 class LoanProjector extends Projector
@@ -84,7 +85,7 @@ class LoanProjector extends Projector
     {
         Loan::where('id', $event->loanId)->update(
             [
-                'missed_payments' => \DB::raw('missed_payments + 1'),
+                'missed_payments' => DB::raw('missed_payments + 1'),
                 'status'          => 'delinquent',
             ]
         );

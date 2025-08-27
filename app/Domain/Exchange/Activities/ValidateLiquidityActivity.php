@@ -8,6 +8,8 @@ use App\Domain\Exchange\Projections\LiquidityPool as PoolProjection;
 use App\Domain\Exchange\ValueObjects\LiquidityAdditionInput;
 use App\Domain\Exchange\ValueObjects\LiquidityRemovalInput;
 use Brick\Math\BigDecimal;
+use DomainException;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 class ValidateLiquidityActivity extends Activity
@@ -20,7 +22,7 @@ class ValidateLiquidityActivity extends Activity
             return $this->validateRemoval($input);
         }
 
-        throw new \InvalidArgumentException('Invalid input type for liquidity validation');
+        throw new InvalidArgumentException('Invalid input type for liquidity validation');
     }
 
     private function validateAddition(LiquidityAdditionInput $input): array
@@ -30,7 +32,7 @@ class ValidateLiquidityActivity extends Activity
 
         // Check KYC status through user relationship
         if (! $account->user || $account->user->kyc_status !== 'approved') {
-            throw new \DomainException('Account must have KYC approval to provide liquidity');
+            throw new DomainException('Account must have KYC approval to provide liquidity');
         }
 
         // Validate pool exists
@@ -38,11 +40,11 @@ class ValidateLiquidityActivity extends Activity
         $pool = PoolProjection::where('pool_id', $input->poolId)->first();
 
         if (! $pool) {
-            throw new \DomainException('Liquidity pool not found');
+            throw new DomainException('Liquidity pool not found');
         }
 
         if (! $pool->is_active) {
-            throw new \DomainException('Liquidity pool is not active');
+            throw new DomainException('Liquidity pool is not active');
         }
 
         // Validate currencies match
@@ -50,7 +52,7 @@ class ValidateLiquidityActivity extends Activity
             $pool->base_currency !== $input->baseCurrency
             || $pool->quote_currency !== $input->quoteCurrency
         ) {
-            throw new \DomainException('Currency mismatch with pool');
+            throw new DomainException('Currency mismatch with pool');
         }
 
         // Validate sufficient balances
@@ -63,11 +65,11 @@ class ValidateLiquidityActivity extends Activity
             ->first();
 
         if (! $baseBalance || BigDecimal::of($baseBalance->available_balance)->isLessThan($input->baseAmount)) {
-            throw new \DomainException("Insufficient {$input->baseCurrency} balance");
+            throw new DomainException("Insufficient {$input->baseCurrency} balance");
         }
 
         if (! $quoteBalance || BigDecimal::of($quoteBalance->available_balance)->isLessThan($input->quoteAmount)) {
-            throw new \DomainException("Insufficient {$input->quoteCurrency} balance");
+            throw new DomainException("Insufficient {$input->quoteCurrency} balance");
         }
 
         // Validate amounts maintain pool ratio (within 1% tolerance)
@@ -80,7 +82,7 @@ class ValidateLiquidityActivity extends Activity
                 ->multipliedBy(100);
 
             if ($deviation->isGreaterThan(1)) {
-                throw new \DomainException('Input amounts deviate too much from pool ratio');
+                throw new DomainException('Input amounts deviate too much from pool ratio');
             }
         }
 
@@ -100,7 +102,7 @@ class ValidateLiquidityActivity extends Activity
         $$pool = PoolProjection::where('pool_id', $input->poolId)->first();
 
         if (! $pool) {
-            throw new \DomainException('Liquidity pool not found');
+            throw new DomainException('Liquidity pool not found');
         }
 
         // Validate provider has shares
@@ -109,11 +111,11 @@ class ValidateLiquidityActivity extends Activity
             ->first();
 
         if (! $provider) {
-            throw new \DomainException('Provider not found in pool');
+            throw new DomainException('Provider not found in pool');
         }
 
         if (BigDecimal::of($provider->shares)->isLessThan($input->shares)) {
-            throw new \DomainException('Insufficient shares');
+            throw new DomainException('Insufficient shares');
         }
 
         return [

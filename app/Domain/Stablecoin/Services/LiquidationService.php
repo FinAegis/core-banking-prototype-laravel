@@ -12,8 +12,10 @@ use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use App\Domain\Wallet\Services\WalletService;
 use App\Traits\HandlesNestedTransactions;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class LiquidationService implements LiquidationServiceInterface
 {
@@ -32,7 +34,7 @@ class LiquidationService implements LiquidationServiceInterface
     public function liquidatePosition(StablecoinCollateralPosition $position, ?Account $liquidator = null): array
     {
         if (! $position->shouldAutoLiquidate()) {
-            throw new \RuntimeException('Position is not eligible for liquidation');
+            throw new RuntimeException('Position is not eligible for liquidation');
         }
 
         $callback = function () use ($position, $liquidator) {
@@ -126,7 +128,7 @@ class LiquidationService implements LiquidationServiceInterface
                 $results[] = $result;
                 $totalReward += $result['liquidator_reward'];
                 $totalProtocolFees += $result['protocol_fee'];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning(
                     'Failed to liquidate position',
                     [

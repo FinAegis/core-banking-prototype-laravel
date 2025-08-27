@@ -9,10 +9,13 @@ use App\Domain\Compliance\Models\AmlScreening;
 use App\Domain\Compliance\Models\CustomerRiskProfile;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionApplication;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use RuntimeException;
 
 class AmlScreeningService
 {
@@ -121,7 +124,7 @@ class AmlScreeningService
                     }
 
                     return $screening;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Record failure
                     $processingTime = microtime(true) - $startTime;
                     $aggregate->completeScreening(
@@ -313,7 +316,7 @@ class AmlScreeningService
                     'remarks'     => 'Added to SDN list on 2023-01-01',
                 ];
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('OFAC check failed', ['error' => $e->getMessage()]);
         }
 
@@ -436,7 +439,7 @@ class AmlScreeningService
                 notes: $notes
             );
             $aggregate->persist();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback for legacy screenings without aggregate
             Log::warning('Failed to retrieve aggregate for screening review', [
                 'screening_id' => $screening->id,
@@ -532,14 +535,14 @@ class AmlScreeningService
                 reason: $reason
             );
             $aggregate->persist();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to update match status through aggregate', [
                 'screening_id' => $screening->id,
                 'aggregate_id' => $aggregateId,
                 'match_id'     => $matchId,
                 'error'        => $e->getMessage(),
             ]);
-            throw new \RuntimeException('Cannot update match status: ' . $e->getMessage());
+            throw new RuntimeException('Cannot update match status: ' . $e->getMessage());
         }
     }
 
@@ -620,7 +623,7 @@ class AmlScreeningService
                             return $this->performComprehensiveScreening($entity, $parameters);
 
                         default:
-                            throw new \InvalidArgumentException("Invalid screening type: {$type}");
+                            throw new InvalidArgumentException("Invalid screening type: {$type}");
                     }
 
                     // Calculate overall risk based on specific type results
@@ -681,7 +684,7 @@ class AmlScreeningService
                     }
 
                     return $screening;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Record failure
                     $processingTime = microtime(true) - $startTime;
                     $aggregate->completeScreening(

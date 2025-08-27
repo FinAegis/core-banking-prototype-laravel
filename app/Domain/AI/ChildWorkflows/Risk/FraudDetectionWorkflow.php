@@ -9,6 +9,7 @@ use App\Domain\AI\Activities\Risk\DetectAnomaliesActivity;
 use App\Domain\AI\Activities\Risk\VerifyDeviceAndLocationActivity;
 use App\Domain\AI\Events\Risk\FraudAssessedEvent;
 use App\Models\User;
+use Generator;
 use Workflow\Workflow;
 
 /**
@@ -25,13 +26,13 @@ class FraudDetectionWorkflow extends Workflow
      * @param User $user
      * @param array $parameters
      *
-     * @return \Generator
+     * @return Generator
      */
     public function execute(
         string $conversationId,
         User $user,
         array $parameters
-    ): \Generator {
+    ): Generator {
         $amount = $parameters['amount'] ?? 0;
         $recipient = $parameters['recipient'] ?? null;
         $transactionId = $parameters['transaction_id'] ?? null;

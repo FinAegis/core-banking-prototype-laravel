@@ -5,6 +5,7 @@ namespace App\Domain\Lending\Workflows\Activities;
 use App\Domain\Lending\Services\CreditScoringService;
 use App\Domain\Lending\Services\RiskAssessmentService;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -366,7 +367,7 @@ class LoanApplicationActivities
             ->first();
 
         if (! $account) {
-            throw new \Exception('No active account found');
+            throw new Exception('No active account found');
         }
 
         // Credit the loan amount
@@ -392,7 +393,7 @@ class LoanApplicationActivities
         /** @var User|null $$user */
         $$user = User::find($userId);
         if (! $user) {
-            throw new \Exception('User not found');
+            throw new Exception('User not found');
         }
 
         // Fetch KYC data, account history, etc.
@@ -556,7 +557,7 @@ class LoanApplicationActivities
             ->first();
 
         if (! $application) {
-            throw new \Exception('Application not found');
+            throw new Exception('Application not found');
         }
 
         // Create loan account

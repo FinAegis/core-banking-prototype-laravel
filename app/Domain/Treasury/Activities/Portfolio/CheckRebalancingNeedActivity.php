@@ -6,6 +6,9 @@ namespace App\Domain\Treasury\Activities\Portfolio;
 
 use App\Domain\Treasury\Services\PortfolioManagementService;
 use App\Domain\Treasury\Services\RebalancingService;
+use Exception;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class CheckRebalancingNeedActivity extends Activity
@@ -78,14 +81,14 @@ class CheckRebalancingNeedActivity extends Activity
                 'average_drift'  => $avgDrift,
                 'threshold'      => $portfolio['strategy']['rebalanceThreshold'] ?? 5.0,
             ];
-        } catch (\Exception $e) {
-            \Log::error('Failed to check rebalancing need', [
+        } catch (Exception $e) {
+            Log::error('Failed to check rebalancing need', [
                 'portfolio_id' => $portfolioId,
                 'reason'       => $reason,
                 'error'        => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to check rebalancing need for portfolio {$portfolioId}: {$e->getMessage()}",
                 0,
                 $e

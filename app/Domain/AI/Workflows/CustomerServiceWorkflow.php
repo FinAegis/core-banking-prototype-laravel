@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\AI\Workflows;
 
 use App\Domain\AI\Aggregates\AIInteractionAggregate;
+use Exception;
+use Generator;
+use Log;
 use Workflow\Workflow;
 
 class CustomerServiceWorkflow extends Workflow
@@ -22,7 +25,7 @@ class CustomerServiceWorkflow extends Workflow
         string $query,
         ?string $userId = null,
         array $initialContext = []
-    ): \Generator {
+    ): Generator {
         $this->conversationId = $conversationId;
         $this->userId = $userId;
         $this->context = $initialContext;
@@ -64,7 +67,7 @@ class CustomerServiceWorkflow extends Workflow
                     'duration_ms'     => $this->calculateDuration(),
                 ],
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Handle workflow failure with compensation
             yield $this->handleWorkflowFailure($e);
 
@@ -248,10 +251,10 @@ class CustomerServiceWorkflow extends Workflow
         ];
     }
 
-    private function handleWorkflowFailure(\Exception $e)
+    private function handleWorkflowFailure(Exception $e)
     {
         // Log the failure
-        \Log::error('Customer Service Workflow failed', [
+        Log::error('Customer Service Workflow failed', [
             'conversation_id' => $this->conversationId,
             'error'           => $e->getMessage(),
             'trace'           => $e->getTraceAsString(),
@@ -285,7 +288,7 @@ class CustomerServiceWorkflow extends Workflow
     {
         // In a real implementation, this would trigger a human review process
         // For now, we'll just log it
-        \Log::warning('Low confidence intent requires human approval', [
+        Log::warning('Low confidence intent requires human approval', [
             'conversation_id' => $this->conversationId,
             'intent'          => $intent['name'],
             'confidence'      => $intent['confidence'],

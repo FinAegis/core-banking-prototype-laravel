@@ -6,13 +6,15 @@ namespace App\Domain\Payment\Workflows;
 
 use App\Domain\Payment\Activities\ProcessOpenBankingDepositActivity;
 use App\Domain\Payment\DataObjects\OpenBankingDeposit;
+use Exception;
+use Generator;
 use Illuminate\Support\Facades\Log;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
 class ProcessOpenBankingDepositWorkflow extends Workflow
 {
-    public function execute(OpenBankingDeposit $deposit): \Generator
+    public function execute(OpenBankingDeposit $deposit): Generator
     {
         Log::info('Starting OpenBanking deposit workflow', [
             'reference' => $deposit->reference,
@@ -47,7 +49,7 @@ class ProcessOpenBankingDepositWorkflow extends Workflow
             ]);
 
             return $bankReference;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('OpenBanking deposit workflow failed', [
                 'reference' => $deposit->reference,
                 'error'     => $e->getMessage(),

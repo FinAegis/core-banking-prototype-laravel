@@ -48,6 +48,11 @@ return (new Config())
         'full_opening_tag' => true,
         'fully_qualified_strict_types' => true,
         'function_declaration' => true,
+        'global_namespace_import' => [
+            'import_classes' => true,
+            'import_constants' => false,
+            'import_functions' => false,
+        ],
         'type_declaration_spaces' => true,
         'heredoc_to_nowdoc' => true,
         'include' => true,

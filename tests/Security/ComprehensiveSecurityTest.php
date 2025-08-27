@@ -4,11 +4,13 @@ namespace Tests\Security;
 
 use App\Domain\Account\Models\Account;
 use App\Models\User;
+use Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
+use Storage;
 use Tests\TestCase;
 
 #[Group('security')]
@@ -118,7 +120,7 @@ class ComprehensiveSecurityTest extends TestCase
         ]);
 
         // Clear any existing rate limit cache
-        \Cache::flush();
+        Cache::flush();
 
         // Test brute force protection
         for ($i = 0; $i < 6; $i++) {
@@ -192,7 +194,7 @@ class ComprehensiveSecurityTest extends TestCase
         $this->actingAs($user);
 
         // Clear all cache including rate limit keys
-        \Cache::flush();
+        Cache::flush();
 
         // Test rate limit (100 requests per minute for query endpoints)
         for ($i = 0; $i < 101; $i++) {
@@ -325,7 +327,7 @@ class ComprehensiveSecurityTest extends TestCase
         $this->actingAs($user);
 
         // Ensure storage disk is set up for testing
-        \Storage::fake('private');
+        Storage::fake('private');
 
         $response = $this->postJson('/api/kyc/documents', [
             'document' => \Illuminate\Http\UploadedFile::fake()->image('passport.jpg', 800, 600),

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Account\Models\Account;
 use App\Domain\Basket\Services\BasketService;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -92,7 +93,7 @@ class BasketAccountController extends Controller
             );
 
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => $e->getMessage(),
@@ -173,7 +174,7 @@ class BasketAccountController extends Controller
             );
 
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(
                 [
                     'message' => $e->getMessage(),

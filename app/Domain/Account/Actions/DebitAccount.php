@@ -5,6 +5,7 @@ namespace App\Domain\Account\Actions;
 use App\Domain\Account\Events\AssetBalanceSubtracted;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use Exception;
 
 class DebitAccount extends AccountAction
 {
@@ -23,7 +24,7 @@ class DebitAccount extends AccountAction
         )->first();
 
         if (! $balance) {
-            throw new \Exception("Asset balance not found for {$event->assetCode}");
+            throw new Exception("Asset balance not found for {$event->assetCode}");
         }
 
         // Subtract from balance amount (in smallest unit)
@@ -31,7 +32,7 @@ class DebitAccount extends AccountAction
 
         // Ensure balance doesn't go negative (should be validated in aggregate)
         if ($balance->balance < 0) {
-            throw new \Exception("Insufficient balance for {$event->assetCode}");
+            throw new Exception("Insufficient balance for {$event->assetCode}");
         }
 
         $balance->save();

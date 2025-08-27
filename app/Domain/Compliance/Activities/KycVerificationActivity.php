@@ -4,6 +4,7 @@ namespace App\Domain\Compliance\Activities;
 
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
+use InvalidArgumentException;
 use Workflow\Activity;
 
 class KycVerificationActivity extends Activity
@@ -31,15 +32,15 @@ class KycVerificationActivity extends Activity
         $verifiedBy = $input['verified_by'] ?? null;
 
         if (! $userUuid || ! $action || ! $verifiedBy) {
-            throw new \InvalidArgumentException('Missing required parameters: user_uuid, action, verified_by');
+            throw new InvalidArgumentException('Missing required parameters: user_uuid, action, verified_by');
         }
 
         if (! in_array($action, ['approve', 'reject'])) {
-            throw new \InvalidArgumentException('Action must be either "approve" or "reject"');
+            throw new InvalidArgumentException('Action must be either "approve" or "reject"');
         }
 
         if ($action === 'reject' && empty($input['reason'])) {
-            throw new \InvalidArgumentException('Reason is required for rejection');
+            throw new InvalidArgumentException('Reason is required for rejection');
         }
 
         /** @var User $user */
@@ -59,7 +60,7 @@ class KycVerificationActivity extends Activity
         } else {
             $reason = $input['reason'] ?? null;
             if (! $reason) {
-                throw new \InvalidArgumentException('Reason is required for rejection');
+                throw new InvalidArgumentException('Reason is required for rejection');
             }
 
             $this->kycService->rejectKyc($user, $reason, $verifiedBy);

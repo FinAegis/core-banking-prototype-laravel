@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\AI\ChildWorkflows\Children;
 
+use Generator;
 use Workflow\Workflow;
 
 class FraudDetectionWorkflow extends Workflow
@@ -13,7 +14,7 @@ class FraudDetectionWorkflow extends Workflow
         string $userId,
         array $transactionData,
         array $context = []
-    ): \Generator {
+    ): Generator {
         // Step 1: Analyze transaction patterns
         $patterns = yield $this->analyzePatterns($transactionData);
 
@@ -41,7 +42,7 @@ class FraudDetectionWorkflow extends Workflow
         ];
     }
 
-    private function analyzePatterns(array $data): \Generator
+    private function analyzePatterns(array $data): Generator
     {
         // Placeholder implementation
         yield;
@@ -49,7 +50,7 @@ class FraudDetectionWorkflow extends Workflow
         return ['normal' => true, 'anomalies' => []];
     }
 
-    private function checkVelocity(string $userId, array $data): \Generator
+    private function checkVelocity(string $userId, array $data): Generator
     {
         // Placeholder implementation
         yield;
@@ -57,7 +58,7 @@ class FraudDetectionWorkflow extends Workflow
         return ['within_limits' => true];
     }
 
-    private function verifyDeviceAndLocation(array $context): \Generator
+    private function verifyDeviceAndLocation(array $context): Generator
     {
         // Placeholder implementation
         yield;
@@ -65,7 +66,7 @@ class FraudDetectionWorkflow extends Workflow
         return ['trusted' => true];
     }
 
-    private function calculateFraudScore(array $checks): \Generator
+    private function calculateFraudScore(array $checks): Generator
     {
         // Placeholder implementation
         yield;

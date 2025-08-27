@@ -8,6 +8,8 @@ use App\Domain\Cgo\Activities\FailRefundActivity;
 use App\Domain\Cgo\Activities\InitiateRefundActivity;
 use App\Domain\Cgo\Activities\ProcessRefundActivity;
 use App\Domain\Cgo\DataObjects\RefundRequest;
+use Generator;
+use Throwable;
 use Workflow\ActivityStub;
 use Workflow\Workflow;
 
@@ -17,9 +19,9 @@ class ProcessRefundWorkflow extends Workflow
      * Process a CGO refund through the complete workflow.
      *
      * @param  RefundRequest $request
-     * @return \Generator
+     * @return Generator
      */
-    public function execute(RefundRequest $request): \Generator
+    public function execute(RefundRequest $request): Generator
     {
         $refundId = null;
 
@@ -83,7 +85,7 @@ class ProcessRefundWorkflow extends Workflow
                 'processor_refund_id' => $processResult['processor_refund_id'],
                 'amount_refunded'     => $processResult['amount_refunded'],
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // If we have initiated a refund, mark it as failed
             if ($refundId !== null) {
                 yield ActivityStub::make(

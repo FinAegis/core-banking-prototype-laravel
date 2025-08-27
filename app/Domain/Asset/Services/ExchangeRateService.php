@@ -6,6 +6,7 @@ namespace App\Domain\Asset\Services;
 
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -113,7 +114,7 @@ class ExchangeRateService
                 ExchangeRate::SOURCE_API,
                 $rateData['metadata'] ?? []
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(
                 'Error fetching exchange rate',
                 [

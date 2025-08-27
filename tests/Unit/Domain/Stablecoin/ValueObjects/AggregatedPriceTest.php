@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Stablecoin\ValueObjects;
 use App\Domain\Stablecoin\ValueObjects\AggregatedPrice;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\DomainTestCase;
 
 class AggregatedPriceTest extends DomainTestCase
@@ -331,7 +332,7 @@ class AggregatedPriceTest extends DomainTestCase
         );
 
         // Properties are readonly, so we can't modify them
-        $reflection = new \ReflectionClass($aggregatedPrice);
+        $reflection = new ReflectionClass($aggregatedPrice);
 
         foreach ($reflection->getProperties() as $property) {
             $this->assertTrue($property->isReadOnly());
