@@ -187,7 +187,7 @@ class OracleAggregatorTest extends TestCase
 
         // Should check minimum oracle count
         $this->assertStringContainsString('if ($prices->count() < $this->minOracles)', $source);
-        $this->assertStringContainsString('throw new \RuntimeException', $source);
+        $this->assertStringContainsString('throw new RuntimeException', $source);
         $this->assertStringContainsString('Insufficient oracle responses', $source);
     }
 
