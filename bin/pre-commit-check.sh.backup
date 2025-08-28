@@ -49,18 +49,8 @@ if [ "$CHECK_ALL" = true ]; then
     FILES="app/ config/ database/ routes/ tests/"
     echo -e "${YELLOW}Checking all files in app/, config/, database/, routes/, and tests/...${NC}"
 else
-    # Get modified PHP files - check BOTH staged AND working directory changes
-    # This ensures we catch issues whether files are staged or not
-    FILES=$(
-        {
-            # Staged changes (files in index)
-            git diff --cached --name-only --diff-filter=ACMR -- '*.php'
-            # Working directory changes (modified but not staged)
-            git diff --name-only --diff-filter=ACMR -- '*.php'
-            # Files different from HEAD (catches both staged and unstaged)
-            git diff --name-only --diff-filter=ACMR HEAD -- '*.php'
-        } | sort -u | grep -E '^(app|config|database|routes|tests)/' || true
-    )
+    # Get modified PHP files (staged and unstaged) from both app/ and tests/
+    FILES=$(git diff --name-only --diff-filter=ACMR HEAD -- '*.php' | grep -E '^(app|config|database|routes|tests)/' || true)
     if [ -z "$FILES" ]; then
         echo -e "${GREEN}No PHP files modified in app/, config/, database/, routes/, or tests/. Skipping checks.${NC}"
         exit 0
@@ -68,6 +58,7 @@ else
     echo -e "${YELLOW}Checking modified files:${NC}"
     echo "$FILES" | sed 's/^/  - /'
 fi
+echo ""
 
 # Track if any checks fail
 FAILED=false
