@@ -136,7 +136,7 @@ class StabilityMechanismServiceTest extends ServiceTestCase
 
         // Should handle errors with try-catch
         $this->assertStringContainsString('try {', $source);
-        $this->assertStringContainsString('} catch (\Exception $e)', $source);
+        $this->assertStringContainsString('} catch (Exception $e)', $source);
 
         // Error logging is handled internally
 
