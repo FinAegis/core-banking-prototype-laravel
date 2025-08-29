@@ -107,7 +107,7 @@ class AlertManagementServiceTest extends TestCase
 
         // Assert
         $this->assertEquals(ComplianceAlert::STATUS_ESCALATED, $alert->status);
-        $this->assertStringContains('Multiple similar alerts detected', $alert->escalation_reason);
+        $this->assertStringContainsString('Multiple similar alerts detected', $alert->escalation_reason);
     }
 
     public function test_updates_alert_status_with_history(): void

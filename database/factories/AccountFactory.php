@@ -29,4 +29,48 @@ class AccountFactory extends Factory
             'balance' => $this->faker->numberBetween(0, 100000),
         ];
     }
+
+    /**
+     * Configure the model factory to create an account with zero balance.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    public function zeroBalance(): Factory
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'balance' => 0,
+            ];
+        });
+    }
+
+    /**
+     * Configure the model factory to create an account with a specific balance.
+     *
+     * @param int $balance
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    public function withBalance(int $balance): Factory
+    {
+        return $this->state(function (array $attributes) use ($balance) {
+            return [
+                'balance' => $balance,
+            ];
+        });
+    }
+
+    /**
+     * Configure the model factory for a specific user.
+     *
+     * @param \App\Models\User $user
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    public function forUser(User $user): Factory
+    {
+        return $this->state(function (array $attributes) use ($user) {
+            return [
+                'user_uuid' => $user->uuid,
+            ];
+        });
+    }
 }

@@ -18,6 +18,14 @@ class ComplianceCase extends Model
     use HasUuids;
     use SoftDeletes;
 
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): \Illuminate\Database\Eloquent\Factories\Factory
+    {
+        return \Database\Factories\Domain\Compliance\ComplianceCaseFactory::new();
+    }
+
     protected $fillable = [
         'case_id',
         'title',

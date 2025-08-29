@@ -177,21 +177,39 @@ if [ "$AUTO_FIX" = true ] && [ "$ISSUES_FIXED" = true ]; then
     echo ""
 fi
 
-# 4. PHPStan - EXACTLY as CI runs it (with timeout to prevent hanging)
+# 4. PHPStan - EXACTLY as CI runs it (with smart timeout)
 echo -e "${BLUE}[4/6] Running PHPStan (Level 5)...${NC}"
 # CI command: vendor/bin/phpstan analyse --memory-limit=2G
-# Adding 60-second timeout to prevent hanging on large codebases
-if timeout 60 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1" | grep -q "\[OK\] No errors"; then
-    echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
+# Using a reasonable timeout (90 seconds) with clear feedback
+PHPSTAN_TIMEOUT=90
+PHPSTAN_OUTPUT=""
+PHPSTAN_EXIT_CODE=0
+
+# Run PHPStan with timeout
+if PHPSTAN_OUTPUT=$(timeout $PHPSTAN_TIMEOUT bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1"); then
+    PHPSTAN_EXIT_CODE=0
 else
-    if [ $? -eq 124 ]; then
-        echo -e "${YELLOW}⚠ PHPStan: Timed out after 60 seconds (consider running manually)${NC}"
-        echo -e "${YELLOW}  Run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse${NC}"
+    PHPSTAN_EXIT_CODE=$?
+fi
+
+if [ $PHPSTAN_EXIT_CODE -eq 0 ]; then
+    if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
+        echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
     else
         echo -e "${RED}✗ PHPStan: Issues found${NC}"
-        timeout 60 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1" | head -50
+        echo "$PHPSTAN_OUTPUT" | head -50
         add_failure "PHPStan errors"
     fi
+elif [ $PHPSTAN_EXIT_CODE -eq 124 ]; then
+    echo -e "${YELLOW}⚠ PHPStan: Timed out after ${PHPSTAN_TIMEOUT} seconds${NC}"
+    echo -e "${YELLOW}  This may happen with large codebases. Running PHPStan manually...${NC}"
+    echo -e "${YELLOW}  Command: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
+    # Don't fail on timeout for pre-commit, but warn the user
+    echo -e "${YELLOW}  Note: CI will still run PHPStan and may fail if there are errors!${NC}"
+else
+    echo -e "${RED}✗ PHPStan: Failed with error${NC}"
+    echo "$PHPSTAN_OUTPUT" | head -50
+    add_failure "PHPStan errors"
 fi
 echo ""
 

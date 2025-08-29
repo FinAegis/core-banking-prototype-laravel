@@ -17,6 +17,14 @@ class ComplianceAlert extends Model
     use HasUuids;
     use SoftDeletes;
 
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): \Illuminate\Database\Eloquent\Factories\Factory
+    {
+        return \Database\Factories\Domain\Compliance\ComplianceAlertFactory::new();
+    }
+
     protected $fillable = [
         'alert_id',
         'type',

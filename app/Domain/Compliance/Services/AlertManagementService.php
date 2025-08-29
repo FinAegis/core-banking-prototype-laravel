@@ -299,9 +299,9 @@ class AlertManagementService
 
         return [
             'total_alerts'        => $query->count(),
-            'by_status'           => $query->groupBy('status')->selectRaw('status, count(*) as count')->pluck('count', 'status'),
-            'by_severity'         => $query->groupBy('severity')->selectRaw('severity, count(*) as count')->pluck('count', 'severity'),
-            'by_type'             => $query->groupBy('type')->selectRaw('type, count(*) as count')->pluck('count', 'type'),
+            'by_status'           => (clone $query)->groupBy('status')->selectRaw('status, count(*) as total')->get()->pluck('total', 'status'),
+            'by_severity'         => (clone $query)->groupBy('severity')->selectRaw('severity, count(*) as total')->get()->pluck('total', 'severity'),
+            'by_type'             => (clone $query)->groupBy('type')->selectRaw('type, count(*) as total')->get()->pluck('total', 'type'),
             'avg_resolution_time' => $this->calculateAverageResolutionTime($query),
             'false_positive_rate' => $this->calculateFalsePositiveRate($query),
             'escalation_rate'     => $this->calculateEscalationRate($query),
@@ -522,9 +522,14 @@ class AlertManagementService
 
         // Example: Assign high severity alerts to senior analysts
         if ($alert->severity === 'high' || $alert->severity === 'critical') {
-            $seniorAnalyst = User::role('senior_compliance_analyst')->first();
-            if ($seniorAnalyst) {
-                $this->assignAlert($alert, $seniorAnalyst);
+            try {
+                $seniorAnalyst = User::role('senior_compliance_analyst')->first();
+                if ($seniorAnalyst) {
+                    $this->assignAlert($alert, $seniorAnalyst);
+                }
+            } catch (\Exception $e) {
+                // Role doesn't exist or no users with this role - skip auto-assignment
+                Log::debug('Auto-assignment skipped: ' . $e->getMessage());
             }
         }
     }
