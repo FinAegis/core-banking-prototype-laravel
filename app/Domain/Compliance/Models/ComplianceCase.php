@@ -203,7 +203,7 @@ class ComplianceCase extends Model
      */
     public function getPriorityColor(): string
     {
-        return match($this->priority) {
+        return match ($this->priority) {
             self::PRIORITY_CRITICAL => 'red',
             self::PRIORITY_HIGH     => 'orange',
             self::PRIORITY_MEDIUM   => 'yellow',
@@ -217,7 +217,7 @@ class ComplianceCase extends Model
      */
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_OPEN           => 'blue',
             self::STATUS_IN_PROGRESS    => 'yellow',
             self::STATUS_PENDING_REVIEW => 'orange',
@@ -234,7 +234,7 @@ class ComplianceCase extends Model
      */
     public function getSlaColor(): string
     {
-        return match($this->sla_status) {
+        return match ($this->sla_status) {
             self::SLA_ON_TRACK => 'green',
             self::SLA_AT_RISK  => 'yellow',
             self::SLA_BREACHED => 'red',

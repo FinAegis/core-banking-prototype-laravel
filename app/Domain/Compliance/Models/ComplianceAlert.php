@@ -204,7 +204,7 @@ class ComplianceAlert extends Model
      */
     public function getSeverityColor(): string
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             self::SEVERITY_CRITICAL => 'red',
             self::SEVERITY_HIGH     => 'orange',
             self::SEVERITY_MEDIUM   => 'yellow',
@@ -218,7 +218,7 @@ class ComplianceAlert extends Model
      */
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_OPEN           => 'blue',
             self::STATUS_IN_REVIEW      => 'yellow',
             self::STATUS_ESCALATED      => 'orange',

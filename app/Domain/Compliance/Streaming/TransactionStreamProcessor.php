@@ -97,7 +97,6 @@ class TransactionStreamProcessor implements ShouldQueue
             if (! empty($results['alerts']) || ! empty($results['patterns'])) {
                 Event::dispatch(new RealTimeAlertGenerated($transaction, $results));
             }
-
         } catch (Exception $e) {
             Log::error('Stream processing failed', [
                 'transaction_id' => $transaction->id,
@@ -366,7 +365,7 @@ class TransactionStreamProcessor implements ShouldQueue
         // Factor in current alerts
         foreach ($results['alerts'] as $alert) {
             if (isset($alert['severity'])) {
-                $baseScore += match($alert['severity']) {
+                $baseScore += match ($alert['severity']) {
                     'critical' => 20,
                     'high'     => 15,
                     'medium'   => 10,

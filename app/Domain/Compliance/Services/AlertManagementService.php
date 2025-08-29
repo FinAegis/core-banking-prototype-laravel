@@ -92,7 +92,6 @@ class AlertManagementService
             ]);
 
             return $alert;
-
         } catch (Exception $e) {
             DB::rollBack();
 
@@ -152,7 +151,6 @@ class AlertManagementService
             DB::commit();
 
             return $alert;
-
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
@@ -272,7 +270,6 @@ class AlertManagementService
             ]);
 
             return $case;
-
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
@@ -316,7 +313,7 @@ class AlertManagementService
      */
     public function getAlertTrends(string $period = '7d'): array
     {
-        $startDate = match($period) {
+        $startDate = match ($period) {
             '24h'   => now()->subDay(),
             '7d'    => now()->subWeek(),
             '30d'   => now()->subMonth(),
@@ -408,7 +405,7 @@ class AlertManagementService
 
     private function generateAlertId(string $type): string
     {
-        $prefix = match($type) {
+        $prefix = match ($type) {
             'transaction' => 'TXN',
             'pattern'     => 'PTN',
             'velocity'    => 'VEL',
@@ -628,7 +625,7 @@ class AlertManagementService
     private function determineCasePriority(Collection $alerts): string
     {
         $maxSeverity = $alerts->pluck('severity')->map(function ($severity) {
-            return match($severity) {
+            return match ($severity) {
                 'critical' => 4,
                 'high'     => 3,
                 'medium'   => 2,
@@ -637,7 +634,7 @@ class AlertManagementService
             };
         })->max();
 
-        return match($maxSeverity) {
+        return match ($maxSeverity) {
             4       => 'critical',
             3       => 'high',
             2       => 'medium',

@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Account;
+use App\Domain\Account\Models\Account;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Account>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\Account\Models\Account>
  */
 class AccountFactory extends Factory
 {
@@ -20,16 +20,13 @@ class AccountFactory extends Factory
      */
     public function definition(): array
     {
+        $user = User::factory()->create();
+        
         return [
             'uuid' => $this->faker->uuid(),
-            'user_id' => User::factory(),
-            'number' => $this->faker->unique()->numerify('ACC########'),
             'name' => $this->faker->words(3, true),
-            'type' => $this->faker->randomElement(['savings', 'checking', 'investment']),
-            'currency' => $this->faker->randomElement(['USD', 'EUR', 'GBP']),
-            'is_active' => true,
-            'balance' => $this->faker->randomFloat(2, 0, 100000),
-            'available_balance' => $this->faker->randomFloat(2, 0, 100000),
+            'user_uuid' => $user->uuid,
+            'balance' => $this->faker->numberBetween(0, 100000),
         ];
     }
 }
