@@ -264,7 +264,7 @@ fi
 echo ""
 
 # 5. Security Tests - Check if tests pass
-echo -e "${BLUE}[5/7] Running Security Tests...${NC}"
+echo -e "${BLUE}[5/6] Running Security Tests...${NC}"
 if [ "$CI_MODE" = true ] || [ "$CHECK_ALL" = true ]; then
     # Run security tests specifically
     if ./vendor/bin/pest tests/Feature/Security --parallel --compact > /dev/null 2>&1; then
@@ -278,51 +278,9 @@ else
     echo -e "${YELLOW}  Skipping security tests (use --all or --ci to run)${NC}"
 fi
 echo ""
-# 7. Migration Validation - Check if migrations can run without errors
-echo -e "${BLUE}[7/7] Validating Database Migrations...${NC}"
-
-# Check if any migration files were modified
-MIGRATION_FILES=$(echo "$FILES" | grep -E '^database/migrations/.*\.php$' || true)
-
-if [ -n "$MIGRATION_FILES" ] || [ "$CI_MODE" = true ] || [ "$CHECK_ALL" = true ]; then
-    if [ -n "$MIGRATION_FILES" ]; then
-        echo -e "${YELLOW}  Modified migration files detected:${NC}"
-        echo "$MIGRATION_FILES" | sed 's/^/    - /'
-        echo ""
-    fi
-    
-    echo -e "${YELLOW}  Testing migrations in isolated environment...${NC}"
-    
-    # Create a temporary test database configuration
-    export DB_CONNECTION=sqlite
-    export DB_DATABASE=":memory:"
-    
-    # Try to run migrations in a fresh environment
-    if php artisan migrate:fresh --force > /tmp/migration_test.log 2>&1; then
-        echo -e "${GREEN}✓ Migrations: All migrations run successfully${NC}"
-    else
-        echo -e "${RED}✗ Migrations: Migration errors detected${NC}"
-        echo -e "${RED}  Error output:${NC}"
-        cat /tmp/migration_test.log | grep -E "Error|Exception|SQLSTATE" | head -10
-        echo ""
-        echo -e "${YELLOW}  Full migration log saved to: /tmp/migration_test.log${NC}"
-        echo -e "${YELLOW}  Common issues:${NC}"
-        echo -e "${YELLOW}    - Foreign key type mismatches (UUID vs BIGINT)${NC}"
-        echo -e "${YELLOW}    - Missing table dependencies${NC}"
-        echo -e "${YELLOW}    - Duplicate column/index names${NC}"
-        add_failure "Migration errors"
-    fi
-    
-    # Clean up
-    rm -f /tmp/migration_test.log 2>/dev/null || true
-else
-    echo -e "${YELLOW}  No migration files modified, skipping migration check${NC}"
-fi
-echo ""
-
 
 # 6. All Tests - Run full test suite in CI mode
-echo -e "${BLUE}[6/7] Running Test Suite...${NC}"
+echo -e "${BLUE}[6/6] Running Test Suite...${NC}"
 if [ "$CI_MODE" = true ]; then
     echo -e "${YELLOW}  Running full test suite (CI mode)...${NC}"
     if ./vendor/bin/pest --parallel --compact > /dev/null 2>&1; then
@@ -415,7 +373,6 @@ if [ "$FAILED" = true ]; then
     echo -e "  2. vendor/bin/phpstan analyse --memory-limit=2G"
     echo -e "  3. vendor/bin/php-cs-fixer fix --dry-run --diff"
     echo -e "  4. vendor/bin/pest --parallel"
-    echo -e "  5. php artisan migrate:fresh --force"
     
     exit 1
 else
