@@ -16,6 +16,7 @@ use InvalidArgumentException;
 class TransactionMonitoringRule extends Model
 {
     use HasFactory;
+    use HasUuids;
 
     /**
      * Create a new factory instance for the model.
@@ -24,7 +25,6 @@ class TransactionMonitoringRule extends Model
     {
         return \Database\Factories\Domain\Compliance\TransactionMonitoringRuleFactory::new();
     }
-    use HasUuids;
 
     protected $fillable = [
         'rule_code',
