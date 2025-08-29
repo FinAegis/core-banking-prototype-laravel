@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\AccountBalance;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -35,7 +36,14 @@ class AccountFactory extends Factory
      */
     public function zeroBalance(): Factory
     {
-        return $this->state(function (array $attributes) {
+        return $this->afterCreating(function (Account $account) {
+            // Create AccountBalance with 0 balance
+            AccountBalance::factory()->create([
+                'account_uuid' => $account->uuid,
+                'asset_code'   => 'USD',
+                'balance'      => 0,
+            ]);
+        })->state(function (array $attributes) {
             return [
                 'balance' => 0,
             ];
@@ -50,7 +58,14 @@ class AccountFactory extends Factory
      */
     public function withBalance(int $balance): Factory
     {
-        return $this->state(function (array $attributes) use ($balance) {
+        return $this->afterCreating(function (Account $account) use ($balance) {
+            // Create AccountBalance with the specified balance
+            AccountBalance::factory()->create([
+                'account_uuid' => $account->uuid,
+                'asset_code'   => 'USD',
+                'balance'      => $balance,
+            ]);
+        })->state(function (array $attributes) use ($balance) {
             return [
                 'balance' => $balance,
             ];

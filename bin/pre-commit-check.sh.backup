@@ -49,8 +49,18 @@ if [ "$CHECK_ALL" = true ]; then
     FILES="app/ config/ database/ routes/ tests/"
     echo -e "${YELLOW}Checking all files in app/, config/, database/, routes/, and tests/...${NC}"
 else
-    # Get modified PHP files (staged and unstaged) from both app/ and tests/
-    FILES=$(git diff --name-only --diff-filter=ACMR HEAD -- '*.php' | grep -E '^(app|config|database|routes|tests)/' || true)
+    # Get modified PHP files - check BOTH staged AND working directory changes
+    # This ensures we catch issues whether files are staged or not
+    FILES=$(
+        {
+            # Staged changes (files in index)
+            git diff --cached --name-only --diff-filter=ACMR -- '*.php'
+            # Working directory changes (modified but not staged)
+            git diff --name-only --diff-filter=ACMR -- '*.php'
+            # Files different from HEAD (catches both staged and unstaged)
+            git diff --name-only --diff-filter=ACMR HEAD -- '*.php'
+        } | sort -u | grep -E '^(app|config|database|routes|tests)/' || true
+    )
     if [ -z "$FILES" ]; then
         echo -e "${GREEN}No PHP files modified in app/, config/, database/, routes/, or tests/. Skipping checks.${NC}"
         exit 0
@@ -58,7 +68,6 @@ else
     echo -e "${YELLOW}Checking modified files:${NC}"
     echo "$FILES" | sed 's/^/  - /'
 fi
-echo ""
 
 # Track if any checks fail
 FAILED=false
@@ -125,21 +134,48 @@ echo ""
 # 2. Check PHP CS Fixer (runs on both app/ and tests/ via config)
 echo -e "${BLUE}[2/6] Running PHP CS Fixer (CI Standard)...${NC}"
 PHPCS_FIXER_HAD_ISSUES=false
-if ! ./vendor/bin/php-cs-fixer fix --dry-run --diff > /dev/null 2>&1; then
-    PHPCS_FIXER_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHP CS Fixer: Style issues detected${NC}"
-    ./vendor/bin/php-cs-fixer fix --dry-run --diff | head -20
-    
-    if [ "$AUTO_FIX" = true ]; then
-        echo -e "${BLUE}  Applying PHP CS Fixer fixes...${NC}"
-        ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php || true
-        ISSUES_FIXED=true
-        echo -e "${GREEN}  ✓ PHP CS Fixer: Fixed style issues${NC}"
+
+# When not checking all, pass specific files to PHP CS Fixer
+if [ "$CHECK_ALL" = true ]; then
+    # Check all files using the config
+    if ! ./vendor/bin/php-cs-fixer fix --dry-run --diff > /dev/null 2>&1; then
+        PHPCS_FIXER_HAD_ISSUES=true
+        echo -e "${YELLOW}⚠ PHP CS Fixer: Style issues detected${NC}"
+        ./vendor/bin/php-cs-fixer fix --dry-run --diff | head -20
+        
+        if [ "$AUTO_FIX" = true ]; then
+            echo -e "${BLUE}  Applying PHP CS Fixer fixes...${NC}"
+            ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php || true
+            ISSUES_FIXED=true
+            echo -e "${GREEN}  ✓ PHP CS Fixer: Fixed style issues${NC}"
+        else
+            add_failure "PHP CS Fixer violations"
+        fi
     else
-        add_failure "PHP CS Fixer violations"
+        echo -e "${GREEN}✓ PHP CS Fixer: No issues found${NC}"
     fi
 else
-    echo -e "${GREEN}✓ PHP CS Fixer: No issues found${NC}"
+    # Check only modified files - convert newline-separated list to space-separated
+    FILES_FOR_FIXER=$(echo "$FILES" | tr '\n' ' ')
+    if [ -n "$FILES_FOR_FIXER" ]; then
+        # Run PHP CS Fixer on specific files  
+        if ! ./vendor/bin/php-cs-fixer fix --dry-run --diff --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER > /dev/null 2>&1; then
+            PHPCS_FIXER_HAD_ISSUES=true
+            echo -e "${YELLOW}⚠ PHP CS Fixer: Style issues detected in modified files${NC}"
+            ./vendor/bin/php-cs-fixer fix --dry-run --diff --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER | head -20
+            
+            if [ "$AUTO_FIX" = true ]; then
+                echo -e "${BLUE}  Applying PHP CS Fixer fixes to modified files...${NC}"
+                ./vendor/bin/php-cs-fixer fix --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER || true
+                ISSUES_FIXED=true
+                echo -e "${GREEN}  ✓ PHP CS Fixer: Fixed style issues in modified files${NC}"
+            else
+                add_failure "PHP CS Fixer violations in modified files"
+            fi
+        else
+            echo -e "${GREEN}✓ PHP CS Fixer: No issues found in modified files${NC}"
+        fi
+    fi
 fi
 echo ""
 
@@ -168,26 +204,67 @@ if [ "$AUTO_FIX" = true ] && [ "$ISSUES_FIXED" = true ]; then
     echo ""
 fi
 
-# 4. PHPStan - EXACTLY as CI runs it (with timeout to prevent hanging)
+# 4. PHPStan - EXACTLY as CI runs it (with smart timeout)
 echo -e "${BLUE}[4/6] Running PHPStan (Level 5)...${NC}"
 # CI command: vendor/bin/phpstan analyse --memory-limit=2G
-# Adding 60-second timeout to prevent hanging on large codebases
-if timeout 60 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1" | grep -q "\[OK\] No errors"; then
-    echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
+# Using a reasonable timeout (90 seconds) with clear feedback
+PHPSTAN_TIMEOUT=120
+PHPSTAN_OUTPUT=""
+PHPSTAN_EXIT_CODE=0
+
+# Run PHPStan with timeout
+if PHPSTAN_OUTPUT=$(timeout $PHPSTAN_TIMEOUT bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1"); then
+    PHPSTAN_EXIT_CODE=0
 else
-    if [ $? -eq 124 ]; then
-        echo -e "${YELLOW}⚠ PHPStan: Timed out after 60 seconds (consider running manually)${NC}"
-        echo -e "${YELLOW}  Run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse${NC}"
+    PHPSTAN_EXIT_CODE=$?
+fi
+
+if [ $PHPSTAN_EXIT_CODE -eq 0 ]; then
+    if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
+        echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
     else
         echo -e "${RED}✗ PHPStan: Issues found${NC}"
-        timeout 60 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1" | head -50
+        echo "$PHPSTAN_OUTPUT" | head -50
         add_failure "PHPStan errors"
     fi
+elif [ $PHPSTAN_EXIT_CODE -eq 124 ]; then
+    echo -e "${YELLOW}⚠ PHPStan: Timed out after ${PHPSTAN_TIMEOUT} seconds on full codebase${NC}"
+    echo -e "${YELLOW}  Falling back to checking only modified files...${NC}"
+    
+    # Try to run PHPStan on just the modified files
+    if [ "$CHECK_ALL" = false ] && [ -n "$FILES" ]; then
+        # Convert FILES to space-separated list for PHPStan
+        FILES_FOR_PHPSTAN=$(echo "$FILES" | tr '\n' ' ')
+        echo -e "${BLUE}  Running PHPStan on modified files only...${NC}"
+        
+        if PHPSTAN_OUTPUT=$(timeout 30 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi $FILES_FOR_PHPSTAN 2>&1"); then
+            if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
+                echo -e "${GREEN}  ✓ PHPStan: No issues in modified files${NC}"
+            else
+                echo -e "${RED}  ✗ PHPStan: Issues found in modified files${NC}"
+                echo "$PHPSTAN_OUTPUT" | head -50
+                add_failure "PHPStan errors in modified files"
+            fi
+        else
+            echo -e "${YELLOW}  PHPStan still timed out on modified files only${NC}"
+            echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
+            echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+            # Still warn but don't fail locally
+        fi
+    else
+        echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
+        echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+    fi
+    echo -e "${YELLOW}  Note: CI will still run PHPStan and may fail if there are errors!${NC}"
+else
+    echo -e "${RED}✗ PHPStan: Failed with error${NC}"
+    echo "$PHPSTAN_OUTPUT" | head -50
+    add_failure "PHPStan errors"
 fi
 echo ""
 
 # 5. Security Tests - Check if tests pass
-echo -e "${BLUE}[5/6] Running Security Tests...${NC}"
+echo -e "${BLUE}[5/7] Running Security Tests...${NC}"
 if [ "$CI_MODE" = true ] || [ "$CHECK_ALL" = true ]; then
     # Run security tests specifically
     if ./vendor/bin/pest tests/Feature/Security --parallel --compact > /dev/null 2>&1; then
@@ -201,9 +278,51 @@ else
     echo -e "${YELLOW}  Skipping security tests (use --all or --ci to run)${NC}"
 fi
 echo ""
+# 7. Migration Validation - Check if migrations can run without errors
+echo -e "${BLUE}[7/7] Validating Database Migrations...${NC}"
+
+# Check if any migration files were modified
+MIGRATION_FILES=$(echo "$FILES" | grep -E '^database/migrations/.*\.php$' || true)
+
+if [ -n "$MIGRATION_FILES" ] || [ "$CI_MODE" = true ] || [ "$CHECK_ALL" = true ]; then
+    if [ -n "$MIGRATION_FILES" ]; then
+        echo -e "${YELLOW}  Modified migration files detected:${NC}"
+        echo "$MIGRATION_FILES" | sed 's/^/    - /'
+        echo ""
+    fi
+    
+    echo -e "${YELLOW}  Testing migrations in isolated environment...${NC}"
+    
+    # Create a temporary test database configuration
+    export DB_CONNECTION=sqlite
+    export DB_DATABASE=":memory:"
+    
+    # Try to run migrations in a fresh environment
+    if php artisan migrate:fresh --force > /tmp/migration_test.log 2>&1; then
+        echo -e "${GREEN}✓ Migrations: All migrations run successfully${NC}"
+    else
+        echo -e "${RED}✗ Migrations: Migration errors detected${NC}"
+        echo -e "${RED}  Error output:${NC}"
+        cat /tmp/migration_test.log | grep -E "Error|Exception|SQLSTATE" | head -10
+        echo ""
+        echo -e "${YELLOW}  Full migration log saved to: /tmp/migration_test.log${NC}"
+        echo -e "${YELLOW}  Common issues:${NC}"
+        echo -e "${YELLOW}    - Foreign key type mismatches (UUID vs BIGINT)${NC}"
+        echo -e "${YELLOW}    - Missing table dependencies${NC}"
+        echo -e "${YELLOW}    - Duplicate column/index names${NC}"
+        add_failure "Migration errors"
+    fi
+    
+    # Clean up
+    rm -f /tmp/migration_test.log 2>/dev/null || true
+else
+    echo -e "${YELLOW}  No migration files modified, skipping migration check${NC}"
+fi
+echo ""
+
 
 # 6. All Tests - Run full test suite in CI mode
-echo -e "${BLUE}[6/6] Running Test Suite...${NC}"
+echo -e "${BLUE}[6/7] Running Test Suite...${NC}"
 if [ "$CI_MODE" = true ]; then
     echo -e "${YELLOW}  Running full test suite (CI mode)...${NC}"
     if ./vendor/bin/pest --parallel --compact > /dev/null 2>&1; then
@@ -296,6 +415,7 @@ if [ "$FAILED" = true ]; then
     echo -e "  2. vendor/bin/phpstan analyse --memory-limit=2G"
     echo -e "  3. vendor/bin/php-cs-fixer fix --dry-run --diff"
     echo -e "  4. vendor/bin/pest --parallel"
+    echo -e "  5. php artisan migrate:fresh --force"
     
     exit 1
 else
