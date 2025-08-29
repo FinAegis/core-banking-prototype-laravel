@@ -22,8 +22,6 @@ class PatternDetectionEngine
 
     private const PATTERN_LAYERING = 'layering';
 
-    private const PATTERN_INTEGRATION = 'integration';
-
     private const PATTERN_SMURFING = 'smurfing';
 
     private const PATTERN_RAPID_MOVEMENT = 'rapid_movement';
@@ -999,6 +997,6 @@ class PatternDetectionEngine
             return ($values[$count / 2 - 1] + $values[$count / 2]) / 2;
         }
 
-        return $values[floor($count / 2)];
+        return $values[(int) floor($count / 2)];
     }
 }

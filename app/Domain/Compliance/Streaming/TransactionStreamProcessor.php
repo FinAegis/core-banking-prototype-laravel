@@ -28,7 +28,7 @@ class TransactionStreamProcessor implements ShouldQueue
 
     private const TIME_WINDOW = 3600; // Seconds to keep transactions in cache
 
-    private const PATTERN_CACHE_TTL = 300; // Pattern detection cache TTL
+
 
     private TransactionMonitoringService $monitoringService;
 
@@ -169,7 +169,7 @@ class TransactionStreamProcessor implements ShouldQueue
     private function maintainSlidingWindow(array $buffer): array
     {
         // Remove old transactions beyond time window
-        $cutoffTime = now()->timestamp - self::TIME_WINDOW;
+        $cutoffTime = (int) now()->timestamp - self::TIME_WINDOW;
         $buffer = array_filter($buffer, fn ($item) => $item['timestamp'] > $cutoffTime);
 
         // Keep only the most recent N transactions
@@ -243,10 +243,11 @@ class TransactionStreamProcessor implements ShouldQueue
 
             // Update velocity
             $velocity['count']++;
-            $velocity['amount'] += $transaction->event_properties['amount'] ?? 0;
+            $amount = $transaction->event_properties['amount'] ?? 0;
+            $velocity['amount'] += is_numeric($amount) ? (float) $amount : 0;
 
             // Check limits
-            if ($velocity['count'] > $limits['max_count'] || $velocity['amount'] > $limits['max_amount']) {
+            if ($velocity['count'] > $limits['max_count'] || (float) $velocity['amount'] > (float) $limits['max_amount']) {
                 $alerts[] = [
                     'type'     => 'velocity_exceeded',
                     'period'   => $period,

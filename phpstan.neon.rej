@@ -1,0 +1,13 @@
+--- phpstan.neon
++++ phpstan.neon
+@@ -20,3 +20,10 @@ parameters:
+         # Mockery methods
+         - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::with\(\)#'
+         - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::(once|twice|times|never)\(\)#'
++    
++    # Enable result cache for faster subsequent runs
++    resultCachePath: %tmpDir%/resultCache.php
++    
++    # Parallel processing for better performance
++    parallel:
++        maximumNumberOfProcesses: 4

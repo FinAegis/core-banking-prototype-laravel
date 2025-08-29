@@ -181,7 +181,7 @@ fi
 echo -e "${BLUE}[4/6] Running PHPStan (Level 5)...${NC}"
 # CI command: vendor/bin/phpstan analyse --memory-limit=2G
 # Using a reasonable timeout (90 seconds) with clear feedback
-PHPSTAN_TIMEOUT=90
+PHPSTAN_TIMEOUT=120
 PHPSTAN_OUTPUT=""
 PHPSTAN_EXIT_CODE=0
 
@@ -201,10 +201,33 @@ if [ $PHPSTAN_EXIT_CODE -eq 0 ]; then
         add_failure "PHPStan errors"
     fi
 elif [ $PHPSTAN_EXIT_CODE -eq 124 ]; then
-    echo -e "${YELLOW}⚠ PHPStan: Timed out after ${PHPSTAN_TIMEOUT} seconds${NC}"
-    echo -e "${YELLOW}  This may happen with large codebases. Running PHPStan manually...${NC}"
-    echo -e "${YELLOW}  Command: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
-    # Don't fail on timeout for pre-commit, but warn the user
+    echo -e "${YELLOW}⚠ PHPStan: Timed out after ${PHPSTAN_TIMEOUT} seconds on full codebase${NC}"
+    echo -e "${YELLOW}  Falling back to checking only modified files...${NC}"
+    
+    # Try to run PHPStan on just the modified files
+    if [ "$CHECK_ALL" = false ] && [ -n "$FILES" ]; then
+        # Convert FILES to space-separated list for PHPStan
+        FILES_FOR_PHPSTAN=$(echo "$FILES" | tr '\n' ' ')
+        echo -e "${BLUE}  Running PHPStan on modified files only...${NC}"
+        
+        if PHPSTAN_OUTPUT=$(timeout 30 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi $FILES_FOR_PHPSTAN 2>&1"); then
+            if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
+                echo -e "${GREEN}  ✓ PHPStan: No issues in modified files${NC}"
+            else
+                echo -e "${RED}  ✗ PHPStan: Issues found in modified files${NC}"
+                echo "$PHPSTAN_OUTPUT" | head -50
+                add_failure "PHPStan errors in modified files"
+            fi
+        else
+            echo -e "${YELLOW}  PHPStan still timed out on modified files only${NC}"
+            echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
+            echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+            # Still warn but don't fail locally
+        fi
+    else
+        echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
+        echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+    fi
     echo -e "${YELLOW}  Note: CI will still run PHPStan and may fail if there are errors!${NC}"
 else
     echo -e "${RED}✗ PHPStan: Failed with error${NC}"
