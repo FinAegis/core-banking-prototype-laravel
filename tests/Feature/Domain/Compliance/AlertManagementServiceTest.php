@@ -31,16 +31,16 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         $data = [
-            'type' => 'transaction',
-            'severity' => 'high',
-            'title' => 'Suspicious Transaction Detected',
-            'description' => 'Large transaction to high-risk country',
-            'risk_score' => 75,  // Changed from 85 to avoid auto-escalation
+            'type'             => 'transaction',
+            'severity'         => 'high',
+            'title'            => 'Suspicious Transaction Detected',
+            'description'      => 'Large transaction to high-risk country',
+            'risk_score'       => 75,  // Changed from 85 to avoid auto-escalation
             'confidence_score' => 0.9,
-            'evidence' => [
-                'amount' => 50000,
-                'destination' => 'high_risk_country'
-            ]
+            'evidence'         => [
+                'amount'      => 50000,
+                'destination' => 'high_risk_country',
+            ],
         ];
 
         // Act
@@ -60,11 +60,11 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         $data = [
-            'type' => 'pattern',
-            'severity' => 'critical',
-            'title' => 'Money Laundering Pattern Detected',
+            'type'        => 'pattern',
+            'severity'    => 'critical',
+            'title'       => 'Money Laundering Pattern Detected',
             'description' => 'Complex layering pattern identified',
-            'risk_score' => 95
+            'risk_score'  => 95,
         ];
 
         // Act
@@ -87,19 +87,19 @@ class AlertManagementServiceTest extends TestCase
 
         // Create existing alerts
         $existingAlerts = ComplianceAlert::factory()->count(3)->create([
-            'type' => 'velocity',
-            'user_id' => $user->id,
-            'status' => ComplianceAlert::STATUS_OPEN,
-            'created_at' => now()->subHours(2)
+            'type'       => 'velocity',
+            'user_id'    => $user->id,
+            'status'     => ComplianceAlert::STATUS_OPEN,
+            'created_at' => now()->subHours(2),
         ]);
 
         $data = [
-            'type' => 'velocity',
-            'severity' => 'medium',
-            'title' => 'High Velocity Transactions',
+            'type'        => 'velocity',
+            'severity'    => 'medium',
+            'title'       => 'High Velocity Transactions',
             'description' => 'Multiple rapid transactions detected',
-            'user_id' => $user->id,
-            'risk_score' => 65
+            'user_id'     => $user->id,
+            'risk_score'  => 65,
         ];
 
         // Act
@@ -114,7 +114,7 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         $alert = ComplianceAlert::factory()->create([
-            'status' => ComplianceAlert::STATUS_OPEN
+            'status' => ComplianceAlert::STATUS_OPEN,
         ]);
         $user = User::factory()->create();
 
@@ -171,16 +171,16 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         $alerts = ComplianceAlert::factory()->count(3)->create([
-            'type' => 'pattern',
-            'severity' => 'high',
-            'risk_score' => 80
+            'type'       => 'pattern',
+            'severity'   => 'high',
+            'risk_score' => 80,
         ]);
 
         $caseData = [
-            'title' => 'Investigation: Multiple Pattern Alerts',
+            'title'       => 'Investigation: Multiple Pattern Alerts',
             'description' => 'Investigating related suspicious patterns',
-            'type' => 'investigation',
-            'created_by' => User::factory()->create()->id
+            'type'        => 'investigation',
+            'created_by'  => User::factory()->create()->id,
         ];
 
         // Act
@@ -207,7 +207,7 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         $alert = ComplianceAlert::factory()->create([
-            'status' => ComplianceAlert::STATUS_IN_REVIEW
+            'status' => ComplianceAlert::STATUS_IN_REVIEW,
         ]);
         $user = User::factory()->create();
         $notes = 'Verified as legitimate business transaction';
@@ -234,13 +234,13 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         $rule = \App\Domain\Compliance\Models\TransactionMonitoringRule::factory()->create([
-            'true_positives' => 10,
-            'false_positives' => 2
+            'true_positives'  => 10,
+            'false_positives' => 2,
         ]);
 
         $alert = ComplianceAlert::factory()->create([
             'rule_id' => $rule->id,
-            'status' => ComplianceAlert::STATUS_IN_REVIEW
+            'status'  => ComplianceAlert::STATUS_IN_REVIEW,
         ]);
 
         $user = User::factory()->create();
@@ -267,22 +267,22 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         ComplianceAlert::factory()->count(5)->create([
-            'type' => 'transaction',
+            'type'     => 'transaction',
             'severity' => 'high',
-            'status' => ComplianceAlert::STATUS_OPEN
+            'status'   => ComplianceAlert::STATUS_OPEN,
         ]);
 
         ComplianceAlert::factory()->count(3)->create([
-            'type' => 'pattern',
+            'type'     => 'pattern',
             'severity' => 'medium',
-            'status' => ComplianceAlert::STATUS_RESOLVED
+            'status'   => ComplianceAlert::STATUS_RESOLVED,
         ]);
 
         // Act
         $results = $this->service->searchAlerts([
-            'type' => 'transaction',
+            'type'     => 'transaction',
             'severity' => 'high',
-            'status' => ComplianceAlert::STATUS_OPEN
+            'status'   => ComplianceAlert::STATUS_OPEN,
         ]);
 
         // Assert
@@ -298,19 +298,19 @@ class AlertManagementServiceTest extends TestCase
     {
         // Arrange
         ComplianceAlert::factory()->count(10)->create([
-            'status' => ComplianceAlert::STATUS_OPEN,
-            'severity' => 'high'
+            'status'   => ComplianceAlert::STATUS_OPEN,
+            'severity' => 'high',
         ]);
 
         ComplianceAlert::factory()->count(5)->create([
-            'status' => ComplianceAlert::STATUS_RESOLVED,
-            'severity' => 'medium',
-            'resolution_time_hours' => 24
+            'status'                => ComplianceAlert::STATUS_RESOLVED,
+            'severity'              => 'medium',
+            'resolution_time_hours' => 24,
         ]);
 
         ComplianceAlert::factory()->count(2)->create([
-            'status' => ComplianceAlert::STATUS_FALSE_POSITIVE,
-            'severity' => 'low'
+            'status'   => ComplianceAlert::STATUS_FALSE_POSITIVE,
+            'severity' => 'low',
         ]);
 
         // Act
@@ -332,13 +332,13 @@ class AlertManagementServiceTest extends TestCase
             now()->subDays(5),
             now()->subDays(3),
             now()->subDays(1),
-            now()
+            now(),
         ];
 
         foreach ($dates as $date) {
             ComplianceAlert::factory()->count(rand(1, 3))->create([
-                'severity' => 'high',
-                'created_at' => $date
+                'severity'   => 'high',
+                'created_at' => $date,
             ]);
         }
 

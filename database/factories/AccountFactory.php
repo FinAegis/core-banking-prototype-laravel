@@ -19,19 +19,19 @@ class AccountFactory extends Factory
     public function definition(): array
     {
         $user = User::factory()->create();
-        
+
         return [
-            'uuid' => $this->faker->uuid(),
-            'name' => $this->faker->words(3, true),
+            'uuid'      => $this->faker->uuid(),
+            'name'      => $this->faker->words(3, true),
             'user_uuid' => $user->uuid,
-            'balance' => $this->faker->numberBetween(0, 100000),
+            'balance'   => $this->faker->numberBetween(0, 100000),
         ];
     }
 
     /**
      * Configure the model factory to create an account with zero balance.
      *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     * @return Factory
      */
     public function zeroBalance(): Factory
     {
@@ -46,7 +46,7 @@ class AccountFactory extends Factory
      * Configure the model factory to create an account with a specific balance.
      *
      * @param int $balance
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     * @return Factory
      */
     public function withBalance(int $balance): Factory
     {
@@ -60,8 +60,8 @@ class AccountFactory extends Factory
     /**
      * Configure the model factory for a specific user.
      *
-     * @param \App\Models\User $user
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     * @param User $user
+     * @return Factory
      */
     public function forUser(User $user): Factory
     {

@@ -37,7 +37,7 @@ class AlertAssigned extends Notification implements ShouldQueue
      * Get the mail representation of the notification.
      *
      * @param mixed $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return MailMessage
      */
     public function toMail(mixed $notifiable): MailMessage
     {
@@ -62,10 +62,10 @@ class AlertAssigned extends Notification implements ShouldQueue
     public function toArray(mixed $notifiable): array
     {
         return [
-            'alert_id' => $this->alert->id,
-            'type' => $this->alert->type,
-            'severity' => $this->alert->severity,
-            'title' => $this->alert->title,
+            'alert_id'    => $this->alert->id,
+            'type'        => $this->alert->type,
+            'severity'    => $this->alert->severity,
+            'title'       => $this->alert->title,
             'description' => $this->alert->description,
             'assigned_at' => now()->toIso8601String(),
         ];

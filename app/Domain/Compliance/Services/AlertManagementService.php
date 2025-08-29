@@ -527,7 +527,7 @@ class AlertManagementService
                 if ($seniorAnalyst) {
                     $this->assignAlert($alert, $seniorAnalyst);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Role doesn't exist or no users with this role - skip auto-assignment
                 Log::debug('Auto-assignment skipped: ' . $e->getMessage());
             }
@@ -544,7 +544,7 @@ class AlertManagementService
                 if ($complianceTeam->isNotEmpty()) {
                     Notification::send($complianceTeam, new \App\Notifications\CriticalComplianceAlert($alert));
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Roles don't exist - skip team notification
                 Log::debug('Compliance team notification skipped: ' . $e->getMessage());
             }

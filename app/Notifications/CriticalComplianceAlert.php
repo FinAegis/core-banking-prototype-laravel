@@ -38,7 +38,7 @@ class CriticalComplianceAlert extends Notification implements ShouldQueue
      * Get the mail representation of the notification.
      *
      * @param mixed $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return MailMessage
      */
     public function toMail(mixed $notifiable): MailMessage
     {
@@ -67,13 +67,13 @@ class CriticalComplianceAlert extends Notification implements ShouldQueue
     public function toArray(mixed $notifiable): array
     {
         return [
-            'alert_id' => $this->alert->id,
-            'type' => $this->alert->type,
-            'severity' => 'CRITICAL',
-            'title' => $this->alert->title,
+            'alert_id'    => $this->alert->id,
+            'type'        => $this->alert->type,
+            'severity'    => 'CRITICAL',
+            'title'       => $this->alert->title,
             'description' => $this->alert->description,
-            'risk_score' => $this->alert->risk_score,
-            'created_at' => $this->alert->created_at->toIso8601String(),
+            'risk_score'  => $this->alert->risk_score,
+            'created_at'  => $this->alert->created_at->toIso8601String(),
             'is_critical' => true,
         ];
     }

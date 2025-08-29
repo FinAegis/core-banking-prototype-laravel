@@ -6,14 +6,15 @@ namespace Tests\Feature\Domain\Compliance;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transaction;
-use App\Domain\Compliance\Events\PatternDetected;
 use App\Domain\Compliance\Events\RealTimeAlertGenerated;
+use App\Domain\Compliance\Services\TransactionMonitoringService;
 use App\Domain\Compliance\Streaming\PatternDetectionEngine;
 use App\Domain\Compliance\Streaming\TransactionStreamProcessor;
-use App\Domain\Compliance\Services\TransactionMonitoringService;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Mockery;
 use Tests\TestCase;
 
 class TransactionStreamProcessorTest extends TestCase
@@ -21,6 +22,7 @@ class TransactionStreamProcessorTest extends TestCase
     use RefreshDatabase;
 
     private TransactionStreamProcessor $processor;
+
     private $monitoringServiceMock;
 
     protected function setUp(): void
@@ -44,22 +46,22 @@ class TransactionStreamProcessorTest extends TestCase
         // Arrange
         $transaction = Transaction::factory()->create([
             'event_properties' => [
-                'amount' => 5000,
-                'type' => 'transfer',
+                'amount'   => 5000,
+                'type'     => 'transfer',
                 'metadata' => [
-                    'counterparty' => 'external_account_1'
-                ]
-            ]
+                    'counterparty' => 'external_account_1',
+                ],
+            ],
         ]);
 
         $this->monitoringServiceMock
             ->shouldReceive('monitorTransaction')
             ->once()
-            ->with(\Mockery::type(Transaction::class))
+            ->with(Mockery::type(Transaction::class))
             ->andReturn([
-                'passed' => true,
-                'alerts' => [],
-                'actions' => []
+                'passed'  => true,
+                'alerts'  => [],
+                'actions' => [],
             ]);
 
         // Act
@@ -83,22 +85,22 @@ class TransactionStreamProcessorTest extends TestCase
         $transactions = [];
         for ($i = 0; $i < 6; $i++) {
             $transactions[] = Transaction::factory()->create([
-                'account_id' => $account->id,
-                'aggregate_uuid' => $account->uuid,
+                'account_id'       => $account->id,
+                'aggregate_uuid'   => $account->uuid,
                 'event_properties' => [
                     'amount' => 2000,
-                    'type' => 'transfer'
+                    'type'   => 'transfer',
                 ],
-                'created_at' => now()->subMinutes(5 - $i)
+                'created_at' => now()->subMinutes(5 - $i),
             ]);
         }
 
         $this->monitoringServiceMock
             ->shouldReceive('monitorTransaction')
             ->andReturn([
-                'passed' => true,
-                'alerts' => [],
-                'actions' => []
+                'passed'  => true,
+                'alerts'  => [],
+                'actions' => [],
             ]);
 
         // Act
@@ -119,22 +121,22 @@ class TransactionStreamProcessorTest extends TestCase
         $amounts = [9500, 9800, 9600, 9700];
         foreach ($amounts as $amount) {
             $transaction = Transaction::factory()->create([
-                'account_id' => $account->id,
-                'aggregate_uuid' => $account->uuid,
+                'account_id'       => $account->id,
+                'aggregate_uuid'   => $account->uuid,
                 'event_properties' => [
                     'amount' => $amount,
-                    'type' => 'deposit'
+                    'type'   => 'deposit',
                 ],
-                'created_at' => now()->subHours(rand(1, 20))
+                'created_at' => now()->subHours(rand(1, 20)),
             ]);
 
             $this->monitoringServiceMock
                 ->shouldReceive('monitorTransaction')
-                ->with(\Mockery::type(Transaction::class))
+                ->with(Mockery::type(Transaction::class))
                 ->andReturn([
-                    'passed' => true,
-                    'alerts' => [],
-                    'actions' => []
+                    'passed'  => true,
+                    'alerts'  => [],
+                    'actions' => [],
                 ]);
 
             // Add to stream buffer
@@ -143,12 +145,12 @@ class TransactionStreamProcessorTest extends TestCase
 
         // Create final transaction
         $finalTransaction = Transaction::factory()->create([
-            'account_id' => $account->id,
-            'aggregate_uuid' => $account->uuid,
+            'account_id'       => $account->id,
+            'aggregate_uuid'   => $account->uuid,
             'event_properties' => [
                 'amount' => 9600,
-                'type' => 'deposit'
-            ]
+                'type'   => 'deposit',
+            ],
         ]);
 
         // Act
@@ -166,23 +168,23 @@ class TransactionStreamProcessorTest extends TestCase
         $transaction = Transaction::factory()->create([
             'event_properties' => [
                 'amount' => 15000,
-                'type' => 'transfer'
-            ]
+                'type'   => 'transfer',
+            ],
         ]);
 
         $this->monitoringServiceMock
             ->shouldReceive('monitorTransaction')
             ->once()
-            ->with(\Mockery::type(Transaction::class))
+            ->with(Mockery::type(Transaction::class))
             ->andReturn([
                 'passed' => false,
                 'alerts' => [
                     [
-                        'type' => 'threshold_exceeded',
-                        'severity' => 'high'
-                    ]
+                        'type'     => 'threshold_exceeded',
+                        'severity' => 'high',
+                    ],
                 ],
-                'actions' => ['review']
+                'actions' => ['review'],
             ]);
 
         // Act
@@ -191,7 +193,7 @@ class TransactionStreamProcessorTest extends TestCase
         // Assert
         Event::assertDispatched(RealTimeAlertGenerated::class, function ($event) use ($transaction) {
             return $event->transaction->id === $transaction->id
-                && !empty($event->alertData['alerts']);
+                && ! empty($event->alertData['alerts']);
         });
     }
 
@@ -201,18 +203,18 @@ class TransactionStreamProcessorTest extends TestCase
         $transactions = Transaction::factory()->count(5)->create([
             'event_properties' => [
                 'amount' => 1000,
-                'type' => 'transfer'
-            ]
+                'type'   => 'transfer',
+            ],
         ]);
 
         $this->monitoringServiceMock
             ->shouldReceive('monitorTransaction')
             ->times(5)
-            ->with(\Mockery::type(Transaction::class))
+            ->with(Mockery::type(Transaction::class))
             ->andReturn([
-                'passed' => true,
-                'alerts' => [],
-                'actions' => []
+                'passed'  => true,
+                'alerts'  => [],
+                'actions' => [],
             ]);
 
         // Act
@@ -230,27 +232,27 @@ class TransactionStreamProcessorTest extends TestCase
         // Arrange
         $account = Account::factory()->create();
         $transaction = Transaction::factory()->create([
-            'account_id' => $account->id,
-            'aggregate_uuid' => $account->uuid,
+            'account_id'       => $account->id,
+            'aggregate_uuid'   => $account->uuid,
             'event_properties' => [
                 'amount' => 5000,
-                'type' => 'transfer'
-            ]
+                'type'   => 'transfer',
+            ],
         ]);
 
         $this->monitoringServiceMock
             ->shouldReceive('monitorTransaction')
             ->once()
-            ->with(\Mockery::type(Transaction::class))
+            ->with(Mockery::type(Transaction::class))
             ->andReturn([
                 'passed' => false,
                 'alerts' => [
                     [
-                        'type' => 'suspicious_pattern',
-                        'severity' => 'medium'
-                    ]
+                        'type'     => 'suspicious_pattern',
+                        'severity' => 'medium',
+                    ],
                 ],
-                'actions' => ['review']
+                'actions' => ['review'],
             ]);
 
         // Act
@@ -274,22 +276,22 @@ class TransactionStreamProcessorTest extends TestCase
         // Create many transactions to exceed window size
         for ($i = 0; $i < 150; $i++) {
             $transaction = Transaction::factory()->create([
-                'account_id' => $account->id,
-                'aggregate_uuid' => $account->uuid,
+                'account_id'       => $account->id,
+                'aggregate_uuid'   => $account->uuid,
                 'event_properties' => [
                     'amount' => rand(100, 5000),
-                    'type' => 'transfer'
+                    'type'   => 'transfer',
                 ],
-                'created_at' => now()->subMinutes(150 - $i)
+                'created_at' => now()->subMinutes(150 - $i),
             ]);
 
             $this->monitoringServiceMock
                 ->shouldReceive('monitorTransaction')
-                ->with(\Mockery::type(Transaction::class))
+                ->with(Mockery::type(Transaction::class))
                 ->andReturn([
-                    'passed' => true,
-                    'alerts' => [],
-                    'actions' => []
+                    'passed'  => true,
+                    'alerts'  => [],
+                    'actions' => [],
                 ]);
 
             $this->processor->processTransaction($transaction);
@@ -313,28 +315,28 @@ class TransactionStreamProcessorTest extends TestCase
         // Set ongoing cases in cache
         $ongoingCasesKey = "ongoing_cases:{$user->id}";
         Cache::put($ongoingCasesKey, [
-            ['case_id' => 'CASE-001', 'priority' => 'high']
+            ['case_id' => 'CASE-001', 'priority' => 'high'],
         ], 3600);
 
         $transaction = Transaction::factory()->create([
-            'account_id' => $account->id,
-            'aggregate_uuid' => $account->uuid,
+            'account_id'       => $account->id,
+            'aggregate_uuid'   => $account->uuid,
             'event_properties' => [
                 'amount' => 5000,
-                'type' => 'transfer'
-            ]
+                'type'   => 'transfer',
+            ],
         ]);
 
         $this->monitoringServiceMock
             ->shouldReceive('monitorTransaction')
             ->once()
-            ->with(\Mockery::type(Transaction::class))
+            ->with(Mockery::type(Transaction::class))
             ->andReturn([
                 'passed' => true,
                 'alerts' => [
-                    ['type' => 'test_alert']
+                    ['type' => 'test_alert'],
                 ],
-                'actions' => []
+                'actions' => [],
             ]);
 
         // Act
@@ -355,8 +357,8 @@ class TransactionStreamProcessorTest extends TestCase
         $this->monitoringServiceMock
             ->shouldReceive('monitorTransaction')
             ->once()
-            ->with(\Mockery::type(Transaction::class))
-            ->andThrow(new \Exception('Monitoring service error'));
+            ->with(Mockery::type(Transaction::class))
+            ->andThrow(new Exception('Monitoring service error'));
 
         // Act
         $result = $this->processor->processTransaction($transaction);

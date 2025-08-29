@@ -28,8 +28,6 @@ class TransactionStreamProcessor implements ShouldQueue
 
     private const TIME_WINDOW = 3600; // Seconds to keep transactions in cache
 
-
-
     private TransactionMonitoringService $monitoringService;
 
     private PatternDetectionEngine $patternEngine;

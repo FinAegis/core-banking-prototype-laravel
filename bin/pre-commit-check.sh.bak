@@ -46,19 +46,28 @@ echo ""
 
 # Get list of modified PHP files
 if [ "$CHECK_ALL" = true ]; then
-    FILES="app/ tests/"
-    echo -e "${YELLOW}Checking all files in app/ and tests/...${NC}"
+    FILES="app/ config/ database/ routes/ tests/"
+    echo -e "${YELLOW}Checking all files in app/, config/, database/, routes/, and tests/...${NC}"
 else
-    # Get modified PHP files (staged and unstaged) from both app/ and tests/
-    FILES=$(git diff --name-only --diff-filter=ACMR HEAD -- '*.php' | grep -E '^(app|tests)/' || true)
+    # Get modified PHP files - check BOTH staged AND working directory changes
+    # This ensures we catch issues whether files are staged or not
+    FILES=$(
+        {
+            # Staged changes (files in index)
+            git diff --cached --name-only --diff-filter=ACMR -- '*.php'
+            # Working directory changes (modified but not staged)
+            git diff --name-only --diff-filter=ACMR -- '*.php'
+            # Files different from HEAD (catches both staged and unstaged)
+            git diff --name-only --diff-filter=ACMR HEAD -- '*.php'
+        } | sort -u | grep -E '^(app|config|database|routes|tests)/' || true
+    )
     if [ -z "$FILES" ]; then
-        echo -e "${GREEN}No PHP files modified in app/ or tests/. Skipping checks.${NC}"
+        echo -e "${GREEN}No PHP files modified in app/, config/, database/, routes/, or tests/. Skipping checks.${NC}"
         exit 0
     fi
     echo -e "${YELLOW}Checking modified files:${NC}"
     echo "$FILES" | sed 's/^/  - /'
 fi
-echo ""
 
 # Track if any checks fail
 FAILED=false
@@ -79,10 +88,10 @@ echo -e "${BLUE}[1/6] Checking PHP CodeSniffer (PSR-12)...${NC}"
 PHPCS_HAD_ISSUES=false
 
 # Check app/ directory with standard rules
-if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
+if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
     PHPCS_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/${NC}"
-    ./vendor/bin/phpcs app/ | head -20
+    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/, database/, routes/, config/${NC}"
+    ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
 fi
 
 # Check tests/ directory with our custom ruleset (handles Pest patterns)
@@ -95,13 +104,13 @@ fi
 if [ "$PHPCS_HAD_ISSUES" = true ]; then
     if [ "$AUTO_FIX" = true ]; then
         echo -e "${BLUE}  Attempting auto-fix with PHPCBF...${NC}"
-        ./vendor/bin/phpcbf app/ 2>/dev/null || true
+        ./vendor/bin/phpcbf app/ database/ routes/ config/ 2>/dev/null || true
         ./vendor/bin/phpcbf tests/ 2>/dev/null || true
         ISSUES_FIXED=true
         
         # Re-check after fix
         STILL_HAS_ISSUES=false
-        if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
+        if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
             STILL_HAS_ISSUES=true
         fi
         if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
@@ -148,10 +157,10 @@ if [ "$AUTO_FIX" = true ] && [ "$ISSUES_FIXED" = true ]; then
     echo -e "${BLUE}[3/6] Final PSR-12 compliance check...${NC}"
     FINAL_ISSUES=false
     
-    if ! ./vendor/bin/phpcs app/ > /dev/null 2>&1; then
+    if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
         FINAL_ISSUES=true
-        echo -e "${RED}✗ Final check: Still has PSR-12 violations in app/${NC}"
-        ./vendor/bin/phpcs app/ | head -20
+        echo -e "${RED}✗ Final check: Still has PSR-12 violations in app/, database/, routes/, config/${NC}"
+        ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
     fi
     
     if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
@@ -168,21 +177,62 @@ if [ "$AUTO_FIX" = true ] && [ "$ISSUES_FIXED" = true ]; then
     echo ""
 fi
 
-# 4. PHPStan - EXACTLY as CI runs it (with timeout to prevent hanging)
+# 4. PHPStan - EXACTLY as CI runs it (with smart timeout)
 echo -e "${BLUE}[4/6] Running PHPStan (Level 5)...${NC}"
 # CI command: vendor/bin/phpstan analyse --memory-limit=2G
-# Adding 60-second timeout to prevent hanging on large codebases
-if timeout 60 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1" | grep -q "\[OK\] No errors"; then
-    echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
+# Using a reasonable timeout (90 seconds) with clear feedback
+PHPSTAN_TIMEOUT=120
+PHPSTAN_OUTPUT=""
+PHPSTAN_EXIT_CODE=0
+
+# Run PHPStan with timeout
+if PHPSTAN_OUTPUT=$(timeout $PHPSTAN_TIMEOUT bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1"); then
+    PHPSTAN_EXIT_CODE=0
 else
-    if [ $? -eq 124 ]; then
-        echo -e "${YELLOW}⚠ PHPStan: Timed out after 60 seconds (consider running manually)${NC}"
-        echo -e "${YELLOW}  Run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse${NC}"
+    PHPSTAN_EXIT_CODE=$?
+fi
+
+if [ $PHPSTAN_EXIT_CODE -eq 0 ]; then
+    if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
+        echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
     else
         echo -e "${RED}✗ PHPStan: Issues found${NC}"
-        timeout 60 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1" | head -50
+        echo "$PHPSTAN_OUTPUT" | head -50
         add_failure "PHPStan errors"
     fi
+elif [ $PHPSTAN_EXIT_CODE -eq 124 ]; then
+    echo -e "${YELLOW}⚠ PHPStan: Timed out after ${PHPSTAN_TIMEOUT} seconds on full codebase${NC}"
+    echo -e "${YELLOW}  Falling back to checking only modified files...${NC}"
+    
+    # Try to run PHPStan on just the modified files
+    if [ "$CHECK_ALL" = false ] && [ -n "$FILES" ]; then
+        # Convert FILES to space-separated list for PHPStan
+        FILES_FOR_PHPSTAN=$(echo "$FILES" | tr '\n' ' ')
+        echo -e "${BLUE}  Running PHPStan on modified files only...${NC}"
+        
+        if PHPSTAN_OUTPUT=$(timeout 30 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi $FILES_FOR_PHPSTAN 2>&1"); then
+            if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
+                echo -e "${GREEN}  ✓ PHPStan: No issues in modified files${NC}"
+            else
+                echo -e "${RED}  ✗ PHPStan: Issues found in modified files${NC}"
+                echo "$PHPSTAN_OUTPUT" | head -50
+                add_failure "PHPStan errors in modified files"
+            fi
+        else
+            echo -e "${YELLOW}  PHPStan still timed out on modified files only${NC}"
+            echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
+            echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+            # Still warn but don't fail locally
+        fi
+    else
+        echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
+        echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+    fi
+    echo -e "${YELLOW}  Note: CI will still run PHPStan and may fail if there are errors!${NC}"
+else
+    echo -e "${RED}✗ PHPStan: Failed with error${NC}"
+    echo "$PHPSTAN_OUTPUT" | head -50
+    add_failure "PHPStan errors"
 fi
 echo ""
 

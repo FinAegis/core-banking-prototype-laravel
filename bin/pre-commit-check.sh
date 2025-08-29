@@ -134,21 +134,48 @@ echo ""
 # 2. Check PHP CS Fixer (runs on both app/ and tests/ via config)
 echo -e "${BLUE}[2/6] Running PHP CS Fixer (CI Standard)...${NC}"
 PHPCS_FIXER_HAD_ISSUES=false
-if ! ./vendor/bin/php-cs-fixer fix --dry-run --diff > /dev/null 2>&1; then
-    PHPCS_FIXER_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHP CS Fixer: Style issues detected${NC}"
-    ./vendor/bin/php-cs-fixer fix --dry-run --diff | head -20
-    
-    if [ "$AUTO_FIX" = true ]; then
-        echo -e "${BLUE}  Applying PHP CS Fixer fixes...${NC}"
-        ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php || true
-        ISSUES_FIXED=true
-        echo -e "${GREEN}  ✓ PHP CS Fixer: Fixed style issues${NC}"
+
+# When not checking all, pass specific files to PHP CS Fixer
+if [ "$CHECK_ALL" = true ]; then
+    # Check all files using the config
+    if ! ./vendor/bin/php-cs-fixer fix --dry-run --diff > /dev/null 2>&1; then
+        PHPCS_FIXER_HAD_ISSUES=true
+        echo -e "${YELLOW}⚠ PHP CS Fixer: Style issues detected${NC}"
+        ./vendor/bin/php-cs-fixer fix --dry-run --diff | head -20
+        
+        if [ "$AUTO_FIX" = true ]; then
+            echo -e "${BLUE}  Applying PHP CS Fixer fixes...${NC}"
+            ./vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php || true
+            ISSUES_FIXED=true
+            echo -e "${GREEN}  ✓ PHP CS Fixer: Fixed style issues${NC}"
+        else
+            add_failure "PHP CS Fixer violations"
+        fi
     else
-        add_failure "PHP CS Fixer violations"
+        echo -e "${GREEN}✓ PHP CS Fixer: No issues found${NC}"
     fi
 else
-    echo -e "${GREEN}✓ PHP CS Fixer: No issues found${NC}"
+    # Check only modified files - convert newline-separated list to space-separated
+    FILES_FOR_FIXER=$(echo "$FILES" | tr '\n' ' ')
+    if [ -n "$FILES_FOR_FIXER" ]; then
+        # Run PHP CS Fixer on specific files  
+        if ! ./vendor/bin/php-cs-fixer fix --dry-run --diff --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER > /dev/null 2>&1; then
+            PHPCS_FIXER_HAD_ISSUES=true
+            echo -e "${YELLOW}⚠ PHP CS Fixer: Style issues detected in modified files${NC}"
+            ./vendor/bin/php-cs-fixer fix --dry-run --diff --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER | head -20
+            
+            if [ "$AUTO_FIX" = true ]; then
+                echo -e "${BLUE}  Applying PHP CS Fixer fixes to modified files...${NC}"
+                ./vendor/bin/php-cs-fixer fix --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER || true
+                ISSUES_FIXED=true
+                echo -e "${GREEN}  ✓ PHP CS Fixer: Fixed style issues in modified files${NC}"
+            else
+                add_failure "PHP CS Fixer violations in modified files"
+            fi
+        else
+            echo -e "${GREEN}✓ PHP CS Fixer: No issues found in modified files${NC}"
+        fi
+    fi
 fi
 echo ""
 

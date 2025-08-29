@@ -26,14 +26,14 @@ class ComplianceAlertFactory extends Factory
             ComplianceAlert::TYPE_THRESHOLD,
             ComplianceAlert::TYPE_BEHAVIOR,
         ];
-        
+
         $severities = [
             ComplianceAlert::SEVERITY_LOW,
             ComplianceAlert::SEVERITY_MEDIUM,
             ComplianceAlert::SEVERITY_HIGH,
             ComplianceAlert::SEVERITY_CRITICAL,
         ];
-        
+
         $statuses = [
             ComplianceAlert::STATUS_OPEN,
             ComplianceAlert::STATUS_IN_REVIEW,
@@ -41,53 +41,53 @@ class ComplianceAlertFactory extends Factory
             ComplianceAlert::STATUS_RESOLVED,
             ComplianceAlert::STATUS_FALSE_POSITIVE,
         ];
-        
+
         $type = $this->faker->randomElement($types);
-        
+
         return [
-            'alert_id' => strtoupper(substr($type, 0, 3)) . '-' . date('Ymd') . '-' . strtoupper($this->faker->unique()->bothify('????####')),
-            'type' => $type,
-            'severity' => $this->faker->randomElement($severities),
-            'status' => $this->faker->randomElement($statuses),
-            'title' => $this->faker->sentence(6),
-            'description' => $this->faker->paragraph(3),
-            'source' => $this->faker->randomElement(['system', 'rule', 'manual']),
-            'risk_score' => $this->faker->randomFloat(2, 0, 100),
+            'alert_id'         => strtoupper(substr($type, 0, 3)) . '-' . date('Ymd') . '-' . strtoupper($this->faker->unique()->bothify('????####')),
+            'type'             => $type,
+            'severity'         => $this->faker->randomElement($severities),
+            'status'           => $this->faker->randomElement($statuses),
+            'title'            => $this->faker->sentence(6),
+            'description'      => $this->faker->paragraph(3),
+            'source'           => $this->faker->randomElement(['system', 'rule', 'manual']),
+            'risk_score'       => $this->faker->randomFloat(2, 0, 100),
             'confidence_score' => $this->faker->randomFloat(2, 0.5, 1),
-            'detected_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
-            'metadata' => [
-                'test' => true,
+            'detected_at'      => $this->faker->dateTimeBetween('-7 days', 'now'),
+            'metadata'         => [
+                'test'         => true,
                 'random_value' => $this->faker->word(),
             ],
             'tags' => $this->faker->randomElements(['suspicious', 'high-risk', 'monitoring', 'review'], rand(1, 3)),
         ];
     }
-    
+
     /**
      * Indicate that the alert is open.
      */
     public function open(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => ComplianceAlert::STATUS_OPEN,
+            'status'      => ComplianceAlert::STATUS_OPEN,
             'assigned_to' => null,
             'resolved_at' => null,
         ]);
     }
-    
+
     /**
      * Indicate that the alert is resolved.
      */
     public function resolved(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => ComplianceAlert::STATUS_RESOLVED,
-            'resolved_at' => $this->faker->dateTimeBetween('-3 days', 'now'),
+            'status'                => ComplianceAlert::STATUS_RESOLVED,
+            'resolved_at'           => $this->faker->dateTimeBetween('-3 days', 'now'),
             'resolution_time_hours' => $this->faker->randomFloat(2, 1, 72),
-            'resolution_notes' => $this->faker->paragraph(),
+            'resolution_notes'      => $this->faker->paragraph(),
         ]);
     }
-    
+
     /**
      * Indicate that the alert is high priority.
      */
