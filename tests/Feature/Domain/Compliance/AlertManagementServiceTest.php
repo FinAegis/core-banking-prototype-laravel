@@ -35,7 +35,7 @@ class AlertManagementServiceTest extends TestCase
             'severity' => 'high',
             'title' => 'Suspicious Transaction Detected',
             'description' => 'Large transaction to high-risk country',
-            'risk_score' => 85,
+            'risk_score' => 75,  // Changed from 85 to avoid auto-escalation
             'confidence_score' => 0.9,
             'evidence' => [
                 'amount' => 50000,
@@ -51,7 +51,7 @@ class AlertManagementServiceTest extends TestCase
         $this->assertEquals('transaction', $alert->type);
         $this->assertEquals('high', $alert->severity);
         $this->assertEquals('open', $alert->status);
-        $this->assertEquals(85, $alert->risk_score);
+        $this->assertEquals(75, $alert->risk_score);
         $this->assertNotNull($alert->alert_id);
         $this->assertStringStartsWith('TXN-', $alert->alert_id);
     }
