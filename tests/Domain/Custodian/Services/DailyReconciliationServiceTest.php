@@ -30,7 +30,7 @@ it('performs daily reconciliation successfully', function () {
         ]);
 
     // Create test accounts with custodian accounts so no orphaned balances
-    $account = Account::factory()->zeroBalance()->create();
+    $account = Account::factory()->create();
     $account->balances()->create([
         'asset_code' => 'USD',
         'balance'    => 100000, // $1000
@@ -85,7 +85,7 @@ it('detects balance discrepancies', function () {
         ->andReturn(['synchronized' => 10, 'failed' => 0, 'skipped' => 0]);
 
     // Create account with balance
-    $account = Account::factory()->zeroBalance()->create();
+    $account = Account::factory()->create();
     $account->balances()->create([
         'asset_code' => 'USD',
         'balance'    => 100000, // $1000 internal
@@ -138,7 +138,7 @@ it('detects orphaned balances', function () {
         ->andReturn(['synchronized' => 0, 'failed' => 0, 'skipped' => 0]);
 
     // Create account with balance but no custodian accounts
-    $account = Account::factory()->zeroBalance()->create();
+    $account = Account::factory()->create();
     $account->balances()->create([
         'asset_code' => 'USD',
         'balance'    => 50000,
@@ -187,7 +187,7 @@ it('generates recommendations based on findings', function () {
         ->andReturn(['synchronized' => 0, 'failed' => 0, 'skipped' => 0]);
 
     // Create account with orphaned balance
-    $account1 = Account::factory()->zeroBalance()->create();
+    $account1 = Account::factory()->create();
     $account1->balances()->create(['asset_code' => 'USD', 'balance' => 100000]);
 
     $result = $this->reconciliationService->performDailyReconciliation();

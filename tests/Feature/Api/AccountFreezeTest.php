@@ -107,7 +107,7 @@ it('cannot deposit to a frozen account', function () {
 });
 
 it('cannot withdraw from a frozen account', function () {
-    $account = Account::factory()->forUser($this->user)->zeroBalance()->create(['frozen' => true]);
+    $account = Account::factory()->forUser($this->user)->create(['frozen' => true]);
     // Create initial balance for withdrawal test
     App\Domain\Account\Models\AccountBalance::factory()->create([
         'account_uuid' => $account->uuid,
@@ -131,7 +131,7 @@ it('cannot withdraw from a frozen account', function () {
 });
 
 it('cannot transfer from a frozen account', function () {
-    $fromAccount = Account::factory()->forUser($this->user)->zeroBalance()->create(['frozen' => true]);
+    $fromAccount = Account::factory()->forUser($this->user)->create(['frozen' => true]);
     $toAccount = Account::factory()->forUser($this->user)->zeroBalance()->create(['frozen' => false]);
     // Create initial balance for transfer test
     App\Domain\Account\Models\AccountBalance::factory()->create([
@@ -158,7 +158,7 @@ it('cannot transfer from a frozen account', function () {
 });
 
 it('cannot transfer to a frozen account', function () {
-    $fromAccount = Account::factory()->forUser($this->user)->zeroBalance()->create(['frozen' => false]);
+    $fromAccount = Account::factory()->forUser($this->user)->create(['frozen' => false]);
     $toAccount = Account::factory()->forUser($this->user)->zeroBalance()->create(['frozen' => true]);
     // Create initial balance for transfer test
     App\Domain\Account\Models\AccountBalance::factory()->create([
