@@ -29,6 +29,9 @@ class TransactionStreamProcessorTest extends TestCase
     {
         parent::setUp();
 
+        // Clear the transaction factory version cache to prevent duplicate version conflicts
+        \Database\Factories\TransactionFactory::clearVersionCache();
+
         $this->monitoringServiceMock = $this->mock(TransactionMonitoringService::class);
         $patternEngine = new PatternDetectionEngine();
 

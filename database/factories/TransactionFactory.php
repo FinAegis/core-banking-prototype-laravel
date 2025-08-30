@@ -167,6 +167,16 @@ class TransactionFactory extends Factory
     public function create($attributes = [], ?Model $parent = null)
     {
         // Transaction extends EloquentStoredEvent so it only has event sourcing columns
+        // Remove account_id if passed (tests use it but transactions table doesn't have this column)
+        if (is_array($attributes) && isset($attributes['account_id'])) {
+            unset($attributes['account_id']);
+        }
+        
+        // If aggregate_uuid is provided but aggregate_version is not, calculate the next version
+        if (is_array($attributes) && isset($attributes['aggregate_uuid']) && !isset($attributes['aggregate_version'])) {
+            $attributes['aggregate_version'] = $this->getNextVersionForAggregate($attributes['aggregate_uuid']);
+        }
+        
         // If amount is passed as a direct attribute, move it to event_properties
         if (is_array($attributes) && isset($attributes['amount'])) {
             $amount = $attributes['amount'];
