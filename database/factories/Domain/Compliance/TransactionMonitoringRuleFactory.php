@@ -60,7 +60,7 @@ class TransactionMonitoringRuleFactory extends Factory
             'false_positives'              => $this->faker->numberBetween(0, 50),
             'accuracy_rate'                => $this->faker->randomFloat(2, 60, 98),
             'last_triggered_at'            => $this->faker->optional()->dateTimeBetween('-30 days', 'now'),
-            'created_by'                   => 1, // Will be overridden in tests
+            'created_by'                   => \App\Models\User::factory(),
             'last_modified_by'             => null,
             'last_reviewed_at'             => null,
             'tuning_history'               => null,

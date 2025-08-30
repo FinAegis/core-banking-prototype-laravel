@@ -26,6 +26,7 @@ class AccountFactory extends Factory
             'name'      => $this->faker->words(3, true),
             'user_uuid' => $user->uuid,
             'balance'   => $this->faker->numberBetween(0, 100000),
+            'frozen'    => false,
         ];
     }
 
