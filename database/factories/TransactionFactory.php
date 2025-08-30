@@ -171,12 +171,12 @@ class TransactionFactory extends Factory
         if (is_array($attributes) && isset($attributes['account_id'])) {
             unset($attributes['account_id']);
         }
-        
+
         // If aggregate_uuid is provided but aggregate_version is not, calculate the next version
-        if (is_array($attributes) && isset($attributes['aggregate_uuid']) && !isset($attributes['aggregate_version'])) {
+        if (is_array($attributes) && isset($attributes['aggregate_uuid']) && ! isset($attributes['aggregate_version'])) {
             $attributes['aggregate_version'] = $this->getNextVersionForAggregate($attributes['aggregate_uuid']);
         }
-        
+
         // If amount is passed as a direct attribute, move it to event_properties
         if (is_array($attributes) && isset($attributes['amount'])) {
             $amount = $attributes['amount'];
