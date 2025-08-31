@@ -106,13 +106,18 @@ class TransactionStreamProcessorTest extends TestCase
                 'actions' => [],
             ]);
 
-        // Act
-        $result = $this->processor->processTransaction(end($transactions));
-
-        // Assert
-        $this->assertNotEmpty($result['alerts']);
-        $this->assertArrayHasKey('type', $result['alerts'][0]);
-        $this->assertEquals('velocity_exceeded', $result['alerts'][0]['type']);
+        // Act - Process all transactions to build up velocity pattern
+        foreach ($transactions as $index => $transaction) {
+            $result = $this->processor->processTransaction($transaction);
+            
+            // The velocity alert should trigger on the 6th transaction (index 5)
+            if ($index === 5) {
+                // Assert on the last transaction
+                $this->assertNotEmpty($result['alerts']);
+                $this->assertArrayHasKey('type', $result['alerts'][0]);
+                $this->assertEquals('velocity_exceeded', $result['alerts'][0]['type']);
+            }
+        }
     }
 
     public function test_detects_structuring_pattern(): void
@@ -313,7 +318,7 @@ class TransactionStreamProcessorTest extends TestCase
     {
         // Arrange
         $user = \App\Models\User::factory()->create();
-        $account = Account::factory()->create(['user_id' => $user->id]);
+        $account = Account::factory()->create(['user_uuid' => $user->uuid]);
 
         // Set ongoing cases in cache
         $ongoingCasesKey = "ongoing_cases:{$user->id}";
