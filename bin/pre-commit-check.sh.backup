@@ -342,19 +342,44 @@ elif [ "$CHECK_ALL" = true ]; then
         add_failure "Test failures"
     fi
 else
-    # Check if any test files were modified
-    TEST_FILES=$(echo "$FILES" | grep -E '^tests/.*Test\.php$' || true)
-    if [ -n "$TEST_FILES" ]; then
-        echo -e "${YELLOW}  Running tests for modified test files...${NC}"
-        TEST_DIRS=$(echo "$TEST_FILES" | xargs -n1 dirname | sort -u | head -1)
-        if ./vendor/bin/pest "$TEST_DIRS" --parallel --compact > /dev/null 2>&1; then
-            echo -e "${GREEN}✓ Tests: Modified tests passed${NC}"
+    # Check if ANY PHP files were modified that could affect tests
+    PHP_FILES_MODIFIED=$(echo "$FILES" | grep -E '\.php$' || true)
+    
+    if [ -n "$PHP_FILES_MODIFIED" ]; then
+        echo -e "${YELLOW}  PHP files modified - running relevant tests...${NC}"
+        
+        # Check if test files were specifically modified
+        TEST_FILES=$(echo "$FILES" | grep -E '^tests/.*Test\.php$' || true)
+        
+        if [ -n "$TEST_FILES" ]; then
+            # Run tests for modified test files
+            echo -e "${YELLOW}  Running tests for modified test files...${NC}"
+            TEST_DIRS=$(echo "$TEST_FILES" | xargs -n1 dirname | sort -u | head -1)
+            if ./vendor/bin/pest "$TEST_DIRS" --parallel --compact > /dev/null 2>&1; then
+                echo -e "${GREEN}✓ Tests: Modified tests passed${NC}"
+            else
+                echo -e "${RED}✗ Tests: Some modified tests failed${NC}"
+                # Show which tests failed
+                ./vendor/bin/pest "$TEST_DIRS" --parallel 2>&1 | grep -E "FAILED|Error" | head -10
+                add_failure "Modified test failures"
+            fi
         else
-            echo -e "${RED}✗ Tests: Some modified tests failed${NC}"
-            add_failure "Modified test failures"
+            # PHP files modified but no test files - run a quick test suite
+            echo -e "${YELLOW}  Running quick test suite for code changes...${NC}"
+            echo -e "${YELLOW}  (Modified: $(echo "$PHP_FILES_MODIFIED" | wc -l) PHP files)${NC}"
+            
+            # Try to run tests with stop-on-failure for faster feedback
+            if timeout 60 ./vendor/bin/pest --parallel --compact --stop-on-failure > /dev/null 2>&1; then
+                echo -e "${GREEN}✓ Tests: Quick test suite passed${NC}"
+            else
+                echo -e "${RED}✗ Tests: Some tests failed${NC}"
+                echo -e "${YELLOW}  Tip: Run './vendor/bin/pest' to see full results${NC}"
+                echo -e "${YELLOW}  Or use '--all' flag to run full test suite${NC}"
+                add_failure "Test failures detected - code changes may have broken tests"
+            fi
         fi
     else
-        echo -e "${YELLOW}  No test files modified, skipping test run${NC}"
+        echo -e "${YELLOW}  No PHP files modified, skipping test run${NC}"
     fi
 fi
 echo ""

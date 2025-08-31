@@ -87,34 +87,91 @@ add_failure() {
 echo -e "${BLUE}[1/6] Checking PHP CodeSniffer (PSR-12)...${NC}"
 PHPCS_HAD_ISSUES=false
 
-# Check app/ directory with standard rules
-if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
-    PHPCS_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/, database/, routes/, config/${NC}"
-    ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
-fi
-
-# Check tests/ directory with our custom ruleset (handles Pest patterns)
-if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
-    PHPCS_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in tests/${NC}"
-    ./vendor/bin/phpcs tests/ --standard=phpcs.xml | head -20
+if [ "$CHECK_ALL" = true ]; then
+    # Check all directories when --all flag is used
+    echo -e "${YELLOW}  Checking all files (--all mode)...${NC}"
+    
+    # Check app/ directory with standard rules
+    if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
+        PHPCS_HAD_ISSUES=true
+        echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/, database/, routes/, config/${NC}"
+        ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
+    fi
+    
+    # Check tests/ directory with our custom ruleset (handles Pest patterns)
+    if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
+        PHPCS_HAD_ISSUES=true
+        echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in tests/${NC}"
+        ./vendor/bin/phpcs tests/ --standard=phpcs.xml | head -20
+    fi
+else
+    # Only check modified files
+    echo -e "${YELLOW}  Checking modified files only...${NC}"
+    
+    # Get modified PHP files in different directories
+    APP_FILES=$(echo "$FILES" | grep -E '^(app|database|routes|config)/' | tr '\n' ' ' || true)
+    TEST_FILES=$(echo "$FILES" | grep -E '^tests/' | tr '\n' ' ' || true)
+    
+    # Check app/database/routes/config files if any were modified
+    if [ -n "$APP_FILES" ]; then
+        if ! ./vendor/bin/phpcs $APP_FILES > /dev/null 2>&1; then
+            PHPCS_HAD_ISSUES=true
+            echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations in modified app files${NC}"
+            ./vendor/bin/phpcs $APP_FILES | head -20
+        fi
+    fi
+    
+    # Check test files if any were modified
+    if [ -n "$TEST_FILES" ]; then
+        if ! ./vendor/bin/phpcs $TEST_FILES --standard=phpcs.xml > /dev/null 2>&1; then
+            PHPCS_HAD_ISSUES=true
+            echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations in modified test files${NC}"
+            ./vendor/bin/phpcs $TEST_FILES --standard=phpcs.xml | head -20
+        fi
+    fi
 fi
 
 if [ "$PHPCS_HAD_ISSUES" = true ]; then
     if [ "$AUTO_FIX" = true ]; then
         echo -e "${BLUE}  Attempting auto-fix with PHPCBF...${NC}"
-        ./vendor/bin/phpcbf app/ database/ routes/ config/ 2>/dev/null || true
-        ./vendor/bin/phpcbf tests/ 2>/dev/null || true
+        
+        if [ "$CHECK_ALL" = true ]; then
+            # Fix all directories when --all flag is used
+            ./vendor/bin/phpcbf app/ database/ routes/ config/ 2>/dev/null || true
+            ./vendor/bin/phpcbf tests/ --standard=phpcs.xml 2>/dev/null || true
+        else
+            # Only fix modified files
+            if [ -n "$APP_FILES" ]; then
+                ./vendor/bin/phpcbf $APP_FILES 2>/dev/null || true
+            fi
+            if [ -n "$TEST_FILES" ]; then
+                ./vendor/bin/phpcbf $TEST_FILES --standard=phpcs.xml 2>/dev/null || true
+            fi
+        fi
+        
         ISSUES_FIXED=true
         
         # Re-check after fix
         STILL_HAS_ISSUES=false
-        if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
-            STILL_HAS_ISSUES=true
-        fi
-        if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
-            STILL_HAS_ISSUES=true
+        
+        if [ "$CHECK_ALL" = true ]; then
+            if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
+                STILL_HAS_ISSUES=true
+            fi
+            if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
+                STILL_HAS_ISSUES=true
+            fi
+        else
+            if [ -n "$APP_FILES" ]; then
+                if ! ./vendor/bin/phpcs $APP_FILES > /dev/null 2>&1; then
+                    STILL_HAS_ISSUES=true
+                fi
+            fi
+            if [ -n "$TEST_FILES" ]; then
+                if ! ./vendor/bin/phpcs $TEST_FILES --standard=phpcs.xml > /dev/null 2>&1; then
+                    STILL_HAS_ISSUES=true
+                fi
+            fi
         fi
         
         if [ "$STILL_HAS_ISSUES" = false ]; then

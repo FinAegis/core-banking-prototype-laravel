@@ -109,7 +109,7 @@ class TransactionStreamProcessorTest extends TestCase
         // Act - Process all transactions to build up velocity pattern
         foreach ($transactions as $index => $transaction) {
             $result = $this->processor->processTransaction($transaction);
-            
+
             // The velocity alert should trigger on the 6th transaction (index 5)
             if ($index === 5) {
                 // Assert on the last transaction
