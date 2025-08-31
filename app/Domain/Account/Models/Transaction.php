@@ -23,6 +23,38 @@ class Transaction extends EloquentStoredEvent
     public $table = 'transactions';
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    public $casts = [
+        'event_properties'  => 'array',
+        'meta_data'         => 'array',
+        'patterns_detected' => 'array',
+        'risk_score'        => 'float',
+        'flagged_at'        => 'datetime',
+        'cleared_at'        => 'datetime',
+    ];
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'compliance_status',
+        'risk_level',
+        'risk_score',
+        'patterns_detected',
+        'flagged_at',
+        'flagged_by',
+        'flag_reason',
+        'cleared_at',
+        'cleared_by',
+        'clear_reason',
+    ];
+
+    /**
      * Create a new factory instance for the model.
      *
      * @return \Database\Factories\TransactionFactory

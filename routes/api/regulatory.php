@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\AuditController;
+use App\Http\Controllers\Api\ComplianceAlertController;
+use App\Http\Controllers\Api\ComplianceCaseController;
 use App\Http\Controllers\Api\ComplianceController;
 use App\Http\Controllers\Api\RegulatoryReportingController;
+use App\Http\Controllers\Api\TransactionMonitoringController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,6 +49,49 @@ Route::middleware(['auth:sanctum', 'check.token.expiration'])->group(function ()
         Route::post('/certifications/renew', [ComplianceController::class, 'renewCertification']);
         Route::get('/policies', [ComplianceController::class, 'getPolicies']);
         Route::put('/policies/{id}', [ComplianceController::class, 'updatePolicy']);
+
+        // Compliance Alerts
+        Route::get('/alerts', [ComplianceAlertController::class, 'index']);
+        Route::get('/alerts/{id}', [ComplianceAlertController::class, 'show']);
+        Route::post('/alerts', [ComplianceAlertController::class, 'store']);
+        Route::put('/alerts/{id}/status', [ComplianceAlertController::class, 'updateStatus']);
+        Route::put('/alerts/{id}/assign', [ComplianceAlertController::class, 'assign']);
+        Route::post('/alerts/{id}/notes', [ComplianceAlertController::class, 'addNote']);
+        Route::post('/alerts/link', [ComplianceAlertController::class, 'linkAlerts']);
+        Route::post('/alerts/create-case', [ComplianceAlertController::class, 'createCase']);
+        Route::get('/alerts/statistics', [ComplianceAlertController::class, 'statistics']);
+        Route::get('/alerts/trends', [ComplianceAlertController::class, 'trends']);
+        Route::post('/alerts/search', [ComplianceAlertController::class, 'search']);
+
+        // Compliance Cases
+        Route::get('/cases', [ComplianceCaseController::class, 'index']);
+        Route::get('/cases/{id}', [ComplianceCaseController::class, 'show']);
+        Route::post('/cases', [ComplianceCaseController::class, 'store']);
+        Route::put('/cases/{id}', [ComplianceCaseController::class, 'update']);
+        Route::put('/cases/{id}/assign', [ComplianceCaseController::class, 'assign']);
+        Route::post('/cases/{id}/evidence', [ComplianceCaseController::class, 'addEvidence']);
+        Route::post('/cases/{id}/notes', [ComplianceCaseController::class, 'addNote']);
+        Route::post('/cases/{id}/escalate', [ComplianceCaseController::class, 'escalate']);
+        Route::get('/cases/{id}/timeline', [ComplianceCaseController::class, 'timeline']);
+        Route::delete('/cases/{id}', [ComplianceCaseController::class, 'destroy']);
+    });
+
+    // Transaction Monitoring
+    Route::prefix('transaction-monitoring')->group(function () {
+        Route::get('/', [TransactionMonitoringController::class, 'getMonitoredTransactions']);
+        Route::get('/{id}', [TransactionMonitoringController::class, 'getTransactionDetails']);
+        Route::post('/{id}/flag', [TransactionMonitoringController::class, 'flagTransaction']);
+        Route::post('/{id}/clear', [TransactionMonitoringController::class, 'clearTransaction']);
+        Route::get('/rules', [TransactionMonitoringController::class, 'getRules']);
+        Route::post('/rules', [TransactionMonitoringController::class, 'createRule']);
+        Route::put('/rules/{id}', [TransactionMonitoringController::class, 'updateRule']);
+        Route::delete('/rules/{id}', [TransactionMonitoringController::class, 'deleteRule']);
+        Route::get('/patterns', [TransactionMonitoringController::class, 'getPatterns']);
+        Route::get('/thresholds', [TransactionMonitoringController::class, 'getThresholds']);
+        Route::put('/thresholds', [TransactionMonitoringController::class, 'updateThresholds']);
+        Route::post('/analyze/realtime', [TransactionMonitoringController::class, 'analyzeRealtime']);
+        Route::post('/analyze/batch', [TransactionMonitoringController::class, 'analyzeBatch']);
+        Route::get('/analysis/{analysisId}', [TransactionMonitoringController::class, 'getAnalysisStatus']);
     });
 
     // Audit Trail Management

@@ -62,6 +62,10 @@ class ComplianceCase extends Model
         'history',
         'documents',
         'communications',
+        'notes',
+        'user_id',
+        'resolved_at',
+        'resolved_by',
     ];
 
     protected $casts = [
@@ -76,10 +80,12 @@ class ComplianceCase extends Model
         'history'            => 'array',
         'documents'          => 'array',
         'communications'     => 'array',
+        'notes'              => 'array',
         'total_risk_score'   => 'decimal:2',
         'assigned_at'        => 'datetime',
         'reviewed_at'        => 'datetime',
         'closed_at'          => 'datetime',
+        'resolved_at'        => 'datetime',
         'last_activity_at'   => 'datetime',
         'due_date'           => 'datetime',
     ];
@@ -142,6 +148,14 @@ class ComplianceCase extends Model
      * Get the assigned user.
      */
     public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /**
+     * Alias for assignedUser relationship.
+     */
+    public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
