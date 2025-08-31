@@ -137,6 +137,11 @@ class TransactionStreamProcessor implements ShouldQueue
      */
     private function addToStreamBuffer(Transaction $transaction): void
     {
+        // Ensure the account relationship is loaded
+        if (! $transaction->relationLoaded('account')) {
+            $transaction->load('account');
+        }
+
         $account = $transaction->account;
         if (! $account) {
             return;
@@ -184,6 +189,12 @@ class TransactionStreamProcessor implements ShouldQueue
     private function detectStreamPatterns(Transaction $transaction): array
     {
         $patterns = [];
+
+        // Ensure the account relationship is loaded
+        if (! $transaction->relationLoaded('account')) {
+            $transaction->load('account');
+        }
+
         $account = $transaction->account;
 
         if (! $account) {
@@ -222,6 +233,12 @@ class TransactionStreamProcessor implements ShouldQueue
     private function checkVelocityPatterns(Transaction $transaction): array
     {
         $alerts = [];
+
+        // Ensure the account relationship is loaded
+        if (! $transaction->relationLoaded('account')) {
+            $transaction->load('account');
+        }
+
         $account = $transaction->account;
 
         if (! $account) {
@@ -288,6 +305,11 @@ class TransactionStreamProcessor implements ShouldQueue
      */
     private function crossReferenceWithCases(Transaction $transaction, array &$results): void
     {
+        // Ensure the account relationship is loaded
+        if (! $transaction->relationLoaded('account')) {
+            $transaction->load('account');
+        }
+
         $account = $transaction->account;
         if (! $account || ! $account->user) {
             return;
@@ -313,6 +335,11 @@ class TransactionStreamProcessor implements ShouldQueue
      */
     private function updateRealTimeMetrics(Transaction $transaction, array $results): void
     {
+        // Ensure the account relationship is loaded
+        if (! $transaction->relationLoaded('account')) {
+            $transaction->load('account');
+        }
+
         $account = $transaction->account;
         if (! $account) {
             return;

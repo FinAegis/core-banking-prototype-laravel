@@ -129,34 +129,51 @@ class PatternDetectionEngine
         $variance = $this->calculateVariance($amounts);
         $timeDiffs = $this->calculateTimeDifferences($nearThresholdTransactions);
 
-        // Score the pattern
+        // Score the pattern - adjusted for better detection
         $confidence = 0;
 
-        // Similar amounts (low variance)
-        if ($variance < ($avgAmount * 0.1)) {
-            $confidence += 0.3;
+        // Base score for having multiple near-threshold transactions
+        if (count($nearThresholdTransactions) >= 3) {
+            $confidence += 0.25;
         }
 
-        // Regular intervals
-        if ($this->hasRegularIntervals($timeDiffs)) {
-            $confidence += 0.3;
+        // Similar amounts (relaxed variance check for realistic scenarios)
+        $coefficientOfVariation = $avgAmount > 0 ? sqrt($variance) / $avgAmount : 0;
+        if ($coefficientOfVariation < 0.2) { // Within 20% variation
+            $confidence += 0.25;
         }
 
-        // Multiple transactions in short period
+        // Regular intervals or clustered in time
+        if ($this->hasRegularIntervals($timeDiffs) || $this->isClusteredInTime($nearThresholdTransactions)) {
+            $confidence += 0.2;
+        }
+
+        // Multiple transactions bonus (stronger indicator)
+        if (count($nearThresholdTransactions) >= 4) {
+            $confidence += 0.15;
+        }
         if (count($nearThresholdTransactions) >= 5) {
-            $confidence += 0.2;
+            $confidence += 0.1; // Additional bonus for 5+
         }
 
-        // All just below threshold
+        // High concentration of near-threshold transactions
         $percentBelowThreshold = count($nearThresholdTransactions) / count($buffer);
-        if ($percentBelowThreshold > 0.5) {
-            $confidence += 0.2;
+        if ($percentBelowThreshold > 0.6) {
+            $confidence += 0.15;
+        } elseif ($percentBelowThreshold > 0.4) {
+            $confidence += 0.1;
+        }
+
+        // Very close to threshold (highly suspicious)
+        $veryClose = array_filter($amounts, fn ($a) => $a >= 9000 && $a < 10000);
+        if (count($veryClose) >= 3) {
+            $confidence += 0.1;
         }
 
         return [
-            'confidence'  => $confidence,
+            'confidence'  => min($confidence, 1.0),
             'description' => 'Potential structuring: Multiple transactions just below reporting threshold',
-            'risk_score'  => $confidence * 80,
+            'risk_score'  => min($confidence * 80, 100),
             'evidence'    => [
                 'transaction_count' => count($nearThresholdTransactions),
                 'average_amount'    => $avgAmount,
@@ -690,6 +707,31 @@ class PatternDetectionEngine
 
         // Regular if variance is less than 20% of mean
         return $mean > 0 && ($variance / $mean) < 0.2;
+    }
+
+    private function isClusteredInTime(array $transactions): bool
+    {
+        if (count($transactions) < 3) {
+            return false;
+        }
+
+        // Sort by timestamp
+        usort($transactions, fn ($a, $b) => $a['timestamp'] <=> $b['timestamp']);
+
+        // Get time span
+        $firstTime = $transactions[0]['timestamp'];
+        $lastTime = $transactions[count($transactions) - 1]['timestamp'];
+        $timeSpan = $lastTime - $firstTime;
+
+        // Clustered if all transactions within 24 hours
+        if ($timeSpan <= 86400) { // 24 hours
+            return true;
+        }
+
+        // Or if average interval is less than 6 hours
+        $avgInterval = $timeSpan / (count($transactions) - 1);
+
+        return $avgInterval <= 21600; // 6 hours
     }
 
     private function extractCounterparties(array $buffer): array

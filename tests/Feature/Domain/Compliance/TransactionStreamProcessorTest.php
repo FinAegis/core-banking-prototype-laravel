@@ -127,16 +127,18 @@ class TransactionStreamProcessorTest extends TestCase
 
         // Create transactions just below reporting threshold
         $amounts = [9500, 9800, 9600, 9700];
-        foreach ($amounts as $amount) {
+        foreach ($amounts as $index => $amount) {
             $transaction = Transaction::factory()->create([
-                'account_id'       => $account->id,
                 'aggregate_uuid'   => $account->uuid,
                 'event_properties' => [
                     'amount' => $amount,
                     'type'   => 'deposit',
                 ],
-                'created_at' => now()->subHours(rand(1, 20)),
+                'created_at' => now()->subMinutes(30 - $index * 5), // Within last 30 minutes
             ]);
+
+            // Load the account relationship explicitly
+            $transaction->load('account');
 
             $this->monitoringServiceMock
                 ->shouldReceive('monitorTransaction')
@@ -153,13 +155,25 @@ class TransactionStreamProcessorTest extends TestCase
 
         // Create final transaction
         $finalTransaction = Transaction::factory()->create([
-            'account_id'       => $account->id,
             'aggregate_uuid'   => $account->uuid,
             'event_properties' => [
                 'amount' => 9600,
                 'type'   => 'deposit',
             ],
         ]);
+
+        // Load the account relationship
+        $finalTransaction->load('account');
+
+        // Set up mock for final transaction (it's the 5th call)
+        $this->monitoringServiceMock
+            ->shouldReceive('monitorTransaction')
+            ->with(Mockery::type(Transaction::class))
+            ->andReturn([
+                'passed'  => true,
+                'alerts'  => [],
+                'actions' => [],
+            ]);
 
         // Act
         $result = $this->processor->processTransaction($finalTransaction);
