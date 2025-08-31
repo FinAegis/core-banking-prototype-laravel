@@ -130,12 +130,8 @@ class PatternDetectionEngine
         $timeDiffs = $this->calculateTimeDifferences($nearThresholdTransactions);
 
         // Score the pattern - adjusted for better detection
-        $confidence = 0;
-
-        // Base score for having multiple near-threshold transactions
-        if (count($nearThresholdTransactions) >= 3) {
-            $confidence += 0.25;
-        }
+        // Base score for having multiple near-threshold transactions (we know it's >= 3)
+        $confidence = 0.25;
 
         // Similar amounts (relaxed variance check for realistic scenarios)
         $coefficientOfVariation = $avgAmount > 0 ? sqrt($variance) / $avgAmount : 0;
