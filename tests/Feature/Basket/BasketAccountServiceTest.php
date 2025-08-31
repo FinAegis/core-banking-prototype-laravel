@@ -81,11 +81,13 @@ class BasketAccountServiceTest extends ServiceTestCase
     public function it_can_decompose_basket_into_components()
     {
         // Give account some basket holdings
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'STABLE_BASKET',
-            'balance'      => 10000,
-        ]); // 100.00 basket units
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'STABLE_BASKET',
+            ],
+            ['balance' => 10000]
+        ); // 100.00 basket units
 
         $result = $this->service->decomposeBasket($this->account, 'STABLE_BASKET', 5000); // 50.00 units
 
@@ -109,11 +111,13 @@ class BasketAccountServiceTest extends ServiceTestCase
     #[Test]
     public function it_cannot_decompose_with_insufficient_balance()
     {
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'STABLE_BASKET',
-            'balance'      => 1000,
-        ]); // 10.00 basket units
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'STABLE_BASKET',
+            ],
+            ['balance' => 1000]
+        ); // 10.00 basket units
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Insufficient basket balance');
@@ -125,21 +129,27 @@ class BasketAccountServiceTest extends ServiceTestCase
     public function it_can_compose_basket_from_components()
     {
         // Give account component balances
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'USD',
-            'balance'      => 4000,
-        ]);  // 40.00 USD
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'EUR',
-            'balance'      => 3500,
-        ]);  // 35.00 EUR
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'GBP',
-            'balance'      => 2500,
-        ]);  // 25.00 GBP
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'USD',
+            ],
+            ['balance' => 4000]
+        );  // 40.00 USD
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'EUR',
+            ],
+            ['balance' => 3500]
+        );  // 35.00 EUR
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'GBP',
+            ],
+            ['balance' => 2500]
+        );  // 25.00 GBP
 
         $result = $this->service->composeBasket($this->account, 'STABLE_BASKET', 5000); // 50.00 units
 
@@ -164,21 +174,27 @@ class BasketAccountServiceTest extends ServiceTestCase
     public function it_cannot_compose_with_insufficient_components()
     {
         // Give account insufficient component balances
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'USD',
-            'balance'      => 1000,
-        ]);  // 10.00 USD (need 20.00)
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'EUR',
-            'balance'      => 3500,
-        ]);  // 35.00 EUR
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'GBP',
-            'balance'      => 2500,
-        ]);  // 25.00 GBP
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'USD',
+            ],
+            ['balance' => 1000]
+        );  // 10.00 USD (need 20.00)
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'EUR',
+            ],
+            ['balance' => 3500]
+        );  // 35.00 EUR
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'GBP',
+            ],
+            ['balance' => 2500]
+        );  // 25.00 GBP
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Insufficient USD balance');
@@ -190,11 +206,13 @@ class BasketAccountServiceTest extends ServiceTestCase
     public function it_can_get_basket_holdings_value()
     {
         // Give account various basket holdings
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'STABLE_BASKET',
-            'balance'      => 10000,
-        ]); // 100.00 units
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'STABLE_BASKET',
+            ],
+            ['balance' => 10000]
+        ); // 100.00 units
 
         // Create another basket
         $cryptoBasket = BasketAsset::create([
@@ -214,11 +232,13 @@ class BasketAccountServiceTest extends ServiceTestCase
 
         $basketValue = app(BasketValueCalculationService::class)->calculateValue($cryptoBasket);
 
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'CRYPTO_BASKET',
-            'balance'      => 5000,
-        ]); // 50.00 units
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'CRYPTO_BASKET',
+            ],
+            ['balance' => 5000]
+        ); // 50.00 units
 
         $holdings = $this->service->getBasketHoldingsValue($this->account);
 
@@ -244,11 +264,13 @@ class BasketAccountServiceTest extends ServiceTestCase
         // Deactivate EUR component
         $this->basket->components()->where('asset_code', 'EUR')->update(['is_active' => false]);
 
-        AccountBalance::create([
-            'account_uuid' => $this->account->uuid,
-            'asset_code'   => 'STABLE_BASKET',
-            'balance'      => 10000,
-        ]);
+        AccountBalance::updateOrCreate(
+            [
+                'account_uuid' => $this->account->uuid,
+                'asset_code'   => 'STABLE_BASKET',
+            ],
+            ['balance' => 10000]
+        );
 
         $result = $this->service->decomposeBasket($this->account, 'STABLE_BASKET', 5000);
 
