@@ -44,6 +44,11 @@ class AlertManagementService
         DB::beginTransaction();
 
         try {
+            // Generate title if not provided
+            if (! isset($data['title'])) {
+                $data['title'] = $this->generateAlertTitle($data);
+            }
+
             // Create the alert
             $alert = ComplianceAlert::create([
                 'alert_id'         => $this->generateAlertId($data['type'] ?? 'GENERAL'),
@@ -402,6 +407,14 @@ class AlertManagementService
     }
 
     // Private methods
+
+    private function generateAlertTitle(array $data): string
+    {
+        $type = ucfirst(str_replace('_', ' ', $data['type'] ?? 'alert'));
+        $severity = ucfirst($data['severity'] ?? 'medium');
+
+        return sprintf('%s %s Alert', $severity, $type);
+    }
 
     private function generateAlertId(string $type): string
     {

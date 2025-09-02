@@ -84,6 +84,47 @@ class ComplianceAlert extends Model
         'status_changed_at'     => 'datetime',
     ];
 
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function ($alert) {
+            if (empty($alert->alert_id)) {
+                // Get the next sequence number for this year
+                $year = now()->format('Y');
+                $lastAlert = static::where('alert_id', 'like', "ALERT-{$year}-%")
+                    ->orderBy('alert_id', 'desc')
+                    ->first();
+
+                if ($lastAlert) {
+                    $lastNumber = (int) substr($lastAlert->alert_id, -6);
+                    $newNumber = $lastNumber + 1;
+                } else {
+                    $newNumber = 1;
+                }
+
+                $alert->alert_id = sprintf('ALERT-%s-%06d', $year, $newNumber);
+            }
+        });
+    }
+
+    /**
+     * Get the notes attribute.
+     */
+    public function getNotesAttribute()
+    {
+        return $this->investigation_notes ?? [];
+    }
+
+    /**
+     * Set the notes attribute.
+     */
+    public function setNotesAttribute($value)
+    {
+        $this->investigation_notes = $value;
+    }
+
     // Status constants
     public const STATUS_OPEN = 'open';
 

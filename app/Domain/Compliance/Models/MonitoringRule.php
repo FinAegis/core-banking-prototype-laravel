@@ -47,4 +47,12 @@ class MonitoringRule extends Model
         'effectiveness_score' => 50.0,
         'false_positive_rate' => 0.0,
     ];
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): \Illuminate\Database\Eloquent\Factories\Factory
+    {
+        return \Database\Factories\Domain\Compliance\MonitoringRuleFactory::new();
+    }
 }

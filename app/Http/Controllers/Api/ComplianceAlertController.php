@@ -282,10 +282,12 @@ class ComplianceAlertController extends Controller
             'notes'   => ['sometimes', 'string', 'max:500'],
         ]);
 
+        $alert = ComplianceAlert::findOrFail($id);
+        $user = User::findOrFail($validated['user_id']);
+
         $alert = $this->alertService->assignAlert(
-            $id,
-            $validated['user_id'],
-            $validated['notes'] ?? null
+            $alert,
+            $user
         );
 
         return response()->json([
