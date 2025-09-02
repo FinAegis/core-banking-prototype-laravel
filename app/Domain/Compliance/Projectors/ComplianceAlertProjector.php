@@ -19,17 +19,17 @@ class ComplianceAlertProjector extends Projector
     public function onAlertCreated(AlertCreated $event): void
     {
         ComplianceAlert::create([
-            'id' => $event->alertId,
-            'type' => $event->type,
-            'severity' => $event->severity,
-            'status' => 'open',
+            'id'          => $event->alertId,
+            'type'        => $event->type,
+            'severity'    => $event->severity,
+            'status'      => 'open',
             'entity_type' => $event->entityType,
-            'entity_id' => $event->entityId,
+            'entity_id'   => $event->entityId,
             'description' => $event->description,
-            'details' => $event->details,
-            'created_by' => $event->userId,
-            'created_at' => $event->occurredAt ?? now(),
-            'updated_at' => $event->occurredAt ?? now(),
+            'details'     => $event->details,
+            'created_by'  => $event->userId,
+            'created_at'  => $event->occurredAt ?? now(),
+            'updated_at'  => $event->occurredAt ?? now(),
         ]);
     }
 
@@ -41,12 +41,12 @@ class ComplianceAlertProjector extends Projector
                 'assigned_to' => $event->assignedTo,
                 'assigned_by' => $event->assignedBy,
                 'assigned_at' => $event->occurredAt ?? now(),
-                'updated_at' => $event->occurredAt ?? now(),
+                'updated_at'  => $event->occurredAt ?? now(),
             ]);
-            
+
             if ($event->notes) {
                 $alert->notes()->create([
-                    'content' => $event->notes,
+                    'content'    => $event->notes,
                     'created_by' => $event->assignedBy,
                     'created_at' => $event->occurredAt ?? now(),
                 ]);
@@ -59,17 +59,17 @@ class ComplianceAlertProjector extends Projector
         $alert = ComplianceAlert::find($event->alertId);
         if ($alert) {
             $alert->update([
-                'status' => $event->newStatus,
+                'status'     => $event->newStatus,
                 'updated_at' => $event->occurredAt ?? now(),
             ]);
-            
+
             // Log status change
             $alert->statusHistory()->create([
                 'from_status' => $event->oldStatus,
-                'to_status' => $event->newStatus,
-                'reason' => $event->reason,
-                'changed_by' => $event->userId,
-                'changed_at' => $event->occurredAt ?? now(),
+                'to_status'   => $event->newStatus,
+                'reason'      => $event->reason,
+                'changed_by'  => $event->userId,
+                'changed_at'  => $event->occurredAt ?? now(),
             ]);
         }
     }
@@ -79,12 +79,12 @@ class ComplianceAlertProjector extends Projector
         $alert = ComplianceAlert::find($event->alertId);
         if ($alert) {
             $alert->notes()->create([
-                'content' => $event->note,
-                'created_by' => $event->addedBy,
+                'content'     => $event->note,
+                'created_by'  => $event->addedBy,
                 'attachments' => $event->attachments,
-                'created_at' => $event->occurredAt ?? now(),
+                'created_at'  => $event->occurredAt ?? now(),
             ]);
-            
+
             $alert->touch();
         }
     }
@@ -94,16 +94,16 @@ class ComplianceAlertProjector extends Projector
         $alert = ComplianceAlert::find($event->alertId);
         if ($alert) {
             $alert->update([
-                'status' => 'closed',
-                'resolution' => $event->resolution,
+                'status'      => 'closed',
+                'resolution'  => $event->resolution,
                 'resolved_by' => $event->resolvedBy,
                 'resolved_at' => $event->occurredAt ?? now(),
-                'updated_at' => $event->occurredAt ?? now(),
+                'updated_at'  => $event->occurredAt ?? now(),
             ]);
-            
+
             if ($event->notes) {
                 $alert->notes()->create([
-                    'content' => $event->notes,
+                    'content'    => $event->notes,
                     'created_by' => $event->resolvedBy,
                     'created_at' => $event->occurredAt ?? now(),
                 ]);
@@ -122,7 +122,7 @@ class ComplianceAlertProjector extends Projector
                     'linked_at' => $event->occurredAt ?? now(),
                 ]);
             }
-            
+
             $alert->touch();
         }
     }
@@ -132,12 +132,12 @@ class ComplianceAlertProjector extends Projector
         $alert = ComplianceAlert::find($event->alertId);
         if ($alert) {
             $alert->update([
-                'status' => 'escalated',
-                'case_id' => $event->caseId,
-                'escalated_by' => $event->escalatedBy,
-                'escalated_at' => $event->occurredAt ?? now(),
+                'status'            => 'escalated',
+                'case_id'           => $event->caseId,
+                'escalated_by'      => $event->escalatedBy,
+                'escalated_at'      => $event->occurredAt ?? now(),
                 'escalation_reason' => $event->reason,
-                'updated_at' => $event->occurredAt ?? now(),
+                'updated_at'        => $event->occurredAt ?? now(),
             ]);
         }
     }

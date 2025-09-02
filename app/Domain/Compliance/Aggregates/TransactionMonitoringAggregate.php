@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\Compliance\Aggregates;
 
 use App\Domain\Compliance\Events\MonitoringRuleTriggered;
-use App\Domain\Compliance\Events\TransactionPatternDetected;
 use App\Domain\Compliance\Events\RiskScoreCalculated;
 use App\Domain\Compliance\Events\ThresholdExceeded;
 use App\Domain\Compliance\Events\TransactionAnalyzed;
 use App\Domain\Compliance\Events\TransactionCleared;
 use App\Domain\Compliance\Events\TransactionFlagged;
+use App\Domain\Compliance\Events\TransactionPatternDetected;
 use App\Domain\Compliance\Repositories\ComplianceEventRepository;
 use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
+use DomainException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\Snapshots\SnapshotRepository;
 use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
@@ -20,12 +21,19 @@ use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
 class TransactionMonitoringAggregate extends AggregateRoot
 {
     private string $transactionId;
+
     private string $status = 'pending';
+
     private float $riskScore = 0.0;
+
     private string $riskLevel = 'low';
+
     private array $patterns = [];
+
     private array $triggeredRules = [];
+
     private ?string $flagReason = null;
+
     private ?string $clearReason = null;
 
     public static function analyzeTransaction(
@@ -37,11 +45,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
     ): self {
         $monitoring = self::retrieve($transactionId);
         $monitoring->transactionId = $transactionId;
-        
+
         // Initial risk calculation would happen here
         $riskScore = $monitoring->calculateInitialRiskScore($amount, $metadata);
         $riskLevel = $monitoring->determineRiskLevel($riskScore);
-        
+
         $monitoring->recordThat(new RiskScoreCalculated(
             $transactionId,
             $riskScore,
@@ -49,7 +57,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
             ['amount' => $amount, 'accounts' => [$fromAccount, $toAccount]],
             []
         ));
-        
+
         return $monitoring;
     }
 
@@ -59,7 +67,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
         ?string $flaggedBy = null
     ): self {
         if ($this->status === 'flagged') {
-            throw new \DomainException('Transaction is already flagged');
+            throw new DomainException('Transaction is already flagged');
         }
 
         $this->recordThat(new TransactionFlagged(
@@ -70,7 +78,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
             $this->patterns,
             $flaggedBy
         ));
-        
+
         return $this;
     }
 
@@ -79,8 +87,8 @@ class TransactionMonitoringAggregate extends AggregateRoot
         string $clearedBy,
         ?string $notes = null
     ): self {
-        if (!in_array($this->status, ['flagged', 'reviewing'], true)) {
-            throw new \DomainException('Transaction cannot be cleared in current status');
+        if (! in_array($this->status, ['flagged', 'reviewing'], true)) {
+            throw new DomainException('Transaction cannot be cleared in current status');
         }
 
         $this->recordThat(new TransactionCleared(
@@ -89,7 +97,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
             $clearedBy,
             $notes
         ));
-        
+
         return $this;
     }
 
@@ -108,7 +116,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
             $conditions,
             $matchedData
         ));
-        
+
         return $this;
     }
 
@@ -125,7 +133,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
             $confidence,
             $relatedTransactions
         ));
-        
+
         return $this;
     }
 
@@ -142,7 +150,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
             $actualValue,
             $severity
         ));
-        
+
         return $this;
     }
 
@@ -159,7 +167,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
             $recommendation,
             $processingTime
         ));
-        
+
         return $this;
     }
 
@@ -188,11 +196,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
     protected function applyMonitoringRuleTriggered(MonitoringRuleTriggered $event): void
     {
         $this->triggeredRules[] = [
-            'rule_id' => $event->ruleId,
+            'rule_id'   => $event->ruleId,
             'rule_name' => $event->ruleName,
-            'severity' => $event->severity,
+            'severity'  => $event->severity,
         ];
-        
+
         // Update risk score based on rule severity
         $this->adjustRiskScoreForRule($event->severity);
     }
@@ -200,11 +208,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
     protected function applyTransactionPatternDetected(TransactionPatternDetected $event): void
     {
         $this->patterns[] = [
-            'type' => $event->patternType,
-            'data' => $event->patternData,
+            'type'       => $event->patternType,
+            'data'       => $event->patternData,
             'confidence' => $event->confidence,
         ];
-        
+
         // Adjust risk score based on pattern
         $this->adjustRiskScoreForPattern($event->patternType, $event->confidence);
     }
@@ -224,16 +232,16 @@ class TransactionMonitoringAggregate extends AggregateRoot
     private function calculateInitialRiskScore(float $amount, array $metadata): float
     {
         $score = 0.0;
-        
+
         // Amount-based risk
         if ($amount > 10000) {
             $score += 20;
         } elseif ($amount > 5000) {
             $score += 10;
         }
-        
+
         // Add more risk factors as needed
-        
+
         return min($score, 100.0);
     }
 
@@ -246,7 +254,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
         } elseif ($score >= 25) {
             return 'medium';
         }
-        
+
         return 'low';
     }
 
@@ -254,12 +262,12 @@ class TransactionMonitoringAggregate extends AggregateRoot
     {
         $adjustment = match ($severity) {
             'critical' => 30,
-            'high' => 20,
-            'medium' => 10,
-            'low' => 5,
-            default => 0,
+            'high'     => 20,
+            'medium'   => 10,
+            'low'      => 5,
+            default    => 0,
         };
-        
+
         $this->riskScore = min($this->riskScore + $adjustment, 100.0);
         $this->riskLevel = $this->determineRiskLevel($this->riskScore);
     }
@@ -267,12 +275,12 @@ class TransactionMonitoringAggregate extends AggregateRoot
     private function adjustRiskScoreForPattern(string $patternType, float $confidence): void
     {
         $baseAdjustment = match ($patternType) {
-            'structuring' => 25,
-            'rapid_movement' => 20,
+            'structuring'     => 25,
+            'rapid_movement'  => 20,
             'unusual_pattern' => 15,
-            default => 10,
+            default           => 10,
         };
-        
+
         $adjustment = $baseAdjustment * $confidence;
         $this->riskScore = min($this->riskScore + $adjustment, 100.0);
         $this->riskLevel = $this->determineRiskLevel($this->riskScore);
@@ -282,12 +290,12 @@ class TransactionMonitoringAggregate extends AggregateRoot
     {
         $adjustment = match ($severity) {
             'critical' => 25,
-            'high' => 15,
-            'medium' => 10,
-            'low' => 5,
-            default => 0,
+            'high'     => 15,
+            'medium'   => 10,
+            'low'      => 5,
+            default    => 0,
         };
-        
+
         $this->riskScore = min($this->riskScore + $adjustment, 100.0);
         $this->riskLevel = $this->determineRiskLevel($this->riskScore);
     }

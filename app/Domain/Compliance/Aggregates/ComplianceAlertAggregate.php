@@ -15,6 +15,7 @@ use App\Domain\Compliance\Repositories\ComplianceEventRepository;
 use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
 use App\Domain\Compliance\ValueObjects\AlertSeverity;
 use App\Domain\Compliance\ValueObjects\AlertStatus;
+use DomainException;
 use Illuminate\Support\Str;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\Snapshots\SnapshotRepository;
@@ -23,17 +24,29 @@ use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
 class ComplianceAlertAggregate extends AggregateRoot
 {
     private string $id;
+
     private string $type;
+
     private AlertSeverity $severity;
+
     private AlertStatus $status;
+
     private string $entityType;
+
     private string $entityId;
+
     private string $description;
+
     private array $details;
+
     private ?string $assignedTo = null;
+
     private array $notes = [];
+
     private array $linkedAlerts = [];
+
     private ?string $resolution = null;
+
     private ?string $caseId = null;
 
     public static function create(
@@ -47,7 +60,7 @@ class ComplianceAlertAggregate extends AggregateRoot
     ): self {
         $alertId = (string) Str::uuid();
         $alert = self::retrieve($alertId);
-        
+
         $alert->recordThat(new AlertCreated(
             $alertId,
             $type,
@@ -58,71 +71,71 @@ class ComplianceAlertAggregate extends AggregateRoot
             $details,
             $userId
         ));
-        
+
         return $alert;
     }
 
     public function assign(string $assignedTo, ?string $assignedBy = null, ?string $notes = null): self
     {
         if ($this->status->isClosed()) {
-            throw new \DomainException('Cannot assign a closed alert');
+            throw new DomainException('Cannot assign a closed alert');
         }
 
         $this->recordThat(new AlertAssigned($this->id, $assignedTo, $assignedBy, $notes));
-        
+
         return $this;
     }
 
     public function changeStatus(string $newStatus, ?string $reason = null, ?string $userId = null): self
     {
         $oldStatus = $this->status->value();
-        
+
         if ($oldStatus === $newStatus) {
             return $this;
         }
 
         $this->recordThat(new AlertStatusChanged($this->id, $oldStatus, $newStatus, $reason, $userId));
-        
+
         return $this;
     }
 
     public function addNote(string $note, string $addedBy, array $attachments = []): self
     {
         $this->recordThat(new AlertNoteAdded($this->id, $note, $addedBy, $attachments));
-        
+
         return $this;
     }
 
     public function resolve(string $resolution, string $resolvedBy, ?string $notes = null): self
     {
         if ($this->status->isClosed()) {
-            throw new \DomainException('Alert is already closed');
+            throw new DomainException('Alert is already closed');
         }
 
         $this->recordThat(new AlertResolved($this->id, $resolution, $resolvedBy, $notes));
-        
+
         return $this;
     }
 
     public function linkAlerts(array $alertIds, string $linkType, ?string $userId = null): self
     {
         if (empty($alertIds)) {
-            throw new \DomainException('At least one alert ID must be provided');
+            throw new DomainException('At least one alert ID must be provided');
         }
 
         $this->recordThat(new AlertLinked($this->id, $alertIds, $linkType, $userId));
-        
+
         return $this;
     }
 
     public function escalateToCase(string $caseId, string $escalatedBy, string $reason): self
     {
         if ($this->caseId !== null) {
-            throw new \DomainException('Alert is already associated with a case');
+            throw new DomainException('Alert is already associated with a case');
         }
 
         $this->recordThat(new AlertEscalatedToCase($this->id, $caseId, $escalatedBy, $reason));
-        
+
         return $this;
     }
 
@@ -152,10 +165,10 @@ class ComplianceAlertAggregate extends AggregateRoot
     protected function applyAlertNoteAdded(AlertNoteAdded $event): void
     {
         $this->notes[] = [
-            'note' => $event->note,
-            'added_by' => $event->addedBy,
+            'note'        => $event->note,
+            'added_by'    => $event->addedBy,
             'attachments' => $event->attachments,
-            'added_at' => $event->occurredAt ?? now(),
+            'added_at'    => $event->occurredAt ?? now(),
         ];
     }
 

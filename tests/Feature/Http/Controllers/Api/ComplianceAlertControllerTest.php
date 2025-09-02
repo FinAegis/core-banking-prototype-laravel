@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Domain\Account\Models\Account;
-use App\Domain\Account\Models\Transaction;
 use App\Domain\Compliance\Models\ComplianceAlert;
-use App\Domain\Compliance\Models\ComplianceCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -241,11 +239,11 @@ class ComplianceAlertControllerTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/compliance/alerts/link', [
-            'alert_ids'       => [$alert1->id, $alert2->id],
-            'relationship'    => 'related',
-            'create_case'     => true,
-            'case_title'      => 'Multiple large transactions',
-            'case_priority'   => 'high',
+            'alert_ids'     => [$alert1->id, $alert2->id],
+            'relationship'  => 'related',
+            'create_case'   => true,
+            'case_title'    => 'Multiple large transactions',
+            'case_priority' => 'high',
         ]);
 
         $response->assertOk()
@@ -277,11 +275,11 @@ class ComplianceAlertControllerTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/compliance/alerts/create-case', [
-            'alert_ids'    => [$alert1->id, $alert2->id],
-            'title'        => 'High Risk Activity Investigation',
-            'description'  => 'Multiple high-risk alerts detected',
-            'type'         => 'investigation',
-            'priority'     => 'critical',
+            'alert_ids'   => [$alert1->id, $alert2->id],
+            'title'       => 'High Risk Activity Investigation',
+            'description' => 'Multiple high-risk alerts detected',
+            'type'        => 'investigation',
+            'priority'    => 'critical',
         ]);
 
         $response->assertCreated()
@@ -393,8 +391,8 @@ class ComplianceAlertControllerTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/compliance/alerts/search', [
-            'query'        => 'offshore',
-            'entity_type'  => 'transaction',
+            'query'          => 'offshore',
+            'entity_type'    => 'transaction',
             'min_risk_score' => 80,
         ]);
 

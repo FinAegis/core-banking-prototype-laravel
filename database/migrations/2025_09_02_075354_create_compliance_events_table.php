@@ -6,8 +6,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         Schema::create('compliance_events', function (Blueprint $table) {
@@ -23,7 +22,7 @@ return new class extends Migration
             $table->string('user_id', 50)->nullable()->index();
             $table->timestamp('occurred_at')->index();
             $table->timestamps();
-            
+
             // Composite index for aggregate queries
             $table->index(['aggregate_id', 'aggregate_type', 'event_version']);
             $table->index(['event_type', 'occurred_at']);

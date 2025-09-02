@@ -9,19 +9,19 @@ return new class () extends Migration {
     {
         Schema::table('monitoring_rules', function (Blueprint $table) {
             // Add missing columns that factory expects
-            if (!Schema::hasColumn('monitoring_rules', 'rule_type')) {
+            if (! Schema::hasColumn('monitoring_rules', 'rule_type')) {
                 $table->string('rule_type', 50)->nullable()->after('type');
             }
-            if (!Schema::hasColumn('monitoring_rules', 'actions')) {
+            if (! Schema::hasColumn('monitoring_rules', 'actions')) {
                 $table->json('actions')->nullable()->after('conditions');
             }
-            if (!Schema::hasColumn('monitoring_rules', 'metadata')) {
+            if (! Schema::hasColumn('monitoring_rules', 'metadata')) {
                 $table->json('metadata')->nullable()->after('actions');
             }
-            if (!Schema::hasColumn('monitoring_rules', 'tags')) {
+            if (! Schema::hasColumn('monitoring_rules', 'tags')) {
                 $table->json('tags')->nullable()->after('metadata');
             }
-            if (!Schema::hasColumn('monitoring_rules', 'enabled')) {
+            if (! Schema::hasColumn('monitoring_rules', 'enabled')) {
                 $table->boolean('enabled')->default(true)->after('is_active');
             }
         });

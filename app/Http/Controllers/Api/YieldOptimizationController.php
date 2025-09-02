@@ -18,7 +18,7 @@ class YieldOptimizationController extends Controller
         // TODO: Implement portfolio optimization
         return response()->json([
             'message' => 'Portfolio optimization not yet implemented',
-            'data' => [
+            'data'    => [
                 'status' => 'pending_implementation',
             ],
         ], 501); // Not Implemented
@@ -32,9 +32,9 @@ class YieldOptimizationController extends Controller
         // TODO: Implement portfolio retrieval
         return response()->json([
             'message' => 'Portfolio retrieval not yet implemented',
-            'data' => [
+            'data'    => [
                 'treasury_id' => $treasuryId,
-                'status' => 'pending_implementation',
+                'status'      => 'pending_implementation',
             ],
         ], 501); // Not Implemented
     }

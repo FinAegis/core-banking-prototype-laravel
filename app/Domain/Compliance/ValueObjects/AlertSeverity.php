@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\ValueObjects;
 
+use InvalidArgumentException;
+
 class AlertSeverity
 {
     private const VALID_SEVERITIES = [
@@ -14,9 +16,9 @@ class AlertSeverity
     ];
 
     private const PRIORITY_MAP = [
-        'low' => 1,
-        'medium' => 2,
-        'high' => 3,
+        'low'      => 1,
+        'medium'   => 2,
+        'high'     => 3,
         'critical' => 4,
     ];
 
@@ -25,11 +27,11 @@ class AlertSeverity
     public function __construct(string $value)
     {
         $value = strtolower($value);
-        
-        if (!in_array($value, self::VALID_SEVERITIES, true)) {
-            throw new \InvalidArgumentException("Invalid alert severity: {$value}");
+
+        if (! in_array($value, self::VALID_SEVERITIES, true)) {
+            throw new InvalidArgumentException("Invalid alert severity: {$value}");
         }
-        
+
         $this->value = $value;
     }
 

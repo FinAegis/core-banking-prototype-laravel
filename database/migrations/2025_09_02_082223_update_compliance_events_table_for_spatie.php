@@ -9,7 +9,7 @@ return new class () extends Migration {
     {
         // Drop the old table if it exists
         Schema::dropIfExists('compliance_events');
-        
+
         // Create new table with Spatie Event Sourcing structure
         Schema::create('compliance_events', function (Blueprint $table) {
             $table->id();
