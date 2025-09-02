@@ -100,11 +100,11 @@ class ComplianceCaseControllerTest extends TestCase
     public function test_can_create_compliance_case(): void
     {
         $response = $this->postJson('/api/compliance/cases', [
-            'title'            => 'Money Laundering Investigation',
-            'description'      => 'Potential money laundering activity detected',
-            'type'             => 'aml',
-            'priority'         => 'critical',
-            'entities'         => [
+            'title'       => 'Money Laundering Investigation',
+            'description' => 'Potential money laundering activity detected',
+            'type'        => 'aml',
+            'priority'    => 'critical',
+            'entities'    => [
                 ['type' => 'account', 'id' => 'ACC-001'],
                 ['type' => 'account', 'id' => 'ACC-002'],
             ],
@@ -147,7 +147,7 @@ class ComplianceCaseControllerTest extends TestCase
             'entities'         => [
                 ['type' => 'account', 'id' => 'ACC-001'],
             ],
-            'findings'         => ['Pattern of unusual transactions detected'],
+            'findings' => ['Pattern of unusual transactions detected'],
         ]);
 
         $response = $this->getJson("/api/compliance/cases/{$case->id}");
@@ -156,7 +156,7 @@ class ComplianceCaseControllerTest extends TestCase
             ->assertJsonPath('data.id', $case->id)
             ->assertJsonPath('data.case_id', 'CASE-2025-003')
             ->assertJsonPath('data.type', 'fraud')
-            ->assertJsonPath('data.total_risk_score', 88.0);
+            ->assertJsonPath('data.total_risk_score', '88.00');
     }
 
     public function test_can_update_compliance_case(): void
@@ -193,11 +193,11 @@ class ComplianceCaseControllerTest extends TestCase
     public function test_can_assign_case(): void
     {
         $case = ComplianceCase::factory()->create([
-            'case_id'     => 'CASE-2025-005',
-            'title'       => 'Unassigned Case',
-            'type'        => 'investigation',
-            'priority'    => 'high',
-            'status'      => 'open',
+            'case_id'  => 'CASE-2025-005',
+            'title'    => 'Unassigned Case',
+            'type'     => 'investigation',
+            'priority' => 'high',
+            'status'   => 'open',
         ]);
 
         $assignee = User::factory()->create();
@@ -218,11 +218,11 @@ class ComplianceCaseControllerTest extends TestCase
     public function test_can_add_evidence_to_case(): void
     {
         $case = ComplianceCase::factory()->create([
-            'case_id'     => 'CASE-2025-006',
-            'title'       => 'Evidence Test Case',
-            'type'        => 'investigation',
-            'priority'    => 'high',
-            'status'      => 'in_progress',
+            'case_id'  => 'CASE-2025-006',
+            'title'    => 'Evidence Test Case',
+            'type'     => 'investigation',
+            'priority' => 'high',
+            'status'   => 'in_progress',
         ]);
 
         $response = $this->postJson("/api/compliance/cases/{$case->id}/evidence", [
@@ -241,17 +241,17 @@ class ComplianceCaseControllerTest extends TestCase
 
         $case->refresh();
         $this->assertCount(1, $case->evidence);
-        $this->assertEquals('Bank Statement', $case->evidence[0]['title']);
+        $this->assertEquals('document', $case->evidence[0]['type']);
     }
 
     public function test_can_add_note_to_case(): void
     {
         $case = ComplianceCase::factory()->create([
-            'case_id'     => 'CASE-2025-007',
-            'title'       => 'Note Test Case',
-            'type'        => 'investigation',
-            'priority'    => 'medium',
-            'status'      => 'in_progress',
+            'case_id'  => 'CASE-2025-007',
+            'title'    => 'Note Test Case',
+            'type'     => 'investigation',
+            'priority' => 'medium',
+            'status'   => 'in_progress',
         ]);
 
         $response = $this->postJson("/api/compliance/cases/{$case->id}/notes", [
@@ -263,7 +263,7 @@ class ComplianceCaseControllerTest extends TestCase
 
         $case->refresh();
         $this->assertCount(1, $case->notes);
-        $this->assertEquals('Contacted customer for additional information', $case->notes[0]['content']);
+        $this->assertEquals('Contacted customer for additional information', $case->notes[0]['note']);
     }
 
     public function test_can_escalate_case(): void
@@ -280,8 +280,8 @@ class ComplianceCaseControllerTest extends TestCase
         $escalateTo = User::factory()->create();
 
         $response = $this->postJson("/api/compliance/cases/{$case->id}/escalate", [
-            'reason'      => 'Requires senior management review',
-            'escalate_to' => $escalateTo->id,
+            'reason'       => 'Requires senior management review',
+            'escalate_to'  => $escalateTo->id,
             'new_priority' => 'critical',
         ]);
 
@@ -299,13 +299,13 @@ class ComplianceCaseControllerTest extends TestCase
     public function test_can_get_case_timeline(): void
     {
         $case = ComplianceCase::factory()->create([
-            'case_id'     => 'CASE-2025-009',
-            'title'       => 'Timeline Test Case',
-            'type'        => 'investigation',
-            'priority'    => 'high',
-            'status'      => 'in_progress',
-            'created_at'  => now()->subDays(5),
-            'history'     => [
+            'case_id'    => 'CASE-2025-009',
+            'title'      => 'Timeline Test Case',
+            'type'       => 'investigation',
+            'priority'   => 'high',
+            'status'     => 'in_progress',
+            'created_at' => now()->subDays(5),
+            'history'    => [
                 [
                     'type'      => 'created',
                     'timestamp' => now()->subDays(5)->toIso8601String(),
@@ -331,19 +331,21 @@ class ComplianceCaseControllerTest extends TestCase
         ]);
 
         // Link some alerts to the case
-        $alert1 = ComplianceAlert::create([
+        $alert1 = ComplianceAlert::factory()->create([
             'type'        => 'large_transaction',
             'severity'    => 'high',
             'status'      => 'linked',
+            'title'       => 'Large Transaction Alert',
             'description' => 'Alert 1',
             'case_id'     => $case->id,
             'created_at'  => now()->subDays(4),
         ]);
 
-        $alert2 = ComplianceAlert::create([
+        $alert2 = ComplianceAlert::factory()->create([
             'type'        => 'suspicious_pattern',
             'severity'    => 'medium',
             'status'      => 'linked',
+            'title'       => 'Suspicious Pattern Alert',
             'description' => 'Alert 2',
             'case_id'     => $case->id,
             'created_at'  => now()->subDays(2),
@@ -370,11 +372,11 @@ class ComplianceCaseControllerTest extends TestCase
     public function test_can_soft_delete_case(): void
     {
         $case = ComplianceCase::factory()->create([
-            'case_id'     => 'CASE-2025-010',
-            'title'       => 'Delete Test Case',
-            'type'        => 'investigation',
-            'priority'    => 'low',
-            'status'      => 'closed',
+            'case_id'  => 'CASE-2025-010',
+            'title'    => 'Delete Test Case',
+            'type'     => 'investigation',
+            'priority' => 'low',
+            'status'   => 'closed',
         ]);
 
         $response = $this->deleteJson("/api/compliance/cases/{$case->id}");
@@ -390,11 +392,11 @@ class ComplianceCaseControllerTest extends TestCase
     public function test_cannot_delete_active_case(): void
     {
         $case = ComplianceCase::factory()->create([
-            'case_id'     => 'CASE-2025-011',
-            'title'       => 'Active Case',
-            'type'        => 'investigation',
-            'priority'    => 'high',
-            'status'      => 'in_progress',
+            'case_id'  => 'CASE-2025-011',
+            'title'    => 'Active Case',
+            'type'     => 'investigation',
+            'priority' => 'high',
+            'status'   => 'in_progress',
         ]);
 
         $response = $this->deleteJson("/api/compliance/cases/{$case->id}");
@@ -411,11 +413,11 @@ class ComplianceCaseControllerTest extends TestCase
     public function test_can_resolve_case(): void
     {
         $case = ComplianceCase::factory()->create([
-            'case_id'     => 'CASE-2025-012',
-            'title'       => 'Resolution Test Case',
-            'type'        => 'investigation',
-            'priority'    => 'high',
-            'status'      => 'in_progress',
+            'case_id'  => 'CASE-2025-012',
+            'title'    => 'Resolution Test Case',
+            'type'     => 'investigation',
+            'priority' => 'high',
+            'status'   => 'in_progress',
         ]);
 
         $response = $this->putJson("/api/compliance/cases/{$case->id}", [

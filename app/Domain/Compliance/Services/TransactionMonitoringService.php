@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Compliance\Services;
 
 use App\Domain\Account\Models\Transaction;
+use App\Domain\Compliance\Aggregates\TransactionMonitoringAggregate;
 use App\Domain\Compliance\Events\SuspiciousActivityDetected;
-use App\Domain\Compliance\Events\TransactionBlocked;
-use App\Domain\Compliance\Models\CustomerRiskProfile;
-use App\Domain\Compliance\Models\TransactionMonitoringRule;
+use App\Domain\Compliance\Models\MonitoringRule;
 use Exception;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
 class TransactionMonitoringService
@@ -26,757 +28,358 @@ class TransactionMonitoringService
     }
 
     /**
-     * Monitor transaction in real-time.
+     * Analyze a transaction using event sourcing.
      */
-    public function monitorTransaction(Transaction $transaction): array
+    public function analyzeTransaction(Transaction $transaction): array
     {
-        $alerts = [];
-        $actions = [];
+        return DB::transaction(function () use ($transaction) {
+            try {
+                // Create or retrieve aggregate
+                $aggregate = TransactionMonitoringAggregate::analyzeTransaction(
+                    $transaction->id,
+                    $transaction->amount ?? 0,
+                    $transaction->from_account ?? '',
+                    $transaction->to_account ?? '',
+                    ['type' => $transaction->type]
+                );
 
-        try {
-            // Get customer risk profile
-            $riskProfile = $this->getCustomerRiskProfile($transaction);
+                // Apply monitoring rules
+                $ruleResults = $this->applyMonitoringRules($transaction, $aggregate);
 
-            // Get applicable rules
-            $rules = $this->getApplicableRules($transaction, $riskProfile);
+                // Detect patterns
+                $patterns = $this->detectPatterns($transaction, $aggregate);
 
-            // Evaluate each rule
-            foreach ($rules as $rule) {
-                if ($this->evaluateRule($rule, $transaction, $riskProfile)) {
-                    $alerts[] = $this->createAlert($rule, $transaction);
-                    $actions = array_merge($actions, $rule->getActions());
+                // Check thresholds
+                $thresholdResults = $this->checkThresholds($transaction, $aggregate);
 
-                    // Record rule trigger
-                    $rule->recordTrigger();
+                // Determine if transaction should be flagged
+                $riskScore = $aggregate->getRiskScore();
+                $riskLevel = $aggregate->getRiskLevel();
+
+                if ($riskLevel === 'critical' || $riskScore >= 75) {
+                    $aggregate->flagTransaction(
+                        'High risk detected',
+                        $riskLevel,
+                        'system'
+                    );
+
+                    // Generate SAR if needed
+                    if ($riskScore >= 90) {
+                        $this->sarService->generateReport([
+                            'transaction_id' => $transaction->id,
+                            'reason'         => 'Automated: Critical risk score',
+                            'details'        => [
+                                'risk_score'      => $riskScore,
+                                'patterns'        => $patterns,
+                                'rules_triggered' => $ruleResults,
+                            ],
+                        ]);
+                    }
+
+                    Event::dispatch(new SuspiciousActivityDetected(
+                        $transaction->id,
+                        $riskScore,
+                        $patterns
+                    ));
                 }
-            }
 
-            // Process actions
-            $this->processActions($actions, $transaction, $alerts);
+                // Complete analysis
+                $aggregate->completeAnalysis(
+                    uniqid('analysis_'),
+                    [
+                        'rules'      => $ruleResults,
+                        'patterns'   => $patterns,
+                        'thresholds' => $thresholdResults,
+                    ],
+                    $this->determineRecommendation($riskLevel),
+                    microtime(true) - LARAVEL_START
+                );
 
-            // Update behavioral risk if patterns detected
-            if (! empty($alerts)) {
-                $this->updateBehavioralRisk($transaction, $alerts);
-            }
+                // Persist aggregate
+                $aggregate->persist();
 
-            return [
-                'passed'  => empty($alerts) || ! in_array(TransactionMonitoringRule::ACTION_BLOCK, $actions),
-                'alerts'  => $alerts,
-                'actions' => array_unique($actions),
-            ];
-        } catch (Exception $e) {
-            Log::error(
-                'Transaction monitoring failed',
-                [
+                Log::info('Transaction analyzed', [
+                    'transaction_id' => $transaction->id,
+                    'risk_score'     => $riskScore,
+                    'risk_level'     => $riskLevel,
+                    'status'         => $aggregate->getStatus(),
+                ]);
+
+                return [
+                    'transaction_id'  => $transaction->id,
+                    'risk_score'      => $riskScore,
+                    'risk_level'      => $riskLevel,
+                    'status'          => $aggregate->getStatus(),
+                    'patterns'        => $patterns,
+                    'rules_triggered' => $ruleResults,
+                    'recommendation'  => $this->determineRecommendation($riskLevel),
+                ];
+            } catch (Exception $e) {
+                Log::error('Failed to analyze transaction', [
                     'transaction_id' => $transaction->id,
                     'error'          => $e->getMessage(),
-                ]
-            );
-
-            // Fail-safe: allow transaction but flag for review
-            return [
-                'passed' => true,
-                'alerts' => [[
-                    'type'    => 'system_error',
-                    'message' => 'Monitoring system error - flagged for manual review',
-                ]],
-                'actions' => [TransactionMonitoringRule::ACTION_REVIEW],
-            ];
-        }
+                ]);
+                throw $e;
+            }
+        });
     }
 
     /**
-     * Batch monitor transactions.
+     * Flag a transaction.
      */
-    public function batchMonitor(Collection $transactions): array
+    public function flagTransaction(string $transactionId, string $reason, string $severity = 'medium'): void
+    {
+        DB::transaction(function () use ($transactionId, $reason, $severity) {
+            $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
+            $aggregate->flagTransaction($reason, $severity, auth()->id() ?? 'system');
+            $aggregate->persist();
+        });
+    }
+
+    /**
+     * Clear a flagged transaction.
+     */
+    public function clearTransaction(string $transactionId, string $reason, ?string $notes = null): void
+    {
+        DB::transaction(function () use ($transactionId, $reason, $notes) {
+            $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
+            $aggregate->clearTransaction($reason, auth()->id() ?? 'system', $notes);
+            $aggregate->persist();
+        });
+    }
+
+    /**
+     * Apply monitoring rules to a transaction.
+     */
+    private function applyMonitoringRules(Transaction $transaction, TransactionMonitoringAggregate $aggregate): array
     {
         $results = [];
+        $rules = MonitoringRule::where('is_active', true)->get();
 
-        foreach ($transactions as $transaction) {
-            $results[$transaction->id] = $this->monitorTransaction($transaction);
-        }
+        foreach ($rules as $rule) {
+            if ($this->evaluateRule($rule, $transaction)) {
+                $aggregate->triggerRule(
+                    $rule->id,
+                    $rule->name,
+                    $rule->severity ?? 'medium',
+                    $rule->conditions ?? [],
+                    [
+                        'amount' => $transaction->amount,
+                        'type'   => $transaction->type,
+                    ]
+                );
 
-        // Look for patterns across batch
-        $patterns = $this->detectBatchPatterns($transactions, $results);
-
-        if (! empty($patterns)) {
-            $this->handleDetectedPatterns($patterns, $transactions);
+                $results[] = [
+                    'rule_id'   => $rule->id,
+                    'rule_name' => $rule->name,
+                    'severity'  => $rule->severity ?? 'medium',
+                ];
+            }
         }
 
         return $results;
     }
 
     /**
-     * Get customer risk profile.
+     * Detect patterns in transaction behavior.
      */
-    protected function getCustomerRiskProfile(Transaction $transaction): ?CustomerRiskProfile
-    {
-        $account = $transaction->account;
-        if (! $account || ! $account->user) {
-            return null;
-        }
-
-        return CustomerRiskProfile::where('user_id', $account->user->id)->first();
-    }
-
-    /**
-     * Get applicable monitoring rules.
-     */
-    protected function getApplicableRules(Transaction $transaction, ?CustomerRiskProfile $riskProfile): Collection
-    {
-        $query = TransactionMonitoringRule::where('is_active', true);
-
-        // Filter by customer type and risk level if profile exists
-        if ($riskProfile) {
-            $customerType = $riskProfile->business_type ? 'business' : 'individual';
-            $riskLevel = $riskProfile->risk_rating;
-
-            $query->where(
-                function ($q) use ($customerType) {
-                    $q->whereNull('applies_to_customer_types')
-                        ->orWhereJsonContains('applies_to_customer_types', $customerType);
-                }
-            )->where(
-                function ($q) use ($riskLevel) {
-                    $q->whereNull('applies_to_risk_levels')
-                        ->orWhereJsonContains('applies_to_risk_levels', $riskLevel);
-                }
-            );
-        }
-
-        // Filter by transaction type
-        $query->where(
-            function ($q) use ($transaction) {
-                $q->whereNull('applies_to_transaction_types')
-                    ->orWhereJsonContains('applies_to_transaction_types', $transaction->event_properties['type'] ?? 'unknown');
-            }
-        );
-
-        return $query->get();
-    }
-
-    /**
-     * Evaluate monitoring rule.
-     */
-    protected function evaluateRule(
-        TransactionMonitoringRule $rule,
-        Transaction $transaction,
-        ?CustomerRiskProfile $riskProfile
-    ): bool {
-        switch ($rule->category) {
-            case TransactionMonitoringRule::CATEGORY_VELOCITY:
-                return $this->evaluateVelocityRule($rule, $transaction);
-
-            case TransactionMonitoringRule::CATEGORY_PATTERN:
-                return $this->evaluatePatternRule($rule, $transaction);
-
-            case TransactionMonitoringRule::CATEGORY_THRESHOLD:
-                return $this->evaluateThresholdRule($rule, $transaction);
-
-            case TransactionMonitoringRule::CATEGORY_GEOGRAPHY:
-                return $this->evaluateGeographyRule($rule, $transaction);
-
-            case TransactionMonitoringRule::CATEGORY_BEHAVIOR:
-                return $this->evaluateBehaviorRule($rule, $transaction, $riskProfile);
-
-            default:
-                return false;
-        }
-    }
-
-    /**
-     * Evaluate velocity rule.
-     */
-    protected function evaluateVelocityRule(TransactionMonitoringRule $rule, Transaction $transaction): bool
-    {
-        $timeWindow = $rule->time_window ?? '24h';
-        $thresholdCount = $rule->threshold_count ?? PHP_INT_MAX;
-        $thresholdAmount = $rule->threshold_amount ?? PHP_FLOAT_MAX;
-
-        // Parse time window
-        $startTime = match ($timeWindow) {
-            '1h'    => now()->subHour(),
-            '24h'   => now()->subDay(),
-            '7d'    => now()->subWeek(),
-            '30d'   => now()->subMonth(),
-            default => now()->subDay(),
-        };
-
-        // Count recent transactions
-        $account = $transaction->account;
-        if (! $account) {
-            return false;
-        }
-
-        $recentTransactions = Transaction::where('aggregate_uuid', $account->uuid)
-            ->where('created_at', '>=', $startTime)
-            ->get();
-
-        $count = $recentTransactions->count();
-        $total = $recentTransactions->sum(function ($t) {
-            return $t->event_properties['amount'] ?? 0;
-        });
-
-        return $count > $thresholdCount || $total > $thresholdAmount;
-    }
-
-    /**
-     * Evaluate pattern rule.
-     */
-    protected function evaluatePatternRule(TransactionMonitoringRule $rule, Transaction $transaction): bool
-    {
-        $conditions = $rule->conditions;
-
-        // Check for structuring pattern
-        if (isset($conditions['detect_structuring']) && $conditions['detect_structuring']) {
-            return $this->detectStructuring($transaction);
-        }
-
-        // Check for rapid fund movement
-        if (isset($conditions['detect_rapid_movement']) && $conditions['detect_rapid_movement']) {
-            return $this->detectRapidMovement($transaction);
-        }
-
-        // Check for round amounts
-        if (isset($conditions['detect_round_amounts']) && $conditions['detect_round_amounts']) {
-            return $this->detectRoundAmounts($transaction);
-        }
-
-        return false;
-    }
-
-    /**
-     * Evaluate threshold rule.
-     */
-    protected function evaluateThresholdRule(TransactionMonitoringRule $rule, Transaction $transaction): bool
-    {
-        $threshold = $rule->threshold_amount ?? 0;
-
-        // Check transaction amount
-        $amount = $transaction->event_properties['amount'] ?? 0;
-        if ($amount >= $threshold) {
-            return true;
-        }
-
-        // Check cumulative amount if specified
-        if (isset($rule->parameters['check_cumulative']) && $rule->parameters['check_cumulative']) {
-            $timeWindow = $rule->time_window ?? '24h';
-            $startTime = $this->parseTimeWindow($timeWindow);
-
-            $account = $transaction->account;
-            if (! $account) {
-                return false;
-            }
-
-            $recentTransactions = Transaction::where('aggregate_uuid', $account->uuid)
-                ->where('created_at', '>=', $startTime)
-                ->get();
-
-            $cumulative = $recentTransactions->sum(function ($t) {
-                return $t->event_properties['amount'] ?? 0;
-            });
-
-            return $cumulative >= $threshold;
-        }
-
-        return false;
-    }
-
-    /**
-     * Evaluate geography rule.
-     */
-    protected function evaluateGeographyRule(TransactionMonitoringRule $rule, Transaction $transaction): bool
-    {
-        $highRiskCountries = $rule->applies_to_countries ?? [];
-
-        // Check transaction metadata for country information
-        $metadata = $transaction->event_properties['metadata'] ?? [];
-        $originCountry = $metadata['origin_country'] ?? null;
-        $destinationCountry = $metadata['destination_country'] ?? null;
-
-        if ($originCountry && in_array($originCountry, $highRiskCountries)) {
-            return true;
-        }
-
-        if ($destinationCountry && in_array($destinationCountry, $highRiskCountries)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Evaluate behavior rule.
-     */
-    protected function evaluateBehaviorRule(
-        TransactionMonitoringRule $rule,
-        Transaction $transaction,
-        ?CustomerRiskProfile $riskProfile
-    ): bool {
-        if (! $riskProfile) {
-            return false;
-        }
-
-        // Check for deviation from normal behavior
-        $behavioralRisk = $riskProfile->behavioral_risk ?? [];
-        $patterns = $behavioralRisk['patterns'] ?? [];
-
-        // Check if transaction deviates from established patterns
-        $conditions = $rule->conditions;
-
-        foreach ($conditions as $condition) {
-            if ($this->checkBehavioralDeviation($condition, $transaction, $behavioralRisk)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Detect structuring pattern.
-     */
-    protected function detectStructuring(Transaction $transaction): bool
-    {
-        // Look for multiple transactions just below reporting threshold
-        $reportingThreshold = 10000; // CTR threshold
-        $marginPercentage = 0.1; // 10% margin
-
-        $lowerBound = $reportingThreshold * (1 - $marginPercentage);
-
-        $amount = $transaction->event_properties['amount'] ?? 0;
-
-        if ($amount >= $lowerBound && $amount < $reportingThreshold) {
-            // Check for similar transactions in past 24 hours
-            $account = $transaction->account;
-            if (! $account) {
-                return false;
-            }
-
-            $recentTransactions = Transaction::where('aggregate_uuid', $account->uuid)
-                ->where('created_at', '>=', now()->subDay())
-                ->get();
-
-            $similarCount = $recentTransactions->filter(function ($t) use ($lowerBound, $reportingThreshold) {
-                $amt = $t->event_properties['amount'] ?? 0;
-
-                return $amt >= $lowerBound && $amt < $reportingThreshold;
-            })->count();
-
-            return $similarCount >= 3;
-        }
-
-        return false;
-    }
-
-    /**
-     * Detect rapid fund movement.
-     */
-    protected function detectRapidMovement(Transaction $transaction): bool
-    {
-        $type = $transaction->event_properties['type'] ?? '';
-        if ($type !== 'withdrawal') {
-            return false;
-        }
-
-        $account = $transaction->account;
-        if (! $account) {
-            return false;
-        }
-
-        $withdrawalAmount = $transaction->event_properties['amount'] ?? 0;
-
-        // Check if funds were recently deposited
-        $recentDeposits = Transaction::where('aggregate_uuid', $account->uuid)
-            ->where('created_at', '>=', now()->subHours(24))
-            ->get();
-
-        $deposit = $recentDeposits->first(function ($t) use ($withdrawalAmount) {
-            $depositType = $t->event_properties['type'] ?? '';
-            $depositAmount = $t->event_properties['amount'] ?? 0;
-
-            return $depositType === 'deposit' && $depositAmount >= ($withdrawalAmount * 0.9);
-        });
-
-        return $deposit !== null;
-    }
-
-    /**
-     * Detect round amounts pattern.
-     */
-    protected function detectRoundAmounts(Transaction $transaction): bool
-    {
-        $amount = $transaction->event_properties['amount'] ?? 0;
-
-        // Check if amount is round (divisible by 100, 500, or 1000)
-        $roundDivisors = [1000, 500, 100];
-
-        foreach ($roundDivisors as $divisor) {
-            if ($amount >= $divisor && $amount % $divisor === 0) {
-                // Check frequency of round amounts
-                $account = $transaction->account;
-                if (! $account) {
-                    return false;
-                }
-
-                $recentTransactions = Transaction::where('aggregate_uuid', $account->uuid)
-                    ->where('created_at', '>=', now()->subDays(7))
-                    ->get();
-
-                $roundCount = $recentTransactions->filter(function ($t) use ($divisor) {
-                    $amt = $t->event_properties['amount'] ?? 0;
-
-                    return $amt >= $divisor && $amt % $divisor === 0;
-                })->count();
-
-                return $roundCount >= 5;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Create alert from rule and transaction.
-     */
-    protected function createAlert(TransactionMonitoringRule $rule, Transaction $transaction): array
-    {
-        return [
-            'rule_id'        => $rule->id,
-            'rule_code'      => $rule->rule_code,
-            'rule_name'      => $rule->name,
-            'category'       => $rule->category,
-            'risk_level'     => $rule->risk_level,
-            'transaction_id' => $transaction->id,
-            'amount'         => $transaction->event_properties['amount'] ?? 0,
-            'timestamp'      => now()->toIso8601String(),
-            'description'    => $this->generateAlertDescription($rule, $transaction),
-        ];
-    }
-
-    /**
-     * Generate alert description.
-     */
-    protected function generateAlertDescription(TransactionMonitoringRule $rule, Transaction $transaction): string
-    {
-        $amount = number_format($transaction->event_properties['amount'] ?? 0, 2);
-        $currency = $transaction->currency;
-
-        return match ($rule->category) {
-            TransactionMonitoringRule::CATEGORY_VELOCITY  => "High velocity detected: Multiple transactions totaling {$currency} {$amount}",
-            TransactionMonitoringRule::CATEGORY_PATTERN   => "Suspicious pattern detected: {$rule->name}",
-            TransactionMonitoringRule::CATEGORY_THRESHOLD => "Threshold exceeded: Transaction of {$currency} {$amount}",
-            TransactionMonitoringRule::CATEGORY_GEOGRAPHY => 'High-risk geography: Transaction involving restricted country',
-            TransactionMonitoringRule::CATEGORY_BEHAVIOR  => 'Behavioral anomaly: Deviation from established pattern',
-            default                                       => "Alert: {$rule->name}",
-        };
-    }
-
-    /**
-     * Process monitoring actions.
-     */
-    protected function processActions(array $actions, Transaction $transaction, array $alerts): void
-    {
-        foreach ($actions as $action) {
-            switch ($action) {
-                case TransactionMonitoringRule::ACTION_BLOCK:
-                    $this->blockTransaction($transaction, $alerts);
-                    break;
-
-                case TransactionMonitoringRule::ACTION_ALERT:
-                    $this->sendAlert($transaction, $alerts);
-                    break;
-
-                case TransactionMonitoringRule::ACTION_REVIEW:
-                    $this->flagForReview($transaction, $alerts);
-                    break;
-
-                case TransactionMonitoringRule::ACTION_REPORT:
-                    $this->createSAR($transaction, $alerts);
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Block transaction.
-     */
-    protected function blockTransaction(Transaction $transaction, array $alerts): void
-    {
-        // Update metadata using SchemalessAttributes
-        $transaction->meta_data->set('blocked_at', now()->toIso8601String());
-        $transaction->meta_data->set('block_reason', 'AML monitoring alert');
-        $transaction->meta_data->set('alerts', $alerts);
-        $transaction->meta_data->set('status', 'blocked');
-
-        $transaction->save();
-
-        event(new TransactionBlocked($transaction, $alerts));
-    }
-
-    /**
-     * Send alert.
-     */
-    protected function sendAlert(Transaction $transaction, array $alerts): void
-    {
-        event(new SuspiciousActivityDetected($transaction, $alerts));
-    }
-
-    /**
-     * Flag transaction for review.
-     */
-    protected function flagForReview(Transaction $transaction, array $alerts): void
-    {
-        // Update metadata using SchemalessAttributes
-        $transaction->meta_data->set('requires_review', true);
-        $transaction->meta_data->set('review_requested_at', now()->toIso8601String());
-        $transaction->meta_data->set('review_alerts', $alerts);
-
-        $transaction->save();
-    }
-
-    /**
-     * Create Suspicious Activity Report.
-     */
-    protected function createSAR(Transaction $transaction, array $alerts): void
-    {
-        $highRiskAlerts = array_filter($alerts, fn ($alert) => $alert['risk_level'] === TransactionMonitoringRule::RISK_LEVEL_HIGH);
-
-        if (! empty($highRiskAlerts)) {
-            $this->sarService->createFromTransaction($transaction, $alerts);
-        }
-    }
-
-    /**
-     * Update behavioral risk based on alerts.
-     */
-    protected function updateBehavioralRisk(Transaction $transaction, array $alerts): void
-    {
-        $riskProfile = $this->getCustomerRiskProfile($transaction);
-        if (! $riskProfile) {
-            return;
-        }
-
-        $behavioralRisk = $riskProfile->behavioral_risk ?? [];
-        $patterns = $behavioralRisk['patterns'] ?? [];
-
-        // Add detected patterns
-        foreach ($alerts as $alert) {
-            if ($alert['category'] === TransactionMonitoringRule::CATEGORY_PATTERN) {
-                $patterns[] = $alert['rule_code'];
-            }
-        }
-
-        $behavioralRisk['patterns'] = array_unique($patterns);
-        $behavioralRisk['last_alert'] = now()->toIso8601String();
-        $behavioralRisk['alert_count'] = ($behavioralRisk['alert_count'] ?? 0) + count($alerts);
-
-        $riskProfile->update(
-            [
-                'behavioral_risk'             => $behavioralRisk,
-                'suspicious_activities_count' => $riskProfile->suspicious_activities_count + 1,
-                'last_suspicious_activity_at' => now(),
-            ]
-        );
-
-        // Trigger risk reassessment if multiple alerts
-        if (count($alerts) >= 3) {
-            $riskProfile->updateRiskAssessment();
-        }
-    }
-
-    /**
-     * Detect patterns across batch of transactions.
-     */
-    protected function detectBatchPatterns(Collection $transactions, array $results): array
+    private function detectPatterns(Transaction $transaction, TransactionMonitoringAggregate $aggregate): array
     {
         $patterns = [];
 
-        // Group by account
-        $byAccount = $transactions->groupBy('account_id');
+        // Check for structuring (smurfing)
+        $recentTransactions = Transaction::where('from_account', $transaction->from_account)
+            ->where('created_at', '>=', now()->subHours(24))
+            ->get();
 
-        foreach ($byAccount as $accountId => $accountTransactions) {
-            // Check for smurfing (multiple small transactions)
-            if ($this->detectSmurfing($accountTransactions)) {
+        if ($recentTransactions->count() > 5) {
+            $totalAmount = $recentTransactions->sum('amount');
+            if ($totalAmount > 9000 && $totalAmount < 10000) {
+                $aggregate->detectPattern(
+                    'structuring',
+                    [
+                        'total_amount'      => $totalAmount,
+                        'transaction_count' => $recentTransactions->count(),
+                    ],
+                    0.8,
+                    $recentTransactions->pluck('id')->toArray()
+                );
+
                 $patterns[] = [
-                    'type'         => 'smurfing',
-                    'account_id'   => $accountId,
-                    'transactions' => $accountTransactions->pluck('id')->toArray(),
+                    'type'       => 'structuring',
+                    'confidence' => 0.8,
                 ];
             }
+        }
 
-            // Check for layering
-            if ($this->detectLayering($accountTransactions)) {
-                $patterns[] = [
-                    'type'         => 'layering',
-                    'account_id'   => $accountId,
-                    'transactions' => $accountTransactions->pluck('id')->toArray(),
-                ];
-            }
+        // Check for rapid movement
+        $rapidTransactions = Transaction::where('from_account', $transaction->from_account)
+            ->where('created_at', '>=', now()->subMinutes(30))
+            ->count();
+
+        if ($rapidTransactions > 3) {
+            $aggregate->detectPattern(
+                'rapid_movement',
+                [
+                    'transaction_count' => $rapidTransactions,
+                    'time_window'       => '30 minutes',
+                ],
+                0.7,
+                []
+            );
+
+            $patterns[] = [
+                'type'       => 'rapid_movement',
+                'confidence' => 0.7,
+            ];
         }
 
         return $patterns;
     }
 
     /**
-     * Detect smurfing pattern.
+     * Check transaction thresholds.
      */
-    protected function detectSmurfing(Collection $transactions): bool
+    private function checkThresholds(Transaction $transaction, TransactionMonitoringAggregate $aggregate): array
     {
-        if ($transactions->count() < 5) {
-            return false;
-        }
+        $results = [];
 
-        $totalAmount = $transactions->sum('amount');
-        $avgAmount = $totalAmount / $transactions->count();
+        // Amount threshold
+        $amountThresholds = [
+            'low'      => 1000,
+            'medium'   => 5000,
+            'high'     => 10000,
+            'critical' => 50000,
+        ];
 
-        // Check if transactions are suspiciously similar and below threshold
-        $threshold = 3000; // Smurfing threshold
-        $variance = $transactions->pluck('amount')->variance();
+        foreach ($amountThresholds as $severity => $threshold) {
+            if ($transaction->amount >= $threshold) {
+                $aggregate->exceedThreshold(
+                    'amount',
+                    (float) $threshold,
+                    (float) $transaction->amount,
+                    $severity
+                );
 
-        return $avgAmount < $threshold && $variance < ($avgAmount * 0.1);
-    }
+                $results[] = [
+                    'type'      => 'amount',
+                    'threshold' => $threshold,
+                    'actual'    => $transaction->amount,
+                    'severity'  => $severity,
+                ];
 
-    /**
-     * Detect layering pattern.
-     */
-    protected function detectLayering(Collection $transactions): bool
-    {
-        // Look for rapid in-and-out pattern
-        $deposits = $transactions->where('type', 'deposit');
-        $withdrawals = $transactions->where('type', 'withdrawal');
-
-        if ($deposits->isEmpty() || $withdrawals->isEmpty()) {
-            return false;
-        }
-
-        // Check if deposits and withdrawals are closely matched
-        $depositTotal = $deposits->sum('amount');
-        $withdrawalTotal = $withdrawals->sum('amount');
-
-        $difference = abs($depositTotal - $withdrawalTotal);
-        $percentDiff = $difference / max($depositTotal, $withdrawalTotal);
-
-        return $percentDiff < 0.05 && $transactions->count() >= 6;
-    }
-
-    /**
-     * Handle detected patterns.
-     */
-    protected function handleDetectedPatterns(array $patterns, Collection $transactions): void
-    {
-        foreach ($patterns as $pattern) {
-            // Create SAR for pattern
-            $this->sarService->createFromPattern($pattern, $transactions);
-
-            // Update risk profiles
-            $accountIds = $transactions->pluck('account_id')->unique();
-            foreach ($accountIds as $accountId) {
-                $this->riskService->escalateRiskForAccount($accountId, $pattern['type']);
+                break; // Only record the highest threshold exceeded
             }
         }
-    }
 
-    /**
-     * Parse time window string.
-     */
-    protected function parseTimeWindow(string $window): \Carbon\Carbon
-    {
-        return match ($window) {
-            '1h'    => now()->subHour(),
-            '24h'   => now()->subDay(),
-            '7d'    => now()->subWeek(),
-            '30d'   => now()->subMonth(),
-            default => now()->subDay(),
-        };
-    }
-
-    /**
-     * Check behavioral deviation.
-     */
-    protected function checkBehavioralDeviation(array $condition, Transaction $transaction, array $behavioralRisk): bool
-    {
-        $type = $condition['type'] ?? null;
-
-        return match ($type) {
-            'unusual_amount'      => $this->isUnusualAmount($transaction, $behavioralRisk),
-            'unusual_time'        => $this->isUnusualTime($transaction, $behavioralRisk),
-            'unusual_frequency'   => $this->isUnusualFrequency($transaction, $behavioralRisk),
-            'unusual_destination' => $this->isUnusualDestination($transaction, $behavioralRisk),
-            default               => false,
-        };
-    }
-
-    /**
-     * Check if transaction amount is unusual.
-     */
-    protected function isUnusualAmount(Transaction $transaction, array $behavioralRisk): bool
-    {
-        $avgAmount = $behavioralRisk['avg_transaction_amount'] ?? 0;
-        $stdDev = $behavioralRisk['transaction_amount_std_dev'] ?? 0;
-
-        if ($avgAmount === 0 || $stdDev === 0) {
-            return false;
-        }
-
-        // Check if amount is more than 3 standard deviations from mean
-        $deviation = abs(($transaction->event_properties['amount'] ?? 0) - $avgAmount) / $stdDev;
-
-        return $deviation > 3;
-    }
-
-    /**
-     * Check if transaction time is unusual.
-     */
-    protected function isUnusualTime(Transaction $transaction, array $behavioralRisk): bool
-    {
-        $usualHours = $behavioralRisk['usual_transaction_hours'] ?? [];
-
-        if (empty($usualHours)) {
-            return false;
-        }
-
-        $hour = $transaction->created_at->hour;
-
-        return ! in_array($hour, $usualHours);
-    }
-
-    /**
-     * Check if transaction frequency is unusual.
-     */
-    protected function isUnusualFrequency(Transaction $transaction, array $behavioralRisk): bool
-    {
-        $avgDaily = $behavioralRisk['avg_daily_transactions'] ?? 0;
-
-        if ($avgDaily === 0) {
-            return false;
-        }
-
-        $account = $transaction->account;
-        if (! $account) {
-            return false;
-        }
-
-        $todayCount = Transaction::where('aggregate_uuid', $account->uuid)
+        // Daily limit threshold
+        $dailyTotal = Transaction::where('from_account', $transaction->from_account)
             ->whereDate('created_at', today())
-            ->count();
+            ->sum('amount');
 
-        return $todayCount > ($avgDaily * 3); // 3x normal frequency
+        $dailyLimit = 100000;
+        if ($dailyTotal > $dailyLimit) {
+            $aggregate->exceedThreshold(
+                'daily_limit',
+                (float) $dailyLimit,
+                (float) $dailyTotal,
+                'high'
+            );
+
+            $results[] = [
+                'type'      => 'daily_limit',
+                'threshold' => $dailyLimit,
+                'actual'    => $dailyTotal,
+                'severity'  => 'high',
+            ];
+        }
+
+        return $results;
     }
 
     /**
-     * Check if transaction destination is unusual.
+     * Evaluate a monitoring rule against a transaction.
      */
-    protected function isUnusualDestination(Transaction $transaction, array $behavioralRisk): bool
+    private function evaluateRule(MonitoringRule $rule, Transaction $transaction): bool
     {
-        $knownDestinations = $behavioralRisk['known_destinations'] ?? [];
-        $metadata = $transaction->event_properties['metadata'] ?? [];
-        $destination = $metadata['destination_account'] ?? $metadata['destination_country'] ?? null;
+        $conditions = $rule->conditions ?? [];
 
-        if (! $destination || empty($knownDestinations)) {
-            return false;
+        foreach ($conditions as $condition) {
+            $field = $condition['field'] ?? '';
+            $operator = $condition['operator'] ?? '=';
+            $value = $condition['value'] ?? null;
+
+            $transactionValue = $transaction->{$field} ?? null;
+
+            if (! $this->evaluateCondition($transactionValue, $operator, $value)) {
+                return false; // All conditions must be met
+            }
         }
 
-        return ! in_array($destination, $knownDestinations);
+        return true;
+    }
+
+    /**
+     * Evaluate a single condition.
+     */
+    private function evaluateCondition($actualValue, string $operator, $expectedValue): bool
+    {
+        return match ($operator) {
+            '='        => $actualValue == $expectedValue,
+            '!='       => $actualValue != $expectedValue,
+            '>'        => $actualValue > $expectedValue,
+            '>='       => $actualValue >= $expectedValue,
+            '<'        => $actualValue < $expectedValue,
+            '<='       => $actualValue <= $expectedValue,
+            'contains' => str_contains((string) $actualValue, (string) $expectedValue),
+            'in'       => in_array($actualValue, (array) $expectedValue),
+            'not_in'   => ! in_array($actualValue, (array) $expectedValue),
+            default    => false,
+        };
+    }
+
+    /**
+     * Determine recommendation based on risk level.
+     */
+    private function determineRecommendation(string $riskLevel): string
+    {
+        return match ($riskLevel) {
+            'critical' => 'Block transaction and investigate immediately',
+            'high'     => 'Flag for manual review',
+            'medium'   => 'Monitor closely',
+            'low'      => 'Allow transaction',
+            default    => 'Allow transaction',
+        };
+    }
+
+    /**
+     * Get monitoring statistics.
+     */
+    public function getStatistics(array $filters = []): array
+    {
+        $query = DB::table('transaction_monitorings');
+
+        if (isset($filters['start_date'])) {
+            $query->where('created_at', '>=', $filters['start_date']);
+        }
+
+        if (isset($filters['end_date'])) {
+            $query->where('created_at', '<=', $filters['end_date']);
+        }
+
+        return [
+            'total_analyzed' => $query->count(),
+            'flagged'        => $query->clone()->where('status', 'flagged')->count(),
+            'cleared'        => $query->clone()->where('status', 'cleared')->count(),
+            'by_risk_level'  => $query->clone()
+                ->groupBy('risk_level')
+                ->selectRaw('risk_level, count(*) as count')
+                ->pluck('count', 'risk_level')
+                ->toArray(),
+            'average_risk_score' => $query->clone()->avg('risk_score'),
+            'patterns_detected'  => $query->clone()
+                ->whereNotNull('patterns')
+                ->count(),
+        ];
     }
 }

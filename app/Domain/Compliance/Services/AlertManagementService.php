@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Services;
 
+use App\Domain\Compliance\Aggregates\ComplianceAlertAggregate;
 use App\Domain\Compliance\Events\AlertEscalated;
 use App\Domain\Compliance\Events\AlertResolved;
 use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Models\ComplianceCase;
 use App\Models\User;
 use Exception;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 /**
  * Alert management service for compliance monitoring.
- * Handles alert creation, escalation, assignment, and resolution.
+ * Handles alert creation, escalation, assignment, and resolution using event sourcing.
  */
 class AlertManagementService
 {
@@ -37,716 +38,390 @@ class AlertManagementService
     ];
 
     /**
-     * Create a new compliance alert.
+     * Create a new compliance alert using event sourcing.
      */
     public function createAlert(array $data): ComplianceAlert
     {
-        DB::beginTransaction();
+        return DB::transaction(function () use ($data) {
+            try {
+                // Create alert through aggregate
+                $aggregate = ComplianceAlertAggregate::create(
+                    $data['type'],
+                    $data['severity'],
+                    $data['entity_type'],
+                    $data['entity_id'],
+                    $data['description'],
+                    $data['details'] ?? [],
+                    $data['user_id'] ?? null
+                );
 
-        try {
-            // Generate title if not provided
-            if (! isset($data['title'])) {
-                $data['title'] = $this->generateAlertTitle($data);
-            }
+                // Persist the aggregate
+                $aggregate->persist();
 
-            // Create the alert
-            $alert = ComplianceAlert::create([
-                'alert_id'         => $this->generateAlertId($data['type'] ?? 'GENERAL'),
-                'type'             => $data['type'],
-                'severity'         => $data['severity'] ?? 'medium',
-                'status'           => ComplianceAlert::STATUS_OPEN,
-                'title'            => $data['title'],
-                'description'      => $data['description'],
-                'source'           => $data['source'] ?? 'system',
-                'entity_type'      => $data['entity_type'] ?? null,
-                'entity_id'        => $data['entity_id'] ?? null,
-                'transaction_id'   => $data['transaction_id'] ?? null,
-                'account_id'       => $data['account_id'] ?? null,
-                'user_id'          => $data['user_id'] ?? null,
-                'rule_id'          => $data['rule_id'] ?? null,
-                'pattern_data'     => $data['pattern_data'] ?? null,
-                'evidence'         => $data['evidence'] ?? null,
-                'risk_score'       => $data['risk_score'] ?? 0,
-                'confidence_score' => $data['confidence_score'] ?? 0,
-                'metadata'         => $data['metadata'] ?? [],
-                'tags'             => $data['tags'] ?? [],
-                'detected_at'      => $data['detected_at'] ?? now(),
-                'expires_at'       => $this->calculateExpiryDate($data['severity'] ?? 'medium'),
-            ]);
+                // Get the created alert from read model
+                $alert = ComplianceAlert::find($aggregate->getId());
 
-            // Check for similar alerts
-            $similarAlerts = $this->findSimilarAlerts($alert);
+                if (! $alert) {
+                    throw new Exception('Alert not found after creation');
+                }
 
-            // Determine if escalation needed
-            if ($this->shouldEscalate($alert, $similarAlerts)) {
-                $this->escalateAlert($alert, $similarAlerts);
-            }
+                // Check for automatic escalation
+                $this->checkForEscalation($alert);
 
-            // Auto-assign if rules match
-            $this->autoAssignAlert($alert);
+                // Notify compliance team if high severity
+                if (in_array($alert->severity, ['high', 'critical'])) {
+                    $this->notifyComplianceTeam($alert);
+                }
 
-            // Send notifications
-            $this->sendAlertNotifications($alert);
-
-            DB::commit();
-
-            Log::info('Compliance alert created', [
-                'alert_id' => $alert->alert_id,
-                'type'     => $alert->type,
-                'severity' => $alert->severity,
-            ]);
-
-            return $alert;
-        } catch (Exception $e) {
-            DB::rollBack();
-
-            Log::error('Failed to create compliance alert', [
-                'error' => $e->getMessage(),
-                'data'  => $data,
-            ]);
-
-            throw $e;
-        }
-    }
-
-    /**
-     * Update alert status.
-     */
-    public function updateAlertStatus(ComplianceAlert $alert, string $status, ?User $user = null, ?string $notes = null): ComplianceAlert
-    {
-        DB::beginTransaction();
-
-        try {
-            $previousStatus = $alert->status;
-
-            $alert->update([
-                'status'            => $status,
-                'status_changed_at' => now(),
-                'status_changed_by' => $user?->id,
-            ]);
-
-            // Add to history
-            $history = $alert->history ?? [];
-            $history[] = [
-                'timestamp'   => now()->toIso8601String(),
-                'action'      => 'status_change',
-                'from_status' => $previousStatus,
-                'to_status'   => $status,
-                'user_id'     => $user?->id,
-                'user_name'   => $user?->name,
-                'notes'       => $notes,
-            ];
-            $alert->update(['history' => $history]);
-
-            // Handle status-specific actions
-            switch ($status) {
-                case ComplianceAlert::STATUS_RESOLVED:
-                    $this->handleAlertResolution($alert, $user, $notes);
-                    break;
-
-                case ComplianceAlert::STATUS_ESCALATED:
-                    $this->handleAlertEscalation($alert, $user, $notes);
-                    break;
-
-                case ComplianceAlert::STATUS_FALSE_POSITIVE:
-                    $this->handleFalsePositive($alert, $user, $notes);
-                    break;
-            }
-
-            DB::commit();
-
-            return $alert;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-    /**
-     * Assign alert to user.
-     */
-    public function assignAlert(ComplianceAlert $alert, User $assignee, ?User $assignedBy = null): ComplianceAlert
-    {
-        $alert->update([
-            'assigned_to' => $assignee->id,
-            'assigned_at' => now(),
-            'assigned_by' => $assignedBy?->id,
-        ]);
-
-        // Add to history
-        $history = $alert->history ?? [];
-        $history[] = [
-            'timestamp'        => now()->toIso8601String(),
-            'action'           => 'assigned',
-            'assigned_to'      => $assignee->id,
-            'assigned_to_name' => $assignee->name,
-            'assigned_by'      => $assignedBy?->id,
-            'assigned_by_name' => $assignedBy?->name,
-        ];
-        $alert->update(['history' => $history]);
-
-        // Notify assignee
-        $assignee->notify(new \App\Notifications\AlertAssigned($alert));
-
-        return $alert;
-    }
-
-    /**
-     * Add investigation notes to alert.
-     */
-    public function addInvestigationNote(ComplianceAlert $alert, string $note, User $user, array $attachments = []): ComplianceAlert
-    {
-        $notes = $alert->investigation_notes ?? [];
-
-        $notes[] = [
-            'id'          => uniqid('note_'),
-            'timestamp'   => now()->toIso8601String(),
-            'user_id'     => $user->id,
-            'user_name'   => $user->name,
-            'note'        => $note,
-            'attachments' => $attachments,
-        ];
-
-        $alert->update(['investigation_notes' => $notes]);
-
-        return $alert;
-    }
-
-    /**
-     * Link alerts together.
-     */
-    public function linkAlerts(ComplianceAlert $alert, array $relatedAlertIds, string $linkType = 'related'): ComplianceAlert
-    {
-        $linkedAlerts = $alert->linked_alerts ?? [];
-
-        foreach ($relatedAlertIds as $relatedId) {
-            $linkedAlerts[] = [
-                'alert_id'  => $relatedId,
-                'link_type' => $linkType,
-                'linked_at' => now()->toIso8601String(),
-            ];
-        }
-
-        $alert->update(['linked_alerts' => $linkedAlerts]);
-
-        return $alert;
-    }
-
-    /**
-     * Create case from alerts.
-     */
-    public function createCaseFromAlerts(array $alertIds, array $caseData): ComplianceCase
-    {
-        DB::beginTransaction();
-
-        try {
-            // Get alerts
-            $alerts = ComplianceAlert::whereIn('id', $alertIds)->get();
-
-            // Create case
-            $case = ComplianceCase::create([
-                'case_id'          => $this->generateCaseId(),
-                'title'            => $caseData['title'],
-                'description'      => $caseData['description'] ?? $this->generateCaseDescription($alerts),
-                'priority'         => $caseData['priority'] ?? $this->determineCasePriority($alerts),
-                'status'           => ComplianceCase::STATUS_OPEN,
-                'type'             => $caseData['type'] ?? 'investigation',
-                'alert_count'      => $alerts->count(),
-                'total_risk_score' => $alerts->sum('risk_score'),
-                'entities'         => $this->extractEntitiesFromAlerts($alerts),
-                'evidence'         => $this->consolidateEvidence($alerts),
-                'assigned_to'      => $caseData['assigned_to'] ?? null,
-                'created_by'       => $caseData['created_by'] ?? null,
-            ]);
-
-            // Link alerts to case
-            foreach ($alerts as $alert) {
-                $alert->update([
-                    'case_id' => $case->id,
-                    'status'  => ComplianceAlert::STATUS_IN_REVIEW,
+                Log::info('Compliance alert created', [
+                    'alert_id' => $alert->id,
+                    'type'     => $alert->type,
+                    'severity' => $alert->severity,
                 ]);
+
+                return $alert;
+            } catch (Exception $e) {
+                Log::error('Failed to create compliance alert', [
+                    'error' => $e->getMessage(),
+                    'data'  => $data,
+                ]);
+                throw $e;
             }
+        });
+    }
 
-            DB::commit();
+    /**
+     * Assign an alert to a user.
+     */
+    public function assignAlert(string $alertId, string $userId, ?string $notes = null): ComplianceAlert
+    {
+        return DB::transaction(function () use ($alertId, $userId, $notes) {
+            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+            $aggregate->assign($userId, auth()->id(), $notes);
+            $aggregate->persist();
 
-            Log::info('Compliance case created from alerts', [
-                'case_id'     => $case->case_id,
-                'alert_count' => $alerts->count(),
+            return ComplianceAlert::findOrFail($alertId);
+        });
+    }
+
+    /**
+     * Change alert status.
+     */
+    public function changeStatus(string $alertId, string $newStatus, ?string $reason = null): ComplianceAlert
+    {
+        return DB::transaction(function () use ($alertId, $newStatus, $reason) {
+            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+            $aggregate->changeStatus($newStatus, $reason, auth()->id());
+            $aggregate->persist();
+
+            return ComplianceAlert::findOrFail($alertId);
+        });
+    }
+
+    /**
+     * Add a note to an alert.
+     */
+    public function addNote(string $alertId, string $note, array $attachments = []): ComplianceAlert
+    {
+        return DB::transaction(function () use ($alertId, $note, $attachments) {
+            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+            $aggregate->addNote($note, auth()->id() ?? 'system', $attachments);
+            $aggregate->persist();
+
+            return ComplianceAlert::findOrFail($alertId);
+        });
+    }
+
+    /**
+     * Resolve an alert.
+     */
+    public function resolveAlert(string $alertId, string $resolution, ?string $notes = null): ComplianceAlert
+    {
+        return DB::transaction(function () use ($alertId, $resolution, $notes) {
+            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+            $aggregate->resolve($resolution, auth()->id() ?? 'system', $notes);
+            $aggregate->persist();
+
+            Event::dispatch(new AlertResolved($alertId, $resolution, auth()->id() ?? 'system'));
+
+            return ComplianceAlert::findOrFail($alertId);
+        });
+    }
+
+    /**
+     * Link related alerts.
+     */
+    public function linkAlerts(string $alertId, array $linkedAlertIds, string $linkType = 'related'): ComplianceAlert
+    {
+        return DB::transaction(function () use ($alertId, $linkedAlertIds, $linkType) {
+            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+            $aggregate->linkAlerts($linkedAlertIds, $linkType, auth()->id());
+            $aggregate->persist();
+
+            return ComplianceAlert::findOrFail($alertId);
+        });
+    }
+
+    /**
+     * Escalate alert to case.
+     */
+    public function escalateToCase(string $alertId, string $reason): ComplianceCase
+    {
+        return DB::transaction(function () use ($alertId, $reason) {
+            $alert = ComplianceAlert::findOrFail($alertId);
+
+            // Create new case
+            $case = ComplianceCase::create([
+                'case_number' => $this->generateCaseNumber(),
+                'priority'    => $this->mapSeverityToPriority($alert->severity),
+                'status'      => 'open',
+                'description' => "Escalated from alert: {$alert->description}",
+                'created_by'  => auth()->id() ?? 'system',
+            ]);
+
+            // Update alert through aggregate
+            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+            $aggregate->escalateToCase($case->id, auth()->id() ?? 'system', $reason);
+            $aggregate->persist();
+
+            // Add alert to case
+            $case->alerts()->attach($alertId);
+
+            Event::dispatch(new AlertEscalated($alertId, $case->id, $reason));
+
+            Log::info('Alert escalated to case', [
+                'alert_id' => $alertId,
+                'case_id'  => $case->id,
+                'reason'   => $reason,
             ]);
 
             return $case;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
+        });
+    }
+
+    /**
+     * Get alert statistics for a given period.
+     */
+    public function getStatistics(array $filters = []): array
+    {
+        $query = ComplianceAlert::query();
+
+        if (isset($filters['start_date'])) {
+            $query->where('created_at', '>=', $filters['start_date']);
+        }
+
+        if (isset($filters['end_date'])) {
+            $query->where('created_at', '<=', $filters['end_date']);
+        }
+
+        return [
+            'total'     => $query->count(),
+            'by_status' => $query->clone()->groupBy('status')
+                ->selectRaw('status, count(*) as count')
+                ->pluck('count', 'status')
+                ->toArray(),
+            'by_severity' => $query->clone()->groupBy('severity')
+                ->selectRaw('severity, count(*) as count')
+                ->pluck('count', 'severity')
+                ->toArray(),
+            'by_type' => $query->clone()->groupBy('type')
+                ->selectRaw('type, count(*) as count')
+                ->pluck('count', 'type')
+                ->toArray(),
+            'escalation_rate'         => $this->calculateEscalationRate($query->clone()),
+            'average_resolution_time' => $this->calculateAverageResolutionTime($query->clone()),
+        ];
+    }
+
+    /**
+     * Auto-close old alerts based on severity.
+     */
+    public function autoCloseOldAlerts(): int
+    {
+        $count = 0;
+
+        foreach (self::AUTO_CLOSE_HOURS as $severity => $hours) {
+            if ($hours === 0) {
+                continue; // Skip critical alerts
+            }
+
+            $cutoffDate = now()->subHours($hours);
+
+            $alerts = ComplianceAlert::where('severity', $severity)
+                ->where('status', 'open')
+                ->where('created_at', '<', $cutoffDate)
+                ->get();
+
+            foreach ($alerts as $alert) {
+                $this->resolveAlert(
+                    $alert->id,
+                    'auto_closed',
+                    "Automatically closed after {$hours} hours of inactivity"
+                );
+                $count++;
+            }
+        }
+
+        Log::info("Auto-closed {$count} old alerts");
+
+        return $count;
+    }
+
+    /**
+     * Check if alert should be escalated based on thresholds.
+     */
+    private function checkForEscalation(ComplianceAlert $alert): void
+    {
+        $threshold = self::ESCALATION_THRESHOLDS[$alert->severity] ?? 5;
+
+        // Count similar recent alerts
+        $similarCount = ComplianceAlert::where('type', $alert->type)
+            ->where('entity_type', $alert->entity_type)
+            ->where('entity_id', $alert->entity_id)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->count();
+
+        if ($similarCount >= $threshold) {
+            $this->escalateToCase(
+                $alert->id,
+                "Automatic escalation: {$similarCount} similar alerts in the past 7 days"
+            );
         }
     }
 
     /**
-     * Get alert statistics.
+     * Notify compliance team about high-severity alerts.
      */
-    public function getAlertStatistics(array $filters = []): array
+    private function notifyComplianceTeam(ComplianceAlert $alert): void
+    {
+        // Get compliance team users
+        $complianceTeam = User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['compliance_officer', 'compliance_manager']);
+        })->get();
+
+        // Send notifications
+        // Notification::send($complianceTeam, new HighSeverityAlertNotification($alert));
+
+        Log::info('Compliance team notified about high-severity alert', [
+            'alert_id'       => $alert->id,
+            'notified_users' => $complianceTeam->pluck('id')->toArray(),
+        ]);
+    }
+
+    /**
+     * Generate unique case number.
+     */
+    private function generateCaseNumber(): string
+    {
+        $prefix = 'CASE';
+        $year = now()->format('Y');
+        $random = strtoupper(Str::random(6));
+
+        return "{$prefix}-{$year}-{$random}";
+    }
+
+    /**
+     * Map alert severity to case priority.
+     */
+    private function mapSeverityToPriority(string $severity): string
+    {
+        return match ($severity) {
+            'critical' => 'urgent',
+            'high'     => 'high',
+            'medium'   => 'medium',
+            'low'      => 'low',
+            default    => 'medium',
+        };
+    }
+
+    /**
+     * Calculate escalation rate from query.
+     */
+    private function calculateEscalationRate($query): float
+    {
+        $total = $query->count();
+        if ($total === 0) {
+            return 0.0;
+        }
+
+        $escalated = $query->whereNotNull('case_id')->count();
+
+        return round(($escalated / $total) * 100, 2);
+    }
+
+    /**
+     * Calculate average resolution time from query.
+     */
+    private function calculateAverageResolutionTime($query): ?float
+    {
+        $resolved = $query->whereNotNull('resolved_at')
+            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_hours')
+            ->first();
+
+        return $resolved ? round($resolved->avg_hours, 2) : null;
+    }
+
+    /**
+     * Search alerts based on criteria.
+     */
+    public function searchAlerts(array $filters): array
     {
         $query = ComplianceAlert::query();
 
-        // Apply filters
-        if (isset($filters['date_from'])) {
-            $query->where('created_at', '>=', $filters['date_from']);
-        }
-        if (isset($filters['date_to'])) {
-            $query->where('created_at', '<=', $filters['date_to']);
-        }
         if (isset($filters['type'])) {
             $query->where('type', $filters['type']);
         }
+
         if (isset($filters['severity'])) {
             $query->where('severity', $filters['severity']);
         }
 
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['entity_type'])) {
+            $query->where('entity_type', $filters['entity_type']);
+        }
+
+        if (isset($filters['entity_id'])) {
+            $query->where('entity_id', $filters['entity_id']);
+        }
+
+        if (isset($filters['assigned_to'])) {
+            $query->where('assigned_to', $filters['assigned_to']);
+        }
+
+        if (isset($filters['start_date'])) {
+            $query->where('created_at', '>=', $filters['start_date']);
+        }
+
+        if (isset($filters['end_date'])) {
+            $query->where('created_at', '<=', $filters['end_date']);
+        }
+
+        if (isset($filters['min_risk_score'])) {
+            $query->where('risk_score', '>=', $filters['min_risk_score']);
+        }
+
+        if (isset($filters['max_risk_score'])) {
+            $query->where('risk_score', '<=', $filters['max_risk_score']);
+        }
+
+        $perPage = $filters['per_page'] ?? 20;
+        $page = $filters['page'] ?? 1;
+
+        $results = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
         return [
-            'total_alerts'        => $query->count(),
-            'by_status'           => (clone $query)->groupBy('status')->selectRaw('status, count(*) as total')->get()->pluck('total', 'status'),
-            'by_severity'         => (clone $query)->groupBy('severity')->selectRaw('severity, count(*) as total')->get()->pluck('total', 'severity'),
-            'by_type'             => (clone $query)->groupBy('type')->selectRaw('type, count(*) as total')->get()->pluck('total', 'type'),
-            'avg_resolution_time' => $this->calculateAverageResolutionTime($query),
-            'false_positive_rate' => $this->calculateFalsePositiveRate($query),
-            'escalation_rate'     => $this->calculateEscalationRate($query),
+            'data' => $results->items(),
+            'meta' => [
+                'total'        => $results->total(),
+                'per_page'     => $results->perPage(),
+                'current_page' => $results->currentPage(),
+                'last_page'    => $results->lastPage(),
+            ],
         ];
-    }
-
-    /**
-     * Get alert trends.
-     */
-    public function getAlertTrends(string $period = '7d'): array
-    {
-        $startDate = match ($period) {
-            '24h'   => now()->subDay(),
-            '7d'    => now()->subWeek(),
-            '30d'   => now()->subMonth(),
-            '90d'   => now()->subMonths(3),
-            default => now()->subWeek(),
-        };
-
-        $alerts = ComplianceAlert::where('created_at', '>=', $startDate)
-            ->selectRaw('DATE(created_at) as date, count(*) as count, severity')
-            ->groupBy('date', 'severity')
-            ->get();
-
-        // Format for charting
-        $trends = [];
-        foreach ($alerts as $alert) {
-            $trends[$alert->date][$alert->severity] = $alert->count;
-        }
-
-        return $trends;
-    }
-
-    /**
-     * Search alerts.
-     */
-    public function searchAlerts(array $criteria, int $limit = 50): Collection
-    {
-        $query = ComplianceAlert::query();
-
-        // Text search
-        if (isset($criteria['search'])) {
-            $search = $criteria['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('alert_id', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by status
-        if (isset($criteria['status'])) {
-            if (is_array($criteria['status'])) {
-                $query->whereIn('status', $criteria['status']);
-            } else {
-                $query->where('status', $criteria['status']);
-            }
-        }
-
-        // Filter by severity
-        if (isset($criteria['severity'])) {
-            if (is_array($criteria['severity'])) {
-                $query->whereIn('severity', $criteria['severity']);
-            } else {
-                $query->where('severity', $criteria['severity']);
-            }
-        }
-
-        // Filter by type
-        if (isset($criteria['type'])) {
-            $query->where('type', $criteria['type']);
-        }
-
-        // Filter by assignment
-        if (isset($criteria['assigned_to'])) {
-            $query->where('assigned_to', $criteria['assigned_to']);
-        }
-
-        // Filter by date range
-        if (isset($criteria['date_from'])) {
-            $query->where('created_at', '>=', $criteria['date_from']);
-        }
-        if (isset($criteria['date_to'])) {
-            $query->where('created_at', '<=', $criteria['date_to']);
-        }
-
-        // Filter by risk score
-        if (isset($criteria['min_risk_score'])) {
-            $query->where('risk_score', '>=', $criteria['min_risk_score']);
-        }
-
-        // Sorting
-        $sortBy = $criteria['sort_by'] ?? 'created_at';
-        $sortOrder = $criteria['sort_order'] ?? 'desc';
-        $query->orderBy($sortBy, $sortOrder);
-
-        return $query->limit($limit)->get();
-    }
-
-    // Private methods
-
-    private function generateAlertTitle(array $data): string
-    {
-        $type = ucfirst(str_replace('_', ' ', $data['type'] ?? 'alert'));
-        $severity = ucfirst($data['severity'] ?? 'medium');
-
-        return sprintf('%s %s Alert', $severity, $type);
-    }
-
-    private function generateAlertId(string $type): string
-    {
-        $prefix = match ($type) {
-            'transaction' => 'TXN',
-            'pattern'     => 'PTN',
-            'velocity'    => 'VEL',
-            'threshold'   => 'THR',
-            'behavior'    => 'BHV',
-            default       => 'ALT',
-        };
-
-        return $prefix . '-' . date('Ymd') . '-' . strtoupper(uniqid());
-    }
-
-    private function generateCaseId(): string
-    {
-        return 'CASE-' . date('Ymd') . '-' . strtoupper(uniqid());
-    }
-
-    private function calculateExpiryDate(string $severity): ?\Carbon\Carbon
-    {
-        $hours = self::AUTO_CLOSE_HOURS[$severity] ?? 72;
-
-        if ($hours === 0) {
-            return null; // No expiry
-        }
-
-        return now()->addHours($hours);
-    }
-
-    private function findSimilarAlerts(ComplianceAlert $alert): Collection
-    {
-        $query = ComplianceAlert::where('type', $alert->type)
-            ->where('status', '!=', ComplianceAlert::STATUS_RESOLVED)
-            ->where('id', '!=', $alert->id);
-
-        // Similar entity
-        if ($alert->entity_id) {
-            $query->where('entity_id', $alert->entity_id);
-        }
-
-        // Similar user
-        if ($alert->user_id) {
-            $query->where('user_id', $alert->user_id);
-        }
-
-        // Similar account
-        if ($alert->account_id) {
-            $query->where('account_id', $alert->account_id);
-        }
-
-        // Within time window
-        $query->where('created_at', '>=', now()->subHours(24));
-
-        return $query->get();
-    }
-
-    private function shouldEscalate(ComplianceAlert $alert, Collection $similarAlerts): bool
-    {
-        $threshold = self::ESCALATION_THRESHOLDS[$alert->severity] ?? 3;
-
-        // Always escalate critical alerts
-        if ($alert->severity === 'critical') {
-            return true;
-        }
-
-        // Escalate if threshold exceeded
-        if ($similarAlerts->count() >= $threshold) {
-            return true;
-        }
-
-        // Escalate if high risk score
-        if ($alert->risk_score >= 80) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private function escalateAlert(ComplianceAlert $alert, Collection $similarAlerts): void
-    {
-        $alert->update([
-            'status'            => ComplianceAlert::STATUS_ESCALATED,
-            'escalated_at'      => now(),
-            'escalation_reason' => $this->generateEscalationReason($alert, $similarAlerts),
-        ]);
-
-        Event::dispatch(new AlertEscalated($alert, $similarAlerts));
-
-        Log::warning('Alert escalated', [
-            'alert_id'      => $alert->alert_id,
-            'similar_count' => $similarAlerts->count(),
-        ]);
-    }
-
-    private function generateEscalationReason(ComplianceAlert $alert, Collection $similarAlerts): string
-    {
-        if ($alert->severity === 'critical') {
-            return 'Critical severity alert requires immediate attention';
-        }
-
-        if ($alert->risk_score >= 80) {
-            return 'High risk score (' . $alert->risk_score . ') requires escalation';
-        }
-
-        if ($similarAlerts->count() > 0) {
-            return 'Multiple similar alerts detected (' . $similarAlerts->count() . ' similar alerts in 24h)';
-        }
-
-        return 'Escalation threshold reached';
-    }
-
-    private function autoAssignAlert(ComplianceAlert $alert): void
-    {
-        // Auto-assignment logic based on rules
-        // This would typically involve checking user roles, workload, expertise, etc.
-
-        // Example: Assign high severity alerts to senior analysts
-        if ($alert->severity === 'high' || $alert->severity === 'critical') {
-            try {
-                $seniorAnalyst = User::role('senior_compliance_analyst')->first();
-                if ($seniorAnalyst) {
-                    $this->assignAlert($alert, $seniorAnalyst);
-                }
-            } catch (Exception $e) {
-                // Role doesn't exist or no users with this role - skip auto-assignment
-                Log::debug('Auto-assignment skipped: ' . $e->getMessage());
-            }
-        }
-    }
-
-    private function sendAlertNotifications(ComplianceAlert $alert): void
-    {
-        // Send notifications based on severity and type
-        if ($alert->severity === 'critical') {
-            // Immediate notification to compliance team
-            try {
-                $complianceTeam = User::role(['compliance_officer', 'senior_compliance_analyst'])->get();
-                if ($complianceTeam->isNotEmpty()) {
-                    Notification::send($complianceTeam, new \App\Notifications\CriticalComplianceAlert($alert));
-                }
-            } catch (Exception $e) {
-                // Roles don't exist - skip team notification
-                Log::debug('Compliance team notification skipped: ' . $e->getMessage());
-            }
-        }
-
-        // Send to assigned user if any
-        if ($alert->assigned_to) {
-            $assignee = User::find($alert->assigned_to);
-            $assignee?->notify(new \App\Notifications\AlertAssigned($alert));
-        }
-    }
-
-    private function handleAlertResolution(ComplianceAlert $alert, ?User $user, ?string $notes): void
-    {
-        $alert->update([
-            'resolved_at'           => now(),
-            'resolved_by'           => $user?->id,
-            'resolution_notes'      => $notes,
-            'resolution_time_hours' => $alert->created_at->diffInHours(now()),
-        ]);
-
-        Event::dispatch(new AlertResolved($alert));
-
-        // Update rule effectiveness if applicable
-        if ($alert->rule_id) {
-            $this->updateRuleEffectiveness($alert->rule_id, true);
-        }
-    }
-
-    private function handleAlertEscalation(ComplianceAlert $alert, ?User $user, ?string $notes): void
-    {
-        // Create high priority case if not already linked
-        if (! $alert->case_id) {
-            $case = $this->createCaseFromAlerts(
-                [$alert->id],
-                [
-                    'title'       => 'Escalated Alert: ' . $alert->title,
-                    'description' => $notes ?? $alert->description,
-                    'priority'    => 'high',
-                    'created_by'  => $user?->id,
-                ]
-            );
-
-            $alert->update(['case_id' => $case->id]);
-        }
-    }
-
-    private function handleFalsePositive(ComplianceAlert $alert, ?User $user, ?string $notes): void
-    {
-        $alert->update([
-            'resolved_at'          => now(),
-            'resolved_by'          => $user?->id,
-            'false_positive_notes' => $notes,
-        ]);
-
-        // Update rule effectiveness
-        if ($alert->rule_id) {
-            $this->updateRuleEffectiveness($alert->rule_id, false);
-        }
-
-        // Log for pattern analysis
-        Log::info('False positive alert', [
-            'alert_id' => $alert->alert_id,
-            'rule_id'  => $alert->rule_id,
-            'notes'    => $notes,
-        ]);
-    }
-
-    private function updateRuleEffectiveness(string $ruleId, bool $truePositive): void
-    {
-        $rule = \App\Domain\Compliance\Models\TransactionMonitoringRule::find($ruleId);
-
-        if ($rule) {
-            if ($truePositive) {
-                $rule->increment('true_positives');
-            } else {
-                $rule->increment('false_positives');
-            }
-
-            // Recalculate accuracy
-            $total = $rule->true_positives + $rule->false_positives;
-            if ($total > 0) {
-                $rule->update([
-                    'accuracy_rate' => ($rule->true_positives / $total) * 100,
-                ]);
-            }
-        }
-    }
-
-    private function determineCasePriority(Collection $alerts): string
-    {
-        $maxSeverity = $alerts->pluck('severity')->map(function ($severity) {
-            return match ($severity) {
-                'critical' => 4,
-                'high'     => 3,
-                'medium'   => 2,
-                'low'      => 1,
-                default    => 0,
-            };
-        })->max();
-
-        return match ($maxSeverity) {
-            4       => 'critical',
-            3       => 'high',
-            2       => 'medium',
-            1       => 'low',
-            default => 'medium',
-        };
-    }
-
-    private function generateCaseDescription(Collection $alerts): string
-    {
-        $types = $alerts->pluck('type')->unique()->implode(', ');
-        $count = $alerts->count();
-        $riskScore = $alerts->avg('risk_score');
-
-        return "Investigation case for {$count} alerts of type(s): {$types}. Average risk score: " . round($riskScore, 2);
-    }
-
-    private function extractEntitiesFromAlerts(Collection $alerts): array
-    {
-        $entities = [];
-
-        foreach ($alerts as $alert) {
-            if ($alert->entity_type && $alert->entity_id) {
-                $entities[] = [
-                    'type' => $alert->entity_type,
-                    'id'   => $alert->entity_id,
-                ];
-            }
-        }
-
-        return array_unique($entities, SORT_REGULAR);
-    }
-
-    private function consolidateEvidence(Collection $alerts): array
-    {
-        $evidence = [];
-
-        foreach ($alerts as $alert) {
-            if ($alert->evidence) {
-                $evidence[] = [
-                    'alert_id'    => $alert->alert_id,
-                    'evidence'    => $alert->evidence,
-                    'detected_at' => $alert->detected_at,
-                ];
-            }
-        }
-
-        return $evidence;
-    }
-
-    private function calculateAverageResolutionTime($query): float
-    {
-        $resolved = clone $query;
-        $resolved->whereNotNull('resolved_at');
-
-        $avg = $resolved->avg('resolution_time_hours');
-
-        return $avg ?? 0;
-    }
-
-    private function calculateFalsePositiveRate($query): float
-    {
-        $total = clone $query;
-        $totalCount = $total->count();
-
-        if ($totalCount === 0) {
-            return 0;
-        }
-
-        $falsePositives = clone $query;
-        $falsePositiveCount = $falsePositives->where('status', ComplianceAlert::STATUS_FALSE_POSITIVE)->count();
-
-        return ($falsePositiveCount / $totalCount) * 100;
-    }
-
-    private function calculateEscalationRate($query): float
-    {
-        $total = clone $query;
-        $totalCount = $total->count();
-
-        if ($totalCount === 0) {
-            return 0;
-        }
-
-        $escalated = clone $query;
-        $escalatedCount = $escalated->where('status', ComplianceAlert::STATUS_ESCALATED)->count();
-
-        return ($escalatedCount / $totalCount) * 100;
     }
 }

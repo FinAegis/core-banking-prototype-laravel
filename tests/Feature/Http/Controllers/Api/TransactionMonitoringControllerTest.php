@@ -6,7 +6,6 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transaction;
-use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Models\MonitoringRule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -55,8 +54,16 @@ class TransactionMonitoringControllerTest extends TestCase
 
     public function test_can_get_transaction_details(): void
     {
-        // Test with a dummy transaction ID
-        $response = $this->getJson('/api/transaction-monitoring/test-123');
+        $transaction = Transaction::factory()->create([
+            'aggregate_uuid'   => $this->account->uuid,
+            'event_properties' => ['amount' => 1000],
+            'meta_data'        => [
+                'type'              => 'deposit',
+                'compliance_status' => 'pending',
+                'account_id'        => $this->account->id,
+            ],
+        ]);
+        $response = $this->getJson('/api/transaction-monitoring/' . $transaction->id);
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -69,7 +76,16 @@ class TransactionMonitoringControllerTest extends TestCase
 
     public function test_can_flag_transaction(): void
     {
-        $response = $this->postJson('/api/transaction-monitoring/test-123/flag', [
+        $transaction = Transaction::factory()->create([
+            'aggregate_uuid'   => $this->account->uuid,
+            'event_properties' => ['amount' => 50000],
+            'meta_data'        => [
+                'type'              => 'transfer',
+                'compliance_status' => 'pending',
+                'account_id'        => $this->account->id,
+            ],
+        ]);
+        $response = $this->postJson('/api/transaction-monitoring/' . $transaction->id . '/flag', [
             'reason'      => 'suspicious_amount',
             'severity'    => 'high',
             'description' => 'Large transfer to unknown account',

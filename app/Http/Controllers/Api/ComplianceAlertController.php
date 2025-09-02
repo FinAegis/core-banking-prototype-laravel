@@ -139,7 +139,7 @@ class ComplianceAlertController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $alert = ComplianceAlert::with(['assignedTo', 'case'])
+        $alert = ComplianceAlert::with(['assignedUser', 'complianceCase'])
             ->findOrFail($id);
 
         return response()->json([
@@ -232,11 +232,13 @@ class ComplianceAlertController extends Controller
             'resolution' => ['required_if:status,resolved,closed', 'string', 'max:1000'],
         ]);
 
+        $alert = ComplianceAlert::findOrFail($id);
+
         $alert = $this->alertService->updateAlertStatus(
-            $id,
+            $alert,
             $validated['status'],
-            $validated['notes'] ?? null,
-            $validated['resolution'] ?? null
+            auth()->user(),
+            $validated['notes'] ?? null
         );
 
         return response()->json([
@@ -332,10 +334,12 @@ class ComplianceAlertController extends Controller
             'note'     => ['required', 'string', 'max:2000'],
             'findings' => ['sometimes', 'array'],
         ]);
+        $alert = ComplianceAlert::findOrFail($id);
 
         $this->alertService->addInvestigationNote(
-            $id,
+            $alert,
             $validated['note'],
+            auth()->user(),
             $validated['findings'] ?? []
         );
 
@@ -381,10 +385,18 @@ class ComplianceAlertController extends Controller
             'notes'             => ['sometimes', 'string', 'max:500'],
         ]);
 
+        $alerts = ComplianceAlert::whereIn('alert_id', $validated['alert_ids'])->get();
+        if ($alerts->count() < 2) {
+            return response()->json(['error' => 'Not enough alerts found'], 404);
+        }
+
+        $primaryAlert = $alerts->first();
+        $relatedAlertIds = $alerts->skip(1)->pluck('alert_id')->toArray();
+
         $this->alertService->linkAlerts(
-            $validated['alert_ids'],
-            $validated['relationship_type'],
-            $validated['notes'] ?? null
+            $primaryAlert,
+            $relatedAlertIds,
+            $validated['relationship_type']
         );
 
         return response()->json([
@@ -433,8 +445,11 @@ class ComplianceAlertController extends Controller
 
         $case = $this->alertService->createCaseFromAlerts(
             $validated['alert_ids'],
-            $validated['title'],
-            $validated['description'] ?? null
+            [
+                'title'       => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'priority'    => $validated['priority'] ?? 'medium',
+            ]
         );
 
         return response()->json([
@@ -459,17 +474,17 @@ class ComplianceAlertController extends Controller
      *         @OA\Schema(type="string", enum={"today", "week", "month", "quarter", "year"})
      *     ),
      *     @OA\Response(
-     *         response=200,
-     *         description="Alert statistics",
-     *         @OA\JsonContent()
-     *     )
-     * )
+         response=200,
+         description="Alert statistics",
+         @OA\JsonContent()
+     )
+ )
      */
     public function statistics(Request $request): JsonResponse
     {
         $period = $request->query('period', 'month');
 
-        $statistics = $this->alertService->getAlertStatistics($period);
+        $statistics = $this->alertService->getAlertStatistics(['period' => $period]);
 
         return response()->json([
             'data' => $statistics,
@@ -492,17 +507,17 @@ class ComplianceAlertController extends Controller
      *         @OA\Schema(type="integer", default=30)
      *     ),
      *     @OA\Response(
-     *         response=200,
-     *         description="Alert trends",
-     *         @OA\JsonContent()
-     *     )
-     * )
+         response=200,
+         description="Alert trends",
+         @OA\JsonContent()
+     )
+ )
      */
     public function trends(Request $request): JsonResponse
     {
         $days = $request->integer('days', 30);
 
-        $trends = $this->alertService->getAlertTrends($days);
+        $trends = $this->alertService->getAlertTrends($days . 'd');
 
         return response()->json([
             'data' => $trends,

@@ -65,7 +65,7 @@ class ComplianceCaseController extends Controller
     public function index(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'status'      => ['sometimes', 'string', Rule::in(['open', 'investigating', 'pending_review', 'resolved', 'closed'])],
+            'status'      => ['sometimes', 'string', Rule::in(['open', 'in_progress', 'investigating', 'pending_review', 'resolved', 'closed'])],
             'priority'    => ['sometimes', 'string', Rule::in(['low', 'medium', 'high', 'critical'])],
             'assigned_to' => ['sometimes', 'integer', 'exists:users,id'],
             'page'        => ['sometimes', 'integer', 'min:1'],
@@ -170,6 +170,7 @@ class ComplianceCaseController extends Controller
             'title'       => ['required', 'string', 'max:255'],
             'description' => ['sometimes', 'string', 'max:2000'],
             'priority'    => ['required', Rule::in(['low', 'medium', 'high', 'critical'])],
+            'type'        => ['required', Rule::in(['investigation', 'sar', 'ctr', 'regulatory', 'fraud', 'aml'])],
             'entities'    => ['sometimes', 'array'],
             'evidence'    => ['sometimes', 'array'],
         ]);
@@ -182,10 +183,11 @@ class ComplianceCaseController extends Controller
                 'title'       => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'priority'    => $validated['priority'],
+                'type'        => $validated['type'],
                 'status'      => 'open',
                 'entities'    => $validated['entities'] ?? [],
                 'evidence'    => $validated['evidence'] ?? [],
-                'user_id'     => auth()->id(),
+                'created_by'  => auth()->id(),
             ]);
         });
 
@@ -231,19 +233,35 @@ class ComplianceCaseController extends Controller
         $case = ComplianceCase::findOrFail($id);
 
         $validated = $request->validate([
-            'title'       => ['sometimes', 'string', 'max:255'],
-            'description' => ['sometimes', 'string', 'max:2000'],
-            'priority'    => ['sometimes', Rule::in(['low', 'medium', 'high', 'critical'])],
-            'status'      => ['sometimes', Rule::in(['open', 'investigating', 'pending_review', 'resolved', 'closed'])],
+            'title'                 => ['sometimes', 'string', 'max:255'],
+            'description'           => ['sometimes', 'string', 'max:2000'],
+            'priority'              => ['sometimes', Rule::in(['low', 'medium', 'high', 'critical'])],
+            'status'                => ['sometimes', Rule::in(['open', 'in_progress', 'investigating', 'pending_review', 'resolved', 'closed'])],
+            'closure_reason'        => ['sometimes', 'string', 'max:255'],
+            'closure_notes'         => ['sometimes', 'string', 'max:2000'],
+            'actions_taken'         => ['sometimes', 'array'],
+            'investigation_summary' => ['sometimes', 'string', 'max:5000'],
+            'findings'              => ['sometimes', 'array'],
+            'recommendations'       => ['sometimes', 'array'],
         ]);
 
         $case->update($validated);
 
         if (isset($validated['status']) && in_array($validated['status'], ['resolved', 'closed'])) {
-            $case->update([
-                'resolved_at' => now(),
-                'resolved_by' => auth()->id(),
-            ]);
+            $updates = [
+                'closed_at' => now(),
+                'closed_by' => auth()->id(),
+            ];
+            if (isset($validated['closure_reason'])) {
+                $updates['closure_reason'] = $validated['closure_reason'];
+            }
+            if (isset($validated['closure_notes'])) {
+                $updates['closure_notes'] = $validated['closure_notes'];
+            }
+            if (isset($validated['actions_taken'])) {
+                $updates['actions_taken'] = $validated['actions_taken'];
+            }
+            $case->update($updates);
         }
 
         return response()->json([
@@ -461,7 +479,16 @@ class ComplianceCaseController extends Controller
                 'high'   => 'critical',
                 default  => 'high',
             };
-            $case->update(['priority' => $newPriority]);
+            $case->update([
+                'priority'         => $newPriority,
+                'status'           => 'escalated',
+                'escalation_level' => ($case->escalation_level ?? 0) + 1,
+            ]);
+        } else {
+            $case->update([
+                'status'           => 'escalated',
+                'escalation_level' => ($case->escalation_level ?? 0) + 1,
+            ]);
         }
 
         // Add escalation note
@@ -523,7 +550,7 @@ class ComplianceCaseController extends Controller
             'type'        => 'case_created',
             'timestamp'   => $case->created_at,
             'description' => 'Case created',
-            'user'        => $case->user_id,
+            'user'        => $case->created_by,
         ];
 
         // Add alerts
@@ -581,6 +608,14 @@ class ComplianceCaseController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $case = ComplianceCase::findOrFail($id);
+
+        // Prevent deletion of active cases
+        $activeStatuses = ['open', 'in_progress', 'pending_review', 'investigating'];
+        if (in_array($case->status, $activeStatuses)) {
+            return response()->json([
+                'message' => 'Cannot delete active case',
+            ], 422);
+        }
 
         $case->delete();
 

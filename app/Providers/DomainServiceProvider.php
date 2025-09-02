@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Domain\Exchange\Contracts\LiquidityPoolRepositoryInterface;
+use App\Domain\Compliance\Projectors\ComplianceAlertProjector;
 // Repository Interfaces and Implementations
+use App\Domain\Compliance\Projectors\TransactionMonitoringProjector;
+use App\Domain\Compliance\Repositories\ComplianceEventRepository;
+use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
+use App\Domain\Exchange\Contracts\LiquidityPoolRepositoryInterface;
 use App\Domain\Exchange\Contracts\OrderRepositoryInterface;
 use App\Domain\Exchange\Repositories\LiquidityPoolRepository;
+// CQRS Infrastructure
 use App\Domain\Exchange\Repositories\OrderRepository;
 use App\Domain\Shared\CQRS\CommandBus;
+// Compliance domain repositories (Spatie Event Sourcing)
 use App\Domain\Shared\CQRS\QueryBus;
 use App\Domain\Shared\Events\DomainEventBus;
-// CQRS Infrastructure
+// Compliance projectors
 use App\Domain\Stablecoin\Contracts\StablecoinAggregateRepositoryInterface;
 use App\Domain\Stablecoin\Repositories\StablecoinAggregateRepository;
 use App\Infrastructure\CQRS\LaravelCommandBus;
@@ -20,6 +26,7 @@ use App\Infrastructure\CQRS\LaravelQueryBus;
 // Domain Event Bus
 use App\Infrastructure\Events\LaravelDomainEventBus;
 use Illuminate\Support\ServiceProvider;
+use Spatie\EventSourcing\Facades\Projectionist;
 
 /**
  * Service provider for domain layer bindings and configuration.
@@ -36,6 +43,7 @@ class DomainServiceProvider extends ServiceProvider
         $this->registerCQRSInfrastructure();
         $this->registerDomainEventBus();
         $this->registerSagas();
+        $this->registerEventSourcingRepositories();
     }
 
     /**
@@ -46,6 +54,7 @@ class DomainServiceProvider extends ServiceProvider
         $this->registerEventSubscribers();
         $this->registerCommandHandlers();
         $this->registerQueryHandlers();
+        $this->registerProjectors();
     }
 
     /**
@@ -65,6 +74,21 @@ class DomainServiceProvider extends ServiceProvider
         // Stablecoin domain repositories
         $this->app->bind(StablecoinAggregateRepositoryInterface::class, function ($app) {
             return new StablecoinAggregateRepository();
+        });
+    }
+
+    /**
+     * Register Event Sourcing repositories for Compliance domain.
+     */
+    private function registerEventSourcingRepositories(): void
+    {
+        // Compliance Event Sourcing repositories (Spatie)
+        $this->app->singleton(ComplianceEventRepository::class, function ($app) {
+            return new ComplianceEventRepository();
+        });
+
+        $this->app->singleton(ComplianceSnapshotRepository::class, function ($app) {
+            return new ComplianceSnapshotRepository();
         });
     }
 
@@ -135,7 +159,7 @@ class DomainServiceProvider extends ServiceProvider
         if (config('app.env') === 'production' || config('domain.enable_handlers', false)) {
             $commandBus = $this->app->make(CommandBus::class);
 
-            // Note: Handlers will be implemented as features are developed
+            // Note: Command handlers will be registered as features are developed
             // Example pattern for future implementation:
             // $commandBus->register(
             //     \App\Domain\Exchange\Commands\PlaceOrderCommand::class,
@@ -153,12 +177,27 @@ class DomainServiceProvider extends ServiceProvider
         if (config('app.env') === 'production' || config('domain.enable_handlers', false)) {
             $queryBus = $this->app->make(QueryBus::class);
 
-            // Note: Handlers will be implemented as features are developed
+            // Note: Query handlers will be registered as features are developed
             // Example pattern for future implementation:
             // $queryBus->register(
-            //     \App\Domain\Exchange\Queries\GetOrderBookQuery::class,
-            //     \App\Domain\Exchange\Handlers\GetOrderBookHandler::class
+            //     \App\Domain\Exchange\Queries\GetOrderQuery::class,
+            //     \App\Domain\Exchange\Handlers\GetOrderHandler::class
             // );
         }
+    }
+
+    /**
+     * Register Spatie Event Sourcing projectors.
+     */
+    private function registerProjectors(): void
+    {
+        // Register Compliance projectors
+        Projectionist::addProjector(ComplianceAlertProjector::class);
+        Projectionist::addProjector(TransactionMonitoringProjector::class);
+
+        // Other domain projectors can be added here as they are implemented
+        // Example:
+        // Projectionist::addProjector(TreasuryProjector::class);
+        // Projectionist::addProjector(LendingProjector::class);
     }
 }

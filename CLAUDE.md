@@ -324,6 +324,216 @@ app/
 ```
 
 ### Event Sourcing Pattern
+
+## Spatie Event Sourcing Implementation
+
+### Overview
+All domains in this project use [Spatie Event Sourcing](https://spatie.be/docs/laravel-event-sourcing) for maintaining complete audit trails and implementing true event sourcing patterns. This ensures complete auditability, replay capability, and CQRS implementation.
+
+### Standard Structure for Each Domain
+
+Every event-sourced domain follows this pattern:
+
+#### 1. Event Store Tables
+```sql
+-- Events table (e.g., compliance_events, treasury_events)
+CREATE TABLE domain_events (
+    id BIGINT PRIMARY KEY,
+    aggregate_uuid UUID,
+    aggregate_version INT,
+    event_version INT DEFAULT 1,
+    event_class VARCHAR(255),
+    event_properties JSON,
+    meta_data JSON,
+    created_at TIMESTAMP
+);
+
+-- Snapshots table (e.g., compliance_snapshots, treasury_snapshots)
+CREATE TABLE domain_snapshots (
+    id BIGINT PRIMARY KEY,
+    aggregate_uuid UUID,
+    aggregate_version INT,
+    state JSON,
+    created_at TIMESTAMP
+);
+```
+
+#### 2. Domain Models
+```php
+// Event model
+class DomainEvent extends EloquentStoredEvent
+{
+    protected $table = 'domain_events';
+}
+
+// Snapshot model
+class DomainSnapshot extends EloquentSnapshot
+{
+    protected $table = 'domain_snapshots';
+}
+```
+
+#### 3. Repositories
+```php
+// Event repository
+class DomainEventRepository extends EloquentStoredEventRepository
+{
+    protected string $storedEventModel = DomainEvent::class;
+}
+
+// Snapshot repository
+class DomainSnapshotRepository extends EloquentSnapshotRepository
+{
+    protected string $snapshotModel = DomainSnapshot::class;
+}
+```
+
+#### 4. Aggregates
+```php
+use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
+
+class DomainAggregate extends AggregateRoot
+{
+    // Override to use custom repositories
+    protected function getStoredEventRepository(): StoredEventRepository
+    {
+        return app(DomainEventRepository::class);
+    }
+    
+    protected function getSnapshotRepository(): SnapshotRepository
+    {
+        return app(DomainSnapshotRepository::class);
+    }
+    
+    // Business methods
+    public function performAction(): self
+    {
+        $this->recordThat(new ActionPerformed(...));
+        return $this;
+    }
+    
+    // Event handlers
+    protected function applyActionPerformed(ActionPerformed $event): void
+    {
+        // Update aggregate state
+    }
+}
+```
+
+#### 5. Projectors
+```php
+use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
+
+class DomainProjector extends Projector
+{
+    public function onEventOccurred(EventOccurred $event): void
+    {
+        // Update read models
+        ReadModel::create([...]);
+    }
+}
+```
+
+### Working with Aggregates
+
+#### Creating New Aggregates
+```php
+// Create new aggregate
+$aggregate = DomainAggregate::retrieve($uuid);
+$aggregate->performAction($data);
+$aggregate->persist(); // Saves events to event store
+```
+
+#### Loading Existing Aggregates
+```php
+// Load from event store
+$aggregate = DomainAggregate::retrieve($uuid);
+// Aggregate is automatically reconstituted from events
+```
+
+#### Chaining Operations
+```php
+$aggregate = DomainAggregate::retrieve($uuid)
+    ->performFirstAction($data1)
+    ->performSecondAction($data2)
+    ->performThirdAction($data3);
+$aggregate->persist(); // Save all events at once
+```
+
+### Event Sourcing Commands
+
+```bash
+# Replay all projectors (rebuild read models from events)
+php artisan event-sourcing:replay
+
+# Replay specific projector
+php artisan event-sourcing:replay "App\\Domain\\Compliance\\Projectors\\ComplianceAlertProjector"
+
+# Clear all projections (careful!)
+php artisan event-sourcing:clear-event-handlers
+
+# Create snapshot for aggregate
+php artisan event-sourcing:create-snapshot {aggregate-uuid}
+```
+
+### Implemented Domains
+
+The following domains use Spatie Event Sourcing:
+
+1. **Treasury Domain** (`treasury_events`, `treasury_snapshots`)
+   - Portfolio management, cash allocation, yield optimization
+
+2. **Compliance Domain** (`compliance_events`, `compliance_snapshots`)
+   - Alert management, transaction monitoring, risk assessment
+
+3. **Exchange Domain** (`exchange_events`, `exchange_snapshots`)
+   - Order matching, liquidity pools, trading
+
+4. **Lending Domain** (`lending_events`, `lending_snapshots`)
+   - Loan applications, disbursements, repayments
+
+5. **Stablecoin Domain** (`stablecoin_events`, `stablecoin_snapshots`)
+   - Token minting, burning, transfers
+
+### Best Practices
+
+1. **Always use aggregates for state changes** - Never modify read models directly
+2. **Use projectors for read models** - Keep write and read models separate
+3. **Record business decisions as events** - Not just CRUD operations
+4. **Version your events** - Use `event_version` field for backward compatibility
+5. **Use transactions** - Wrap aggregate operations in database transactions
+6. **Implement snapshots** - For aggregates with many events (>100)
+7. **Test event handlers** - Ensure idempotency and correctness
+
+### Example: Compliance Alert Lifecycle
+
+```php
+use App\Domain\Compliance\Aggregates\ComplianceAlertAggregate;
+
+// Create alert
+$aggregate = ComplianceAlertAggregate::create(
+    type: 'suspicious_activity',
+    severity: 'high',
+    entityType: 'transaction',
+    entityId: $transactionId,
+    description: 'Large cash deposit',
+    details: ['amount' => 50000]
+);
+$aggregate->persist();
+
+// Later: assign and investigate
+$aggregate = ComplianceAlertAggregate::retrieve($alertId);
+$aggregate->assign('officer-123')
+    ->addNote('Investigation started')
+    ->changeStatus('investigating');
+$aggregate->persist();
+
+// Finally: resolve
+$aggregate = ComplianceAlertAggregate::retrieve($alertId);
+$aggregate->resolve('false_positive', 'officer-123', 'Legitimate business transaction');
+$aggregate->persist();
+```
+
 All major domains use event sourcing with dedicated event tables:
 - `exchange_events` - Trading events
 - `stablecoin_events` - Token lifecycle events
