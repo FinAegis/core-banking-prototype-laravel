@@ -9344,17 +9344,3 @@ parameters:
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
-			count: 1
-			path: tests/Unit/Testing/TestEventSerializerTest.php
-
-		-
-			message: '#^Call to function is_callable\(\) with array\{App\\View\\Components\\AppLayout, ''render''\} will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: tests/View/Components/AppLayoutTest.php
-
-		-
-			message: '#^Cannot call method getName\(\) on ReflectionClass\|false\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/View/Components/AppLayoutTest.php

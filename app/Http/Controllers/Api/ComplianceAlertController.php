@@ -235,7 +235,7 @@ class ComplianceAlertController extends Controller
         $alert = ComplianceAlert::findOrFail($id);
 
         $alert = $this->alertService->changeStatus(
-            $alert->id,
+            (string) $alert->id,
             $validated['status'],
             $validated['notes'] ?? null
         );
@@ -286,7 +286,7 @@ class ComplianceAlertController extends Controller
         $alert = ComplianceAlert::findOrFail($id);
 
         $alert = $this->alertService->assignAlert(
-            $alert->id,
+            (string) $alert->id,
             (string) $validated['user_id'],
             $validated['notes'] ?? null
         );
@@ -336,7 +336,7 @@ class ComplianceAlertController extends Controller
         $alert = ComplianceAlert::findOrFail($id);
 
         $this->alertService->addNote(
-            $alert->id,
+            (string) $alert->id,
             $validated['note'],
             $validated['findings'] ?? []
         );
@@ -392,7 +392,7 @@ class ComplianceAlertController extends Controller
         $relatedAlertIds = $alerts->skip(1)->pluck('id')->toArray();
 
         $this->alertService->linkAlerts(
-            $primaryAlert->id,
+            (string) $primaryAlert->id,
             $relatedAlertIds,
             $validated['relationship_type']
         );

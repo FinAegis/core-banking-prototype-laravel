@@ -1,0 +1,43 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Model\:\:update\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 6
+			path: app/Domain/Compliance/Projectors/TransactionMonitoringProjector.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Model\:\:update\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, mixed\>, array\<string, string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Projectors/TransactionMonitoringProjector.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\:\:create\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 4
+			path: app/Domain/Compliance/Projectors/TransactionMonitoringProjector.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\:\:create\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, mixed\>, array\<string, string\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/Compliance/Projectors/TransactionMonitoringProjector.php
+
+		-
+			message: '#^Parameter \#1 \$attributes of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\:\:updateOrCreate\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Projectors/TransactionMonitoringProjector.php
+
+		-
+			message: '#^Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, ''transaction_id'' given\.$#'
+			identifier: argument.type
+			count: 6
+			path: app/Domain/Compliance/Projectors/TransactionMonitoringProjector.php
+
+		-
+			message: '#^Parameter \#2 \$values of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Compliance\\Models\\TransactionMonitoring\>\:\:updateOrCreate\(\) expects array\<model property of App\\Domain\\Compliance\\Models\\TransactionMonitoring, mixed\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Compliance/Projectors/TransactionMonitoringProjector.php

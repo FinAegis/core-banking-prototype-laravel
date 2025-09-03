@@ -83,7 +83,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
         $this->mockGetCustomerRiskProfile($transaction, $riskProfile);
         $this->mockGetApplicableRules($transaction, $riskProfile, collect());
 
-        $result = $this->service->monitorTransaction($transaction);
+        $result = $this->service->analyzeTransaction($transaction);
 
         $this->assertTrue($result['passed']);
         $this->assertEmpty($result['alerts']);
@@ -113,7 +113,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
         $this->mockGetApplicableRules($transaction, $riskProfile, collect([$rule]));
         $this->mockEvaluateRule($rule, $transaction, $riskProfile, true);
 
-        $result = $this->service->monitorTransaction($transaction);
+        $result = $this->service->analyzeTransaction($transaction);
 
         $this->assertTrue($result['passed']);
         $this->assertCount(1, $result['alerts']);
@@ -142,7 +142,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
         $this->mockGetApplicableRules($transaction, $riskProfile, collect([$rule]));
         $this->mockEvaluateRule($rule, $transaction, $riskProfile, true);
 
-        $result = $this->service->monitorTransaction($transaction);
+        $result = $this->service->analyzeTransaction($transaction);
 
         $this->assertFalse($result['passed']);
         $this->assertNotEmpty($result['alerts']);
@@ -177,7 +177,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
             ->once()
             ->with($transaction, Mockery::type('array'));
 
-        $result = $this->service->monitorTransaction($transaction);
+        $result = $this->service->analyzeTransaction($transaction);
         $this->assertCount(2, $result['alerts']);
         $this->assertContains(TransactionMonitoringRule::ACTION_REVIEW, $result['actions']);
         $this->assertContains(TransactionMonitoringRule::ACTION_REPORT, $result['actions']);
@@ -198,7 +198,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
 
         Log::shouldReceive('error')->once();
 
-        $result = $this->service->monitorTransaction($transaction);
+        $result = $this->service->analyzeTransaction($transaction);
 
         $this->assertTrue($result['passed']); // Fail-safe allows transaction
         $this->assertCount(1, $result['alerts']);
@@ -227,7 +227,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
         $this->service->shouldReceive('getApplicableRules')->andReturn(collect([$rule]));
         $this->service->shouldReceive('evaluateRule')->andReturn(true);
         $this->service->shouldReceive('createAlert')->andReturn(['type' => 'rule_trigger']);
-        $result = $this->service->monitorTransaction($transaction);
+        $result = $this->service->analyzeTransaction($transaction);
 
         $this->assertNotEmpty($result['alerts']);
     }
@@ -255,7 +255,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
             ->once()
             ->with($transaction, Mockery::type('array'));
 
-        $result = $this->service->monitorTransaction($transaction);
+        $result = $this->service->analyzeTransaction($transaction);
 
         // Should only have unique actions
         $uniqueActions = array_unique($result['actions']);

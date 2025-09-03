@@ -39,7 +39,7 @@ class Transaction extends EloquentStoredEvent
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'compliance_status',

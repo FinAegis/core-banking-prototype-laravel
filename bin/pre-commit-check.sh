@@ -266,7 +266,7 @@ echo -e "${BLUE}[4/6] Running PHPStan (Level 5)...${NC}"
 
 # Set PHPStan configuration
 export XDEBUG_MODE=off
-PHPSTAN_MEMORY_LIMIT="3G"
+PHPSTAN_MEMORY_LIMIT="4G"
 PHPSTAN_TIMEOUT=180  # 3 minutes timeout
 
 # Function to run PHPStan with progress indication
@@ -362,9 +362,28 @@ else
         # Try PHPStan on modified files with shorter timeout
         if ! run_phpstan "$FILES_FOR_PHPSTAN" 60; then
             if [ $? -eq 124 ]; then
-                echo -e "${YELLOW}  PHPStan timed out on modified files${NC}"
-                echo -e "${YELLOW}  Tip: Run 'vendor/bin/phpstan analyse --memory-limit=$PHPSTAN_MEMORY_LIMIT' manually${NC}"
-                echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+                # On timeout, try running PHPStan file by file
+                echo -e "${YELLOW}  PHPStan timed out. Trying file-by-file analysis...${NC}"
+                PHPSTAN_FILE_FAILED=false
+                for FILE in $FILES; do
+                    if [ -f "$FILE" ]; then
+                        echo -n "  Checking $FILE..."
+                        if ! timeout 30 vendor/bin/phpstan analyse "$FILE" --memory-limit=$PHPSTAN_MEMORY_LIMIT --no-progress > /tmp/phpstan_single_file.log 2>&1; then
+                            echo -e "${RED} ✗${NC}"
+                            PHPSTAN_FILE_FAILED=true
+                            cat /tmp/phpstan_single_file.log | grep -E "Line|expects|given|ERROR" | head -5
+                        else
+                            echo -e "${GREEN} ✓${NC}"
+                        fi
+                    fi
+                done
+                
+                if [ "$PHPSTAN_FILE_FAILED" = true ]; then
+                    PHPSTAN_FAILED=true
+                    add_failure "PHPStan errors detected in modified files"
+                    echo -e "${RED}  ✗ PHPStan found errors. CI will fail!${NC}"
+                fi
+                rm -f /tmp/phpstan_single_file.log
             else
                 PHPSTAN_FAILED=true
                 add_failure "PHPStan errors in modified files"
