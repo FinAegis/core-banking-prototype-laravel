@@ -97,7 +97,17 @@ class TransactionMonitoringControllerTest extends TestCase
 
     public function test_can_clear_transaction(): void
     {
-        $response = $this->postJson('/api/transaction-monitoring/test-123/clear', [
+        $transaction = Transaction::factory()->create([
+            'aggregate_uuid'   => $this->account->uuid,
+            'event_properties' => ['amount' => 25000],
+            'meta_data'        => [
+                'type'              => 'transfer',
+                'compliance_status' => 'flagged',
+                'account_id'        => $this->account->id,
+            ],
+        ]);
+        
+        $response = $this->postJson('/api/transaction-monitoring/' . $transaction->id . '/clear', [
             'reason'   => 'false_positive',
             'reviewer' => $this->user->id,
             'notes'    => 'Regular business transaction',

@@ -6,148 +6,49 @@ namespace App\Domain\Compliance\Repositories;
 
 use App\Domain\Compliance\Aggregates\ComplianceAlertAggregate;
 use App\Domain\Compliance\Models\ComplianceAlert;
-use App\Domain\Shared\Events\DomainEvent;
-use Illuminate\Support\Facades\DB;
+use Exception;
+use Illuminate\Support\Collection;
 
 class ComplianceAlertRepository
 {
     public function save(ComplianceAlertAggregate $aggregate): void
     {
-        $events = $aggregate->releaseEvents();
-
-        DB::transaction(function () use ($events, $aggregate) {
-            foreach ($events as $event) {
-                $this->persistEvent($event);
-                $this->updateProjection($event);
-            }
-        });
-
-        $aggregate->markEventsAsCommitted();
+        // Spatie Event Sourcing handles this automatically when calling persist()
+        $aggregate->persist();
     }
 
     public function find(string $alertId): ?ComplianceAlertAggregate
     {
-        $events = DB::table('compliance_events')
-            ->where('aggregate_id', $alertId)
-            ->where('aggregate_type', 'ComplianceAlert')
-            ->orderBy('event_version')
-            ->get()
-            ->map(function ($row) {
-                return $this->deserializeEvent($row);
-            })
-            ->toArray();
+        // Use Spatie's retrieve method to get the aggregate with all its events
+        $aggregate = ComplianceAlertAggregate::retrieve($alertId);
 
-        if (empty($events)) {
+        // Check if the aggregate actually exists (has events)
+        // This is a workaround since Spatie always returns an aggregate instance
+        try {
+            // Try to get the ID - if it's not set, the aggregate doesn't exist
+            if (! method_exists($aggregate, 'getId') || ! $aggregate->getId()) {
+                return null;
+            }
+        } catch (Exception $e) {
             return null;
         }
 
-        return ComplianceAlertAggregate::reconstituteFromEvents($events);
+        return $aggregate;
     }
 
-    private function persistEvent(DomainEvent $event): void
+    public function findByStatus(string $status): Collection
     {
-        DB::table('compliance_events')->insert([
-            'aggregate_id'   => $event->getAggregateId(),
-            'aggregate_type' => $event->getAggregateType(),
-            'event_type'     => $event->getEventType(),
-            'event_version'  => $this->getNextVersion($event->getAggregateId()),
-            'payload'        => json_encode($event->toArray()),
-            'metadata'       => json_encode($event->metadata),
-            'correlation_id' => $event->correlationId,
-            'causation_id'   => $event->causationId,
-            'user_id'        => auth()->id(),
-            'occurred_at'    => now(),
-            'created_at'     => now(),
-            'updated_at'     => now(),
-        ]);
-    }
-
-    private function updateProjection(DomainEvent $event): void
-    {
-        $eventType = $event->getEventType();
-        $data = $event->toArray()['payload'];
-
-        switch ($eventType) {
-            case 'AlertCreated':
-                ComplianceAlert::create([
-                    'id'          => $event->getAggregateId(),
-                    'type'        => $data['type'],
-                    'severity'    => $data['severity'],
-                    'status'      => 'open',
-                    'entity_type' => $data['entity_type'],
-                    'entity_id'   => $data['entity_id'],
-                    'description' => $data['description'],
-                    'details'     => $data['details'],
-                    'created_by'  => auth()->id(),
-                ]);
-                break;
-
-            case 'AlertAssigned':
-                ComplianceAlert::where('id', $event->getAggregateId())
-                    ->update([
-                        'assigned_to' => $data['assigned_to'],
-                        'assigned_at' => now(),
-                    ]);
-                break;
-
-            case 'AlertStatusChanged':
-                ComplianceAlert::where('id', $event->getAggregateId())
-                    ->update([
-                        'status' => $data['new_status'],
-                    ]);
-                break;
-
-            case 'AlertResolved':
-                ComplianceAlert::where('id', $event->getAggregateId())
-                    ->update([
-                        'status'      => 'closed',
-                        'resolution'  => $data['resolution'],
-                        'resolved_at' => now(),
-                        'resolved_by' => auth()->id(),
-                    ]);
-                break;
-
-            case 'AlertEscalatedToCase':
-                ComplianceAlert::where('id', $event->getAggregateId())
-                    ->update([
-                        'status'  => 'escalated',
-                        'case_id' => $data['case_id'],
-                    ]);
-                break;
-        }
-    }
-
-    private function getNextVersion(string $aggregateId): int
-    {
-        $lastVersion = DB::table('compliance_events')
-            ->where('aggregate_id', $aggregateId)
-            ->max('event_version');
-
-        return ($lastVersion ?? 0) + 1;
-    }
-
-    private function deserializeEvent($row): DomainEvent
-    {
-        $payload = json_decode($row->payload, true);
-        $eventClass = 'App\\Domain\\Compliance\\Events\\' . $row->event_type;
-
-        // Reconstruct the event from stored data
-        // This is simplified - in production you'd have proper deserialization
-        return new $eventClass(...array_values($payload['payload']));
-    }
-
-    public function findByStatus(string $status): array
-    {
+        // Get alerts from the projection/read model
         return ComplianceAlert::where('status', $status)
             ->get()
             ->map(function ($alert) {
-                return $this->find($alert->id);
-            })
-            ->filter()
-            ->toArray();
+                // Return the projection model, not the aggregate
+                // Aggregates should only be loaded when needed for state changes
+                return $alert;
+            });
     }
 
-    public function search(array $criteria): array
+    public function search(array $criteria): Collection
     {
         $query = ComplianceAlert::query();
 
@@ -167,10 +68,60 @@ class ComplianceAlertRepository
             $query->where('entity_type', $criteria['entity_type']);
         }
 
-        if (isset($criteria['search'])) {
-            $query->where('description', 'like', '%' . $criteria['search'] . '%');
+        if (isset($criteria['entity_id'])) {
+            $query->where('entity_id', $criteria['entity_id']);
         }
 
-        return $query->get()->toArray();
+        if (isset($criteria['assigned_to'])) {
+            $query->where('assigned_to', $criteria['assigned_to']);
+        }
+
+        if (isset($criteria['search'])) {
+            $searchTerm = $criteria['search'];
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('description', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('id', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('entity_id', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        if (isset($criteria['from_date'])) {
+            $query->where('created_at', '>=', $criteria['from_date']);
+        }
+
+        if (isset($criteria['to_date'])) {
+            $query->where('created_at', '<=', $criteria['to_date']);
+        }
+
+        return $query->orderBy('created_at', 'desc')->get();
+    }
+
+    public function findOpenAlerts(): Collection
+    {
+        return $this->findByStatus('open');
+    }
+
+    public function findHighSeverityAlerts(): Collection
+    {
+        return ComplianceAlert::whereIn('severity', ['high', 'critical'])
+            ->where('status', '!=', 'closed')
+            ->orderBy('severity', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    public function countByStatus(): array
+    {
+        return ComplianceAlert::selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+    }
+
+    public function getRecentAlerts(int $limit = 10): Collection
+    {
+        return ComplianceAlert::orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
     }
 }

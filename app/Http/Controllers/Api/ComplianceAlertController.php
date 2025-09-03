@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Compliance\Models\ComplianceAlert;
+use App\Domain\Compliance\Models\ComplianceCase;
 use App\Domain\Compliance\Services\AlertManagementService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -234,10 +235,9 @@ class ComplianceAlertController extends Controller
 
         $alert = ComplianceAlert::findOrFail($id);
 
-        $alert = $this->alertService->updateAlertStatus(
-            $alert,
+        $alert = $this->alertService->changeStatus(
+            $alert->id,
             $validated['status'],
-            auth()->user(),
             $validated['notes'] ?? null
         );
 
@@ -336,10 +336,9 @@ class ComplianceAlertController extends Controller
         ]);
         $alert = ComplianceAlert::findOrFail($id);
 
-        $this->alertService->addInvestigationNote(
-            $alert,
+        $this->alertService->addNote(
+            $alert->id,
             $validated['note'],
-            auth()->user(),
             $validated['findings'] ?? []
         );
 
@@ -394,7 +393,7 @@ class ComplianceAlertController extends Controller
         $relatedAlertIds = $alerts->skip(1)->pluck('alert_id')->toArray();
 
         $this->alertService->linkAlerts(
-            $primaryAlert,
+            $primaryAlert->id,
             $relatedAlertIds,
             $validated['relationship_type']
         );
@@ -443,14 +442,26 @@ class ComplianceAlertController extends Controller
             'priority'    => ['sometimes', Rule::in(['low', 'medium', 'high', 'critical'])],
         ]);
 
-        $case = $this->alertService->createCaseFromAlerts(
-            $validated['alert_ids'],
-            [
-                'title'       => $validated['title'],
-                'description' => $validated['description'] ?? null,
-                'priority'    => $validated['priority'] ?? 'medium',
-            ]
-        );
+        // Create case using the first alert
+        $firstAlertId = $validated['alert_ids'][0];
+        $reason = $validated['title'] ?? 'Multiple alerts require investigation';
+        
+        $case = $this->alertService->escalateToCase($firstAlertId, $reason);
+        
+        // Update case with additional info if provided
+        if (isset($validated['description'])) {
+            $case->update(['description' => $validated['description']]);
+        }
+        if (isset($validated['priority'])) {
+            $case->update(['priority' => $validated['priority']]);
+        }
+        
+        // Link remaining alerts to the case
+        if (count($validated['alert_ids']) > 1) {
+            foreach (array_slice($validated['alert_ids'], 1) as $alertId) {
+                ComplianceAlert::where('id', $alertId)->update(['case_id' => $case->id]);
+            }
+        }
 
         return response()->json([
             'message' => 'Case created successfully',
@@ -484,7 +495,7 @@ class ComplianceAlertController extends Controller
     {
         $period = $request->query('period', 'month');
 
-        $statistics = $this->alertService->getAlertStatistics(['period' => $period]);
+        $statistics = $this->alertService->getStatistics(['period' => $period]);
 
         return response()->json([
             'data' => $statistics,
@@ -517,7 +528,22 @@ class ComplianceAlertController extends Controller
     {
         $days = $request->integer('days', 30);
 
-        $trends = $this->alertService->getAlertTrends($days . 'd');
+        // Get trends by calling getStatistics with date filters
+        $trends = [];
+        $now = now();
+        for ($i = 0; $i < $days; $i++) {
+            $date = $now->copy()->subDays($i);
+            $dayStats = $this->alertService->getStatistics([
+                'start_date' => $date->startOfDay()->toDateTimeString(),
+                'end_date' => $date->endOfDay()->toDateTimeString(),
+            ]);
+            $trends[] = [
+                'date' => $date->format('Y-m-d'),
+                'total' => $dayStats['total'] ?? 0,
+                'high_severity' => $dayStats['high_severity'] ?? 0,
+            ];
+        }
+        $trends = array_reverse($trends);
 
         return response()->json([
             'data' => $trends,

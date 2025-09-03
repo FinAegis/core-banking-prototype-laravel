@@ -13,7 +13,9 @@ use App\Domain\Compliance\Events\TransactionFlagged;
 use App\Domain\Compliance\Events\TransactionPatternDetected;
 use App\Domain\Compliance\Repositories\ComplianceEventRepository;
 use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
+use DateTimeImmutable;
 use DomainException;
+use Illuminate\Support\Str;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Spatie\EventSourcing\Snapshots\SnapshotRepository;
 use Spatie\EventSourcing\StoredEvents\Repositories\StoredEventRepository;
@@ -52,10 +54,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
 
         $monitoring->recordThat(new RiskScoreCalculated(
             $transactionId,
+            'transaction',
             $riskScore,
             $riskLevel,
             ['amount' => $amount, 'accounts' => [$fromAccount, $toAccount]],
-            []
+            new DateTimeImmutable()
         ));
 
         return $monitoring;
@@ -72,11 +75,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
 
         $this->recordThat(new TransactionFlagged(
             $this->transactionId,
-            $reason,
+            'manual',
             $severity,
-            $this->riskScore,
-            $this->patterns,
-            $flaggedBy
+            $reason,
+            ['risk_score' => $this->riskScore, 'patterns' => $this->patterns, 'flagged_by' => $flaggedBy],
+            new DateTimeImmutable()
         ));
 
         return $this;
@@ -93,9 +96,10 @@ class TransactionMonitoringAggregate extends AggregateRoot
 
         $this->recordThat(new TransactionCleared(
             $this->transactionId,
-            $reason,
             $clearedBy,
-            $notes
+            $reason,
+            ['notes' => $notes],
+            new DateTimeImmutable()
         ));
 
         return $this;
@@ -109,12 +113,12 @@ class TransactionMonitoringAggregate extends AggregateRoot
         array $matchedData
     ): self {
         $this->recordThat(new MonitoringRuleTriggered(
-            $this->transactionId,
             $ruleId,
+            $this->transactionId,
+            'transaction',
             $ruleName,
-            $severity,
-            $conditions,
-            $matchedData
+            ['severity' => $severity, 'conditions' => $conditions, 'matched_data' => $matchedData],
+            new DateTimeImmutable()
         ));
 
         return $this;
@@ -127,11 +131,12 @@ class TransactionMonitoringAggregate extends AggregateRoot
         array $relatedTransactions = []
     ): self {
         $this->recordThat(new TransactionPatternDetected(
-            $this->transactionId,
+            (string) Str::uuid(),
             $patternType,
-            $patternData,
+            array_merge([$this->transactionId], $relatedTransactions),
             $confidence,
-            $relatedTransactions
+            $patternData,
+            new DateTimeImmutable()
         ));
 
         return $this;
@@ -145,10 +150,12 @@ class TransactionMonitoringAggregate extends AggregateRoot
     ): self {
         $this->recordThat(new ThresholdExceeded(
             $this->transactionId,
+            'transaction',
             $thresholdType,
-            $thresholdValue,
             $actualValue,
-            $severity
+            $thresholdValue,
+            ['severity' => $severity],
+            new DateTimeImmutable()
         ));
 
         return $this;
@@ -162,10 +169,10 @@ class TransactionMonitoringAggregate extends AggregateRoot
     ): self {
         $this->recordThat(new TransactionAnalyzed(
             $this->transactionId,
-            $analysisId,
+            $this->riskScore,
             $results,
-            $recommendation,
-            $processingTime
+            ['recommendation' => $recommendation, 'analysis_id' => $analysisId, 'processing_time' => $processingTime],
+            new DateTimeImmutable()
         ));
 
         return $this;
@@ -181,15 +188,19 @@ class TransactionMonitoringAggregate extends AggregateRoot
     protected function applyTransactionFlagged(TransactionFlagged $event): void
     {
         $this->status = 'flagged';
-        $this->flagReason = $event->reason;
-        $this->riskScore = $event->riskScore;
-        $this->patterns = $event->patterns;
+        $this->flagReason = $event->reason ?? null;
+        if (isset($event->details['risk_score'])) {
+            $this->riskScore = $event->details['risk_score'];
+        }
+        if (isset($event->details['patterns'])) {
+            $this->patterns = $event->details['patterns'];
+        }
     }
 
     protected function applyTransactionCleared(TransactionCleared $event): void
     {
         $this->status = 'cleared';
-        $this->clearReason = $event->reason;
+        $this->clearReason = $event->reason ?? null;
         $this->riskLevel = 'low';
     }
 
@@ -198,29 +209,29 @@ class TransactionMonitoringAggregate extends AggregateRoot
         $this->triggeredRules[] = [
             'rule_id'   => $event->ruleId,
             'rule_name' => $event->ruleName,
-            'severity'  => $event->severity,
+            'severity'  => $event->context['severity'] ?? 'medium',
         ];
 
         // Update risk score based on rule severity
-        $this->adjustRiskScoreForRule($event->severity);
+        $this->adjustRiskScoreForRule($event->context['severity'] ?? 'medium');
     }
 
     protected function applyTransactionPatternDetected(TransactionPatternDetected $event): void
     {
         $this->patterns[] = [
             'type'       => $event->patternType,
-            'data'       => $event->patternData,
-            'confidence' => $event->confidence,
+            'data'       => $event->details,
+            'confidence' => $event->confidenceScore,
         ];
 
         // Adjust risk score based on pattern
-        $this->adjustRiskScoreForPattern($event->patternType, $event->confidence);
+        $this->adjustRiskScoreForPattern($event->patternType, $event->confidenceScore);
     }
 
     protected function applyThresholdExceeded(ThresholdExceeded $event): void
     {
         // Threshold exceeded automatically increases risk
-        $this->adjustRiskScoreForThreshold($event->severity);
+        $this->adjustRiskScoreForThreshold($event->metadata['severity'] ?? 'medium');
     }
 
     protected function applyTransactionAnalyzed(TransactionAnalyzed $event): void

@@ -15,6 +15,7 @@ use App\Domain\Compliance\Repositories\ComplianceEventRepository;
 use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
 use App\Domain\Compliance\ValueObjects\AlertSeverity;
 use App\Domain\Compliance\ValueObjects\AlertStatus;
+use DateTimeImmutable;
 use DomainException;
 use Illuminate\Support\Str;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
@@ -69,7 +70,7 @@ class ComplianceAlertAggregate extends AggregateRoot
             $entityId,
             $description,
             $details,
-            $userId
+            ['user_id' => $userId]
         ));
 
         return $alert;
@@ -81,7 +82,13 @@ class ComplianceAlertAggregate extends AggregateRoot
             throw new DomainException('Cannot assign a closed alert');
         }
 
-        $this->recordThat(new AlertAssigned($this->id, $assignedTo, $assignedBy, $notes));
+        $this->recordThat(new AlertAssigned(
+            $this->id,
+            $assignedTo,
+            $assignedBy ?? 'system',
+            new DateTimeImmutable(),
+            ['notes' => $notes]
+        ));
 
         return $this;
     }
@@ -94,14 +101,27 @@ class ComplianceAlertAggregate extends AggregateRoot
             return $this;
         }
 
-        $this->recordThat(new AlertStatusChanged($this->id, $oldStatus, $newStatus, $reason, $userId));
+        $this->recordThat(new AlertStatusChanged(
+            $this->id,
+            $oldStatus,
+            $newStatus,
+            $userId ?? 'system',
+            new DateTimeImmutable(),
+            ['reason' => $reason]
+        ));
 
         return $this;
     }
 
     public function addNote(string $note, string $addedBy, array $attachments = []): self
     {
-        $this->recordThat(new AlertNoteAdded($this->id, $note, $addedBy, $attachments));
+        $this->recordThat(new AlertNoteAdded(
+            $this->id,
+            $note,
+            $addedBy,
+            $attachments,
+            new DateTimeImmutable()
+        ));
 
         return $this;
     }
@@ -112,7 +132,13 @@ class ComplianceAlertAggregate extends AggregateRoot
             throw new DomainException('Alert is already closed');
         }
 
-        $this->recordThat(new AlertResolved($this->id, $resolution, $resolvedBy, $notes));
+        $this->recordThat(new AlertResolved(
+            $this->id,
+            $resolution,
+            $resolvedBy,
+            $notes ?? '',
+            new DateTimeImmutable()
+        ));
 
         return $this;
     }
@@ -123,7 +149,13 @@ class ComplianceAlertAggregate extends AggregateRoot
             throw new DomainException('At least one alert ID must be provided');
         }
 
-        $this->recordThat(new AlertLinked($this->id, $alertIds, $linkType, $userId));
+        $this->recordThat(new AlertLinked(
+            $this->id,
+            $alertIds,
+            $linkType,
+            $userId ?? 'system',
+            new DateTimeImmutable()
+        ));
 
         return $this;
     }
@@ -134,7 +166,13 @@ class ComplianceAlertAggregate extends AggregateRoot
             throw new DomainException('Alert is already associated with a case');
         }
 
-        $this->recordThat(new AlertEscalatedToCase($this->id, $caseId, $escalatedBy, $reason));
+        $this->recordThat(new AlertEscalatedToCase(
+            $this->id,
+            $caseId,
+            $escalatedBy,
+            $reason,
+            new DateTimeImmutable()
+        ));
 
         return $this;
     }

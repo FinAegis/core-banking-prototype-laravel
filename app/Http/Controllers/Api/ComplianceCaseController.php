@@ -176,10 +176,23 @@ class ComplianceCaseController extends Controller
         ]);
 
         $case = DB::transaction(function () use ($validated) {
-            $caseId = $this->alertService->generateCaseId();
+            // Generate a case number
+            $year = now()->format('Y');
+            $lastCase = ComplianceCase::where('case_number', 'like', "CASE-{$year}-%")
+                ->orderBy('case_number', 'desc')
+                ->first();
+            
+            if ($lastCase) {
+                $lastNumber = (int) substr($lastCase->case_number, -6);
+                $newNumber = $lastNumber + 1;
+            } else {
+                $newNumber = 1;
+            }
+            
+            $caseNumber = sprintf('CASE-%s-%06d', $year, $newNumber);
 
             return ComplianceCase::create([
-                'case_id'     => $caseId,
+                'case_number' => $caseNumber,
                 'title'       => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'priority'    => $validated['priority'],

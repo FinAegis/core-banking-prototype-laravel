@@ -4,178 +4,138 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Repositories;
 
-use App\Domain\Account\Models\Transaction;
 use App\Domain\Compliance\Aggregates\TransactionMonitoringAggregate;
-use App\Domain\Shared\Events\DomainEvent;
-use Illuminate\Support\Facades\DB;
+use App\Domain\Compliance\Models\TransactionMonitoring;
+use Exception;
+use Illuminate\Support\Collection;
 
 class TransactionMonitoringRepository
 {
     public function save(TransactionMonitoringAggregate $aggregate): void
     {
-        $events = $aggregate->releaseEvents();
-
-        DB::transaction(function () use ($events, $aggregate) {
-            foreach ($events as $event) {
-                $this->persistEvent($event);
-                $this->updateProjection($event);
-            }
-        });
-
-        $aggregate->markEventsAsCommitted();
+        // Spatie Event Sourcing handles this automatically when calling persist()
+        $aggregate->persist();
     }
 
     public function find(string $transactionId): ?TransactionMonitoringAggregate
     {
-        $events = DB::table('monitoring_events')
-            ->where('aggregate_id', $transactionId)
-            ->where('aggregate_type', 'TransactionMonitoring')
-            ->orderBy('event_version')
-            ->get()
-            ->map(function ($row) {
-                return $this->deserializeEvent($row);
-            })
-            ->toArray();
+        // Use Spatie's retrieve method to get the aggregate with all its events
+        $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
 
-        if (empty($events)) {
+        // Check if the aggregate actually exists (has events)
+        try {
+            // Try to get the transaction ID - if it's not set, the aggregate doesn't exist
+            if (! method_exists($aggregate, 'getTransactionId')) {
+                return null;
+            }
+
+            // This will be empty if no events exist for this aggregate
+            $transactionId = $aggregate->getTransactionId();
+            if (empty($transactionId)) {
+                return null;
+            }
+        } catch (Exception $e) {
             return null;
         }
 
-        return TransactionMonitoringAggregate::reconstituteFromEvents($events);
+        return $aggregate;
     }
 
-    private function persistEvent(DomainEvent $event): void
+    public function findByStatus(string $status): Collection
     {
-        DB::table('monitoring_events')->insert([
-            'aggregate_id'   => $event->getAggregateId(),
-            'aggregate_type' => $event->getAggregateType(),
-            'event_type'     => $event->getEventType(),
-            'event_version'  => $this->getNextVersion($event->getAggregateId()),
-            'payload'        => json_encode($event->toArray()),
-            'metadata'       => json_encode($event->metadata),
-            'correlation_id' => $event->correlationId,
-            'causation_id'   => $event->causationId,
-            'user_id'        => auth()->id(),
-            'occurred_at'    => now(),
-            'created_at'     => now(),
-            'updated_at'     => now(),
-        ]);
+        // Get monitoring records from the projection/read model
+        return TransactionMonitoring::where('status', $status)
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
-    private function updateProjection(DomainEvent $event): void
-    {
-        $eventType = $event->getEventType();
-        $data = $event->toArray()['payload'];
-
-        switch ($eventType) {
-            case 'RiskScoreCalculated':
-                Transaction::where('id', $event->getAggregateId())
-                    ->update([
-                        'risk_score'        => $data['risk_score'],
-                        'risk_level'        => $data['risk_level'],
-                        'compliance_status' => 'analyzed',
-                    ]);
-                break;
-
-            case 'TransactionFlagged':
-                Transaction::where('id', $event->getAggregateId())
-                    ->update([
-                        'compliance_status' => 'flagged',
-                        'risk_level'        => $data['severity'],
-                        'risk_score'        => $data['risk_score'],
-                        'flagged_at'        => now(),
-                        'flagged_by'        => auth()->id(),
-                        'flag_reason'       => $data['reason'],
-                        'patterns_detected' => json_encode($data['patterns']),
-                    ]);
-                break;
-
-            case 'TransactionCleared':
-                Transaction::where('id', $event->getAggregateId())
-                    ->update([
-                        'compliance_status' => 'cleared',
-                        'risk_level'        => 'low',
-                        'cleared_at'        => now(),
-                        'cleared_by'        => auth()->id(),
-                        'clear_reason'      => $data['reason'],
-                    ]);
-                break;
-
-            case 'PatternDetected':
-                $transaction = Transaction::find($event->getAggregateId());
-                if ($transaction) {
-                    $patterns = json_decode($transaction->patterns_detected ?? '[]', true);
-                    $patterns[] = [
-                        'type'        => $data['pattern_type'],
-                        'confidence'  => $data['confidence'],
-                        'detected_at' => now(),
-                    ];
-                    $transaction->update([
-                        'patterns_detected' => json_encode($patterns),
-                    ]);
-                }
-                break;
-
-            case 'MonitoringRuleTriggered':
-                // Store rule trigger in a separate tracking table or in transaction metadata
-                $transaction = Transaction::find($event->getAggregateId());
-                if ($transaction) {
-                    $metadata = json_decode($transaction->metadata ?? '{}', true);
-                    $metadata['triggered_rules'] = $metadata['triggered_rules'] ?? [];
-                    $metadata['triggered_rules'][] = [
-                        'rule_id'      => $data['rule_id'],
-                        'rule_name'    => $data['rule_name'],
-                        'severity'     => $data['severity'],
-                        'triggered_at' => now(),
-                    ];
-                    $transaction->update(['metadata' => json_encode($metadata)]);
-                }
-                break;
-        }
-    }
-
-    private function getNextVersion(string $aggregateId): int
-    {
-        $lastVersion = DB::table('monitoring_events')
-            ->where('aggregate_id', $aggregateId)
-            ->max('event_version');
-
-        return ($lastVersion ?? 0) + 1;
-    }
-
-    private function deserializeEvent($row): DomainEvent
-    {
-        $payload = json_decode($row->payload, true);
-        $eventClass = 'App\\Domain\\Compliance\\Events\\' . $row->event_type;
-
-        // Reconstruct the event from stored data
-        return new $eventClass(...array_values($payload['payload']));
-    }
-
-    public function findByStatus(string $status): array
-    {
-        return Transaction::where('compliance_status', $status)
-            ->get()
-            ->map(function ($transaction) {
-                return $this->find($transaction->id);
-            })
-            ->filter()
-            ->toArray();
-    }
-
-    public function findFlagged(): array
+    public function findFlaggedTransactions(): Collection
     {
         return $this->findByStatus('flagged');
     }
 
-    public function findHighRisk(): array
+    public function findHighRiskTransactions(float $minScore = 75.0): Collection
     {
-        return Transaction::whereIn('risk_level', ['high', 'critical'])
-            ->get()
-            ->map(function ($transaction) {
-                return $this->find($transaction->id);
-            })
-            ->filter()
-            ->toArray();
+        return TransactionMonitoring::where('risk_score', '>=', $minScore)
+            ->orderBy('risk_score', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    public function findByRiskLevel(string $level): Collection
+    {
+        return TransactionMonitoring::where('risk_level', $level)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    public function search(array $criteria): Collection
+    {
+        $query = TransactionMonitoring::query();
+
+        if (isset($criteria['status'])) {
+            $query->where('status', $criteria['status']);
+        }
+
+        if (isset($criteria['risk_level'])) {
+            $query->where('risk_level', $criteria['risk_level']);
+        }
+
+        if (isset($criteria['min_risk_score'])) {
+            $query->where('risk_score', '>=', $criteria['min_risk_score']);
+        }
+
+        if (isset($criteria['max_risk_score'])) {
+            $query->where('risk_score', '<=', $criteria['max_risk_score']);
+        }
+
+        if (isset($criteria['transaction_id'])) {
+            $query->where('transaction_id', $criteria['transaction_id']);
+        }
+
+        if (isset($criteria['from_date'])) {
+            $query->where('created_at', '>=', $criteria['from_date']);
+        }
+
+        if (isset($criteria['to_date'])) {
+            $query->where('created_at', '<=', $criteria['to_date']);
+        }
+
+        if (isset($criteria['has_patterns']) && $criteria['has_patterns']) {
+            $query->whereNotNull('patterns')
+                  ->where('patterns', '!=', '[]');
+        }
+
+        return $query->orderBy('risk_score', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+    }
+
+    public function getStatistics(): array
+    {
+        return [
+            'total'              => TransactionMonitoring::count(),
+            'flagged'            => TransactionMonitoring::where('status', 'flagged')->count(),
+            'cleared'            => TransactionMonitoring::where('status', 'cleared')->count(),
+            'analyzing'          => TransactionMonitoring::where('status', 'analyzing')->count(),
+            'high_risk'          => TransactionMonitoring::where('risk_level', 'high')->count(),
+            'critical_risk'      => TransactionMonitoring::where('risk_level', 'critical')->count(),
+            'average_risk_score' => TransactionMonitoring::avg('risk_score') ?? 0,
+            'max_risk_score'     => TransactionMonitoring::max('risk_score') ?? 0,
+        ];
+    }
+
+    public function getRecentMonitoringActivity(int $limit = 20): Collection
+    {
+        return TransactionMonitoring::orderBy('updated_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function findTransactionsWithPatterns(string $patternType): Collection
+    {
+        return TransactionMonitoring::whereJsonContains('patterns', ['type' => $patternType])
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 }

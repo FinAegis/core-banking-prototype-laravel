@@ -33,14 +33,22 @@ class TransactionMonitoringService
     public function analyzeTransaction(Transaction $transaction): array
     {
         return DB::transaction(function () use ($transaction) {
+            $startTime = microtime(true);
             try {
+                // Extract transaction data from event_properties
+                $eventProps = $transaction->event_properties ?? [];
+                $amount = $eventProps['amount'] ?? 0;
+                $fromAccount = $transaction->aggregate_uuid ?? '';
+                $toAccount = $eventProps['destination'] ?? $eventProps['to_account'] ?? '';
+                $type = $eventProps['type'] ?? 'transfer';
+                
                 // Create or retrieve aggregate
                 $aggregate = TransactionMonitoringAggregate::analyzeTransaction(
-                    $transaction->id,
-                    $transaction->amount ?? 0,
-                    $transaction->from_account ?? '',
-                    $transaction->to_account ?? '',
-                    ['type' => $transaction->type]
+                    (string) $transaction->id,
+                    $amount,
+                    $fromAccount,
+                    $toAccount,
+                    ['type' => $type]
                 );
 
                 // Apply monitoring rules
@@ -92,7 +100,7 @@ class TransactionMonitoringService
                         'thresholds' => $thresholdResults,
                     ],
                     $this->determineRecommendation($riskLevel),
-                    microtime(true) - LARAVEL_START
+                    microtime(true) - $startTime
                 );
 
                 // Persist aggregate
@@ -164,8 +172,8 @@ class TransactionMonitoringService
                     $rule->severity ?? 'medium',
                     $rule->conditions ?? [],
                     [
-                        'amount' => $transaction->amount,
-                        'type'   => $transaction->type,
+                        'amount' => $eventProps['amount'] ?? 0,
+                        'type'   => $eventProps['type'] ?? 'transfer',
                     ]
                 );
 
@@ -188,12 +196,18 @@ class TransactionMonitoringService
         $patterns = [];
 
         // Check for structuring (smurfing)
-        $recentTransactions = Transaction::where('from_account', $transaction->from_account)
+        $accountId = $transaction->aggregate_uuid ?? null;
+        $recentTransactions = $accountId ? Transaction::where('aggregate_uuid', $accountId)
             ->where('created_at', '>=', now()->subHours(24))
-            ->get();
+            ->get() : collect([]);
 
         if ($recentTransactions->count() > 5) {
-            $totalAmount = $recentTransactions->sum('amount');
+            // Sum amounts from event_properties
+            $totalAmount = 0;
+            foreach ($recentTransactions as $trans) {
+                $props = $trans->event_properties ?? [];
+                $totalAmount += $props['amount'] ?? 0;
+            }
             if ($totalAmount > 9000 && $totalAmount < 10000) {
                 $aggregate->detectPattern(
                     'structuring',
@@ -213,9 +227,10 @@ class TransactionMonitoringService
         }
 
         // Check for rapid movement
-        $rapidTransactions = Transaction::where('from_account', $transaction->from_account)
+        $accountId = $transaction->aggregate_uuid ?? null;
+        $rapidTransactions = $accountId ? Transaction::where('aggregate_uuid', $accountId)
             ->where('created_at', '>=', now()->subMinutes(30))
-            ->count();
+            ->count() : 0;
 
         if ($rapidTransactions > 3) {
             $aggregate->detectPattern(
@@ -252,19 +267,22 @@ class TransactionMonitoringService
             'critical' => 50000,
         ];
 
+        $eventProps = $transaction->event_properties ?? [];
+        $amount = $eventProps['amount'] ?? 0;
+        
         foreach ($amountThresholds as $severity => $threshold) {
-            if ($transaction->amount >= $threshold) {
+            if ($amount >= $threshold) {
                 $aggregate->exceedThreshold(
                     'amount',
                     (float) $threshold,
-                    (float) $transaction->amount,
+                    (float) $amount,
                     $severity
                 );
 
                 $results[] = [
                     'type'      => 'amount',
                     'threshold' => $threshold,
-                    'actual'    => $transaction->amount,
+                    'actual'    => $amount,
                     'severity'  => $severity,
                 ];
 
@@ -272,10 +290,18 @@ class TransactionMonitoringService
             }
         }
 
-        // Daily limit threshold
-        $dailyTotal = Transaction::where('from_account', $transaction->from_account)
-            ->whereDate('created_at', today())
-            ->sum('amount');
+        // Daily limit threshold - sum from event properties
+        $accountId = $transaction->aggregate_uuid ?? null;
+        $dailyTotal = 0;
+        if ($accountId) {
+            $todayTransactions = Transaction::where('aggregate_uuid', $accountId)
+                ->whereDate('created_at', today())
+                ->get();
+            foreach ($todayTransactions as $trans) {
+                $props = $trans->event_properties ?? [];
+                $dailyTotal += $props['amount'] ?? 0;
+            }
+        }
 
         $dailyLimit = 100000;
         if ($dailyTotal > $dailyLimit) {
@@ -309,7 +335,13 @@ class TransactionMonitoringService
             $operator = $condition['operator'] ?? '=';
             $value = $condition['value'] ?? null;
 
-            $transactionValue = $transaction->{$field} ?? null;
+            // Get value from event_properties or transaction attributes
+            if ($field === 'amount' || $field === 'type') {
+                $eventProps = $transaction->event_properties ?? [];
+                $transactionValue = $eventProps[$field] ?? null;
+            } else {
+                $transactionValue = $transaction->{$field} ?? null;
+            }
 
             if (! $this->evaluateCondition($transactionValue, $operator, $value)) {
                 return false; // All conditions must be met

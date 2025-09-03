@@ -127,13 +127,10 @@ class TransactionMonitoringController extends Controller
      */
     public function getTransactionDetails(string $id): JsonResponse
     {
-        $transaction = Transaction::with([
-            'account',
-            'account.customer',
-        ])->findOrFail($id);
+        $transaction = Transaction::findOrFail($id);
 
         // Get monitoring details
-        $monitoringDetails = $this->monitoringService->getTransactionAnalysis($transaction);
+        $monitoringDetails = $this->monitoringService->analyzeTransaction($transaction);
 
         // Get related alerts
         $alerts = ComplianceAlert::where('entity_type', 'transaction')

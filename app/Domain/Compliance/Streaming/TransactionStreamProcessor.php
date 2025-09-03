@@ -56,9 +56,9 @@ class TransactionStreamProcessor implements ShouldQueue
 
         try {
             // Step 1: Basic monitoring (existing service)
-            $monitoringResult = $this->monitoringService->monitorTransaction($transaction);
-            $results['alerts'] = $monitoringResult['alerts'];
-            $results['actions'] = $monitoringResult['actions'];
+            $monitoringResult = $this->monitoringService->analyzeTransaction($transaction);
+            $results['alerts'] = $monitoringResult['alerts'] ?? [];
+            $results['actions'] = $monitoringResult['actions'] ?? [];
 
             // Step 2: Add to stream buffer for pattern detection
             $this->addToStreamBuffer($transaction);

@@ -249,6 +249,26 @@ return [
         'aml_screening_completed'            => App\Domain\Compliance\Events\AmlScreeningCompleted::class,
         'aml_screening_reviewed'             => App\Domain\Compliance\Events\AmlScreeningReviewed::class,
 
+        // Compliance Alert events
+        'alert_created'              => App\Domain\Compliance\Events\AlertCreated::class,
+        'alert_assigned'             => App\Domain\Compliance\Events\AlertAssigned::class,
+        'alert_status_changed'       => App\Domain\Compliance\Events\AlertStatusChanged::class,
+        'alert_note_added'           => App\Domain\Compliance\Events\AlertNoteAdded::class,
+        'alert_resolved'             => App\Domain\Compliance\Events\AlertResolved::class,
+        'alert_escalated_to_case'    => App\Domain\Compliance\Events\AlertEscalatedToCase::class,
+        'alerts_linked'              => App\Domain\Compliance\Events\AlertsLinked::class,
+        
+        // Compliance Transaction Monitoring events
+        'risk_score_calculated'      => App\Domain\Compliance\Events\RiskScoreCalculated::class,
+        'pattern_detected'           => App\Domain\Compliance\Events\PatternDetected::class,
+        'threshold_exceeded'         => App\Domain\Compliance\Events\ThresholdExceeded::class,
+        'transaction_flagged'        => App\Domain\Compliance\Events\TransactionFlagged::class,
+        'transaction_cleared'        => App\Domain\Compliance\Events\TransactionCleared::class,
+        'rule_triggered'             => App\Domain\Compliance\Events\RuleTriggered::class,
+        'analysis_completed'         => App\Domain\Compliance\Events\AnalysisCompleted::class,
+        'batch_analysis_requested'   => App\Domain\Compliance\Events\BatchAnalysisRequested::class,
+        'batch_analysis_completed'   => App\Domain\Compliance\Events\BatchAnalysisCompleted::class,
+
         // AI Agent Framework events
         'ai_conversation_started'         => App\Domain\AI\Events\ConversationStartedEvent::class,
         'ai_conversation_ended'           => App\Domain\AI\Events\ConversationEndedEvent::class,

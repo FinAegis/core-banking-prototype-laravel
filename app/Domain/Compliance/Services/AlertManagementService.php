@@ -49,7 +49,7 @@ class AlertManagementService
                     $data['type'],
                     $data['severity'],
                     $data['entity_type'],
-                    $data['entity_id'],
+                    (string) $data['entity_id'],
                     $data['description'],
                     $data['details'] ?? [],
                     $data['user_id'] ?? null
@@ -97,7 +97,7 @@ class AlertManagementService
     {
         return DB::transaction(function () use ($alertId, $userId, $notes) {
             $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-            $aggregate->assign($userId, auth()->id(), $notes);
+            $aggregate->assign($userId, (string) (auth()->id() ?? 'system'), $notes);
             $aggregate->persist();
 
             return ComplianceAlert::findOrFail($alertId);
@@ -111,7 +111,7 @@ class AlertManagementService
     {
         return DB::transaction(function () use ($alertId, $newStatus, $reason) {
             $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-            $aggregate->changeStatus($newStatus, $reason, auth()->id());
+            $aggregate->changeStatus($newStatus, $reason, (string) (auth()->id() ?? 'system'));
             $aggregate->persist();
 
             return ComplianceAlert::findOrFail($alertId);
@@ -125,7 +125,7 @@ class AlertManagementService
     {
         return DB::transaction(function () use ($alertId, $note, $attachments) {
             $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-            $aggregate->addNote($note, auth()->id() ?? 'system', $attachments);
+            $aggregate->addNote($note, (string) (auth()->id() ?? 'system'), $attachments);
             $aggregate->persist();
 
             return ComplianceAlert::findOrFail($alertId);
@@ -139,10 +139,10 @@ class AlertManagementService
     {
         return DB::transaction(function () use ($alertId, $resolution, $notes) {
             $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-            $aggregate->resolve($resolution, auth()->id() ?? 'system', $notes);
+            $aggregate->resolve($resolution, (string) (auth()->id() ?? 'system'), $notes);
             $aggregate->persist();
 
-            Event::dispatch(new AlertResolved($alertId, $resolution, auth()->id() ?? 'system'));
+            // AlertResolved event is already dispatched by the aggregate
 
             return ComplianceAlert::findOrFail($alertId);
         });
@@ -155,7 +155,7 @@ class AlertManagementService
     {
         return DB::transaction(function () use ($alertId, $linkedAlertIds, $linkType) {
             $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-            $aggregate->linkAlerts($linkedAlertIds, $linkType, auth()->id());
+            $aggregate->linkAlerts($linkedAlertIds, $linkType, (string) (auth()->id() ?? 'system'));
             $aggregate->persist();
 
             return ComplianceAlert::findOrFail($alertId);
@@ -176,16 +176,17 @@ class AlertManagementService
                 'priority'    => $this->mapSeverityToPriority($alert->severity),
                 'status'      => 'open',
                 'description' => "Escalated from alert: {$alert->description}",
-                'created_by'  => auth()->id() ?? 'system',
+                'created_by'  => (string) (auth()->id() ?? 'system'),
             ]);
 
             // Update alert through aggregate
             $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-            $aggregate->escalateToCase($case->id, auth()->id() ?? 'system', $reason);
+            $aggregate->escalateToCase((string) $case->id, (string) (auth()->id() ?? 'system'), $reason);
             $aggregate->persist();
 
             // Add alert to case
-            $case->alerts()->attach($alertId);
+            // Link alert to case in the projection model
+            ComplianceAlert::where('id', $alertId)->update(['case_id' => $case->id]);
 
             Event::dispatch(new AlertEscalated($alertId, $case->id, $reason));
 

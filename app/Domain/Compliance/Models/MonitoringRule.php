@@ -16,11 +16,16 @@ class MonitoringRule extends Model
     protected $fillable = [
         'name',
         'type',
+        'rule_type',
         'conditions',
+        'actions',
+        'metadata',
+        'tags',
         'threshold',
         'severity',
         'description',
         'is_active',
+        'enabled',
         'priority',
         'effectiveness_score',
         'false_positive_rate',
@@ -31,8 +36,12 @@ class MonitoringRule extends Model
 
     protected $casts = [
         'conditions'          => 'array',
+        'actions'             => 'array',
+        'metadata'            => 'array',
+        'tags'                => 'array',
         'threshold'           => 'float',
         'is_active'           => 'boolean',
+        'enabled'             => 'boolean',
         'priority'            => 'integer',
         'effectiveness_score' => 'float',
         'false_positive_rate' => 'float',
@@ -43,6 +52,7 @@ class MonitoringRule extends Model
 
     protected $attributes = [
         'is_active'           => true,
+        'enabled'             => true,
         'priority'            => 50,
         'effectiveness_score' => 50.0,
         'false_positive_rate' => 0.0,

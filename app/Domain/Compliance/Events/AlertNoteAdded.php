@@ -7,14 +7,14 @@ namespace App\Domain\Compliance\Events;
 use DateTimeImmutable;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
-class AlertResolved extends ShouldBeStored
+class AlertNoteAdded extends ShouldBeStored
 {
     public function __construct(
         public readonly string $alertId,
-        public readonly string $resolution,
-        public readonly string $resolvedBy,
-        public readonly string $notes,
-        public readonly DateTimeImmutable $resolvedAt
+        public readonly string $note,
+        public readonly string $addedBy,
+        public readonly array $attachments,
+        public readonly DateTimeImmutable $occurredAt
     ) {
     }
 }
