@@ -73,21 +73,17 @@ class TransactionMonitoringService
 
                     // Generate SAR if needed
                     if ($riskScore >= 90) {
-                        $this->sarService->generateReport([
-                            'transaction_id' => $transaction->id,
-                            'reason'         => 'Automated: Critical risk score',
-                            'details'        => [
-                                'risk_score'      => $riskScore,
-                                'patterns'        => $patterns,
-                                'rules_triggered' => $ruleResults,
-                            ],
+                        $this->sarService->createFromTransaction($transaction, [
+                            'reason'          => 'Automated: Critical risk score',
+                            'risk_score'      => $riskScore,
+                            'patterns'        => $patterns,
+                            'rules_triggered' => $ruleResults,
                         ]);
                     }
 
                     Event::dispatch(new SuspiciousActivityDetected(
-                        $transaction->id,
-                        $riskScore,
-                        $patterns
+                        $transaction,
+                        ['type' => 'high_risk', 'score' => $riskScore, 'patterns' => $patterns]
                     ));
                 }
 
@@ -139,7 +135,7 @@ class TransactionMonitoringService
     {
         DB::transaction(function () use ($transactionId, $reason, $severity) {
             $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
-            $aggregate->flagTransaction($reason, $severity, auth()->id() ?? 'system');
+            $aggregate->flagTransaction($reason, $severity, (string) (auth()->id() ?? 'system'));
             $aggregate->persist();
         });
     }
@@ -151,7 +147,7 @@ class TransactionMonitoringService
     {
         DB::transaction(function () use ($transactionId, $reason, $notes) {
             $aggregate = TransactionMonitoringAggregate::retrieve($transactionId);
-            $aggregate->clearTransaction($reason, auth()->id() ?? 'system', $notes);
+            $aggregate->clearTransaction($reason, (string) (auth()->id() ?? 'system'), $notes);
             $aggregate->persist();
         });
     }
@@ -163,11 +159,12 @@ class TransactionMonitoringService
     {
         $results = [];
         $rules = MonitoringRule::where('is_active', true)->get();
+        $eventProps = $transaction->event_properties ?? [];
 
         foreach ($rules as $rule) {
             if ($this->evaluateRule($rule, $transaction)) {
                 $aggregate->triggerRule(
-                    $rule->id,
+                    (string) $rule->id,
                     $rule->name,
                     $rule->severity ?? 'medium',
                     $rule->conditions ?? [],

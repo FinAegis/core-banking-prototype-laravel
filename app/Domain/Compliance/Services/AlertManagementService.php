@@ -240,7 +240,13 @@ class AlertManagementService
             // Link alert to case in the projection model
             ComplianceAlert::where('id', $alertId)->update(['case_id' => $case->id]);
 
-            Event::dispatch(new AlertEscalated($alertId, $case->id, $reason));
+            $alertModel = ComplianceAlert::findOrFail($alertId);
+            $similarAlerts = ComplianceAlert::where('id', '!=', $alertId)
+                ->where('type', $alertModel->type)
+                ->where('status', '!=', ComplianceAlert::STATUS_RESOLVED)
+                ->limit(10)
+                ->get();
+            Event::dispatch(new AlertEscalated($alertModel, $similarAlerts));
 
             Log::info('Alert escalated to case', [
                 'alert_id' => $alertId,

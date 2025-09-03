@@ -243,8 +243,9 @@ class TransactionMonitoringController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="reason", type="string", description="Reason for clearing"),
-             @OA\Property(property="reviewer", type="string", description="Reviewer ID"),
-             @OA\Property(property="notes", type="string", description="Additional notes")
+     *             @OA\Property(property="reviewer", type="string", description="Reviewer ID"),
+     *             @OA\Property(property="notes", type="string", description="Additional notes")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -256,8 +257,8 @@ class TransactionMonitoringController extends Controller
     public function clearTransaction(string $id, Request $request): JsonResponse
     {
         $validated = $request->validate([
-        'reviewer' => ['required'],
-        'notes'    => ['required', 'string', 'max:1000'],
+            'reviewer' => ['required'],
+            'notes'    => ['required', 'string', 'max:1000'],
         ]);
 
         $transaction = Transaction::findOrFail($id);
@@ -643,7 +644,7 @@ class TransactionMonitoringController extends Controller
             'transaction_id' => ['required', 'string'],
         ]);
 
-        $transaction = Transaction::with(['account', 'account.customer'])
+        $transaction = Transaction::with(['account', 'account.user'])
             ->findOrFail($validated['transaction_id']);
 
         // Process through stream processor

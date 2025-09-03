@@ -32,6 +32,7 @@ class ComplianceAlert extends Model
         'status',
         'title',
         'description',
+        'details',
         'source',
         'entity_type',
         'entity_id',
@@ -53,6 +54,7 @@ class ComplianceAlert extends Model
         'assigned_by',
         'resolved_at',
         'resolved_by',
+        'resolution',
         'resolution_notes',
         'resolution_time_hours',
         'false_positive_notes',
@@ -63,6 +65,7 @@ class ComplianceAlert extends Model
         'history',
         'status_changed_at',
         'status_changed_by',
+        'created_by',
     ];
 
     protected $casts = [
@@ -70,6 +73,7 @@ class ComplianceAlert extends Model
         'evidence'              => 'array',
         'metadata'              => 'array',
         'tags'                  => 'array',
+        'details'               => 'array',
         'investigation_notes'   => 'array',
         'linked_alerts'         => 'array',
         'history'               => 'array',

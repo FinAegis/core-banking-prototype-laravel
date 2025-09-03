@@ -28,6 +28,7 @@ class ComplianceCase extends Model
 
     protected $fillable = [
         'case_id',
+        'case_number',
         'title',
         'description',
         'type',
