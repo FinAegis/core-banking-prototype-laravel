@@ -40,7 +40,7 @@ class TransactionMonitoringProjector extends Projector
                 'risk_score'     => $event->riskScore,
             ]);
         }
-        
+
         $monitoring->update([
             'status'      => 'flagged',
             'flag_reason' => $event->reason,
@@ -59,7 +59,7 @@ class TransactionMonitoringProjector extends Projector
                 'status'         => 'cleared',
             ]);
         }
-        
+
         $monitoring->update([
             'status'       => 'cleared',
             'clear_reason' => $event->reason,
@@ -77,7 +77,7 @@ class TransactionMonitoringProjector extends Projector
                 'triggered_rules' => [],
             ]);
         }
-        
+
         // Add to triggered_rules array field
         $triggeredRules = $monitoring->triggered_rules ?? [];
         $triggeredRules[] = [
@@ -88,7 +88,7 @@ class TransactionMonitoringProjector extends Projector
             'matched_data' => $event->matchedData,
             'triggered_at' => ($event->occurredAt ?? now())->format('c'),
         ];
-        
+
         $monitoring->update(['triggered_rules' => $triggeredRules]);
 
         // Update rule statistics
@@ -143,7 +143,7 @@ class TransactionMonitoringProjector extends Projector
             'severity'        => $event->severity,
             'exceeded_at'     => ($event->occurredAt ?? now())->format('c'),
         ];
-        
+
         $monitoring->update(['triggered_rules' => $triggeredRules]);
 
         // Update monitoring status if critical
@@ -161,7 +161,7 @@ class TransactionMonitoringProjector extends Projector
                 'status'         => 'analyzed',
             ]);
         }
-        
+
         // Store analysis results in patterns or triggered_rules
         $patterns = $monitoring->patterns ?? [];
         $patterns[] = [
@@ -172,7 +172,7 @@ class TransactionMonitoringProjector extends Projector
             'processing_time' => $event->processingTime,
             'analyzed_at'     => ($event->occurredAt ?? now())->format('c'),
         ];
-        
+
         $monitoring->update([
             'patterns'    => $patterns,
             'status'      => $event->recommendation === 'flag' ? 'flagged' : 'cleared',

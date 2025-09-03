@@ -33,7 +33,7 @@ class ComplianceAlertProjector extends Projector
             'updated_at'  => $event->occurredAt ?? now(),
         ]);
     }
-    
+
     private function generateTitle(string $type, string $severity): string
     {
         $typeFormatted = ucfirst(str_replace('_', ' ', $type));
@@ -79,7 +79,7 @@ class ComplianceAlertProjector extends Projector
                 'changed_by'  => $event->userId,
                 'changed_at'  => ($event->occurredAt ?? now())->format('c'),
             ];
-            
+
             $alert->update([
                 'status'            => $event->newStatus,
                 'status_changed_by' => $event->userId,
@@ -102,7 +102,7 @@ class ComplianceAlertProjector extends Projector
                 'attachments' => $event->attachments,
                 'created_at'  => ($event->occurredAt ?? now())->format('c'),
             ];
-            
+
             $alert->update([
                 'investigation_notes' => $notes,
                 'updated_at'          => $event->occurredAt ?? now(),
@@ -150,7 +150,7 @@ class ComplianceAlertProjector extends Projector
                     'linked_at' => ($event->occurredAt ?? now())->format('c'),
                 ];
             }
-            
+
             $alert->update([
                 'linked_alerts' => $linkedAlerts,
                 'updated_at'    => $event->occurredAt ?? now(),
@@ -171,7 +171,7 @@ class ComplianceAlertProjector extends Projector
                 'reason'       => $event->reason,
                 'escalated_at' => ($event->occurredAt ?? now())->format('c'),
             ];
-            
+
             $alert->update([
                 'status'            => 'escalated',
                 'case_id'           => $event->caseId,
