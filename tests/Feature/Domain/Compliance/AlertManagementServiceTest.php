@@ -33,6 +33,8 @@ class AlertManagementServiceTest extends TestCase
         $data = [
             'type'             => 'transaction',
             'severity'         => 'high',
+            'entity_type'      => 'transaction',
+            'entity_id'        => 'trans_123',
             'title'            => 'Suspicious Transaction Detected',
             'description'      => 'Large transaction to high-risk country',
             'risk_score'       => 75,  // Changed from 85 to avoid auto-escalation
@@ -62,6 +64,8 @@ class AlertManagementServiceTest extends TestCase
         $data = [
             'type'        => 'pattern',
             'severity'    => 'critical',
+            'entity_type' => 'account',
+            'entity_id'   => 'account_456',
             'title'       => 'Money Laundering Pattern Detected',
             'description' => 'Complex layering pattern identified',
             'risk_score'  => 95,

@@ -11,6 +11,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property string $id
+ * @property string $alert_id
+ * @property string $type
+ * @property string $severity
+ * @property string $status
+ * @property string $entity_type
+ * @property string $entity_id
+ * @property string $description
+ * @property array|null $details
+ * @property string|null $assigned_to
+ * @property array|null $notes
+ * @property string|null $resolution
+ * @property string|null $created_by
+ * @property string|null $case_id
+ */
 class ComplianceAlert extends Model
 {
     use HasFactory;

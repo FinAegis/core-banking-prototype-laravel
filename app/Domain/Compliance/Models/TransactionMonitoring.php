@@ -4,9 +4,23 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Models;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $transaction_id
+ * @property string $status
+ * @property float $risk_score
+ * @property string $risk_level
+ * @property array|null $patterns
+ * @property array|null $triggered_rules
+ * @property string|null $flag_reason
+ * @property string|null $clear_reason
+ * @property DateTimeInterface|null $analyzed_at
+ * @property DateTimeInterface|null $flagged_at
+ * @property DateTimeInterface|null $cleared_at
+ */
 class TransactionMonitoring extends Model
 {
     protected $table = 'transaction_monitorings';

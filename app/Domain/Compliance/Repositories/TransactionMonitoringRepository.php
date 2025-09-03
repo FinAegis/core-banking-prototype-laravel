@@ -24,14 +24,9 @@ class TransactionMonitoringRepository
 
         // Check if the aggregate actually exists (has events)
         try {
-            // Try to get the transaction ID - if it's not set, the aggregate doesn't exist
-            if (! method_exists($aggregate, 'getTransactionId')) {
-                return null;
-            }
-
             // This will be empty if no events exist for this aggregate
-            $transactionId = $aggregate->getTransactionId();
-            if (empty($transactionId)) {
+            $aggregateTransactionId = $aggregate->getTransactionId();
+            if (empty($aggregateTransactionId)) {
                 return null;
             }
         } catch (Exception $e) {

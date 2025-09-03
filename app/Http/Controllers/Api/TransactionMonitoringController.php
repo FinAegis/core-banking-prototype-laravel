@@ -74,15 +74,17 @@ class TransactionMonitoringController extends Controller
         ]);
 
         $query = Transaction::query()
-            ->with(['account', 'account.customer'])
-            ->whereNotNull('compliance_status');
+            ->with(['account', 'account.user']);
 
-        if (isset($validated['status'])) {
-            $query->where('compliance_status', $validated['status']);
-        }
-
-        if (isset($validated['risk_level'])) {
-            $query->where('risk_level', $validated['risk_level']);
+        if (isset($validated['status']) || isset($validated['risk_level'])) {
+            $query->whereHas('monitoring', function ($q) use ($validated) {
+                if (isset($validated['status'])) {
+                    $q->where('status', $validated['status']);
+                }
+                if (isset($validated['risk_level'])) {
+                    $q->where('risk_level', $validated['risk_level']);
+                }
+            });
         }
 
         $transactions = $query->orderBy('created_at', 'desc')

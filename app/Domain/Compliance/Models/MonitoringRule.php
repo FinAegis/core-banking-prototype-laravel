@@ -4,10 +4,30 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Models;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $type
+ * @property string|null $rule_type
+ * @property array $conditions
+ * @property array|null $actions
+ * @property array|null $metadata
+ * @property array|null $tags
+ * @property float|null $threshold
+ * @property string $severity
+ * @property string|null $description
+ * @property bool $is_active
+ * @property bool $enabled
+ * @property int $priority
+ * @property float|null $effectiveness_score
+ * @property int $trigger_count
+ * @property DateTimeInterface|null $last_triggered_at
+ */
 class MonitoringRule extends Model
 {
     use HasFactory;

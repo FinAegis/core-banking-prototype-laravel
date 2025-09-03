@@ -20,6 +20,7 @@ class ComplianceAlertProjector extends Projector
     {
         ComplianceAlert::create([
             'id'          => $event->alertId,
+            'alert_id'    => $this->generateAlertId($event->type),
             'type'        => $event->type,
             'severity'    => $event->severity,
             'status'      => 'open',
@@ -27,17 +28,31 @@ class ComplianceAlertProjector extends Projector
             'entity_id'   => $event->entityId,
             'description' => $event->description,
             'metadata'    => $event->details,  // Store details in metadata field
-            'user_id'     => $event->metadata['userId'] ?? null,
+            'user_id'     => $event->metadata['user_id'] ?? null,
             'title'       => $this->generateTitle($event->type, $event->severity),
             'created_at'  => $event->occurredAt ?? now(),
             'updated_at'  => $event->occurredAt ?? now(),
         ]);
     }
 
+    private function generateAlertId(string $type): string
+    {
+        $prefix = match ($type) {
+            'transaction' => 'TXN',
+            'pattern'     => 'PTN',
+            'account'     => 'ACC',
+            'user'        => 'USR',
+            default       => 'ALT',
+        };
+
+        return $prefix . '-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+    }
+
     private function generateTitle(string $type, string $severity): string
     {
         $typeFormatted = ucfirst(str_replace('_', ' ', $type));
         $severityFormatted = ucfirst($severity);
+
         return "{$severityFormatted} {$typeFormatted} Alert";
     }
 

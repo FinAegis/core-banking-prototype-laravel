@@ -12,6 +12,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property string $id
+ * @property string $case_id
+ * @property string $case_number
+ * @property string $title
+ * @property string $description
+ * @property string $status
+ * @property string $priority
+ * @property string|null $assigned_to
+ * @property array|null $related_alerts
+ * @property array|null $entities
+ * @property array|null $evidence
+ * @property array|null $notes
+ * @property string|null $resolution
+ * @property string|null $created_by
+ */
 class ComplianceCase extends Model
 {
     use HasFactory;

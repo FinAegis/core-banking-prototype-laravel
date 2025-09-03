@@ -25,8 +25,8 @@ class ComplianceAlertRepository
         // Check if the aggregate actually exists (has events)
         // This is a workaround since Spatie always returns an aggregate instance
         try {
-            // Try to get the ID - if it's not set, the aggregate doesn't exist
-            if (! method_exists($aggregate, 'getId') || ! $aggregate->getId()) {
+            // Check if the aggregate has been initialized (has a status)
+            if (empty($aggregate->getStatus())) {
                 return null;
             }
         } catch (Exception $e) {
