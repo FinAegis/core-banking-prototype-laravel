@@ -46,8 +46,8 @@ class AlertManagementService
                 $aggregate = ComplianceAlertAggregate::create(
                     $data['type'],
                     $data['severity'],
-                    $data['entity_type'],
-                    (string) $data['entity_id'],
+                    $data['entity_type'] ?? $data['type'],  // Default entity_type to type if not provided
+                    (string) ($data['entity_id'] ?? 'system'),  // Default entity_id to 'system' if not provided
                     $data['description'],
                     $data['details'] ?? [],
                     $data['user_id'] ?? null
@@ -107,20 +107,32 @@ class AlertManagementService
     /**
      * Assign an alert to a user.
      */
-    public function assignAlert(string $alertId, string $userId, ?string $notes = null): ComplianceAlert
+    public function assignAlert(ComplianceAlert $alert, User $assignee, User $assignedBy, ?string $notes = null): ComplianceAlert
     {
-        return DB::transaction(function () use ($alertId, $userId, $notes) {
-            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-            $aggregate->assign($userId, (string) (auth()->id() ?? 'system'), $notes);
+        return DB::transaction(function () use ($alert, $assignee, $assignedBy, $notes) {
+            $aggregate = ComplianceAlertAggregate::retrieve($alert->id);
+            $aggregate->assign((string) $assignee->id, (string) $assignedBy->id, $notes);
             $aggregate->persist();
 
             // Update the read model
-            ComplianceAlert::where('id', $alertId)->update([
-                'assigned_to' => $userId,
+            $alert->update([
+                'assigned_to' => $assignee->id,
+                'assigned_by' => $assignedBy->id,
                 'assigned_at' => now(),
             ]);
 
-            return ComplianceAlert::findOrFail($alertId);
+            // Add to history
+            $history = $alert->history ?? [];
+            $history[] = [
+                'action'      => 'assignment',
+                'assigned_to' => $assignee->id,
+                'assigned_by' => $assignedBy->id,
+                'notes'       => $notes,
+                'timestamp'   => now()->toIso8601String(),
+            ];
+            $alert->update(['history' => $history]);
+
+            return $alert->fresh();
         });
     }
 
@@ -490,7 +502,7 @@ class AlertManagementService
         $page = $filters['page'] ?? 1;
 
         $results = $query->orderBy('created_at', 'desc')
-            ->paginate($perPage, ['*'], 'page', $page);
+            ->paginate($perPage, null, 'page', $page);
 
         return [
             'data' => $results->items(),
@@ -536,25 +548,51 @@ class AlertManagementService
      */
     public function createCaseFromAlerts(array $alertIds, array $caseData): ComplianceCase
     {
+        // Calculate metrics from related alerts
+        $alerts = ComplianceAlert::whereIn('id', $alertIds)->get();
+        $totalRiskScore = $alerts->sum('risk_score');
+        $alertCount = $alerts->count();
+
+        // Determine priority based on total risk score if not provided
+        if (! isset($caseData['priority'])) {
+            if ($totalRiskScore >= 200) {
+                $caseData['priority'] = 'critical';
+            } elseif ($totalRiskScore >= 150) {
+                $caseData['priority'] = 'high';
+            } elseif ($totalRiskScore >= 100) {
+                $caseData['priority'] = 'medium';
+            } else {
+                $caseData['priority'] = 'low';
+            }
+        }
+
         // Create the case
         $case = ComplianceCase::create([
-            'case_number'    => $this->generateCaseNumber(),
-            'title'          => $caseData['title'],
-            'description'    => $caseData['description'],
-            'status'         => 'open',
-            'priority'       => $caseData['priority'] ?? 'medium',
-            'created_by'     => $caseData['created_by'],
-            'related_alerts' => $alertIds,
-            'entities'       => [],
-            'evidence'       => [],
-            'notes'          => [],
+            'case_id'          => $this->generateCaseNumber(),
+            'title'            => $caseData['title'],
+            'description'      => $caseData['description'],
+            'type'             => $caseData['type'] ?? 'investigation',
+            'status'           => 'open',
+            'priority'         => $caseData['priority'],
+            'created_by'       => $caseData['created_by'],
+            'alert_count'      => $alertCount,
+            'total_risk_score' => $totalRiskScore,
+            'entities'         => [],
+            'evidence'         => [],
+            'notes'            => [],
         ]);
 
-        // Escalate each alert to the case
+        // Update alerts to reference this case and change status
+        ComplianceAlert::whereIn('id', $alertIds)->update([
+            'case_id' => $case->id,
+            'status'  => ComplianceAlert::STATUS_IN_REVIEW,
+        ]);
+
+        // Escalate each alert to the case via aggregate
         foreach ($alertIds as $alertId) {
             try {
                 $aggregate = ComplianceAlertAggregate::retrieve($alertId);
-                $aggregate->escalateToCase($case->id, 'Grouped into case', $caseData['created_by']);
+                $aggregate->escalateToCase($case->id, 'Grouped into case', (string) $caseData['created_by']);
                 $aggregate->persist();
             } catch (Exception $e) {
                 Log::error("Failed to escalate alert {$alertId} to case {$case->id}: " . $e->getMessage());
@@ -577,32 +615,32 @@ class AlertManagementService
             'response_times' => [],
         ];
 
-        // Count by status
-        $statusCounts = ComplianceAlert::selectRaw('status, count(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
-        $stats['by_status'] = $statusCounts;
+        // Count by status - using collection methods to avoid PHPStan issues
+        $alerts = ComplianceAlert::all();
+        $stats['by_status'] = $alerts->groupBy('status')->map->count()->toArray();
 
         // Count by severity
-        $severityCounts = ComplianceAlert::selectRaw('severity, count(*) as count')
-            ->groupBy('severity')
-            ->pluck('count', 'severity')
-            ->toArray();
-        $stats['by_severity'] = $severityCounts;
+        $stats['by_severity'] = $alerts->groupBy('severity')->map->count()->toArray();
 
         // Count by type
-        $typeCounts = ComplianceAlert::selectRaw('type, count(*) as count')
-            ->groupBy('type')
-            ->pluck('count', 'type')
-            ->toArray();
-        $stats['by_type'] = $typeCounts;
+        $stats['by_type'] = $alerts->groupBy('type')->map->count()->toArray();
 
-        // Calculate average response times
-        $avgResponseTime = ComplianceAlert::whereNotNull('resolved_at')
-            ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, created_at, resolved_at)) as avg_seconds')
-            ->value('avg_seconds');
-        $stats['response_times']['average_resolution_seconds'] = $avgResponseTime ?? 0;
+        // Calculate false positive rate
+        $totalResolved = $alerts->whereIn('status', [ComplianceAlert::STATUS_RESOLVED, ComplianceAlert::STATUS_FALSE_POSITIVE])->count();
+        $falsePositives = $alerts->where('status', ComplianceAlert::STATUS_FALSE_POSITIVE)->count();
+        $stats['false_positive_rate'] = $totalResolved > 0 ? ($falsePositives / $totalResolved) * 100 : 0;
+
+        // Calculate average response times using Eloquent
+        $resolvedAlerts = ComplianceAlert::whereNotNull('resolved_at')->get();
+        if ($resolvedAlerts->count() > 0) {
+            $totalSeconds = 0;
+            foreach ($resolvedAlerts as $alert) {
+                $totalSeconds += $alert->created_at->diffInSeconds($alert->resolved_at);
+            }
+            $stats['response_times']['average_resolution_seconds'] = $totalSeconds / $resolvedAlerts->count();
+        } else {
+            $stats['response_times']['average_resolution_seconds'] = 0;
+        }
 
         return $stats;
     }

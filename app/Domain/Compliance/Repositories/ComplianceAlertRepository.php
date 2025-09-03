@@ -112,9 +112,9 @@ class ComplianceAlertRepository
 
     public function countByStatus(): array
     {
-        return ComplianceAlert::selectRaw('status, count(*) as count')
+        return ComplianceAlert::selectRaw('status, count(*) as total')
             ->groupBy('status')
-            ->pluck('count', 'status')
+            ->pluck('total', 'status')
             ->toArray();
     }
 

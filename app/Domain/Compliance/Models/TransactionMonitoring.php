@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property DateTimeInterface|null $analyzed_at
  * @property DateTimeInterface|null $flagged_at
  * @property DateTimeInterface|null $cleared_at
+ * @property DateTimeInterface $created_at
+ * @property DateTimeInterface $updated_at
  */
 class TransactionMonitoring extends Model
 {

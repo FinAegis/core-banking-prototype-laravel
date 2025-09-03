@@ -88,19 +88,19 @@ class ComplianceAlertProjector extends Projector
             $history = $alert->history ?? [];
             $history[] = [
                 'type'        => 'status_change',
-                'from_status' => $event->oldStatus,
+                'from_status' => $event->previousStatus,
                 'to_status'   => $event->newStatus,
-                'reason'      => $event->reason,
-                'changed_by'  => $event->userId,
-                'changed_at'  => ($event->occurredAt ?? now())->format('c'),
+                'reason'      => $event->metadata['reason'] ?? null,
+                'changed_by'  => $event->changedBy,
+                'changed_at'  => $event->changedAt->format('c'),
             ];
 
             $alert->update([
                 'status'            => $event->newStatus,
-                'status_changed_by' => $event->userId,
-                'status_changed_at' => $event->occurredAt ?? now(),
+                'status_changed_by' => $event->changedBy,
+                'status_changed_at' => $event->changedAt,
                 'history'           => $history,
-                'updated_at'        => $event->occurredAt ?? now(),
+                'updated_at'        => now(),
             ]);
         }
     }
@@ -112,8 +112,8 @@ class ComplianceAlertProjector extends Projector
             // Store notes in investigation_notes array field
             $notes = $alert->investigation_notes ?? [];
             $notes[] = [
-                'content'     => $event->note,
-                'created_by'  => $event->addedBy,
+                'note'        => $event->note,  // Changed from 'content' to 'note'
+                'user_id'     => $event->addedBy,  // Changed from 'created_by' to 'user_id'
                 'attachments' => $event->attachments,
                 'created_at'  => ($event->occurredAt ?? now())->format('c'),
             ];
