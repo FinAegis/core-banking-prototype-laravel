@@ -502,4 +502,139 @@ class AlertManagementService
             ],
         ];
     }
+
+    /**
+     * Update alert status with user tracking.
+     */
+    public function updateAlertStatus(ComplianceAlert $alert, string $newStatus, User $user, ?string $notes = null): ComplianceAlert
+    {
+        // Use aggregate to change status with proper event sourcing
+        $aggregate = ComplianceAlertAggregate::retrieve($alert->id);
+        $aggregate->changeStatus($newStatus, $notes, (string) $user->id);
+        $aggregate->persist();
+
+        // Reload and return the updated projection
+        return $alert->fresh();
+    }
+
+    /**
+     * Add an investigation note to an alert.
+     */
+    public function addInvestigationNote(ComplianceAlert $alert, string $note, User $user): ComplianceAlert
+    {
+        // Use aggregate to add note with proper event sourcing
+        $aggregate = ComplianceAlertAggregate::retrieve($alert->id);
+        $aggregate->addNote($note, (string) $user->id);
+        $aggregate->persist();
+
+        // Reload and return the updated projection
+        return $alert->fresh();
+    }
+
+    /**
+     * Create a compliance case from multiple alerts.
+     */
+    public function createCaseFromAlerts(array $alertIds, array $caseData): ComplianceCase
+    {
+        // Create the case
+        $case = ComplianceCase::create([
+            'case_number'    => $this->generateCaseNumber(),
+            'title'          => $caseData['title'],
+            'description'    => $caseData['description'],
+            'status'         => 'open',
+            'priority'       => $caseData['priority'] ?? 'medium',
+            'created_by'     => $caseData['created_by'],
+            'related_alerts' => $alertIds,
+            'entities'       => [],
+            'evidence'       => [],
+            'notes'          => [],
+        ]);
+
+        // Escalate each alert to the case
+        foreach ($alertIds as $alertId) {
+            try {
+                $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+                $aggregate->escalateToCase($case->id, 'Grouped into case', $caseData['created_by']);
+                $aggregate->persist();
+            } catch (Exception $e) {
+                Log::error("Failed to escalate alert {$alertId} to case {$case->id}: " . $e->getMessage());
+            }
+        }
+
+        return $case;
+    }
+
+    /**
+     * Get alert statistics.
+     */
+    public function getAlertStatistics(): array
+    {
+        $stats = [
+            'total_alerts'   => ComplianceAlert::count(),
+            'by_status'      => [],
+            'by_severity'    => [],
+            'by_type'        => [],
+            'response_times' => [],
+        ];
+
+        // Count by status
+        $statusCounts = ComplianceAlert::selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+        $stats['by_status'] = $statusCounts;
+
+        // Count by severity
+        $severityCounts = ComplianceAlert::selectRaw('severity, count(*) as count')
+            ->groupBy('severity')
+            ->pluck('count', 'severity')
+            ->toArray();
+        $stats['by_severity'] = $severityCounts;
+
+        // Count by type
+        $typeCounts = ComplianceAlert::selectRaw('type, count(*) as count')
+            ->groupBy('type')
+            ->pluck('count', 'type')
+            ->toArray();
+        $stats['by_type'] = $typeCounts;
+
+        // Calculate average response times
+        $avgResponseTime = ComplianceAlert::whereNotNull('resolved_at')
+            ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, created_at, resolved_at)) as avg_seconds')
+            ->value('avg_seconds');
+        $stats['response_times']['average_resolution_seconds'] = $avgResponseTime ?? 0;
+
+        return $stats;
+    }
+
+    /**
+     * Get alert trends over a period.
+     */
+    public function getAlertTrends(string $period = '7d'): array
+    {
+        $startDate = match ($period) {
+            '24h'   => now()->subDay(),
+            '7d'    => now()->subDays(7),
+            '30d'   => now()->subDays(30),
+            '90d'   => now()->subDays(90),
+            default => now()->subDays(7),
+        };
+
+        $trends = ComplianceAlert::where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, count(*) as count, severity, type')
+            ->groupBy('date', 'severity', 'type')
+            ->orderBy('date')
+            ->get()
+            ->groupBy('date')
+            ->map(function ($dayAlerts) {
+                return [
+                    'total'       => $dayAlerts->sum('count'),
+                    'by_severity' => $dayAlerts->groupBy('severity')->map->sum('count'),
+                    'by_type'     => $dayAlerts->groupBy('type')->map->sum('count'),
+                ];
+            })
+            ->toArray();
+
+        return $trends;
+    }
 }
