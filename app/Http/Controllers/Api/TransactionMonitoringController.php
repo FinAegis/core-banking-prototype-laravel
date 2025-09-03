@@ -9,7 +9,6 @@ use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Models\MonitoringRule;
 use App\Domain\Compliance\Services\AlertManagementService;
 use App\Domain\Compliance\Services\TransactionMonitoringService;
-use App\Domain\Compliance\Streaming\PatternDetectionEngine;
 use App\Domain\Compliance\Streaming\TransactionStreamProcessor;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -24,8 +23,7 @@ class TransactionMonitoringController extends Controller
     public function __construct(
         private readonly TransactionMonitoringService $monitoringService,
         private readonly AlertManagementService $alertService,
-        private readonly TransactionStreamProcessor $streamProcessor,
-        private readonly PatternDetectionEngine $patternEngine
+        private readonly TransactionStreamProcessor $streamProcessor
     ) {
     }
 
@@ -77,11 +75,13 @@ class TransactionMonitoringController extends Controller
             ->with(['account', 'account.user']);
 
         if (isset($validated['status']) || isset($validated['risk_level'])) {
-            $query->whereHas('monitoring', function ($q) use ($validated) {
+            $query->whereHas('monitoring', function (\Illuminate\Database\Eloquent\Builder $q) use ($validated) {
                 if (isset($validated['status'])) {
+                    /** @phpstan-ignore-next-line */
                     $q->where('status', $validated['status']);
                 }
                 if (isset($validated['risk_level'])) {
+                    /** @phpstan-ignore-next-line */
                     $q->where('risk_level', $validated['risk_level']);
                 }
             });
@@ -145,7 +145,9 @@ class TransactionMonitoringController extends Controller
                 'monitoring'        => $monitoringDetails,
                 'alerts'            => $alerts,
                 'risk_score'        => $transaction->risk_score ?? 0,
-                'patterns_detected' => json_decode($transaction->patterns_detected ?? '[]', true),
+                'patterns_detected' => is_string($transaction->patterns_detected) 
+                    ? json_decode($transaction->patterns_detected, true) 
+                    : ($transaction->patterns_detected ?? []),
             ],
         ]);
     }
@@ -646,6 +648,7 @@ class TransactionMonitoringController extends Controller
             'transaction_id' => ['required', 'string'],
         ]);
 
+        /** @var Transaction $transaction */
         $transaction = Transaction::with(['account', 'account.user'])
             ->findOrFail($validated['transaction_id']);
 

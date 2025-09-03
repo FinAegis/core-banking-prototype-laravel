@@ -112,9 +112,10 @@ class ComplianceAlertRepository
 
     public function countByStatus(): array
     {
-        return ComplianceAlert::selectRaw('status, count(*) as total')
+        // Use collection methods to avoid PHPStan issues with selectRaw
+        return ComplianceAlert::all()
             ->groupBy('status')
-            ->pluck('total', 'status')
+            ->map->count()
             ->toArray();
     }
 

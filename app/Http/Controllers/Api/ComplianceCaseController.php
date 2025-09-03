@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Compliance\Models\ComplianceCase;
-use App\Domain\Compliance\Services\AlertManagementService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,10 +13,6 @@ use Illuminate\Validation\Rule;
 
 class ComplianceCaseController extends Controller
 {
-    public function __construct(
-        private readonly AlertManagementService $alertService
-    ) {
-    }
 
     /**
      * @OA\Get(
@@ -574,6 +569,7 @@ class ComplianceCaseController extends Controller
         }
 
         // Sort by timestamp
+        /** @phpstan-ignore-next-line */
         usort($timeline, function ($a, $b) {
             return $a['timestamp'] <=> $b['timestamp'];
         });

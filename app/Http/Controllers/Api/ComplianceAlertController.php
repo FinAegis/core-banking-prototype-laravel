@@ -284,10 +284,15 @@ class ComplianceAlertController extends Controller
         ]);
 
         $alert = ComplianceAlert::findOrFail($id);
+        /** @var \App\Models\User $assignee */
+        $assignee = \App\Models\User::findOrFail($validated['user_id']);
+        /** @var \App\Models\User $assignedBy */
+        $assignedBy = auth()->user();
 
         $alert = $this->alertService->assignAlert(
-            (string) $alert->id,
-            (string) $validated['user_id'],
+            $alert,
+            $assignee,
+            $assignedBy,
             $validated['notes'] ?? null
         );
 

@@ -285,20 +285,14 @@ class AlertManagementService
             $query->where('created_at', '<=', $filters['end_date']);
         }
 
+        // Get all alerts matching the query to avoid PHPStan issues with selectRaw
+        $alerts = $query->get();
+        
         return [
-            'total'     => $query->count(),
-            'by_status' => $query->clone()->groupBy('status')
-                ->selectRaw('status, count(*) as count')
-                ->pluck('count', 'status')
-                ->toArray(),
-            'by_severity' => $query->clone()->groupBy('severity')
-                ->selectRaw('severity, count(*) as count')
-                ->pluck('count', 'severity')
-                ->toArray(),
-            'by_type' => $query->clone()->groupBy('type')
-                ->selectRaw('type, count(*) as count')
-                ->pluck('count', 'type')
-                ->toArray(),
+            'total'                   => $alerts->count(),
+            'by_status'               => $alerts->groupBy('status')->map->count()->toArray(),
+            'by_severity'             => $alerts->groupBy('severity')->map->count()->toArray(),
+            'by_type'                 => $alerts->groupBy('type')->map->count()->toArray(),
             'escalation_rate'         => $this->calculateEscalationRate($query->clone()),
             'average_resolution_time' => $this->calculateAverageResolutionTime($query->clone()),
         ];
@@ -502,7 +496,7 @@ class AlertManagementService
         $page = $filters['page'] ?? 1;
 
         $results = $query->orderBy('created_at', 'desc')
-            ->paginate($perPage, null, 'page', $page);
+            ->paginate($perPage, ['id', 'alert_id', 'type', 'severity', 'status', 'title', 'description', 'entity_type', 'entity_id', 'created_at'], 'page', $page);
 
         return [
             'data' => $results->items(),

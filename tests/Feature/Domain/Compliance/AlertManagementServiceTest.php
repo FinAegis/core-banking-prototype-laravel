@@ -290,12 +290,14 @@ class AlertManagementServiceTest extends TestCase
         ]);
 
         // Assert
-        $this->assertCount(5, $results);
-        $results->each(function ($alert) {
+        $this->assertIsArray($results);
+        $this->assertArrayHasKey('data', $results);
+        $this->assertCount(5, $results['data']);
+        foreach ($results['data'] as $alert) {
             $this->assertEquals('transaction', $alert->type);
             $this->assertEquals('high', $alert->severity);
             $this->assertEquals(ComplianceAlert::STATUS_OPEN, $alert->status);
-        });
+        }
     }
 
     public function test_calculates_alert_statistics(): void

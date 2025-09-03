@@ -6,13 +6,15 @@ it('extends Component', function () {
     $reflection = new ReflectionClass(AppLayout::class);
     $parentClass = $reflection->getParentClass();
     expect($parentClass)->not->toBe(false);
-    expect($parentClass->getName())->toBe('Illuminate\View\Component');
+    if ($parentClass !== false) {
+        expect($parentClass->getName())->toBe('Illuminate\View\Component');
+    }
 });
 
 it('has render method', function () {
-    // Method exists check is redundant - just verify it's callable
+    // The render method is always present in components
     $component = new AppLayout();
-    expect(is_callable([$component, 'render']))->toBeTrue();
+    expect($component)->toHaveMethod('render');
 });
 
 it('render method returns View', function () {
