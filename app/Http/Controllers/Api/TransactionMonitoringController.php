@@ -145,8 +145,8 @@ class TransactionMonitoringController extends Controller
                 'monitoring'        => $monitoringDetails,
                 'alerts'            => $alerts,
                 'risk_score'        => $transaction->risk_score ?? 0,
-                'patterns_detected' => is_string($transaction->patterns_detected) 
-                    ? json_decode($transaction->patterns_detected, true) 
+                'patterns_detected' => is_string($transaction->patterns_detected)
+                    ? json_decode($transaction->patterns_detected, true)
                     : ($transaction->patterns_detected ?? []),
             ],
         ]);

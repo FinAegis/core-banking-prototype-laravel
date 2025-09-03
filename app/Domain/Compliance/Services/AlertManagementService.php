@@ -287,7 +287,7 @@ class AlertManagementService
 
         // Get all alerts matching the query to avoid PHPStan issues with selectRaw
         $alerts = $query->get();
-        
+
         return [
             'total'                   => $alerts->count(),
             'by_status'               => $alerts->groupBy('status')->map->count()->toArray(),

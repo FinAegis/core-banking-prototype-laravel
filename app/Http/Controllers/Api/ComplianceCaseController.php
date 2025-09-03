@@ -13,7 +13,6 @@ use Illuminate\Validation\Rule;
 
 class ComplianceCaseController extends Controller
 {
-
     /**
      * @OA\Get(
      *     path="/api/compliance/cases",
