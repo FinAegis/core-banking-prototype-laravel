@@ -90,6 +90,31 @@ class ComplianceCase extends Model
         'due_date'           => 'datetime',
     ];
 
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function ($case) {
+            if (empty($case->case_id)) {
+                // Generate case number
+                $year = now()->format('Y');
+                $lastCase = static::where('case_id', 'like', "CASE-{$year}-%")
+                    ->orderBy('case_id', 'desc')
+                    ->first();
+
+                if ($lastCase) {
+                    $lastNumber = (int) substr($lastCase->case_id, -6);
+                    $newNumber = $lastNumber + 1;
+                } else {
+                    $newNumber = 1;
+                }
+
+                $case->case_id = sprintf('CASE-%s-%06d', $year, $newNumber);
+            }
+        });
+    }
+
     // Status constants
     public const STATUS_OPEN = 'open';
 

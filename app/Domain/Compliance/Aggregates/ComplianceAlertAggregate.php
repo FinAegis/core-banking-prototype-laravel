@@ -61,6 +61,7 @@ class ComplianceAlertAggregate extends AggregateRoot
     ): self {
         $alertId = (string) Str::uuid();
         $alert = self::retrieve($alertId);
+        $alert->id = $alertId; // Set the ID directly
 
         $alert->recordThat(new AlertCreated(
             $alertId,
@@ -78,12 +79,12 @@ class ComplianceAlertAggregate extends AggregateRoot
 
     public function assign(string $assignedTo, ?string $assignedBy = null, ?string $notes = null): self
     {
-        if ($this->status->isClosed()) {
+        if (isset($this->status) && $this->status->isClosed()) {
             throw new DomainException('Cannot assign a closed alert');
         }
 
         $this->recordThat(new AlertAssigned(
-            $this->id,
+            $this->id ?? $this->uuid(),
             $assignedTo,
             $assignedBy ?? 'system',
             new DateTimeImmutable(),
@@ -95,14 +96,15 @@ class ComplianceAlertAggregate extends AggregateRoot
 
     public function changeStatus(string $newStatus, ?string $reason = null, ?string $userId = null): self
     {
-        $oldStatus = $this->status->value();
+        // Handle uninitialized status for new aggregates
+        $oldStatus = isset($this->status) ? $this->status->value() : 'open';
 
         if ($oldStatus === $newStatus) {
             return $this;
         }
 
         $this->recordThat(new AlertStatusChanged(
-            $this->id,
+            $this->id ?? $this->uuid(),
             $oldStatus,
             $newStatus,
             $userId ?? 'system',
@@ -116,7 +118,7 @@ class ComplianceAlertAggregate extends AggregateRoot
     public function addNote(string $note, string $addedBy, array $attachments = []): self
     {
         $this->recordThat(new AlertNoteAdded(
-            $this->id,
+            $this->id ?? $this->uuid(),
             $note,
             $addedBy,
             $attachments,
@@ -128,12 +130,12 @@ class ComplianceAlertAggregate extends AggregateRoot
 
     public function resolve(string $resolution, string $resolvedBy, ?string $notes = null): self
     {
-        if ($this->status->isClosed()) {
+        if (isset($this->status) && $this->status->isClosed()) {
             throw new DomainException('Alert is already closed');
         }
 
         $this->recordThat(new AlertResolved(
-            $this->id,
+            $this->id ?? $this->uuid(),
             $resolution,
             $resolvedBy,
             $notes ?? '',
@@ -150,7 +152,7 @@ class ComplianceAlertAggregate extends AggregateRoot
         }
 
         $this->recordThat(new AlertLinked(
-            $this->id,
+            $this->id ?? $this->uuid(),
             $alertIds,
             $linkType,
             $userId ?? 'system',
@@ -167,7 +169,7 @@ class ComplianceAlertAggregate extends AggregateRoot
         }
 
         $this->recordThat(new AlertEscalatedToCase(
-            $this->id,
+            $this->id ?? $this->uuid(),
             $caseId,
             $escalatedBy,
             $reason,
@@ -230,42 +232,43 @@ class ComplianceAlertAggregate extends AggregateRoot
     // Getters
     public function getId(): string
     {
-        return $this->id;
+        // If id is not set, use the uuid from the base aggregate
+        return $this->id ?? $this->uuid();
     }
 
     public function getStatus(): string
     {
-        return $this->status->value();
+        return isset($this->status) ? $this->status->value() : 'open';
     }
 
     public function getSeverity(): string
     {
-        return $this->severity->value();
+        return isset($this->severity) ? $this->severity->value() : 'low';
     }
 
     public function getType(): string
     {
-        return $this->type;
+        return $this->type ?? '';
     }
 
     public function getEntityType(): string
     {
-        return $this->entityType;
+        return $this->entityType ?? '';
     }
 
     public function getEntityId(): string
     {
-        return $this->entityId;
+        return $this->entityId ?? '';
     }
 
     public function getDescription(): string
     {
-        return $this->description;
+        return $this->description ?? '';
     }
 
     public function getDetails(): array
     {
-        return $this->details;
+        return $this->details ?? [];
     }
 
     public function getAssignedTo(): ?string

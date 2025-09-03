@@ -6,7 +6,6 @@ namespace App\Domain\Compliance\Services;
 
 use App\Domain\Compliance\Aggregates\ComplianceAlertAggregate;
 use App\Domain\Compliance\Events\AlertEscalated;
-use App\Domain\Compliance\Events\AlertResolved;
 use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Models\ComplianceCase;
 use App\Models\User;
@@ -15,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 
 /**
  * Alert management service for compliance monitoring.
@@ -58,11 +56,27 @@ class AlertManagementService
                 // Persist the aggregate
                 $aggregate->persist();
 
-                // Get the created alert from read model
-                $alert = ComplianceAlert::find($aggregate->getId());
+                // Create alert in read model (projector would normally handle this)
+                $alertId = $aggregate->getId();
+
+                // Create the read model alert
+                $alert = ComplianceAlert::create([
+                    'id'          => $alertId,
+                    'alert_id'    => $alertId,
+                    'type'        => $data['type'],
+                    'severity'    => $data['severity'],
+                    'entity_type' => $data['entity_type'],
+                    'entity_id'   => (string) $data['entity_id'],
+                    'title'       => $data['title'] ?? ($data['type'] . ' Alert'),
+                    'description' => $data['description'],
+                    'details'     => $data['details'] ?? [],
+                    'status'      => 'open',
+                    'risk_score'  => $this->calculateRiskScore($data['severity']),
+                    'created_by'  => $data['user_id'] ?? auth()->id() ?? null,
+                ]);
 
                 if (! $alert) {
-                    throw new Exception('Alert not found after creation');
+                    throw new Exception('Failed to create alert read model');
                 }
 
                 // Check for automatic escalation
@@ -100,6 +114,12 @@ class AlertManagementService
             $aggregate->assign($userId, (string) (auth()->id() ?? 'system'), $notes);
             $aggregate->persist();
 
+            // Update the read model
+            ComplianceAlert::where('id', $alertId)->update([
+                'assigned_to' => $userId,
+                'assigned_at' => now(),
+            ]);
+
             return ComplianceAlert::findOrFail($alertId);
         });
     }
@@ -113,6 +133,11 @@ class AlertManagementService
             $aggregate = ComplianceAlertAggregate::retrieve($alertId);
             $aggregate->changeStatus($newStatus, $reason, (string) (auth()->id() ?? 'system'));
             $aggregate->persist();
+
+            // Update the read model
+            ComplianceAlert::where('id', $alertId)->update([
+                'status' => $newStatus,
+            ]);
 
             return ComplianceAlert::findOrFail($alertId);
         });
@@ -128,7 +153,18 @@ class AlertManagementService
             $aggregate->addNote($note, (string) (auth()->id() ?? 'system'), $attachments);
             $aggregate->persist();
 
-            return ComplianceAlert::findOrFail($alertId);
+            // Update the read model notes
+            $alert = ComplianceAlert::findOrFail($alertId);
+            $notes = $alert->notes ?? [];
+            $notes[] = [
+                'note'        => $note,
+                'attachments' => $attachments,
+                'created_by'  => auth()->id() ?? 'system',
+                'created_at'  => now(),
+            ];
+            $alert->update(['notes' => $notes]);
+
+            return $alert;
         });
     }
 
@@ -142,7 +178,14 @@ class AlertManagementService
             $aggregate->resolve($resolution, (string) (auth()->id() ?? 'system'), $notes);
             $aggregate->persist();
 
-            // AlertResolved event is already dispatched by the aggregate
+            // Update the read model
+            ComplianceAlert::where('id', $alertId)->update([
+                'status'           => 'closed',
+                'resolution'       => $resolution,
+                'resolution_notes' => $notes,
+                'resolved_at'      => now(),
+                'resolved_by'      => auth()->id() ?? null,
+            ]);
 
             return ComplianceAlert::findOrFail($alertId);
         });
@@ -158,7 +201,13 @@ class AlertManagementService
             $aggregate->linkAlerts($linkedAlertIds, $linkType, (string) (auth()->id() ?? 'system'));
             $aggregate->persist();
 
-            return ComplianceAlert::findOrFail($alertId);
+            // Update the read model with linked alerts
+            $alert = ComplianceAlert::findOrFail($alertId);
+            $linkedAlerts = $alert->linked_alerts ?? [];
+            $linkedAlerts = array_unique(array_merge($linkedAlerts, $linkedAlertIds));
+            $alert->update(['linked_alerts' => $linkedAlerts]);
+
+            return $alert;
         });
     }
 
@@ -172,7 +221,10 @@ class AlertManagementService
 
             // Create new case
             $case = ComplianceCase::create([
-                'case_number' => $this->generateCaseNumber(),
+                'case_id'     => $this->generateCaseNumber(),
+                'case_number' => $this->generateCaseNumber(),  // Add case_number
+                'title'       => "Alert Escalation: {$alert->type}", // Add required title
+                'type'        => 'investigation', // Add required type
                 'priority'    => $this->mapSeverityToPriority($alert->severity),
                 'status'      => 'open',
                 'description' => "Escalated from alert: {$alert->description}",
@@ -293,6 +345,17 @@ class AlertManagementService
     /**
      * Notify compliance team about high-severity alerts.
      */
+    private function calculateRiskScore(string $severity): float
+    {
+        return match ($severity) {
+            'critical' => 100.0,
+            'high'     => 75.0,
+            'medium'   => 50.0,
+            'low'      => 25.0,
+            default    => 0.0,
+        };
+    }
+
     private function notifyComplianceTeam(ComplianceAlert $alert): void
     {
         // Get compliance team users
@@ -314,11 +377,19 @@ class AlertManagementService
      */
     private function generateCaseNumber(): string
     {
-        $prefix = 'CASE';
         $year = now()->format('Y');
-        $random = strtoupper(Str::random(6));
+        $lastCase = ComplianceCase::where('case_id', 'like', "CASE-{$year}-%")
+            ->orderBy('case_id', 'desc')
+            ->first();
 
-        return "{$prefix}-{$year}-{$random}";
+        if ($lastCase) {
+            $lastNumber = (int) substr($lastCase->case_id, -6);
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        return sprintf('CASE-%s-%06d', $year, $newNumber);
     }
 
     /**
@@ -327,7 +398,7 @@ class AlertManagementService
     private function mapSeverityToPriority(string $severity): string
     {
         return match ($severity) {
-            'critical' => 'urgent',
+            'critical' => 'critical',
             'high'     => 'high',
             'medium'   => 'medium',
             'low'      => 'low',

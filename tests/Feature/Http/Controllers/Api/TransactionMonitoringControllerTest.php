@@ -86,9 +86,9 @@ class TransactionMonitoringControllerTest extends TestCase
             ],
         ]);
         $response = $this->postJson('/api/transaction-monitoring/' . $transaction->id . '/flag', [
-            'reason'      => 'suspicious_amount',
-            'severity'    => 'high',
-            'description' => 'Large transfer to unknown account',
+            'reason'   => 'Large transfer to unknown account',
+            'severity' => 'high',
+            'notes'    => 'Suspicious amount detected',
         ]);
 
         $response->assertOk()
@@ -106,11 +106,10 @@ class TransactionMonitoringControllerTest extends TestCase
                 'account_id'        => $this->account->id,
             ],
         ]);
-        
+
         $response = $this->postJson('/api/transaction-monitoring/' . $transaction->id . '/clear', [
-            'reason'   => 'false_positive',
-            'reviewer' => $this->user->id,
-            'notes'    => 'Regular business transaction',
+            'reviewer' => (string) $this->user->id,
+            'notes'    => 'Regular business transaction - false positive',
         ]);
 
         $response->assertOk()
@@ -200,42 +199,44 @@ class TransactionMonitoringControllerTest extends TestCase
 
     public function test_can_analyze_transaction_realtime(): void
     {
+        // Create a transaction first
+        $transaction = Transaction::factory()->create();
+
         $response = $this->postJson('/api/transaction-monitoring/analyze/realtime', [
-            'transaction_id' => 'TXN-123',
-            'amount'         => 15000,
-            'currency'       => 'USD',
-            'type'           => 'transfer',
-            'from_account'   => 'ACC-001',
-            'to_account'     => 'ACC-002',
-            'metadata'       => ['source' => 'api'],
+            'transaction_id' => (string) $transaction->id,
         ]);
 
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
+                    'analysis_id',
+                    'status',
+                    'transaction_id',
                     'risk_score',
-                    'risk_level',
-                    'patterns_detected',
-                    'recommendations',
-                    'should_flag',
+                    'patterns',
+                    'alerts_generated',
+                    'recommendation',
+                    'details',
                 ],
             ]);
     }
 
     public function test_can_analyze_transactions_batch(): void
     {
+        // Create transactions first
+        $transactions = Transaction::factory()->count(3)->create();
+
         $response = $this->postJson('/api/transaction-monitoring/analyze/batch', [
-            'transaction_ids' => ['TXN-001', 'TXN-002', 'TXN-003'],
-            'analysis_type'   => 'comprehensive',
+            'transaction_ids' => $transactions->pluck('id')->map(fn ($id) => (string) $id)->toArray(),
         ]);
 
-        $response->assertAccepted()
+        $response->assertOk()
             ->assertJsonStructure([
-                'message',
                 'data' => [
-                    'analysis_id',
+                    'batch_id',
                     'status',
-                    'estimated_completion',
+                    'total_transactions',
+                    'result',
                 ],
             ]);
     }
@@ -247,11 +248,11 @@ class TransactionMonitoringControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    '*' => [
-                        'pattern_type',
-                        'description',
-                        'detection_count',
-                        'risk_level',
+                    'patterns',
+                    'available_types',
+                    'statistics' => [
+                        'total_detected',
+                        'last_updated',
                     ],
                 ],
             ]);
@@ -264,9 +265,11 @@ class TransactionMonitoringControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    'amount_thresholds',
-                    'frequency_thresholds',
-                    'risk_thresholds',
+                    'single_transaction' => ['amount', 'currency'],
+                    'daily_aggregate'    => ['amount', 'currency'],
+                    'monthly_aggregate'  => ['amount', 'currency'],
+                    'velocity'           => ['count_per_hour', 'count_per_day'],
+                    'structuring'        => ['threshold', 'count', 'time_window'],
                 ],
             ]);
     }

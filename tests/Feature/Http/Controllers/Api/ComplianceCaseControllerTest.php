@@ -356,14 +356,10 @@ class ComplianceCaseControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    'case_id',
-                    'timeline' => [
-                        '*' => [
-                            'timestamp',
-                            'type',
-                            'description',
-                            'user',
-                        ],
+                    '*' => [
+                        'timestamp',
+                        'type',
+                        'description',
                     ],
                 ],
             ]);

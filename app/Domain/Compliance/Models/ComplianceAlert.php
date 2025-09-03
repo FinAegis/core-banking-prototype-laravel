@@ -90,6 +90,11 @@ class ComplianceAlert extends Model
     protected static function booted(): void
     {
         static::creating(function ($alert) {
+            // Set detected_at if not provided
+            if (empty($alert->detected_at)) {
+                $alert->detected_at = now();
+            }
+
             if (empty($alert->alert_id)) {
                 // Get the next sequence number for this year
                 $year = now()->format('Y');

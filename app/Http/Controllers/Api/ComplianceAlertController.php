@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Compliance\Models\ComplianceAlert;
-use App\Domain\Compliance\Models\ComplianceCase;
 use App\Domain\Compliance\Services\AlertManagementService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -285,11 +284,11 @@ class ComplianceAlertController extends Controller
         ]);
 
         $alert = ComplianceAlert::findOrFail($id);
-        $user = User::findOrFail($validated['user_id']);
 
         $alert = $this->alertService->assignAlert(
-            $alert,
-            $user
+            $alert->id,
+            (string) $validated['user_id'],
+            $validated['notes'] ?? null
         );
 
         return response()->json([
@@ -390,7 +389,7 @@ class ComplianceAlertController extends Controller
         }
 
         $primaryAlert = $alerts->first();
-        $relatedAlertIds = $alerts->skip(1)->pluck('alert_id')->toArray();
+        $relatedAlertIds = $alerts->skip(1)->pluck('id')->toArray();
 
         $this->alertService->linkAlerts(
             $primaryAlert->id,
@@ -445,9 +444,9 @@ class ComplianceAlertController extends Controller
         // Create case using the first alert
         $firstAlertId = $validated['alert_ids'][0];
         $reason = $validated['title'] ?? 'Multiple alerts require investigation';
-        
+
         $case = $this->alertService->escalateToCase($firstAlertId, $reason);
-        
+
         // Update case with additional info if provided
         if (isset($validated['description'])) {
             $case->update(['description' => $validated['description']]);
@@ -455,11 +454,11 @@ class ComplianceAlertController extends Controller
         if (isset($validated['priority'])) {
             $case->update(['priority' => $validated['priority']]);
         }
-        
+
         // Link remaining alerts to the case
         if (count($validated['alert_ids']) > 1) {
             foreach (array_slice($validated['alert_ids'], 1) as $alertId) {
-                ComplianceAlert::where('id', $alertId)->update(['case_id' => $case->id]);
+                ComplianceAlert::where('alert_id', $alertId)->update(['case_id' => $case->id]);
             }
         }
 
@@ -535,11 +534,11 @@ class ComplianceAlertController extends Controller
             $date = $now->copy()->subDays($i);
             $dayStats = $this->alertService->getStatistics([
                 'start_date' => $date->startOfDay()->toDateTimeString(),
-                'end_date' => $date->endOfDay()->toDateTimeString(),
+                'end_date'   => $date->endOfDay()->toDateTimeString(),
             ]);
             $trends[] = [
-                'date' => $date->format('Y-m-d'),
-                'total' => $dayStats['total'] ?? 0,
+                'date'          => $date->format('Y-m-d'),
+                'total'         => $dayStats['total'] ?? 0,
                 'high_severity' => $dayStats['high_severity'] ?? 0,
             ];
         }

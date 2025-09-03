@@ -181,14 +181,14 @@ class ComplianceCaseController extends Controller
             $lastCase = ComplianceCase::where('case_number', 'like', "CASE-{$year}-%")
                 ->orderBy('case_number', 'desc')
                 ->first();
-            
+
             if ($lastCase) {
                 $lastNumber = (int) substr($lastCase->case_number, -6);
                 $newNumber = $lastNumber + 1;
             } else {
                 $newNumber = 1;
             }
-            
+
             $caseNumber = sprintf('CASE-%s-%06d', $year, $newNumber);
 
             return ComplianceCase::create([
@@ -484,25 +484,12 @@ class ComplianceCaseController extends Controller
             'escalate_to' => ['sometimes', 'integer', 'exists:users,id'],
         ]);
 
-        // Update priority if not already critical
-        if ($case->priority !== 'critical') {
-            $newPriority = match ($case->priority) {
-                'low'    => 'medium',
-                'medium' => 'high',
-                'high'   => 'critical',
-                default  => 'high',
-            };
-            $case->update([
-                'priority'         => $newPriority,
-                'status'           => 'escalated',
-                'escalation_level' => ($case->escalation_level ?? 0) + 1,
-            ]);
-        } else {
-            $case->update([
-                'status'           => 'escalated',
-                'escalation_level' => ($case->escalation_level ?? 0) + 1,
-            ]);
-        }
+        // Escalation automatically raises priority to critical
+        $case->update([
+            'priority'         => 'critical',
+            'status'           => 'escalated',
+            'escalation_level' => ($case->escalation_level ?? 0) + 1,
+        ]);
 
         // Add escalation note
         $notes = $case->notes ?? [];

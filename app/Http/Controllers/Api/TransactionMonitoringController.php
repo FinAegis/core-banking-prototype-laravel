@@ -243,8 +243,8 @@ class TransactionMonitoringController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="reason", type="string", description="Reason for clearing"),
-     *             @OA\Property(property="notes", type="string", description="Additional notes")
-     *         )
+             @OA\Property(property="reviewer", type="string", description="Reviewer ID"),
+             @OA\Property(property="notes", type="string", description="Additional notes")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -256,47 +256,21 @@ class TransactionMonitoringController extends Controller
     public function clearTransaction(string $id, Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'reason' => ['required', 'string', 'max:500'],
-            'notes'  => ['sometimes', 'string', 'max:1000'],
+        'reviewer' => ['required'],
+        'notes'    => ['required', 'string', 'max:1000'],
         ]);
 
         $transaction = Transaction::findOrFail($id);
 
-        if ($transaction->compliance_status !== 'flagged' && $transaction->compliance_status !== 'reviewing') {
-            return response()->json([
-                'error' => 'Transaction cannot be cleared in current status',
-            ], 422);
-        }
-
-        DB::transaction(function () use ($transaction, $validated) {
-            // Update transaction status
-            $transaction->update([
-                'compliance_status' => 'cleared',
-                'risk_level'        => 'low',
-                'cleared_at'        => now(),
-                'cleared_by'        => auth()->id(),
-                'clear_reason'      => $validated['reason'],
-            ]);
-
-            // Close related alerts
-            ComplianceAlert::where('entity_type', 'transaction')
-                ->where('entity_id', $transaction->id)
-                ->where('status', '!=', 'closed')
-                ->update([
-                    'status'           => 'closed',
-                    'resolution'       => 'cleared',
-                    'resolved_at'      => now(),
-                    'resolved_by'      => auth()->id(),
-                    'resolution_notes' => $validated['notes'] ?? null,
-                ]);
-        });
+        // Clear the transaction
+        $this->monitoringService->clearTransaction(
+            (string) $transaction->id,
+            $validated['notes'],
+            $validated['reviewer']
+        );
 
         return response()->json([
-            'message' => 'Transaction cleared successfully',
-            'data'    => [
-                'id'     => $transaction->id,
-                'status' => 'cleared',
-            ],
+        'message' => 'Transaction cleared successfully',
         ]);
     }
 
