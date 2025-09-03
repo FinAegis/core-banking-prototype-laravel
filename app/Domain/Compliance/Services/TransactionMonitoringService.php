@@ -41,7 +41,7 @@ class TransactionMonitoringService
                 $fromAccount = $transaction->aggregate_uuid ?? '';
                 $toAccount = $eventProps['destination'] ?? $eventProps['to_account'] ?? '';
                 $type = $eventProps['type'] ?? 'transfer';
-                
+
                 // Create or retrieve aggregate
                 $aggregate = TransactionMonitoringAggregate::analyzeTransaction(
                     (string) $transaction->id,
@@ -269,7 +269,7 @@ class TransactionMonitoringService
 
         $eventProps = $transaction->event_properties ?? [];
         $amount = $eventProps['amount'] ?? 0;
-        
+
         foreach ($amountThresholds as $severity => $threshold) {
             if ($amount >= $threshold) {
                 $aggregate->exceedThreshold(
