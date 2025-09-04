@@ -267,7 +267,7 @@ class ComplianceAlertControllerTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/compliance/alerts/create-case', [
-            'alert_ids'   => [$alert1->id, $alert2->id],
+            'alert_ids'   => [$alert1->alert_id, $alert2->alert_id],
             'title'       => 'High Risk Activity Investigation',
             'description' => 'Multiple high-risk alerts detected',
             'type'        => 'investigation',
