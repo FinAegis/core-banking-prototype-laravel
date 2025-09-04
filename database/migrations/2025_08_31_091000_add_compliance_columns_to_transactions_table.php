@@ -11,7 +11,7 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->enum('compliance_status', ['pending', 'reviewing', 'cleared', 'flagged'])->nullable()->after('status');
+            $table->enum('compliance_status', ['pending', 'reviewing', 'cleared', 'flagged'])->nullable()->after('meta_data');
             $table->enum('risk_level', ['low', 'medium', 'high', 'critical'])->nullable()->after('compliance_status');
             $table->decimal('risk_score', 5, 2)->nullable()->after('risk_level');
             $table->json('patterns_detected')->nullable()->after('risk_score');
