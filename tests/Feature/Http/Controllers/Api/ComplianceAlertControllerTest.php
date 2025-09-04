@@ -213,11 +213,11 @@ class ComplianceAlertControllerTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('message', 'Note added successfully');
+            ->assertJsonPath('message', 'Investigation note added successfully');
 
         $alert->refresh();
         $this->assertCount(1, $alert->notes);
-        $this->assertEquals('Contacted customer for verification', $alert->notes[0]['content']);
+        $this->assertEquals('Contacted customer for verification', $alert->notes[0]['note']);
     }
 
     public function test_can_link_alerts(): void
