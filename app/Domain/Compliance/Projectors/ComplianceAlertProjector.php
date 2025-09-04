@@ -163,14 +163,14 @@ class ComplianceAlertProjector extends Projector
                 $linkedAlerts[] = [
                     'alert_id'  => $linkedAlertId,
                     'link_type' => $event->linkType,
-                    'linked_by' => $event->userId,
-                    'linked_at' => ($event->occurredAt ?? now())->format('c'),
+                    'linked_by' => $event->linkedBy,
+                    'linked_at' => ($event->linkedAt ?? now())->format('c'),
                 ];
             }
 
             $alert->update([
                 'linked_alerts' => $linkedAlerts,
-                'updated_at'    => $event->occurredAt ?? now(),
+                'updated_at'    => $event->linkedAt ?? now(),
             ]);
         }
     }

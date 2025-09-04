@@ -256,7 +256,7 @@ return [
         'alert_note_added'        => App\Domain\Compliance\Events\AlertNoteAdded::class,
         'alert_resolved'          => App\Domain\Compliance\Events\AlertResolved::class,
         'alert_escalated_to_case' => App\Domain\Compliance\Events\AlertEscalatedToCase::class,
-        'alerts_linked'           => App\Domain\Compliance\Events\AlertsLinked::class,
+        'alert_linked'            => App\Domain\Compliance\Events\AlertLinked::class,
 
         // Compliance Transaction Monitoring events
         'risk_score_calculated'    => App\Domain\Compliance\Events\RiskScoreCalculated::class,

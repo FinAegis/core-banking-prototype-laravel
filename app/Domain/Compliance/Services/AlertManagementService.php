@@ -214,13 +214,8 @@ class AlertManagementService
             $aggregate->linkAlerts($linkedAlertIds, $linkType, (string) (auth()->id() ?? 'system'));
             $aggregate->persist();
 
-            // Update the read model with linked alerts
-            $alert = ComplianceAlert::findOrFail($alertId);
-            $linkedAlerts = $alert->linked_alerts ?? [];
-            $linkedAlerts = array_unique(array_merge($linkedAlerts, $linkedAlertIds));
-            $alert->update(['linked_alerts' => $linkedAlerts]);
-
-            return $alert;
+            // The projector will handle the read model update, just return the alert
+            return ComplianceAlert::findOrFail($alertId);
         });
     }
 
