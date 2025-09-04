@@ -225,30 +225,32 @@ class AlertManagementService
     public function escalateToCase(string $alertId, string $reason): ComplianceCase
     {
         return DB::transaction(function () use ($alertId, $reason) {
-            $alert = ComplianceAlert::findOrFail($alertId);
+            $alert = ComplianceAlert::where('alert_id', $alertId)->firstOrFail();
 
             // Create new case
             $case = ComplianceCase::create([
-                'case_id'     => $this->generateCaseNumber(),
-                'title'       => "Alert Escalation: {$alert->type}",
-                'type'        => 'investigation',
-                'priority'    => $this->mapSeverityToPriority($alert->severity),
-                'status'      => 'open',
-                'description' => "Escalated from alert: {$alert->description}",
-                'created_by'  => auth()->id(),
+                'case_id'          => $this->generateCaseNumber(),
+                'title'            => "Alert Escalation: {$alert->type}",
+                'type'             => 'investigation',
+                'priority'         => $this->mapSeverityToPriority($alert->severity),
+                'status'           => 'open',
+                'description'      => "Escalated from alert: {$alert->description}",
+                'created_by'       => auth()->id(),
+                'alert_count'      => 1,  // Single alert escalation
+                'total_risk_score' => $alert->risk_score ?? 0,
             ]);
 
             // Update alert through aggregate
-            $aggregate = ComplianceAlertAggregate::retrieve($alertId);
+            $aggregate = ComplianceAlertAggregate::retrieve($alert->id);
             $aggregate->escalateToCase((string) $case->id, (string) (auth()->id() ?? 'system'), $reason);
             $aggregate->persist();
 
             // Add alert to case
             // Link alert to case in the projection model
-            ComplianceAlert::where('id', $alertId)->update(['case_id' => $case->id]);
+            ComplianceAlert::where('id', $alert->id)->update(['case_id' => $case->id]);
 
-            $alertModel = ComplianceAlert::findOrFail($alertId);
-            $similarAlerts = ComplianceAlert::where('id', '!=', $alertId)
+            $alertModel = ComplianceAlert::findOrFail($alert->id);
+            $similarAlerts = ComplianceAlert::where('id', '!=', $alert->id)
                 ->where('type', $alertModel->type)
                 ->where('status', '!=', ComplianceAlert::STATUS_RESOLVED)
                 ->limit(10)
@@ -256,7 +258,7 @@ class AlertManagementService
             Event::dispatch(new AlertEscalated($alertModel, $similarAlerts));
 
             Log::info('Alert escalated to case', [
-                'alert_id' => $alertId,
+                'alert_id' => $alert->id,
                 'case_id'  => $case->id,
                 'reason'   => $reason,
             ]);
@@ -343,7 +345,7 @@ class AlertManagementService
 
         if ($similarCount >= $threshold) {
             $this->escalateToCase(
-                $alert->id,
+                $alert->alert_id,
                 "Automatic escalation: {$similarCount} similar alerts in the past 7 days"
             );
         }
@@ -433,11 +435,17 @@ class AlertManagementService
      */
     private function calculateAverageResolutionTime($query): ?float
     {
-        $resolved = $query->whereNotNull('resolved_at')
-            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_hours')
-            ->first();
+        $resolved = $query->whereNotNull('resolved_at')->get();
 
-        return $resolved ? round($resolved->avg_hours, 2) : null;
+        if ($resolved->isEmpty()) {
+            return null;
+        }
+
+        $totalHours = $resolved->sum(function ($alert) {
+            return $alert->created_at->diffInHours($alert->resolved_at);
+        });
+
+        return round($totalHours / $resolved->count(), 2);
     }
 
     /**
@@ -446,6 +454,16 @@ class AlertManagementService
     public function searchAlerts(array $filters): array
     {
         $query = ComplianceAlert::query();
+
+        // Handle text search in description and title
+        if (isset($filters['query'])) {
+            $searchTerm = $filters['query'];
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('description', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('title', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('type', 'like', '%' . $searchTerm . '%');
+            });
+        }
 
         if (isset($filters['type'])) {
             $query->where('type', $filters['type']);

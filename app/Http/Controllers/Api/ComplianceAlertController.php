@@ -452,13 +452,15 @@ class ComplianceAlertController extends Controller
 
         $case = $this->alertService->escalateToCase($firstAlertId, $reason);
 
-        // Update case with additional info if provided
+        // Update case with provided info (title is required, so always update it)
+        $updates = ['title' => $validated['title']];
         if (isset($validated['description'])) {
-            $case->update(['description' => $validated['description']]);
+            $updates['description'] = $validated['description'];
         }
         if (isset($validated['priority'])) {
-            $case->update(['priority' => $validated['priority']]);
+            $updates['priority'] = $validated['priority'];
         }
+        $case->update($updates);
 
         // Link remaining alerts to the case
         if (count($validated['alert_ids']) > 1) {
@@ -467,9 +469,22 @@ class ComplianceAlertController extends Controller
             }
         }
 
+        // Get linked alerts
+        $linkedAlerts = ComplianceAlert::where('case_id', $case->id)->get();
+
+        // Update case with total alert count and risk score
+        $case->update([
+            'alert_count'      => $linkedAlerts->count(),
+            'total_risk_score' => $linkedAlerts->sum('risk_score'),
+        ]);
+        $case = $case->fresh();
+
         return response()->json([
             'message' => 'Case created successfully',
-            'data'    => $case,
+            'data'    => [
+                'case'          => $case,
+                'linked_alerts' => $linkedAlerts,
+            ],
         ], 201);
     }
 
@@ -501,8 +516,25 @@ class ComplianceAlertController extends Controller
 
         $statistics = $this->alertService->getStatistics(['period' => $period]);
 
+        // Calculate additional metrics
+        $allAlerts = ComplianceAlert::all();
+        $highRiskAlerts = $allAlerts->where('risk_score', '>=', 70)->count();
+        $avgRiskScore = round($allAlerts->avg('risk_score') ?? 0, 2);
+
+        // Map the response to expected structure
+        $data = [
+            'total_alerts'            => $statistics['total'] ?? 0,
+            'by_status'               => $statistics['by_status'] ?? [],
+            'by_severity'             => $statistics['by_severity'] ?? [],
+            'by_type'                 => $statistics['by_type'] ?? [],
+            'escalation_rate'         => $statistics['escalation_rate'] ?? 0,
+            'average_resolution_time' => $statistics['average_resolution_time'] ?? null,
+            'average_risk_score'      => $avgRiskScore,
+            'high_risk_count'         => $highRiskAlerts,
+        ];
+
         return response()->json([
-            'data' => $statistics,
+            'data' => $data,
         ]);
     }
 
@@ -530,27 +562,77 @@ class ComplianceAlertController extends Controller
      */
     public function trends(Request $request): JsonResponse
     {
-        $days = $request->integer('days', 30);
+        // Map period to days
+        $period = $request->query('period', '7d');
+        $days = match ($period) {
+            '24h'   => 1,
+            '7d'    => 7,
+            '30d'   => 30,
+            '90d'   => 90,
+            default => 7
+        };
 
         // Get trends by calling getStatistics with date filters
         $trends = [];
         $now = now();
+        $totalAlerts = 0;
+        $totalRiskScore = 0;
+
         for ($i = 0; $i < $days; $i++) {
             $date = $now->copy()->subDays($i);
             $dayStats = $this->alertService->getStatistics([
                 'start_date' => $date->startOfDay()->toDateTimeString(),
                 'end_date'   => $date->endOfDay()->toDateTimeString(),
             ]);
+
+            $count = $dayStats['total'] ?? 0;
+            $totalAlerts += $count;
+            $avgRisk = 0;
+
+            // Calculate average risk score for the day
+            if ($count > 0) {
+                $dayAlerts = ComplianceAlert::whereBetween(
+                    'created_at',
+                    [$date->startOfDay(), $date->endOfDay()]
+                )->get();
+                $avgRisk = round($dayAlerts->avg('risk_score') ?? 0, 2);
+                $totalRiskScore += $dayAlerts->sum('risk_score');
+            }
+
             $trends[] = [
-                'date'          => $date->format('Y-m-d'),
-                'total'         => $dayStats['total'] ?? 0,
-                'high_severity' => $dayStats['high_severity'] ?? 0,
+                'date'               => $date->format('Y-m-d'),
+                'count'              => $count,
+                'severity_breakdown' => $dayStats['by_severity'] ?? [],
+                'average_risk_score' => $avgRisk,
             ];
         }
         $trends = array_reverse($trends);
 
+        // Calculate comparison with previous period
+        $previousPeriodStart = $now->copy()->subDays($days * 2);
+        $previousPeriodEnd = $now->copy()->subDays($days);
+        $previousStats = $this->alertService->getStatistics([
+            'start_date' => $previousPeriodStart->toDateTimeString(),
+            'end_date'   => $previousPeriodEnd->toDateTimeString(),
+        ]);
+        $previousTotal = $previousStats['total'] ?? 0;
+
+        $changePercent = 0;
+        if ($previousTotal > 0) {
+            $changePercent = round((($totalAlerts - $previousTotal) / $previousTotal) * 100, 2);
+        }
+
         return response()->json([
-            'data' => $trends,
+            'data' => [
+                'period'     => $period,
+                'trends'     => $trends,
+                'comparison' => [
+                    'current_total'      => $totalAlerts,
+                    'previous_total'     => $previousTotal,
+                    'change_percent'     => $changePercent,
+                    'average_risk_score' => $totalAlerts > 0 ? round($totalRiskScore / $totalAlerts, 2) : 0,
+                ],
+            ],
         ]);
     }
 
@@ -588,13 +670,26 @@ class ComplianceAlertController extends Controller
             'date_from'        => ['sometimes', 'date'],
             'date_to'          => ['sometimes', 'date', 'after_or_equal:date_from'],
             'min_severity'     => ['sometimes', Rule::in(['low', 'medium', 'high', 'critical'])],
+            'min_risk_score'   => ['sometimes', 'numeric', 'min:0', 'max:100'],
+            'max_risk_score'   => ['sometimes', 'numeric', 'min:0', 'max:100'],
             'include_resolved' => ['sometimes', 'boolean'],
         ]);
 
+        // Map date fields to expected service parameter names
+        if (isset($validated['date_from'])) {
+            $validated['start_date'] = $validated['date_from'];
+            unset($validated['date_from']);
+        }
+        if (isset($validated['date_to'])) {
+            $validated['end_date'] = $validated['date_to'];
+            unset($validated['date_to']);
+        }
+
         $results = $this->alertService->searchAlerts($validated);
 
+        // Return just the data array, not the nested structure with meta
         return response()->json([
-            'data' => $results,
+            'data' => $results['data'] ?? $results,
         ]);
     }
 }

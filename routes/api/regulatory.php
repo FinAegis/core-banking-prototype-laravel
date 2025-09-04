@@ -52,16 +52,16 @@ Route::middleware(['auth:sanctum', 'check.token.expiration'])->group(function ()
 
         // Compliance Alerts
         Route::get('/alerts', [ComplianceAlertController::class, 'index']);
-        Route::get('/alerts/{id}', [ComplianceAlertController::class, 'show']);
+        Route::get('/alerts/statistics', [ComplianceAlertController::class, 'statistics']);
+        Route::get('/alerts/trends', [ComplianceAlertController::class, 'trends']);
         Route::post('/alerts', [ComplianceAlertController::class, 'store']);
+        Route::post('/alerts/link', [ComplianceAlertController::class, 'linkAlerts']);
+        Route::post('/alerts/create-case', [ComplianceAlertController::class, 'createCase']);
+        Route::post('/alerts/search', [ComplianceAlertController::class, 'search']);
+        Route::get('/alerts/{id}', [ComplianceAlertController::class, 'show']);
         Route::put('/alerts/{id}/status', [ComplianceAlertController::class, 'updateStatus']);
         Route::put('/alerts/{id}/assign', [ComplianceAlertController::class, 'assign']);
         Route::post('/alerts/{id}/notes', [ComplianceAlertController::class, 'addNote']);
-        Route::post('/alerts/link', [ComplianceAlertController::class, 'linkAlerts']);
-        Route::post('/alerts/create-case', [ComplianceAlertController::class, 'createCase']);
-        Route::get('/alerts/statistics', [ComplianceAlertController::class, 'statistics']);
-        Route::get('/alerts/trends', [ComplianceAlertController::class, 'trends']);
-        Route::post('/alerts/search', [ComplianceAlertController::class, 'search']);
 
         // Compliance Cases
         Route::get('/cases', [ComplianceCaseController::class, 'index']);
