@@ -72,7 +72,7 @@ class ComplianceAlertController extends Controller
     public function index(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'status'      => ['sometimes', 'string', Rule::in(['new', 'assigned', 'investigating', 'escalated', 'resolved', 'closed'])],
+            'status'      => ['sometimes', 'string', Rule::in(['open', 'in_review', 'escalated', 'resolved', 'false_positive', 'expired'])],
             'severity'    => ['sometimes', 'string', Rule::in(['low', 'medium', 'high', 'critical'])],
             'type'        => ['sometimes', 'string', 'max:50'],
             'assigned_to' => ['sometimes', 'integer', 'exists:users,id'],
