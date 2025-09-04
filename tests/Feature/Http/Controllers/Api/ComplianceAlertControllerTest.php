@@ -241,7 +241,7 @@ class ComplianceAlertControllerTest extends TestCase
         $response = $this->postJson('/api/compliance/alerts/link', [
             'alert_ids'         => [$alert1->alert_id, $alert2->alert_id],
             'relationship_type' => 'related',
-            'notes'            => 'Linked due to similar pattern',
+            'notes'             => 'Linked due to similar pattern',
         ]);
 
         $response->assertOk()
