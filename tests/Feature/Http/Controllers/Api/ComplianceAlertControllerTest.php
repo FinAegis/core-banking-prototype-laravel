@@ -146,7 +146,7 @@ class ComplianceAlertControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.id', $alert->id)
             ->assertJsonPath('data.type', 'large_transaction')
-            ->assertJsonPath('data.risk_score', 85.0);
+            ->assertJsonPath('data.risk_score', '85.00');
     }
 
     public function test_can_update_alert_status(): void

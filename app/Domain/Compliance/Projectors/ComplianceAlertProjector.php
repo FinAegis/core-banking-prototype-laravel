@@ -28,6 +28,8 @@ class ComplianceAlertProjector extends Projector
             'entity_id'   => $event->entityId,
             'description' => $event->description,
             'metadata'    => $event->details,  // Store details in metadata field
+            'details'     => $event->details,  // Also store in details field for compatibility
+            'detected_at' => $event->occurredAt ?? now(),  // Add detected_at field
             'user_id'     => $event->metadata['user_id'] ?? null,
             'title'       => $this->generateTitle($event->type, $event->severity),
             'created_at'  => $event->occurredAt ?? now(),
@@ -63,17 +65,17 @@ class ComplianceAlertProjector extends Projector
             $alert->update([
                 'assigned_to' => $event->assignedTo,
                 'assigned_by' => $event->assignedBy,
-                'assigned_at' => $event->occurredAt ?? now(),
-                'updated_at'  => $event->occurredAt ?? now(),
+                'assigned_at' => $event->assignedAt ?? now(),
+                'updated_at'  => $event->assignedAt ?? now(),
             ]);
 
             // Store notes in investigation_notes array field if provided
-            if ($event->notes) {
+            if (isset($event->metadata['notes']) && $event->metadata['notes']) {
                 $notes = $alert->investigation_notes ?? [];
                 $notes[] = [
-                    'content'    => $event->notes,
+                    'content'    => $event->metadata['notes'],
                     'created_by' => $event->assignedBy,
-                    'created_at' => ($event->occurredAt ?? now())->format('c'),
+                    'created_at' => ($event->assignedAt ?? now())->format('c'),
                 ];
                 $alert->update(['investigation_notes' => $notes]);
             }

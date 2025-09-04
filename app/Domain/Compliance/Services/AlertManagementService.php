@@ -50,7 +50,7 @@ class AlertManagementService
                     (string) ($data['entity_id'] ?? 'system'),  // Default entity_id to 'system' if not provided
                     $data['description'],
                     $data['details'] ?? [],
-                    $data['user_id'] ?? null
+                    isset($data['user_id']) ? (string) $data['user_id'] : null
                 );
 
                 // Persist the aggregate
@@ -72,7 +72,8 @@ class AlertManagementService
                     'details'     => $data['details'] ?? [],
                     'status'      => 'open',
                     'risk_score'  => $this->calculateRiskScore($data['severity']),
-                    'created_by'  => $data['user_id'] ?? auth()->id() ?? null,
+                    'user_id'     => $data['user_id'] ?? auth()->id() ?? null,
+                    'detected_at' => now(),
                 ]);
 
                 if (! $alert) {
@@ -234,13 +235,12 @@ class AlertManagementService
             // Create new case
             $case = ComplianceCase::create([
                 'case_id'     => $this->generateCaseNumber(),
-                'case_number' => $this->generateCaseNumber(),  // Add case_number
-                'title'       => "Alert Escalation: {$alert->type}", // Add required title
-                'type'        => 'investigation', // Add required type
+                'title'       => "Alert Escalation: {$alert->type}",
+                'type'        => 'investigation',
                 'priority'    => $this->mapSeverityToPriority($alert->severity),
                 'status'      => 'open',
                 'description' => "Escalated from alert: {$alert->description}",
-                'created_by'  => (string) (auth()->id() ?? 'system'),
+                'created_by'  => auth()->id(),
             ]);
 
             // Update alert through aggregate
