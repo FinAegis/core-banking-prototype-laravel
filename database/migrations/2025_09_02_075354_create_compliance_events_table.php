@@ -23,9 +23,9 @@ return new class () extends Migration {
             $table->timestamp('occurred_at')->index();
             $table->timestamps();
 
-            // Composite index for aggregate queries
-            $table->index(['aggregate_id', 'aggregate_type', 'event_version']);
-            $table->index(['event_type', 'occurred_at']);
+            // Composite index for aggregate queries (with custom shorter names)
+            $table->index(['aggregate_id', 'aggregate_type', 'event_version'], 'compliance_events_aggregate_idx');
+            $table->index(['event_type', 'occurred_at'], 'compliance_events_type_date_idx');
         });
     }
 
