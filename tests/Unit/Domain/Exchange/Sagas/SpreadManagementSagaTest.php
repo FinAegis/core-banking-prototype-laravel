@@ -372,6 +372,7 @@ class SpreadManagementSagaTest extends TestCase
     protected function tearDown(): void
     {
         Mockery::close();
+        Cache::flush(); // Clear cache to prevent memory leaks
         parent::tearDown();
     }
 }

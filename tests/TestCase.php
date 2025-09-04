@@ -39,6 +39,8 @@ abstract class TestCase extends BaseTestCase
         parent::tearDown();
 
         // Close any Mockery mocks
+        // Force garbage collection to free memory
+        gc_collect_cycles();
         Mockery::close();
     }
 

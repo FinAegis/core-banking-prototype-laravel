@@ -343,6 +343,12 @@ class ComplianceAlertControllerTest extends TestCase
     {
         $response = $this->getJson('/api/compliance/alerts/trends?period=7d');
 
+        // Debug output
+        if ($response->status() !== 200) {
+            dump('Status: ' . $response->status());
+            dump('Body: ' . $response->content());
+        }
+
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [

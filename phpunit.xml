@@ -66,6 +66,6 @@
         <env name="PEST_PARALLEL" value="false"/>
         <!-- Test timeout configuration -->
         <ini name="max_execution_time" value="300"/>
-        <ini name="memory_limit" value="2G"/>
+        <ini name="memory_limit" value="1G"/>
     </php>
 </phpunit>

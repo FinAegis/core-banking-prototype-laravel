@@ -161,4 +161,10 @@ class CircuitBreakerServiceTest extends ServiceTestCase
         $state = Cache::get('circuit_breaker:test_service:state', 'closed');
         $this->assertEquals('closed', $state);
     }
+
+    protected function tearDown(): void
+    {
+        Cache::flush(); // Clear cache to prevent memory leaks
+        parent::tearDown();
+    }
 }

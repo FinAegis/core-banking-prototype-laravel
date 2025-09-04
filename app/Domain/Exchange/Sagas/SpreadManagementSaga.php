@@ -156,7 +156,7 @@ class SpreadManagementSaga extends Reactor
                 'inventory_ratio' => $inventoryRatio,
                 'liquidity_depth' => $liquidityDepth,
                 'trigger'         => $trigger,
-                'timestamp'       => now(),
+                'timestamp'       => now()->timestamp,
             ]);
         } catch (Exception $e) {
             Log::error('Failed to recalculate spread', [
@@ -302,7 +302,7 @@ class SpreadManagementSaga extends Reactor
         // Store price for volatility calculation
         $priceKey = self::CACHE_PREFIX . "prices:{$poolId}";
         $prices = Cache::get($priceKey, []);
-        $prices[] = ['price' => $price, 'timestamp' => now()];
+        $prices[] = ['price' => $price, 'timestamp' => now()->timestamp];
 
         // Keep only last 1000 prices
         if (count($prices) > 1000) {
