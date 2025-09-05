@@ -11,12 +11,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
-use Tests\Traits\CleansUpSecurityState;
 
 class ComprehensiveSecurityTest extends TestCase
 {
     use RefreshDatabase;
-    use CleansUpSecurityState;
 
     protected User $user;
 
@@ -25,7 +23,7 @@ class ComprehensiveSecurityTest extends TestCase
         parent::setUp();
 
         // Use the trait method to clean up security state
-        $this->setUpSecurityTesting();
+        // $this->setUpSecurityTesting(); // Removed - trait deleted
 
         $this->user = User::factory()->create([
             'password' => Hash::make('password123'),
@@ -35,7 +33,7 @@ class ComprehensiveSecurityTest extends TestCase
     protected function tearDown(): void
     {
         // Clean up after each test
-        $this->clearSecurityState();
+        // $this->clearSecurityState(); // Removed - trait deleted
 
         parent::tearDown();
     }

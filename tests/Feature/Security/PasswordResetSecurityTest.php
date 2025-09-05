@@ -9,17 +9,15 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
-use Tests\Traits\CleansUpSecurityState;
 
 class PasswordResetSecurityTest extends TestCase
 {
     use RefreshDatabase;
-    use CleansUpSecurityState;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setUpSecurityTesting();
+        // $this->setUpSecurityTesting(); // Removed - trait deleted
         // Clear rate limiter before each test
         RateLimiter::clear('password-reset:127.0.0.1');
         RateLimiter::clear('password-reset:192.168.1.1');

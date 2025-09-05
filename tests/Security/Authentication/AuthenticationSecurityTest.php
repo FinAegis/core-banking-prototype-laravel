@@ -8,19 +8,17 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\CleansUpSecurityState;
 
 class AuthenticationSecurityTest extends TestCase
 {
     use RefreshDatabase;
-    use CleansUpSecurityState;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         // Clear all security state before each test
-        $this->setUpSecurityTesting();
+        // $this->setUpSecurityTesting(); // Removed - trait deleted
 
         // Clear rate limiter specifically
         RateLimiter::clear('login');

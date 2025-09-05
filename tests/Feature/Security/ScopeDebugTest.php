@@ -8,12 +8,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
-use Tests\Traits\CleansUpSecurityState;
 
 class ScopeDebugTest extends TestCase
 {
     use RefreshDatabase;
-    use CleansUpSecurityState;
 
     public function test_debug_sanctum_acting_as(): void
     {

@@ -9,12 +9,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
-use Tests\Traits\CleansUpSecurityState;
 
 class ApiScopeEnforcementTest extends DomainTestCase
 {
     use RefreshDatabase;
-    use CleansUpSecurityState;
 
     protected User $user;
 
@@ -23,7 +21,7 @@ class ApiScopeEnforcementTest extends DomainTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setUpSecurityTesting();
+        // $this->setUpSecurityTesting(); // Removed - trait deleted
 
         $this->user = User::factory()->create();
         $this->account = Account::factory()->create([
