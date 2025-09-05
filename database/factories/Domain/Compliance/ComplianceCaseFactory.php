@@ -44,7 +44,7 @@ class ComplianceCaseFactory extends Factory
         ];
 
         $caseNumber = sprintf('CASE-%s-%06d', date('Y'), $this->faker->unique()->numberBetween(1, 999999));
-        
+
         return [
             'case_id'          => 'CASE-' . date('Y') . '-' . str_pad((string) $this->faker->unique()->numberBetween(1, 999), 3, '0', STR_PAD_LEFT),
             'case_number'      => $caseNumber,

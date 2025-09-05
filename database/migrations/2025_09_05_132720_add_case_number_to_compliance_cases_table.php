@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,7 +12,7 @@ return new class extends Migration
     {
         Schema::table('compliance_cases', function (Blueprint $table) {
             // Add case_number column if it doesn't exist
-            if (!Schema::hasColumn('compliance_cases', 'case_number')) {
+            if (! Schema::hasColumn('compliance_cases', 'case_number')) {
                 $table->string('case_number')->unique()->index()->after('id');
             }
         });
@@ -29,3 +28,4 @@ return new class extends Migration
         });
     }
 };
+
