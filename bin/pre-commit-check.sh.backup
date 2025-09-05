@@ -87,34 +87,91 @@ add_failure() {
 echo -e "${BLUE}[1/6] Checking PHP CodeSniffer (PSR-12)...${NC}"
 PHPCS_HAD_ISSUES=false
 
-# Check app/ directory with standard rules
-if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
-    PHPCS_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/, database/, routes/, config/${NC}"
-    ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
-fi
-
-# Check tests/ directory with our custom ruleset (handles Pest patterns)
-if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
-    PHPCS_HAD_ISSUES=true
-    echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in tests/${NC}"
-    ./vendor/bin/phpcs tests/ --standard=phpcs.xml | head -20
+if [ "$CHECK_ALL" = true ]; then
+    # Check all directories when --all flag is used
+    echo -e "${YELLOW}  Checking all files (--all mode)...${NC}"
+    
+    # Check app/ directory with standard rules
+    if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
+        PHPCS_HAD_ISSUES=true
+        echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in app/, database/, routes/, config/${NC}"
+        ./vendor/bin/phpcs app/ database/ routes/ config/ | head -20
+    fi
+    
+    # Check tests/ directory with our custom ruleset (handles Pest patterns)
+    if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
+        PHPCS_HAD_ISSUES=true
+        echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations detected in tests/${NC}"
+        ./vendor/bin/phpcs tests/ --standard=phpcs.xml | head -20
+    fi
+else
+    # Only check modified files
+    echo -e "${YELLOW}  Checking modified files only...${NC}"
+    
+    # Get modified PHP files in different directories
+    APP_FILES=$(echo "$FILES" | grep -E '^(app|database|routes|config)/' | tr '\n' ' ' || true)
+    TEST_FILES=$(echo "$FILES" | grep -E '^tests/' | tr '\n' ' ' || true)
+    
+    # Check app/database/routes/config files if any were modified
+    if [ -n "$APP_FILES" ]; then
+        if ! ./vendor/bin/phpcs $APP_FILES > /dev/null 2>&1; then
+            PHPCS_HAD_ISSUES=true
+            echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations in modified app files${NC}"
+            ./vendor/bin/phpcs $APP_FILES | head -20
+        fi
+    fi
+    
+    # Check test files if any were modified
+    if [ -n "$TEST_FILES" ]; then
+        if ! ./vendor/bin/phpcs $TEST_FILES --standard=phpcs.xml > /dev/null 2>&1; then
+            PHPCS_HAD_ISSUES=true
+            echo -e "${YELLOW}⚠ PHPCS: PSR-12 violations in modified test files${NC}"
+            ./vendor/bin/phpcs $TEST_FILES --standard=phpcs.xml | head -20
+        fi
+    fi
 fi
 
 if [ "$PHPCS_HAD_ISSUES" = true ]; then
     if [ "$AUTO_FIX" = true ]; then
         echo -e "${BLUE}  Attempting auto-fix with PHPCBF...${NC}"
-        ./vendor/bin/phpcbf app/ database/ routes/ config/ 2>/dev/null || true
-        ./vendor/bin/phpcbf tests/ 2>/dev/null || true
+        
+        if [ "$CHECK_ALL" = true ]; then
+            # Fix all directories when --all flag is used
+            ./vendor/bin/phpcbf app/ database/ routes/ config/ 2>/dev/null || true
+            ./vendor/bin/phpcbf tests/ --standard=phpcs.xml 2>/dev/null || true
+        else
+            # Only fix modified files
+            if [ -n "$APP_FILES" ]; then
+                ./vendor/bin/phpcbf $APP_FILES 2>/dev/null || true
+            fi
+            if [ -n "$TEST_FILES" ]; then
+                ./vendor/bin/phpcbf $TEST_FILES --standard=phpcs.xml 2>/dev/null || true
+            fi
+        fi
+        
         ISSUES_FIXED=true
         
         # Re-check after fix
         STILL_HAS_ISSUES=false
-        if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
-            STILL_HAS_ISSUES=true
-        fi
-        if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
-            STILL_HAS_ISSUES=true
+        
+        if [ "$CHECK_ALL" = true ]; then
+            if ! ./vendor/bin/phpcs app/ database/ routes/ config/ > /dev/null 2>&1; then
+                STILL_HAS_ISSUES=true
+            fi
+            if ! ./vendor/bin/phpcs tests/ --standard=phpcs.xml > /dev/null 2>&1; then
+                STILL_HAS_ISSUES=true
+            fi
+        else
+            if [ -n "$APP_FILES" ]; then
+                if ! ./vendor/bin/phpcs $APP_FILES > /dev/null 2>&1; then
+                    STILL_HAS_ISSUES=true
+                fi
+            fi
+            if [ -n "$TEST_FILES" ]; then
+                if ! ./vendor/bin/phpcs $TEST_FILES --standard=phpcs.xml > /dev/null 2>&1; then
+                    STILL_HAS_ISSUES=true
+                fi
+            fi
         fi
         
         if [ "$STILL_HAS_ISSUES" = false ]; then
@@ -204,62 +261,139 @@ if [ "$AUTO_FIX" = true ] && [ "$ISSUES_FIXED" = true ]; then
     echo ""
 fi
 
-# 4. PHPStan - EXACTLY as CI runs it (with smart timeout)
+# 4. PHPStan - ENHANCED with better timeout handling and memory management
 echo -e "${BLUE}[4/6] Running PHPStan (Level 5)...${NC}"
-# CI command: vendor/bin/phpstan analyse --memory-limit=2G
-# Using a reasonable timeout (90 seconds) with clear feedback
-PHPSTAN_TIMEOUT=120
-PHPSTAN_OUTPUT=""
-PHPSTAN_EXIT_CODE=0
 
-# Run PHPStan with timeout
-if PHPSTAN_OUTPUT=$(timeout $PHPSTAN_TIMEOUT bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi 2>&1"); then
-    PHPSTAN_EXIT_CODE=0
-else
-    PHPSTAN_EXIT_CODE=$?
-fi
+# Set PHPStan configuration
+export XDEBUG_MODE=off
+PHPSTAN_MEMORY_LIMIT="4G"
+PHPSTAN_TIMEOUT=180  # 3 minutes timeout
 
-if [ $PHPSTAN_EXIT_CODE -eq 0 ]; then
-    if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
-        echo -e "${GREEN}✓ PHPStan: No issues found${NC}"
-    else
-        echo -e "${RED}✗ PHPStan: Issues found${NC}"
-        echo "$PHPSTAN_OUTPUT" | head -50
-        add_failure "PHPStan errors"
-    fi
-elif [ $PHPSTAN_EXIT_CODE -eq 124 ]; then
-    echo -e "${YELLOW}⚠ PHPStan: Timed out after ${PHPSTAN_TIMEOUT} seconds on full codebase${NC}"
-    echo -e "${YELLOW}  Falling back to checking only modified files...${NC}"
+# Function to run PHPStan with progress indication
+run_phpstan() {
+    local SCOPE=$1
+    local TIMEOUT=$2
     
-    # Try to run PHPStan on just the modified files
-    if [ "$CHECK_ALL" = false ] && [ -n "$FILES" ]; then
-        # Convert FILES to space-separated list for PHPStan
-        FILES_FOR_PHPSTAN=$(echo "$FILES" | tr '\n' ' ')
-        echo -e "${BLUE}  Running PHPStan on modified files only...${NC}"
-        
-        if PHPSTAN_OUTPUT=$(timeout 30 bash -c "XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G --no-progress --no-ansi $FILES_FOR_PHPSTAN 2>&1"); then
-            if echo "$PHPSTAN_OUTPUT" | grep -q "\[OK\] No errors"; then
-                echo -e "${GREEN}  ✓ PHPStan: No issues in modified files${NC}"
-            else
-                echo -e "${RED}  ✗ PHPStan: Issues found in modified files${NC}"
-                echo "$PHPSTAN_OUTPUT" | head -50
-                add_failure "PHPStan errors in modified files"
-            fi
+    echo -e "${YELLOW}  Running PHPStan on ${SCOPE}...${NC}"
+    
+    # Create a temporary file for output
+    TMPFILE=$(mktemp)
+    
+    # Run PHPStan in background with timeout
+    (
+        timeout $TIMEOUT bash -c "vendor/bin/phpstan analyse --memory-limit=$PHPSTAN_MEMORY_LIMIT --no-progress --no-ansi $SCOPE 2>&1" > $TMPFILE 2>&1
+    ) &
+    
+    # Get the process ID
+    PID=$!
+    
+    # Show progress dots while PHPStan runs
+    echo -n "  "
+    while kill -0 $PID 2>/dev/null; do
+        echo -n "."
+        sleep 2
+    done
+    echo ""
+    
+    # Check exit status
+    wait $PID
+    EXIT_CODE=$?
+    
+    # Read output
+    OUTPUT=$(cat $TMPFILE)
+    rm -f $TMPFILE
+    
+    if [ $EXIT_CODE -eq 124 ]; then
+        echo -e "${YELLOW}  PHPStan timed out after ${TIMEOUT} seconds${NC}"
+        return 124
+    elif [ $EXIT_CODE -eq 0 ]; then
+        if echo "$OUTPUT" | grep -q "\[OK\] No errors"; then
+            echo -e "${GREEN}  ✓ PHPStan: No issues found${NC}"
+            return 0
         else
-            echo -e "${YELLOW}  PHPStan still timed out on modified files only${NC}"
-            echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
-            echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
-            # Still warn but don't fail locally
+            echo -e "${RED}  ✗ PHPStan: Issues found${NC}"
+            echo "$OUTPUT" | head -30
+            return 1
         fi
     else
-        echo -e "${YELLOW}  Command to run manually: XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G${NC}"
-        echo -e "${RED}  ⚠ WARNING: CI will run PHPStan and may fail if there are errors!${NC}"
+        echo -e "${RED}  ✗ PHPStan: Failed with error${NC}"
+        echo "$OUTPUT" | head -30
+        return $EXIT_CODE
     fi
-    echo -e "${YELLOW}  Note: CI will still run PHPStan and may fail if there are errors!${NC}"
+}
+
+# Try different strategies based on the mode
+PHPSTAN_FAILED=false
+
+if [ "$CHECK_ALL" = true ] || [ "$CI_MODE" = true ]; then
+    # Full codebase scan
+    if ! run_phpstan "" $PHPSTAN_TIMEOUT; then
+        if [ $? -eq 124 ]; then
+            # Timeout - try with smaller scope
+            echo -e "${YELLOW}  Trying PHPStan with directory-by-directory approach...${NC}"
+            
+            # Clear PHPStan cache to reduce memory usage
+            rm -rf %tmpDir%/phpstan 2>/dev/null || true
+            
+            # Check critical directories individually
+            PHPSTAN_DIR_FAILED=false
+            for DIR in app/Http app/Domain app/Services app/Models; do
+                if [ -d "$DIR" ]; then
+                    if ! run_phpstan "$DIR" 60; then
+                        PHPSTAN_DIR_FAILED=true
+                    fi
+                fi
+            done
+            
+            if [ "$PHPSTAN_DIR_FAILED" = true ]; then
+                PHPSTAN_FAILED=true
+                add_failure "PHPStan errors detected"
+            fi
+        else
+            PHPSTAN_FAILED=true
+            add_failure "PHPStan errors detected"
+        fi
+    fi
 else
-    echo -e "${RED}✗ PHPStan: Failed with error${NC}"
-    echo "$PHPSTAN_OUTPUT" | head -50
-    add_failure "PHPStan errors"
+    # Check only modified files
+    if [ -n "$FILES" ]; then
+        FILES_FOR_PHPSTAN=$(echo "$FILES" | tr '\n' ' ')
+        
+        # Try PHPStan on modified files with shorter timeout
+        if ! run_phpstan "$FILES_FOR_PHPSTAN" 60; then
+            if [ $? -eq 124 ]; then
+                # On timeout, try running PHPStan file by file
+                echo -e "${YELLOW}  PHPStan timed out. Trying file-by-file analysis...${NC}"
+                PHPSTAN_FILE_FAILED=false
+                for FILE in $FILES; do
+                    if [ -f "$FILE" ]; then
+                        echo -n "  Checking $FILE..."
+                        if ! timeout 30 vendor/bin/phpstan analyse "$FILE" --memory-limit=$PHPSTAN_MEMORY_LIMIT --no-progress > /tmp/phpstan_single_file.log 2>&1; then
+                            echo -e "${RED} ✗${NC}"
+                            PHPSTAN_FILE_FAILED=true
+                            cat /tmp/phpstan_single_file.log | grep -E "Line|expects|given|ERROR" | head -5
+                        else
+                            echo -e "${GREEN} ✓${NC}"
+                        fi
+                    fi
+                done
+                
+                if [ "$PHPSTAN_FILE_FAILED" = true ]; then
+                    PHPSTAN_FAILED=true
+                    add_failure "PHPStan errors detected in modified files"
+                    echo -e "${RED}  ✗ PHPStan found errors. CI will fail!${NC}"
+                fi
+                rm -f /tmp/phpstan_single_file.log
+            else
+                PHPSTAN_FAILED=true
+                add_failure "PHPStan errors in modified files"
+            fi
+        fi
+    fi
+fi
+
+if [ "$PHPSTAN_FAILED" = false ] && [ "$CHECK_ALL" = false ]; then
+    echo -e "${YELLOW}  Note: Only checked modified files. Use --all for full scan.${NC}"
 fi
 echo ""
 
@@ -278,48 +412,6 @@ else
     echo -e "${YELLOW}  Skipping security tests (use --all or --ci to run)${NC}"
 fi
 echo ""
-# 7. Migration Validation - Check if migrations can run without errors
-echo -e "${BLUE}[7/7] Validating Database Migrations...${NC}"
-
-# Check if any migration files were modified
-MIGRATION_FILES=$(echo "$FILES" | grep -E '^database/migrations/.*\.php$' || true)
-
-if [ -n "$MIGRATION_FILES" ] || [ "$CI_MODE" = true ] || [ "$CHECK_ALL" = true ]; then
-    if [ -n "$MIGRATION_FILES" ]; then
-        echo -e "${YELLOW}  Modified migration files detected:${NC}"
-        echo "$MIGRATION_FILES" | sed 's/^/    - /'
-        echo ""
-    fi
-    
-    echo -e "${YELLOW}  Testing migrations in isolated environment...${NC}"
-    
-    # Create a temporary test database configuration
-    export DB_CONNECTION=sqlite
-    export DB_DATABASE=":memory:"
-    
-    # Try to run migrations in a fresh environment
-    if php artisan migrate:fresh --force > /tmp/migration_test.log 2>&1; then
-        echo -e "${GREEN}✓ Migrations: All migrations run successfully${NC}"
-    else
-        echo -e "${RED}✗ Migrations: Migration errors detected${NC}"
-        echo -e "${RED}  Error output:${NC}"
-        cat /tmp/migration_test.log | grep -E "Error|Exception|SQLSTATE" | head -10
-        echo ""
-        echo -e "${YELLOW}  Full migration log saved to: /tmp/migration_test.log${NC}"
-        echo -e "${YELLOW}  Common issues:${NC}"
-        echo -e "${YELLOW}    - Foreign key type mismatches (UUID vs BIGINT)${NC}"
-        echo -e "${YELLOW}    - Missing table dependencies${NC}"
-        echo -e "${YELLOW}    - Duplicate column/index names${NC}"
-        add_failure "Migration errors"
-    fi
-    
-    # Clean up
-    rm -f /tmp/migration_test.log 2>/dev/null || true
-else
-    echo -e "${YELLOW}  No migration files modified, skipping migration check${NC}"
-fi
-echo ""
-
 
 # 6. All Tests - Run full test suite in CI mode
 echo -e "${BLUE}[6/7] Running Test Suite...${NC}"
@@ -381,6 +473,48 @@ else
     else
         echo -e "${YELLOW}  No PHP files modified, skipping test run${NC}"
     fi
+fi
+echo ""
+
+# 7. Migration Validation - Check if migrations can run without errors
+echo -e "${BLUE}[7/7] Validating Database Migrations...${NC}"
+
+# Check if any migration files were modified
+MIGRATION_FILES=$(echo "$FILES" | grep -E '^database/migrations/.*\.php$' || true)
+
+if [ -n "$MIGRATION_FILES" ] || [ "$CI_MODE" = true ] || [ "$CHECK_ALL" = true ]; then
+    if [ -n "$MIGRATION_FILES" ]; then
+        echo -e "${YELLOW}  Modified migration files detected:${NC}"
+        echo "$MIGRATION_FILES" | sed 's/^/    - /'
+        echo ""
+    fi
+    
+    echo -e "${YELLOW}  Testing migrations in isolated environment...${NC}"
+    
+    # Create a temporary test database configuration
+    export DB_CONNECTION=sqlite
+    export DB_DATABASE=":memory:"
+    
+    # Try to run migrations in a fresh environment
+    if php artisan migrate:fresh --force > /tmp/migration_test.log 2>&1; then
+        echo -e "${GREEN}✓ Migrations: All migrations run successfully${NC}"
+    else
+        echo -e "${RED}✗ Migrations: Migration errors detected${NC}"
+        echo -e "${RED}  Error output:${NC}"
+        cat /tmp/migration_test.log | grep -E "Error|Exception|SQLSTATE" | head -10
+        echo ""
+        echo -e "${YELLOW}  Full migration log saved to: /tmp/migration_test.log${NC}"
+        echo -e "${YELLOW}  Common issues:${NC}"
+        echo -e "${YELLOW}    - Foreign key type mismatches (UUID vs BIGINT)${NC}"
+        echo -e "${YELLOW}    - Missing table dependencies${NC}"
+        echo -e "${YELLOW}    - Duplicate column/index names${NC}"
+        add_failure "Migration errors"
+    fi
+    
+    # Clean up
+    rm -f /tmp/migration_test.log 2>/dev/null || true
+else
+    echo -e "${YELLOW}  No migration files modified, skipping migration check${NC}"
 fi
 echo ""
 

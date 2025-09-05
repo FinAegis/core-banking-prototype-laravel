@@ -326,6 +326,17 @@ run_phpstan() {
 PHPSTAN_FAILED=false
 
 if [ "$CHECK_ALL" = true ] || [ "$CI_MODE" = true ]; then
+    # Check traits first for unused trait detection
+    echo -e "${YELLOW}  Checking for unused test traits...${NC}"
+    if ! XDEBUG_MODE=off vendor/bin/phpstan analyse tests/Traits --memory-limit=$PHPSTAN_MEMORY_LIMIT --no-progress 2>&1 | grep -q "\[OK\] No errors"; then
+        echo -e "${RED}  ✗ PHPStan: Found unused traits in tests/Traits/${NC}"
+        XDEBUG_MODE=off vendor/bin/phpstan analyse tests/Traits --memory-limit=$PHPSTAN_MEMORY_LIMIT --no-progress 2>&1 | grep -E "unused|Line" | head -10
+        PHPSTAN_FAILED=true
+        add_failure "Unused test traits detected - these will fail CI"
+    else
+        echo -e "${GREEN}  ✓ No unused test traits${NC}"
+    fi
+
     # Full codebase scan
     if ! run_phpstan "" $PHPSTAN_TIMEOUT; then
         if [ $? -eq 124 ]; then
@@ -355,6 +366,19 @@ if [ "$CHECK_ALL" = true ] || [ "$CI_MODE" = true ]; then
         fi
     fi
 else
+    # Check test traits if any test file was modified
+    TEST_FILES_MODIFIED=$(echo "$FILES" | grep -E "^tests/" || true)
+    
+    if [ -n "$TEST_FILES_MODIFIED" ]; then
+        echo -e "${YELLOW}  Test files modified - checking for unused traits...${NC}"
+        if ! XDEBUG_MODE=off vendor/bin/phpstan analyse tests/Traits --memory-limit=$PHPSTAN_MEMORY_LIMIT --no-progress 2>&1 | grep -q "\[OK\] No errors"; then
+            echo -e "${RED}  ✗ PHPStan: Found unused traits in tests/Traits/${NC}"
+            XDEBUG_MODE=off vendor/bin/phpstan analyse tests/Traits --memory-limit=$PHPSTAN_MEMORY_LIMIT --no-progress 2>&1 | grep -E "unused|Line" | head -10
+            PHPSTAN_FAILED=true
+            add_failure "Unused test traits detected - these will fail CI"
+        fi
+    fi
+
     # Check only modified files
     if [ -n "$FILES" ]; then
         FILES_FOR_PHPSTAN=$(echo "$FILES" | tr '\n' ' ')
