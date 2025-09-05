@@ -8,7 +8,6 @@ use App\Domain\AI\Events\AIDecisionMadeEvent;
 use App\Domain\AI\Events\CompensationExecutedEvent;
 use App\Domain\AI\Events\HumanInterventionRequestedEvent;
 use App\Domain\AI\Services\AIAgentService;
-use App\Domain\AI\Services\MultiAgentCoordinationService;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,7 +23,7 @@ use Tests\TestCase;
 class FastAgentWorkflowTest extends TestCase
 {
     private AIAgentService $aiService;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -32,31 +31,31 @@ class FastAgentWorkflowTest extends TestCase
     }
 
     /**
-     * Helper method to simulate compliance check workflow
+     * Helper method to simulate compliance check workflow.
      */
     private function runComplianceCheck(string $type, array $data): array
     {
         $result = [
-            'success' => true,
+            'success'         => true,
             'compliance_type' => $type,
-            'result' => [],
-            'metadata' => ['confidence' => 0.0],
+            'result'          => [],
+            'metadata'        => ['confidence' => 0.0],
         ];
 
         switch ($type) {
             case 'kyc':
                 // Simulate KYC verification
-                $hasAllDocs = !empty($data['documents'] ?? []);
+                $hasAllDocs = ! empty($data['documents'] ?? []);
                 $score = $hasAllDocs ? 100 : 30;
                 $verified = $hasAllDocs;
                 $confidence = $hasAllDocs ? 0.95 : 0.4;
-                
+
                 $result['result'] = [
                     'verified' => $verified,
-                    'score' => $score,
+                    'score'    => $score,
                 ];
                 $result['metadata']['confidence'] = $confidence;
-                
+
                 // Dispatch appropriate events
                 if ($confidence < 0.7) {
                     Event::dispatch(new HumanInterventionRequestedEvent(
@@ -76,41 +75,41 @@ class FastAgentWorkflowTest extends TestCase
                     ));
                 }
                 break;
-                
+
             case 'aml':
                 // Simulate AML screening
                 $amount = $data['amount'] ?? 0;
                 $riskScore = $amount > 50000 ? 75 : 25;
                 $cleared = $riskScore < 50;
-                
+
                 $result['result'] = [
-                    'cleared' => $cleared,
+                    'cleared'    => $cleared,
                     'risk_score' => $riskScore,
                 ];
                 $result['metadata']['confidence'] = 0.85;
-                
+
                 Event::dispatch(new AIDecisionMadeEvent(
                     conversationId: 'test_conv',
                     agentType: 'compliance-agent',
                     decision: $cleared ? 'AML Cleared' : 'AML Review Required',
                     reasoning: ['Transaction risk assessment completed'],
                     confidence: 0.85,
-                    requiresApproval: !$cleared
+                    requiresApproval: ! $cleared
                 ));
                 break;
         }
-        
+
         return $result;
     }
 
     /**
-     * Helper method to simulate saga compensation
+     * Helper method to simulate saga compensation.
      */
     private function runSagaCompensation(array $completedSteps, RuntimeException $error): bool
     {
         // Simulate compensation for each completed step
-        $compensatedActions = array_map(fn($step) => $step['type'], $completedSteps);
-        
+        $compensatedActions = array_map(fn ($step) => $step['type'], $completedSteps);
+
         Event::dispatch(new CompensationExecutedEvent(
             conversationId: 'test_conv',
             workflowId: 'test_workflow',
@@ -118,47 +117,47 @@ class FastAgentWorkflowTest extends TestCase
             compensatedActions: $compensatedActions,
             success: true
         ));
-        
+
         return true;
     }
 
     /**
-     * Helper method to simulate multi-agent coordination
+     * Helper method to simulate multi-agent coordination.
      */
     private function runMultiAgentCoordination(string $taskType, array $agents): array
     {
         $results = [];
         $subtasks = [];
-        
+
         // Create subtasks for each agent
         foreach ($agents as $agent) {
             $subtaskId = 'subtask_' . $agent;
             $subtasks[] = $subtaskId;
             $results[$subtaskId] = [
-                'agent' => $agent,
+                'agent'  => $agent,
                 'status' => 'completed',
                 'result' => ['success' => true],
             ];
         }
-        
+
         Event::dispatch(new AIDecisionMadeEvent(
             conversationId: 'test_conv',
             agentType: 'coordinator',
             decision: 'Multi-agent coordination completed',
-            reasoning: ["Coordinated {$taskType} across " . count($agents) . " agents"],
+            reasoning: ["Coordinated {$taskType} across " . count($agents) . ' agents'],
             confidence: 0.9,
             requiresApproval: false
         ));
-        
+
         return [
             'lead_agent' => $agents[0],
-            'subtasks' => $subtasks,
-            'results' => $results,
+            'subtasks'   => $subtasks,
+            'results'    => $results,
         ];
     }
 
     /**
-     * Helper method to simulate human approval workflow
+     * Helper method to simulate human approval workflow.
      */
     private function runHumanApproval(string $type, array $data, bool $approved): array
     {
@@ -169,17 +168,17 @@ class FastAgentWorkflowTest extends TestCase
             confidence: 0.5,
             suggestedAction: $approved ? 'approve' : 'reject'
         ));
-        
+
         $result = [
-            'approved' => $approved,
+            'approved'    => $approved,
             'approver_id' => $approved ? 'test_approver' : 'test_rejector',
-            'timed_out' => false,
+            'timed_out'   => false,
         ];
-        
-        if (!$approved) {
+
+        if (! $approved) {
             $result['comments'] = 'Rejected in test';
         }
-        
+
         Event::dispatch(new AIDecisionMadeEvent(
             conversationId: 'test_conv',
             agentType: 'approval-agent',
@@ -188,7 +187,7 @@ class FastAgentWorkflowTest extends TestCase
             confidence: 1.0,
             requiresApproval: false
         ));
-        
+
         return $result;
     }
 
@@ -197,7 +196,7 @@ class FastAgentWorkflowTest extends TestCase
     {
         // Arrange
         Event::fake();
-        
+
         // Act - Use AI service to simulate customer service interaction
         $result = $this->aiService->chat(
             message: 'What is my account balance?',
@@ -206,13 +205,13 @@ class FastAgentWorkflowTest extends TestCase
             context: ['account_id' => 'acc_001'],
             options: ['fast_mode' => true]
         );
-        
+
         // Assert - Core business logic
         $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('confidence', $result);
         $this->assertGreaterThan(0.5, $result['confidence']);
         $this->assertArrayHasKey('tools_used', $result);
-        
+
         // Since AIAgentService doesn't dispatch events in demo mode,
         // we'll manually dispatch one for testing
         Event::dispatch(new AIDecisionMadeEvent(
@@ -223,7 +222,7 @@ class FastAgentWorkflowTest extends TestCase
             confidence: $result['confidence'],
             requiresApproval: false
         ));
-        
+
         // Assert - Events (DDD/Event Sourcing)
         Event::assertDispatched(AIDecisionMadeEvent::class);
     }

@@ -24,6 +24,10 @@ class AuthenticationSecurityTest extends TestCase
         RateLimiter::clear('login');
         // Clear password reset rate limits for test IP
         RateLimiter::clear('password-reset:127.0.0.1');
+
+        // Clear IP blocks to ensure clean test state
+        \Illuminate\Support\Facades\DB::table('blocked_ips')->truncate();
+        \Illuminate\Support\Facades\Cache::flush();
     }
 
     #[Test]
