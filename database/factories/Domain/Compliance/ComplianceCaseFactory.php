@@ -43,8 +43,11 @@ class ComplianceCaseFactory extends Factory
             ComplianceCase::STATUS_CLOSED,
         ];
 
+        $caseNumber = sprintf('CASE-%s-%06d', date('Y'), $this->faker->unique()->numberBetween(1, 999999));
+        
         return [
-            'case_id'          => 'CASE-' . date('Ymd') . '-' . strtoupper($this->faker->unique()->bothify('????####')),
+            'case_id'          => 'CASE-' . date('Y') . '-' . str_pad((string) $this->faker->unique()->numberBetween(1, 999), 3, '0', STR_PAD_LEFT),
+            'case_number'      => $caseNumber,
             'title'            => $this->faker->sentence(6),
             'description'      => $this->faker->paragraph(3),
             'type'             => $this->faker->randomElement($types),
