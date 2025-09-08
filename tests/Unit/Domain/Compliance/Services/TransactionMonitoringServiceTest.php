@@ -293,17 +293,17 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
         // to return the expected result when evaluated
         if ($result) {
             $rule->shouldReceive('getAttribute')->with('conditions')->andReturn([
-                ['field' => 'amount', 'operator' => '>', 'value' => 0]
+                ['field' => 'amount', 'operator' => '>', 'value' => 0],
             ]);
             $rule->conditions = [
-                ['field' => 'amount', 'operator' => '>', 'value' => 0]
+                ['field' => 'amount', 'operator' => '>', 'value' => 0],
             ];
         } else {
             $rule->shouldReceive('getAttribute')->with('conditions')->andReturn([
-                ['field' => 'amount', 'operator' => '>', 'value' => 999999999]
+                ['field' => 'amount', 'operator' => '>', 'value' => 999999999],
             ]);
             $rule->conditions = [
-                ['field' => 'amount', 'operator' => '>', 'value' => 999999999]
+                ['field' => 'amount', 'operator' => '>', 'value' => 999999999],
             ];
         }
     }
