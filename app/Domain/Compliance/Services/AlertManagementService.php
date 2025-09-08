@@ -228,8 +228,10 @@ class AlertManagementService
             $alert = ComplianceAlert::where('alert_id', $alertId)->firstOrFail();
 
             // Create new case
+            $caseNumber = $this->generateCaseNumber();
             $case = ComplianceCase::create([
-                'case_id'          => $this->generateCaseNumber(),
+                'case_id'          => $caseNumber,
+                'case_number'      => $caseNumber,
                 'title'            => "Alert Escalation: {$alert->type}",
                 'type'             => 'investigation',
                 'priority'         => $this->mapSeverityToPriority($alert->severity),
@@ -574,8 +576,10 @@ class AlertManagementService
         }
 
         // Create the case
+        $caseNumber = $this->generateCaseNumber();
         $case = ComplianceCase::create([
-            'case_id'          => $this->generateCaseNumber(),
+            'case_id'          => $caseNumber,
+            'case_number'      => $caseNumber,
             'title'            => $caseData['title'],
             'description'      => $caseData['description'],
             'type'             => $caseData['type'] ?? 'investigation',

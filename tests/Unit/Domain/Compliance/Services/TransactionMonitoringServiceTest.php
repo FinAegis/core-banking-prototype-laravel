@@ -289,24 +289,22 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
 
     private function mockEvaluateRule($rule, $transaction, $riskProfile, $result): void
     {
-        $this->service->shouldReceive('evaluateRule')
-            ->with($rule, $transaction, $riskProfile)
-            ->andReturn($result);
-
+        // We can't mock private methods, so we'll set up the rule conditions
+        // to return the expected result when evaluated
         if ($result) {
-            $this->service->shouldReceive('createAlert')
-                ->with($rule, $transaction)
-                ->andReturn([
-                    'rule_id'        => $rule->id,
-                    'rule_name'      => $rule->name,
-                    'rule_code'      => 'TEST_RULE',
-                    'category'       => 'threshold',
-                    'risk_level'     => 'high',
-                    'transaction_id' => $transaction->id,
-                    'amount'         => $transaction->amount ?? 0,
-                    'timestamp'      => now()->toIso8601String(),
-                    'description'    => 'Test alert',
-                ]);
+            $rule->shouldReceive('getAttribute')->with('conditions')->andReturn([
+                ['field' => 'amount', 'operator' => '>', 'value' => 0]
+            ]);
+            $rule->conditions = [
+                ['field' => 'amount', 'operator' => '>', 'value' => 0]
+            ];
+        } else {
+            $rule->shouldReceive('getAttribute')->with('conditions')->andReturn([
+                ['field' => 'amount', 'operator' => '>', 'value' => 999999999]
+            ]);
+            $rule->conditions = [
+                ['field' => 'amount', 'operator' => '>', 'value' => 999999999]
+            ];
         }
     }
 
