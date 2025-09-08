@@ -295,16 +295,18 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
             $rule->shouldReceive('getAttribute')->with('conditions')->andReturn([
                 ['field' => 'amount', 'operator' => '>', 'value' => 0],
             ]);
-            $rule->conditions = [
+            $rule->shouldReceive('__get')->with('conditions')->andReturn([
                 ['field' => 'amount', 'operator' => '>', 'value' => 0],
-            ];
+            ]);
+            $rule->shouldReceive('setAttribute')->with('conditions', Mockery::any())->andReturnSelf();
         } else {
             $rule->shouldReceive('getAttribute')->with('conditions')->andReturn([
                 ['field' => 'amount', 'operator' => '>', 'value' => 999999999],
             ]);
-            $rule->conditions = [
+            $rule->shouldReceive('__get')->with('conditions')->andReturn([
                 ['field' => 'amount', 'operator' => '>', 'value' => 999999999],
-            ];
+            ]);
+            $rule->shouldReceive('setAttribute')->with('conditions', Mockery::any())->andReturnSelf();
         }
     }
 

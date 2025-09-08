@@ -39,7 +39,6 @@ return new class () extends Migration {
             if (! Schema::hasColumn('transaction_projections', 'retry_transaction_id')) {
                 $table->uuid('retry_transaction_id')->nullable();
             }
-
         });
 
         // Add indexes for performance (outside the table modification for SQLite compatibility)
