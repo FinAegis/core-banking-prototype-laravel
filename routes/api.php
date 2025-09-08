@@ -534,6 +534,8 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->prefix('compliance'
     Route::prefix('alerts')->group(function () {
         Route::get('/', [ComplianceAlertController::class, 'index']);
         Route::post('/', [ComplianceAlertController::class, 'create']);
+        Route::get('/statistics', [ComplianceAlertController::class, 'statistics']);
+        Route::get('/trends', [ComplianceAlertController::class, 'trends']);
         Route::get('/{alert}', [ComplianceAlertController::class, 'show']);
         Route::put('/{alert}', [ComplianceAlertController::class, 'update']);
         Route::delete('/{alert}', [ComplianceAlertController::class, 'destroy']);
