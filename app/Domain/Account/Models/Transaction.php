@@ -15,6 +15,16 @@ use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
  * @property array $event_properties
  * @property array $meta_data
  * @property \Illuminate\Support\Carbon $created_at
+ * @property string|null $compliance_status
+ * @property string|null $risk_level
+ * @property float|null $risk_score
+ * @property array|null $patterns_detected
+ * @property \Illuminate\Support\Carbon|null $flagged_at
+ * @property string|null $flagged_by
+ * @property string|null $flag_reason
+ * @property \Illuminate\Support\Carbon|null $cleared_at
+ * @property string|null $cleared_by
+ * @property string|null $clear_reason
  */
 class Transaction extends EloquentStoredEvent
 {

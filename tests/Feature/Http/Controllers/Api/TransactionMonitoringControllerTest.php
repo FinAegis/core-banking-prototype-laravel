@@ -63,7 +63,7 @@ class TransactionMonitoringControllerTest extends TestCase
                 'account_id'        => $this->account->id,
             ],
         ]);
-        $response = $this->getJson('/api/transaction-monitoring/' . $transaction->id);
+        $response = $this->getJson('/api/transaction-monitoring/transactions/' . $transaction->id);
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -107,7 +107,14 @@ class TransactionMonitoringControllerTest extends TestCase
             ],
         ]);
 
-        $response = $this->postJson('/api/transaction-monitoring/' . $transaction->id . '/clear', [
+        // First flag the transaction to create the aggregate with proper status
+        $this->postJson('/api/transaction-monitoring/transactions/' . $transaction->id . '/flag', [
+            'flaggedBy' => (string) $this->user->id,
+            'reason'    => 'High value transaction',
+        ]);
+
+        // Now clear it
+        $response = $this->postJson('/api/transaction-monitoring/transactions/' . $transaction->id . '/clear', [
             'reviewer' => (string) $this->user->id,
             'notes'    => 'Regular business transaction - false positive',
         ]);
@@ -202,7 +209,7 @@ class TransactionMonitoringControllerTest extends TestCase
         // Create a transaction first
         $transaction = Transaction::factory()->create();
 
-        $response = $this->postJson('/api/transaction-monitoring/analyze/realtime', [
+        $response = $this->postJson('/api/transaction-monitoring/analyze/' . $transaction->id, [
             'transaction_id' => (string) $transaction->id,
         ]);
 

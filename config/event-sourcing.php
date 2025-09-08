@@ -259,15 +259,16 @@ return [
         'alert_linked'            => App\Domain\Compliance\Events\AlertLinked::class,
 
         // Compliance Transaction Monitoring events
-        'risk_score_calculated'    => App\Domain\Compliance\Events\RiskScoreCalculated::class,
-        'pattern_detected'         => App\Domain\Compliance\Events\PatternDetected::class,
-        'threshold_exceeded'       => App\Domain\Compliance\Events\ThresholdExceeded::class,
-        'transaction_flagged'      => App\Domain\Compliance\Events\TransactionFlagged::class,
-        'transaction_cleared'      => App\Domain\Compliance\Events\TransactionCleared::class,
-        'rule_triggered'           => App\Domain\Compliance\Events\RuleTriggered::class,
-        'analysis_completed'       => App\Domain\Compliance\Events\AnalysisCompleted::class,
-        'batch_analysis_requested' => App\Domain\Compliance\Events\BatchAnalysisRequested::class,
-        'batch_analysis_completed' => App\Domain\Compliance\Events\BatchAnalysisCompleted::class,
+        'risk_score_calculated'         => App\Domain\Compliance\Events\RiskScoreCalculated::class,
+        'pattern_detected'              => App\Domain\Compliance\Events\PatternDetected::class,
+        'compliance_threshold_exceeded' => App\Domain\Compliance\Events\ThresholdExceeded::class,
+        'transaction_flagged'           => App\Domain\Compliance\Events\TransactionFlagged::class,
+        'transaction_cleared'           => App\Domain\Compliance\Events\TransactionCleared::class,
+        'transaction_analyzed'          => App\Domain\Compliance\Events\TransactionAnalyzed::class,
+        'rule_triggered'                => App\Domain\Compliance\Events\RuleTriggered::class,
+        'analysis_completed'            => App\Domain\Compliance\Events\AnalysisCompleted::class,
+        'batch_analysis_requested'      => App\Domain\Compliance\Events\BatchAnalysisRequested::class,
+        'batch_analysis_completed'      => App\Domain\Compliance\Events\BatchAnalysisCompleted::class,
 
         // AI Agent Framework events
         'ai_conversation_started'         => App\Domain\AI\Events\ConversationStartedEvent::class,
@@ -286,12 +287,12 @@ return [
         'regulatory_report_generated' => App\Domain\Treasury\Events\RegulatoryReportGenerated::class,
 
         // Monitoring & Observability events
-        'metric_recorded'     => App\Domain\Monitoring\Events\MetricRecorded::class,
-        'health_check_failed' => App\Domain\Monitoring\Events\HealthCheckFailed::class,
-        'health_check_passed' => App\Domain\Monitoring\Events\HealthCheckPassed::class,
-        'threshold_exceeded'  => App\Domain\Monitoring\Events\ThresholdExceeded::class,
-        'alert_triggered'     => App\Domain\Monitoring\Events\AlertTriggered::class,
-        'alert_resolved'      => App\Domain\Monitoring\Events\AlertResolved::class,
+        'metric_recorded'               => App\Domain\Monitoring\Events\MetricRecorded::class,
+        'health_check_failed'           => App\Domain\Monitoring\Events\HealthCheckFailed::class,
+        'health_check_passed'           => App\Domain\Monitoring\Events\HealthCheckPassed::class,
+        'monitoring_threshold_exceeded' => App\Domain\Monitoring\Events\ThresholdExceeded::class,
+        'alert_triggered'               => App\Domain\Monitoring\Events\AlertTriggered::class,
+        'alert_resolved'                => App\Domain\Monitoring\Events\AlertResolved::class,
 
         // Portfolio Management events
         'portfolio_created'         => App\Domain\Treasury\Events\Portfolio\PortfolioCreated::class,

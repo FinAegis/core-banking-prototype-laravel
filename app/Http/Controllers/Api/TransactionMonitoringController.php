@@ -75,10 +75,12 @@ class TransactionMonitoringController extends Controller
             ->with(['account', 'account.user']);
 
         if (isset($validated['status'])) {
+            /** @phpstan-ignore-next-line */
             $query->where('compliance_status', $validated['status']);
         }
 
         if (isset($validated['risk_level'])) {
+            /** @phpstan-ignore-next-line */
             $query->where('risk_level', $validated['risk_level']);
         }
 
@@ -700,7 +702,7 @@ class TransactionMonitoringController extends Controller
             'transaction_ids.*' => ['string'],
         ]);
 
-        $transactions = Transaction::with(['account', 'account.customer'])
+        $transactions = Transaction::with(['account', 'account.user'])
             ->whereIn('id', $validated['transaction_ids'])
             ->get();
 

@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\BasketAccountController;
 use App\Http\Controllers\Api\BasketController;
 use App\Http\Controllers\Api\BasketPerformanceController;
 use App\Http\Controllers\Api\BatchProcessingController;
+use App\Http\Controllers\Api\ComplianceAlertController;
+use App\Http\Controllers\Api\ComplianceCaseController;
 use App\Http\Controllers\Api\CustodianController;
 use App\Http\Controllers\Api\DailyReconciliationController;
 use App\Http\Controllers\Api\ExchangeRateController;
@@ -32,6 +34,7 @@ use App\Http\Controllers\Api\StablecoinController;
 use App\Http\Controllers\Api\StablecoinOperationsController;
 use App\Http\Controllers\Api\SubProductController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\TransactionMonitoringController;
 use App\Http\Controllers\Api\TransactionReversalController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\Treasury\PortfolioController;
@@ -342,7 +345,6 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
         Route::get('/compensations', [WorkflowMonitoringController::class, 'compensations']);
         Route::get('/{id}', [WorkflowMonitoringController::class, 'show']);
     });
-
 });
 
 // Public asset and exchange rate endpoints (no auth required for read-only access - public rate limiting)
@@ -528,6 +530,32 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->post('/kyc/document
 
 // Compliance and KYC endpoints
 Route::middleware('auth:sanctum', 'check.token.expiration')->prefix('compliance')->group(function () {
+    // Compliance alerts
+    Route::prefix('alerts')->group(function () {
+        Route::get('/', [ComplianceAlertController::class, 'index']);
+        Route::post('/', [ComplianceAlertController::class, 'create']);
+        Route::get('/{alert}', [ComplianceAlertController::class, 'show']);
+        Route::put('/{alert}', [ComplianceAlertController::class, 'update']);
+        Route::delete('/{alert}', [ComplianceAlertController::class, 'destroy']);
+        Route::post('/{alert}/assign', [ComplianceAlertController::class, 'assign']);
+        Route::post('/{alert}/resolve', [ComplianceAlertController::class, 'resolve']);
+        Route::post('/{alert}/escalate', [ComplianceAlertController::class, 'escalate']);
+        Route::post('/{alert}/link', [ComplianceAlertController::class, 'link']);
+        Route::post('/{alert}/notes', [ComplianceAlertController::class, 'addNote']);
+    });
+
+    // Compliance cases
+    Route::prefix('cases')->group(function () {
+        Route::get('/', [ComplianceCaseController::class, 'index']);
+        Route::post('/', [ComplianceCaseController::class, 'create']);
+        Route::get('/{case}', [ComplianceCaseController::class, 'show']);
+        Route::put('/{case}', [ComplianceCaseController::class, 'update']);
+        Route::delete('/{case}', [ComplianceCaseController::class, 'destroy']);
+        Route::post('/{case}/status', [ComplianceCaseController::class, 'updateStatus']);
+        Route::post('/{case}/notes', [ComplianceCaseController::class, 'addNote']);
+        Route::post('/{case}/documents', [ComplianceCaseController::class, 'addDocument']);
+    });
+
     // KYC endpoints
     Route::prefix('kyc')->group(function () {
         Route::get('/status', [KycController::class, 'status']);
@@ -565,6 +593,30 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->prefix('risk')->gro
     Route::post('/device-fingerprint', [RiskAnalysisController::class, 'storeDeviceFingerprint']);
     Route::get('/factors', [RiskAnalysisController::class, 'getRiskFactors']);
     Route::get('/models', [RiskAnalysisController::class, 'getRiskModels']);
+});
+
+// Transaction Monitoring endpoints
+Route::middleware('auth:sanctum', 'check.token.expiration')->prefix('transaction-monitoring')->group(function () {
+    // Transaction monitoring
+    Route::get('/', [TransactionMonitoringController::class, 'getMonitoredTransactions']);
+    Route::get('/transactions/{transaction}', [TransactionMonitoringController::class, 'getTransactionDetails']);
+    Route::post('/transactions/{transaction}/flag', [TransactionMonitoringController::class, 'flagTransaction']);
+    Route::post('/transactions/{transaction}/clear', [TransactionMonitoringController::class, 'clearTransaction']);
+
+    // Analysis
+    Route::post('/analyze/{transaction}', [TransactionMonitoringController::class, 'analyzeRealtime']);
+    Route::post('/analyze/batch', [TransactionMonitoringController::class, 'analyzeBatch']);
+
+    // Rules management
+    Route::get('/rules', [TransactionMonitoringController::class, 'getRules']);
+    Route::post('/rules', [TransactionMonitoringController::class, 'createRule']);
+    Route::put('/rules/{rule}', [TransactionMonitoringController::class, 'updateRule']);
+    Route::delete('/rules/{rule}', [TransactionMonitoringController::class, 'deleteRule']);
+
+    // Patterns and thresholds
+    Route::get('/patterns', [TransactionMonitoringController::class, 'getPatterns']);
+    Route::get('/thresholds', [TransactionMonitoringController::class, 'getThresholds']);
+    Route::put('/thresholds', [TransactionMonitoringController::class, 'updateThresholds']);
 });
 
 // Custodian webhook endpoints (signature verification + webhook rate limiting)
