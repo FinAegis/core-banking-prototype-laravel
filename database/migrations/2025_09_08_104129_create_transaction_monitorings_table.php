@@ -15,7 +15,7 @@ return new class () extends Migration {
             $table->string('transaction_id')->index();
             $table->string('status')->default('pending');
             $table->decimal('risk_score', 5, 2)->default(0);
-            $table->enum('risk_level', ['low', 'medium', 'high', 'critical'])->default('low');
+            $table->enum('risk_level', ['minimal', 'low', 'medium', 'high', 'critical'])->default('low');
             $table->json('patterns')->nullable();
             $table->json('triggered_rules')->nullable();
             $table->text('flag_reason')->nullable();
