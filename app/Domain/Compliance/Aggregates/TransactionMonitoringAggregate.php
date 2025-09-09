@@ -69,6 +69,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
         string $severity,
         ?string $flaggedBy = null
     ): self {
+        // Initialize transactionId if not set (for aggregates without prior events)
+        if (! isset($this->transactionId)) {
+            $this->transactionId = $this->uuid();
+        }
+
         if ($this->status === 'flagged') {
             throw new DomainException('Transaction is already flagged');
         }
@@ -90,6 +95,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
         string $clearedBy,
         ?string $notes = null
     ): self {
+        // Initialize transactionId if not set (for aggregates without prior events)
+        if (! isset($this->transactionId)) {
+            $this->transactionId = $this->uuid();
+        }
+
         if (! in_array($this->status, ['flagged', 'reviewing'], true)) {
             throw new DomainException('Transaction cannot be cleared in current status');
         }
@@ -112,6 +122,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
         array $conditions,
         array $matchedData
     ): self {
+        // Initialize transactionId if not set (for aggregates without prior events)
+        if (! isset($this->transactionId)) {
+            $this->transactionId = $this->uuid();
+        }
+
         $this->recordThat(new MonitoringRuleTriggered(
             $ruleId,
             $this->transactionId,
@@ -130,6 +145,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
         float $confidence,
         array $relatedTransactions = []
     ): self {
+        // Initialize transactionId if not set (for aggregates without prior events)
+        if (! isset($this->transactionId)) {
+            $this->transactionId = $this->uuid();
+        }
+
         $this->recordThat(new TransactionPatternDetected(
             (string) Str::uuid(),
             $patternType,
@@ -314,6 +334,11 @@ class TransactionMonitoringAggregate extends AggregateRoot
     // Getters
     public function getTransactionId(): string
     {
+        // Initialize transactionId if not set (for aggregates without prior events)
+        if (! isset($this->transactionId)) {
+            $this->transactionId = $this->uuid();
+        }
+
         return $this->transactionId;
     }
 

@@ -108,10 +108,13 @@ class TransactionMonitoringControllerTest extends TestCase
         ]);
 
         // First flag the transaction to create the aggregate with proper status
-        $this->postJson('/api/transaction-monitoring/transactions/' . $transaction->id . '/flag', [
-            'flaggedBy' => (string) $this->user->id,
-            'reason'    => 'High value transaction',
+        $flagResponse = $this->postJson('/api/transaction-monitoring/transactions/' . $transaction->id . '/flag', [
+            'reason'   => 'High value transaction',
+            'severity' => 'high',
+            'notes'    => 'Suspicious large transfer',
         ]);
+
+        $flagResponse->assertOk(); // Ensure the flag operation succeeded
 
         // Now clear it
         $response = $this->postJson('/api/transaction-monitoring/transactions/' . $transaction->id . '/clear', [

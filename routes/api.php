@@ -606,8 +606,8 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->prefix('transaction
     Route::post('/transactions/{transaction}/clear', [TransactionMonitoringController::class, 'clearTransaction']);
 
     // Analysis
-    Route::post('/analyze/{transaction}', [TransactionMonitoringController::class, 'analyzeRealtime']);
     Route::post('/analyze/batch', [TransactionMonitoringController::class, 'analyzeBatch']);
+    Route::post('/analyze/{transaction}', [TransactionMonitoringController::class, 'analyzeRealtime']);
 
     // Rules management
     Route::get('/rules', [TransactionMonitoringController::class, 'getRules']);

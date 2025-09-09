@@ -81,11 +81,15 @@ class PatternDetectionEngine
 
         // Convert to buffer format
         $buffer = $transactions->map(function ($transaction) {
+            $createdAt = is_string($transaction->created_at)
+                ? \Carbon\Carbon::parse($transaction->created_at)
+                : $transaction->created_at;
+
             return [
                 'id'        => $transaction->id,
                 'amount'    => $transaction->event_properties['amount'] ?? 0,
                 'type'      => $transaction->event_properties['type'] ?? 'unknown',
-                'timestamp' => $transaction->created_at->timestamp,
+                'timestamp' => $createdAt->timestamp,
                 'metadata'  => $transaction->event_properties['metadata'] ?? [],
             ];
         })->toArray();

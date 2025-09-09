@@ -199,6 +199,13 @@ class TransactionMonitoringController extends Controller
                 'flag_reason'       => $validated['reason'],
             ]);
 
+            // Flag using the monitoring service to create/update the aggregate
+            $this->monitoringService->flagTransaction(
+                (string) $transaction->id,
+                $validated['reason'],
+                $validated['severity']
+            );
+
             // Create alert
             $this->alertService->createAlert([
                 'type'        => 'manual_flag',
@@ -264,11 +271,12 @@ class TransactionMonitoringController extends Controller
 
         $transaction = Transaction::findOrFail($id);
 
-        // Clear the transaction
+        // Clear the transaction - the service method expects ($transactionId, $reason, $notes)
+        // The 'notes' field from the request is actually the reason for clearing
         $this->monitoringService->clearTransaction(
             (string) $transaction->id,
-            $validated['notes'],
-            $validated['reviewer']
+            $validated['notes'],  // This is the reason for clearing
+            'Reviewed by: ' . $validated['reviewer']  // Additional notes about who reviewed it
         );
 
         return response()->json([
