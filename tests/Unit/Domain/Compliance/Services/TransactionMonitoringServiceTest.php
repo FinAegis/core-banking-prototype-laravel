@@ -181,7 +181,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
             ->with($transaction, Mockery::type('array'));
 
         $result = $this->service->analyzeTransaction($transaction);
-        
+
         // With multiple triggered rules, should have high risk
         $this->assertNotEmpty($result['rules_triggered']);
         $this->assertContains($result['risk_level'], ['low', 'medium', 'high', 'critical']);
@@ -206,7 +206,7 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
         // Service should throw the exception
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Database error');
-        
+
         $this->service->analyzeTransaction($transaction);
     }
 
