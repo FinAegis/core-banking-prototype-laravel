@@ -58,11 +58,21 @@ class AlertManagementService
 
                 // Create alert in read model (projector would normally handle this)
                 $alertId = $aggregate->getId();
+                
+                // Generate type-specific alert ID
+                $alertIdPrefix = match($data['type']) {
+                    'transaction' => 'TXN-',
+                    'pattern' => 'PTN-',
+                    'account' => 'ACC-',
+                    'behavior' => 'BHV-',
+                    default => 'ALT-',
+                };
+                $formattedAlertId = $alertIdPrefix . strtoupper(substr($alertId, 0, 8));
 
                 // Create the read model alert
                 $alert = ComplianceAlert::create([
                     'id'          => $alertId,
-                    'alert_id'    => $alertId,
+                    'alert_id'    => $formattedAlertId,
                     'type'        => $data['type'],
                     'severity'    => $data['severity'],
                     'entity_type' => $data['entity_type'],

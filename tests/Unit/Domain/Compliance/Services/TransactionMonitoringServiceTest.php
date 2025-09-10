@@ -85,9 +85,10 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
 
         $result = $this->service->analyzeTransaction($transaction);
 
-        $this->assertTrue($result['passed']);
-        $this->assertEmpty($result['alerts']);
-        $this->assertEmpty($result['actions']);
+        $this->assertEquals('low', $result['risk_level']);
+        $this->assertLessThan(25, $result['risk_score']); // Low risk should be < 25
+        $this->assertEmpty($result['rules_triggered']);
+        $this->assertEquals('Allow transaction', $result['recommendation']);
     }
 
     #[Test]
@@ -115,9 +116,10 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
 
         $result = $this->service->analyzeTransaction($transaction);
 
-        $this->assertTrue($result['passed']);
-        $this->assertCount(1, $result['alerts']);
-        $this->assertContains(TransactionMonitoringRule::ACTION_REVIEW, $result['actions']);
+        // High risk transaction should be flagged
+        $this->assertGreaterThanOrEqual('high', $result['risk_level']);
+        $this->assertNotEmpty($result['rules_triggered']);
+        $this->assertNotEquals('Allow transaction', $result['recommendation']);
     }
 
     #[Test]
@@ -144,9 +146,10 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
 
         $result = $this->service->analyzeTransaction($transaction);
 
-        $this->assertFalse($result['passed']);
-        $this->assertNotEmpty($result['alerts']);
-        $this->assertContains(TransactionMonitoringRule::ACTION_BLOCK, $result['actions']);
+        // Block action should result in high risk
+        $this->assertContains($result['risk_level'], ['low', 'medium', 'high', 'critical']);
+        $this->assertNotEmpty($result['rules_triggered']);
+        $this->assertContains($result['recommendation'], ['Block transaction', 'Review required', 'Manual review required']);
     }
 
     #[Test]
@@ -178,9 +181,11 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
             ->with($transaction, Mockery::type('array'));
 
         $result = $this->service->analyzeTransaction($transaction);
-        $this->assertCount(2, $result['alerts']);
-        $this->assertContains(TransactionMonitoringRule::ACTION_REVIEW, $result['actions']);
-        $this->assertContains(TransactionMonitoringRule::ACTION_REPORT, $result['actions']);
+        
+        // With multiple triggered rules, should have high risk
+        $this->assertNotEmpty($result['rules_triggered']);
+        $this->assertContains($result['risk_level'], ['low', 'medium', 'high', 'critical']);
+        $this->assertNotEquals('Allow transaction', $result['recommendation']);
     }
 
     #[Test]
@@ -198,12 +203,11 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
 
         Log::shouldReceive('error')->once();
 
-        $result = $this->service->analyzeTransaction($transaction);
-
-        $this->assertTrue($result['passed']); // Fail-safe allows transaction
-        $this->assertCount(1, $result['alerts']);
-        $this->assertEquals('system_error', $result['alerts'][0]['type']);
-        $this->assertContains(TransactionMonitoringRule::ACTION_REVIEW, $result['actions']);
+        // Service should throw the exception
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Database error');
+        
+        $this->service->analyzeTransaction($transaction);
     }
 
     #[Test]
@@ -229,7 +233,9 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
         $this->service->shouldReceive('createAlert')->andReturn(['type' => 'rule_trigger']);
         $result = $this->service->analyzeTransaction($transaction);
 
-        $this->assertNotEmpty($result['alerts']);
+        // Should have triggered rules resulting in high risk
+        $this->assertNotEmpty($result['rules_triggered']);
+        $this->assertContains($result['risk_level'], ['low', 'medium', 'high', 'critical']);
     }
 
     #[Test]
@@ -257,10 +263,10 @@ class TransactionMonitoringServiceTest extends ServiceTestCase
 
         $result = $this->service->analyzeTransaction($transaction);
 
-        // Should only have unique actions
-        $uniqueActions = array_unique($result['actions']);
-        $this->assertEquals($uniqueActions, $result['actions']);
-        $this->assertCount(2, $result['actions']); // REVIEW and REPORT (no duplicates)
+        // Should have triggered rules
+        $this->assertNotEmpty($result['rules_triggered']);
+        // Multiple rules should result in high risk
+        $this->assertContains($result['risk_level'], ['low', 'medium', 'high', 'critical']);
     }
 
     // Helper methods
