@@ -93,6 +93,9 @@ class AlertManagementService
                 // Check for automatic escalation
                 $this->checkForEscalation($alert);
 
+                // Refresh alert to get updated status if it was escalated
+                $alert->refresh();
+
                 // Notify compliance team if high severity
                 if (in_array($alert->severity, ['high', 'critical'])) {
                     $this->notifyComplianceTeam($alert);

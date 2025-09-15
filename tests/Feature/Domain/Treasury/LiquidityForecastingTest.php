@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class LiquidityForecastingTest extends TestCase
@@ -38,9 +39,7 @@ class LiquidityForecastingTest extends TestCase
         $this->seedHistoricalTransactions();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_generates_liquidity_forecast_with_sufficient_data(): void
     {
         // Act
@@ -68,9 +67,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertArrayHasKey('confidence_interval', $firstDay);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_calculates_current_liquidity_position(): void
     {
         // Setup
@@ -95,9 +92,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertContains($liquidity['status'], ['excellent', 'good', 'adequate', 'concerning', 'critical']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_generates_alerts_for_negative_balance_projections(): void
     {
         // Setup - Create transactions that will lead to negative balance
@@ -122,9 +117,7 @@ class LiquidityForecastingTest extends TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_runs_scenario_analysis(): void
     {
         // Act
@@ -148,9 +141,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertArrayHasKey('recovery_time', $customScenario);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_calculates_liquidity_risk_metrics(): void
     {
         // Act
@@ -173,9 +164,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertLessThanOrEqual(1, $metrics['probability_of_shortage']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_generates_recommendations_based_on_risk_metrics(): void
     {
         // Act
@@ -197,9 +186,7 @@ class LiquidityForecastingTest extends TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_handles_insufficient_historical_data_gracefully(): void
     {
         // Setup - Use treasury with no historical data
@@ -220,9 +207,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertNotNull($dataRecommendation);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_caches_forecast_results(): void
     {
         // Clear cache first
@@ -243,9 +228,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertNotEquals($forecast1['generated_at'], $forecast3['generated_at']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function liquidity_metrics_value_object_validates_correctly(): void
     {
         // Test valid metrics
@@ -277,9 +260,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertEquals('high', $unhealthyMetrics->getRiskLevel());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function cash_flow_projection_value_object_calculates_correctly(): void
     {
         $projection = new CashFlowProjection(
@@ -299,9 +280,7 @@ class LiquidityForecastingTest extends TestCase
         $this->assertEqualsWithDelta(0.111, $projection->getNetMargin(), 0.001);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_detects_lcr_breach_and_generates_critical_alert(): void
     {
         // Setup - Create scenario with low liquid assets
