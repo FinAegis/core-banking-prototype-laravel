@@ -24,7 +24,7 @@ class AlertManagementService
     private const ESCALATION_THRESHOLDS = [
         'low'      => 5,     // Escalate after 5 similar alerts
         'medium'   => 3,  // Escalate after 3 similar alerts
-        'high'     => 1,    // Escalate immediately
+        'high'     => 2,    // Escalate after 2 similar alerts
         'critical' => 1, // Escalate immediately
     ];
 
@@ -366,10 +366,11 @@ class AlertManagementService
 
         $threshold = self::ESCALATION_THRESHOLDS[$alert->severity] ?? 5;
 
-        // Count similar recent alerts
+        // Count similar recent alerts (excluding the current one)
         $similarCount = ComplianceAlert::where('type', $alert->type)
             ->where('entity_type', $alert->entity_type)
             ->where('entity_id', $alert->entity_id)
+            ->where('id', '!=', $alert->id)  // Exclude the current alert
             ->where('created_at', '>=', now()->subDays(7))
             ->count();
 
