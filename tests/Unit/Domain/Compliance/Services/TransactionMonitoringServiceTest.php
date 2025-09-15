@@ -10,7 +10,6 @@ use App\Domain\Compliance\Services\CustomerRiskService;
 use App\Domain\Compliance\Services\SuspiciousActivityReportService;
 use App\Domain\Compliance\Services\TransactionMonitoringService;
 use App\Models\User;
-use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
