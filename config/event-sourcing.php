@@ -255,20 +255,45 @@ return [
         'alert_status_changed'    => App\Domain\Compliance\Events\AlertStatusChanged::class,
         'alert_note_added'        => App\Domain\Compliance\Events\AlertNoteAdded::class,
         'alert_resolved'          => App\Domain\Compliance\Events\AlertResolved::class,
+        'alert_escalated'         => App\Domain\Compliance\Events\AlertEscalated::class,
         'alert_escalated_to_case' => App\Domain\Compliance\Events\AlertEscalatedToCase::class,
         'alert_linked'            => App\Domain\Compliance\Events\AlertLinked::class,
 
         // Compliance Transaction Monitoring events
         'risk_score_calculated'         => App\Domain\Compliance\Events\RiskScoreCalculated::class,
+        'risk_level_changed'            => App\Domain\Compliance\Events\RiskLevelChanged::class,
         'pattern_detected'              => App\Domain\Compliance\Events\PatternDetected::class,
         'compliance_threshold_exceeded' => App\Domain\Compliance\Events\ThresholdExceeded::class,
         'transaction_flagged'           => App\Domain\Compliance\Events\TransactionFlagged::class,
         'transaction_cleared'           => App\Domain\Compliance\Events\TransactionCleared::class,
         'transaction_analyzed'          => App\Domain\Compliance\Events\TransactionAnalyzed::class,
-        'rule_triggered'                => App\Domain\Compliance\Events\RuleTriggered::class,
-        'analysis_completed'            => App\Domain\Compliance\Events\AnalysisCompleted::class,
-        'batch_analysis_requested'      => App\Domain\Compliance\Events\BatchAnalysisRequested::class,
-        'batch_analysis_completed'      => App\Domain\Compliance\Events\BatchAnalysisCompleted::class,
+        'transaction_blocked'           => App\Domain\Compliance\Events\TransactionBlocked::class,
+        'transaction_pattern_detected'  => App\Domain\Compliance\Events\TransactionPatternDetected::class,
+        'monitoring_rule_triggered'     => App\Domain\Compliance\Events\MonitoringRuleTriggered::class,
+        'suspicious_activity_detected'  => App\Domain\Compliance\Events\SuspiciousActivityDetected::class,
+        'real_time_alert_generated'     => App\Domain\Compliance\Events\RealTimeAlertGenerated::class,
+
+        // Compliance KYC events
+        'kyc_verification_started'        => App\Domain\Compliance\Events\KycVerificationStarted::class,
+        'kyc_document_uploaded'           => App\Domain\Compliance\Events\KycDocumentUploaded::class,
+        'kyc_submission_received'         => App\Domain\Compliance\Events\KycSubmissionReceived::class,
+        'kyc_verification_completed'      => App\Domain\Compliance\Events\KycVerificationCompleted::class,
+        'kyc_verification_failed'         => App\Domain\Compliance\Events\KycVerificationFailed::class,
+        'kyc_verification_rejected'       => App\Domain\Compliance\Events\KycVerificationRejected::class,
+        'enhanced_due_diligence_required' => App\Domain\Compliance\Events\EnhancedDueDiligenceRequired::class,
+
+        // Compliance SAR events
+        'sar_created'   => App\Domain\Compliance\Events\SARCreated::class,
+        'sar_submitted' => App\Domain\Compliance\Events\SARSubmitted::class,
+
+        // Compliance Screening events
+        'screening_completed'   => App\Domain\Compliance\Events\ScreeningCompleted::class,
+        'screening_match_found' => App\Domain\Compliance\Events\ScreeningMatchFound::class,
+
+        // Compliance GDPR events
+        'gdpr_request_received' => App\Domain\Compliance\Events\GdprRequestReceived::class,
+        'gdpr_data_exported'    => App\Domain\Compliance\Events\GdprDataExported::class,
+        'gdpr_data_deleted'     => App\Domain\Compliance\Events\GdprDataDeleted::class,
 
         // AI Agent Framework events
         'ai_conversation_started'         => App\Domain\AI\Events\ConversationStartedEvent::class,
@@ -279,20 +304,13 @@ return [
         'ai_tool_executed'                => App\Domain\AI\Events\ToolExecutedEvent::class,
         'ai_human_intervention_requested' => App\Domain\AI\Events\HumanInterventionRequestedEvent::class,
 
-        // Treasury Management events
-        'treasury_account_created'    => App\Domain\Treasury\Events\TreasuryAccountCreated::class,
-        'cash_allocated'              => App\Domain\Treasury\Events\CashAllocated::class,
-        'yield_optimization_started'  => App\Domain\Treasury\Events\YieldOptimizationStarted::class,
-        'risk_assessment_completed'   => App\Domain\Treasury\Events\RiskAssessmentCompleted::class,
-        'regulatory_report_generated' => App\Domain\Treasury\Events\RegulatoryReportGenerated::class,
-
         // Monitoring & Observability events
         'metric_recorded'               => App\Domain\Monitoring\Events\MetricRecorded::class,
         'health_check_failed'           => App\Domain\Monitoring\Events\HealthCheckFailed::class,
         'health_check_passed'           => App\Domain\Monitoring\Events\HealthCheckPassed::class,
         'monitoring_threshold_exceeded' => App\Domain\Monitoring\Events\ThresholdExceeded::class,
-        'alert_triggered'               => App\Domain\Monitoring\Events\AlertTriggered::class,
-        'alert_resolved'                => App\Domain\Monitoring\Events\AlertResolved::class,
+        'monitoring_alert_triggered'    => App\Domain\Monitoring\Events\AlertTriggered::class,
+        'monitoring_alert_resolved'     => App\Domain\Monitoring\Events\AlertResolved::class,
 
         // Portfolio Management events
         'portfolio_created'         => App\Domain\Treasury\Events\Portfolio\PortfolioCreated::class,

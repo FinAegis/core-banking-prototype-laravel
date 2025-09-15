@@ -25,8 +25,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $enabled
  * @property int $priority
  * @property float|null $effectiveness_score
+ * @property float|null $false_positive_rate
  * @property int $trigger_count
+ * @property int $true_positives
+ * @property int $false_positives
  * @property DateTimeInterface|null $last_triggered_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
  */
 class MonitoringRule extends Model
 {
@@ -49,6 +54,9 @@ class MonitoringRule extends Model
         'priority',
         'effectiveness_score',
         'false_positive_rate',
+        'trigger_count',
+        'true_positives',
+        'false_positives',
         'last_triggered_at',
         'created_by',
         'updated_by',
@@ -65,6 +73,9 @@ class MonitoringRule extends Model
         'priority'            => 'integer',
         'effectiveness_score' => 'float',
         'false_positive_rate' => 'float',
+        'trigger_count'       => 'integer',
+        'true_positives'      => 'integer',
+        'false_positives'     => 'integer',
         'last_triggered_at'   => 'datetime',
         'created_at'          => 'datetime',
         'updated_at'          => 'datetime',
@@ -76,6 +87,9 @@ class MonitoringRule extends Model
         'priority'            => 50,
         'effectiveness_score' => 50.0,
         'false_positive_rate' => 0.0,
+        'trigger_count'       => 0,
+        'true_positives'      => 0,
+        'false_positives'     => 0,
     ];
 
     /**

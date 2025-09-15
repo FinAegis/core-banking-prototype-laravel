@@ -30,6 +30,11 @@ parameters:
 			count: 1
 			path: tests/Unit/Domain/Lending/ValueObjects/RiskRatingTest.php
 		-
+			message: '#^Return type \(array\<string, mixed\>\) of method Database\\Factories\\Domain\\Compliance\\MonitoringRuleFactory\:\:definition\(\) should be compatible with return type \(array\<model property of App\\Domain\\Compliance\\Models\\MonitoringRule, mixed\>\) of method Illuminate\\Database\\Eloquent\\Factories\\Factory\<App\\Domain\\Compliance\\Models\\MonitoringRule\>\:\:definition\(\)$#'
+			identifier: method.childReturnType
+			count: 1
+			path: database/factories/Domain/Compliance/MonitoringRuleFactory.php
+		-
 			message: '#^Parameter \#1 \$attributes of method Illuminate\\Database\\Eloquent\\Relations\\HasOneOrMany\<Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:create\(\) expects array\<model property of Illuminate\\Database\\Eloquent\\Model, mixed\>, array\<string, string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1

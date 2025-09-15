@@ -23,27 +23,31 @@ class MonitoringRuleFactory extends Factory
         $severities = ['low', 'medium', 'high', 'critical'];
 
         return [
-            'name'        => $this->faker->sentence(3),
-            'description' => $this->faker->paragraph(),
-            'rule_type'   => $this->faker->randomElement($types),
-            'conditions'  => [
+            'name'       => $this->faker->sentence(3),
+            'type'       => $this->faker->randomElement($types),
+            'rule_type'  => $this->faker->optional()->randomElement($types), // Optional nullable field
+            'conditions' => [
                 'threshold' => $this->faker->randomFloat(2, 1000, 100000),
                 'period'    => $this->faker->randomElement(['1h', '24h', '7d', '30d']),
                 'operator'  => $this->faker->randomElement(['>', '<', '>=', '<=', '==', '!=']),
             ],
-            'actions' => [
-                'alert'  => true,
-                'block'  => $this->faker->boolean(30),
-                'notify' => $this->faker->boolean(70),
-            ],
-            'severity' => $this->faker->randomElement($severities),
-            'enabled'  => $this->faker->boolean(80),
-            'priority' => $this->faker->numberBetween(1, 10),
-            'metadata' => [
-                'test'       => true,
-                'created_by' => 'factory',
-            ],
-            'tags' => $this->faker->randomElements(['high-risk', 'monitoring', 'compliance', 'aml', 'kyc'], rand(1, 3)),
+            'actions'             => null, // Optional nullable field
+            'metadata'            => null, // Optional nullable field
+            'tags'                => null, // Optional nullable field
+            'threshold'           => $this->faker->randomFloat(2, 1000, 100000),
+            'severity'            => $this->faker->randomElement($severities),
+            'description'         => $this->faker->paragraph(),
+            'is_active'           => $this->faker->boolean(80),
+            'enabled'             => $this->faker->boolean(80), // Additional enabled field
+            'priority'            => $this->faker->numberBetween(1, 100),
+            'effectiveness_score' => $this->faker->randomFloat(2, 0, 100),
+            'false_positive_rate' => $this->faker->randomFloat(2, 0, 100),
+            'trigger_count'       => 0, // New field from migration
+            'true_positives'      => 0, // New field from migration
+            'false_positives'     => 0, // New field from migration
+            'last_triggered_at'   => $this->faker->optional()->dateTimeBetween('-1 month', 'now'),
+            'created_by'          => null,
+            'updated_by'          => null,
         ];
     }
 
@@ -53,7 +57,7 @@ class MonitoringRuleFactory extends Factory
     public function enabled(): static
     {
         return $this->state(fn (array $attributes) => [
-            'enabled' => true,
+            'is_active' => true,
         ]);
     }
 
@@ -63,7 +67,7 @@ class MonitoringRuleFactory extends Factory
     public function disabled(): static
     {
         return $this->state(fn (array $attributes) => [
-            'enabled' => false,
+            'is_active' => false,
         ]);
     }
 
@@ -84,7 +88,7 @@ class MonitoringRuleFactory extends Factory
     public function amountRule(): static
     {
         return $this->state(fn (array $attributes) => [
-            'rule_type'  => 'amount',
+            'type'       => 'amount',
             'conditions' => [
                 'threshold' => $this->faker->randomFloat(2, 10000, 1000000),
                 'operator'  => '>',
@@ -99,7 +103,7 @@ class MonitoringRuleFactory extends Factory
     public function frequencyRule(): static
     {
         return $this->state(fn (array $attributes) => [
-            'rule_type'  => 'frequency',
+            'type'       => 'frequency',
             'conditions' => [
                 'max_transactions' => $this->faker->numberBetween(5, 50),
                 'period'           => $this->faker->randomElement(['1h', '24h', '7d']),

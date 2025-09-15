@@ -258,8 +258,13 @@ class AlertManagementService
             $aggregate->persist();
 
             // Add alert to case
-            // Link alert to case in the projection model
-            ComplianceAlert::where('id', $alert->id)->update(['case_id' => $case->id]);
+            // Link alert to case in the projection model and update status
+            ComplianceAlert::where('id', $alert->id)->update([
+                'case_id'           => $case->id,
+                'status'            => ComplianceAlert::STATUS_ESCALATED,
+                'escalated_at'      => now(),
+                'escalation_reason' => $reason,
+            ]);
 
             $alertModel = ComplianceAlert::findOrFail($alert->id);
             $similarAlerts = ComplianceAlert::where('id', '!=', $alert->id)
@@ -346,6 +351,16 @@ class AlertManagementService
      */
     private function checkForEscalation(ComplianceAlert $alert): void
     {
+        // Critical alerts are always escalated immediately
+        if ($alert->severity === 'critical') {
+            $this->escalateToCase(
+                $alert->alert_id,
+                'Automatic escalation: Critical severity alert'
+            );
+
+            return;
+        }
+
         $threshold = self::ESCALATION_THRESHOLDS[$alert->severity] ?? 5;
 
         // Count similar recent alerts
