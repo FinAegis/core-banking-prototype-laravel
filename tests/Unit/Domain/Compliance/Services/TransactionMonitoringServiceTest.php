@@ -271,7 +271,7 @@ class TransactionMonitoringServiceTest extends TestCase
             'amount' => 80000,
         ]);
 
-        // Create a rule that will trigger
+        // Create multiple rules that will trigger to reach critical risk level
         MonitoringRule::create([
             'name'        => 'Suspicious Pattern',
             'type'        => 'pattern',
@@ -279,16 +279,48 @@ class TransactionMonitoringServiceTest extends TestCase
             'conditions'  => [
                 ['field' => 'amount', 'operator' => '>', 'value' => 70000],
             ],
-            'severity'  => 'high',
+            'severity'  => 'critical',  // 30 points
             'is_active' => true,
         ]);
 
+        MonitoringRule::create([
+            'name'        => 'Very High Amount',
+            'type'        => 'amount',
+            'description' => 'Detect very high amounts',
+            'conditions'  => [
+                ['field' => 'amount', 'operator' => '>', 'value' => 75000],
+            ],
+            'severity'  => 'critical',  // 30 points
+            'is_active' => true,
+        ]);
+
+        MonitoringRule::create([
+            'name'        => 'High Risk Transaction',
+            'type'        => 'risk',
+            'description' => 'High risk transaction pattern',
+            'conditions'  => [
+                ['field' => 'amount', 'operator' => '>', 'value' => 50000],
+            ],
+            'severity'  => 'high',  // 20 points
+            'is_active' => true,
+        ]);
+
+        // Mock SAR service - will be called for score >= 90
+        // Initial score: 20 (amount > 10000) + Rules: 30 + 30 + 20 = 100 total
+        $this->sarService->shouldReceive('createFromTransaction')
+            ->once()
+            ->with($transaction, Mockery::type('array'));
+
         $result = $this->service->analyzeTransaction($transaction);
 
-        // Should have triggered rules resulting in elevated risk
+        // With initial 20 + 3 rules (30 + 30 + 20) = 100 points, should be critical risk
         $this->assertNotEmpty($result['rules_triggered']);
-        $this->assertContains($result['risk_level'], ['medium', 'high', 'critical']);
+        $this->assertCount(3, $result['rules_triggered']);
+        $this->assertEquals('critical', $result['risk_level']);
+        $this->assertGreaterThanOrEqual(90, $result['risk_score']);
+        $this->assertEquals(100, $result['risk_score']);
 
+        // SuspiciousActivityDetected should be dispatched for critical risk
         Event::assertDispatched(SuspiciousActivityDetected::class);
     }
 
@@ -301,7 +333,7 @@ class TransactionMonitoringServiceTest extends TestCase
             'amount' => 90000,
         ]);
 
-        // Multiple rules with overlapping conditions
+        // Multiple rules with overlapping conditions to reach score >= 90
         MonitoringRule::create([
             'name'        => 'Rule 1',
             'type'        => 'amount',
@@ -309,7 +341,7 @@ class TransactionMonitoringServiceTest extends TestCase
             'conditions'  => [
                 ['field' => 'amount', 'operator' => '>', 'value' => 50000],
             ],
-            'severity'  => 'high',
+            'severity'  => 'critical',  // 30 points
             'is_active' => true,
         ]);
 
@@ -320,11 +352,23 @@ class TransactionMonitoringServiceTest extends TestCase
             'conditions'  => [
                 ['field' => 'amount', 'operator' => '>', 'value' => 80000],
             ],
-            'severity'  => 'critical',
+            'severity'  => 'critical',  // 30 points
             'is_active' => true,
         ]);
 
-        // Mock the SAR service since high amounts trigger SAR creation
+        MonitoringRule::create([
+            'name'        => 'Rule 3',
+            'type'        => 'amount',
+            'description' => 'Third rule',
+            'conditions'  => [
+                ['field' => 'amount', 'operator' => '>', 'value' => 85000],
+            ],
+            'severity'  => 'high',  // 20 points
+            'is_active' => true,
+        ]);
+
+        // Mock the SAR service since total score will be >= 90
+        // Initial: 20 + Rules: 30 + 30 + 20 = 100 points
         $this->sarService->shouldReceive('createFromTransaction')
             ->once() // Should only be called once despite multiple rules
             ->with($transaction, Mockery::type('array'));
@@ -333,7 +377,9 @@ class TransactionMonitoringServiceTest extends TestCase
 
         // Should have triggered rules
         $this->assertNotEmpty($result['rules_triggered']);
+        $this->assertCount(3, $result['rules_triggered']);
         $this->assertEquals('critical', $result['risk_level']); // Highest severity wins
+        $this->assertEquals(100, $result['risk_score']);
     }
 
     protected function tearDown(): void
