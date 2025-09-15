@@ -10,6 +10,7 @@ class AlertStatus
 {
     private const VALID_STATUSES = [
         'open',
+        'in_review',
         'investigating',
         'escalated',
         'resolved',

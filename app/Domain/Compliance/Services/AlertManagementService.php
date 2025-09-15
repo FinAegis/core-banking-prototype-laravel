@@ -75,8 +75,8 @@ class AlertManagementService
                     'alert_id'    => $formattedAlertId,
                     'type'        => $data['type'],
                     'severity'    => $data['severity'],
-                    'entity_type' => $data['entity_type'],
-                    'entity_id'   => (string) $data['entity_id'],
+                    'entity_type' => $data['entity_type'] ?? $data['type'],  // Use same default as aggregate
+                    'entity_id'   => (string) ($data['entity_id'] ?? 'system'),  // Use same default as aggregate
                     'title'       => $data['title'] ?? ($data['type'] . ' Alert'),
                     'description' => $data['description'],
                     'details'     => $data['details'] ?? [],
