@@ -6,6 +6,7 @@ namespace App\Domain\Compliance\Services;
 
 use App\Domain\Compliance\Aggregates\ComplianceAlertAggregate;
 use App\Domain\Compliance\Events\AlertEscalated;
+use App\Domain\Compliance\Events\AlertResolved;
 use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Models\ComplianceCase;
 use App\Models\User;
@@ -562,6 +563,49 @@ class AlertManagementService
         $aggregate = ComplianceAlertAggregate::retrieve($alert->id);
         $aggregate->changeStatus($newStatus, $notes, (string) $user->id);
         $aggregate->persist();
+
+        // Update specific fields based on status
+        $updateData = [
+            'status' => $newStatus,
+            'status_changed_at' => now(),
+            'status_changed_by' => $user->id,
+        ];
+
+        // Add history entry
+        $history = $alert->history ?? [];
+        $history[] = [
+            'timestamp' => now()->toIso8601String(),
+            'user_id' => $user->id,
+            'status' => $newStatus,
+            'notes' => $notes,
+        ];
+        $updateData['history'] = $history;
+
+        // Handle resolution-specific fields
+        if ($newStatus === ComplianceAlert::STATUS_RESOLVED || $newStatus === ComplianceAlert::STATUS_FALSE_POSITIVE) {
+            $updateData['resolved_at'] = now();
+            $updateData['resolved_by'] = $user->id;
+            $updateData['resolution_notes'] = $notes;
+
+            // Calculate resolution time if detected_at exists
+            if ($alert->detected_at) {
+                $updateData['resolution_time_hours'] = $alert->detected_at->diffInHours(now());
+            }
+        }
+
+        // Update the alert
+        $alert->update($updateData);
+
+        // Dispatch resolution event if resolved
+        if ($newStatus === ComplianceAlert::STATUS_RESOLVED) {
+            Event::dispatch(new AlertResolved(
+                $alert->id,
+                $newStatus,
+                (string) $user->id,
+                $notes ?? '',
+                new \DateTimeImmutable()
+            ));
+        }
 
         // Reload and return the updated projection
         return $alert->fresh();
