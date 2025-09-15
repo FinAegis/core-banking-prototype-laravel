@@ -10,6 +10,7 @@ use App\Domain\Compliance\Events\AlertResolved;
 use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Models\ComplianceCase;
 use App\Models\User;
+use DateTimeImmutable;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -566,7 +567,7 @@ class AlertManagementService
 
         // Update specific fields based on status
         $updateData = [
-            'status' => $newStatus,
+            'status'            => $newStatus,
             'status_changed_at' => now(),
             'status_changed_by' => $user->id,
         ];
@@ -575,9 +576,9 @@ class AlertManagementService
         $history = $alert->history ?? [];
         $history[] = [
             'timestamp' => now()->toIso8601String(),
-            'user_id' => $user->id,
-            'status' => $newStatus,
-            'notes' => $notes,
+            'user_id'   => $user->id,
+            'status'    => $newStatus,
+            'notes'     => $notes,
         ];
         $updateData['history'] = $history;
 
@@ -603,7 +604,7 @@ class AlertManagementService
                 $newStatus,
                 (string) $user->id,
                 $notes ?? '',
-                new \DateTimeImmutable()
+                new DateTimeImmutable()
             ));
         }
 
