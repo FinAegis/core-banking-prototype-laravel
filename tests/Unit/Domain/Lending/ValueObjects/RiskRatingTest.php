@@ -259,6 +259,7 @@ class RiskRatingTest extends TestCase
 
         // PHP 8.1+ readonly properties throw Error when attempting to modify
         $this->expectException(Error::class);
+        /** @phpstan-ignore-next-line */
         $riskRating->rating = 'D';
     }
 

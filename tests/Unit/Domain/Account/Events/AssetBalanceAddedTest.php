@@ -114,6 +114,7 @@ class AssetBalanceAddedTest extends DomainTestCase
         // Properties are readonly, so we can't modify them
         $this->expectException(Error::class);
         $this->expectExceptionMessageMatches('/Cannot modify readonly property/');
+        /** @phpstan-ignore-next-line */
         $event->assetCode = 'EUR';
     }
 }

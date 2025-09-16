@@ -203,6 +203,7 @@ class CreditScoreTest extends TestCase
 
         // PHP 8.1+ readonly properties throw Error when attempting to modify
         $this->expectException(Error::class);
+        /** @phpstan-ignore-next-line */
         $creditScore->score = 750;
     }
 }

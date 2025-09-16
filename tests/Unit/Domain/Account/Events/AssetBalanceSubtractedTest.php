@@ -129,6 +129,7 @@ class AssetBalanceSubtractedTest extends DomainTestCase
         // Attempting to modify readonly property should cause error
         $this->expectException(Error::class);
         $this->expectExceptionMessageMatches('/Cannot modify readonly property/');
+        /** @phpstan-ignore-next-line */
         $event->amount = 4000;
     }
 
