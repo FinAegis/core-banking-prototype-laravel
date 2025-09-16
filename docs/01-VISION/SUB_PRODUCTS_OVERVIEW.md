@@ -285,6 +285,6 @@ Each sub-product can be independently enabled or disabled:
 
 ---
 
-*Last Updated: August 14, 2025*
+*Last Updated: August 14, 2024*
 *Version: 1.0 Demo*
 *Platform Type: Demonstration*

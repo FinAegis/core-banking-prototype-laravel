@@ -5,7 +5,7 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2025-07-07 - Phase 8 Advanced Trading & DeFi Features
+## [8.0.0] - 2024-09-07 - Phase 8 Advanced Trading & DeFi Features
 
 ### Added
 - **Exchange Engine**: Full trading platform with order book management
@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Production-ready exchange and DeFi implementations
 - Full API documentation with OpenAPI specifications
 
-## [7.0.0] - 2025-01-07 - Production Ready Platform with GCU
+## [7.0.0] - 2024-09-07 - Production Ready Platform with GCU
 
 ### Added
 - **GCU Voting System**: Complete democratic voting implementation
@@ -87,7 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dashboard SQL Errors**: Resolved balance display issues
 - **Transaction Counting**: Fixed dashboard transaction count errors
 
-## [6.2.0] - 2025-06-22 - Enhanced UI & Complete API Documentation
+## [6.2.0] - 2024-06-22 - Enhanced UI & Complete API Documentation
 
 ### Added
 - **Missing Wallet Views**: Created all missing wallet interface pages
@@ -114,7 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Missing Views**: All wallet routes now have corresponding view files
 - **API Documentation**: All controllers now have proper OpenAPI annotations
 
-## [6.1.0] - 2025-06-22 - Load Testing & Security Audit Preparation
+## [6.1.0] - 2024-06-22 - Load Testing & Security Audit Preparation
 
 ### Added
 - **Load Testing Framework**: Comprehensive performance testing suite
@@ -145,7 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Testing**: Fixed UserVotingControllerTest with GCU balance requirements
 - **Documentation**: Updated FEATURES.md to include comprehensive authentication details
 
-## [6.0.0] - 2025-06-21 - GCU Platform Launch
+## [6.0.0] - 2024-06-21 - GCU Platform Launch
 
 ### Added
 - **GCU User Interface**: Complete user experience for Global Currency Unit
@@ -173,7 +173,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Transaction UI**: Enhanced with real-time filtering and summary cards
 - **API Architecture**: Expanded to support external integrations
 
-## [5.2.0] - 2025-06-21 - Transaction Processing & Resilience
+## [5.2.0] - 2024-06-21 - Transaction Processing & Resilience
 
 ### Added
 - **Performance Optimization**: Sub-second transfer processing with intelligent caching
@@ -191,7 +191,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Transfer Performance**: Optimized from 200ms to 50ms average processing time
 - **Error Handling**: Enhanced with resilience patterns across all bank operations
 
-## [5.1.0] - 2025-06-20 - Real Bank Integration
+## [5.1.0] - 2024-06-20 - Real Bank Integration
 
 ### Added
 - **Bank Connectors**: Production-ready connectors for Paysera, Deutsche Bank, and Santander
@@ -200,7 +200,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Custodian Webhooks**: Real-time webhook processing for bank events
 - **Balance Synchronization**: Automated synchronization with external custodians
 
-## [4.3.0] - 2025-06-19 - Compliance Framework
+## [4.3.0] - 2024-06-19 - Compliance Framework
 
 ### Added
 - **KYC/AML System**: Complete Know Your Customer implementation
@@ -209,7 +209,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Audit Logging**: Comprehensive audit trail for all operations
 - **Compliance Monitoring**: Real-time suspicious activity detection
 
-## [4.2.0] - 2025-06-18 - Enhanced Governance & GCU
+## [4.2.0] - 2024-06-18 - Enhanced Governance & GCU
 
 ### Added
 - **GCU Implementation**: Global Currency Unit basket with democratic governance
@@ -222,7 +222,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Governance System**: Enhanced with GCU-specific voting templates
 - **Basket Management**: Added support for user-driven rebalancing
 
-## [4.1.0] - 2025-06-17 - Basket Assets
+## [4.1.0] - 2024-06-17 - Basket Assets
 
 ### Added
 - **Basket Asset System**: Composite assets with fixed/dynamic rebalancing
@@ -231,7 +231,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Decomposition/Composition**: Convert between baskets and components
 - **Performance Tracking**: Historical basket performance analytics
 
-## [4.0.0] - 2025-06-16 - Governance System
+## [4.0.0] - 2024-06-16 - Governance System
 
 ### Added
 - **Democratic Governance**: Poll and vote system for platform decisions
@@ -239,7 +239,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Governance Workflows**: Automated execution of governance decisions
 - **Admin Interface**: Complete poll and vote management
 
-## [3.0.0] - 2025-06-15 - Platform Integration
+## [3.0.0] - 2024-06-15 - Platform Integration
 
 ### Added
 - **Admin Dashboard**: Comprehensive Filament v3 administration interface
@@ -248,7 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Export Functionality**: Export data to CSV/XLSX formats
 - **Real-time Widgets**: Dashboard widgets for system monitoring
 
-## [2.0.0] - 2025-06-15 - Exchange Rates
+## [2.0.0] - 2024-06-15 - Exchange Rates
 
 ### Added
 - **Exchange Rate System**: Multi-provider rate management
@@ -257,7 +257,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Multi-Asset Transactions**: Full support for non-USD transactions
 - **Rate Caching**: Performance optimization for rate queries
 
-## [1.0.0] - 2025-06-15 - Multi-Asset Foundation
+## [1.0.0] - 2024-06-15 - Multi-Asset Foundation
 
 ### Added
 - **Multi-Asset Support**: Core infrastructure for multiple currencies
@@ -266,7 +266,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Backward Compatibility**: Maintained compatibility with USD-only operations
 - **Event Sourcing**: Multi-asset aware events and aggregates
 
-## [0.1.0] - 2025-06-14
+## [0.1.0] - 2024-06-14
 
 ### Added
 - **Database Schema Enhancement**: Added `debit` and `credit` fields to `turnovers` table for proper accounting

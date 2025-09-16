@@ -51,7 +51,7 @@ POST /api/ai/chat
   ],
   "context": {
     "account_number": "****1234",
-    "last_updated": "2025-01-08T10:30:00Z"
+    "last_updated": "2024-09-08T10:30:00Z"
   }
 }
 ```
@@ -72,8 +72,8 @@ GET /api/ai/conversations?limit=10
       "title": "Account Balance Inquiry",
       "last_message": "Your balance is $12,456.78",
       "message_count": 5,
-      "created_at": "2025-01-08T09:00:00Z",
-      "updated_at": "2025-01-08T10:30:00Z"
+      "created_at": "2024-09-08T09:00:00Z",
+      "updated_at": "2024-09-08T10:30:00Z"
     }
   ],
   "meta": {
@@ -99,12 +99,12 @@ GET /api/ai/conversations/{conversationId}
     {
       "role": "user",
       "content": "What is my account balance?",
-      "timestamp": "2025-01-08T10:00:00Z"
+      "timestamp": "2024-09-08T10:00:00Z"
     },
     {
       "role": "assistant",
       "content": "Your current checking account balance is $12,456.78.",
-      "timestamp": "2025-01-08T10:00:05Z",
+      "timestamp": "2024-09-08T10:00:05Z",
       "tools_used": ["CheckBalanceTool"],
       "confidence": 0.95
     }
@@ -113,7 +113,7 @@ GET /api/ai/conversations/{conversationId}
     "user_id": 123,
     "account_type": "checking"
   },
-  "created_at": "2025-01-08T10:00:00Z"
+  "created_at": "2024-09-08T10:00:00Z"
 }
 ```
 
@@ -299,7 +299,7 @@ POST /api/ai/mcp/tools/{toolName}/execute
     "currency": "USD",
     "available": 12000.00,
     "pending": 456.78,
-    "last_updated": "2025-01-08T10:30:00Z"
+    "last_updated": "2024-09-08T10:30:00Z"
   },
   "execution_time": 0.125,
   "cached": false,
@@ -579,7 +579,7 @@ Webhook payload example:
 ```json
 {
   "event": "decision.made",
-  "timestamp": "2025-01-08T10:30:00Z",
+  "timestamp": "2024-09-08T10:30:00Z",
   "data": {
     "conversation_id": "conv_123abc",
     "decision": "transfer_approved",

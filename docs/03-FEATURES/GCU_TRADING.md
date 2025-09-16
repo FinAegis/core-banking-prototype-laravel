@@ -99,7 +99,7 @@ POST /api/v2/gcu/buy
         "fee_amount": 10.00,
         "fee_currency": "EUR",
         "new_gcu_balance": 1912.45,
-        "timestamp": "2025-07-02T15:30:00Z"
+        "timestamp": "2024-09-02T15:30:00Z"
     },
     "message": "Successfully purchased 912.45 GCU"
 }
@@ -133,7 +133,7 @@ POST /api/v2/gcu/sell
         "fee_amount": 1.10,
         "fee_currency": "EUR",
         "new_gcu_balance": 812.45,
-        "timestamp": "2025-07-02T15:35:00Z"
+        "timestamp": "2024-09-02T15:35:00Z"
     },
     "message": "Successfully sold 100.00 GCU"
 }
@@ -157,7 +157,7 @@ GET /api/v2/gcu/quote?operation=buy&amount=1000&currency=EUR
         "fee_amount": 10.00,
         "fee_currency": "EUR",
         "fee_percentage": 1.0,
-        "quote_valid_until": "2025-07-02T15:35:00Z",
+        "quote_valid_until": "2024-09-02T15:35:00Z",
         "minimum_amount": 100.00,
         "maximum_amount": 1000000.00
     }

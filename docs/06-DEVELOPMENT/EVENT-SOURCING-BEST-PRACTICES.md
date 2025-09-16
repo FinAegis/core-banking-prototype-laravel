@@ -442,10 +442,10 @@ For high-volume systems:
 ```sql
 -- Partition by month
 CREATE TABLE stored_events_2025_01 PARTITION OF stored_events
-    FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
+    FOR VALUES FROM ('2024-09-01') TO ('2024-09-01');
 
 CREATE TABLE stored_events_2025_02 PARTITION OF stored_events
-    FOR VALUES FROM ('2025-02-01') TO ('2025-03-01');
+    FOR VALUES FROM ('2024-09-01') TO ('2024-09-01');
 ```
 
 ### Caching Strategies

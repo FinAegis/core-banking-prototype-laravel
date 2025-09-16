@@ -1,6 +1,6 @@
 # CGO (Continuous Growth Offering) User Guide
 
-**Last Updated:** 2025-01-08  
+**Last Updated:** 2024-09-08  
 **Platform Version:** 8.0
 
 ## Overview
@@ -295,7 +295,7 @@ A: Yes, maximum supply of 1 billion FIN tokens
 
 ---
 
-**Last reviewed**: January 2025  
-**Next review**: July 2025
+**Last reviewed**: September 2024  
+**Next review**: September 2024
 
 For the most up-to-date information, always refer to the official CGO page within your FinAegis account.

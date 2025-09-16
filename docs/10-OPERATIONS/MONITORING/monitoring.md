@@ -78,7 +78,7 @@ Returns comprehensive health status of all components.
       "message": "Cache is operational"
     }
   ],
-  "timestamp": "2025-08-15T12:00:00Z"
+  "timestamp": "2024-09-15T12:00:00Z"
 }
 ```
 
@@ -98,7 +98,7 @@ Kubernetes readiness probe endpoint.
       "healthy": true
     }
   ],
-  "timestamp": "2025-08-15T12:00:00Z"
+  "timestamp": "2024-09-15T12:00:00Z"
 }
 ```
 
@@ -108,7 +108,7 @@ Kubernetes liveness probe endpoint.
 ```json
 {
   "alive": true,
-  "timestamp": "2025-08-15T12:00:00Z",
+  "timestamp": "2024-09-15T12:00:00Z",
   "uptime": 3600.5,
   "memory_usage": 52428800
 }

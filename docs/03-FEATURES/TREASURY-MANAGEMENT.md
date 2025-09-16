@@ -79,7 +79,7 @@ $service = app(RegulatoryReportingService::class);
 $report = $service->generateReport(
     accountId: 'treasury-001',
     reportType: 'BASEL_III',
-    period: 'Q1-2025'
+    period: 'Q1-2024'
 );
 ```
 

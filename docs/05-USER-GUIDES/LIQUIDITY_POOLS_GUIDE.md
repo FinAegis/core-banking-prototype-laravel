@@ -1,6 +1,6 @@
 # FinAegis Liquidity Pools User Guide
 
-**Last Updated:** 2025-07-07  
+**Last Updated:** 2024-09-07  
 **Version:** 1.0
 
 ## Overview

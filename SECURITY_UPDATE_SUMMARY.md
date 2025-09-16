@@ -1,4 +1,4 @@
-# Security Implementation Summary - January 2025
+# Security Implementation Summary - September 2024
 
 ## ✅ Completed Security Features
 
@@ -42,7 +42,7 @@
    - Role-based default scopes
    - Different scopes for admin/business/regular users
 
-## 🆕 Newly Implemented Security Features (January 2025)
+## 🆕 Newly Implemented Security Features (September 2024)
 
 ### 1. IP Blocking Service
 - **File**: `app/Services/IpBlockingService.php`
@@ -74,7 +74,7 @@
   - Blocks IPs after threshold exceeded
 
 ### 5. Database Migration
-- **File**: `database/migrations/2025_08_25_125926_create_blocked_ips_table.php`
+- **File**: `database/migrations/2024_08_25_125926_create_blocked_ips_table.php`
 - **Table**: `blocked_ips`
 - **Fields**: ip_address, reason, failed_attempts, blocked_at, expires_at
 

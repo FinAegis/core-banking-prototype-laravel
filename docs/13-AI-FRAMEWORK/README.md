@@ -204,25 +204,25 @@ Every AI decision is recorded in our event store, providing:
 
 ## 🛣️ Roadmap
 
-### Phase 1: Foundation (Q1 2025)
+### Phase 1: Foundation (Q1 2024)
 - [x] Architecture design
 - [ ] MCP server implementation
 - [ ] Basic agent framework
 - [ ] Vector database integration
 
-### Phase 2: Core Agents (Q2 2025)
+### Phase 2: Core Agents (Q2 2024)
 - [ ] Customer service agent
 - [ ] Compliance agent
 - [ ] Risk assessment agent
 - [ ] Demo environment
 
-### Phase 3: Advanced Features (Q3 2025)
+### Phase 3: Advanced Features (Q3 2024)
 - [ ] Trading agent
 - [ ] Multi-agent coordination
 - [ ] Advanced RAG
 - [ ] Production deployment
 
-### Phase 4: Enterprise (Q4 2025)
+### Phase 4: Enterprise (Q4 2024)
 - [ ] Multi-tenant support
 - [ ] Custom agent builder
 - [ ] Enterprise security

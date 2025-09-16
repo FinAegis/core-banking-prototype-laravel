@@ -75,7 +75,7 @@ Built on the proven FinAegis platform:
 - **Primary License**: Lithuanian EMI via Paysera partnership
 - **EU Passport**: Access to 27 EU countries
 - **Compliance**: Full KYC/AML, MiCA, GDPR, PCI DSS
-- **Timeline**: Q2 2025 application, Q3 2025 approval
+- **Timeline**: Q2 2024 application, Q3 2024 approval
 
 ## Getting Started
 
@@ -97,7 +97,7 @@ php artisan serve
 npm run dev
 ```
 
-### For Users (Coming Q3 2025)
+### For Users (Coming Q3 2024)
 1. Sign up with KYC verification
 2. Choose your bank allocation
 3. Deposit funds in your preferred currency

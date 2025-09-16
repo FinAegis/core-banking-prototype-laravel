@@ -647,7 +647,7 @@ GET /api/accounts/{accountId}/balance
             "balance": 50000.00,
             "available": 45000.00,
             "reserved": 5000.00,
-            "updated_at": "2025-01-15T10:30:00Z"
+            "updated_at": "2024-09-15T10:30:00Z"
         }
     ]
 }

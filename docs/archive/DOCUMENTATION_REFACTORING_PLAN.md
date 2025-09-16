@@ -44,7 +44,7 @@ This plan outlines the necessary steps to refactor and update the FinAegis docum
 #### RELEASE_NOTES.md
 - [ ] Add Version 6.0.0 (Phase 6.1-6.2 completion)
   ```markdown
-  ## Version 6.0.0 (2025-06-20)
+  ## Version 6.0.0 (2024-06-20)
   ### Added
   - GCU wallet interface with real-time balance display
   - Bank allocation management with visual sliders
@@ -56,7 +56,7 @@ This plan outlines the necessary steps to refactor and update the FinAegis docum
 
 - [ ] Add Version 6.1.0 (Phase 6.3 completion)
   ```markdown
-  ## Version 6.1.0 (2025-06-22)
+  ## Version 6.1.0 (2024-06-22)
   ### Added
   - Load testing framework with performance benchmarks
   - Security audit preparation and testing suite

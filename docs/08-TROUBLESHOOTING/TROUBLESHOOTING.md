@@ -1,6 +1,6 @@
 # FinAegis Troubleshooting Guide
 
-**Last Updated:** 2025-07-07  
+**Last Updated:** 2024-09-07  
 **Version:** 1.0
 
 This guide helps resolve common issues encountered when developing or running the FinAegis platform.

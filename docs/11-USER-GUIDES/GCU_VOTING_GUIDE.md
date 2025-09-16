@@ -192,5 +192,5 @@ If you experience voting problems:
 Democratic voting is at the heart of GCU's revolutionary approach to global currency. Your participation shapes the future of money. Every vote counts, and together we're building a more democratic financial system.
 
 ---
-*Last Updated: January 2025*
+*Last Updated: September 2024*
 *Version: 1.0*

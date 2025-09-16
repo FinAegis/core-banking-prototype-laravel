@@ -2,7 +2,7 @@
 
 **Status:** ✅ COMPLETED  
 **Duration:** 2 weeks  
-**Completion Date:** 2025-06-20
+**Completion Date:** 2024-06-20
 
 ## Overview
 
@@ -92,8 +92,8 @@ Schedule::command('voting:setup')
 - Usage:
   ```bash
   php artisan voting:setup                    # Next month's poll
-  php artisan voting:setup --month=2025-07    # Specific month
-  php artisan voting:setup --year=2025        # All polls for year
+  php artisan voting:setup --month=2024-09    # Specific month
+  php artisan voting:setup --year=2024        # All polls for year
   ```
 
 ### 5. GCU Admin Widget
@@ -196,10 +196,10 @@ Response:
     "data": {
         "polls": [{
             "uuid": "...",
-            "title": "GCU Currency Basket Composition - July 2025",
+            "title": "GCU Currency Basket Composition - September 2024",
             "description": "Vote on the currency composition...",
-            "start_date": "2025-07-01",
-            "end_date": "2025-07-07",
+            "start_date": "2024-09-01",
+            "end_date": "2024-09-07",
             "user_has_voted": false,
             "user_voting_power": 1000
         }],
@@ -252,7 +252,7 @@ Response:
         "user_votes_count": 3,
         "user_voting_power": 1000,
         "current_basket_composition": {...},
-        "next_rebalancing_date": "2025-08-01",
+        "next_rebalancing_date": "2024-09-01",
         "recent_activity": [...]
     }
 }
@@ -266,10 +266,10 @@ Response:
 php artisan voting:setup
 
 # Create specific month's poll
-php artisan voting:setup --month=2025-08
+php artisan voting:setup --month=2024-09
 
 # Create all polls for a year
-php artisan voting:setup --year=2025
+php artisan voting:setup --year=2024
 ```
 
 ### Voting Process

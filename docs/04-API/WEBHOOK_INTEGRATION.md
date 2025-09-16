@@ -70,7 +70,7 @@ All webhook payloads follow a consistent structure:
 ```json
 {
     "event": "account.created",
-    "timestamp": "2025-01-14T10:30:00Z",
+    "timestamp": "2024-09-14T10:30:00Z",
     "account_uuid": "01234567-89ab-cdef-0123-456789abcdef",
     "data": {
         // Event-specific data
@@ -84,7 +84,7 @@ All webhook payloads follow a consistent structure:
 ```json
 {
     "event": "account.created",
-    "timestamp": "2025-01-14T10:30:00Z",
+    "timestamp": "2024-09-14T10:30:00Z",
     "account_uuid": "01234567-89ab-cdef-0123-456789abcdef",
     "name": "John Doe Savings",
     "user_uuid": "fedcba98-7654-3210-fedc-ba9876543210",
@@ -96,7 +96,7 @@ All webhook payloads follow a consistent structure:
 ```json
 {
     "event": "transaction.created",
-    "timestamp": "2025-01-14T10:30:00Z",
+    "timestamp": "2024-09-14T10:30:00Z",
     "account_uuid": "01234567-89ab-cdef-0123-456789abcdef",
     "type": "deposit",
     "amount": 10000,
@@ -110,7 +110,7 @@ All webhook payloads follow a consistent structure:
 ```json
 {
     "event": "transfer.completed",
-    "timestamp": "2025-01-14T10:30:00Z",
+    "timestamp": "2024-09-14T10:30:00Z",
     "from_account_uuid": "01234567-89ab-cdef-0123-456789abcdef",
     "to_account_uuid": "fedcba98-7654-3210-fedc-ba9876543210",
     "amount": 5000,

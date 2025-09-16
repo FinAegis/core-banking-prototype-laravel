@@ -1,6 +1,6 @@
 # FinAegis User Guides
 
-**Last Updated:** 2025-07-07  
+**Last Updated:** 2024-09-07  
 **Version:** 1.0
 
 Welcome to the FinAegis user guide collection. These guides provide comprehensive instructions for using all platform features.

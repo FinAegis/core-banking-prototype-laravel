@@ -244,7 +244,7 @@ Configure webhook URL in Settings → Webhooks
     "currency": "EUR",
     "status": "succeeded"
   },
-  "timestamp": "2025-01-15T10:30:00Z",
+  "timestamp": "2024-09-15T10:30:00Z",
   "demo": true
 }
 ```

@@ -27,7 +27,7 @@
                             <input type="text" name="title" id="title" required
                                    class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                                    value="{{ old('title') }}"
-                                   placeholder="Monthly GCU Composition Adjustment - January 2025">
+                                   placeholder="Monthly GCU Composition Adjustment - September 2024">
                             @error('title')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror

@@ -146,8 +146,8 @@ php artisan db:seed --class=GCUBasketSeeder
 
 # Set up GCU voting polls
 php artisan voting:setup                      # Create next month's poll
-php artisan voting:setup --month=2025-07      # Create specific month
-php artisan voting:setup --year=2025          # Create all polls for year
+php artisan voting:setup --month=2024-09      # Create specific month
+php artisan voting:setup --year=2024          # Create all polls for year
 
 # Access admin dashboard
 # http://localhost:8000/admin
@@ -211,7 +211,7 @@ php artisan loans:check-defaults
 php artisan loans:calculate-interest
 
 # Generate loan statements
-php artisan loans:generate-statements --month=2025-07
+php artisan loans:generate-statements --month=2024-09
 ```
 
 #### Stablecoins
@@ -297,8 +297,8 @@ php artisan custodian:sync-balances --force
 ### Compliance and Reporting
 ```bash
 # Generate compliance reports
-php artisan compliance:generate-ctr --date=2025-06-21
-php artisan compliance:generate-sar --month=2025-06
+php artisan compliance:generate-ctr --date=2024-06-21
+php artisan compliance:generate-sar --month=2024-09
 
 # Process KYC documents
 php artisan kyc:process-pending
@@ -1779,7 +1779,7 @@ $healthMonitor->monitor('paysera', [
 
 // Get health status
 $health = $healthMonitor->getHealth('paysera');
-// Returns: ['status' => 'healthy', 'last_check' => '2025-06-21 10:30:00', 'uptime' => 99.95]
+// Returns: ['status' => 'healthy', 'last_check' => '2024-06-21 10:30:00', 'uptime' => 99.95]
 
 // Dashboard widget
 class CustodianHealthWidget extends BaseWidget
@@ -2101,6 +2101,6 @@ $user->assignRole('customer_business');
 
 ---
 
-**Last Updated**: 2025-07-07  
+**Last Updated**: 2024-09-07  
 **Version**: 8.0  
 **Status**: Production Ready - All Phase 8 Features Implemented

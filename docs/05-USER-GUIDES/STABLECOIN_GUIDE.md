@@ -1,6 +1,6 @@
 # FinAegis Stablecoin User Guide
 
-**Last Updated:** 2025-08-14  
+**Last Updated:** 2024-09-14  
 **Version:** 1.0
 
 ## Overview

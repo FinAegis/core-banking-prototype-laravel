@@ -34,12 +34,12 @@ Returns all active polls available for voting, including user's voting status an
     "data": [
         {
             "uuid": "550e8400-e29b-41d4-a716-446655440000",
-            "title": "GCU Currency Basket Composition - July 2025",
-            "description": "Vote on the currency composition for GCU for July 2025",
+            "title": "GCU Currency Basket Composition - September 2024",
+            "description": "Vote on the currency composition for GCU for September 2024",
             "type": "weighted_choice",
             "status": "active",
-            "start_date": "2025-07-01T00:00:00Z",
-            "end_date": "2025-07-07T23:59:59Z",
+            "start_date": "2024-09-01T00:00:00Z",
+            "end_date": "2024-09-07T23:59:59Z",
             "current_basket": {
                 "USD": 40,
                 "EUR": 30,
@@ -76,10 +76,10 @@ Returns polls that will become active within the next 30 days.
     "data": [
         {
             "uuid": "660e8400-e29b-41d4-a716-446655440001",
-            "title": "GCU Currency Basket Composition - August 2025",
+            "title": "GCU Currency Basket Composition - August 2024",
             "status": "draft",
-            "start_date": "2025-08-01T00:00:00Z",
-            "end_date": "2025-08-07T23:59:59Z",
+            "start_date": "2024-09-01T00:00:00Z",
+            "end_date": "2024-09-07T23:59:59Z",
             "days_until_active": 11
         }
     ]
@@ -100,9 +100,9 @@ Returns paginated list of polls the authenticated user has participated in.
     "data": [
         {
             "uuid": "770e8400-e29b-41d4-a716-446655440002",
-            "title": "GCU Currency Basket Composition - June 2025",
+            "title": "GCU Currency Basket Composition - June 2024",
             "status": "completed",
-            "end_date": "2025-06-07T23:59:59Z",
+            "end_date": "2024-06-07T23:59:59Z",
             "user_vote": {
                 "allocations": {
                     "USD": 35,
@@ -113,7 +113,7 @@ Returns paginated list of polls the authenticated user has participated in.
                     "XAU": 5
                 },
                 "voting_power_used": 850,
-                "voted_at": "2025-06-05T14:30:00Z"
+                "voted_at": "2024-06-05T14:30:00Z"
             },
             "final_result": {
                 "USD": 38,
@@ -172,7 +172,7 @@ Submit a weighted allocation vote for basket composition.
     "message": "Your vote has been recorded successfully",
     "vote_id": "880e8400-e29b-41d4-a716-446655440003",
     "voting_power_used": 1000,
-    "timestamp": "2025-07-03T10:15:30Z"
+    "timestamp": "2024-09-03T10:15:30Z"
 }
 ```
 
@@ -213,19 +213,19 @@ Returns comprehensive voting dashboard data for the authenticated user.
                 "JPY": 3,
                 "XAU": 2
             },
-            "last_rebalanced": "2025-07-01T00:00:00Z",
-            "next_rebalancing": "2025-08-01T00:00:00Z"
+            "last_rebalanced": "2024-09-01T00:00:00Z",
+            "next_rebalancing": "2024-09-01T00:00:00Z"
         },
         "recent_activity": [
             {
                 "type": "vote_cast",
-                "poll_title": "GCU Currency Basket Composition - June 2025",
-                "timestamp": "2025-06-05T14:30:00Z"
+                "poll_title": "GCU Currency Basket Composition - June 2024",
+                "timestamp": "2024-06-05T14:30:00Z"
             },
             {
                 "type": "poll_completed",
-                "poll_title": "GCU Currency Basket Composition - June 2025",
-                "timestamp": "2025-06-07T23:59:59Z",
+                "poll_title": "GCU Currency Basket Composition - June 2024",
+                "timestamp": "2024-06-07T23:59:59Z",
                 "result": "Basket updated"
             }
         ]
@@ -275,8 +275,8 @@ Creates a new governance poll (requires admin permissions).
         {"id": "yes", "label": "Yes, add SGD"},
         {"id": "no", "label": "No, not needed"}
     ],
-    "start_date": "2025-08-01",
-    "end_date": "2025-08-07",
+    "start_date": "2024-09-01",
+    "end_date": "2024-09-07",
     "voting_power_strategy": "App\\Domain\\Governance\\Strategies\\AssetWeightedVotingStrategy",
     "execution_workflow": "App\\Domain\\Governance\\Workflows\\AddAssetWorkflow"
 }
@@ -410,16 +410,16 @@ Returns voting statistics.
         "unique_voters": 892,
         "total_voting_power_used": 2450000,
         "most_active_poll": {
-            "title": "GCU Currency Basket Composition - June 2025",
+            "title": "GCU Currency Basket Composition - June 2024",
             "votes": 234
         },
         "participation_by_month": {
-            "2025-01": 18.5,
-            "2025-02": 21.3,
-            "2025-03": 19.8,
-            "2025-04": 22.1,
-            "2025-05": 24.6,
-            "2025-06": 23.5
+            "2024-01": 18.5,
+            "2024-02": 21.3,
+            "2024-03": 19.8,
+            "2024-04": 22.1,
+            "2024-05": 24.6,
+            "2024-06": 23.5
         }
     }
 }
@@ -448,7 +448,7 @@ Verifies the integrity of a vote using its signature.
         "valid": true,
         "vote_id": "880e8400-e29b-41d4-a716-446655440003",
         "signature": "SHA3-512:abc123...",
-        "timestamp": "2025-07-03T10:15:30Z"
+        "timestamp": "2024-09-03T10:15:30Z"
     }
 }
 ```
@@ -490,7 +490,7 @@ When polls complete, webhooks can be configured to notify external systems:
     "event": "poll.completed",
     "poll": {
         "uuid": "550e8400-e29b-41d4-a716-446655440000",
-        "title": "GCU Currency Basket Composition - July 2025",
+        "title": "GCU Currency Basket Composition - September 2024",
         "final_results": {
             "USD": 38,
             "EUR": 28,
@@ -500,7 +500,7 @@ When polls complete, webhooks can be configured to notify external systems:
             "XAU": 3
         }
     },
-    "timestamp": "2025-07-07T23:59:59Z"
+    "timestamp": "2024-09-07T23:59:59Z"
 }
 ```
 

@@ -407,8 +407,8 @@ Cards showing optional sub-products:
 
 **Document Control:**
 - **Version**: 1.0
-- **Last Updated**: June 26, 2025
-- **Next Review**: August 26, 2025
+- **Last Updated**: June 26, 2024
+- **Next Review**: August 26, 2024
 - **Owner**: FinAegis Marketing Team
 - **Approval**: Chief Marketing Officer, Chief Product Officer
 

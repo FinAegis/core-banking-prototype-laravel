@@ -1,6 +1,6 @@
 # FinAegis P2P Lending User Guide
 
-**Last Updated:** 2025-07-07  
+**Last Updated:** 2024-09-07  
 **Version:** 1.0
 
 ## Overview
@@ -401,7 +401,7 @@ If struggling with payments:
 A: Rates are based on credit score, loan amount, term, collateral, and market conditions. Our algorithm provides fair, competitive rates.
 
 **Q: Is there a secondary market?**
-A: Not currently, but it's planned for Q4 2025. Loans must be held to maturity for now.
+A: Not currently, but it's planned for Q4 2024. Loans must be held to maturity for now.
 
 **Q: What happens in case of default?**
 A: Collateral is liquidated first. Any shortfall may be pursued through collections. Lenders may experience losses.

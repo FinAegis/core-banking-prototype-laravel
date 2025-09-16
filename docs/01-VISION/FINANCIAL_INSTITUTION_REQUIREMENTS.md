@@ -394,8 +394,8 @@ The financial institution partnership program is critical to GCU's success, prov
 
 **Document Control:**
 - **Version**: 1.0
-- **Last Updated**: June 26, 2025
-- **Next Review**: September 26, 2025
+- **Last Updated**: June 26, 2024
+- **Next Review**: September 26, 2024
 - **Owner**: FinAegis Partnership Team
 - **Approval**: Chief Commercial Officer, Chief Risk Officer, Chief Compliance Officer
 

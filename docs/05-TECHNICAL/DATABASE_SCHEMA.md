@@ -1,7 +1,7 @@
 # Database Schema Documentation
 
 **Version:** 1.3  
-**Last Updated:** 2025-06-27  
+**Last Updated:** 2024-06-27  
 **Laravel Version:** 11.x  
 **Database:** MySQL 8.0+
 

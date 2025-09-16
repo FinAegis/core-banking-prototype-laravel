@@ -107,7 +107,7 @@ GET /v2/accounts
         "EUR": 50000,
         "GCU": 10000
       },
-      "created_at": "2025-01-15T10:00:00Z"
+      "created_at": "2024-09-15T10:00:00Z"
     }
   ],
   "meta": {
@@ -140,7 +140,7 @@ POST /v2/accounts
     "name": "Trading Account",
     "type": "business",
     "status": "pending_verification",
-    "created_at": "2025-06-22T14:30:00Z"
+    "created_at": "2024-06-22T14:30:00Z"
   }
 }
 ```
@@ -179,8 +179,8 @@ POST /v2/transfers
     "currency": "USD",
     "reference": "Invoice #1234",
     "fee": 0,
-    "created_at": "2025-06-22T14:31:00Z",
-    "completed_at": "2025-06-22T14:31:01Z"
+    "created_at": "2024-06-22T14:31:00Z",
+    "completed_at": "2024-06-22T14:31:01Z"
   }
 }
 ```
@@ -213,7 +213,7 @@ POST /v2/conversions
     "to_currency": "EUR",
     "rate": 0.92345,
     "fee": 0.10,
-    "created_at": "2025-06-22T14:32:00Z"
+    "created_at": "2024-06-22T14:32:00Z"
   }
 }
 ```
@@ -239,8 +239,8 @@ GET /v2/gcu
       "JPY": 0.03,
       "XAU": 0.02
     },
-    "last_rebalanced": "2025-06-10T00:00:00Z",
-    "next_rebalance": "2025-07-10T00:00:00Z"
+    "last_rebalanced": "2024-06-10T00:00:00Z",
+    "next_rebalance": "2024-09-10T00:00:00Z"
   }
 }
 ```
@@ -279,7 +279,7 @@ GET /v2/exchange-rates/{from}/{to}
     "to": "EUR",
     "rate": 0.92345,
     "inverse_rate": 1.08291,
-    "timestamp": "2025-06-22T14:33:00Z",
+    "timestamp": "2024-06-22T14:33:00Z",
     "provider": "market_aggregator"
   }
 }
@@ -346,7 +346,7 @@ app.post('/webhooks/finaegis', (req, res) => {
 {
   "id": "evt_123456",
   "type": "account.created",
-  "created_at": "2025-06-22T14:35:00Z",
+  "created_at": "2024-06-22T14:35:00Z",
   "data": {
     "account_id": "acc_123456",
     "name": "Main Account",
@@ -361,7 +361,7 @@ app.post('/webhooks/finaegis', (req, res) => {
 {
   "id": "evt_234567",
   "type": "transaction.completed",
-  "created_at": "2025-06-22T14:36:00Z",
+  "created_at": "2024-06-22T14:36:00Z",
   "data": {
     "transaction_id": "txn_345678",
     "type": "transfer",
@@ -614,4 +614,4 @@ Use `Idempotency-Key` header for POST requests to prevent duplicates.
 
 ---
 
-© 2025 FinAegis. All rights reserved.
+© 2024 FinAegis. All rights reserved.

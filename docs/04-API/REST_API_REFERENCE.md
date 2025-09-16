@@ -1,7 +1,7 @@
 # FinAegis REST API Reference
 
 **Version:** 2.0  
-**Last Updated:** 2025-08-14  
+**Last Updated:** 2024-09-14  
 **Status:** Demo Platform - All Phase 8 Features Implemented
 
 This document consolidates all REST API endpoints for the FinAegis Core Banking Platform, including the complete Phase 8 unified platform features.
@@ -305,11 +305,11 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "title": "Q3 2025 GCU Basket Composition",
+  "title": "Q3 2024 GCU Basket Composition",
   "description": "Vote on the asset allocation for the next quarter",
   "type": "basket_composition",
-  "start_date": "2025-07-01",
-  "end_date": "2025-07-07",
+  "start_date": "2024-09-01",
+  "end_date": "2024-09-07",
   "voting_power_strategy": "AssetWeightedVotingStrategy"
 }
 ```
@@ -343,7 +343,7 @@ Response:
     "fee_amount": 10.00,
     "fee_currency": "EUR",
     "new_gcu_balance": 1912.45,
-    "timestamp": "2025-07-02T15:30:00Z"
+    "timestamp": "2024-09-02T15:30:00Z"
   },
   "message": "Successfully purchased 912.45 GCU"
 }
@@ -376,7 +376,7 @@ Response:
     "fee_amount": 1.10,
     "fee_currency": "EUR",
     "new_gcu_balance": 812.45,
-    "timestamp": "2025-07-02T15:35:00Z"
+    "timestamp": "2024-09-02T15:35:00Z"
   },
   "message": "Successfully sold 100.00 GCU"
 }
@@ -401,7 +401,7 @@ Response:
     "fee_amount": 10.00,
     "fee_currency": "EUR",
     "fee_percentage": 1.0,
-    "quote_valid_until": "2025-07-02T15:35:00Z",
+    "quote_valid_until": "2024-09-02T15:35:00Z",
     "minimum_amount": 100.00,
     "maximum_amount": 1000000.00
   }
@@ -448,8 +448,8 @@ Response:
     "symbol": "Ǥ",
     "current_value": 1.0975,
     "value_currency": "USD",
-    "last_rebalanced": "2025-07-01T00:00:00Z",
-    "next_rebalance": "2025-08-01T00:00:00Z",
+    "last_rebalanced": "2024-09-01T00:00:00Z",
+    "next_rebalance": "2024-09-01T00:00:00Z",
     "composition": [
       {
         "asset_code": "USD",
@@ -498,7 +498,7 @@ Response:
     "kyc_status": "pending",
     "status": "pending",
     "round_id": 1,
-    "created_at": "2025-01-07T10:00:00Z"
+    "created_at": "2024-09-07T10:00:00Z"
   },
   "message": "Investment created successfully"
 }
@@ -528,15 +528,15 @@ Response:
     "round": {
       "id": 1,
       "name": "Seed Round",
-      "start_date": "2025-01-01",
-      "end_date": "2025-03-31",
+      "start_date": "2024-09-01",
+      "end_date": "2024-09-30",
       "target_amount": 5000000,
       "raised_amount": 1250000
     },
     "agreement_path": "cgo/agreements/investment-550e8400.pdf",
     "certificate_path": "cgo/certificates/certificate-550e8400.pdf",
-    "created_at": "2025-01-07T10:00:00Z",
-    "updated_at": "2025-01-07T10:30:00Z"
+    "created_at": "2024-09-07T10:00:00Z",
+    "updated_at": "2024-09-07T10:30:00Z"
   }
 }
 ```
@@ -558,7 +558,7 @@ Response:
   "data": {
     "checkout_url": "https://checkout.stripe.com/pay/cs_test_a1b2c3d4e5",
     "session_id": "cs_test_a1b2c3d4e5",
-    "expires_at": "2025-01-07T11:00:00Z"
+    "expires_at": "2024-09-07T11:00:00Z"
   }
 }
 ```
@@ -595,7 +595,7 @@ Response:
         "currency": "USDC"
       }
     },
-    "expires_at": "2025-01-07T11:00:00Z"
+    "expires_at": "2024-09-07T11:00:00Z"
   }
 }
 ```
@@ -650,7 +650,7 @@ Response:
     "status": "pending",
     "reason": "changed_mind",
     "reason_details": "I've decided to invest in a different tier",
-    "requested_at": "2025-01-07T12:00:00Z"
+    "requested_at": "2024-09-07T12:00:00Z"
   },
   "message": "Refund request submitted successfully"
 }
@@ -822,7 +822,7 @@ Response:
       "type": "dynamic",
       "is_active": true,
       "rebalance_frequency": "monthly",
-      "last_rebalanced_at": "2025-06-21T00:00:00Z",
+      "last_rebalanced_at": "2024-06-21T00:00:00Z",
       "components": [
         {
           "asset_code": "USD",
@@ -854,7 +854,7 @@ Response:
   "basket_code": "GCU",
   "value": 1.0234,
   "currency": "USD",
-  "calculated_at": "2025-06-21T10:00:00Z",
+  "calculated_at": "2024-06-21T10:00:00Z",
   "components": [
     {
       "asset_code": "USD",
@@ -953,8 +953,8 @@ Response:
 {
   "status": "approved",
   "level": "enhanced",
-  "submitted_at": "2025-06-20T10:00:00Z",
-  "approved_at": "2025-06-20T11:00:00Z",
+  "submitted_at": "2024-06-20T10:00:00Z",
+  "approved_at": "2024-06-20T11:00:00Z",
   "expires_at": "2027-06-20T11:00:00Z",
   "needs_kyc": false,
   "documents": [
@@ -962,7 +962,7 @@ Response:
       "id": "123",
       "type": "passport",
       "status": "verified",
-      "uploaded_at": "2025-06-20T10:00:00Z"
+      "uploaded_at": "2024-06-20T10:00:00Z"
     }
   ]
 }
@@ -1192,7 +1192,7 @@ Response:
   },
   "active_polls": [...],
   "voting_history": [...],
-  "next_poll_date": "2025-07-01"
+  "next_poll_date": "2024-09-01"
 }
 ```
 
@@ -1386,8 +1386,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "start_date": "2025-06-01",
-  "end_date": "2025-06-30",
+  "start_date": "2024-06-01",
+  "end_date": "2024-06-30",
   "threshold": 10000
 }
 ```
@@ -1442,7 +1442,7 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "date": "2025-06-23",
+  "date": "2024-06-23",
   "force": false
 }
 ```
@@ -1581,8 +1581,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "start_date": "2025-05-01",
-  "end_date": "2025-06-01",
+  "start_date": "2024-09-01",
+  "end_date": "2024-06-01",
   "format": "pdf"
 }
 ```
@@ -1846,7 +1846,7 @@ Response:
       {"price": "45615.00", "amount": "0.8", "total": "36492.00"}
     ],
     "spread": "10.00",
-    "timestamp": "2025-07-07T10:00:00Z"
+    "timestamp": "2024-09-07T10:00:00Z"
   }
 }
 ```
@@ -1882,7 +1882,7 @@ Response:
     "price": "45000",
     "filled": "0",
     "remaining": "0.5",
-    "created_at": "2025-07-07T10:00:00Z"
+    "created_at": "2024-09-07T10:00:00Z"
   }
 }
 ```
@@ -1914,7 +1914,7 @@ Response:
   "data": {
     "order_id": "ord_123456",
     "status": "cancelled",
-    "cancelled_at": "2025-07-07T10:05:00Z"
+    "cancelled_at": "2024-09-07T10:05:00Z"
   }
 }
 ```
@@ -1944,11 +1944,11 @@ Response:
         "trade_id": "trd_789",
         "amount": "0.3",
         "price": "45000",
-        "timestamp": "2025-07-07T10:02:00Z"
+        "timestamp": "2024-09-07T10:02:00Z"
       }
     ],
-    "created_at": "2025-07-07T10:00:00Z",
-    "updated_at": "2025-07-07T10:02:00Z"
+    "created_at": "2024-09-07T10:00:00Z",
+    "updated_at": "2024-09-07T10:02:00Z"
   }
 }
 ```
@@ -1980,7 +1980,7 @@ Response:
       "total": "13500",
       "fee": "13.50",
       "fee_currency": "USD",
-      "timestamp": "2025-07-07T10:02:00Z"
+      "timestamp": "2024-09-07T10:02:00Z"
     }
   ],
   "pagination": {
@@ -2027,7 +2027,7 @@ Response:
 {
   "data": [
     {
-      "timestamp": "2025-07-07T10:00:00Z",
+      "timestamp": "2024-09-07T10:00:00Z",
       "open": "45600.00",
       "high": "45750.00",
       "low": "45550.00",
@@ -2247,7 +2247,7 @@ Response:
     ],
     "new_ratio": "0.0498",
     "gas_used": "0.25",
-    "timestamp": "2025-07-07T15:00:00Z"
+    "timestamp": "2024-09-07T15:00:00Z"
   }
 }
 ```
@@ -2279,7 +2279,7 @@ Response:
       "amount": "-45.23",
       "percent": "-0.44"
     },
-    "position_opened": "2025-07-01T10:00:00Z"
+    "position_opened": "2024-09-01T10:00:00Z"
   }
 }
 ```
@@ -2307,7 +2307,7 @@ Response:
     },
     "liquidity_changes": [
       {
-        "date": "2025-07-01",
+        "date": "2024-09-01",
         "adds": "25000",
         "removes": "10000",
         "net_change": "+15000"
@@ -2315,7 +2315,7 @@ Response:
     ],
     "price_history": [
       {
-        "timestamp": "2025-07-01T00:00:00Z",
+        "timestamp": "2024-09-01T00:00:00Z",
         "price": "2039.80",
         "volume": "25000"
       }
@@ -2443,7 +2443,7 @@ Response:
     "interest_rate": "10.5",
     "monthly_payment": "877.84",
     "total_interest": "534.08",
-    "created_at": "2025-07-07T10:00:00Z"
+    "created_at": "2024-09-07T10:00:00Z"
   }
 }
 ```
@@ -2497,7 +2497,7 @@ Response:
       "status": "active",
       "principal_amount": "10000",
       "outstanding_balance": "8234.56",
-      "next_payment_due": "2025-08-01",
+      "next_payment_due": "2024-09-01",
       "next_payment_amount": "877.84",
       "payments_made": 2,
       "payments_remaining": 10
@@ -2553,8 +2553,8 @@ Response:
         "ltv_ratio": "43.8%"
       }
     ],
-    "created_at": "2025-06-01T10:00:00Z",
-    "funded_at": "2025-06-05T14:30:00Z"
+    "created_at": "2024-06-01T10:00:00Z",
+    "funded_at": "2024-06-05T14:30:00Z"
   }
 }
 ```
@@ -2579,7 +2579,7 @@ Response:
     "status": "active",
     "funded_amount": "10000",
     "expected_return": "10534.08",
-    "first_payment_date": "2025-08-01",
+    "first_payment_date": "2024-09-01",
     "maturity_date": "2026-07-01"
   }
 }
@@ -2607,9 +2607,9 @@ Response:
     "principal_paid": "877.84",
     "interest_paid": "122.16",
     "remaining_balance": "7356.72",
-    "next_payment_due": "2025-09-01",
+    "next_payment_due": "2024-09-01",
     "status": "completed",
-    "timestamp": "2025-07-07T10:00:00Z"
+    "timestamp": "2024-09-07T10:00:00Z"
   }
 }
 ```
@@ -2628,7 +2628,7 @@ Response:
     "schedule": [
       {
         "payment_number": 1,
-        "due_date": "2025-07-01",
+        "due_date": "2024-09-01",
         "payment_amount": "877.84",
         "principal": "794.51",
         "interest": "83.33",
@@ -2637,7 +2637,7 @@ Response:
       },
       {
         "payment_number": 2,
-        "due_date": "2025-08-01",
+        "due_date": "2024-09-01",
         "payment_amount": "877.84",
         "principal": "801.13",
         "interest": "76.71",
@@ -2708,7 +2708,7 @@ Response:
       "min_interest_rate": "8.5%",
       "max_term_months": 60
     },
-    "last_updated": "2025-07-01T00:00:00Z"
+    "last_updated": "2024-09-01T00:00:00Z"
   }
 }
 ```
@@ -2851,23 +2851,23 @@ Response:
       {
         "name": "binance",
         "status": "connected",
-        "last_sync": "2025-07-07T10:00:00Z",
+        "last_sync": "2024-09-07T10:00:00Z",
         "rate_limit_remaining": 1180,
         "active_pairs": 125
       },
       {
         "name": "kraken",
         "status": "connected",
-        "last_sync": "2025-07-07T09:59:45Z",
+        "last_sync": "2024-09-07T09:59:45Z",
         "rate_limit_remaining": 295,
         "active_pairs": 89
       },
       {
         "name": "coinbase",
         "status": "rate_limited",
-        "last_sync": "2025-07-07T09:55:00Z",
+        "last_sync": "2024-09-07T09:55:00Z",
         "rate_limit_remaining": 0,
-        "reset_at": "2025-07-07T10:05:00Z",
+        "reset_at": "2024-09-07T10:05:00Z",
         "active_pairs": 67
       }
     ]
@@ -2954,6 +2954,6 @@ The API uses URL-based versioning. The current version is `v2`. Version 1 endpoi
 
 ---
 
-**Last Updated**: 2025-07-07  
+**Last Updated**: 2024-09-07  
 **API Version**: 2.0  
 **Documentation Version**: 8.0

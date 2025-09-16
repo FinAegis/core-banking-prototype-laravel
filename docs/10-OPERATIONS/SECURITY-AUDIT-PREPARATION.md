@@ -35,7 +35,7 @@ This guide prepares the FinAegis platform for third-party security audits, ensur
 - [x] **Firewall Rules**: Restrictive ingress/egress rules
 - [x] **DDoS Protection**: Cloudflare integration ready
 - [x] **Intrusion Detection**: Log monitoring configured
-- [ ] **Penetration Testing**: Scheduled for Q3 2025
+- [ ] **Penetration Testing**: Scheduled for Q3 2024
 - [ ] **Vulnerability Scanning**: Weekly automated scans
 
 ### 5. Compliance & Auditing

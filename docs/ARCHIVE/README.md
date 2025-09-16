@@ -5,13 +5,13 @@ This directory contains documentation files that are no longer actively maintain
 ## Archived Files
 
 ### QUALITY_REPORT.md
-- **Date Archived**: January 2025
+- **Date Archived**: September 2024
 - **Reason**: Superseded by comprehensive documentation in docs/ folder
 - **Original Purpose**: Quality assessment and improvement recommendations
 - **Replacement**: See docs/06-DEVELOPMENT/ for current development practices
 
 ### TEST-FIX-TODO.md
-- **Date Archived**: January 2025
+- **Date Archived**: September 2024
 - **Reason**: Tasks completed and tracked in main TODO.md
 - **Original Purpose**: Test fixing and improvement tasks
 - **Replacement**: See TODO.md for current task tracking

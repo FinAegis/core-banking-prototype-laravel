@@ -1,7 +1,7 @@
 # Basket Assets Design Document
 
 **Version:** 1.0  
-**Created:** 2025-06-16  
+**Created:** 2024-06-16  
 **Status:** Draft
 
 ## Overview

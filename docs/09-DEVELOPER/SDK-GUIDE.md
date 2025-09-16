@@ -62,7 +62,7 @@ Response:
 ```json
 {
   "status": "operational",
-  "timestamp": "2025-06-22T10:00:00Z",
+  "timestamp": "2024-06-22T10:00:00Z",
   "components": {
     "api": "operational",
     "database": "operational",
@@ -165,7 +165,7 @@ Authorization: Bearer {token}
   "asset_code": "GCU",
   "reference": "Payment for services",
   "metadata": {
-    "invoice_number": "INV-2025-001"
+    "invoice_number": "INV-2024-001"
   }
 }
 ```
@@ -208,7 +208,7 @@ Response includes a webhook secret for signature verification:
 ```json
 {
   "event": "transaction.completed",
-  "timestamp": "2025-06-22T10:00:00Z",
+  "timestamp": "2024-06-22T10:00:00Z",
   "data": {
     "transaction_id": "tx_123456",
     "account_uuid": "123e4567-e89b-12d3-a456-426614174000",
@@ -574,14 +574,14 @@ async function apiCallWithRetry(fn, maxRetries = 3) {
 
 ## Changelog
 
-### v2.0.0 (2025-06-22)
+### v2.0.0 (2024-06-22)
 - New V2 API with improved structure
 - Webhook system for real-time events
 - Multi-bank distribution support
 - Enhanced GCU endpoints
 - Improved error handling
 
-### v1.0.0 (2025-01-15)
+### v1.0.0 (2024-09-15)
 - Initial API release
 - Basic account and transaction operations
 - Multi-asset support

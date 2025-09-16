@@ -209,7 +209,7 @@ $result = iterator_to_array($workflow->execute(
     'risk_factors' => ['high_value', 'unusual_pattern'],
     'priority' => 'high',
     'status' => 'pending_review',
-    'expires_at' => '2025-01-10T15:30:00Z',
+    'expires_at' => '2024-09-10T15:30:00Z',
 ]
 ```
 

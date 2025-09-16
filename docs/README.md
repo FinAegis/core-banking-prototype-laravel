@@ -147,10 +147,10 @@ Historical and deprecated documentation
 
 ## 📋 Documentation Status
 
-- ✅ **Current**: As of Version 8.0 (August 2025)
-- 📝 **Last Updated**: July 29, 2025
+- ✅ **Current**: As of Version 8.0 (August 2024)
+- 📝 **Last Updated**: September 16, 2024
 - 🎯 **Coverage**: All features documented including liquidity pools, P2P lending, stablecoins
-- 🔄 **Recent Updates**: Version 8.0 release notes added, outdated January 2025 references updated
+- 🔄 **Recent Updates**: Version 8.0 release notes added, outdated September 2024 references updated
 
 ## 🤝 Contributing
 

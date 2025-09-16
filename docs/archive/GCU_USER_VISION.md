@@ -46,7 +46,7 @@ Vote monthly on the GCU currency basket composition:
 | Gold     | 5%     | $0.0305           |
 
 **Current Value**: 1 GCU = $1.0234  
-**Last Rebalanced**: 2025-06-15 (Monthly automatic rebalancing)
+**Last Rebalanced**: 2024-06-15 (Monthly automatic rebalancing)
 
 ## 🎯 For Different Users
 
@@ -151,17 +151,17 @@ If you live in a country with 10%+ inflation, GCU is your financial lifeline:
 
 ## 🚀 Getting Started
 
-### Phase 1: Foundation (Q1 2025)
+### Phase 1: Foundation (Q1 2024)
 - Enhanced user bank selection
 - Monthly currency basket voting
 - Strengthened compliance framework
 
-### Phase 2: Bank Integration (Q2 2025)
+### Phase 2: Bank Integration (Q2 2024)
 - Real Paysera, Deutsche Bank, Santander connectors
 - Cross-bank transaction processing
 - Real-time balance reconciliation
 
-### Phase 3: Launch (Q3 2025)
+### Phase 3: Launch (Q3 2024)
 - Mobile apps (iOS/Android)
 - Public API for developers
 - 1000+ beta user program
