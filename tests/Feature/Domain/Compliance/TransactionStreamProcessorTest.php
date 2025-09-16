@@ -58,7 +58,7 @@ class TransactionStreamProcessorTest extends TestCase
         ]);
 
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->once()
             ->with(Mockery::type(Transaction::class))
             ->andReturn([
@@ -99,7 +99,7 @@ class TransactionStreamProcessorTest extends TestCase
         }
 
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->andReturn([
                 'passed'  => true,
                 'alerts'  => [],
@@ -141,7 +141,7 @@ class TransactionStreamProcessorTest extends TestCase
             $transaction->load('account');
 
             $this->monitoringServiceMock
-                ->shouldReceive('monitorTransaction')
+                ->shouldReceive('analyzeTransaction')
                 ->with(Mockery::type(Transaction::class))
                 ->andReturn([
                     'passed'  => true,
@@ -167,7 +167,7 @@ class TransactionStreamProcessorTest extends TestCase
 
         // Set up mock for final transaction (it's the 5th call)
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->with(Mockery::type(Transaction::class))
             ->andReturn([
                 'passed'  => true,
@@ -195,7 +195,7 @@ class TransactionStreamProcessorTest extends TestCase
         ]);
 
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->once()
             ->with(Mockery::type(Transaction::class))
             ->andReturn([
@@ -230,7 +230,7 @@ class TransactionStreamProcessorTest extends TestCase
         ]);
 
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->times(5)
             ->with(Mockery::type(Transaction::class))
             ->andReturn([
@@ -263,7 +263,7 @@ class TransactionStreamProcessorTest extends TestCase
         ]);
 
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->once()
             ->with(Mockery::type(Transaction::class))
             ->andReturn([
@@ -308,7 +308,7 @@ class TransactionStreamProcessorTest extends TestCase
             ]);
 
             $this->monitoringServiceMock
-                ->shouldReceive('monitorTransaction')
+                ->shouldReceive('analyzeTransaction')
                 ->with(Mockery::type(Transaction::class))
                 ->andReturn([
                     'passed'  => true,
@@ -350,7 +350,7 @@ class TransactionStreamProcessorTest extends TestCase
         ]);
 
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->once()
             ->with(Mockery::type(Transaction::class))
             ->andReturn([
@@ -377,7 +377,7 @@ class TransactionStreamProcessorTest extends TestCase
         $transaction = Transaction::factory()->create();
 
         $this->monitoringServiceMock
-            ->shouldReceive('monitorTransaction')
+            ->shouldReceive('analyzeTransaction')
             ->once()
             ->with(Mockery::type(Transaction::class))
             ->andThrow(new Exception('Monitoring service error'));
