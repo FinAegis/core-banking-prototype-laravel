@@ -190,7 +190,7 @@ class AmlScreeningServiceTest extends ServiceTestCase
     public function test_build_search_parameters_for_user(): void
     {
         $user = User::factory()->make([
-            'name'    => 'Test User',
+            'name' => 'Test User',
         ]);
         // User model doesn't have country property, so it will default to 'US'
 
