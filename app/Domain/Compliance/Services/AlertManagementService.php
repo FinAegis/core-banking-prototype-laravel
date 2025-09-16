@@ -588,6 +588,11 @@ class AlertManagementService
             $updateData['resolved_by'] = $user->id;
             $updateData['resolution_notes'] = $notes;
 
+            // Set false_positive_notes specifically for false positive status
+            if ($newStatus === ComplianceAlert::STATUS_FALSE_POSITIVE) {
+                $updateData['false_positive_notes'] = $notes;
+            }
+
             // Calculate resolution time if detected_at exists
             if ($alert->detected_at) {
                 $updateData['resolution_time_hours'] = $alert->detected_at->diffInHours(now());
@@ -596,6 +601,14 @@ class AlertManagementService
 
         // Update the alert
         $alert->update($updateData);
+
+        // Update monitoring rule effectiveness if marking as false positive
+        if ($newStatus === ComplianceAlert::STATUS_FALSE_POSITIVE && $alert->rule_id) {
+            $rule = \App\Domain\Compliance\Models\TransactionMonitoringRule::find($alert->rule_id);
+            if ($rule) {
+                $rule->increment('false_positives');
+            }
+        }
 
         // Dispatch resolution event if resolved
         if ($newStatus === ComplianceAlert::STATUS_RESOLVED) {

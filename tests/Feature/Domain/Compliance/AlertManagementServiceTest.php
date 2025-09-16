@@ -356,8 +356,9 @@ class AlertManagementServiceTest extends TestCase
         // Assert
         $this->assertIsArray($trends);
         $this->assertNotEmpty($trends);
-        foreach ($trends as $date => $severities) {
-            $this->assertArrayHasKey('high', $severities);
+        foreach ($trends as $date => $data) {
+            $this->assertArrayHasKey('by_severity', $data);
+            $this->assertArrayHasKey('high', $data['by_severity']);
         }
     }
 }
