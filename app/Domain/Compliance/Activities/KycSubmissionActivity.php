@@ -33,8 +33,8 @@ class KycSubmissionActivity extends Activity
             throw new InvalidArgumentException('Missing required parameters: user_uuid, documents');
         }
 
-        /** @var User $$user */
-        $$user = User::where()->firstOrFail();
+        /** @var User $user */
+        $user = User::where('uuid', $userUuid)->firstOrFail();
 
         $this->kycService->submitKyc($user, $documents);
 

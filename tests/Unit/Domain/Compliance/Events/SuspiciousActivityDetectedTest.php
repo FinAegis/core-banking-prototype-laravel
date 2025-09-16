@@ -87,6 +87,7 @@ class SuspiciousActivityDetectedTest extends DomainTestCase
         // Properties are readonly, attempting to modify should cause error
         $this->expectException(Error::class);
         $this->expectExceptionMessageMatches('/Cannot modify readonly property/');
+        /** @phpstan-ignore-next-line */
         $event->transaction = $this->createTransaction();
     }
 

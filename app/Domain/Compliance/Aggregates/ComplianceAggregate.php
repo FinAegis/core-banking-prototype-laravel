@@ -84,6 +84,31 @@ class ComplianceAggregate extends AggregateRoot
         return $this;
     }
 
+    public function getKycStatus(): string
+    {
+        return $this->kycStatus;
+    }
+
+    public function getKycLevel(): ?string
+    {
+        return $this->kycLevel;
+    }
+
+    public function getKycDocuments(): array
+    {
+        return $this->kycDocuments;
+    }
+
+    public function getUserUuid(): string
+    {
+        return $this->userUuid;
+    }
+
+    public function getGdprConsents(): array
+    {
+        return $this->gdprConsents;
+    }
+
     protected function applyKycSubmissionReceived(KycSubmissionReceived $event): void
     {
         $this->userUuid = $event->userUuid;

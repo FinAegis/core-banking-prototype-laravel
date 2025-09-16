@@ -388,7 +388,7 @@ class SuspiciousActivityReport extends Model
     {
         // This would typically calculate from related transactions
         // For now, return the stored total_amount
-        return $this->total_amount ?? 0;
+        return (float) ($this->total_amount ?? 0);
     }
 
     public function getActivityDuration(): int
@@ -397,7 +397,7 @@ class SuspiciousActivityReport extends Model
             return 0;
         }
 
-        return $this->activity_start_date->diffInDays($this->activity_end_date);
+        return (int) $this->activity_start_date->diffInDays($this->activity_end_date);
     }
 
     public function getSummary(): array
