@@ -17,3 +17,8 @@ parameters:
 			identifier: assign.propertyType
 			count: 1
 			path: tests/Unit/Domain/Compliance/Services/TransactionMonitoringServiceTest.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\EventSourcing\\AggregateRoots\\FakeAggregateRoot\:\:.*\(\)\.$#'
+			count: 15
+			path: tests/Unit/Domain/Compliance/Aggregates/ComplianceAggregateTest.php
