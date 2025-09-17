@@ -354,7 +354,7 @@ return [
         'product_feature_removed' => App\Domain\Product\Events\FeatureRemoved::class,
         'product_price_updated'   => App\Domain\Product\Events\PriceUpdated::class,
 
-        // Agent Protocol Events
+        // Agent Protocol Events - Phase 1
         'agent_registered'            => App\Domain\AgentProtocol\Events\AgentRegistered::class,
         'capability_advertised'       => App\Domain\AgentProtocol\Events\CapabilityAdvertised::class,
         'agent_wallet_created'        => App\Domain\AgentProtocol\Events\AgentWalletCreated::class,
@@ -362,6 +362,22 @@ return [
         'payment_sent'                => App\Domain\AgentProtocol\Events\PaymentSent::class,
         'payment_received'            => App\Domain\AgentProtocol\Events\PaymentReceived::class,
         'wallet_balance_updated'      => App\Domain\AgentProtocol\Events\WalletBalanceUpdated::class,
+
+        // Agent Protocol Events - Phase 2 (Transactions & Escrow)
+        'transaction_initiated'   => App\Domain\AgentProtocol\Events\TransactionInitiated::class,
+        'transaction_validated'   => App\Domain\AgentProtocol\Events\TransactionValidated::class,
+        'transaction_completed'   => App\Domain\AgentProtocol\Events\TransactionCompleted::class,
+        'transaction_failed'      => App\Domain\AgentProtocol\Events\TransactionFailed::class,
+        'fee_calculated'          => App\Domain\AgentProtocol\Events\FeeCalculated::class,
+        'escrow_created'          => App\Domain\AgentProtocol\Events\EscrowCreated::class,
+        'escrow_funds_deposited'  => App\Domain\AgentProtocol\Events\EscrowFundsDeposited::class,
+        'escrow_funds_released'   => App\Domain\AgentProtocol\Events\EscrowFundsReleased::class,
+        'escrow_held'             => App\Domain\AgentProtocol\Events\EscrowHeld::class,
+        'escrow_released'         => App\Domain\AgentProtocol\Events\EscrowReleased::class,
+        'escrow_disputed'         => App\Domain\AgentProtocol\Events\EscrowDisputed::class,
+        'escrow_dispute_resolved' => App\Domain\AgentProtocol\Events\EscrowDisputeResolved::class,
+        'escrow_expired'          => App\Domain\AgentProtocol\Events\EscrowExpired::class,
+        'escrow_cancelled'        => App\Domain\AgentProtocol\Events\EscrowCancelled::class,
     ],
 
     /*

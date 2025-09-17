@@ -184,6 +184,64 @@ class AgentWalletAggregate extends AggregateRoot
         return $this;
     }
 
+    public function holdFunds(float $amount, string $reason, array $metadata = []): self
+    {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException('Hold amount must be positive');
+        }
+
+        if ($this->availableBalance < $amount) {
+            throw new InvalidArgumentException('Insufficient available balance');
+        }
+
+        $this->availableBalance -= $amount;
+        $this->heldBalance += $amount;
+
+        $this->recordThat(new WalletBalanceUpdated(
+            walletId: $this->walletId,
+            previousBalance: $this->balance,
+            newBalance: $this->balance,
+            change: 0,
+            reason: 'funds_held: ' . $reason,
+            metadata: array_merge($metadata, [
+                'held_amount'       => $amount,
+                'available_balance' => $this->availableBalance,
+                'held_balance'      => $this->heldBalance,
+            ])
+        ));
+
+        return $this;
+    }
+
+    public function releaseFunds(float $amount, string $reason, array $metadata = []): self
+    {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException('Release amount must be positive');
+        }
+
+        if ($this->heldBalance < $amount) {
+            throw new InvalidArgumentException('Insufficient held balance');
+        }
+
+        $this->heldBalance -= $amount;
+        $this->availableBalance += $amount;
+
+        $this->recordThat(new WalletBalanceUpdated(
+            walletId: $this->walletId,
+            previousBalance: $this->balance,
+            newBalance: $this->balance,
+            change: 0,
+            reason: 'funds_released: ' . $reason,
+            metadata: array_merge($metadata, [
+                'released_amount'   => $amount,
+                'available_balance' => $this->availableBalance,
+                'held_balance'      => $this->heldBalance,
+            ])
+        ));
+
+        return $this;
+    }
+
     protected function applyAgentWalletCreated(AgentWalletCreated $event): void
     {
         $this->walletId = $event->walletId;
