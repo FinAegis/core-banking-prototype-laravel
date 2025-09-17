@@ -8,7 +8,6 @@ use App\Domain\AgentProtocol\Aggregates\AgentTransactionAggregate;
 use App\Domain\AgentProtocol\Aggregates\AgentWalletAggregate;
 use App\Domain\AgentProtocol\Models\AgentTransaction;
 use App\Domain\AgentProtocol\Models\AgentWallet;
-use App\Domain\Payment\Services\PaymentService;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -31,11 +30,6 @@ class AgentWalletService
         'crypto'        => 0.005,       // 0.5%
         'escrow'        => 0.02,        // 2%
     ];
-
-    public function __construct(
-        private readonly PaymentService $paymentService
-    ) {
-    }
 
     /**
      * Create a new wallet for an agent.

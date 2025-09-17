@@ -53,7 +53,8 @@ class EscrowService
         string $currency = 'USD',
         array $conditions = [],
         ?string $expiresAt = null,
-        array $metadata = []
+        array $metadata = [],
+        string $type = self::TYPE_STANDARD
     ): Escrow {
         // Validate agents and amount
         if ($amount <= 0) {
@@ -95,6 +96,7 @@ class EscrowService
                 expiresAt: $expiresAt,
                 metadata: array_merge($metadata, [
                     'compliance_check' => $complianceCheck['reference'],
+                    'type'             => $type,
                 ])
             );
             $aggregate->persist();
@@ -112,7 +114,7 @@ class EscrowService
                 'status'            => 'created',
                 'funded_amount'     => 0.0,
                 'is_disputed'       => false,
-                'metadata'          => $metadata,
+                'metadata'          => array_merge($metadata, ['type' => $type]),
             ]);
 
             DB::commit();
@@ -576,5 +578,31 @@ class EscrowService
                 'error'          => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Get available escrow types.
+     */
+    public function getEscrowTypes(): array
+    {
+        return [
+            self::TYPE_STANDARD    => 'Standard escrow with basic release conditions',
+            self::TYPE_MILESTONE   => 'Milestone-based escrow with phased releases',
+            self::TYPE_TIMED       => 'Time-based escrow with automatic release',
+            self::TYPE_CONDITIONAL => 'Conditional escrow with complex criteria',
+        ];
+    }
+
+    /**
+     * Validate escrow type.
+     */
+    public function isValidEscrowType(string $type): bool
+    {
+        return in_array($type, [
+            self::TYPE_STANDARD,
+            self::TYPE_MILESTONE,
+            self::TYPE_TIMED,
+            self::TYPE_CONDITIONAL,
+        ], true);
     }
 }
