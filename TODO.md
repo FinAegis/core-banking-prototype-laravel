@@ -1,91 +1,191 @@
 # TODO List - FinAegis Platform
 
-Last updated: 2024-09-16
+Last updated: 2024-12-17
 
-## 🔴 CRITICAL - Security Vulnerabilities (Week 1) ✅ COMPLETED
+## 🚨 TOP PRIORITY - Agent Protocols Implementation (AP2 & A2A)
 
-### Authentication & Session Management ✅
-- [x] **Fix Token Expiration Enforcement**
-  - [x] Implement middleware to check token expiration
-  - [x] Add automatic token refresh mechanism
-  - [x] Update auth controllers for expired token handling
-  - [x] Add tests for token expiration scenarios
+### Overview
+Implement full compliance with Agent Payments Protocol (AP2) and Agent-to-Agent Protocol (A2A) to enable AI agent commerce and autonomous financial transactions.
 
-- [x] **Fix User Enumeration Vulnerability**
-  - [x] Always return generic success message in password reset
-  - [x] Implement rate limiting on password reset endpoint
-  - [x] Add CAPTCHA after 3 attempts
-  - [x] Log suspicious activity patterns
+**References:**
+- AP2 Specification: https://github.com/google-agentic-commerce/AP2/blob/main/docs/specification.md
+- A2A Protocol: https://a2a-protocol.org/latest/specification/
 
-- [x] **Reduce Concurrent Session Limit**
-  - [x] Change from 10 to 5 sessions in LoginController
-  - [x] Add configuration for max_concurrent_sessions
-  - [x] Implement session management UI
-  - [x] Add session revocation capability
+### Phase 1: Foundation Infrastructure (Week 1-2)
 
-### Additional Security Hardening ✅ COMPLETED
-- [x] Implement comprehensive rate limiting on all auth endpoints
-- [x] Add IP-based blocking for repeated failures
-- [x] Enforce 2FA for admin accounts
-- [x] Add security headers (CSP, HSTS, X-Frame-Options)
-- [ ] Schedule quarterly security audits
+#### Agent Protocol Domain Setup
+- [ ] **Create AgentProtocol Domain**
+  - [ ] Setup event sourcing tables (`agent_protocol_events`, `agent_protocol_snapshots`)
+  - [ ] Create AgentIdentityAggregate with DID support
+  - [ ] Implement AgentWalletAggregate for dedicated payment accounts
+  - [ ] Build AgentTransactionAggregate for transaction lifecycle
+  - [ ] Create AgentCapabilityAggregate for service advertisement
 
-## 🎯 QUICK START FOR NEXT SESSION
+#### Agent Identity & Discovery
+- [ ] **Decentralized Identifier (DID) Support**
+  - [ ] Implement DID generation and resolution
+  - [ ] Create DID document storage and retrieval
+  - [ ] Add DID authentication mechanism
+  - [ ] Build DID verification service
 
-### Recent Achievements (September 2024)
+- [ ] **Agent Discovery Service**
+  - [ ] Implement AP2 discovery endpoint (`/.well-known/ap2-configuration`)
+  - [ ] Create agent registry with capability indexing
+  - [ ] Build search and filter mechanisms
+  - [ ] Add capability matching algorithm
 
-#### Compliance Monitoring Tests ✅ COMPLETED (September 16, 2024)
-- **PHPStan Fixes**: Generated baseline for 2729 existing errors, fixed all new violations
-- **AlertManagementService**: Fixed false_positive_notes field and rule counter increments
-- **TransactionStreamProcessor**: Updated mock expectations to match actual service methods
-- **Test Coverage**: All compliance domain tests passing (100% pass rate)
-- **CI/CD**: All critical checks passing (Code Standards, Security, Feature, Unit, Integration tests)
+#### JSON-LD & Semantic Support
+- [ ] **JSON-LD Implementation**
+  - [ ] Add JSON-LD serialization/deserialization
+  - [ ] Implement schema.org vocabulary support
+  - [ ] Create context negotiation
+  - [ ] Build semantic validation service
 
-#### Treasury Portfolio Management ✅ COMPLETED (September 2024)
-- **Portfolio Aggregate**: Full event sourcing with 13 domain events
-- **Core Services**: Portfolio Management, Rebalancing, Performance Tracking, Asset Valuation
-- **Workflow Integration**: 2 workflows with 8 activities for automation
-- **REST API**: 16 comprehensive endpoints for portfolio operations
-- **Test Coverage**: 24 tests with 100% pass rate
-- **Value Objects**: InvestmentStrategy, AssetAllocation, PortfolioMetrics
+### Phase 2: Payment Infrastructure (Week 2-3)
 
-#### Security Enhancements ✅ COMPLETED (September 2024)
-- **API Scope Enforcement**: Implemented comprehensive API scope enforcement with CheckApiScope middleware
-- **Role-Based Scopes**: Different default scopes for admin, business, and regular users
-- **Token Security**: Proper scope management with HasApiScopes trait
-- **Admin Operations**: Freeze/unfreeze operations with proper authorization
-- **Backward Compatibility**: Maintained test compatibility while enforcing production security
-- **Test Coverage**: Comprehensive security tests for all scope scenarios
-- **IP Blocking Service**: Persistent IP blocking with database storage
-- **Mandatory 2FA**: RequireTwoFactorForAdmin middleware for admin accounts
-- **Enhanced Login**: IP blocking integration in LoginController
+#### Agent Wallet System
+- [ ] **Dedicated Agent Accounts**
+  - [ ] Create agent wallet management service
+  - [ ] Implement balance tracking with event sourcing
+  - [ ] Add multi-currency support for agents
+  - [ ] Build transaction history for agents
 
-#### AI Agent Framework Progress ✅ COMPLETED
-- **Phase 1 Complete**: MCP Server foundation with event sourcing
-- **Phase 2 Complete**: Banking Tools - 20+ tools across all domains
-- **Phase 3 Complete**: AI Agent Workflows - Customer Service, Compliance, Risk Assessment
-- **Phase 4 Complete**: Advanced Features - Trading Agent, Multi-Agent Coordination, Human-in-the-Loop
-- **Trading Agent**: Market analysis, portfolio optimization, automated strategies
-- **Multi-Agent System**: Consensus building, conflict resolution, task delegation
-- **Human Oversight**: Approval workflows, confidence thresholds, audit trails
-- **Code Quality**: All components pass PHPStan Level 5, PHPCS PSR-12, PHP CS Fixer
+#### Escrow Service
+- [ ] **Escrow Implementation**
+  - [ ] Create EscrowAggregate with event sourcing
+  - [ ] Implement hold/release mechanisms
+  - [ ] Add timeout and expiration handling
+  - [ ] Build dispute resolution workflow
 
-#### Infrastructure Implementation ✅
-- **CQRS Infrastructure**: Command & Query Bus with Laravel implementations
-- **Domain Event Bus**: Full event sourcing support with transaction handling
-- **Demo Site Ready**: Infrastructure deployed at finaegis.org with handlers optional
-- **Production Ready**: Can enable full handlers with DOMAIN_ENABLE_HANDLERS=true
+#### Advanced Payment Features
+- [ ] **Split Payments**
+  - [ ] Implement multi-party payment distribution
+  - [ ] Add percentage and fixed amount splits
+  - [ ] Create fee calculation service
+  - [ ] Build payment routing logic
 
-#### Completed Sub-Products ✅
-- **Exchange Engine**: Order book, matching, external connectors (Binance, Kraken)
-- **Stablecoin Framework**: Oracle integration, reserve management, governance
-- **Wallet Management**: Multi-blockchain support, HD wallets, key management
-- **P2P Lending Platform**: Loan lifecycle, credit scoring, risk assessment
-- **CGO System**: Complete investment flow with KYC/AML and refunds
-- **Liquidity Pool Management**: Automated market making with spread management
-- **Treasury Management**: Cash management, risk assessment, yield optimization
+- [ ] **Payment Orchestration**
+  - [ ] Create payment workflow with Laravel Workflow
+  - [ ] Add retry and compensation logic
+  - [ ] Implement idempotency handling
+  - [ ] Build payment status tracking
 
-## 📋 Current Priorities
+### Phase 3: Communication Layer (Week 3-4)
+
+#### A2A Messaging System
+- [ ] **Message Bus Implementation**
+  - [ ] Create A2AMessageAggregate
+  - [ ] Implement async message queue with Horizon
+  - [ ] Add message acknowledgment system
+  - [ ] Build message retry mechanism
+
+#### Protocol Negotiation
+- [ ] **Capability Advertisement**
+  - [ ] Implement service capability registry
+  - [ ] Create dynamic capability discovery
+  - [ ] Add version negotiation
+  - [ ] Build protocol fallback mechanism
+
+#### Agent Authentication
+- [ ] **Agent-to-Agent Auth**
+  - [ ] Implement agent OAuth 2.0 flow
+  - [ ] Add agent API key management
+  - [ ] Create agent session handling
+  - [ ] Build permission scoping for agents
+
+### Phase 4: Trust & Security (Week 4-5)
+
+#### Reputation System
+- [ ] **Agent Reputation Service**
+  - [ ] Create ReputationAggregate with scoring
+  - [ ] Implement transaction-based reputation
+  - [ ] Add dispute impact on reputation
+  - [ ] Build reputation decay algorithm
+
+#### Security Features
+- [ ] **Transaction Security**
+  - [ ] Implement digital signatures for agent transactions
+  - [ ] Add end-to-end encryption for sensitive data
+  - [ ] Create transaction verification service
+  - [ ] Build fraud detection for agent transactions
+
+#### Compliance & Audit
+- [ ] **Agent Compliance**
+  - [ ] Create agent KYC/KYB workflows
+  - [ ] Implement transaction limits for agents
+  - [ ] Add regulatory reporting for agent transactions
+  - [ ] Build comprehensive audit trail
+
+### Phase 5: API Implementation (Week 5-6)
+
+#### Core AP2 Endpoints
+- [ ] **Registration & Discovery**
+  - [ ] `POST /api/agents/register` - Agent registration
+  - [ ] `GET /api/agents/discover` - Agent discovery
+  - [ ] `GET /api/agents/{did}` - Agent details
+  - [ ] `PUT /api/agents/{did}/capabilities` - Update capabilities
+
+- [ ] **Payment Endpoints**
+  - [ ] `POST /api/agents/{did}/payments` - Initiate payment
+  - [ ] `GET /api/agents/{did}/payments/{id}` - Payment status
+  - [ ] `POST /api/agents/{did}/payments/{id}/confirm` - Confirm payment
+  - [ ] `POST /api/agents/{did}/payments/{id}/cancel` - Cancel payment
+
+- [ ] **Escrow Endpoints**
+  - [ ] `POST /api/agents/escrow` - Create escrow
+  - [ ] `POST /api/agents/escrow/{id}/release` - Release funds
+  - [ ] `POST /api/agents/escrow/{id}/dispute` - Raise dispute
+
+#### A2A Protocol Endpoints
+- [ ] **Messaging**
+  - [ ] `POST /api/agents/{did}/messages` - Send message
+  - [ ] `GET /api/agents/{did}/messages` - Retrieve messages
+  - [ ] `POST /api/agents/{did}/messages/{id}/ack` - Acknowledge message
+
+- [ ] **Reputation**
+  - [ ] `GET /api/agents/{did}/reputation` - Get reputation score
+  - [ ] `POST /api/agents/{did}/reputation/feedback` - Submit feedback
+
+### Phase 6: Integration & Testing (Week 6-7)
+
+#### Integration Tasks
+- [ ] **Existing System Integration**
+  - [ ] Connect agent wallets to main payment system
+  - [ ] Integrate with existing KYC/AML workflows
+  - [ ] Link to AI Agent framework
+  - [ ] Connect to multi-agent coordination service
+
+#### Testing & Validation
+- [ ] **Protocol Compliance Testing**
+  - [ ] Create AP2 compliance test suite
+  - [ ] Build A2A protocol validator
+  - [ ] Implement interoperability tests
+  - [ ] Add performance benchmarks
+
+#### Documentation
+- [ ] **Technical Documentation**
+  - [ ] API documentation with OpenAPI specs
+  - [ ] Integration guides for developers
+  - [ ] Protocol implementation notes
+  - [ ] Security best practices guide
+
+### Success Metrics
+- [ ] Full AP2 protocol compliance (100% spec coverage)
+- [ ] A2A protocol implementation (core features)
+- [ ] Support for 10+ concurrent agent transactions
+- [ ] < 100ms average transaction initiation time
+- [ ] 99.9% uptime for agent services
+- [ ] Comprehensive test coverage (>80%)
+
+### Technical Debt & Risks
+- [ ] Need to upgrade webhook infrastructure for real-time notifications
+- [ ] May require additional Redis capacity for message queuing
+- [ ] DID implementation complexity - consider using existing libraries
+- [ ] Escrow service requires careful transaction handling
+- [ ] Reputation system needs anti-gaming mechanisms
+
+---
+
 
 ### 🔴 URGENT - Documentation Date Fixes ✅ COMPLETED (September 16, 2024)
 
