@@ -353,6 +353,15 @@ return [
         'product_feature_added'   => App\Domain\Product\Events\FeatureAdded::class,
         'product_feature_removed' => App\Domain\Product\Events\FeatureRemoved::class,
         'product_price_updated'   => App\Domain\Product\Events\PriceUpdated::class,
+
+        // Agent Protocol Events
+        'agent_registered'            => App\Domain\AgentProtocol\Events\AgentRegistered::class,
+        'capability_advertised'       => App\Domain\AgentProtocol\Events\CapabilityAdvertised::class,
+        'agent_wallet_created'        => App\Domain\AgentProtocol\Events\AgentWalletCreated::class,
+        'agent_transaction_initiated' => App\Domain\AgentProtocol\Events\AgentTransactionInitiated::class,
+        'payment_sent'                => App\Domain\AgentProtocol\Events\PaymentSent::class,
+        'payment_received'            => App\Domain\AgentProtocol\Events\PaymentReceived::class,
+        'wallet_balance_updated'      => App\Domain\AgentProtocol\Events\WalletBalanceUpdated::class,
     ],
 
     /*
