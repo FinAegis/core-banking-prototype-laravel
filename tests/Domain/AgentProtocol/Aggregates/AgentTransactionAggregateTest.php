@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace Tests\Domain\AgentProtocol\Aggregates;
 
 use App\Domain\AgentProtocol\Aggregates\AgentTransactionAggregate;
-use App\Domain\AgentProtocol\Events\EscrowHeld;
-use App\Domain\AgentProtocol\Events\EscrowReleased;
 use App\Domain\AgentProtocol\Events\FeeCalculated;
 use App\Domain\AgentProtocol\Events\TransactionCompleted;
-use App\Domain\AgentProtocol\Events\TransactionFailed;
 use App\Domain\AgentProtocol\Events\TransactionInitiated;
 use App\Domain\AgentProtocol\Events\TransactionValidated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,7 +18,9 @@ class AgentTransactionAggregateTest extends TestCase
     use RefreshDatabase;
 
     private string $transactionId;
+
     private string $fromAgentId;
+
     private string $toAgentId;
 
     protected function setUp(): void
@@ -139,8 +138,8 @@ class AgentTransactionAggregateTest extends TestCase
 
         $validationData = [
             'kyc_verified' => true,
-            'aml_checked' => true,
-            'risk_score' => 0.2,
+            'aml_checked'  => true,
+            'risk_score'   => 0.2,
         ];
 
         $aggregate->validate($validationData);
@@ -479,9 +478,9 @@ class AgentTransactionAggregateTest extends TestCase
     public function it_stores_metadata_correctly()
     {
         $metadata = [
-            'order_id' => 'ORD123',
+            'order_id'    => 'ORD123',
             'description' => 'Payment for services',
-            'tags' => ['urgent', 'verified'],
+            'tags'        => ['urgent', 'verified'],
         ];
 
         $aggregate = AgentTransactionAggregate::initiate(

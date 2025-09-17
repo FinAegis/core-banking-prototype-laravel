@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace Tests\Domain\AgentProtocol\Aggregates;
 
 use App\Domain\AgentProtocol\Aggregates\EscrowAggregate;
-use App\Domain\AgentProtocol\Events\EscrowCancelled;
 use App\Domain\AgentProtocol\Events\EscrowCreated;
-use App\Domain\AgentProtocol\Events\EscrowDisputeResolved;
 use App\Domain\AgentProtocol\Events\EscrowDisputed;
-use App\Domain\AgentProtocol\Events\EscrowExpired;
+use App\Domain\AgentProtocol\Events\EscrowDisputeResolved;
 use App\Domain\AgentProtocol\Events\EscrowFundsDeposited;
-use App\Domain\AgentProtocol\Events\EscrowFundsReleased;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use Tests\TestCase;
@@ -21,8 +18,11 @@ class EscrowAggregateTest extends TestCase
     use RefreshDatabase;
 
     private string $escrowId;
+
     private string $transactionId;
+
     private string $senderAgentId;
+
     private string $receiverAgentId;
 
     protected function setUp(): void
@@ -364,7 +364,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->resolveDispute(
             'arbitrator_123',
             'return_to_sender',
-            ['sender' => 5000.00],
+            ['sender'   => 5000.00],
             ['decision' => 'Payment was indeed sent by mistake']
         );
         $aggregate->persist();
@@ -391,7 +391,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->resolveDispute(
             'arbitrator_123',
             'split',
-            ['sender' => 2000.00, 'receiver' => 3000.00],
+            ['sender'   => 2000.00, 'receiver' => 3000.00],
             ['decision' => '60% of services were delivered']
         );
         $aggregate->persist();
