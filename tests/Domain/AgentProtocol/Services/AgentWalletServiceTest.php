@@ -9,9 +9,9 @@ use App\Domain\AgentProtocol\Models\AgentIdentity;
 use App\Domain\AgentProtocol\Models\AgentTransaction;
 use App\Domain\AgentProtocol\Models\AgentWallet;
 use App\Domain\AgentProtocol\Services\AgentWalletService;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -20,7 +20,9 @@ class AgentWalletServiceTest extends TestCase
     use RefreshDatabase;
 
     private AgentWalletService $service;
+
     private string $agentId1;
+
     private string $agentId2;
 
     protected function setUp(): void
@@ -33,20 +35,20 @@ class AgentWalletServiceTest extends TestCase
 
         // Create agent identities to satisfy foreign key constraints
         AgentIdentity::create([
-            'agent_id' => $this->agentId1,
-            'did' => 'did:example:' . $this->agentId1,
-            'name' => 'Test Agent 1',
-            'type' => 'autonomous',
-            'status' => 'active',
+            'agent_id'         => $this->agentId1,
+            'did'              => 'did:example:' . $this->agentId1,
+            'name'             => 'Test Agent 1',
+            'type'             => 'autonomous',
+            'status'           => 'active',
             'reputation_score' => 50.00,
         ]);
 
         AgentIdentity::create([
-            'agent_id' => $this->agentId2,
-            'did' => 'did:example:' . $this->agentId2,
-            'name' => 'Test Agent 2',
-            'type' => 'autonomous',
-            'status' => 'active',
+            'agent_id'         => $this->agentId2,
+            'did'              => 'did:example:' . $this->agentId2,
+            'name'             => 'Test Agent 2',
+            'type'             => 'autonomous',
+            'status'           => 'active',
             'reputation_score' => 50.00,
         ]);
     }
@@ -429,7 +431,7 @@ class AgentWalletServiceTest extends TestCase
                 currency: 'USD'
             );
             $this->fail('Expected exception was not thrown');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Expected exception
         }
 
@@ -473,11 +475,11 @@ class AgentWalletServiceTest extends TestCase
         // Create third agent for international transfer test
         $agentId3 = 'agent_3_' . uniqid();
         AgentIdentity::create([
-            'agent_id' => $agentId3,
-            'did' => 'did:example:' . $agentId3,
-            'name' => 'Test Agent 3',
-            'type' => 'autonomous',
-            'status' => 'active',
+            'agent_id'         => $agentId3,
+            'did'              => 'did:example:' . $agentId3,
+            'name'             => 'Test Agent 3',
+            'type'             => 'autonomous',
+            'status'           => 'active',
             'reputation_score' => 50.00,
         ]);
 
