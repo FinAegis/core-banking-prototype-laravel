@@ -34,10 +34,10 @@ class ExchangeRateService
 
         $cacheKey = "exchange_rate:{$fromAsset}:{$toAsset}";
 
-        return Cache::remember(
+        $cached = Cache::remember(
             $cacheKey,
             self::CACHE_TTL * 60,
-            function () use ($fromAsset, $toAsset) {
+            function () use ($fromAsset, $toAsset): ?ExchangeRate {
                 // Try to get the most recent valid rate
                 $rate = ExchangeRate::between($fromAsset, $toAsset)
                     ->valid()
@@ -55,6 +55,13 @@ class ExchangeRateService
                 return $rate;
             }
         );
+
+        // Ensure we return the correct type
+        if ($cached instanceof ExchangeRate) {
+            return $cached;
+        }
+
+        return null;
     }
 
     /**
