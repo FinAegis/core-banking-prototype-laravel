@@ -280,7 +280,7 @@ class AgentWalletService
 
         $cacheKey = "exchange_rate:{$fromCurrency}:{$toCurrency}";
 
-        return Cache::remember($cacheKey, self::EXCHANGE_RATE_CACHE_TTL, function () use ($fromCurrency, $toCurrency) {
+        $rate = Cache::remember($cacheKey, self::EXCHANGE_RATE_CACHE_TTL, function () use ($fromCurrency, $toCurrency): float {
             // Mock exchange rates (in production, use real exchange rate API)
             $rates = [
                 'USD' => ['EUR' => 0.85, 'GBP' => 0.73, 'JPY' => 110.0, 'CHF' => 0.92, 'CAD' => 1.25, 'AUD' => 1.35, 'NZD' => 1.45],
@@ -288,8 +288,10 @@ class AgentWalletService
                 'GBP' => ['USD' => 1.37, 'EUR' => 1.16, 'JPY' => 150.0, 'CHF' => 1.26, 'CAD' => 1.71, 'AUD' => 1.85, 'NZD' => 1.99],
             ];
 
-            return $rates[$fromCurrency][$toCurrency] ?? 1.0;
+            return (float) ($rates[$fromCurrency][$toCurrency] ?? 1.0);
         });
+
+        return (float) $rate;
     }
 
     /**

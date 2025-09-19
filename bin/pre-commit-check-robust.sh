@@ -135,7 +135,7 @@ else
     if ! ./vendor/bin/php-cs-fixer fix --dry-run --diff --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER > /dev/null 2>&1; then
         echo -e "${RED}✗ PHP CS Fixer: Style violations detected${NC}"
         ./vendor/bin/php-cs-fixer fix --dry-run --diff --path-mode=intersection --config=.php-cs-fixer.php $FILES_FOR_FIXER 2>&1 | head -20
-        add_failure "PHP CS Fixer violations (use --fix to auto-fix)")
+        add_failure "PHP CS Fixer violations (use --fix to auto-fix)"
     else
         echo -e "${GREEN}✓ PHP CS Fixer: No issues${NC}"
     fi
@@ -191,7 +191,7 @@ if [ "$PHPCS_FAILED" = true ]; then
     if [ "$AUTO_FIX" = true ]; then
         echo -e "${YELLOW}⚠ Some PHPCS issues may not be auto-fixable${NC}"
     fi
-    add_failure "PHPCS violations detected")
+    add_failure "PHPCS violations detected"
 else
     echo -e "${GREEN}✓ PHPCS: All files compliant${NC}"
 fi
@@ -209,7 +209,7 @@ if timeout 60 vendor/bin/phpstan analyse $FILES_FOR_PHPSTAN --memory-limit=2G --
     else
         echo -e "${RED}✗ PHPStan: Static analysis errors${NC}"
         cat /tmp/phpstan_output.log | grep -E "Line|ERROR" | head -20
-        add_failure "PHPStan errors detected")
+        add_failure "PHPStan errors detected"
     fi
 else
     EXIT_CODE=$?
@@ -219,7 +219,7 @@ else
     else
         echo -e "${RED}✗ PHPStan: Analysis failed${NC}"
         cat /tmp/phpstan_output.log | head -20
-        add_failure "PHPStan analysis failed")
+        add_failure "PHPStan analysis failed"
     fi
 fi
 rm -f /tmp/phpstan_output.log
@@ -244,7 +244,7 @@ for file in $FILES; do
 done
 
 if [ "$PERMISSION_ISSUES" = true ] && [ "$AUTO_FIX" = false ]; then
-    add_failure "Incorrect file permissions (PHP files should not be executable)")
+    add_failure "Incorrect file permissions (PHP files should not be executable)"
 elif [ "$PERMISSION_ISSUES" = false ]; then
     echo -e "${GREEN}✓ File permissions correct${NC}"
 fi
@@ -281,7 +281,7 @@ if [ "$AUTO_FIX" = true ] && [ "$FAILED" = false ]; then
     fi
 
     if [ "$FINAL_FAILED" = true ]; then
-        add_failure "Some issues could not be auto-fixed")
+        add_failure "Some issues could not be auto-fixed"
     else
         echo -e "${GREEN}✓ All issues resolved${NC}"
     fi

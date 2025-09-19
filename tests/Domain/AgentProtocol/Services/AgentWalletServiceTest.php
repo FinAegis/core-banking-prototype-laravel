@@ -118,6 +118,8 @@ class AgentWalletServiceTest extends TestCase
     /** @test */
     public function it_gets_balance_with_currency_conversion()
     {
+        Cache::flush(); // Clear cache to avoid conflicts
+
         $wallet = $this->service->createWallet(
             agentId: $this->agentId1,
             currency: 'USD',
@@ -380,13 +382,16 @@ class AgentWalletServiceTest extends TestCase
             initialBalance: 500.00
         );
 
-        // Create some transactions
+        // Create some transactions with a small delay to ensure different timestamps
         $this->service->transfer(
             fromWalletId: $wallet1->wallet_id,
             toWalletId: $wallet2->wallet_id,
             amount: 100.00,
             currency: 'USD'
         );
+
+        // Add a small delay to ensure different created_at timestamps
+        sleep(1);
 
         $this->service->transfer(
             fromWalletId: $wallet2->wallet_id,
