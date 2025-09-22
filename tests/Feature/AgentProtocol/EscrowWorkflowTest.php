@@ -6,9 +6,7 @@ namespace Tests\Feature\AgentProtocol;
 
 use App\Domain\AgentProtocol\Aggregates\EscrowAggregate;
 // use App\Domain\AgentProtocol\DataObjects\EscrowRequest; // Not implemented yet
-use DomainException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
