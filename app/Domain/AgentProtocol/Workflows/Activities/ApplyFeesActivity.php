@@ -16,14 +16,6 @@ use Workflow\Activity;
  */
 class ApplyFeesActivity extends Activity
 {
-    private const STANDARD_FEE_RATE = 0.025; // 2.5%
-
-    private const MINIMUM_FEE = 0.50; // Minimum fee amount
-
-    private const MAXIMUM_FEE = 100.00; // Maximum fee amount
-
-    private const FEE_COLLECTOR_DID = 'did:agent:finaegis:fee-collector';
-
     public function execute(AgentPaymentRequest $request, array $options = []): stdClass
     {
         $result = new stdClass();
@@ -32,9 +24,14 @@ class ApplyFeesActivity extends Activity
         try {
             $isReversal = $options['reverse'] ?? false;
 
+            // Get fee configuration
+            $feeRate = config('agent_protocol.fees.standard_rate', 0.025);
+            $minFee = config('agent_protocol.fees.minimum_fee', 0.50);
+            $maxFee = config('agent_protocol.fees.maximum_fee', 100.00);
+
             // Calculate fees
-            $calculatedFee = $request->amount * self::STANDARD_FEE_RATE;
-            $appliedFee = max(self::MINIMUM_FEE, min($calculatedFee, self::MAXIMUM_FEE));
+            $calculatedFee = $request->amount * $feeRate;
+            $appliedFee = max($minFee, min($calculatedFee, $maxFee));
 
             // Apply any custom fee overrides
             if (isset($request->metadata['custom_fee_rate'])) {
@@ -60,10 +57,11 @@ class ApplyFeesActivity extends Activity
                 try {
                     if (! $isReversal) {
                         // Charge fee from sender using initiatePayment
+                        $feeCollectorDid = config('agent_protocol.fees.fee_collector_did', 'did:agent:finaegis:fee-collector');
                         $senderWallet = AgentWalletAggregate::retrieve($request->fromAgentDid);
                         $senderWallet->initiatePayment(
                             transactionId: 'fee-' . $request->transactionId,
-                            toAgentId: self::FEE_COLLECTOR_DID,
+                            toAgentId: $feeCollectorDid,
                             amount: $appliedFee,
                             type: 'fee',
                             metadata: [
@@ -76,7 +74,7 @@ class ApplyFeesActivity extends Activity
                         $senderWallet->persist();
 
                         // Credit fee to collector using receivePayment
-                        $feeCollector = AgentWalletAggregate::retrieve(self::FEE_COLLECTOR_DID);
+                        $feeCollector = AgentWalletAggregate::retrieve($feeCollectorDid);
                         $feeCollector->receivePayment(
                             transactionId: 'fee-' . $request->transactionId,
                             fromAgentId: $request->fromAgentDid,
@@ -90,10 +88,11 @@ class ApplyFeesActivity extends Activity
                         $feeCollector->persist();
                     } else {
                         // Reverse fee: return to sender using receivePayment
+                        $feeCollectorDid = config('agent_protocol.fees.fee_collector_did', 'did:agent:finaegis:fee-collector');
                         $senderWallet = AgentWalletAggregate::retrieve($request->fromAgentDid);
                         $senderWallet->receivePayment(
                             transactionId: 'fee-reversal-' . $request->transactionId,
-                            fromAgentId: self::FEE_COLLECTOR_DID,
+                            fromAgentId: $feeCollectorDid,
                             amount: $appliedFee,
                             metadata: [
                                 'fee_type'       => 'reversal',
@@ -105,7 +104,7 @@ class ApplyFeesActivity extends Activity
                         $senderWallet->persist();
 
                         // Debit from fee collector using initiatePayment (as a refund)
-                        $feeCollector = AgentWalletAggregate::retrieve(self::FEE_COLLECTOR_DID);
+                        $feeCollector = AgentWalletAggregate::retrieve($feeCollectorDid);
                         $feeCollector->initiatePayment(
                             transactionId: 'fee-reversal-' . $request->transactionId,
                             toAgentId: $request->fromAgentDid,
@@ -158,9 +157,9 @@ class ApplyFeesActivity extends Activity
     {
         // System accounts are exempt
         $systemAccounts = [
-            'did:agent:finaegis:system',
-            'did:agent:finaegis:treasury',
-            'did:agent:finaegis:reserve',
+            config('agent_protocol.system_agents.system_did'),
+            config('agent_protocol.system_agents.treasury_did'),
+            config('agent_protocol.system_agents.reserve_did'),
         ];
 
         if (
@@ -179,7 +178,8 @@ class ApplyFeesActivity extends Activity
         }
 
         // Micro-transactions below a threshold
-        if ($request->amount < 1.00) {
+        $exemptionThreshold = config('agent_protocol.fees.exemption_threshold', 1.00);
+        if ($request->amount < $exemptionThreshold) {
             return true;
         }
 

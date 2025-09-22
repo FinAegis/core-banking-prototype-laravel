@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Services;
 
-use App\Domain\AgentProtocol\Aggregates\AgentIdentityAggregate;
 use DB;
 use Exception;
 use Illuminate\Support\Facades\Http;
@@ -108,21 +107,35 @@ class AgentNotificationService
     private function getAgentNotificationEndpoint(string $agentDid): ?string
     {
         try {
-            // TODO: In the future, store notification endpoints in AgentIdentityAggregate
-            // For now, return a mock endpoint for testing
-            // In production, this would query a notification_endpoints table or
-            // be stored as part of the agent's capabilities
+            // Check if we're in demo mode with mock webhooks
+            if (config('agent_protocol.demo.mock_webhooks')) {
+                // In demo mode, return mock endpoints for testing
+                if (str_contains($agentDid, 'finaegis') || str_contains($agentDid, 'test')) {
+                    return config('agent_protocol.webhooks.internal_url');
+                }
 
-            // Mock implementation for development
-            if (str_contains($agentDid, 'finaegis')) {
-                // Internal agents use internal webhook
-                return config('services.agent_protocol.internal_webhook_url', 'http://localhost:8000/webhooks/agent-notifications');
+                return null;
             }
 
-            // External agents would have registered endpoints
-            // This would be retrieved from a database or service
-            return null;
+            // In production, check if it's an internal agent
+            if (str_contains($agentDid, 'finaegis')) {
+                return config('agent_protocol.webhooks.internal_url');
+            }
+
+            // For external agents, query the database for registered endpoints
+            // This would be implemented when agent registration is added
+            $endpoint = DB::table('agent_notification_endpoints')
+                ->where('agent_did', $agentDid)
+                ->where('active', true)
+                ->value('webhook_url');
+
+            return $endpoint;
         } catch (Exception $e) {
+            Log::error('Failed to get agent notification endpoint', [
+                'agent_did' => $agentDid,
+                'error'     => $e->getMessage(),
+            ]);
+
             return null;
         }
     }
@@ -162,9 +175,9 @@ class AgentNotificationService
      */
     private function getSystemAdminDids(): array
     {
-        return [
+        return config('agent_protocol.system_agents.admin_dids', [
             'did:agent:finaegis:admin-1',
             'did:agent:finaegis:admin-2',
-        ];
+        ]);
     }
 }
