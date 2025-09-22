@@ -465,4 +465,81 @@ class EscrowAggregate extends AggregateRoot
     {
         return $this->expiresAt !== null && strtotime($this->expiresAt) <= time();
     }
+
+    public function isReadyForRelease(): bool
+    {
+        // Check if all conditions are met for release
+        if ($this->status !== self::STATUS_FUNDED) {
+            return false;
+        }
+
+        if (! $this->isFullyFunded()) {
+            return false;
+        }
+
+        // Check if any conditions are unmet
+        foreach ($this->conditions as $condition) {
+            if (! $this->isConditionMet($condition)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function isFunded(): bool
+    {
+        return $this->status === self::STATUS_FUNDED && $this->fundedAmount > 0;
+    }
+
+    public function isResolvedInFavorOfRecipient(): bool
+    {
+        if ($this->status !== self::STATUS_RESOLVED) {
+            return false;
+        }
+
+        // Check if resolution favors recipient
+        return $this->resolutionType === self::RESOLUTION_RELEASE_TO_RECEIVER ||
+            ($this->resolutionType === self::RESOLUTION_SPLIT &&
+             ($this->resolutionAllocation['receiver'] ?? 0) > ($this->resolutionAllocation['sender'] ?? 0));
+    }
+
+    public function isDisputeResolved(): bool
+    {
+        return $this->status === self::STATUS_RESOLVED;
+    }
+
+    private function isConditionMet(array $condition): bool
+    {
+        // Implement condition checking logic
+        // This would integrate with external services or check internal state
+        $type = $condition['type'] ?? '';
+
+        switch ($type) {
+            case 'time_based':
+                // Check if time condition is met
+                $targetTime = $condition['target_time'] ?? null;
+
+                return $targetTime && time() >= strtotime($targetTime);
+
+            case 'confirmation':
+                // Check if confirmation received from specified party
+                $confirmations = $this->metadata['confirmations'] ?? [];
+                $requiredParty = $condition['party'] ?? '';
+
+                return isset($confirmations[$requiredParty]);
+
+            case 'external_verification':
+                // Would check with external service
+                // For now, assume verified if marked in metadata
+                $verifications = $this->metadata['verifications'] ?? [];
+                $verificationType = $condition['verification_type'] ?? '';
+
+                return isset($verifications[$verificationType]);
+
+            default:
+                // Unknown condition type - consider met to avoid blocking
+                return true;
+        }
+    }
 }
