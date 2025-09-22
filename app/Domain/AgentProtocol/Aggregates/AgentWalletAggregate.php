@@ -194,9 +194,6 @@ class AgentWalletAggregate extends AggregateRoot
             throw new InvalidArgumentException('Insufficient available balance');
         }
 
-        $this->availableBalance -= $amount;
-        $this->heldBalance += $amount;
-
         $this->recordThat(new WalletBalanceUpdated(
             walletId: $this->walletId,
             previousBalance: $this->balance,
@@ -205,8 +202,8 @@ class AgentWalletAggregate extends AggregateRoot
             reason: 'funds_held: ' . $reason,
             metadata: array_merge($metadata, [
                 'held_amount'       => $amount,
-                'available_balance' => $this->availableBalance,
-                'held_balance'      => $this->heldBalance,
+                'available_balance' => $this->availableBalance - $amount,
+                'held_balance'      => $this->heldBalance + $amount,
             ])
         ));
 
@@ -223,9 +220,6 @@ class AgentWalletAggregate extends AggregateRoot
             throw new InvalidArgumentException('Insufficient held balance');
         }
 
-        $this->heldBalance -= $amount;
-        $this->availableBalance += $amount;
-
         $this->recordThat(new WalletBalanceUpdated(
             walletId: $this->walletId,
             previousBalance: $this->balance,
@@ -234,8 +228,8 @@ class AgentWalletAggregate extends AggregateRoot
             reason: 'funds_released: ' . $reason,
             metadata: array_merge($metadata, [
                 'released_amount'   => $amount,
-                'available_balance' => $this->availableBalance,
-                'held_balance'      => $this->heldBalance,
+                'available_balance' => $this->availableBalance + $amount,
+                'held_balance'      => $this->heldBalance - $amount,
             ])
         ));
 
@@ -275,6 +269,14 @@ class AgentWalletAggregate extends AggregateRoot
                 $this->heldBalance -= $heldAmount;
             }
             $this->availableBalance = $this->balance - $this->heldBalance;
+        } elseif (str_starts_with($event->reason, 'funds_held:')) {
+            // Handle funds being held
+            $this->availableBalance = $event->metadata['available_balance'] ?? $this->availableBalance;
+            $this->heldBalance = $event->metadata['held_balance'] ?? $this->heldBalance;
+        } elseif (str_starts_with($event->reason, 'funds_released:')) {
+            // Handle funds being released
+            $this->availableBalance = $event->metadata['available_balance'] ?? $this->availableBalance;
+            $this->heldBalance = $event->metadata['held_balance'] ?? $this->heldBalance;
         } else {
             $this->availableBalance = $this->balance - $this->heldBalance;
         }

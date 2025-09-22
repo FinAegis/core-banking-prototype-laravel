@@ -37,7 +37,7 @@ class ExchangeRateService
         return Cache::remember(
             $cacheKey,
             self::CACHE_TTL * 60,
-            function () use ($fromAsset, $toAsset) {
+            function () use ($fromAsset, $toAsset): ?ExchangeRate {
                 // Try to get the most recent valid rate
                 $rate = ExchangeRate::between($fromAsset, $toAsset)
                     ->valid()

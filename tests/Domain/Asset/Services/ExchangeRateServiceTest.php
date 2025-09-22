@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Asset\Services\ExchangeRateService;
+use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {
+    // Clear cache to prevent test conflicts
+    Cache::flush();
     // Assets are already seeded in migrations, no need to create duplicates
 });
 

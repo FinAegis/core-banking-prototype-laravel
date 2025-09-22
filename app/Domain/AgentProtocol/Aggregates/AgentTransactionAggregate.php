@@ -98,7 +98,7 @@ class AgentTransactionAggregate extends AggregateRoot
             $escrowId = 'escrow_' . Str::uuid()->toString();
         }
 
-        $aggregate = new self();
+        $aggregate = static::retrieve($transactionId);
         $aggregate->recordThat(new TransactionInitiated(
             transactionId: $transactionId,
             fromAgentId: $fromAgentId,

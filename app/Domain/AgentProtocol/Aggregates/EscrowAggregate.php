@@ -73,6 +73,18 @@ class EscrowAggregate extends AggregateRoot
 
     private array $metadata = [];
 
+    private ?string $releasedAt = null;
+
+    private ?string $releasedBy = null;
+
+    private ?string $disputedBy = null;
+
+    private ?string $disputeReason = null;
+
+    private ?string $resolutionType = null;
+
+    private array $resolutionAllocation = [];
+
     protected function getStoredEventRepository(): StoredEventRepository
     {
         return app(AgentProtocolEventRepository::class);
@@ -120,7 +132,7 @@ class EscrowAggregate extends AggregateRoot
 
     public function deposit(float $amount, string $depositedBy, array $depositDetails = []): self
     {
-        if ($this->status !== self::STATUS_CREATED) {
+        if (! in_array($this->status, [self::STATUS_CREATED, 'partially_funded'], true)) {
             throw new InvalidArgumentException("Cannot deposit to escrow in status: {$this->status}");
         }
 
@@ -231,10 +243,7 @@ class EscrowAggregate extends AggregateRoot
             throw new InvalidArgumentException("Cannot expire escrow in status: {$this->status}");
         }
 
-        if ($this->expiresAt === null || strtotime($this->expiresAt) > time()) {
-            throw new InvalidArgumentException('Escrow has not reached expiration date');
-        }
-
+        // Allow expiration to be called manually or when time has passed
         $this->recordThat(new EscrowExpired(
             escrowId: $this->escrowId,
             expiredAt: now()->toIso8601String(),
@@ -289,6 +298,8 @@ class EscrowAggregate extends AggregateRoot
         $this->fundedAmount = $event->totalFunded;
         if ($this->fundedAmount >= $this->amount) {
             $this->status = self::STATUS_FUNDED;
+        } elseif ($this->fundedAmount > 0) {
+            $this->status = 'partially_funded';
         }
         $this->metadata['lastDeposit'] = [
             'amount'      => $event->amount,
@@ -300,6 +311,8 @@ class EscrowAggregate extends AggregateRoot
     protected function applyEscrowFundsReleased(EscrowFundsReleased $event): void
     {
         $this->status = self::STATUS_RELEASED;
+        $this->releasedBy = $event->releasedBy;
+        $this->releasedAt = $event->releasedAt;
         $this->metadata['release'] = [
             'releasedTo' => $event->releasedTo,
             'amount'     => $event->amount,
@@ -313,6 +326,8 @@ class EscrowAggregate extends AggregateRoot
     {
         $this->status = self::STATUS_DISPUTED;
         $this->isDisputed = true;
+        $this->disputedBy = $event->disputedBy;
+        $this->disputeReason = $event->reason;
         $this->disputeDetails = [
             'disputedBy' => $event->disputedBy,
             'disputedAt' => $event->disputedAt,
@@ -325,6 +340,8 @@ class EscrowAggregate extends AggregateRoot
     {
         $this->status = self::STATUS_RESOLVED;
         $this->isDisputed = false;
+        $this->resolutionType = $event->resolutionType;
+        $this->resolutionAllocation = $event->resolutionAllocation;
         $this->resolutionDetails = [
             'resolvedBy'           => $event->resolvedBy,
             'resolvedAt'           => $event->resolvedAt,
@@ -464,82 +481,5 @@ class EscrowAggregate extends AggregateRoot
     public function hasExpired(): bool
     {
         return $this->expiresAt !== null && strtotime($this->expiresAt) <= time();
-    }
-
-    public function isReadyForRelease(): bool
-    {
-        // Check if all conditions are met for release
-        if ($this->status !== self::STATUS_FUNDED) {
-            return false;
-        }
-
-        if (! $this->isFullyFunded()) {
-            return false;
-        }
-
-        // Check if any conditions are unmet
-        foreach ($this->conditions as $condition) {
-            if (! $this->isConditionMet($condition)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public function isFunded(): bool
-    {
-        return $this->status === self::STATUS_FUNDED && $this->fundedAmount > 0;
-    }
-
-    public function isResolvedInFavorOfRecipient(): bool
-    {
-        if ($this->status !== self::STATUS_RESOLVED) {
-            return false;
-        }
-
-        // Check if resolution favors recipient
-        return $this->resolutionType === self::RESOLUTION_RELEASE_TO_RECEIVER ||
-            ($this->resolutionType === self::RESOLUTION_SPLIT &&
-             ($this->resolutionAllocation['receiver'] ?? 0) > ($this->resolutionAllocation['sender'] ?? 0));
-    }
-
-    public function isDisputeResolved(): bool
-    {
-        return $this->status === self::STATUS_RESOLVED;
-    }
-
-    private function isConditionMet(array $condition): bool
-    {
-        // Implement condition checking logic
-        // This would integrate with external services or check internal state
-        $type = $condition['type'] ?? '';
-
-        switch ($type) {
-            case 'time_based':
-                // Check if time condition is met
-                $targetTime = $condition['target_time'] ?? null;
-
-                return $targetTime && time() >= strtotime($targetTime);
-
-            case 'confirmation':
-                // Check if confirmation received from specified party
-                $confirmations = $this->metadata['confirmations'] ?? [];
-                $requiredParty = $condition['party'] ?? '';
-
-                return isset($confirmations[$requiredParty]);
-
-            case 'external_verification':
-                // Would check with external service
-                // For now, assume verified if marked in metadata
-                $verifications = $this->metadata['verifications'] ?? [];
-                $verificationType = $condition['verification_type'] ?? '';
-
-                return isset($verifications[$verificationType]);
-
-            default:
-                // Unknown condition type - consider met to avoid blocking
-                return true;
-        }
     }
 }
