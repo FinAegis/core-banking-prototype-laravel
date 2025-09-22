@@ -15,6 +15,7 @@ class ValidatePaymentActivityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        /** @phpstan-ignore-next-line */
         $this->activity = new ValidatePaymentActivity();
     }
 

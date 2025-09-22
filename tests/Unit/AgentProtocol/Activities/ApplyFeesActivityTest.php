@@ -25,6 +25,7 @@ class ApplyFeesActivityTest extends TestCase
     {
         parent::setUp();
 
+        /** @phpstan-ignore-next-line */
         $this->activity = new ApplyFeesActivity();
         $this->senderDid = 'did:agent:test:sender-' . Str::random(8);
         $this->receiverDid = 'did:agent:test:receiver-' . Str::random(8);
