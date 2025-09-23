@@ -7,8 +7,6 @@ namespace App\Domain\Account\Projectors;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Asset\Events\AssetTransactionCreated;
 use App\Domain\Asset\Events\AssetTransferCompleted;
-use App\Domain\Payment\Events\PaymentDepositCreated;
-use App\Domain\Payment\Events\PaymentWithdrawalCreated;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -120,91 +118,4 @@ class TransactionProjector extends Projector
                 ]
             );
         }
-    }
-
-    /**
-     * Handle payment deposit created event.
-     */
-    public function onPaymentDepositCreated(PaymentDepositCreated $event): void
-    {
-        try {
-            TransactionProjection::create(
-                [
-                    'uuid'         => Str::uuid(),
-                    'account_uuid' => (string) $event->accountUuid,
-                    'type'         => 'deposit',
-                    'asset_code'   => $event->assetCode,
-                    'amount'       => $event->amount,
-                    'description'  => $event->description ?? 'Payment deposit',
-                    'reference'    => $event->paymentReference ?? null,
-                    'status'       => 'completed',
-                    'metadata'     => [
-                        'event_type'     => 'PaymentDepositCreated',
-                        'event_uuid'     => $event->aggregateRootUuid(),
-                        'payment_method' => $event->paymentMethod ?? null,
-                    ],
-                ]
-            );
-
-            Log::info(
-                'Transaction projection created for PaymentDepositCreated',
-                [
-                    'account_uuid' => (string) $event->accountUuid,
-                    'asset_code'   => $event->assetCode,
-                    'amount'       => $event->amount,
-                ]
-            );
-        } catch (Exception $e) {
-            Log::error(
-                'Error creating transaction projection for deposit',
-                [
-                    'event' => 'PaymentDepositCreated',
-                    'error' => $e->getMessage(),
-                ]
-            );
-        }
-    }
-
-    /**
-     * Handle payment withdrawal created event.
-     */
-    public function onPaymentWithdrawalCreated(PaymentWithdrawalCreated $event): void
-    {
-        try {
-            TransactionProjection::create(
-                [
-                    'uuid'         => Str::uuid(),
-                    'account_uuid' => (string) $event->accountUuid,
-                    'type'         => 'withdrawal',
-                    'asset_code'   => $event->assetCode,
-                    'amount'       => $event->amount,
-                    'description'  => $event->description ?? 'Payment withdrawal',
-                    'reference'    => $event->paymentReference ?? null,
-                    'status'       => 'completed',
-                    'metadata'     => [
-                        'event_type'     => 'PaymentWithdrawalCreated',
-                        'event_uuid'     => $event->aggregateRootUuid(),
-                        'payment_method' => $event->paymentMethod ?? null,
-                    ],
-                ]
-            );
-
-            Log::info(
-                'Transaction projection created for PaymentWithdrawalCreated',
-                [
-                    'account_uuid' => (string) $event->accountUuid,
-                    'asset_code'   => $event->assetCode,
-                    'amount'       => $event->amount,
-                ]
-            );
-        } catch (Exception $e) {
-            Log::error(
-                'Error creating transaction projection for withdrawal',
-                [
-                    'event' => 'PaymentWithdrawalCreated',
-                    'error' => $e->getMessage(),
-                ]
-            );
-        }
-    }
-}
+    }}

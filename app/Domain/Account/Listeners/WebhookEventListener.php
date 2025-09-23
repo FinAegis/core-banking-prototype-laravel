@@ -3,7 +3,7 @@
 namespace App\Domain\Account\Listeners;
 
 use App\Domain\Account\Events\AccountCreated;
-use App\Domain\Account\Events\AccountDestroyed;
+use App\Domain\Account\Events\AccountDeleted;
 use App\Domain\Account\Events\AccountFrozen;
 use App\Domain\Account\Events\AccountUnfrozen;
 use App\Domain\Account\Events\MoneyAdded;
@@ -73,7 +73,7 @@ class WebhookEventListener extends Projector
         $this->webhookService->dispatchAccountEvent('account.unfrozen', $event->aggregateRootUuid());
     }
 
-    public function onAccountDestroyed(AccountDestroyed $event): void
+    public function onAccountDeleted(AccountDeleted $event): void
     {
         if (app()->environment('testing') && ! app()->bound('testing.webhooks')) {
             return;
