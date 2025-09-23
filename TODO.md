@@ -128,6 +128,22 @@ Implement full compliance with Agent Payments Protocol (AP2) and Agent-to-Agent 
   - [x] Implement acknowledgment tracking
   - [x] Build retry and failure handling
 
+#### Workflow Activities ✅ COMPLETED (September 23, 2025)
+- [x] **Message Processing Activities** ✅
+  - [x] ValidateMessageActivity - Message validation with comprehensive checks
+  - [x] QueueMessageActivity - Priority-based Redis queuing
+  - [x] RouteMessageActivity - Intelligent routing with caching
+  - [x] DeliverMessageActivity - Multi-protocol delivery (HTTP, Webhook)
+  - [x] AcknowledgeMessageActivity - Timeout-aware acknowledgment
+  - [x] HandleMessageRetryActivity - Exponential backoff retry logic
+
+#### Agent Infrastructure ✅ COMPLETED (September 23, 2025)
+- [x] **Agent Registry & Discovery** ✅
+  - [x] AgentRegistryService - Agent management and lookup
+  - [x] AgentDiscoveryService - AP2/.well-known discovery
+  - [x] Agent models with relationships (connections, capabilities)
+  - [x] Database schema with event sourcing support
+
 #### Protocol Negotiation 🚧 IN PROGRESS
 - [x] **Capability Advertisement** ✅
   - [x] Implement service capability registry (AgentCapabilityAggregate)
