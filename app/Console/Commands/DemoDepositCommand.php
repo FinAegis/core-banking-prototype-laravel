@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Domain\Asset\Aggregates\AssetTransactionAggregate;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
+use App\Domain\Asset\Aggregates\AssetTransactionAggregate;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Exception;
@@ -156,10 +156,10 @@ class DemoDepositCommand extends Command
                         money: new Money($amountInCents),
                         description: $description,
                         metadata: [
-                            'type'        => 'demo_deposit',
-                            'created_by'  => 'console_command',
-                            'environment' => config('app.env'),
-                            'instant'     => $instant,
+                            'type'           => 'demo_deposit',
+                            'created_by'     => 'console_command',
+                            'environment'    => config('app.env'),
+                            'instant'        => $instant,
                             'transaction_id' => $transactionId,
                         ]
                     )
