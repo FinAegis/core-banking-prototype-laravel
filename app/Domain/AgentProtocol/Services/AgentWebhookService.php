@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Services;
 
+use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class AgentWebhookService
 {
     private const WEBHOOK_TIMEOUT = 10; // seconds
+
     private const RETRY_ATTEMPTS = 3;
+
     private const RETRY_DELAY = 1; // seconds
 
     /**
@@ -36,19 +39,19 @@ class AgentWebhookService
                 if ($response->successful()) {
                     return [
                         'success' => true,
-                        'status' => $response->status(),
-                        'body' => $response->json() ?? $response->body(),
+                        'status'  => $response->status(),
+                        'body'    => $response->json() ?? $response->body(),
                         'headers' => $response->headers(),
                     ];
                 }
 
                 $lastError = "HTTP {$response->status()}: {$response->body()}";
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $lastError = $e->getMessage();
                 Log::warning('Webhook delivery failed', [
                     'endpoint' => $endpoint,
-                    'attempt' => $attempt + 1,
-                    'error' => $lastError,
+                    'attempt'  => $attempt + 1,
+                    'error'    => $lastError,
                 ]);
             }
 
@@ -59,8 +62,8 @@ class AgentWebhookService
         }
 
         return [
-            'success' => false,
-            'error' => $lastError ?: 'Unknown error',
+            'success'  => false,
+            'error'    => $lastError ?: 'Unknown error',
             'attempts' => $attempt,
         ];
     }
@@ -74,6 +77,7 @@ class AgentWebhookService
         string $secret
     ): bool {
         $expectedSignature = hash_hmac('sha256', $payload, $secret);
+
         return hash_equals($expectedSignature, $signature);
     }
 
@@ -100,9 +104,9 @@ class AgentWebhookService
         $endpoints = Cache::get($cacheKey, []);
 
         $endpoints[$endpoint] = [
-            'url' => $endpoint,
-            'events' => $events,
-            'secret' => $secret,
+            'url'           => $endpoint,
+            'events'        => $events,
+            'secret'        => $secret,
             'registered_at' => now()->toDateTimeString(),
         ];
 
@@ -117,6 +121,7 @@ class AgentWebhookService
     public function getEndpoints(string $agentId): array
     {
         $cacheKey = "webhook:endpoints:{$agentId}";
+
         return Cache::get($cacheKey, []);
     }
 

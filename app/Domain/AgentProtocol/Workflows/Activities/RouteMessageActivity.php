@@ -190,6 +190,7 @@ class RouteMessageActivity extends Activity
 
         // Select relay with highest relay score (first in the collection)
         $firstRelay = $relayAgents->first();
+
         return $firstRelay ? $firstRelay->agent_id : null;
     }
 
