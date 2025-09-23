@@ -11,6 +11,7 @@ use App\Domain\AgentProtocol\Events\EscrowDisputeResolved;
 use App\Domain\AgentProtocol\Events\EscrowFundsDeposited;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EscrowAggregateTest extends TestCase
@@ -35,7 +36,7 @@ class EscrowAggregateTest extends TestCase
         $this->receiverAgentId = 'agent_receiver_' . uniqid();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -60,7 +61,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertFalse($aggregate->isFullyFunded());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_escrow_with_conditions()
     {
         $conditions = [
@@ -83,7 +84,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals($conditions, $aggregate->getConditions());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_escrow_with_expiration()
     {
         $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
@@ -104,7 +105,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertFalse($aggregate->hasExpired());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_zero_amount()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -120,7 +121,7 @@ class EscrowAggregateTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_past_expiration_date()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -137,7 +138,7 @@ class EscrowAggregateTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_can_deposit_funds()
     {
         $aggregate = EscrowAggregate::create(
@@ -157,7 +158,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals('partially_funded', $aggregate->getStatus());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_deposit_full_amount()
     {
         $aggregate = EscrowAggregate::create(
@@ -177,7 +178,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals('funded', $aggregate->getStatus());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_deposit_in_multiple_transactions()
     {
         $aggregate = EscrowAggregate::create(
@@ -198,7 +199,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertTrue($aggregate->isFullyFunded());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_negative_deposit()
     {
         $aggregate = EscrowAggregate::create(
@@ -216,7 +217,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->deposit(-100.00, $this->senderAgentId);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_release_funds()
     {
         $aggregate = EscrowAggregate::create(
@@ -237,7 +238,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertNotNull($aggregate->getReleasedAt());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_releasing_unfunded_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -255,7 +256,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->release($this->senderAgentId, 'Test');
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_releasing_already_released_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -276,7 +277,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->release($this->senderAgentId, 'Second release');
     }
 
-    /** @test */
+    #[Test]
     public function it_can_raise_dispute()
     {
         $aggregate = EscrowAggregate::create(
@@ -302,7 +303,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals('Product not as described', $aggregate->getDisputeReason());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_disputing_unfunded_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -320,7 +321,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->dispute($this->receiverAgentId, 'Test');
     }
 
-    /** @test */
+    #[Test]
     public function it_can_resolve_dispute_with_release_to_receiver()
     {
         $aggregate = EscrowAggregate::create(
@@ -347,7 +348,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals(['receiver' => 5000.00], $aggregate->getResolutionAllocation());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_resolve_dispute_with_return_to_sender()
     {
         $aggregate = EscrowAggregate::create(
@@ -374,7 +375,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals(['sender' => 5000.00], $aggregate->getResolutionAllocation());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_resolve_dispute_with_split()
     {
         $aggregate = EscrowAggregate::create(
@@ -401,7 +402,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals(['sender' => 2000.00, 'receiver' => 3000.00], $aggregate->getResolutionAllocation());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_resolving_non_disputed_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -421,7 +422,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->resolveDispute('arbitrator', 'split', ['sender' => 2500, 'receiver' => 2500]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_expire_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -441,7 +442,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals('expired', $aggregate->getStatus());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_expiring_released_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -462,7 +463,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->expire();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_cancel_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -481,7 +482,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertEquals('cancelled', $aggregate->getStatus());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_cancelling_released_escrow()
     {
         $aggregate = EscrowAggregate::create(
@@ -502,7 +503,7 @@ class EscrowAggregateTest extends TestCase
         $aggregate->cancel($this->senderAgentId, 'Test');
     }
 
-    /** @test */
+    #[Test]
     public function it_tracks_events_correctly()
     {
         $aggregate = EscrowAggregate::create(
@@ -527,7 +528,7 @@ class EscrowAggregateTest extends TestCase
         $this->assertInstanceOf(EscrowDisputeResolved::class, $events[3]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_reconstituted_from_events()
     {
         // Create and persist initial aggregate

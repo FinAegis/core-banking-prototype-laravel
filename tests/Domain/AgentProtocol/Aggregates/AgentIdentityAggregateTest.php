@@ -64,8 +64,8 @@ class AgentIdentityAggregateTest extends TestCase
 
         $capabilities = $aggregate->getCapabilities();
         $this->assertArrayHasKey('payment.transfer', $capabilities);
-        $this->assertEquals('1.0.0', $capabilities['payment.transfer']['version']);
         $this->assertEquals(['max_amount' => 10000], $capabilities['payment.transfer']['parameters']);
+        $this->assertEquals(['AP2', 'A2A'], $capabilities['payment.transfer']['supported_protocols']);
         $this->assertTrue($aggregate->hasCapability('payment.transfer'));
         $this->assertFalse($aggregate->hasCapability('payment.escrow'));
     }
@@ -148,9 +148,11 @@ class AgentIdentityAggregateTest extends TestCase
 
         $capabilities = $aggregate->getCapabilities();
 
-        // Latest version should overwrite previous
-        $this->assertEquals('2.0.0', $capabilities['payment.transfer']['version']);
-        $this->assertEquals(50000, $capabilities['payment.transfer']['parameters']['max_amount']);
+        // Each capability is stored with its full ID
+        $this->assertArrayHasKey('payment.transfer.v1', $capabilities);
+        $this->assertArrayHasKey('payment.transfer.v2', $capabilities);
+        $this->assertEquals(10000, $capabilities['payment.transfer.v1']['parameters']['max_amount']);
+        $this->assertEquals(50000, $capabilities['payment.transfer.v2']['parameters']['max_amount']);
         $this->assertArrayHasKey('messaging.a2a', $capabilities);
     }
 }

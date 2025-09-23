@@ -11,6 +11,7 @@ use App\Domain\AgentProtocol\Events\TransactionInitiated;
 use App\Domain\AgentProtocol\Events\TransactionValidated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AgentTransactionAggregateTest extends TestCase
@@ -32,7 +33,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->toAgentId = 'agent_receiver_' . uniqid();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_initiate_direct_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -56,7 +57,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals('initiated', $aggregate->getStatus());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_initiate_escrow_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -76,7 +77,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertTrue($aggregate->isEscrowTransaction());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_zero_amount()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -92,7 +93,7 @@ class AgentTransactionAggregateTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_negative_amount()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -108,7 +109,7 @@ class AgentTransactionAggregateTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_invalid_type()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -124,7 +125,7 @@ class AgentTransactionAggregateTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_can_validate_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -151,7 +152,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals($validationData, $metadata['validation']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_validating_non_initiated_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -171,7 +172,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->validate(); // Try to validate again
     }
 
-    /** @test */
+    #[Test]
     public function it_can_calculate_fees()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -195,7 +196,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals('network', $fees[1]['type']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_negative_fee()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -213,7 +214,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->calculateFees(-10.00, 'processing');
     }
 
-    /** @test */
+    #[Test]
     public function it_can_hold_funds_in_escrow()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -233,7 +234,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertTrue($aggregate->hasEscrowHeld());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_holding_escrow_for_non_escrow_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -253,7 +254,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->holdInEscrow(1000.00);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_holding_escrow_amount_exceeds_transaction_amount()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -273,7 +274,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->holdInEscrow(2000.00); // More than transaction amount
     }
 
-    /** @test */
+    #[Test]
     public function it_can_release_funds_from_escrow()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -293,7 +294,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertFalse($aggregate->hasEscrowHeld());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_releasing_escrow_without_holding()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -311,7 +312,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->releaseFromEscrow('system', 'test');
     }
 
-    /** @test */
+    #[Test]
     public function it_can_complete_direct_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -331,7 +332,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals('completed', $aggregate->getStatus());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_complete_escrow_transaction_after_release()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -352,7 +353,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals('completed', $aggregate->getStatus());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_completing_escrow_with_held_funds()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -373,7 +374,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->complete();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_fail_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -393,7 +394,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals('Insufficient funds', $aggregate->getFailureReason());
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_failing_completed_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -414,7 +415,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->fail('Test');
     }
 
-    /** @test */
+    #[Test]
     public function it_can_add_split_recipients()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -436,7 +437,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals(1000.00, array_sum(array_column($splits, 'amount')));
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_split_exceeds_transaction_amount()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -456,7 +457,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->addSplitRecipient('agent_2', 600.00, 'fixed'); // Total would be 1200
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_when_adding_split_to_non_split_transaction()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -474,7 +475,7 @@ class AgentTransactionAggregateTest extends TestCase
         $aggregate->addSplitRecipient('agent_1', 500.00, 'fixed');
     }
 
-    /** @test */
+    #[Test]
     public function it_stores_metadata_correctly()
     {
         $metadata = [
@@ -501,7 +502,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertEquals(['urgent', 'verified'], $storedMetadata['tags']);
     }
 
-    /** @test */
+    #[Test]
     public function it_tracks_events_correctly()
     {
         $aggregate = AgentTransactionAggregate::initiate(
@@ -526,7 +527,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->assertInstanceOf(TransactionCompleted::class, $events[3]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_reconstituted_from_events()
     {
         // Create and persist initial aggregate

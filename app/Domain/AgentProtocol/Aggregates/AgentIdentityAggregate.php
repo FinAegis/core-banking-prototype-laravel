@@ -113,11 +113,12 @@ class AgentIdentityAggregate extends AggregateRoot
 
     protected function applyCapabilityAdvertised(CapabilityAdvertised $event): void
     {
-        $this->capabilities[$event->capability] = [
-            'version'       => $event->version,
-            'parameters'    => $event->parameters,
-            'metadata'      => $event->metadata,
-            'advertised_at' => now()->toIso8601String(),
+        $this->capabilities[$event->capabilityId] = [
+            'endpoints'            => $event->endpoints,
+            'parameters'           => $event->parameters,
+            'required_permissions' => $event->requiredPermissions,
+            'supported_protocols'  => $event->supportedProtocols,
+            'advertised_at'        => $event->advertisedAt,
         ];
     }
 

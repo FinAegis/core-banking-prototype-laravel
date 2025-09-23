@@ -13,6 +13,7 @@ use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AgentWalletServiceTest extends TestCase
@@ -28,6 +29,9 @@ class AgentWalletServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Clear cache to ensure test isolation
+        Cache::flush();
 
         $this->service = new AgentWalletService();
         $this->agentId1 = 'agent_' . uniqid();
@@ -53,7 +57,7 @@ class AgentWalletServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_wallet_with_default_currency()
     {
         $wallet = $this->service->createWallet(
@@ -70,7 +74,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertTrue($wallet->is_active);
     }
 
-    /** @test */
+    #[Test]
     public function it_creates_wallet_with_custom_currency()
     {
         $wallet = $this->service->createWallet(
@@ -85,7 +89,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(['type' => 'business'], $wallet->metadata);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_unsupported_currency()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -97,7 +101,7 @@ class AgentWalletServiceTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_gets_wallet_balance()
     {
         $wallet = $this->service->createWallet(
@@ -115,7 +119,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(1500.00, $balance['total']);
     }
 
-    /** @test */
+    #[Test]
     public function it_gets_balance_with_currency_conversion()
     {
         Cache::flush(); // Clear cache to avoid conflicts
@@ -136,7 +140,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(0.85, $balance['converted']['exchange_rate']);
     }
 
-    /** @test */
+    #[Test]
     public function it_transfers_funds_between_wallets_same_currency()
     {
         $wallet1 = $this->service->createWallet(
@@ -176,7 +180,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(800.00, $wallet2->available_balance);
     }
 
-    /** @test */
+    #[Test]
     public function it_transfers_funds_with_currency_conversion()
     {
         $wallet1 = $this->service->createWallet(
@@ -219,7 +223,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(585.00, $wallet2->available_balance);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_transfer_with_insufficient_balance()
     {
         $wallet1 = $this->service->createWallet(
@@ -244,7 +248,7 @@ class AgentWalletServiceTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_holds_funds_for_escrow()
     {
         $wallet = $this->service->createWallet(
@@ -271,7 +275,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(300.00, $aggregate->getHeldBalance());
     }
 
-    /** @test */
+    #[Test]
     public function it_releases_held_funds()
     {
         $wallet = $this->service->createWallet(
@@ -301,7 +305,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(1000.00, $wallet->total_balance);
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_hold_with_insufficient_available_balance()
     {
         $wallet = $this->service->createWallet(
@@ -320,7 +324,7 @@ class AgentWalletServiceTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_release_with_insufficient_held_balance()
     {
         $wallet = $this->service->createWallet(
@@ -345,7 +349,7 @@ class AgentWalletServiceTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_gets_supported_currencies()
     {
         $currencies = $this->service->getSupportedCurrencies();
@@ -357,7 +361,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertContains('JPY', $currencies);
     }
 
-    /** @test */
+    #[Test]
     public function it_checks_if_currency_is_supported()
     {
         $this->assertTrue($this->service->isCurrencySupported('USD'));
@@ -367,7 +371,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertFalse($this->service->isCurrencySupported('BTC'));
     }
 
-    /** @test */
+    #[Test]
     public function it_gets_transaction_history()
     {
         $wallet1 = $this->service->createWallet(
@@ -416,7 +420,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(1.00, $history[1]['fee']); // 1% fee for outgoing
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_transaction_rollback_on_failure()
     {
         $wallet1 = $this->service->createWallet(
@@ -449,7 +453,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertCount(0, $transactions);
     }
 
-    /** @test */
+    #[Test]
     public function it_uses_cached_exchange_rates()
     {
         Cache::flush(); // Clear cache first
@@ -474,7 +478,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(0.90, $rate2); // Should use our cached value
     }
 
-    /** @test */
+    #[Test]
     public function it_determines_correct_fee_type()
     {
         // Create third agent for international transfer test
@@ -527,7 +531,7 @@ class AgentWalletServiceTest extends TestCase
         $this->assertEquals(2.50, $transaction2->fee_amount); // 2.5%
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_concurrent_transfers_with_locks()
     {
         $wallet = $this->service->createWallet(
