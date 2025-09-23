@@ -118,4 +118,5 @@ class TransactionProjector extends Projector
                 ]
             );
         }
-    }}
+    }
+}
