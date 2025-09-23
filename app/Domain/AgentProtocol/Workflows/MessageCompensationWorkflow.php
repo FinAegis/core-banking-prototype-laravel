@@ -21,10 +21,10 @@ class MessageCompensationWorkflow extends Workflow
             yield Workflow::timer(1); // Simulate some work
 
             return [
-                'compensated' => true,
-                'messageId' => $request->messageId,
+                'compensated'    => true,
+                'messageId'      => $request->messageId,
                 'originalStatus' => $result->status,
-                'compensatedAt' => now()->toIso8601String(),
+                'compensatedAt'  => now()->toIso8601String(),
             ];
         });
     }

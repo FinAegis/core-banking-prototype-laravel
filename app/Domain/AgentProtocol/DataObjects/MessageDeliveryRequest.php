@@ -27,20 +27,20 @@ class MessageDeliveryRequest
     public function toArray(): array
     {
         return [
-            'messageId' => $this->messageId,
-            'fromAgentId' => $this->fromAgentId,
-            'toAgentId' => $this->toAgentId,
-            'messageType' => $this->messageType,
-            'payload' => $this->payload,
-            'headers' => $this->headers,
-            'priority' => $this->priority,
-            'correlationId' => $this->correlationId,
-            'replyTo' => $this->replyTo,
+            'messageId'              => $this->messageId,
+            'fromAgentId'            => $this->fromAgentId,
+            'toAgentId'              => $this->toAgentId,
+            'messageType'            => $this->messageType,
+            'payload'                => $this->payload,
+            'headers'                => $this->headers,
+            'priority'               => $this->priority,
+            'correlationId'          => $this->correlationId,
+            'replyTo'                => $this->replyTo,
             'requiresAcknowledgment' => $this->requiresAcknowledgment,
-            'acknowledgmentTimeout' => $this->acknowledgmentTimeout,
-            'queueName' => $this->queueName,
-            'enableCompensation' => $this->enableCompensation,
-            'metadata' => $this->metadata,
+            'acknowledgmentTimeout'  => $this->acknowledgmentTimeout,
+            'queueName'              => $this->queueName,
+            'enableCompensation'     => $this->enableCompensation,
+            'metadata'               => $this->metadata,
         ];
     }
 }
