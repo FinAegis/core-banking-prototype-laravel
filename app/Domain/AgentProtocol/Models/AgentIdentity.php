@@ -4,12 +4,24 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Models;
 
+use Database\Factories\AgentIdentityFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AgentIdentity extends Model
 {
+    use HasFactory;
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return AgentIdentityFactory::new();
+    }
+
     protected $table = 'agent_identities';
 
     protected $fillable = [

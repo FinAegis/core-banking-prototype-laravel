@@ -28,9 +28,8 @@ class FraudDetectionService
         'time_anomaly'       => ['weight' => 0.10, 'enabled' => true],
     ];
 
-    public function __construct(
-        private readonly ReputationService $reputationService
-    ) {
+    public function __construct()
+    {
     }
 
     /**
@@ -178,16 +177,37 @@ class FraudDetectionService
     private function checkReputation(string $agentId): array
     {
         try {
-            $reputation = $this->reputationService->getAgentReputation($agentId);
+            // For now, get reputation from Agent model directly to avoid event sourcing issues
+            $agent = Agent::where('agent_id', $agentId)->first();
+
+            if (! $agent) {
+                // Unknown agent, high risk
+                return [
+                    'score'            => 80.0,
+                    'reputation_score' => 0,
+                    'trust_level'      => 'unknown',
+                    'is_trusted'       => false,
+                ];
+            }
+
+            $reputationScore = $agent->reputation_score ?? 50.0;
 
             // Invert reputation score for risk (low reputation = high risk)
-            $riskScore = 100 - $reputation->score;
+            $riskScore = 100 - $reputationScore;
+
+            $trustLevel = match (true) {
+                $reputationScore >= 90 => 'excellent',
+                $reputationScore >= 75 => 'good',
+                $reputationScore >= 50 => 'neutral',
+                $reputationScore >= 25 => 'low',
+                default                => 'poor',
+            };
 
             return [
                 'score'            => $riskScore,
-                'reputation_score' => $reputation->score,
-                'trust_level'      => $reputation->trustLevel,
-                'is_trusted'       => $reputation->score >= 70,
+                'reputation_score' => $reputationScore,
+                'trust_level'      => $trustLevel,
+                'is_trusted'       => $reputationScore >= 70,
             ];
         } catch (Exception $e) {
             // Unknown agent, high risk
@@ -343,29 +363,43 @@ class FraudDetectionService
     private function getRecentTransactionCount(string $agentId, int $minutes): int
     {
         return DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
+            ->where('from_agent_id', $agentId)
             ->where('created_at', '>', now()->subMinutes($minutes))
             ->count();
     }
 
     private function getTransactionStats(string $agentId): array
     {
-        $stats = DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
-            ->selectRaw('COUNT(*) as count, AVG(amount) as avg, STDDEV(amount) as std_dev')
-            ->first();
+        $transactions = DB::table('agent_transactions')
+            ->where('from_agent_id', $agentId)
+            ->pluck('amount')
+            ->toArray();
+
+        $count = count($transactions);
+        $avg = $count > 0 ? array_sum($transactions) / $count : 0;
+
+        // Calculate standard deviation manually for database compatibility
+        $stdDev = 0;
+        if ($count > 1) {
+            $variance = 0;
+            foreach ($transactions as $amount) {
+                $variance += pow($amount - $avg, 2);
+            }
+            $variance /= ($count - 1);
+            $stdDev = sqrt($variance);
+        }
 
         return [
-            'count'   => $stats->count ?? 0,
-            'avg'     => $stats->avg ?? 0,
-            'std_dev' => $stats->std_dev ?? 0,
+            'count'   => $count,
+            'avg'     => $avg,
+            'std_dev' => $stdDev,
         ];
     }
 
     private function getSmallTransactionCount(string $agentId, int $minutes): int
     {
         return DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
+            ->where('from_agent_id', $agentId)
             ->where('amount', '<', 100)
             ->where('created_at', '>', now()->subMinutes($minutes))
             ->count();
@@ -374,7 +408,7 @@ class FraudDetectionService
     private function hasSequentialAmounts(string $agentId): bool
     {
         $recentAmounts = DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
+            ->where('from_agent_id', $agentId)
             ->where('created_at', '>', now()->subHours(1))
             ->orderBy('created_at', 'desc')
             ->limit(5)
@@ -415,11 +449,11 @@ class FraudDetectionService
     private function getRecentLocations(string $agentId): array
     {
         return DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
+            ->where('from_agent_id', $agentId)
             ->where('created_at', '>', now()->subDays(30))
-            ->whereNotNull('country')
-            ->distinct('country')
-            ->pluck('country')
+            ->whereNotNull('metadata->country')
+            ->distinct('metadata->country')
+            ->pluck('metadata->country')
             ->toArray();
     }
 
@@ -427,9 +461,9 @@ class FraudDetectionService
     {
         // Simplified check - in production, calculate actual distance and time
         $lastTransaction = DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
+            ->where('from_agent_id', $agentId)
             ->where('created_at', '>', now()->subHours(2))
-            ->whereNotNull('country')
+            ->whereNotNull('metadata->country')
             ->orderBy('created_at', 'desc')
             ->first();
 
@@ -438,28 +472,51 @@ class FraudDetectionService
         }
 
         // If countries are different and less than 2 hours apart
-        return $lastTransaction->country !== ($location['country'] ?? null);
+        $lastCountry = json_decode($lastTransaction->metadata, true)['country'] ?? null;
+
+        return $lastCountry !== ($location['country'] ?? null);
     }
 
     private function getTypicalActivityHours(string $agentId): array
     {
-        $hours = DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
-            ->groupBy('hour')
-            ->having('count', '>', 2)
-            ->pluck('hour')
-            ->toArray();
+        $transactions = DB::table('agent_transactions')
+            ->where('from_agent_id', $agentId)
+            ->get();
+
+        $hourCounts = [];
+        foreach ($transactions as $transaction) {
+            $hour = (int) date('H', strtotime($transaction->created_at));
+            if (! isset($hourCounts[$hour])) {
+                $hourCounts[$hour] = 0;
+            }
+            $hourCounts[$hour]++;
+        }
+
+        $hours = [];
+        foreach ($hourCounts as $hour => $count) {
+            if ($count > 2) {
+                $hours[] = $hour;
+            }
+        }
 
         return $hours ?: range(9, 17); // Default business hours
     }
 
     private function hasWeekendActivity(string $agentId): bool
     {
-        return DB::table('agent_transactions')
-            ->where('agent_id', $agentId)
-            ->whereRaw('DAYOFWEEK(created_at) IN (1, 7)')
-            ->exists();
+        $transactions = DB::table('agent_transactions')
+            ->where('from_agent_id', $agentId)
+            ->get();
+
+        foreach ($transactions as $transaction) {
+            $dayOfWeek = date('w', strtotime($transaction->created_at));
+            // 0 = Sunday, 6 = Saturday in PHP's date('w')
+            if ($dayOfWeek == 0 || $dayOfWeek == 6) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function cacheAnalysis(string $transactionId, array $analysis): void

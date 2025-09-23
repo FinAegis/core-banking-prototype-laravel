@@ -160,7 +160,7 @@ Implement full compliance with Agent Payments Protocol (AP2) and Agent-to-Agent 
   - [ ] Create agent session handling
   - [ ] Build permission scoping for agents
 
-### Phase 4: Trust & Security (Week 4-5) 🚧 IN PROGRESS (September 23, 2025)
+### Phase 4: Trust & Security (Week 4-5) 🚧 IN PROGRESS (September 23, 2025) - 70% COMPLETE
 
 #### Reputation System ✅ PARTIALLY COMPLETED
 - [x] **Agent Reputation Service** ✅ (September 23, 2025)
@@ -173,12 +173,35 @@ Implement full compliance with Agent Payments Protocol (AP2) and Agent-to-Agent 
   - [x] Create database migrations with all reputation tables
   - [x] Implement data objects (ReputationScore, ReputationUpdate)
 
-#### Security Features
-- [ ] **Transaction Security**
-  - [ ] Implement digital signatures for agent transactions
-  - [ ] Add end-to-end encryption for sensitive data
-  - [ ] Create transaction verification service
-  - [ ] Build fraud detection for agent transactions
+#### Security Features ✅ COMPLETED (September 23, 2025)
+- [x] **Transaction Security** ✅
+  - [x] Implement digital signatures for agent transactions (DigitalSignatureService)
+  - [x] Add end-to-end encryption for sensitive data (AES-256-GCM in EncryptionService)
+  - [x] Create transaction verification service (TransactionVerificationService)
+  - [x] Build fraud detection for agent transactions (Enhanced FraudDetectionService)
+
+#### Implementation Files Created (Phase 4 - Security)
+- **Services:**
+  - `app/Domain/AgentProtocol/Services/DigitalSignatureService.php`
+  - `app/Domain/AgentProtocol/Services/TransactionVerificationService.php`
+
+- **Workflow Activities:**
+  - `app/Domain/AgentProtocol/Workflows/Activities/DecryptTransactionActivity.php`
+  - `app/Domain/AgentProtocol/Workflows/Activities/GetRecentTransactionsActivity.php`
+  - `app/Domain/AgentProtocol/Workflows/Activities/LogSecurityFailureActivity.php`
+
+- **Models:**
+  - `app/Models/SecurityAuditLog.php`
+
+- **Database:**
+  - `database/migrations/2025_09_23_135028_create_security_audit_logs_table.php`
+
+- **Tests:**
+  - `tests/Unit/AgentProtocol/Services/DigitalSignatureServiceTest.php`
+  - `tests/Unit/AgentProtocol/Services/TransactionVerificationServiceTest.php`
+
+- **Documentation:**
+  - `docs/agent-protocol-phase4.md` - Comprehensive Phase 4 implementation guide
 
 #### Compliance & Audit
 - [ ] **Agent Compliance**

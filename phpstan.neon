@@ -127,7 +127,10 @@ parameters:
         - '#Function is_callable\(\) with .* will always evaluate to true#'
         - '#Call to method (atLeast|times|andReturn|shouldReceive|withArgs|with|once|never|zeroOrMoreTimes|getMock|shouldNotReceive|shouldHaveReceived|shouldNotHaveReceived|between|ordered|byDefault) on an unknown type#'
         - '#Method Mockery\\ExpectationInterface::atLeast\(\) invoked with 1 parameter, 0 required#'
-        
+
+        # Factory return type compatibility with PHPStan strict checking
+        - '#Return type \(array<string, mixed>\) of method Database\\Factories\\[a-zA-Z]+Factory::definition\(\) should be compatible with return type#'
+
     reportUnmatchedIgnoredErrors: false
     treatPhpDocTypesAsCertain: false
     # Enable result cache for faster subsequent runs

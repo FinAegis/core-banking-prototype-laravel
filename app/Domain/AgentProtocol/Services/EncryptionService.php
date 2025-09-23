@@ -115,6 +115,14 @@ class EncryptionService
     }
 
     /**
+     * Check if a cipher is supported.
+     */
+    public function isCipherSupported(string $cipher): bool
+    {
+        return array_key_exists($cipher, self::CIPHER_METHODS);
+    }
+
+    /**
      * Generate a new encryption key.
      */
     public function generateKey(string $keyId, string $cipher = 'AES-256-GCM'): string
