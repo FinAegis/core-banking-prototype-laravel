@@ -6,6 +6,7 @@ use App\Domain\Account\Events\HasMoney;
 use App\Domain\Account\Events\MoneySubtracted;
 use App\Domain\Account\Repositories\TurnoverRepository;
 use Illuminate\Support\Carbon;
+use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 class UpdateTurnover
 {
@@ -14,11 +15,11 @@ class UpdateTurnover
     ) {
     }
 
-    public function __invoke(HasMoney $event): void
+    public function __invoke(HasMoney&ShouldBeStored $event): void
     {
         $amount = $event instanceof MoneySubtracted
-            ? $event->money->invert()->getAmount()
-            : $event->money->getAmount();
+            ? $event->getMoney()->invert()->getAmount()
+            : $event->getMoney()->getAmount();
 
         $this->turnoverRepository->incrementForDateById(
             Carbon::now(),

@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Domain\Account\Aggregates\LedgerAggregate;
+use App\Domain\Asset\Aggregates\AssetTransactionAggregate;
+use App\Domain\Account\DataObjects\AccountUuid;
+use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Services\AccountService;
 use App\Domain\Asset\Models\Asset;
@@ -144,20 +146,21 @@ class DemoDepositCommand extends Command
 
             if (! $instant || ! app()->environment('demo')) {
                 // Regular event sourcing deposit
-                $ledger = app(LedgerAggregate::class);
+                $transactionAggregate = app(AssetTransactionAggregate::class);
                 $transactionId = Str::uuid()->toString();
 
-                $ledger->retrieve($account->uuid)
-                    ->addMoney(
+                $transactionAggregate->retrieve($transactionId)
+                    ->credit(
+                        accountUuid: AccountUuid::fromString($account->uuid),
                         assetCode: $assetCode,
-                        amount: $amountInCents,
+                        money: new Money($amountInCents),
                         description: $description,
-                        transactionId: $transactionId,
                         metadata: [
                             'type'        => 'demo_deposit',
                             'created_by'  => 'console_command',
                             'environment' => config('app.env'),
                             'instant'     => $instant,
+                            'transaction_id' => $transactionId,
                         ]
                     )
                     ->persist();
