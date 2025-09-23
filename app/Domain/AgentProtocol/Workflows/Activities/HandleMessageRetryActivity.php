@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\AgentProtocol\Workflows\Activities;
 
 use App\Domain\AgentProtocol\Aggregates\A2AMessageAggregate;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use RuntimeException;
 use Workflow\Activity;
 
 class HandleMessageRetryActivity extends Activity
@@ -25,7 +27,7 @@ class HandleMessageRetryActivity extends Activity
     ): array {
         // Validate retry count
         if ($retryCount > self::MAX_RETRY_ATTEMPTS) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Maximum retry attempts ({self::MAX_RETRY_ATTEMPTS}) exceeded for message {$messageId}"
             );
         }
@@ -35,7 +37,7 @@ class HandleMessageRetryActivity extends Activity
             $aggregate = A2AMessageAggregate::retrieve($messageId);
             $aggregate->retry($reason, $retryCount, $nextDelay);
             $aggregate->persist();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning('Failed to update aggregate for message retry', [
                 'messageId'  => $messageId,
                 'retryCount' => $retryCount,
@@ -62,11 +64,11 @@ class HandleMessageRetryActivity extends Activity
         ]);
 
         return [
-            'retriedAt'     => now()->toIso8601String(),
-            'retryCount'    => $retryCount,
-            'nextDelay'     => $nextDelay,
-            'scheduledAt'   => $scheduledAt,
-            'maxRetries'    => self::MAX_RETRY_ATTEMPTS,
+            'retriedAt'        => now()->toIso8601String(),
+            'retryCount'       => $retryCount,
+            'nextDelay'        => $nextDelay,
+            'scheduledAt'      => $scheduledAt,
+            'maxRetries'       => self::MAX_RETRY_ATTEMPTS,
             'remainingRetries' => self::MAX_RETRY_ATTEMPTS - $retryCount,
         ];
     }
@@ -79,12 +81,12 @@ class HandleMessageRetryActivity extends Activity
     ): void {
         $key = "agent:message:{$messageId}:retry";
         $retryInfo = [
-            'messageId'    => $messageId,
-            'retryCount'   => $retryCount,
-            'lastReason'   => $reason,
-            'nextDelay'    => $nextDelay,
-            'lastRetryAt'  => now()->toIso8601String(),
-            'nextRetryAt'  => now()->addSeconds($nextDelay)->toIso8601String(),
+            'messageId'   => $messageId,
+            'retryCount'  => $retryCount,
+            'lastReason'  => $reason,
+            'nextDelay'   => $nextDelay,
+            'lastRetryAt' => now()->toIso8601String(),
+            'nextRetryAt' => now()->addSeconds($nextDelay)->toIso8601String(),
         ];
 
         Redis::hMSet($key, $retryInfo);
@@ -93,10 +95,10 @@ class HandleMessageRetryActivity extends Activity
         // Add to retry history
         $historyKey = "agent:message:{$messageId}:retry:history";
         Redis::lPush($historyKey, json_encode([
-            'attempt'  => $retryCount,
-            'reason'   => $reason,
+            'attempt'   => $retryCount,
+            'reason'    => $reason,
             'retriedAt' => now()->toIso8601String(),
-            'delay'    => $nextDelay,
+            'delay'     => $nextDelay,
         ]));
         Redis::expire($historyKey, 86400);
     }
@@ -148,7 +150,7 @@ class HandleMessageRetryActivity extends Activity
     }
 
     /**
-     * Calculate exponential backoff delay with jitter
+     * Calculate exponential backoff delay with jitter.
      */
     public static function calculateBackoffDelay(int $retryCount): int
     {
@@ -164,7 +166,7 @@ class HandleMessageRetryActivity extends Activity
     }
 
     /**
-     * Check if retry should be attempted based on error type
+     * Check if retry should be attempted based on error type.
      */
     public static function shouldRetry(string $errorType, int $retryCount): bool
     {

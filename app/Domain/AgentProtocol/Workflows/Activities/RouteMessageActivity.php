@@ -7,6 +7,7 @@ namespace App\Domain\AgentProtocol\Workflows\Activities;
 use App\Domain\AgentProtocol\Services\AgentDiscoveryService;
 use App\Domain\AgentProtocol\Services\AgentRegistryService;
 use Illuminate\Support\Facades\Cache;
+use RuntimeException;
 use Workflow\Activity;
 
 class RouteMessageActivity extends Activity
@@ -39,7 +40,7 @@ class RouteMessageActivity extends Activity
         $agentInfo = $this->discoveryService->discoverAgent($toAgentId);
 
         if ($agentInfo === null) {
-            throw new \RuntimeException("Unable to discover agent: {$toAgentId}");
+            throw new RuntimeException("Unable to discover agent: {$toAgentId}");
         }
 
         // Determine optimal routing path
@@ -50,14 +51,14 @@ class RouteMessageActivity extends Activity
 
         // Build routing result
         $result = [
-            'endpoint'       => $endpoint,
-            'path'           => $routingPath,
-            'protocol'       => $agentInfo['protocol'] ?? 'A2A',
+            'endpoint'        => $endpoint,
+            'path'            => $routingPath,
+            'protocol'        => $agentInfo['protocol'] ?? 'A2A',
             'protocolVersion' => $agentInfo['protocolVersion'] ?? '1.0.0',
-            'capabilities'   => $agentInfo['capabilities'] ?? [],
-            'authentication' => $this->getAuthenticationRequirements($agentInfo),
-            'rateLimit'      => $this->getRateLimitInfo($agentInfo),
-            'metadata'       => [
+            'capabilities'    => $agentInfo['capabilities'] ?? [],
+            'authentication'  => $this->getAuthenticationRequirements($agentInfo),
+            'rateLimit'       => $this->getRateLimitInfo($agentInfo),
+            'metadata'        => [
                 'discoveredAt' => now()->toIso8601String(),
                 'ttl'          => 300, // 5 minutes cache TTL
             ],
@@ -146,15 +147,15 @@ class RouteMessageActivity extends Activity
             return $endpoints['primary'];
         }
 
-        throw new \RuntimeException('No suitable endpoint found for agent: ' . $agentInfo['agentId']);
+        throw new RuntimeException('No suitable endpoint found for agent: ' . $agentInfo['agentId']);
     }
 
     private function getAuthenticationRequirements(array $agentInfo): array
     {
         return [
-            'type'        => $agentInfo['authType'] ?? 'bearer',
-            'required'    => $agentInfo['authRequired'] ?? true,
-            'mechanisms'  => $agentInfo['authMechanisms'] ?? ['oauth2', 'api-key'],
+            'type'          => $agentInfo['authType'] ?? 'bearer',
+            'required'      => $agentInfo['authRequired'] ?? true,
+            'mechanisms'    => $agentInfo['authMechanisms'] ?? ['oauth2', 'api-key'],
             'tokenEndpoint' => $agentInfo['tokenEndpoint'] ?? null,
         ];
     }
@@ -162,10 +163,10 @@ class RouteMessageActivity extends Activity
     private function getRateLimitInfo(array $agentInfo): array
     {
         return [
-            'enabled'       => $agentInfo['rateLimitEnabled'] ?? true,
+            'enabled'           => $agentInfo['rateLimitEnabled'] ?? true,
             'requestsPerMinute' => $agentInfo['rateLimit'] ?? 60,
-            'burstLimit'    => $agentInfo['burstLimit'] ?? 10,
-            'retryAfter'    => $agentInfo['retryAfter'] ?? 60,
+            'burstLimit'        => $agentInfo['burstLimit'] ?? 10,
+            'retryAfter'        => $agentInfo['retryAfter'] ?? 60,
         ];
     }
 

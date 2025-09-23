@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\AgentProtocol\Workflows\Activities;
 
 use App\Domain\AgentProtocol\Services\AgentWebhookService;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class DeliverMessageActivity extends Activity
@@ -43,7 +45,7 @@ class DeliverMessageActivity extends Activity
                 'webhook'   => $this->deliverViaWebhook($endpoint, $messageId, $payload, $headers),
                 'websocket' => $this->deliverViaWebSocket($endpoint, $messageId, $payload, $headers),
                 'grpc'      => $this->deliverViaGrpc($endpoint, $messageId, $payload, $headers),
-                default     => throw new \RuntimeException("Unsupported delivery method: {$deliveryMethod}")
+                default     => throw new RuntimeException("Unsupported delivery method: {$deliveryMethod}")
             };
 
             $deliveryTime = microtime(true) - $startTime;
@@ -59,12 +61,12 @@ class DeliverMessageActivity extends Activity
         } catch (RequestException $e) {
             $this->logDeliveryFailure($messageId, $endpoint, $e);
 
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Failed to deliver message to {$endpoint}: " . $e->getMessage(),
                 $e->getCode(),
                 $e
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logDeliveryFailure($messageId, $endpoint, $e);
 
             throw $e;
@@ -100,13 +102,13 @@ class DeliverMessageActivity extends Activity
         array $headers
     ): array {
         $defaultHeaders = [
-            'Content-Type'    => 'application/json',
-            'Accept'          => 'application/json',
-            'X-Message-Id'    => $messageId,
-            'X-Protocol'      => 'A2A',
+            'Content-Type'       => 'application/json',
+            'Accept'             => 'application/json',
+            'X-Message-Id'       => $messageId,
+            'X-Protocol'         => 'A2A',
             'X-Protocol-Version' => '1.0.0',
-            'X-Timestamp'     => now()->toIso8601String(),
-            'X-Idempotency-Key' => $messageId,
+            'X-Timestamp'        => now()->toIso8601String(),
+            'X-Idempotency-Key'  => $messageId,
         ];
 
         $mergedHeaders = array_merge($defaultHeaders, $headers);
@@ -124,7 +126,7 @@ class DeliverMessageActivity extends Activity
         $body = $response->getBody()->getContents();
 
         if ($statusCode >= 400) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "HTTP delivery failed with status {$statusCode}: {$body}"
             );
         }
@@ -155,8 +157,8 @@ class DeliverMessageActivity extends Activity
         );
 
         if (! $result['success']) {
-            throw new \RuntimeException(
-                "Webhook delivery failed: " . ($result['error'] ?? 'Unknown error')
+            throw new RuntimeException(
+                'Webhook delivery failed: ' . ($result['error'] ?? 'Unknown error')
             );
         }
 
@@ -171,7 +173,7 @@ class DeliverMessageActivity extends Activity
     ): array {
         // WebSocket implementation would go here
         // For now, throw an exception as it's not yet implemented
-        throw new \RuntimeException('WebSocket delivery not yet implemented');
+        throw new RuntimeException('WebSocket delivery not yet implemented');
     }
 
     private function deliverViaGrpc(
@@ -182,10 +184,10 @@ class DeliverMessageActivity extends Activity
     ): array {
         // gRPC implementation would go here
         // For now, throw an exception as it's not yet implemented
-        throw new \RuntimeException('gRPC delivery not yet implemented');
+        throw new RuntimeException('gRPC delivery not yet implemented');
     }
 
-    private function logDeliveryFailure(string $messageId, string $endpoint, \Exception $e): void
+    private function logDeliveryFailure(string $messageId, string $endpoint, Exception $e): void
     {
         Log::error('Message delivery failed', [
             'messageId'  => $messageId,

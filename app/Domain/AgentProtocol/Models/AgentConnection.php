@@ -24,13 +24,13 @@ class AgentConnection extends Model
     ];
 
     protected $casts = [
-        'latency_ms'       => 'integer',
-        'bandwidth_mbps'   => 'decimal:2',
+        'latency_ms'        => 'integer',
+        'bandwidth_mbps'    => 'decimal:2',
         'reliability_score' => 'decimal:2',
-        'metadata'         => 'array',
-        'last_contact_at'  => 'datetime',
-        'created_at'       => 'datetime',
-        'updated_at'       => 'datetime',
+        'metadata'          => 'array',
+        'last_contact_at'   => 'datetime',
+        'created_at'        => 'datetime',
+        'updated_at'        => 'datetime',
     ];
 
     protected $attributes = [
@@ -43,7 +43,7 @@ class AgentConnection extends Model
     ];
 
     /**
-     * Get the agent that owns this connection
+     * Get the agent that owns this connection.
      */
     public function agent(): BelongsTo
     {
@@ -51,7 +51,7 @@ class AgentConnection extends Model
     }
 
     /**
-     * Get the connected agent
+     * Get the connected agent.
      */
     public function connectedAgent(): BelongsTo
     {
@@ -59,7 +59,7 @@ class AgentConnection extends Model
     }
 
     /**
-     * Check if connection is active
+     * Check if connection is active.
      */
     public function isActive(): bool
     {
@@ -67,7 +67,7 @@ class AgentConnection extends Model
     }
 
     /**
-     * Check if connection is reliable
+     * Check if connection is reliable.
      */
     public function isReliable(): bool
     {

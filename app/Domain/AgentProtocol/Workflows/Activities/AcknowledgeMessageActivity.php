@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Workflows\Activities;
 
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
+use Log;
+use RuntimeException;
 use Workflow\Activity;
 
 class AcknowledgeMessageActivity extends Activity
@@ -48,7 +51,7 @@ class AcknowledgeMessageActivity extends Activity
         }
 
         // Timeout occurred
-        throw new \RuntimeException(
+        throw new RuntimeException(
             "Acknowledgment timeout for message {$messageId} after {$timeout} seconds"
         );
     }
@@ -71,11 +74,11 @@ class AcknowledgeMessageActivity extends Activity
         $this->updateMessageStatus($messageId, 'acknowledged');
 
         return [
-            'acknowledgedAt'    => $acknowledgment['acknowledgedAt'],
-            'acknowledgmentId'  => $acknowledgment['acknowledgmentId'],
-            'acknowledgedBy'    => $acknowledgment['acknowledgedBy'] ?? null,
+            'acknowledgedAt'     => $acknowledgment['acknowledgedAt'],
+            'acknowledgmentId'   => $acknowledgment['acknowledgmentId'],
+            'acknowledgedBy'     => $acknowledgment['acknowledgedBy'] ?? null,
             'acknowledgmentType' => $acknowledgment['type'] ?? 'automatic',
-            'metadata'          => $acknowledgment['metadata'] ?? [],
+            'metadata'           => $acknowledgment['metadata'] ?? [],
         ];
     }
 
@@ -94,9 +97,9 @@ class AcknowledgeMessageActivity extends Activity
             }
 
             return null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log error but don't fail the activity
-            \Log::warning('Failed to check pubsub channel for acknowledgment', [
+            Log::warning('Failed to check pubsub channel for acknowledgment', [
                 'messageId' => $messageId,
                 'error'     => $e->getMessage(),
             ]);
@@ -142,7 +145,7 @@ class AcknowledgeMessageActivity extends Activity
     }
 
     /**
-     * Static method to register an acknowledgment (called by receiving agent)
+     * Static method to register an acknowledgment (called by receiving agent).
      */
     public static function registerAcknowledgment(
         string $messageId,

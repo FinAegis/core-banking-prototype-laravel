@@ -56,7 +56,7 @@ class AgentCapability extends Model
     ];
 
     /**
-     * Get the agent that owns this capability
+     * Get the agent that owns this capability.
      */
     public function agent(): BelongsTo
     {
@@ -64,7 +64,7 @@ class AgentCapability extends Model
     }
 
     /**
-     * Check if capability is active
+     * Check if capability is active.
      */
     public function isActive(): bool
     {
@@ -72,7 +72,7 @@ class AgentCapability extends Model
     }
 
     /**
-     * Check if capability supports a protocol
+     * Check if capability supports a protocol.
      */
     public function supportsProtocol(string $protocol): bool
     {

@@ -52,7 +52,7 @@ class Agent extends Model
     ];
 
     /**
-     * Get the agent's capabilities
+     * Get the agent's capabilities.
      */
     public function agentCapabilities(): HasMany
     {
@@ -60,7 +60,7 @@ class Agent extends Model
     }
 
     /**
-     * Get the agent's connections
+     * Get the agent's connections.
      */
     public function connections(): HasMany
     {
@@ -68,7 +68,7 @@ class Agent extends Model
     }
 
     /**
-     * Get the agent's messages sent
+     * Get the agent's messages sent.
      */
     public function sentMessages(): HasMany
     {
@@ -76,7 +76,7 @@ class Agent extends Model
     }
 
     /**
-     * Get the agent's messages received
+     * Get the agent's messages received.
      */
     public function receivedMessages(): HasMany
     {
@@ -84,7 +84,7 @@ class Agent extends Model
     }
 
     /**
-     * Check if agent is active
+     * Check if agent is active.
      */
     public function isActive(): bool
     {
@@ -92,7 +92,7 @@ class Agent extends Model
     }
 
     /**
-     * Check if agent has a specific capability
+     * Check if agent has a specific capability.
      */
     public function hasCapability(string $capability): bool
     {
@@ -100,7 +100,7 @@ class Agent extends Model
     }
 
     /**
-     * Get the primary endpoint
+     * Get the primary endpoint.
      */
     public function getPrimaryEndpoint(): ?string
     {
@@ -116,7 +116,7 @@ class Agent extends Model
     }
 
     /**
-     * Get endpoint by type
+     * Get endpoint by type.
      */
     public function getEndpoint(string $type): ?string
     {
@@ -124,7 +124,7 @@ class Agent extends Model
     }
 
     /**
-     * Check if agent can relay messages
+     * Check if agent can relay messages.
      */
     public function canRelay(): bool
     {
@@ -132,7 +132,7 @@ class Agent extends Model
     }
 
     /**
-     * Update activity timestamp
+     * Update activity timestamp.
      */
     public function touchActivity(): void
     {
@@ -141,7 +141,7 @@ class Agent extends Model
     }
 
     /**
-     * Scope for active agents
+     * Scope for active agents.
      */
     public function scopeActive($query)
     {
@@ -149,7 +149,7 @@ class Agent extends Model
     }
 
     /**
-     * Scope for agents in a network
+     * Scope for agents in a network.
      */
     public function scopeInNetwork($query, string $networkId)
     {
@@ -157,7 +157,7 @@ class Agent extends Model
     }
 
     /**
-     * Scope for agents in an organization
+     * Scope for agents in an organization.
      */
     public function scopeInOrganization($query, string $organization)
     {
@@ -165,7 +165,7 @@ class Agent extends Model
     }
 
     /**
-     * Scope for agents with capability
+     * Scope for agents with capability.
      */
     public function scopeWithCapability($query, string $capability)
     {

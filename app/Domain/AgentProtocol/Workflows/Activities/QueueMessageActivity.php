@@ -35,11 +35,11 @@ class QueueMessageActivity extends Activity
         $this->updateQueueStatistics($effectiveQueueName);
 
         return [
-            'queuedAt'     => $queuedAt,
-            'queueName'    => $effectiveQueueName,
-            'priority'     => $priority,
-            'position'     => $this->getQueuePosition($messageId, $effectiveQueueName),
-            'queueLength'  => $this->getQueueLength($effectiveQueueName),
+            'queuedAt'      => $queuedAt,
+            'queueName'     => $effectiveQueueName,
+            'priority'      => $priority,
+            'position'      => $this->getQueuePosition($messageId, $effectiveQueueName),
+            'queueLength'   => $this->getQueueLength($effectiveQueueName),
             'estimatedWait' => $this->estimateWaitTime($effectiveQueueName),
         ];
     }

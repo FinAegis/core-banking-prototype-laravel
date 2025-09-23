@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Models\Agent;
-use App\Domain\AgentProtocol\Models\AgentCapability;
+use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +31,7 @@ class AgentDiscoveryService
     }
 
     /**
-     * Discover an agent by ID
+     * Discover an agent by ID.
      */
     public function discoverAgent(string $agentId): ?array
     {
@@ -51,7 +51,7 @@ class AgentDiscoveryService
     }
 
     /**
-     * Discover agents by capability
+     * Discover agents by capability.
      */
     public function discoverByCapability(string $capability, ?string $networkId = null): array
     {
@@ -79,11 +79,11 @@ class AgentDiscoveryService
     }
 
     /**
-     * Discover AP2 configuration for an endpoint
+     * Discover AP2 configuration for an endpoint.
      */
     public function discoverAP2Configuration(string $endpoint): ?array
     {
-        $cacheKey = "ap2:config:" . md5($endpoint);
+        $cacheKey = 'ap2:config:' . md5($endpoint);
 
         return Cache::remember($cacheKey, self::DISCOVERY_CACHE_TTL, function () use ($endpoint) {
             try {
@@ -98,7 +98,7 @@ class AgentDiscoveryService
                         return $config;
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning('Failed to discover AP2 configuration', [
                     'endpoint' => $endpoint,
                     'error'    => $e->getMessage(),
@@ -110,7 +110,7 @@ class AgentDiscoveryService
     }
 
     /**
-     * Refresh discovery cache for an agent
+     * Refresh discovery cache for an agent.
      */
     public function refreshDiscovery(string $agentId): ?array
     {
@@ -121,7 +121,7 @@ class AgentDiscoveryService
     }
 
     /**
-     * Discover remote agent
+     * Discover remote agent.
      */
     private function discoverRemoteAgent(string $agentId): ?array
     {
@@ -133,7 +133,7 @@ class AgentDiscoveryService
                 $url = "{$server}/api/agents/{$agentId}";
                 $response = $this->httpClient->get($url, [
                     'headers' => [
-                        'Accept' => 'application/json',
+                        'Accept'     => 'application/json',
                         'X-Protocol' => 'A2A',
                     ],
                 ]);
@@ -146,7 +146,7 @@ class AgentDiscoveryService
                         return $agentInfo;
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::debug('Remote discovery failed for server', [
                     'server'  => $server,
                     'agentId' => $agentId,
@@ -160,7 +160,7 @@ class AgentDiscoveryService
     }
 
     /**
-     * Discover remote agents by capability
+     * Discover remote agents by capability.
      */
     private function discoverRemoteCapability(string $capability, ?string $networkId): array
     {
@@ -177,7 +177,7 @@ class AgentDiscoveryService
                 $response = $this->httpClient->get("{$server}/api/agents/search", [
                     'query'   => $params,
                     'headers' => [
-                        'Accept' => 'application/json',
+                        'Accept'     => 'application/json',
                         'X-Protocol' => 'A2A',
                     ],
                 ]);
@@ -190,7 +190,7 @@ class AgentDiscoveryService
                         $agents = array_merge($agents, $remoteAgents);
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::debug('Remote capability discovery failed', [
                     'server'     => $server,
                     'capability' => $capability,
@@ -204,7 +204,7 @@ class AgentDiscoveryService
     }
 
     /**
-     * Format agent information
+     * Format agent information.
      */
     private function formatAgentInfo(Agent $agent): array
     {
@@ -228,7 +228,7 @@ class AgentDiscoveryService
     }
 
     /**
-     * Validate AP2 configuration
+     * Validate AP2 configuration.
      */
     private function validateAP2Configuration(array $config): bool
     {

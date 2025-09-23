@@ -6,6 +6,8 @@ namespace App\Domain\AgentProtocol\Workflows\Activities;
 
 use App\Domain\AgentProtocol\DataObjects\MessageDeliveryRequest;
 use App\Domain\AgentProtocol\Services\AgentRegistryService;
+use Exception;
+use JsonException;
 use Workflow\Activity;
 
 class ValidateMessageActivity extends Activity
@@ -95,13 +97,13 @@ class ValidateMessageActivity extends Activity
         }
 
         return [
-            'isValid' => $isValid,
-            'errors'  => $errors,
+            'isValid'  => $isValid,
+            'errors'   => $errors,
             'metadata' => [
-                'validatedAt'  => now()->toIso8601String(),
-                'payloadSize'  => strlen($serializedPayload),
-                'messageType'  => $request->messageType,
-                'priority'     => $request->priority,
+                'validatedAt' => now()->toIso8601String(),
+                'payloadSize' => strlen($serializedPayload),
+                'messageType' => $request->messageType,
+                'priority'    => $request->priority,
             ],
         ];
     }
@@ -115,7 +117,7 @@ class ValidateMessageActivity extends Activity
     {
         try {
             return $this->registryService->agentExists($agentId);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // If registry service is unavailable, allow the message through
             // This ensures the system remains available even if the registry is down
             return true;
@@ -147,7 +149,7 @@ class ValidateMessageActivity extends Activity
             json_encode($payload, JSON_THROW_ON_ERROR);
 
             return true;
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             return false;
         }
     }

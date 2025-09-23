@@ -59,7 +59,7 @@ class AgentMessage extends Model
     ];
 
     /**
-     * Get the sender agent
+     * Get the sender agent.
      */
     public function fromAgent(): BelongsTo
     {
@@ -67,7 +67,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Get the recipient agent
+     * Get the recipient agent.
      */
     public function toAgent(): BelongsTo
     {
@@ -75,7 +75,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Check if message is delivered
+     * Check if message is delivered.
      */
     public function isDelivered(): bool
     {
@@ -83,7 +83,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Check if message is acknowledged
+     * Check if message is acknowledged.
      */
     public function isAcknowledged(): bool
     {
@@ -91,7 +91,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Check if message failed
+     * Check if message failed.
      */
     public function isFailed(): bool
     {
@@ -99,7 +99,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Check if message can be retried
+     * Check if message can be retried.
      */
     public function canRetry(): bool
     {
@@ -107,7 +107,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Scope for pending messages
+     * Scope for pending messages.
      */
     public function scopePending($query)
     {
@@ -115,7 +115,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Scope for failed messages
+     * Scope for failed messages.
      */
     public function scopeFailed($query)
     {
@@ -123,7 +123,7 @@ class AgentMessage extends Model
     }
 
     /**
-     * Scope for messages requiring acknowledgment
+     * Scope for messages requiring acknowledgment.
      */
     public function scopeRequiringAcknowledgment($query)
     {
