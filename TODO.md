@@ -160,14 +160,18 @@ Implement full compliance with Agent Payments Protocol (AP2) and Agent-to-Agent 
   - [ ] Create agent session handling
   - [ ] Build permission scoping for agents
 
-### Phase 4: Trust & Security (Week 4-5)
+### Phase 4: Trust & Security (Week 4-5) 🚧 IN PROGRESS (September 23, 2025)
 
-#### Reputation System
-- [ ] **Agent Reputation Service**
-  - [ ] Create ReputationAggregate with scoring
-  - [ ] Implement transaction-based reputation
-  - [ ] Add dispute impact on reputation
-  - [ ] Build reputation decay algorithm
+#### Reputation System ✅ PARTIALLY COMPLETED
+- [x] **Agent Reputation Service** ✅ (September 23, 2025)
+  - [x] Create ReputationAggregate with scoring
+  - [x] Implement transaction-based reputation
+  - [x] Add dispute impact on reputation
+  - [x] Build reputation decay algorithm
+  - [x] Create ReputationService with comprehensive features
+  - [x] Build ReputationManagementWorkflow with activities
+  - [x] Create database migrations with all reputation tables
+  - [x] Implement data objects (ReputationScore, ReputationUpdate)
 
 #### Security Features
 - [ ] **Transaction Security**
