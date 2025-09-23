@@ -46,7 +46,7 @@ parameters:
         - '#Attribute class Workflow\\Activity\\ActivityInterface does not exist#'
         - '#Attribute class Workflow\\Activity\\ActivityMethod does not exist#'
         - '#Attribute class Workflow\\WorkflowInterface does not exist#'
-        - '#Call to an undefined static method Workflow\\Workflow::(sideEffect|executeActivity|timer)\(\)#'
+        - '#Call to an undefined static method Workflow\\Workflow::(sideEffect|executeActivity|timer|async|awaitWithTimeout|executeChildWorkflow)\(\)#'
         - '#Call to static method new\(\) on an unknown class Workflow\\Activity\\ActivityOptions#'
         
         # Laravel facades and helpers
