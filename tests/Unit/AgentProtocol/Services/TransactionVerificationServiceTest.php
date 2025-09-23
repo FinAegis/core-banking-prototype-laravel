@@ -9,7 +9,6 @@ use App\Domain\AgentProtocol\Models\AgentTransaction;
 use App\Domain\AgentProtocol\Services\DigitalSignatureService;
 use App\Domain\AgentProtocol\Services\EncryptionService;
 use App\Domain\AgentProtocol\Services\FraudDetectionService;
-use App\Domain\AgentProtocol\Services\ReputationService;
 use App\Domain\AgentProtocol\Services\SignatureService;
 use App\Domain\AgentProtocol\Services\TransactionVerificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
