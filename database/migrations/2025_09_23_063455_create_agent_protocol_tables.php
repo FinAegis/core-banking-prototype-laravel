@@ -130,7 +130,7 @@ return new class () extends Migration {
             $table->json('meta_data')->nullable();
             $table->timestamp('created_at')->useCurrent();
 
-            $table->unique(['aggregate_uuid', 'aggregate_version']);
+            $table->unique(['aggregate_uuid', 'aggregate_version'], 'a2a_msg_events_uuid_ver_unique');
             $table->index('event_class');
             $table->index('created_at');
         });
@@ -143,7 +143,7 @@ return new class () extends Migration {
             $table->json('state');
             $table->timestamp('created_at')->useCurrent();
 
-            $table->unique(['aggregate_uuid', 'aggregate_version']);
+            $table->unique(['aggregate_uuid', 'aggregate_version'], 'a2a_msg_snap_uuid_ver_unique');
         });
 
         // Agent capability events table (for event sourcing)
@@ -157,7 +157,7 @@ return new class () extends Migration {
             $table->json('meta_data')->nullable();
             $table->timestamp('created_at')->useCurrent();
 
-            $table->unique(['aggregate_uuid', 'aggregate_version']);
+            $table->unique(['aggregate_uuid', 'aggregate_version'], 'agent_cap_events_uuid_ver_unique');
             $table->index('event_class');
             $table->index('created_at');
         });
@@ -170,7 +170,7 @@ return new class () extends Migration {
             $table->json('state');
             $table->timestamp('created_at')->useCurrent();
 
-            $table->unique(['aggregate_uuid', 'aggregate_version']);
+            $table->unique(['aggregate_uuid', 'aggregate_version'], 'agent_cap_snap_uuid_ver_unique');
         });
     }
 
