@@ -448,6 +448,46 @@ class EscrowAggregate extends AggregateRoot
         return $this->disputeReason;
     }
 
+    // Status check methods
+    public function isFunded(): bool
+    {
+        return $this->status === self::STATUS_FUNDED ||
+               ($this->status === 'partially_funded' && $this->fundedAmount >= $this->amount);
+    }
+
+    public function isReadyForRelease(): bool
+    {
+        if ($this->status !== self::STATUS_FUNDED) {
+            return false;
+        }
+
+        // Check if all conditions are met
+        foreach ($this->conditions as $condition => $value) {
+            if ($value !== true) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function isDisputeResolved(): bool
+    {
+        return $this->status === self::STATUS_RESOLVED && $this->resolutionDetails !== null;
+    }
+
+    public function isResolvedInFavorOfRecipient(): bool
+    {
+        if (!$this->isDisputeResolved()) {
+            return false;
+        }
+
+        return $this->resolutionType === self::RESOLUTION_RELEASE_TO_RECEIVER ||
+               ($this->resolutionType === self::RESOLUTION_ARBITRATED &&
+                isset($this->resolutionAllocation[$this->receiverAgentId]) &&
+                $this->resolutionAllocation[$this->receiverAgentId] > 0);
+    }
+
     public function getResolutionType(): ?string
     {
         return $this->resolutionType;
