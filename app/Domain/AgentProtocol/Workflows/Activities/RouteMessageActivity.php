@@ -184,12 +184,13 @@ class RouteMessageActivity extends Activity
         // Find an intermediate agent that can relay messages
         $relayAgents = $this->registryService->findRelayAgents($fromAgentId, $toAgentId);
 
-        if (empty($relayAgents)) {
+        if ($relayAgents->isEmpty()) {
             return null;
         }
 
-        // Select relay with lowest latency
-        return $relayAgents[0]['agentId'] ?? null;
+        // Select relay with highest relay score (first in the collection)
+        $firstRelay = $relayAgents->first();
+        return $firstRelay ? $firstRelay->agent_id : null;
     }
 
     private function enrichRoutingResult(

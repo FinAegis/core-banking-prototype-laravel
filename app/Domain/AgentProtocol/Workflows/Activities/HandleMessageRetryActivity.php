@@ -35,7 +35,7 @@ class HandleMessageRetryActivity extends Activity
         // Update message aggregate with retry event
         try {
             $aggregate = A2AMessageAggregate::retrieve($messageId);
-            $aggregate->retry($reason, $retryCount, $nextDelay);
+            $aggregate->retry($reason, $nextDelay, ['retryCount' => $retryCount]);
             $aggregate->persist();
         } catch (Exception $e) {
             Log::warning('Failed to update aggregate for message retry', [
@@ -135,7 +135,7 @@ class HandleMessageRetryActivity extends Activity
 
         // Add to scheduled retry sorted set
         $scheduleKey = 'agent:messages:retry:schedule';
-        Redis::zAdd($scheduleKey, $scheduledAt->timestamp, $messageId);
+        Redis::zAdd($scheduleKey, (float) $scheduledAt->timestamp, $messageId);
 
         // Store schedule information
         $scheduleInfoKey = "agent:message:{$messageId}:schedule";

@@ -91,9 +91,16 @@ class ValidateMessageActivity extends Activity
 
         // Check message size limits
         $serializedPayload = json_encode($request->payload);
-        if (strlen($serializedPayload) > 1048576) { // 1MB limit
-            $errors[] = 'Message payload exceeds maximum size of 1MB';
+        if ($serializedPayload === false) {
+            $errors[] = 'Failed to serialize message payload';
             $isValid = false;
+            $payloadSize = 0;
+        } else {
+            $payloadSize = strlen($serializedPayload);
+            if ($payloadSize > 1048576) { // 1MB limit
+                $errors[] = 'Message payload exceeds maximum size of 1MB';
+                $isValid = false;
+            }
         }
 
         return [
@@ -101,7 +108,7 @@ class ValidateMessageActivity extends Activity
             'errors'   => $errors,
             'metadata' => [
                 'validatedAt' => now()->toIso8601String(),
-                'payloadSize' => strlen($serializedPayload),
+                'payloadSize' => $payloadSize,
                 'messageType' => $request->messageType,
                 'priority'    => $request->priority,
             ],

@@ -153,7 +153,7 @@ class DeliverMessageActivity extends Activity
                 'payload'   => $payload,
                 'headers'   => $headers,
             ],
-            $messageId
+            is_array($headers) ? $headers : []
         );
 
         if (! $result['success']) {

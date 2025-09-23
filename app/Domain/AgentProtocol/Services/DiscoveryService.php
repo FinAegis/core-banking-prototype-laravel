@@ -158,7 +158,13 @@ class DiscoveryService
     ): bool {
         try {
             $aggregate = AgentIdentityAggregate::retrieve($agentId);
-            $aggregate->advertiseCapability($capability, $version, $parameters);
+            $aggregate->advertiseCapability(
+                $capability, // capabilityId
+                [], // endpoints
+                $parameters, // parameters
+                [], // requiredPermissions
+                ['AP2', 'A2A'] // supportedProtocols
+            );
             $aggregate->persist();
 
             // Invalidate discovery cache

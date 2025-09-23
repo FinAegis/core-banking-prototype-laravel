@@ -108,7 +108,7 @@ class QueueMessageActivity extends Activity
         $queueKey = "agent:queue:{$queueName}:messages";
         $rank = Redis::zRevRank($queueKey, $messageId);
 
-        return $rank !== null ? $rank + 1 : 0;
+        return $rank !== false ? $rank + 1 : 0;
     }
 
     private function getQueueLength(string $queueName): int
@@ -121,7 +121,8 @@ class QueueMessageActivity extends Activity
     private function estimateWaitTime(string $queueName): int
     {
         $statsKey = "agent:queue:{$queueName}:stats";
-        $processingRate = Redis::hGet($statsKey, 'avg_processing_rate') ?: 10; // Default 10 msg/sec
+        $rateValue = Redis::hGet($statsKey, 'avg_processing_rate');
+        $processingRate = is_numeric($rateValue) ? (float) $rateValue : 10.0; // Default 10 msg/sec
         $queueLength = $this->getQueueLength($queueName);
 
         // Estimate wait time in seconds

@@ -94,7 +94,7 @@ class AgentRegistryService
     {
         $cacheKey = "agent:relay:{$fromAgentId}:{$toAgentId}";
 
-        return Cache::remember($cacheKey, 300, function () use ($fromAgentId, $toAgentId) {
+        return Cache::remember($cacheKey, 300, function () {
             // Find agents that have relay capability
             // For now, return agents with relay capability without checking connections
             // This avoids PHPStan issues with relationship queries
