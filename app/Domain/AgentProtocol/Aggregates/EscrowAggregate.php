@@ -478,7 +478,7 @@ class EscrowAggregate extends AggregateRoot
 
     public function isResolvedInFavorOfRecipient(): bool
     {
-        if (!$this->isDisputeResolved()) {
+        if (! $this->isDisputeResolved()) {
             return false;
         }
 

@@ -39,7 +39,7 @@ class EscrowRequest
     public function areReleaseConditionsMet(): bool
     {
         foreach ($this->releaseConditions as $condition) {
-            if (!isset($this->conditions[$condition]) || $this->conditions[$condition] !== true) {
+            if (! isset($this->conditions[$condition]) || $this->conditions[$condition] !== true) {
                 return false;
             }
         }
@@ -77,18 +77,18 @@ class EscrowRequest
     public function toArray(): array
     {
         return [
-            'escrow_id' => $this->escrowId,
-            'buyer_did' => $this->buyerDid,
-            'seller_did' => $this->sellerDid,
-            'amount' => $this->amount,
-            'currency' => $this->currency,
-            'conditions' => $this->conditions,
-            'release_conditions' => $this->releaseConditions,
+            'escrow_id'              => $this->escrowId,
+            'buyer_did'              => $this->buyerDid,
+            'seller_did'             => $this->sellerDid,
+            'amount'                 => $this->amount,
+            'currency'               => $this->currency,
+            'conditions'             => $this->conditions,
+            'release_conditions'     => $this->releaseConditions,
             'dispute_resolution_did' => $this->disputeResolutionDid,
-            'timeout_seconds' => $this->timeoutSeconds,
-            'metadata' => $this->metadata,
-            'created_at' => $this->createdAt->toIso8601String(),
-            'timeout_at' => $this->getTimeoutAt()->toIso8601String(),
+            'timeout_seconds'        => $this->timeoutSeconds,
+            'metadata'               => $this->metadata,
+            'created_at'             => $this->createdAt->toIso8601String(),
+            'timeout_at'             => $this->getTimeoutAt()->toIso8601String(),
         ];
     }
 }
