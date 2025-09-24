@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Models\Agent;
+use App\Domain\AgentProtocol\Models\Agent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Agent>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\AgentProtocol\Models\Agent>
  */
 class AgentFactory extends Factory
 {
@@ -25,25 +25,25 @@ class AgentFactory extends Factory
         );
 
         $endpoints = [
-            'primary'   => $this->faker->url,
-            'api'       => $this->faker->url . '/api',
-            'websocket' => 'wss://' . $this->faker->domainName . '/ws',
+            'primary'   => $this->faker->url(),
+            'api'       => $this->faker->url() . '/api',
+            'websocket' => 'wss://' . $this->faker->domainName() . '/ws',
         ];
 
         return [
-            'agent_id'     => 'agent_' . $this->faker->unique()->uuid,
-            'did'          => 'did:example:' . $this->faker->unique()->uuid,
-            'name'         => $this->faker->company,
+            'agent_id'     => 'agent_' . $this->faker->unique()->uuid(),
+            'did'          => 'did:example:' . $this->faker->unique()->uuid(),
+            'name'         => $this->faker->company(),
             'type'         => $this->faker->randomElement(['standard', 'premium', 'enterprise']),
             'status'       => $this->faker->randomElement(['active', 'inactive', 'pending']),
-            'network_id'   => 'network_' . $this->faker->uuid,
-            'organization' => $this->faker->company,
-            'endpoints'    => $endpoints,
-            'capabilities' => $capabilities,
-            'metadata'     => [
-                'region'  => $this->faker->countryCode,
+            'network_id'   => 'network_' . $this->faker->uuid(),
+            'organization' => $this->faker->company(),
+            'endpoints'    => json_encode($endpoints),
+            'capabilities' => json_encode($capabilities),
+            'metadata'     => json_encode([
+                'region'  => $this->faker->countryCode(),
                 'version' => '1.0.0',
-            ],
+            ]),
             'relay_score'      => $this->faker->randomFloat(2, 0, 100),
             'last_activity_at' => $this->faker->dateTimeBetween('-1 day', 'now'),
             'created_at'       => now(),
@@ -87,10 +87,15 @@ class AgentFactory extends Factory
      */
     public function withRelayCapability(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'capabilities' => array_unique(array_merge($attributes['capabilities'] ?? [], ['relay'])),
-            'relay_score'  => $this->faker->randomFloat(2, 70, 100),
-        ]);
+        return $this->state(function (array $attributes) {
+            $capabilities = json_decode($attributes['capabilities'] ?? '[]', true);
+            $capabilities[] = 'relay';
+
+            return [
+                'capabilities' => json_encode(array_unique($capabilities)),
+                'relay_score'  => $this->faker->randomFloat(2, 70, 100),
+            ];
+        });
     }
 
     /**

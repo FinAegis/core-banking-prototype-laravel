@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ReputationService
 {
@@ -259,12 +260,57 @@ class ReputationService
             default              => 0.0,
         };
 
-        return $reputation->score >= $threshold;
+        return $reputation ? $reputation->score >= $threshold : false;
     }
 
     /**
-     * Get reputation statistics for an agent.
+     * Get or create reputation for an agent.
      */
+    public function getOrCreateReputation(string $agentId): Reputation
+    {
+        $reputation = $this->getAgentReputation($agentId);
+
+        if (! $reputation) {
+            $reputationId = Str::uuid()->toString();
+
+            // Create reputation aggregate
+            $aggregate = ReputationAggregate::initializeReputation(
+                reputationId: $reputationId,
+                agentId: $agentId,
+                initialScore: 50.0,
+                metadata: [
+                    'created_at' => now()->toIso8601String(),
+                ]
+            );
+            $aggregate->persist();
+
+            // Create reputation model
+            $reputation = Reputation::create([
+                'reputation_id'           => $reputationId,
+                'agent_id'                => $agentId,
+                'score'                   => 50.0,
+                'trust_level'             => 'neutral',
+                'status'                  => 'active',
+                'total_transactions'      => 0,
+                'successful_transactions' => 0,
+                'failed_transactions'     => 0,
+                'disputed_transactions'   => 0,
+                'metadata'                => [],
+            ]);
+        }
+
+        return $reputation;
+    }
+
+    /**
+     * Refresh reputation cache for an agent.
+     */
+    public function refreshReputationCache(string $agentId): void
+    {
+        $cacheKey = "reputation:agent:{$agentId}";
+        Cache::forget($cacheKey);
+    }
+
     public function getReputationStatistics(string $agentId): array
     {
         $reputationId = $this->generateReputationId($agentId);

@@ -443,6 +443,34 @@ class EscrowAggregate extends AggregateRoot
         return $this->disputedBy;
     }
 
+    /**
+     * Check if an agent is an arbiter for this escrow.
+     */
+    public function isArbiter(string $agentId): bool
+    {
+        return isset($this->disputeDetails['arbiter_id']) && $this->disputeDetails['arbiter_id'] === $agentId;
+    }
+
+    /**
+     * Raise a dispute on the escrow.
+     */
+    public function raiseDispute(string $disputeId, string $raisedBy, string $reason, array $evidence = []): self
+    {
+        if ($this->status !== 'held') {
+            throw new InvalidArgumentException('Can only dispute held escrows');
+        }
+
+        $this->recordThat(new EscrowDisputed(
+            escrowId: $this->escrowId,
+            disputedBy: $raisedBy,
+            disputedAt: now()->toIso8601String(),
+            reason: $reason,
+            evidence: $evidence
+        ));
+
+        return $this;
+    }
+
     public function getDisputeReason(): ?string
     {
         return $this->disputeReason;

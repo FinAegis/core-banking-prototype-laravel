@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Aggregates\AgentIdentityAggregate;
-use App\Domain\AgentProtocol\Models\Agent;
+use App\Models\Agent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -197,5 +197,19 @@ class AgentRegistryService
         Cache::forget("agent:info:{$agentId}");
         // Clear related caches
         Cache::tags(['agents'])->flush();
+    }
+
+    /**
+     * Get agent by DID.
+     */
+    public function getAgentByDID(string $did): ?Agent
+    {
+        $cacheKey = "agent:did:{$did}";
+
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($did) {
+            return Agent::where('did', $did)
+                ->where('status', 'active')
+                ->first();
+        });
     }
 }

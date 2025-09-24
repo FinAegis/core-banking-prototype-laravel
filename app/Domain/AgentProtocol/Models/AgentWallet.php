@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AgentWallet extends Model
 {
+    use HasFactory;
+
     protected $table = 'agent_wallets';
 
     protected $fillable = [
@@ -23,21 +26,37 @@ class AgentWallet extends Model
         'transaction_limit',
         'is_active',
         'metadata',
+        'balance',
+        'blockchain_address',
+        'linked_account_uuid',
+        'linked_at',
+        'link_metadata',
     ];
 
     protected $casts = [
         'available_balance' => 'float',
         'held_balance'      => 'float',
         'total_balance'     => 'float',
+        'balance'           => 'float',
         'daily_limit'       => 'float',
         'transaction_limit' => 'float',
         'is_active'         => 'boolean',
         'metadata'          => 'array',
+        'link_metadata'     => 'array',
+        'linked_at'         => 'datetime',
     ];
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\AgentWalletFactory::new();
+    }
 
     public function agent(): BelongsTo
     {
-        return $this->belongsTo(AgentIdentity::class, 'agent_id', 'agent_id');
+        return $this->belongsTo(Agent::class, 'agent_id', 'agent_id');
     }
 
     public function outgoingTransactions(): HasMany
@@ -48,47 +67,5 @@ class AgentWallet extends Model
     public function incomingTransactions(): HasMany
     {
         return $this->hasMany(AgentTransaction::class, 'to_agent_id', 'agent_id');
-    }
-
-    public function getAvailableBalanceAttribute($value): float
-    {
-        return (float) $value;
-    }
-
-    public function getHeldBalanceAttribute($value): float
-    {
-        return (float) $value;
-    }
-
-    public function getTotalBalanceAttribute($value): float
-    {
-        return (float) $value;
-    }
-
-    public function hasAvailableBalance(float $amount): bool
-    {
-        return $this->available_balance >= $amount;
-    }
-
-    public function isWithinDailyLimit(float $amount): bool
-    {
-        if ($this->daily_limit === null || $this->daily_limit === 0.0) {
-            return true;
-        }
-
-        $todaySpent = $this->outgoingTransactions()
-            ->whereDate('created_at', today())
-            ->sum('amount');
-
-        return ($todaySpent + $amount) <= $this->daily_limit;
-    }
-
-    public function isWithinTransactionLimit(float $amount): bool
-    {
-        if ($this->transaction_limit === null || $this->transaction_limit === 0.0) {
-            return true;
-        }
-
-        return $amount <= $this->transaction_limit;
     }
 }

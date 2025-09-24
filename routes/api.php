@@ -781,3 +781,53 @@ Route::prefix('treasury')->name('api.treasury.')->group(function () {
         });
     });
 });
+
+// Agent Protocol API Endpoints
+Route::prefix('agents')->group(function () {
+    // Public endpoints for agent discovery
+    Route::get('/discover', [App\Http\Controllers\Api\AgentProtocol\AgentRegistrationController::class, 'discover'])
+        ->name('api.agents.discover');
+    Route::get('/{did}', [App\Http\Controllers\Api\AgentProtocol\AgentRegistrationController::class, 'show'])
+        ->name('api.agents.show');
+    Route::get('/{did}/reputation', [App\Http\Controllers\Api\AgentProtocol\AgentReputationController::class, 'getReputation'])
+        ->name('api.agents.reputation');
+
+    // Protected endpoints requiring authentication
+    Route::middleware(['auth:sanctum', 'check.token.expiration'])->group(function () {
+        // Registration and Discovery
+        Route::post('/register', [App\Http\Controllers\Api\AgentProtocol\AgentRegistrationController::class, 'register'])
+            ->name('api.agents.register');
+        Route::put('/{did}/capabilities', [App\Http\Controllers\Api\AgentProtocol\AgentRegistrationController::class, 'updateCapabilities'])
+            ->name('api.agents.capabilities');
+
+        // Payment endpoints
+        Route::post('/{did}/payments', [App\Http\Controllers\Api\AgentProtocol\AgentPaymentController::class, 'initiatePayment'])
+            ->name('api.agents.payments.initiate');
+        Route::get('/{did}/payments/{id}', [App\Http\Controllers\Api\AgentProtocol\AgentPaymentController::class, 'getPaymentStatus'])
+            ->name('api.agents.payments.status');
+        Route::post('/{did}/payments/{id}/confirm', [App\Http\Controllers\Api\AgentProtocol\AgentPaymentController::class, 'confirmPayment'])
+            ->name('api.agents.payments.confirm');
+        Route::post('/{did}/payments/{id}/cancel', [App\Http\Controllers\Api\AgentProtocol\AgentPaymentController::class, 'cancelPayment'])
+            ->name('api.agents.payments.cancel');
+
+        // Escrow endpoints
+        Route::post('/escrow', [App\Http\Controllers\Api\AgentProtocol\AgentEscrowController::class, 'createEscrow'])
+            ->name('api.agents.escrow.create');
+        Route::post('/escrow/{id}/release', [App\Http\Controllers\Api\AgentProtocol\AgentEscrowController::class, 'releaseEscrow'])
+            ->name('api.agents.escrow.release');
+        Route::post('/escrow/{id}/dispute', [App\Http\Controllers\Api\AgentProtocol\AgentEscrowController::class, 'disputeEscrow'])
+            ->name('api.agents.escrow.dispute');
+
+        // A2A Messaging endpoints
+        Route::post('/{did}/messages', [App\Http\Controllers\Api\AgentProtocol\AgentMessagingController::class, 'sendMessage'])
+            ->name('api.agents.messages.send');
+        Route::get('/{did}/messages', [App\Http\Controllers\Api\AgentProtocol\AgentMessagingController::class, 'getMessages'])
+            ->name('api.agents.messages.list');
+        Route::post('/{did}/messages/{id}/ack', [App\Http\Controllers\Api\AgentProtocol\AgentMessagingController::class, 'acknowledgeMessage'])
+            ->name('api.agents.messages.acknowledge');
+
+        // Reputation endpoints
+        Route::post('/{did}/reputation/feedback', [App\Http\Controllers\Api\AgentProtocol\AgentReputationController::class, 'submitFeedback'])
+            ->name('api.agents.reputation.feedback');
+    });
+});

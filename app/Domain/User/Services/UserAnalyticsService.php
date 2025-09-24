@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\User\Services;
 
-use App\Domain\User\Models\UserActivity;
 use App\Domain\User\Models\UserProfile;
+use App\Models\UserActivity;
 use Illuminate\Support\Facades\DB;
 
 class UserAnalyticsService

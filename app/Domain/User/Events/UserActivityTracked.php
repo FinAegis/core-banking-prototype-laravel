@@ -13,7 +13,10 @@ class UserActivityTracked extends ShouldBeStored
         public string $userId,
         public string $activity,
         public array $context,
-        public DateTimeImmutable $trackedAt
+        public DateTimeImmutable $trackedAt,
+        public ?string $ipAddress = null,
+        public ?string $userAgent = null,
+        public ?string $sessionId = null
     ) {
     }
 }

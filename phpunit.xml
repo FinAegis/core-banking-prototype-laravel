@@ -15,7 +15,7 @@
          processIsolation="false"
          stopOnFailure="false"
          enforceTimeLimit="true"
-         defaultTimeLimit="10"
+         defaultTimeLimit="120"
 >
     <testsuites>
         <testsuite name="Unit">

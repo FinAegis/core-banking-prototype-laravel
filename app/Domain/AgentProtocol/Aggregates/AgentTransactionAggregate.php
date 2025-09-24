@@ -13,6 +13,7 @@ use App\Domain\AgentProtocol\Events\TransactionInitiated;
 use App\Domain\AgentProtocol\Events\TransactionValidated;
 use App\Domain\AgentProtocol\Repositories\AgentProtocolEventRepository;
 use App\Domain\AgentProtocol\Repositories\AgentProtocolSnapshotRepository;
+use DateTimeImmutable;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
@@ -247,10 +248,10 @@ class AgentTransactionAggregate extends AggregateRoot
         }
 
         $this->splitDetails[] = [
-            'recipientAgentId' => $recipientAgentId,
-            'amount'           => $amount,
-            'splitType'        => $splitType,
-            'addedAt'          => now()->toIso8601String(),
+        'recipientAgentId' => $recipientAgentId,
+        'amount'           => $amount,
+        'splitType'        => $splitType,
+        'addedAt'          => now()->toIso8601String(),
         ];
 
         return $this;
@@ -280,10 +281,10 @@ class AgentTransactionAggregate extends AggregateRoot
     protected function applyFeeCalculated(FeeCalculated $event): void
     {
         $this->fees[] = [
-            'amount'       => $event->feeAmount,
-            'type'         => $event->feeType,
-            'details'      => $event->feeDetails,
-            'calculatedAt' => now()->toIso8601String(),
+        'amount'       => $event->feeAmount,
+        'type'         => $event->feeType,
+        'details'      => $event->feeDetails,
+        'calculatedAt' => now()->toIso8601String(),
         ];
     }
 
@@ -292,9 +293,9 @@ class AgentTransactionAggregate extends AggregateRoot
         $this->isEscrowHeld = true;
         $this->status = self::STATUS_PROCESSING;
         $this->metadata['escrow'] = [
-            'heldAt'  => $event->heldAt,
-            'amount'  => $event->amount,
-            'details' => $event->escrowDetails,
+        'heldAt'  => $event->heldAt,
+        'amount'  => $event->amount,
+        'details' => $event->escrowDetails,
         ];
     }
 
@@ -302,10 +303,10 @@ class AgentTransactionAggregate extends AggregateRoot
     {
         $this->isEscrowHeld = false;
         $this->metadata['escrowRelease'] = [
-            'releasedBy' => $event->releasedBy,
-            'releasedAt' => $event->releasedAt,
-            'reason'     => $event->reason,
-            'details'    => $event->releaseDetails,
+        'releasedBy' => $event->releasedBy,
+        'releasedAt' => $event->releasedAt,
+        'reason'     => $event->reason,
+        'details'    => $event->releaseDetails,
         ];
     }
 
@@ -313,9 +314,9 @@ class AgentTransactionAggregate extends AggregateRoot
     {
         $this->status = self::STATUS_COMPLETED;
         $this->metadata['completion'] = [
-            'status'      => $event->status,
-            'finalAmount' => $event->finalAmount,
-            'completedAt' => now()->toIso8601String(),
+        'status'      => $event->status,
+        'finalAmount' => $event->finalAmount,
+        'completedAt' => now()->toIso8601String(),
         ];
     }
 
@@ -324,10 +325,10 @@ class AgentTransactionAggregate extends AggregateRoot
         $this->status = self::STATUS_FAILED;
         $this->failureReason = $event->reason;
         $this->metadata['failure'] = [
-            'reason'     => $event->reason,
-            'failedAt'   => $event->failedAt,
-            'details'    => $event->errorDetails,
-            'reversible' => $event->reversible,
+        'reason'     => $event->reason,
+        'failedAt'   => $event->failedAt,
+        'details'    => $event->errorDetails,
+        'reversible' => $event->reversible,
         ];
     }
 
@@ -400,5 +401,73 @@ class AgentTransactionAggregate extends AggregateRoot
     public function getSplitDetails(): array
     {
         return $this->splitDetails;
+    }
+
+    /**
+     * Confirm a transaction (for receiver confirmation).
+     */
+    public function confirm(string $confirmedBy, ?string $confirmationCode = null): self
+    {
+        if ($this->status === self::STATUS_COMPLETED) {
+            throw new InvalidArgumentException('Transaction is already completed');
+        }
+
+        $this->complete('confirmed', [
+        'confirmed_by'      => $confirmedBy,
+        'confirmation_code' => $confirmationCode,
+        'confirmed_at'      => now()->toIso8601String(),
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Cancel a transaction (for sender cancellation).
+     */
+    public function cancel(string $reason, string $cancelledBy): self
+    {
+        if ($this->status === self::STATUS_COMPLETED) {
+            throw new InvalidArgumentException('Cannot cancel completed transaction');
+        }
+
+        $this->fail($reason, [
+        'cancelled_by'        => $cancelledBy,
+        'cancellation_reason' => $reason,
+        'cancelled_at'        => now()->toIso8601String(),
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Get sender agent ID (alias for getFromAgentId).
+     */
+    public function getSenderAgentId(): string
+    {
+        return $this->fromAgentId;
+    }
+
+    /**
+     * Get receiver agent ID (alias for getToAgentId).
+     */
+    public function getReceiverAgentId(): string
+    {
+        return $this->toAgentId;
+    }
+
+    /**
+     * Get created at timestamp.
+     */
+    public function getCreatedAt(): ?DateTimeImmutable
+    {
+        return isset($this->metadata['created_at']) ? new DateTimeImmutable($this->metadata['created_at']) : null;
+    }
+
+    /**
+     * Get updated at timestamp.
+     */
+    public function getUpdatedAt(): ?DateTimeImmutable
+    {
+        return isset($this->metadata['updated_at']) ? new DateTimeImmutable($this->metadata['updated_at']) : null;
     }
 }
