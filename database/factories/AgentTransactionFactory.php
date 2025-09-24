@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Domain\AgentProtocol\Models\AgentTransaction;
+use App\Models\AgentTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\AgentProtocol\Models\AgentTransaction>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AgentTransaction>
  */
 class AgentTransactionFactory extends Factory
 {

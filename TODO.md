@@ -160,9 +160,9 @@ Implement full compliance with Agent Payments Protocol (AP2) and Agent-to-Agent 
   - [ ] Create agent session handling
   - [ ] Build permission scoping for agents
 
-### Phase 4: Trust & Security (Week 4-5) 🚧 IN PROGRESS (September 23, 2025) - 70% COMPLETE
+### Phase 4: Trust & Security (Week 4-5) ✅ COMPLETED (September 24, 2025)
 
-#### Reputation System ✅ PARTIALLY COMPLETED
+#### Reputation System ✅ COMPLETED (September 23, 2025)
 - [x] **Agent Reputation Service** ✅ (September 23, 2025)
   - [x] Create ReputationAggregate with scoring
   - [x] Implement transaction-based reputation
@@ -203,12 +203,58 @@ Implement full compliance with Agent Payments Protocol (AP2) and Agent-to-Agent 
 - **Documentation:**
   - `docs/agent-protocol-phase4.md` - Comprehensive Phase 4 implementation guide
 
-#### Compliance & Audit
-- [ ] **Agent Compliance**
-  - [ ] Create agent KYC/KYB workflows
-  - [ ] Implement transaction limits for agents
-  - [ ] Add regulatory reporting for agent transactions
-  - [ ] Build comprehensive audit trail
+#### Compliance & Audit ✅ COMPLETED (September 24, 2025)
+- [x] **Agent Compliance** ✅
+  - [x] Create agent KYC/KYB workflows (AgentKycWorkflow with verification activities)
+  - [x] Implement transaction limits for agents (CheckTransactionLimitActivity integrated)
+  - [x] Add regulatory reporting for agent transactions (RegulatoryReportingService with CTR/SAR)
+  - [x] Build comprehensive audit trail (Event sourcing with compliance events)
+
+#### Implementation Files Created (Phase 4 - Compliance)
+- **Aggregates:**
+  - `app/Domain/AgentProtocol/Aggregates/AgentComplianceAggregate.php`
+
+- **Workflows:**
+  - `app/Domain/AgentProtocol/Workflows/AgentKycWorkflow.php`
+
+- **Activities (5 new):**
+  - `app/Domain/AgentProtocol/Workflows/Activities/ValidateKycDocumentsActivity.php`
+  - `app/Domain/AgentProtocol/Workflows/Activities/PerformAmlScreeningActivity.php`
+  - `app/Domain/AgentProtocol/Workflows/Activities/CalculateRiskScoreActivity.php`
+  - `app/Domain/AgentProtocol/Workflows/Activities/SetInitialTransactionLimitsActivity.php`
+  - `app/Domain/AgentProtocol/Workflows/Activities/CheckTransactionLimitActivity.php`
+
+- **Services:**
+  - `app/Domain/AgentProtocol/Services/RegulatoryReportingService.php`
+
+- **Data Objects:**
+  - `app/Domain/AgentProtocol/DataObjects/KycVerificationRequest.php`
+  - `app/Domain/AgentProtocol/DataObjects/KycVerificationResult.php`
+
+- **Enums:**
+  - `app/Domain/AgentProtocol/Enums/KycVerificationLevel.php`
+  - `app/Domain/AgentProtocol/Enums/KycVerificationStatus.php`
+
+- **Events (8 new):**
+  - `app/Domain/AgentProtocol/Events/AgentKycInitiated.php`
+  - `app/Domain/AgentProtocol/Events/AgentKycDocumentsSubmitted.php`
+  - `app/Domain/AgentProtocol/Events/AgentKycVerified.php`
+  - `app/Domain/AgentProtocol/Events/AgentKycRejected.php`
+  - `app/Domain/AgentProtocol/Events/AgentKycRequiresReview.php`
+  - `app/Domain/AgentProtocol/Events/AgentTransactionLimitSet.php`
+  - `app/Domain/AgentProtocol/Events/AgentTransactionLimitExceeded.php`
+  - `app/Domain/AgentProtocol/Events/AgentTransactionLimitReset.php`
+
+- **Models:**
+  - `app/Models/AgentTransactionTotal.php`
+  - `app/Models/RegulatoryReport.php`
+  - `app/Models/AgentTransaction.php`
+
+- **Tests:**
+  - `tests/Feature/AgentProtocol/AgentComplianceTest.php`
+
+- **Updated Files:**
+  - `app/Domain/AgentProtocol/Workflows/PaymentOrchestrationWorkflow.php` - Added transaction limit checking
 
 ### Phase 5: API Implementation (Week 5-6)
 

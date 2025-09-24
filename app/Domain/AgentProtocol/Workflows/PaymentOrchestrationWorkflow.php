@@ -7,6 +7,7 @@ namespace App\Domain\AgentProtocol\Workflows;
 use App\Domain\AgentProtocol\DataObjects\AgentPaymentRequest;
 use App\Domain\AgentProtocol\DataObjects\PaymentResult;
 use App\Domain\AgentProtocol\Workflows\Activities\ApplyFeesActivity;
+use App\Domain\AgentProtocol\Workflows\Activities\CheckTransactionLimitActivity;
 use App\Domain\AgentProtocol\Workflows\Activities\NotifyAgentsActivity;
 use App\Domain\AgentProtocol\Workflows\Activities\ProcessPaymentActivity;
 use App\Domain\AgentProtocol\Workflows\Activities\RecordPaymentActivity;
@@ -63,7 +64,28 @@ class PaymentOrchestrationWorkflow extends Workflow
                 return $this->result;
             }
 
-            // Step 2: Apply fees if applicable
+            // Step 2: Check transaction limits for sender
+            $limitCheckResult = yield ActivityStub::make(
+                CheckTransactionLimitActivity::class,
+                $request->fromAgentDid,
+                $request->amount,
+                $request->currency
+            );
+
+            if (! $limitCheckResult->allowed) {
+                $this->result->status = 'failed';
+                $this->result->errorMessage = $limitCheckResult->reason;
+                $this->result->limitDetails = [
+                    'period'          => $limitCheckResult->period ?? null,
+                    'limit'           => $limitCheckResult->limit ?? null,
+                    'currentTotal'    => $limitCheckResult->currentTotal ?? null,
+                    'requestedAmount' => $request->amount,
+                ];
+
+                return $this->result;
+            }
+
+            // Step 3: Apply fees if applicable
             if ($request->requiresFees()) {
                 /** @var stdClass $feeResult */
                 $feeResult = yield ActivityStub::make(
@@ -83,7 +105,7 @@ class PaymentOrchestrationWorkflow extends Workflow
                 $this->result->fees = $feeResult->totalFees;
             }
 
-            // Step 3: Process the main payment
+            // Step 4: Process the main payment
             /** @var stdClass $paymentResult */
             $paymentResult = yield ActivityStub::make(
                 ProcessPaymentActivity::class,
@@ -102,7 +124,7 @@ class PaymentOrchestrationWorkflow extends Workflow
             $this->result->paymentId = $paymentResult->paymentId;
             $this->result->status = 'processing';
 
-            // Step 4: Handle escrow if required
+            // Step 5: Handle escrow if required
             if ($request->requiresEscrow()) {
                 $escrowResult = yield ChildWorkflowStub::make(
                     EscrowWorkflow::class,
@@ -123,14 +145,14 @@ class PaymentOrchestrationWorkflow extends Workflow
                 );
             }
 
-            // Step 5: Record the payment in event store
+            // Step 6: Record the payment in event store
             yield ActivityStub::make(
                 RecordPaymentActivity::class,
                 $request,
                 $this->result
             );
 
-            // Step 6: Notify involved agents
+            // Step 7: Notify involved agents
             yield ActivityStub::make(
                 NotifyAgentsActivity::class,
                 $request,
