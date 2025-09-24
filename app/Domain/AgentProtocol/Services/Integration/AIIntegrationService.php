@@ -51,13 +51,15 @@ class AIIntegrationService
             // Get protocol agent
             $protocolAgent = Agent::where('agent_id', $protocolAgentId)->firstOrFail();
 
-            // Update agent with AI link
-            $protocolAgent->ai_agent_id = $aiAgentId;
-            $protocolAgent->ai_capabilities = array_merge(
-                $protocolAgent->ai_capabilities ?? [],
+            // Update agent with AI link in metadata
+            $metadata = $protocolAgent->metadata ?? [];
+            $metadata['ai_agent_id'] = $aiAgentId;
+            $metadata['ai_capabilities'] = array_merge(
+                $metadata['ai_capabilities'] ?? [],
                 $capabilities
             );
-            $protocolAgent->ai_linked_at = now();
+            $metadata['ai_linked_at'] = now()->toIso8601String();
+            $protocolAgent->metadata = $metadata;
             $protocolAgent->save();
 
             // Register AI agent with coordination service
@@ -94,7 +96,7 @@ class AIIntegrationService
                 'ai_agent_id'       => $aiAgentId,
                 'protocol_agent_id' => $protocolAgentId,
                 'capabilities'      => $capabilities,
-                'linked_at'         => $protocolAgent->ai_linked_at->toIso8601String(),
+                'linked_at'         => $metadata['ai_linked_at'],
             ];
         } catch (Exception $e) {
             DB::rollBack();
@@ -133,8 +135,8 @@ class AIIntegrationService
                 'context'         => array_merge($context, [
                     'payment_enabled'   => true,
                     'protocol_agent_id' => $protocolAgent->agent_id,
-                    'wallet_id'         => $protocolAgent->wallet_id,
-                    'capabilities'      => $protocolAgent->ai_capabilities ?? [],
+                    'wallet_id'         => $protocolAgent->metadata['wallet_id'] ?? null,
+                    'capabilities'      => $protocolAgent->metadata['ai_capabilities'] ?? [],
                 ]),
                 'started_at'      => now(),
             ];
@@ -163,7 +165,7 @@ class AIIntegrationService
                 'agent_id'        => $aiAgentId,
                 'payment_enabled' => true,
                 'available_tools' => $this->getAvailableTools($protocolAgent->agent_id),
-                'wallet_balance'  => $protocolAgent->wallet_balance ?? 0,
+                'wallet_balance'  => $protocolAgent->metadata['wallet_balance'] ?? 0,
             ];
         } catch (Exception $e) {
             Log::error('Failed to initialize payment conversation', [
@@ -267,8 +269,8 @@ class AIIntegrationService
         array $credentials
     ): array {
         try {
-            // Get protocol agent
-            $protocolAgent = Agent::where('ai_agent_id', $aiAgentId)->first();
+            // Get protocol agent using metadata field
+            $protocolAgent = Agent::whereJsonContains('metadata->ai_agent_id', $aiAgentId)->first();
             if (! $protocolAgent) {
                 throw new Exception('AI agent not registered in protocol');
             }
@@ -309,7 +311,7 @@ class AIIntegrationService
                 'token'        => $sessionToken,
                 'expires_at'   => $expiresAt->toIso8601String(),
                 'agent_id'     => $protocolAgent->agent_id,
-                'capabilities' => $protocolAgent->ai_capabilities ?? [],
+                'capabilities' => $protocolAgent->metadata['ai_capabilities'] ?? [],
             ];
         } catch (Exception $e) {
             Log::error('Failed to authenticate AI agent', [
@@ -326,7 +328,7 @@ class AIIntegrationService
     public function getAgentStatus(string $aiAgentId): array
     {
         try {
-            $protocolAgent = Agent::where('ai_agent_id', $aiAgentId)->first();
+            $protocolAgent = Agent::whereJsonContains('metadata->ai_agent_id', $aiAgentId)->first();
 
             if (! $protocolAgent) {
                 return [
@@ -339,10 +341,10 @@ class AIIntegrationService
                 'registered'        => true,
                 'ai_agent_id'       => $aiAgentId,
                 'protocol_agent_id' => $protocolAgent->agent_id,
-                'capabilities'      => $protocolAgent->ai_capabilities ?? [],
-                'wallet_id'         => $protocolAgent->wallet_id,
-                'wallet_balance'    => $protocolAgent->wallet_balance ?? 0,
-                'linked_at'         => $protocolAgent->ai_linked_at?->toIso8601String(),
+                'capabilities'      => $protocolAgent->metadata['ai_capabilities'] ?? [],
+                'wallet_id'         => $protocolAgent->metadata['wallet_id'] ?? null,
+                'wallet_balance'    => $protocolAgent->metadata['wallet_balance'] ?? 0,
+                'linked_at'         => $protocolAgent->metadata['ai_linked_at'] ?? null,
                 'status'            => $protocolAgent->status,
             ];
         } catch (Exception $e) {
@@ -453,7 +455,7 @@ class AIIntegrationService
         }
 
         $tools = [];
-        $capabilities = $agent->ai_capabilities ?? [];
+        $capabilities = $agent->metadata['ai_capabilities'] ?? [];
 
         if (in_array('payment', $capabilities)) {
             $tools[] = 'check_balance';

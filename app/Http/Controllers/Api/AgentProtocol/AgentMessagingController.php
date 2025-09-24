@@ -90,17 +90,27 @@ class AgentMessagingController extends Controller
 
             $messageId = Str::uuid()->toString();
 
-            // Create message aggregate
-            $messageAggregate = A2AMessageAggregate::createMessage(
+            // Create message aggregate using the send method
+            $messageAggregate = A2AMessageAggregate::send(
                 messageId: $messageId,
-                senderAgentId: $senderAgent->agent_id,
-                receiverAgentId: $receiverAgent->agent_id,
-                messageType: $request->message_type ?? 'text',
-                content: $request->content,
-                priority: $request->priority ?? 'normal',
-                requiresAcknowledgment: $request->requires_acknowledgment ?? false,
-                expiresAt: $request->expires_at ? new DateTimeImmutable($request->expires_at) : null,
-                metadata: $request->metadata ?? []
+                fromAgentId: $senderAgent->agent_id,
+                toAgentId: $receiverAgent->agent_id,
+                payload: [
+                    'type' => $request->message_type ?? 'text',
+                    'content' => $request->content,
+                    'metadata' => $request->metadata ?? [],
+                ],
+                messageType: 'direct',
+                priority: match($request->priority ?? 'normal') {
+                    'high' => A2AMessageAggregate::PRIORITY_HIGH,
+                    'urgent' => A2AMessageAggregate::PRIORITY_URGENT,
+                    'low' => A2AMessageAggregate::PRIORITY_LOW,
+                    default => A2AMessageAggregate::PRIORITY_NORMAL,
+                },
+                correlationId: null,
+                replyTo: null,
+                headers: [],
+                ttl: $request->expires_at ? (int)(strtotime($request->expires_at) - time()) : 86400
             );
 
             $messageAggregate->persist();
@@ -108,13 +118,26 @@ class AgentMessagingController extends Controller
             // Create message delivery request
             $deliveryRequest = new MessageDeliveryRequest(
                 messageId: $messageId,
-                senderAgentId: $senderAgent->agent_id,
-                receiverAgentId: $receiverAgent->agent_id,
+                fromAgentId: $senderAgent->agent_id,
+                toAgentId: $receiverAgent->agent_id,
                 messageType: $request->message_type ?? 'text',
-                content: $request->content,
-                priority: $request->priority ?? 'normal',
+                payload: [
+                    'content' => $request->content,
+                    'metadata' => $request->metadata ?? [],
+                ],
+                headers: [],
+                priority: match($request->priority ?? 'normal') {
+                    'high' => 75,
+                    'urgent' => 100,
+                    'low' => 25,
+                    default => 50,
+                },
+                correlationId: null,
+                replyTo: null,
                 requiresAcknowledgment: $request->requires_acknowledgment ?? false,
-                expiresAt: $request->expires_at,
+                acknowledgmentTimeout: $request->acknowledgment_timeout ?? null,
+                queueName: null,
+                enableCompensation: false,
                 metadata: array_merge($request->metadata ?? [], [
                     'sender_did'   => $did,
                     'receiver_did' => $request->receiver_did,
@@ -327,7 +350,7 @@ class AgentMessagingController extends Controller
             $messageAggregate = A2AMessageAggregate::retrieve($id);
 
             // Verify agent is the receiver
-            if ($messageAggregate->getReceiverAgentId() !== $agent->agent_id) {
+            if ($messageAggregate->getToAgentId() !== $agent->agent_id) {
                 return response()->json([
                     'error'      => 'Only receiver can acknowledge message',
                     'message_id' => $id,
@@ -337,7 +360,10 @@ class AgentMessagingController extends Controller
             // Acknowledge the message
             $messageAggregate->acknowledge(
                 acknowledgedBy: $agent->agent_id,
-                acknowledgmentMessage: $request->acknowledgment_message ?? null
+                acknowledgmentData: [
+                    'message' => $request->acknowledgment_message ?? null,
+                    'timestamp' => now()->toIso8601String(),
+                ]
             );
 
             $messageAggregate->persist();

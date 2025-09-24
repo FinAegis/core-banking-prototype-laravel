@@ -90,12 +90,14 @@ class AgentPaymentController extends Controller
             // Create transaction aggregate
             $transactionAggregate = AgentTransactionAggregate::initiate(
                 transactionId: $transactionId,
-                senderAgentId: $senderAgent->agent_id,
-                receiverAgentId: $receiverAgent->agent_id,
+                fromAgentId: $senderAgent->agent_id,
+                toAgentId: $receiverAgent->agent_id,
                 amount: $request->amount,
                 currency: $request->currency ?? 'USD',
-                description: $request->description ?? '',
-                metadata: $request->metadata ?? []
+                metadata: array_merge(
+                    $request->metadata ?? [],
+                    ['description' => $request->description ?? '']
+                )
             );
 
             $transactionAggregate->persist();

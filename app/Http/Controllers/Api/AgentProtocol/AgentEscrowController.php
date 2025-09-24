@@ -80,14 +80,16 @@ class AgentEscrowController extends Controller
             $escrowId = Str::uuid()->toString();
 
             // Create escrow aggregate
+            $transactionId = 'txn_' . Str::uuid()->toString();
             $escrowAggregate = EscrowAggregate::create(
                 escrowId: $escrowId,
+                transactionId: $transactionId,
                 senderAgentId: $senderAgent->agent_id,
                 receiverAgentId: $receiverAgent->agent_id,
                 amount: $request->amount,
                 currency: $request->currency ?? 'USD',
                 conditions: $request->conditions ?? [],
-                expiresAt: $request->expires_at ? new DateTimeImmutable($request->expires_at) : null,
+                expiresAt: $request->expires_at ?? null,
                 metadata: $request->metadata ?? []
             );
 
@@ -95,18 +97,19 @@ class AgentEscrowController extends Controller
 
             // Prepare escrow request
             $escrowRequest = new EscrowRequest(
-                escrowId: $escrowId,
-                senderAgentId: $senderAgent->agent_id,
-                receiverAgentId: $receiverAgent->agent_id,
+                buyerDid: $senderAgent->did,
+                sellerDid: $receiverAgent->did,
                 amount: $request->amount,
                 currency: $request->currency ?? 'USD',
                 conditions: $request->conditions ?? [],
                 releaseConditions: $request->release_conditions ?? [],
-                expiresAt: $request->expires_at,
+                disputeResolutionDid: null,
+                timeoutSeconds: $request->timeout_seconds ?? 86400,
                 metadata: array_merge($request->metadata ?? [], [
                     'sender_did'   => $request->sender_did,
                     'receiver_did' => $request->receiver_did,
-                ])
+                ]),
+                escrowId: $escrowId
             );
 
             // Start escrow workflow

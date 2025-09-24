@@ -9,11 +9,13 @@ use App\Domain\AgentProtocol\DataObjects\KycVerificationRequest;
 use App\Domain\AgentProtocol\Events\Integration\AgentComplianceLinked;
 use App\Domain\AgentProtocol\Events\Integration\AgentTransactionMonitored;
 use App\Domain\AgentProtocol\Events\Integration\KycStatusSynchronized;
+use App\Domain\AgentProtocol\Models\Agent;
 use App\Domain\AgentProtocol\Models\AgentCompliance;
 use App\Domain\AgentProtocol\Workflows\AgentKycWorkflow;
 use App\Domain\Compliance\Services\AmlScreeningService;
 use App\Domain\Compliance\Services\KycService;
 use App\Domain\Compliance\Services\TransactionMonitoringService;
+use App\Models\User;
 use DateTimeInterface;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -74,9 +76,12 @@ class ComplianceIntegrationService
             $agentCompliance->save();
 
             // Sync KYC status from main system
-            $kycStatus = $this->kycService->getKycStatus($customerId);
-            if ($kycStatus) {
-                $this->syncKycStatus($agentId, $kycStatus);
+            $customer = User::find($customerId);
+            if ($customer) {
+                $kycStatus = $this->kycService->getKycStatus($customer);
+                if ($kycStatus && is_array($kycStatus)) {
+                    $this->syncKycStatus($agentId, $kycStatus);
+                }
             }
 
             // Emit integration event
@@ -143,21 +148,42 @@ class ComplianceIntegrationService
 
             // Update agent compliance with results
             $aggregate = AgentComplianceAggregate::retrieve($agentCompliance->compliance_id);
-            $aggregate->updateKycStatus(
-                status: $mainKycResult['status'],
-                level: $mainKycResult['verification_level'] ?? 'basic',
-                verifiedAt: now(),
-                metadata: $mainKycResult
-            );
+
+            // Use verifyKyc method based on the result status
+            if ($mainKycResult['status'] === 'verified' || $mainKycResult['status'] === 'approved') {
+                $aggregate->verifyKyc(
+                    verificationResults: $mainKycResult,
+                    riskScore: (int) ($mainKycResult['risk_score'] ?? 0),
+                    expiresAt: now()->addYear(),
+                    complianceFlags: $mainKycResult['compliance_flags'] ?? []
+                );
+            } elseif ($mainKycResult['status'] === 'rejected' || $mainKycResult['status'] === 'failed') {
+                $aggregate->rejectKyc(
+                    reason: $mainKycResult['reason'] ?? 'Verification failed',
+                    failedChecks: $mainKycResult['failed_checks'] ?? []
+                );
+            }
+
             $aggregate->persist();
 
             // Run agent-specific workflow if needed
             if ($options['run_agent_workflow'] ?? false) {
                 $workflow = WorkflowStub::make(AgentKycWorkflow::class);
+
+                // Get agent details for KYC request
+                $agent = Agent::where('agent_id', $agentId)->first();
+
                 $request = new KycVerificationRequest(
                     agentId: $agentId,
+                    agentDid: $agent->did ?? 'did:ap:' . $agentId,
+                    agentName: $agent->name ?? 'Agent ' . $agentId,
+                    verificationLevel: \App\Domain\AgentProtocol\Enums\KycVerificationLevel::from(
+                        $mainKycResult['verification_level'] ?? 'basic'
+                    ),
                     documents: $documents,
-                    requestedLevel: $mainKycResult['verification_level'] ?? 'basic',
+                    countryCode: $options['country_code'] ?? 'US',
+                    enableBiometric: $options['enable_biometric'] ?? false,
+                    businessName: $options['business_name'] ?? null,
                     metadata: $mainKycResult
                 );
                 $workflow->start($request);
@@ -267,14 +293,24 @@ class ComplianceIntegrationService
 
             // Store monitoring result
             if ($agentCompliance) {
-                $aggregate = AgentComplianceAggregate::retrieve($agentCompliance->compliance_id);
-                $aggregate->recordTransactionMonitoring(
-                    transactionId: $transactionId,
-                    riskScore: $monitoringResult['risk_score'],
-                    flags: $monitoringResult['flags'],
-                    metadata: $monitoringResult
-                );
-                $aggregate->persist();
+                // Store monitoring result in the database directly
+                // since AgentComplianceAggregate doesn't have recordTransactionMonitoring method
+                DB::table('agent_compliance_monitoring')->insert([
+                    'id'             => Str::uuid()->toString(),
+                    'compliance_id'  => $agentCompliance->compliance_id,
+                    'transaction_id' => $transactionId,
+                    'risk_score'     => $monitoringResult['risk_score'],
+                    'flags'          => json_encode($monitoringResult['flags']),
+                    'metadata'       => json_encode($monitoringResult),
+                    'created_at'     => now(),
+                ]);
+
+                // Check if transaction limit was exceeded
+                if ($monitoringResult['risk_score'] > 70 || count($monitoringResult['flags']) > 2) {
+                    $aggregate = AgentComplianceAggregate::retrieve($agentCompliance->compliance_id);
+                    $aggregate->recordLimitExceeded($amount, 'transaction');
+                    $aggregate->persist();
+                }
             }
 
             // Emit monitoring event
@@ -395,12 +431,22 @@ class ComplianceIntegrationService
             }
 
             $aggregate = AgentComplianceAggregate::retrieve($agentCompliance->compliance_id);
-            $aggregate->updateKycStatus(
-                status: $kycStatus['status'],
-                level: $kycStatus['level'] ?? 'basic',
-                verifiedAt: now(),
-                metadata: $kycStatus
-            );
+
+            // Use appropriate method based on status
+            if ($kycStatus['status'] === 'verified' || $kycStatus['status'] === 'approved') {
+                $aggregate->verifyKyc(
+                    verificationResults: $kycStatus,
+                    riskScore: (int) ($kycStatus['risk_score'] ?? 0),
+                    expiresAt: now()->addYear(),
+                    complianceFlags: $kycStatus['compliance_flags'] ?? []
+                );
+            } elseif ($kycStatus['status'] === 'rejected' || $kycStatus['status'] === 'failed') {
+                $aggregate->rejectKyc(
+                    reason: $kycStatus['reason'] ?? 'Verification failed during sync',
+                    failedChecks: $kycStatus['failed_checks'] ?? []
+                );
+            }
+
             $aggregate->persist();
 
             Event::dispatch(new KycStatusSynchronized(
