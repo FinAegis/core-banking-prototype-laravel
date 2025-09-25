@@ -7,6 +7,14 @@ namespace App\Http\Resources\AgentProtocol;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property string $transaction_id
+ * @property string $status
+ * @property float $amount
+ * @property string $currency
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ */
 class PaymentStatusResource extends JsonResource
 {
     /**

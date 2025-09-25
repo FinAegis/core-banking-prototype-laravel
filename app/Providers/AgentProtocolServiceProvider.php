@@ -12,12 +12,12 @@ use App\Domain\AgentProtocol\Services\AgentDiscoveryService;
 use App\Domain\AgentProtocol\Services\AgentRegistryService;
 use App\Domain\AgentProtocol\Services\AgentWalletService;
 use App\Domain\AgentProtocol\Services\EscrowService;
-use App\Domain\AgentProtocol\Services\MessagingService;
-use App\Domain\AgentProtocol\Services\PaymentService;
 use App\Domain\AgentProtocol\Services\ReputationService;
-use App\Domain\AgentProtocol\Services\TrustService;
 use App\Domain\AgentProtocol\Services\DigitalSignatureService;
 use App\Domain\AgentProtocol\Services\EncryptionService;
+use App\Domain\AgentProtocol\Services\FraudDetectionService;
+use App\Domain\AgentProtocol\Services\RegulatoryReportingService;
+use App\Domain\AgentProtocol\Services\TransactionVerificationService;
 use App\Domain\AgentProtocol\Services\Integration\AIIntegrationService;
 use App\Domain\AgentProtocol\Services\Integration\ComplianceIntegrationService;
 use App\Domain\AgentProtocol\Services\Integration\CoordinationIntegrationService;
@@ -77,16 +77,18 @@ class AgentProtocolServiceProvider extends ServiceProvider
         // Core services
         $this->app->singleton(AgentRegistryService::class);
         $this->app->singleton(AgentDiscoveryService::class);
-        $this->app->singleton(PaymentService::class);
         $this->app->singleton(EscrowService::class);
-        $this->app->singleton(MessagingService::class);
         $this->app->singleton(AgentWalletService::class);
 
         // Trust & Security services
         $this->app->singleton(ReputationService::class);
-        $this->app->singleton(TrustService::class);
         $this->app->singleton(DigitalSignatureService::class);
         $this->app->singleton(EncryptionService::class);
+
+        // Additional services
+        $this->app->singleton(FraudDetectionService::class);
+        $this->app->singleton(RegulatoryReportingService::class);
+        $this->app->singleton(TransactionVerificationService::class);
     }
 
     /**
@@ -117,10 +119,7 @@ class AgentProtocolServiceProvider extends ServiceProvider
         // Register all Agent Protocol projectors
         Projectionist::addProjector(\App\Domain\AgentProtocol\Projectors\AgentProjector::class);
         Projectionist::addProjector(\App\Domain\AgentProtocol\Projectors\PaymentProjector::class);
-        Projectionist::addProjector(\App\Domain\AgentProtocol\Projectors\EscrowProjector::class);
-        Projectionist::addProjector(\App\Domain\AgentProtocol\Projectors\MessageProjector::class);
         Projectionist::addProjector(\App\Domain\AgentProtocol\Projectors\ReputationProjector::class);
-        Projectionist::addProjector(\App\Domain\AgentProtocol\Projectors\ComplianceProjector::class);
     }
 
     /**
