@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Domain\AgentProtocol\Repositories\AgentRepositoryInterface;
-use App\Domain\AgentProtocol\Repositories\EloquentAgentRepository;
 use App\Domain\AgentProtocol\Repositories\AgentEventRepository;
+use App\Domain\AgentProtocol\Repositories\AgentRepositoryInterface;
 use App\Domain\AgentProtocol\Repositories\AgentSnapshotRepository;
+use App\Domain\AgentProtocol\Repositories\EloquentAgentRepository;
 use App\Domain\AgentProtocol\Services\AgentDiscoveryService;
 use App\Domain\AgentProtocol\Services\AgentRegistryService;
 use App\Domain\AgentProtocol\Services\AgentWalletService;
-use App\Domain\AgentProtocol\Services\EscrowService;
-use App\Domain\AgentProtocol\Services\ReputationService;
 use App\Domain\AgentProtocol\Services\DigitalSignatureService;
 use App\Domain\AgentProtocol\Services\EncryptionService;
+use App\Domain\AgentProtocol\Services\EscrowService;
 use App\Domain\AgentProtocol\Services\FraudDetectionService;
-use App\Domain\AgentProtocol\Services\RegulatoryReportingService;
-use App\Domain\AgentProtocol\Services\TransactionVerificationService;
 use App\Domain\AgentProtocol\Services\Integration\AIIntegrationService;
 use App\Domain\AgentProtocol\Services\Integration\ComplianceIntegrationService;
 use App\Domain\AgentProtocol\Services\Integration\CoordinationIntegrationService;
 use App\Domain\AgentProtocol\Services\Integration\WalletIntegrationService;
+use App\Domain\AgentProtocol\Services\RegulatoryReportingService;
+use App\Domain\AgentProtocol\Services\ReputationService;
+use App\Domain\AgentProtocol\Services\TransactionVerificationService;
 use Illuminate\Support\ServiceProvider;
 use Spatie\EventSourcing\Facades\Projectionist;
 

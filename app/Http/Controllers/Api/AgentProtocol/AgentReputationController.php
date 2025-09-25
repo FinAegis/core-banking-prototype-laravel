@@ -63,38 +63,19 @@ class AgentReputationController extends Controller
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            // Get reputation from service
+            // Get reputation from service - this always returns a ReputationScore object
             $reputation = $this->reputationService->getAgentReputation($agent->agent_id);
-
-            if ($reputation === null) {
-                // If no reputation exists, return default values
-                return response()->json([
-                    'agent_did'               => $did,
-                    'score'                   => 50.0,
-                    'trust_level'             => 'neutral',
-                    'total_transactions'      => 0,
-                    'successful_transactions' => 0,
-                    'failed_transactions'     => 0,
-                    'disputed_transactions'   => 0,
-                    'success_rate'            => 0,
-                    'last_updated'            => null,
-                ]);
-            }
-
-            // Load reputation aggregate to get detailed stats
-            $reputationAggregate = ReputationAggregate::retrieve($reputation->reputation_id);
-            $stats = $reputationAggregate->getStats();
 
             return response()->json([
                 'agent_did'               => $did,
-                'score'                   => $reputationAggregate->getScore(),
-                'trust_level'             => $reputationAggregate->getTrustLevel(),
-                'total_transactions'      => $stats['total_transactions'],
-                'successful_transactions' => $stats['successful_transactions'],
-                'failed_transactions'     => $stats['failed_transactions'],
-                'disputed_transactions'   => $stats['disputed_transactions'],
-                'success_rate'            => $stats['success_rate'],
-                'last_updated'            => $reputation->updated_at->toIso8601String(),
+                'score'                   => $reputation->score,
+                'trust_level'             => $reputation->trustLevel,
+                'total_transactions'      => $reputation->totalTransactions,
+                'successful_transactions' => $reputation->successfulTransactions,
+                'failed_transactions'     => $reputation->failedTransactions,
+                'disputed_transactions'   => $reputation->disputedTransactions,
+                'success_rate'            => $reputation->successRate,
+                'last_updated'            => $reputation->lastActivityAt,
             ]);
         } catch (Exception $e) {
             Log::error('Failed to get agent reputation', [
@@ -169,9 +150,7 @@ class AgentReputationController extends Controller
             $reputation = $this->reputationService->getOrCreateReputation($targetAgent->agent_id);
 
             // Load reputation aggregate
-            $reputationId = is_object($reputation) && property_exists($reputation, 'reputation_id')
-                ? $reputation->reputation_id
-                : $reputation['reputation_id'];
+            $reputationId = $reputation->reputation_id;
             $reputationAggregate = ReputationAggregate::retrieve($reputationId);
 
             // Process feedback based on type

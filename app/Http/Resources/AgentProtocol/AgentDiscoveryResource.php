@@ -7,6 +7,16 @@ namespace App\Http\Resources\AgentProtocol;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property string $agent_id
+ * @property string $did
+ * @property string $name
+ * @property string $type
+ * @property string|null $organization
+ * @property array $capabilities
+ * @property array $endpoints
+ * @property string $status
+ */
 class AgentDiscoveryResource extends JsonResource
 {
     /**

@@ -8,6 +8,7 @@ use App\Domain\AgentProtocol\Aggregates\ReputationAggregate;
 use App\Domain\AgentProtocol\DataObjects\ReputationScore;
 use App\Domain\AgentProtocol\DataObjects\ReputationUpdate;
 use App\Domain\AgentProtocol\Models\Agent;
+use App\Domain\AgentProtocol\Models\AgentReputation;
 use Carbon\Carbon;
 use DomainException;
 use Exception;
@@ -37,7 +38,7 @@ class ReputationService
         $aggregate = ReputationAggregate::initializeReputation(
             reputationId: $reputationId,
             agentId: $agentId,
-            initialScore: $initialScore,
+            initialScore: new \App\Domain\AgentProtocol\ValueObjects\ReputationScore($initialScore, 'neutral'),
             metadata: [
                 'initialized_at' => Carbon::now()->toIso8601String(),
                 'source'         => 'system',
@@ -260,15 +261,15 @@ class ReputationService
             default              => 0.0,
         };
 
-        return $reputation ? $reputation->score >= $threshold : false;
+        return $reputation->score >= $threshold;
     }
 
     /**
      * Get or create reputation for an agent.
      */
-    public function getOrCreateReputation(string $agentId): Reputation
+    public function getOrCreateReputation(string $agentId): AgentReputation
     {
-        $reputation = $this->getAgentReputation($agentId);
+        $reputation = AgentReputation::where('agent_id', $agentId)->first();
 
         if (! $reputation) {
             $reputationId = Str::uuid()->toString();
@@ -277,7 +278,7 @@ class ReputationService
             $aggregate = ReputationAggregate::initializeReputation(
                 reputationId: $reputationId,
                 agentId: $agentId,
-                initialScore: 50.0,
+                initialScore: new \App\Domain\AgentProtocol\ValueObjects\ReputationScore(50.0, 'neutral'),
                 metadata: [
                     'created_at' => now()->toIso8601String(),
                 ]
@@ -285,7 +286,7 @@ class ReputationService
             $aggregate->persist();
 
             // Create reputation model
-            $reputation = Reputation::create([
+            $reputation = AgentReputation::create([
                 'reputation_id'           => $reputationId,
                 'agent_id'                => $agentId,
                 'score'                   => 50.0,
