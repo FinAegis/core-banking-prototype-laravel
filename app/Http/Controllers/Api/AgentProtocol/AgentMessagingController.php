@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\AgentProtocol;
 
 use App\Domain\AgentProtocol\Aggregates\A2AMessageAggregate;
 use App\Domain\AgentProtocol\DataObjects\MessageDeliveryRequest;
+use App\Domain\AgentProtocol\Models\AgentMessage;
 use App\Domain\AgentProtocol\Services\AgentRegistryService;
 use App\Domain\AgentProtocol\Workflows\MessageDeliveryWorkflow;
 use App\Http\Controllers\Controller;
@@ -13,7 +14,6 @@ use App\Http\Requests\AgentProtocol\AcknowledgeMessageRequest;
 use App\Http\Requests\AgentProtocol\SendMessageRequest;
 use App\Http\Resources\AgentProtocol\MessageCollection;
 use App\Http\Resources\AgentProtocol\MessageResource;
-use App\Domain\AgentProtocol\Models\AgentMessage;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

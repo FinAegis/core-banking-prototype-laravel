@@ -212,7 +212,6 @@ class AgentRegistryService
                 ->first();
         });
     }
-}
 
     /**
      * Verify agent credentials.
@@ -221,10 +220,11 @@ class AgentRegistryService
     {
         // Simple verification for now - in production this would verify cryptographic signatures
         $agent = $this->getAgent($agentId);
-        if (!$agent) {
+        if (! $agent) {
             return false;
         }
 
         // Verify the signature matches expected format
         return strlen($signature) > 0 && strlen($nonce) > 0;
     }
+}

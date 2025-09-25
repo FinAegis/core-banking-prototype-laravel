@@ -181,14 +181,15 @@ class AgentRegistrationController extends Controller
      */
     public function discover(Request $request): JsonResponse
     {
-        $filters = [
-            'capability'   => $request->query('capability'),
-            'organization' => $request->query('organization'),
-            'type'         => $request->query('type'),
-            'status'       => 'active', // Only show active agents
-        ];
+        $capability = $request->query('capability');
 
-        $agents = $this->discoveryService->discoverAgents(array_filter($filters));
+        if ($capability) {
+            $agents = $this->discoveryService->discoverByCapability($capability);
+        } else {
+            // For now, return empty array when no capability is specified
+            // In production, you might want to implement a general discovery method
+            $agents = [];
+        }
 
         return response()->json(
             AgentDiscoveryResource::collection($agents)

@@ -47,18 +47,20 @@ class EloquentAgentRepository implements AgentRepositoryInterface
     public function update(string $agentId, array $data): bool
     {
         $agent = $this->findByAgentId($agentId);
-        if (!$agent) {
+        if (! $agent) {
             return false;
         }
+
         return $agent->update($data);
     }
 
     public function delete(string $agentId): bool
     {
         $agent = $this->findByAgentId($agentId);
-        if (!$agent) {
+        if (! $agent) {
             return false;
         }
+
         return $agent->delete();
     }
 }

@@ -13,6 +13,9 @@ use App\Domain\AgentProtocol\Events\TransactionInitiated;
 use App\Domain\AgentProtocol\Events\TransactionValidated;
 use App\Domain\AgentProtocol\Repositories\AgentProtocolEventRepository;
 use App\Domain\AgentProtocol\Repositories\AgentProtocolSnapshotRepository;
+use App\Domain\AgentProtocol\Repositories\AgentRepositoryInterface;
+use App\Domain\AgentProtocol\ValueObjects\AgentIdentifier;
+use App\Domain\AgentProtocol\ValueObjects\TransactionAmount;
 use DateTimeImmutable;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -40,16 +43,14 @@ class AgentTransactionAggregate extends AggregateRoot
 
     private const TYPE_SPLIT = 'split';
 
-    // State properties
+    // State properties using Value Objects
     private string $transactionId = '';
 
-    private string $fromAgentId = '';
+    private ?AgentIdentifier $fromAgent = null;
 
-    private string $toAgentId = '';
+    private ?AgentIdentifier $toAgent = null;
 
-    private float $amount = 0.0;
-
-    private string $currency = 'USD';
+    private ?TransactionAmount $amount = null;
 
     private string $type = self::TYPE_DIRECT;
 
@@ -79,18 +80,13 @@ class AgentTransactionAggregate extends AggregateRoot
 
     public static function initiate(
         string $transactionId,
-        string $fromAgentId,
-        string $toAgentId,
-        float $amount,
-        string $currency = 'USD',
+        AgentIdentifier $fromAgent,
+        AgentIdentifier $toAgent,
+        TransactionAmount $amount,
         string $type = self::TYPE_DIRECT,
         ?string $escrowId = null,
         array $metadata = []
     ): self {
-        if ($amount <= 0) {
-            throw new InvalidArgumentException('Transaction amount must be greater than zero');
-        }
-
         if (! in_array($type, [self::TYPE_DIRECT, self::TYPE_ESCROW, self::TYPE_SPLIT], true)) {
             throw new InvalidArgumentException("Invalid transaction type: {$type}");
         }
@@ -102,10 +98,10 @@ class AgentTransactionAggregate extends AggregateRoot
         $aggregate = static::retrieve($transactionId);
         $aggregate->recordThat(new TransactionInitiated(
             transactionId: $transactionId,
-            fromAgentId: $fromAgentId,
-            toAgentId: $toAgentId,
-            amount: $amount,
-            currency: $currency,
+            fromAgentId: $fromAgent->getAgentId(),
+            toAgentId: $toAgent->getAgentId(),
+            amount: $amount->getAmount(),
+            currency: $amount->getCurrency(),
             type: $type,
             escrowId: $escrowId,
             metadata: $metadata
@@ -129,23 +125,23 @@ class AgentTransactionAggregate extends AggregateRoot
         return $this;
     }
 
-    public function calculateFees(float $feeAmount, string $feeType = 'processing', array $feeDetails = []): self
+    public function calculateFees(TransactionAmount $feeAmount, string $feeType = 'processing', array $feeDetails = []): self
     {
-        if ($feeAmount < 0) {
-            throw new InvalidArgumentException('Fee amount cannot be negative');
+        if ($this->amount && ! $this->amount->isSameCurrency($feeAmount)) {
+            throw new InvalidArgumentException('Fee currency must match transaction currency');
         }
 
         $this->recordThat(new FeeCalculated(
             transactionId: $this->transactionId,
-            feeAmount: $feeAmount,
+            feeAmount: $feeAmount->getAmount(),
             feeType: $feeType,
-            feeDetails: $feeDetails
+            feeDetails: array_merge($feeDetails, ['currency' => $feeAmount->getCurrency()])
         ));
 
         return $this;
     }
 
-    public function holdInEscrow(float $amount, array $escrowDetails = []): self
+    public function holdInEscrow(TransactionAmount $escrowAmount, array $escrowDetails = []): self
     {
         if ($this->type !== self::TYPE_ESCROW) {
             throw new InvalidArgumentException('Can only hold escrow for escrow-type transactions');
@@ -155,16 +151,24 @@ class AgentTransactionAggregate extends AggregateRoot
             throw new InvalidArgumentException("Cannot hold escrow in status: {$this->status}");
         }
 
-        if ($amount <= 0 || $amount > $this->amount) {
-            throw new InvalidArgumentException('Invalid escrow amount');
+        if (! $this->amount) {
+            throw new InvalidArgumentException('Transaction amount not set');
+        }
+
+        if (! $this->amount->isSameCurrency($escrowAmount)) {
+            throw new InvalidArgumentException('Escrow currency must match transaction currency');
+        }
+
+        if ($escrowAmount->isGreaterThan($this->amount)) {
+            throw new InvalidArgumentException('Escrow amount exceeds transaction amount');
         }
 
         $this->recordThat(new EscrowHeld(
             transactionId: $this->transactionId,
             escrowId: $this->escrowId ?? '',
-            amount: $amount,
+            amount: $escrowAmount->getAmount(),
             heldAt: now()->toIso8601String(),
-            escrowDetails: $escrowDetails
+            escrowDetails: array_merge($escrowDetails, ['currency' => $escrowAmount->getCurrency()])
         ));
 
         return $this;
@@ -198,16 +202,21 @@ class AgentTransactionAggregate extends AggregateRoot
             throw new InvalidArgumentException('Must release escrow before completing transaction');
         }
 
+        if (! $this->amount) {
+            throw new InvalidArgumentException('Transaction amount not set');
+        }
+
         $finalAmount = $this->amount;
         foreach ($this->fees as $fee) {
-            $finalAmount -= $fee['amount'] ?? 0;
+            $feeAmount = new TransactionAmount($fee['amount'] ?? 0, $fee['currency'] ?? $this->amount->getCurrency());
+            $finalAmount = $finalAmount->subtract($feeAmount);
         }
 
         $this->recordThat(new TransactionCompleted(
             transactionId: $this->transactionId,
             status: $completionStatus,
-            finalAmount: $finalAmount,
-            currency: $this->currency,
+            finalAmount: $finalAmount->getAmount(),
+            currency: $finalAmount->getCurrency(),
             fees: $this->fees,
             metadata: array_merge($this->metadata, $completionDetails)
         ));
@@ -232,7 +241,7 @@ class AgentTransactionAggregate extends AggregateRoot
         return $this;
     }
 
-    public function addSplitRecipient(string $recipientAgentId, float $amount, string $splitType = 'fixed'): self
+    public function addSplitRecipient(AgentIdentifier $recipientAgent, TransactionAmount $splitAmount, string $splitType = 'fixed'): self
     {
         if ($this->type !== self::TYPE_SPLIT) {
             throw new InvalidArgumentException('Can only add split recipients to split-type transactions');
@@ -242,14 +251,31 @@ class AgentTransactionAggregate extends AggregateRoot
             throw new InvalidArgumentException('Can only add split recipients before validation');
         }
 
-        $totalSplitAmount = array_sum(array_column($this->splitDetails, 'amount')) + $amount;
-        if ($totalSplitAmount > $this->amount) {
+        if (! $this->amount) {
+            throw new InvalidArgumentException('Transaction amount not set');
+        }
+
+        if (! $this->amount->isSameCurrency($splitAmount)) {
+            throw new InvalidArgumentException('Split currency must match transaction currency');
+        }
+
+        $totalSplitAmount = new TransactionAmount(0, $this->amount->getCurrency());
+        foreach ($this->splitDetails as $split) {
+            $splitValue = new TransactionAmount($split['amount'], $split['currency'] ?? $this->amount->getCurrency());
+            $totalSplitAmount = $totalSplitAmount->add($splitValue);
+        }
+
+        $totalSplitAmount = $totalSplitAmount->add($splitAmount);
+
+        if ($totalSplitAmount->isGreaterThan($this->amount)) {
             throw new InvalidArgumentException('Total split amount exceeds transaction amount');
         }
 
         $this->splitDetails[] = [
-        'recipientAgentId' => $recipientAgentId,
-        'amount'           => $amount,
+        'recipientAgentId' => $recipientAgent->getAgentId(),
+        'recipientDid'     => $recipientAgent->getDid(),
+        'amount'           => $splitAmount->getAmount(),
+        'currency'         => $splitAmount->getCurrency(),
         'splitType'        => $splitType,
         'addedAt'          => now()->toIso8601String(),
         ];
@@ -261,10 +287,23 @@ class AgentTransactionAggregate extends AggregateRoot
     protected function applyTransactionInitiated(TransactionInitiated $event): void
     {
         $this->transactionId = $event->transactionId;
-        $this->fromAgentId = $event->fromAgentId;
-        $this->toAgentId = $event->toAgentId;
-        $this->amount = $event->amount;
-        $this->currency = $event->currency;
+
+        // Create AgentIdentifier value objects from the event data
+        // We'll need to fetch the DID from the repository or store it in the event
+        $fromAgentRepo = app(AgentRepositoryInterface::class);
+        $toAgentRepo = app(AgentRepositoryInterface::class);
+
+        $fromAgentModel = $fromAgentRepo->findByAgentId($event->fromAgentId);
+        $toAgentModel = $toAgentRepo->findByAgentId($event->toAgentId);
+
+        if ($fromAgentModel) {
+            $this->fromAgent = new AgentIdentifier($event->fromAgentId, $fromAgentModel->did);
+        }
+        if ($toAgentModel) {
+            $this->toAgent = new AgentIdentifier($event->toAgentId, $toAgentModel->did);
+        }
+
+        $this->amount = new TransactionAmount($event->amount, $event->currency);
         $this->type = $event->type;
         $this->status = self::STATUS_INITIATED;
         $this->escrowId = $event->escrowId;
@@ -280,8 +319,10 @@ class AgentTransactionAggregate extends AggregateRoot
 
     protected function applyFeeCalculated(FeeCalculated $event): void
     {
+        $currency = $event->feeDetails['currency'] ?? ($this->amount ? $this->amount->getCurrency() : 'USD');
         $this->fees[] = [
         'amount'       => $event->feeAmount,
+        'currency'     => $currency,
         'type'         => $event->feeType,
         'details'      => $event->feeDetails,
         'calculatedAt' => now()->toIso8601String(),
@@ -292,10 +333,12 @@ class AgentTransactionAggregate extends AggregateRoot
     {
         $this->isEscrowHeld = true;
         $this->status = self::STATUS_PROCESSING;
+        $currency = $event->escrowDetails['currency'] ?? ($this->amount ? $this->amount->getCurrency() : 'USD');
         $this->metadata['escrow'] = [
-        'heldAt'  => $event->heldAt,
-        'amount'  => $event->amount,
-        'details' => $event->escrowDetails,
+        'heldAt'   => $event->heldAt,
+        'amount'   => $event->amount,
+        'currency' => $currency,
+        'details'  => $event->escrowDetails,
         ];
     }
 
@@ -316,6 +359,7 @@ class AgentTransactionAggregate extends AggregateRoot
         $this->metadata['completion'] = [
         'status'      => $event->status,
         'finalAmount' => $event->finalAmount,
+        'currency'    => $event->currency,
         'completedAt' => now()->toIso8601String(),
         ];
     }
@@ -338,14 +382,24 @@ class AgentTransactionAggregate extends AggregateRoot
         return $this->transactionId;
     }
 
+    public function getFromAgent(): ?AgentIdentifier
+    {
+        return $this->fromAgent;
+    }
+
+    public function getToAgent(): ?AgentIdentifier
+    {
+        return $this->toAgent;
+    }
+
     public function getFromAgentId(): string
     {
-        return $this->fromAgentId;
+        return $this->fromAgent ? $this->fromAgent->getAgentId() : '';
     }
 
     public function getToAgentId(): string
     {
-        return $this->toAgentId;
+        return $this->toAgent ? $this->toAgent->getAgentId() : '';
     }
 
     public function getStatus(): string
@@ -353,14 +407,19 @@ class AgentTransactionAggregate extends AggregateRoot
         return $this->status;
     }
 
-    public function getAmount(): float
+    public function getAmount(): ?TransactionAmount
     {
         return $this->amount;
     }
 
+    public function getAmountValue(): float
+    {
+        return $this->amount ? $this->amount->getAmount() : 0.0;
+    }
+
     public function getCurrency(): string
     {
-        return $this->currency;
+        return $this->amount ? $this->amount->getCurrency() : 'USD';
     }
 
     public function getType(): string
@@ -444,7 +503,7 @@ class AgentTransactionAggregate extends AggregateRoot
      */
     public function getSenderAgentId(): string
     {
-        return $this->fromAgentId;
+        return $this->getFromAgentId();
     }
 
     /**
@@ -452,7 +511,7 @@ class AgentTransactionAggregate extends AggregateRoot
      */
     public function getReceiverAgentId(): string
     {
-        return $this->toAgentId;
+        return $this->getToAgentId();
     }
 
     /**

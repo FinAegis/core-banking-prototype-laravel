@@ -12,6 +12,7 @@ use App\Domain\AgentProtocol\Events\ReputationUpdated;
 use App\Domain\AgentProtocol\Events\TrustLevelChanged;
 use App\Domain\AgentProtocol\Repositories\AgentProtocolEventRepository;
 use App\Domain\AgentProtocol\Repositories\AgentProtocolSnapshotRepository;
+use App\Domain\AgentProtocol\ValueObjects\ReputationScore;
 use Carbon\Carbon;
 use InvalidArgumentException;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
@@ -24,7 +25,7 @@ class ReputationAggregate extends AggregateRoot
 
     protected string $agentId = '';
 
-    protected float $score = 50.0; // 0-100 scale
+    protected ?ReputationScore $reputationScore = null;
 
     protected string $trustLevel = 'neutral'; // untrusted, low, neutral, high, trusted
 
@@ -77,21 +78,17 @@ class ReputationAggregate extends AggregateRoot
     public static function initializeReputation(
         string $reputationId,
         string $agentId,
-        float $initialScore = 50.0,
+        ReputationScore $initialScore,
         array $metadata = []
     ): self {
-        if ($initialScore < self::MIN_SCORE || $initialScore > self::MAX_SCORE) {
-            throw new InvalidArgumentException('Initial score must be between {self::MIN_SCORE} and {self::MAX_SCORE}');
-        }
-
         $aggregate = static::retrieve($reputationId);
 
-        $trustLevel = $aggregate->calculateTrustLevelFromScore($initialScore);
+        $trustLevel = $aggregate->calculateTrustLevelFromScore($initialScore->getScore());
 
         $aggregate->recordThat(new ReputationInitialized(
             reputationId: $reputationId,
             agentId: $agentId,
-            initialScore: $initialScore,
+            initialScore: $initialScore->getScore(),
             trustLevel: $trustLevel,
             metadata: $metadata
         ));
@@ -105,15 +102,20 @@ class ReputationAggregate extends AggregateRoot
         float $value,
         array $metadata = []
     ): self {
+        if (! $this->reputationScore) {
+            $this->reputationScore = new ReputationScore(50.0, 'neutral');
+        }
+
         $scoreChange = $this->calculateScoreChange($outcome, $value);
-        $newScore = $this->clampScore($this->score + $scoreChange);
+        $currentScore = $this->reputationScore->getScore();
+        $newScore = $this->clampScore($currentScore + $scoreChange);
         $newTrustLevel = $this->calculateTrustLevelFromScore($newScore);
 
         $this->recordThat(new ReputationUpdated(
             reputationId: $this->reputationId,
             agentId: $this->agentId,
             transactionId: $transactionId,
-            previousScore: $this->score,
+            previousScore: $currentScore,
             newScore: $newScore,
             scoreChange: $scoreChange,
             outcome: $outcome,
@@ -142,15 +144,20 @@ class ReputationAggregate extends AggregateRoot
         string $reason,
         array $metadata = []
     ): self {
+        if (! $this->reputationScore) {
+            $this->reputationScore = new ReputationScore(50.0, 'neutral');
+        }
+
         $penalty = $this->calculateDisputePenalty($severity);
-        $newScore = $this->clampScore($this->score - $penalty);
+        $currentScore = $this->reputationScore->getScore();
+        $newScore = $this->clampScore($currentScore - $penalty);
         $newTrustLevel = $this->calculateTrustLevelFromScore($newScore);
 
         $this->recordThat(new ReputationPenaltyApplied(
             reputationId: $this->reputationId,
             agentId: $this->agentId,
             disputeId: $disputeId,
-            previousScore: $this->score,
+            previousScore: $currentScore,
             newScore: $newScore,
             penalty: $penalty,
             severity: $severity,
@@ -182,13 +189,18 @@ class ReputationAggregate extends AggregateRoot
             throw new InvalidArgumentException('Boost amount must be positive');
         }
 
-        $newScore = $this->clampScore($this->score + $amount);
+        if (! $this->reputationScore) {
+            $this->reputationScore = new ReputationScore(50.0, 'neutral');
+        }
+
+        $currentScore = $this->reputationScore->getScore();
+        $newScore = $this->clampScore($currentScore + $amount);
         $newTrustLevel = $this->calculateTrustLevelFromScore($newScore);
 
         $this->recordThat(new ReputationBoosted(
             reputationId: $this->reputationId,
             agentId: $this->agentId,
-            previousScore: $this->score,
+            previousScore: $currentScore,
             newScore: $newScore,
             boostAmount: $amount,
             reason: $reason,
@@ -216,21 +228,26 @@ class ReputationAggregate extends AggregateRoot
             return $this;
         }
 
+        if (! $this->reputationScore) {
+            $this->reputationScore = new ReputationScore(50.0, 'neutral');
+        }
+
         // Calculate decay based on inactivity period
+        $currentScore = $this->reputationScore->getScore();
         $decayFactor = self::DECAY_RATE * $daysSinceLastActivity;
-        $decayAmount = $this->score * min($decayFactor, 0.5); // Max 50% decay
+        $decayAmount = $currentScore * min($decayFactor, 0.5); // Max 50% decay
 
         if ($decayAmount < 0.01) {
             return $this; // Skip negligible decay
         }
 
-        $newScore = $this->clampScore($this->score - $decayAmount);
+        $newScore = $this->clampScore($currentScore - $decayAmount);
         $newTrustLevel = $this->calculateTrustLevelFromScore($newScore);
 
         $this->recordThat(new ReputationDecayed(
             reputationId: $this->reputationId,
             agentId: $this->agentId,
-            previousScore: $this->score,
+            previousScore: $currentScore,
             newScore: $newScore,
             decayAmount: $decayAmount,
             daysSinceLastActivity: $daysSinceLastActivity,
@@ -254,7 +271,11 @@ class ReputationAggregate extends AggregateRoot
 
     public function calculateTrustLevel(): string
     {
-        return $this->calculateTrustLevelFromScore($this->score);
+        if (! $this->reputationScore) {
+            return 'neutral';
+        }
+
+        return $this->calculateTrustLevelFromScore($this->reputationScore->getScore());
     }
 
     protected function calculateTrustLevelFromScore(float $score): string
@@ -306,7 +327,7 @@ class ReputationAggregate extends AggregateRoot
     {
         $this->reputationId = $event->reputationId;
         $this->agentId = $event->agentId;
-        $this->score = $event->initialScore;
+        $this->reputationScore = new ReputationScore($event->initialScore, $event->initialTrustLevel);
         $this->trustLevel = $event->trustLevel;
         $this->metadata = $event->metadata;
         $this->lastDecayAt = Carbon::now();
@@ -314,7 +335,8 @@ class ReputationAggregate extends AggregateRoot
 
     protected function applyReputationUpdated(ReputationUpdated $event): void
     {
-        $this->score = $event->newScore;
+        $trustLevel = $this->calculateTrustLevelFromScore($event->newScore);
+        $this->reputationScore = new ReputationScore($event->newScore, $trustLevel);
         $this->lastTransactionAt = Carbon::now();
         $this->totalTransactions++;
 
@@ -336,7 +358,8 @@ class ReputationAggregate extends AggregateRoot
 
     protected function applyReputationPenaltyApplied(ReputationPenaltyApplied $event): void
     {
-        $this->score = $event->newScore;
+        $trustLevel = $this->calculateTrustLevelFromScore($event->newScore);
+        $this->reputationScore = new ReputationScore($event->newScore, $trustLevel);
 
         $this->disputeHistory[] = [
             'dispute_id' => $event->disputeId,
@@ -351,7 +374,8 @@ class ReputationAggregate extends AggregateRoot
 
     protected function applyReputationBoosted(ReputationBoosted $event): void
     {
-        $this->score = $event->newScore;
+        $trustLevel = $this->calculateTrustLevelFromScore($event->newScore);
+        $this->reputationScore = new ReputationScore($event->newScore, $trustLevel);
 
         $this->boostHistory[] = [
             'amount'    => $event->boostAmount,
@@ -362,7 +386,8 @@ class ReputationAggregate extends AggregateRoot
 
     protected function applyReputationDecayed(ReputationDecayed $event): void
     {
-        $this->score = $event->newScore;
+        $trustLevel = $this->calculateTrustLevelFromScore($event->newScore);
+        $this->reputationScore = new ReputationScore($event->newScore, $trustLevel);
         $this->lastDecayAt = Carbon::now();
     }
 
@@ -374,7 +399,12 @@ class ReputationAggregate extends AggregateRoot
     // Getters for read operations
     public function getScore(): float
     {
-        return $this->score;
+        return $this->reputationScore ? $this->reputationScore->getScore() : 50.0;
+    }
+
+    public function getReputationScore(): ?ReputationScore
+    {
+        return $this->reputationScore;
     }
 
     public function getTrustLevel(): string

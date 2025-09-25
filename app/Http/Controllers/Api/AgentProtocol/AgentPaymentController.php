@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\AgentProtocol;
 use App\Domain\AgentProtocol\Aggregates\AgentTransactionAggregate;
 use App\Domain\AgentProtocol\DataObjects\AgentPaymentRequest;
 use App\Domain\AgentProtocol\Services\AgentRegistryService;
+use App\Domain\AgentProtocol\ValueObjects\AgentIdentifier;
+use App\Domain\AgentProtocol\ValueObjects\TransactionAmount;
 use App\Domain\AgentProtocol\Workflows\PaymentOrchestrationWorkflow;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AgentProtocol\ConfirmPaymentRequest;
@@ -88,12 +90,15 @@ class AgentPaymentController extends Controller
             $transactionId = Str::uuid()->toString();
 
             // Create transaction aggregate
+            $fromAgent = new AgentIdentifier($senderAgent->agent_id, $senderAgent->did);
+            $toAgent = new AgentIdentifier($receiverAgent->agent_id, $receiverAgent->did);
+            $amount = new TransactionAmount($request->amount, $request->currency ?? 'USD');
+
             $transactionAggregate = AgentTransactionAggregate::initiate(
                 transactionId: $transactionId,
-                fromAgentId: $senderAgent->agent_id,
-                toAgentId: $receiverAgent->agent_id,
-                amount: $request->amount,
-                currency: $request->currency ?? 'USD',
+                fromAgent: $fromAgent,
+                toAgent: $toAgent,
+                amount: $amount,
                 metadata: array_merge(
                     $request->metadata ?? [],
                     ['description' => $request->description ?? '']
@@ -104,18 +109,21 @@ class AgentPaymentController extends Controller
 
             // Prepare payment request
             $paymentRequest = new AgentPaymentRequest(
-                transactionId: $transactionId,
-                senderAgentId: $senderAgent->agent_id,
-                receiverAgentId: $receiverAgent->agent_id,
+                fromAgentDid: $senderAgent->did,
+                toAgentDid: $receiverAgent->did,
                 amount: $request->amount,
                 currency: $request->currency ?? 'USD',
-                description: $request->description ?? '',
-                splitPayments: $request->split_payments ?? [],
+                purpose: $request->description ?? 'payment',
                 metadata: array_merge($request->metadata ?? [], [
                     'sender_did'      => $did,
                     'receiver_did'    => $request->receiver_did,
                     'idempotency_key' => $request->idempotency_key ?? null,
-                ])
+                    'description'     => $request->description ?? '',
+                ]),
+                escrowConditions: null,
+                splits: $request->split_payments ?? [],
+                timeoutSeconds: 300,
+                transactionId: $transactionId
             );
 
             // Start payment workflow

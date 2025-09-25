@@ -6,8 +6,8 @@ namespace App\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Events\AgentKycVerified;
 use App\Domain\AgentProtocol\Events\AgentTransactionLimitExceeded;
-use App\Domain\Compliance\Services\ComplianceAlertService;
 use App\Domain\AgentProtocol\Models\Agent;
+use App\Domain\Compliance\Services\ComplianceAlertService;
 use App\Models\AgentTransaction;
 use App\Models\RegulatoryReport;
 use Carbon\Carbon;

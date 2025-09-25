@@ -66,7 +66,7 @@ class AgentReputationController extends Controller
             // Get reputation from service
             $reputation = $this->reputationService->getAgentReputation($agent->agent_id);
 
-            if (! $reputation) {
+            if ($reputation === null) {
                 // If no reputation exists, return default values
                 return response()->json([
                     'agent_did'               => $did,
@@ -169,7 +169,10 @@ class AgentReputationController extends Controller
             $reputation = $this->reputationService->getOrCreateReputation($targetAgent->agent_id);
 
             // Load reputation aggregate
-            $reputationAggregate = ReputationAggregate::retrieve($reputation->reputation_id);
+            $reputationId = is_object($reputation) && property_exists($reputation, 'reputation_id')
+                ? $reputation->reputation_id
+                : $reputation['reputation_id'];
+            $reputationAggregate = ReputationAggregate::retrieve($reputationId);
 
             // Process feedback based on type
             switch ($request->feedback_type) {
