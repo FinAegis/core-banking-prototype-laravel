@@ -79,8 +79,8 @@ class CoordinationIntegrationService
                 // Register with coordination service
                 if ($agent->ai_agent_id) {
                     $this->coordinationService->registerAgent(
-                        agentId: $agent->ai_agent_id,
-                        agentClass: 'GroupAgent',
+                        name: $agent->ai_agent_id,
+                        workflowClass: 'GroupAgent',
                         capabilities: array_merge(
                             $agent->ai_capabilities ?? [],
                             ['group_collaboration']

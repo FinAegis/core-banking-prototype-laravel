@@ -7,6 +7,20 @@ namespace App\Http\Resources\AgentProtocol;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property string $message_id
+ * @property string $sender_agent_id
+ * @property string $receiver_agent_id
+ * @property string $message_type
+ * @property array $content
+ * @property string $status
+ * @property string $priority
+ * @property bool $requires_acknowledgment
+ * @property \Carbon\Carbon|null $acknowledged_at
+ * @property \Carbon\Carbon|null $expires_at
+ * @property array|null $metadata
+ * @property \Carbon\Carbon $created_at
+ */
 class MessageResource extends JsonResource
 {
     /**

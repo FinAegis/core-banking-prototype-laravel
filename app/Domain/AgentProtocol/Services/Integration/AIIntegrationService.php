@@ -138,7 +138,7 @@ class AIIntegrationService
                     'wallet_id'         => $protocolAgent->metadata['wallet_id'] ?? null,
                     'capabilities'      => $protocolAgent->metadata['ai_capabilities'] ?? [],
                 ]),
-                'started_at'      => now(),
+                'started_at' => now(),
             ];
 
             // Set up payment tools for conversation

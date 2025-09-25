@@ -6,7 +6,7 @@ namespace App\Domain\AgentProtocol\Workflows\Activities;
 
 use App\Domain\AgentProtocol\Aggregates\AgentComplianceAggregate;
 use App\Domain\AgentProtocol\Enums\KycVerificationLevel;
-use App\Models\Agent;
+use App\Domain\AgentProtocol\Models\Agent;
 use Workflow\Activity;
 
 class SetInitialTransactionLimitsActivity extends Activity

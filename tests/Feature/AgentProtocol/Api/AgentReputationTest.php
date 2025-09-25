@@ -7,7 +7,7 @@ namespace Tests\Feature\AgentProtocol\Api;
 use App\Domain\AgentProtocol\Aggregates\AgentIdentityAggregate;
 use App\Domain\AgentProtocol\Aggregates\ReputationAggregate;
 use App\Models\Agent;
-use App\Models\AgentReputation;
+use App\Domain\AgentProtocol\Models\AgentReputation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;

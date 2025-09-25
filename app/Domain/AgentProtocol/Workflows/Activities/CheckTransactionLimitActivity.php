@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\AgentProtocol\Workflows\Activities;
 
 use App\Domain\AgentProtocol\Aggregates\AgentComplianceAggregate;
-use App\Models\Agent;
+use App\Domain\AgentProtocol\Models\Agent;
 use App\Models\AgentTransactionTotal;
 use Carbon\Carbon;
 use Exception;

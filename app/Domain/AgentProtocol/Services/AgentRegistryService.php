@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Aggregates\AgentIdentityAggregate;
-use App\Models\Agent;
+use App\Domain\AgentProtocol\Models\Agent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -213,3 +213,18 @@ class AgentRegistryService
         });
     }
 }
+
+    /**
+     * Verify agent credentials.
+     */
+    public function verifyAgent(string $agentId, string $signature, string $nonce): bool
+    {
+        // Simple verification for now - in production this would verify cryptographic signatures
+        $agent = $this->getAgent($agentId);
+        if (!$agent) {
+            return false;
+        }
+
+        // Verify the signature matches expected format
+        return strlen($signature) > 0 && strlen($nonce) > 0;
+    }

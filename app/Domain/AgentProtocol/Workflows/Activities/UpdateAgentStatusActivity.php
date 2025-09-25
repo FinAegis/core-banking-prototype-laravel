@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Workflows\Activities;
 
-use App\Models\Agent;
+use App\Domain\AgentProtocol\Models\Agent;
 use Workflow\Activity;
 
 class UpdateAgentStatusActivity extends Activity
