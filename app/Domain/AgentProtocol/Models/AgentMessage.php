@@ -7,6 +7,26 @@ namespace App\Domain\AgentProtocol\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $message_id
+ * @property string $from_agent_id
+ * @property string $to_agent_id
+ * @property string $message_type
+ * @property string $priority
+ * @property string $status
+ * @property array|null $payload
+ * @property array|null $headers
+ * @property string|null $correlation_id
+ * @property string|null $reply_to
+ * @property bool $requires_acknowledgment
+ * @property int|null $acknowledgment_timeout
+ * @property \Carbon\Carbon|null $acknowledged_at
+ * @property \Carbon\Carbon|null $delivered_at
+ * @property \Carbon\Carbon|null $failed_at
+ * @property int $retry_count
+ * @property \Carbon\Carbon|null $next_retry_at
+ * @property array|null $metadata
+ */
 class AgentMessage extends Model
 {
     protected $table = 'agent_messages';

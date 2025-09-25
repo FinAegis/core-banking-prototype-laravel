@@ -192,9 +192,11 @@ class AgentComplianceTest extends TestCase
         // Arrange
         $agentId = Str::uuid()->toString();
         $agent = Agent::factory()->create([
-            'agent_id'               => $agentId,
-            'kyc_verification_level' => 'enhanced',
-            'kyc_status'             => 'verified',
+            'agent_id' => $agentId,
+            'metadata' => [
+                'kyc_verification_level' => 'enhanced',
+                'kyc_status'             => 'verified',
+            ],
         ]);
 
         // Create transactions above CTR threshold
@@ -234,8 +236,10 @@ class AgentComplianceTest extends TestCase
         // Arrange
         $agentId = Str::uuid()->toString();
         $agent = Agent::factory()->create([
-            'agent_id'   => $agentId,
-            'risk_score' => 75,
+            'agent_id' => $agentId,
+            'metadata' => [
+                'risk_score' => 75,
+            ],
         ]);
 
         $transactionIds = [];

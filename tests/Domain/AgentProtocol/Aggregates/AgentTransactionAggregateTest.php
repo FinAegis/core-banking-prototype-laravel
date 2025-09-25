@@ -9,6 +9,8 @@ use App\Domain\AgentProtocol\Events\FeeCalculated;
 use App\Domain\AgentProtocol\Events\TransactionCompleted;
 use App\Domain\AgentProtocol\Events\TransactionInitiated;
 use App\Domain\AgentProtocol\Events\TransactionValidated;
+use App\Domain\AgentProtocol\ValueObjects\AgentIdentifier;
+use App\Domain\AgentProtocol\ValueObjects\TransactionAmount;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,6 +26,10 @@ class AgentTransactionAggregateTest extends TestCase
 
     private string $toAgentId;
 
+    private AgentIdentifier $fromAgent;
+
+    private AgentIdentifier $toAgent;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -31,6 +37,10 @@ class AgentTransactionAggregateTest extends TestCase
         $this->transactionId = 'txn_' . uniqid();
         $this->fromAgentId = 'agent_sender_' . uniqid();
         $this->toAgentId = 'agent_receiver_' . uniqid();
+
+        // Create Value Objects
+        $this->fromAgent = new AgentIdentifier($this->fromAgentId, 'did:agent:' . $this->fromAgentId);
+        $this->toAgent = new AgentIdentifier($this->toAgentId, 'did:agent:' . $this->toAgentId);
     }
 
     #[Test]
@@ -38,10 +48,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
@@ -62,10 +71,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 5000.00,
-            currency: 'EUR',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(5000.00, 'EUR'),
             type: 'escrow'
         );
 
@@ -85,10 +93,9 @@ class AgentTransactionAggregateTest extends TestCase
 
         AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 0,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(0, 'USD'),
             type: 'direct'
         );
     }
@@ -101,10 +108,9 @@ class AgentTransactionAggregateTest extends TestCase
 
         AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: -100,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(-100, 'USD'),
             type: 'direct'
         );
     }
@@ -117,10 +123,9 @@ class AgentTransactionAggregateTest extends TestCase
 
         AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000, 'USD'),
             type: 'invalid'
         );
     }
@@ -130,10 +135,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
@@ -157,10 +161,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
@@ -177,15 +180,14 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
-        $aggregate->calculateFees(25.00, 'processing', ['rate' => '2.5%']);
-        $aggregate->calculateFees(5.00, 'network', ['type' => 'blockchain']);
+        $aggregate->calculateFees(new TransactionAmount(25.00, 'USD'), 'processing', ['rate' => '2.5%']);
+        $aggregate->calculateFees(new TransactionAmount(5.00, 'USD'), 'network', ['type' => 'blockchain']);
         $aggregate->persist();
 
         $fees = $aggregate->getFees();
@@ -201,17 +203,16 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Fee amount cannot be negative');
 
-        $aggregate->calculateFees(-10.00, 'processing');
+        $aggregate->calculateFees(new TransactionAmount(-10.00, 'USD'), 'processing');
     }
 
     #[Test]
@@ -219,15 +220,14 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 5000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(5000.00, 'USD'),
             type: 'escrow'
         );
 
         $aggregate->validate();
-        $aggregate->holdInEscrow(5000.00, ['condition' => 'delivery_confirmed']);
+        $aggregate->holdInEscrow(new TransactionAmount(5000.00, 'USD'), ['condition' => 'delivery_confirmed']);
         $aggregate->persist();
 
         $this->assertEquals('processing', $aggregate->getStatus());
@@ -239,10 +239,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct' // Not escrow
         );
 
@@ -251,7 +250,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Can only hold escrow for escrow-type transactions');
 
-        $aggregate->holdInEscrow(1000.00);
+        $aggregate->holdInEscrow(new TransactionAmount(1000.00, 'USD'));
     }
 
     #[Test]
@@ -259,10 +258,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'escrow'
         );
 
@@ -271,7 +269,7 @@ class AgentTransactionAggregateTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid escrow amount');
 
-        $aggregate->holdInEscrow(2000.00); // More than transaction amount
+        $aggregate->holdInEscrow(new TransactionAmount(2000.00, 'USD')); // More than transaction amount
     }
 
     #[Test]
@@ -279,15 +277,14 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 5000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(5000.00, 'USD'),
             type: 'escrow'
         );
 
         $aggregate->validate();
-        $aggregate->holdInEscrow(5000.00);
+        $aggregate->holdInEscrow(new TransactionAmount(5000.00, 'USD'));
         $aggregate->releaseFromEscrow('system', 'conditions_met', ['condition' => 'delivery_confirmed']);
         $aggregate->persist();
 
@@ -299,10 +296,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 5000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(5000.00, 'USD'),
             type: 'escrow'
         );
 
@@ -317,15 +313,14 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
         $aggregate->validate();
-        $aggregate->calculateFees(25.00, 'processing');
+        $aggregate->calculateFees(new TransactionAmount(25.00, 'USD'), 'processing');
         $aggregate->complete('success', ['confirmation_number' => 'CONF123']);
         $aggregate->persist();
 
@@ -337,15 +332,14 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 5000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(5000.00, 'USD'),
             type: 'escrow'
         );
 
         $aggregate->validate();
-        $aggregate->holdInEscrow(5000.00);
+        $aggregate->holdInEscrow(new TransactionAmount(5000.00, 'USD'));
         $aggregate->releaseFromEscrow('system', 'conditions_met');
         $aggregate->complete('success');
         $aggregate->persist();
@@ -358,15 +352,14 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 5000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(5000.00, 'USD'),
             type: 'escrow'
         );
 
         $aggregate->validate();
-        $aggregate->holdInEscrow(5000.00);
+        $aggregate->holdInEscrow(new TransactionAmount(5000.00, 'USD'));
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Must release escrow before completing transaction');
@@ -379,10 +372,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
@@ -399,10 +391,9 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
@@ -420,16 +411,15 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'split'
         );
 
-        $aggregate->addSplitRecipient('agent_1', 400.00, 'fixed');
-        $aggregate->addSplitRecipient('agent_2', 300.00, 'fixed');
-        $aggregate->addSplitRecipient('agent_3', 300.00, 'fixed');
+        $aggregate->addSplitRecipient(new AgentIdentifier('agent_1', 'did:agent:agent_1'), new TransactionAmount(400.00, 'USD'), 'fixed');
+        $aggregate->addSplitRecipient(new AgentIdentifier('agent_2', 'did:agent:agent_2'), new TransactionAmount(300.00, 'USD'), 'fixed');
+        $aggregate->addSplitRecipient(new AgentIdentifier('agent_3', 'did:agent:agent_3'), new TransactionAmount(300.00, 'USD'), 'fixed');
         $aggregate->persist();
 
         $splits = $aggregate->getSplitDetails();
@@ -442,19 +432,18 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'split'
         );
 
-        $aggregate->addSplitRecipient('agent_1', 600.00, 'fixed');
+        $aggregate->addSplitRecipient(new AgentIdentifier('agent_1', 'did:agent:agent_1'), new TransactionAmount(600.00, 'USD'), 'fixed');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Total split amount exceeds transaction amount');
 
-        $aggregate->addSplitRecipient('agent_2', 600.00, 'fixed'); // Total would be 1200
+        $aggregate->addSplitRecipient(new AgentIdentifier('agent_2', 'did:agent:agent_2'), new TransactionAmount(600.00, 'USD'), 'fixed'); // Total would be 1200
     }
 
     #[Test]
@@ -462,17 +451,16 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Can only add split recipients to split-type transactions');
 
-        $aggregate->addSplitRecipient('agent_1', 500.00, 'fixed');
+        $aggregate->addSplitRecipient(new AgentIdentifier('agent_1', 'did:agent:agent_1'), new TransactionAmount(500.00, 'USD'), 'fixed');
     }
 
     #[Test]
@@ -486,10 +474,9 @@ class AgentTransactionAggregateTest extends TestCase
 
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct',
             metadata: $metadata
         );
@@ -507,15 +494,14 @@ class AgentTransactionAggregateTest extends TestCase
     {
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
         $aggregate->validate();
-        $aggregate->calculateFees(25.00, 'processing');
+        $aggregate->calculateFees(new TransactionAmount(25.00, 'USD'), 'processing');
         $aggregate->complete();
 
         $events = $aggregate->getRecordedEvents();
@@ -533,15 +519,14 @@ class AgentTransactionAggregateTest extends TestCase
         // Create and persist initial aggregate
         $aggregate = AgentTransactionAggregate::initiate(
             transactionId: $this->transactionId,
-            fromAgentId: $this->fromAgentId,
-            toAgentId: $this->toAgentId,
-            amount: 1000.00,
-            currency: 'USD',
+            fromAgent: $this->fromAgent,
+            toAgent: $this->toAgent,
+            amount: new TransactionAmount(1000.00, 'USD'),
             type: 'direct'
         );
 
         $aggregate->validate();
-        $aggregate->calculateFees(25.00, 'processing');
+        $aggregate->calculateFees(new TransactionAmount(25.00, 'USD'), 'processing');
         $aggregate->complete();
         $aggregate->persist();
 

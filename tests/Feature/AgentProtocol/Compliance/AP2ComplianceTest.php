@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\AgentProtocol\Compliance;
 
 use App\Domain\AgentProtocol\Models\Agent;
-use App\Domain\AgentProtocol\Services\AgentDiscoveryService;
-use App\Domain\AgentProtocol\Services\AgentRegistryService;
 use App\Domain\AgentProtocol\Services\JsonLDService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;

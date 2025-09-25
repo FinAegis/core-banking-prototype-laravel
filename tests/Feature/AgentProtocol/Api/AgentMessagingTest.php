@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\AgentProtocol\Api;
 
 use App\Domain\AgentProtocol\Aggregates\AgentIdentityAggregate;
-use App\Models\Agent;
-use App\Models\AgentMessage;
+use App\Domain\AgentProtocol\Models\Agent;
+use App\Domain\AgentProtocol\Models\AgentMessage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -76,7 +76,7 @@ class AgentMessagingTest extends TestCase
         $response = $this->postJson("/api/agents/{$this->senderDid}/messages", [
             'receiver_did'            => $this->receiverDid,
             'message_type'            => 'text',
-            'content'                 => 'Hello, this is a test message',
+            'payload'                 => 'Hello, this is a test message',
             'priority'                => 'normal',
             'requires_acknowledgment' => true,
         ]);
@@ -124,10 +124,10 @@ class AgentMessagingTest extends TestCase
         // Create some messages first
         AgentMessage::create([
             'message_id'              => Str::uuid()->toString(),
-            'sender_agent_id'         => $this->senderAgentId,
-            'receiver_agent_id'       => $this->receiverAgentId,
+            'from_agent_id'           => $this->senderAgentId,
+            'to_agent_id'             => $this->receiverAgentId,
             'message_type'            => 'text',
-            'content'                 => 'Message 1',
+            'payload'                 => 'Message 1',
             'status'                  => 'delivered',
             'priority'                => 'normal',
             'requires_acknowledgment' => false,
@@ -135,10 +135,10 @@ class AgentMessagingTest extends TestCase
 
         AgentMessage::create([
             'message_id'              => Str::uuid()->toString(),
-            'sender_agent_id'         => $this->receiverAgentId,
-            'receiver_agent_id'       => $this->senderAgentId,
+            'from_agent_id'           => $this->receiverAgentId,
+            'to_agent_id'             => $this->senderAgentId,
             'message_type'            => 'text',
-            'content'                 => 'Message 2',
+            'payload'                 => 'Message 2',
             'status'                  => 'queued',
             'priority'                => 'high',
             'requires_acknowledgment' => true,
@@ -172,10 +172,10 @@ class AgentMessagingTest extends TestCase
         // Create messages with different statuses
         AgentMessage::create([
             'message_id'              => Str::uuid()->toString(),
-            'sender_agent_id'         => $this->senderAgentId,
-            'receiver_agent_id'       => $this->receiverAgentId,
+            'from_agent_id'           => $this->senderAgentId,
+            'to_agent_id'             => $this->receiverAgentId,
             'message_type'            => 'text',
-            'content'                 => 'Delivered message',
+            'payload'                 => 'Delivered message',
             'status'                  => 'delivered',
             'priority'                => 'normal',
             'requires_acknowledgment' => false,
@@ -183,10 +183,10 @@ class AgentMessagingTest extends TestCase
 
         AgentMessage::create([
             'message_id'              => Str::uuid()->toString(),
-            'sender_agent_id'         => $this->senderAgentId,
-            'receiver_agent_id'       => $this->receiverAgentId,
+            'from_agent_id'           => $this->senderAgentId,
+            'to_agent_id'             => $this->receiverAgentId,
             'message_type'            => 'text',
-            'content'                 => 'Queued message',
+            'payload'                 => 'Queued message',
             'status'                  => 'queued',
             'priority'                => 'normal',
             'requires_acknowledgment' => false,
@@ -205,10 +205,10 @@ class AgentMessagingTest extends TestCase
         // Create sent and received messages
         AgentMessage::create([
             'message_id'              => Str::uuid()->toString(),
-            'sender_agent_id'         => $this->senderAgentId,
-            'receiver_agent_id'       => $this->receiverAgentId,
+            'from_agent_id'           => $this->senderAgentId,
+            'to_agent_id'             => $this->receiverAgentId,
             'message_type'            => 'text',
-            'content'                 => 'Sent message',
+            'payload'                 => 'Sent message',
             'status'                  => 'delivered',
             'priority'                => 'normal',
             'requires_acknowledgment' => false,
@@ -216,10 +216,10 @@ class AgentMessagingTest extends TestCase
 
         AgentMessage::create([
             'message_id'              => Str::uuid()->toString(),
-            'sender_agent_id'         => $this->receiverAgentId,
-            'receiver_agent_id'       => $this->senderAgentId,
+            'from_agent_id'           => $this->receiverAgentId,
+            'to_agent_id'             => $this->senderAgentId,
             'message_type'            => 'text',
-            'content'                 => 'Received message',
+            'payload'                 => 'Received message',
             'status'                  => 'delivered',
             'priority'                => 'normal',
             'requires_acknowledgment' => false,
@@ -250,7 +250,7 @@ class AgentMessagingTest extends TestCase
         $sendResponse = $this->postJson("/api/agents/{$this->senderDid}/messages", [
             'receiver_did'            => $this->receiverDid,
             'message_type'            => 'text',
-            'content'                 => 'Please acknowledge',
+            'payload'                 => 'Please acknowledge',
             'requires_acknowledgment' => true,
         ]);
 
@@ -325,7 +325,7 @@ class AgentMessagingTest extends TestCase
         $sendResponse = $this->postJson("/api/agents/{$this->senderDid}/messages", [
             'receiver_did'            => $this->receiverDid,
             'message_type'            => 'text',
-            'content'                 => 'Test',
+            'payload'                 => 'Test',
             'requires_acknowledgment' => true,
         ]);
 

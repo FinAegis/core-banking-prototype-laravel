@@ -6,8 +6,9 @@ namespace Tests\Feature\AgentProtocol\Api;
 
 use App\Domain\AgentProtocol\Aggregates\AgentIdentityAggregate;
 use App\Domain\AgentProtocol\Aggregates\ReputationAggregate;
-use App\Models\Agent;
+use App\Domain\AgentProtocol\Models\Agent;
 use App\Domain\AgentProtocol\Models\AgentReputation;
+use App\Domain\AgentProtocol\ValueObjects\ReputationScore;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -73,10 +74,10 @@ class AgentReputationTest extends TestCase
     {
         // Create reputation record
         $reputationId = Str::uuid()->toString();
-        $reputationAggregate = ReputationAggregate::initialize(
+        $reputationAggregate = ReputationAggregate::initializeReputation(
             reputationId: $reputationId,
             agentId: $this->targetAgentId,
-            initialScore: 75.0
+            initialScore: new ReputationScore(75.0, 'high')
         );
         $reputationAggregate->recordTransaction(
             transactionId: Str::uuid()->toString(),
@@ -162,10 +163,10 @@ class AgentReputationTest extends TestCase
 
         // Create reputation for target agent
         $reputationId = Str::uuid()->toString();
-        ReputationAggregate::initialize(
+        ReputationAggregate::initializeReputation(
             reputationId: $reputationId,
             agentId: $this->targetAgentId,
-            initialScore: 50.0
+            initialScore: new ReputationScore(50.0, 'neutral')
         )->persist();
 
         AgentReputation::create([
@@ -210,10 +211,10 @@ class AgentReputationTest extends TestCase
 
         // Create reputation for target agent
         $reputationId = Str::uuid()->toString();
-        ReputationAggregate::initialize(
+        ReputationAggregate::initializeReputation(
             reputationId: $reputationId,
             agentId: $this->targetAgentId,
-            initialScore: 75.0
+            initialScore: new ReputationScore(75.0, 'high')
         )->persist();
 
         AgentReputation::create([
@@ -256,10 +257,10 @@ class AgentReputationTest extends TestCase
 
         // Create reputation for target agent
         $reputationId = Str::uuid()->toString();
-        ReputationAggregate::initialize(
+        ReputationAggregate::initializeReputation(
             reputationId: $reputationId,
             agentId: $this->targetAgentId,
-            initialScore: 60.0
+            initialScore: new ReputationScore(60.0, 'high')
         )->persist();
 
         AgentReputation::create([
@@ -295,10 +296,10 @@ class AgentReputationTest extends TestCase
 
         // Create reputation for target agent
         $reputationId = Str::uuid()->toString();
-        ReputationAggregate::initialize(
+        ReputationAggregate::initializeReputation(
             reputationId: $reputationId,
             agentId: $this->targetAgentId,
-            initialScore: 50.0
+            initialScore: new ReputationScore(50.0, 'neutral')
         )->persist();
 
         AgentReputation::create([
@@ -404,7 +405,7 @@ class AgentReputationTest extends TestCase
 
         // Verify reputation was created
         $reputation = AgentReputation::where('agent_id', $this->targetAgentId)->first();
-        $this->assertNotNull($reputation);
+        $this->assertInstanceOf(AgentReputation::class, $reputation);
     }
 
     public function test_requires_authentication_for_feedback(): void
@@ -421,10 +422,10 @@ class AgentReputationTest extends TestCase
     {
         // Create agent with specific reputation
         $reputationId = Str::uuid()->toString();
-        $reputationAggregate = ReputationAggregate::initialize(
+        $reputationAggregate = ReputationAggregate::initializeReputation(
             reputationId: $reputationId,
             agentId: $this->targetAgentId,
-            initialScore: 50.0
+            initialScore: new ReputationScore(50.0, 'neutral')
         );
 
         // Record multiple transactions to test calculation
