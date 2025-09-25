@@ -77,10 +77,16 @@ class ComplianceIntegrationService
 
             // Sync KYC status from main system
             $customer = User::find($customerId);
+            $kycStatusData = null;
             if ($customer) {
-                $kycStatus = $this->kycService->getKycStatus($customer);
-                if ($kycStatus && is_array($kycStatus)) {
-                    $this->syncKycStatus($agentId, $kycStatus);
+                $kycStatusString = $this->kycService->getKycStatus($customer);
+                if ($kycStatusString) {
+                    // Convert string status to array format expected by syncKycStatus
+                    $kycStatusData = [
+                        'status' => $kycStatusString,
+                        'verified_at' => now(),
+                    ];
+                    $this->syncKycStatus($agentId, $kycStatusData);
                 }
             }
 
@@ -97,7 +103,7 @@ class ComplianceIntegrationService
             Log::info('Agent compliance linked to main KYC', [
                 'agent_id'    => $agentId,
                 'customer_id' => $customerId,
-                'kyc_status'  => $kycStatus['status'] ?? 'unknown',
+                'kyc_status'  => $kycStatusData['status'] ?? 'unknown',
             ]);
 
             return [
@@ -105,7 +111,7 @@ class ComplianceIntegrationService
                 'agent_id'      => $agentId,
                 'customer_id'   => $customerId,
                 'compliance_id' => $agentCompliance->compliance_id,
-                'kyc_status'    => $kycStatus['status'] ?? 'pending',
+                'kyc_status'    => $kycStatusData['status'] ?? 'pending',
                 'linked_at'     => $agentCompliance->linked_at->toIso8601String(),
             ];
         } catch (Exception $e) {

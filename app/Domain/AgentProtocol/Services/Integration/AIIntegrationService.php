@@ -190,8 +190,18 @@ class AIIntegrationService
 
             // Validate conversation has payment capability
             // TODO: ConversationService needs getConversation method
-            $conversation = ['conversation_id' => $conversationId, 'context' => ['payment_enabled' => true, 'protocol_agent_id' => 'temp']];
-            if (! $conversation || ! ($conversation['context']['payment_enabled'] ?? false)) {
+            // For now, using mock data until ConversationService is implemented
+            $conversation = [
+                'conversation_id' => $conversationId,
+                'context' => [
+                    'payment_enabled' => true,
+                    'protocol_agent_id' => 'temp'
+                ]
+            ];
+
+            // Check if payment is enabled (always true with mock data)
+            $paymentEnabled = $conversation['context']['payment_enabled'];
+            if (! $paymentEnabled) {
                 throw new Exception('Payment not enabled for this conversation');
             }
 

@@ -8,6 +8,8 @@ use App\Domain\AgentProtocol\Aggregates\AgentTransactionAggregate;
 use App\Domain\AgentProtocol\Aggregates\AgentWalletAggregate;
 use App\Domain\AgentProtocol\Models\AgentTransaction;
 use App\Domain\AgentProtocol\Models\AgentWallet;
+use App\Domain\AgentProtocol\ValueObjects\AgentIdentifier;
+use App\Domain\AgentProtocol\ValueObjects\TransactionAmount;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -145,18 +147,25 @@ class AgentWalletService
 
             // Create transaction aggregate
             $transactionId = 'trans_' . Str::uuid()->toString();
+
+            // Create Value Objects
+            // Note: We're using the agent_id as a placeholder for DID since wallets don't store DIDs
+            $fromAgent = new AgentIdentifier($fromWallet->agent_id, 'did:agent:' . $fromWallet->agent_id);
+            $toAgent = new AgentIdentifier($toWallet->agent_id, 'did:agent:' . $toWallet->agent_id);
+            $transactionAmount = new TransactionAmount($amount, $currency);
+            $feeAmountVO = new TransactionAmount($feeAmount, $currency);
+
             $aggregate = AgentTransactionAggregate::initiate(
                 transactionId: $transactionId,
-                fromAgentId: $fromWallet->agent_id,
-                toAgentId: $toWallet->agent_id,
-                amount: $amount,
-                currency: $currency,
+                fromAgent: $fromAgent,
+                toAgent: $toAgent,
+                amount: $transactionAmount,
                 type: 'direct',
                 metadata: $metadata
             );
 
             $aggregate->validate()
-                ->calculateFees($feeAmount, $feeType)
+                ->calculateFees($feeAmountVO, $feeType)
                 ->complete('success');
             $aggregate->persist();
 
