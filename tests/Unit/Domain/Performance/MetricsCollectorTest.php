@@ -32,7 +32,7 @@ class MetricsCollectorTest extends TestCase
             ['tag' => 'value']
         );
 
-        $metric = PerformanceMetric::where('name', 'test.metric')->first();
+        $metric = PerformanceMetric::byName('test.metric')->first();
 
         $this->assertNotNull($metric);
         $this->assertEquals(100.5, $metric->value);
@@ -44,7 +44,7 @@ class MetricsCollectorTest extends TestCase
     {
         $this->service->recordResponseTime('/api/users', 250.5, ['method' => 'GET']);
 
-        $metric = PerformanceMetric::where('name', 'response_time./api/users')->first();
+        $metric = PerformanceMetric::byName('response_time./api/users')->first();
 
         $this->assertNotNull($metric);
         $this->assertEquals(250.5, $metric->value);
@@ -56,7 +56,7 @@ class MetricsCollectorTest extends TestCase
     {
         $this->service->recordThroughput('transactions', 1000, ['type' => 'payment']);
 
-        $metric = PerformanceMetric::where('name', 'throughput.transactions')->first();
+        $metric = PerformanceMetric::byName('throughput.transactions')->first();
 
         $this->assertNotNull($metric);
         $this->assertEquals(1000, $metric->value);
@@ -68,7 +68,7 @@ class MetricsCollectorTest extends TestCase
     {
         $this->service->recordErrorRate('api', 2.5, ['endpoint' => '/users']);
 
-        $metric = PerformanceMetric::where('name', 'error_rate.api')->first();
+        $metric = PerformanceMetric::byName('error_rate.api')->first();
 
         $this->assertNotNull($metric);
         $this->assertEquals(2.5, $metric->value);
@@ -108,7 +108,7 @@ class MetricsCollectorTest extends TestCase
         // This metric should trigger alert (above threshold)
         $this->service->recordMetric('custom.metric', 95, MetricType::GAUGE);
 
-        $metrics = PerformanceMetric::where('name', 'custom.metric')->get();
+        $metrics = PerformanceMetric::byName('custom.metric')->get();
         $this->assertCount(2, $metrics);
     }
 

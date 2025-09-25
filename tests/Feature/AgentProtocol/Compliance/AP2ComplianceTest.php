@@ -25,18 +25,12 @@ class AP2ComplianceTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AgentRegistryService $registryService;
-
-    private AgentDiscoveryService $discoveryService;
-
     private JsonLDService $jsonLdService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->registryService = app(AgentRegistryService::class);
-        $this->discoveryService = app(AgentDiscoveryService::class);
         $this->jsonLdService = app(JsonLDService::class);
     }
 

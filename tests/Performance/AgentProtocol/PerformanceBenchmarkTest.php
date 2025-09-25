@@ -131,6 +131,8 @@ class PerformanceBenchmarkTest extends TestCase
             }
         }
 
+        $this->assertNotEmpty($latencies, 'No latencies recorded during message exchange test');
+
         $averageLatency = array_sum($latencies) / count($latencies);
         $maxLatency = max($latencies);
         $p95Latency = $this->calculatePercentile($latencies, 95);
@@ -429,7 +431,7 @@ class PerformanceBenchmarkTest extends TestCase
     private function calculatePercentile(array $values, int $percentile): float
     {
         sort($values);
-        $index = ceil(($percentile / 100) * count($values)) - 1;
+        $index = (int) ceil(($percentile / 100) * count($values)) - 1;
 
         return $values[$index] ?? 0;
     }
