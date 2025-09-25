@@ -31,25 +31,25 @@ class AgentMessage extends Model
     ];
 
     protected $casts = [
-        'content' => 'array',
-        'metadata' => 'array',
+        'content'         => 'array',
+        'metadata'        => 'array',
         'acknowledged_at' => 'datetime',
-        'expires_at' => 'datetime',
-        'last_retry_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'expires_at'      => 'datetime',
+        'last_retry_at'   => 'datetime',
+        'created_at'      => 'datetime',
+        'updated_at'      => 'datetime',
+        'deleted_at'      => 'datetime',
     ];
 
     /**
      * Default attributes.
      */
     protected $attributes = [
-        'type' => 'general',
-        'priority' => 'normal',
-        'status' => 'pending',
-        'content' => '{}',
-        'metadata' => '{}',
+        'type'        => 'general',
+        'priority'    => 'normal',
+        'status'      => 'pending',
+        'content'     => '{}',
+        'metadata'    => '{}',
         'retry_count' => 0,
     ];
 
@@ -107,7 +107,7 @@ class AgentMessage extends Model
     public function markAsDelivered(): void
     {
         $this->update([
-            'status' => 'delivered',
+            'status'       => 'delivered',
             'delivered_at' => now(),
         ]);
     }
@@ -118,7 +118,7 @@ class AgentMessage extends Model
     public function markAsAcknowledged(): void
     {
         $this->update([
-            'status' => 'acknowledged',
+            'status'          => 'acknowledged',
             'acknowledged_at' => now(),
         ]);
     }

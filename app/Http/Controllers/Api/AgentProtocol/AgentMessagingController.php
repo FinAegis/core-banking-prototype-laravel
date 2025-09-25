@@ -14,7 +14,6 @@ use App\Http\Requests\AgentProtocol\SendMessageRequest;
 use App\Http\Resources\AgentProtocol\MessageCollection;
 use App\Http\Resources\AgentProtocol\MessageResource;
 use App\Models\AgentMessage;
-use DateTimeImmutable;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -96,21 +95,21 @@ class AgentMessagingController extends Controller
                 fromAgentId: $senderAgent->agent_id,
                 toAgentId: $receiverAgent->agent_id,
                 payload: [
-                    'type' => $request->message_type ?? 'text',
-                    'content' => $request->content,
+                    'type'     => $request->message_type ?? 'text',
+                    'content'  => $request->content,
                     'metadata' => $request->metadata ?? [],
                 ],
                 messageType: 'direct',
-                priority: match($request->priority ?? 'normal') {
-                    'high' => A2AMessageAggregate::PRIORITY_HIGH,
+                priority: match ($request->priority ?? 'normal') {
+                    'high'   => A2AMessageAggregate::PRIORITY_HIGH,
                     'urgent' => A2AMessageAggregate::PRIORITY_URGENT,
-                    'low' => A2AMessageAggregate::PRIORITY_LOW,
-                    default => A2AMessageAggregate::PRIORITY_NORMAL,
+                    'low'    => A2AMessageAggregate::PRIORITY_LOW,
+                    default  => A2AMessageAggregate::PRIORITY_NORMAL,
                 },
                 correlationId: null,
                 replyTo: null,
                 headers: [],
-                ttl: $request->expires_at ? (int)(strtotime($request->expires_at) - time()) : 86400
+                ttl: $request->expires_at ? (int) (strtotime($request->expires_at) - time()) : 86400
             );
 
             $messageAggregate->persist();
@@ -122,15 +121,15 @@ class AgentMessagingController extends Controller
                 toAgentId: $receiverAgent->agent_id,
                 messageType: $request->message_type ?? 'text',
                 payload: [
-                    'content' => $request->content,
+                    'content'  => $request->content,
                     'metadata' => $request->metadata ?? [],
                 ],
                 headers: [],
-                priority: match($request->priority ?? 'normal') {
-                    'high' => 75,
+                priority: match ($request->priority ?? 'normal') {
+                    'high'   => 75,
                     'urgent' => 100,
-                    'low' => 25,
-                    default => 50,
+                    'low'    => 25,
+                    default  => 50,
                 },
                 correlationId: null,
                 replyTo: null,
@@ -361,7 +360,7 @@ class AgentMessagingController extends Controller
             $messageAggregate->acknowledge(
                 acknowledgedBy: $agent->agent_id,
                 acknowledgmentData: [
-                    'message' => $request->acknowledgment_message ?? null,
+                    'message'   => $request->acknowledgment_message ?? null,
                     'timestamp' => now()->toIso8601String(),
                 ]
             );
