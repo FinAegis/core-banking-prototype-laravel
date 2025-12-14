@@ -125,7 +125,7 @@ class RetryService
      *     maxDelayMs?: int,
      *     multiplier?: float,
      *     jitter?: bool,
-     *     retryableExceptions?: array<class-string<\Throwable>>,
+     *     retryableExceptions?: array<class-string<Throwable>>,
      *     context?: string
      * } $config
      * @return T

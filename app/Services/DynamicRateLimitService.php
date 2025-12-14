@@ -380,9 +380,9 @@ class DynamicRateLimitService
         $value = (int) $memoryLimit;
 
         return match ($unit) {
-            'g' => $value * 1024 * 1024 * 1024,
-            'm' => $value * 1024 * 1024,
-            'k' => $value * 1024,
+            'g'     => $value * 1024 * 1024 * 1024,
+            'm'     => $value * 1024 * 1024,
+            'k'     => $value * 1024,
             default => $value,
         };
     }
