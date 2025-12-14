@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Models\Account;
+use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Account\Workflows\TransactionReversalWorkflow;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -248,40 +249,45 @@ class TransactionReversalController extends Controller
         $limit = $validated['limit'] ?? 20;
         $offset = $validated['offset'] ?? 0;
 
-        // TODO: In a real implementation, fetch from reversal history table
-        // For now, return mock data structure
-        $mockReversals = [
-            [
-                'reversal_id'             => 'rev_' . uniqid(),
-                'amount'                  => 150.00,
-                'asset_code'              => 'USD',
-                'transaction_type'        => 'debit',
-                'reversal_reason'         => 'Unauthorized transaction detected by fraud system',
-                'original_transaction_id' => 'txn_123456789',
-                'authorized_by'           => 'security@finaegis.org',
-                'status'                  => 'completed',
-                'created_at'              => now()->subDays(2)->toISOString(),
-                'completed_at'            => now()->subDays(2)->addMinutes(5)->toISOString(),
-            ],
-            [
-                'reversal_id'             => 'rev_' . uniqid(),
-                'amount'                  => 75.50,
-                'asset_code'              => 'EUR',
-                'transaction_type'        => 'credit',
-                'reversal_reason'         => 'Duplicate transaction',
-                'original_transaction_id' => 'txn_987654321',
-                'authorized_by'           => Auth::user()->email,
-                'status'                  => 'pending',
-                'created_at'              => now()->subHours(6)->toISOString(),
-                'completed_at'            => null,
-            ],
-        ];
+        // Query transactions that are reversals:
+        // - subtype is 'reversal'
+        // - OR metadata contains reversal_reason (indicating it's a reversal)
+        // - OR has parent_transaction_id (indicating it reverses another transaction)
+        $query = TransactionProjection::where('account_uuid', $account->uuid)
+            ->where(function ($q) {
+                $q->where('subtype', 'reversal')
+                    ->orWhereNotNull('parent_transaction_id')
+                    ->orWhereRaw("JSON_EXTRACT(metadata, '$.reversal_reason') IS NOT NULL");
+            })
+            ->orderBy('created_at', 'desc');
+
+        $total = $query->count();
+        $reversals = $query->skip($offset)->take($limit)->get();
+
+        $data = $reversals->map(function ($transaction) {
+            $metadata = $transaction->metadata ?? [];
+
+            return [
+                'reversal_id'             => 'rev_' . $transaction->uuid,
+                'amount'                  => $transaction->amount / 100, // Convert from cents
+                'asset_code'              => $transaction->asset_code,
+                'transaction_type'        => $transaction->type,
+                'reversal_reason'         => $metadata['reversal_reason'] ?? $transaction->description ?? 'Not specified',
+                'original_transaction_id' => $transaction->parent_transaction_id,
+                'authorized_by'           => $metadata['authorized_by'] ?? null,
+                'status'                  => $transaction->status,
+                'created_at'              => $transaction->created_at?->toISOString(),
+                'completed_at'            => $transaction->status === 'completed'
+                    ? $transaction->updated_at?->toISOString()
+                    : null,
+            ];
+        })->toArray();
 
         return response()->json(
             [
-                'data'       => array_slice($mockReversals, $offset, $limit),
+                'data'       => $data,
                 'pagination' => [
-                    'total'  => count($mockReversals),
+                    'total'  => $total,
                     'limit'  => $limit,
                     'offset' => $offset,
                 ],
@@ -336,27 +342,67 @@ class TransactionReversalController extends Controller
      */
     public function getReversalStatus(string $reversalId): JsonResponse
     {
-        // TODO: In a real implementation, fetch from reversal tracking table
-        // For now, return mock status data
-        $mockStatus = [
-            'reversal_id'     => $reversalId,
-            'status'          => 'completed',
-            'progress'        => 100,
-            'steps_completed' => [
-                'validation',
-                'authorization_check',
-                'balance_verification',
-                'reversal_execution',
-                'audit_logging',
-            ],
-            'error_message' => null,
-            'created_at'    => now()->subMinutes(30)->toISOString(),
-            'updated_at'    => now()->subMinutes(25)->toISOString(),
-        ];
+        // Extract the transaction UUID from reversal ID format (rev_{uuid})
+        $transactionUuid = str_replace('rev_', '', $reversalId);
+
+        // Query the transaction to get its status
+        $transaction = TransactionProjection::where('uuid', $transactionUuid)
+            ->where(function ($q) {
+                $q->where('subtype', 'reversal')
+                    ->orWhereNotNull('parent_transaction_id')
+                    ->orWhereRaw("JSON_EXTRACT(metadata, '$.reversal_reason') IS NOT NULL");
+            })
+            ->first();
+
+        if (! $transaction) {
+            return response()->json(
+                [
+                    'error'   => 'Reversal not found',
+                    'message' => "No reversal found with ID: {$reversalId}",
+                ],
+                404
+            );
+        }
+
+        // Verify user has access to this reversal (check account ownership)
+        $account = Account::where('uuid', $transaction->account_uuid)->first();
+        if ($account && $account->user_uuid !== Auth::user()->uuid && ! Auth::user()->hasRole('admin')) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $metadata = $transaction->metadata ?? [];
+
+        // Determine progress based on status
+        $progress = match ($transaction->status) {
+            'completed'  => 100,
+            'pending'    => 25,
+            'processing' => 50,
+            'cancelled', 'failed' => 0,
+            default => 50,
+        };
+
+        // Build steps completed based on status
+        $stepsCompleted = ['validation'];
+        if (in_array($transaction->status, ['processing', 'completed'])) {
+            $stepsCompleted[] = 'authorization_check';
+            $stepsCompleted[] = 'balance_verification';
+        }
+        if ($transaction->status === 'completed') {
+            $stepsCompleted[] = 'reversal_execution';
+            $stepsCompleted[] = 'audit_logging';
+        }
 
         return response()->json(
             [
-                'data' => $mockStatus,
+                'data' => [
+                    'reversal_id'     => $reversalId,
+                    'status'          => $transaction->status,
+                    'progress'        => $progress,
+                    'steps_completed' => $stepsCompleted,
+                    'error_message'   => $metadata['error_message'] ?? null,
+                    'created_at'      => $transaction->created_at?->toISOString(),
+                    'updated_at'      => $transaction->updated_at?->toISOString(),
+                ],
             ]
         );
     }
