@@ -102,8 +102,10 @@ class ExternalExchangeService implements ExternalExchangeServiceInterface
         }
 
         // Check if exchanges are supported
-        if (! in_array($opportunity['buy_exchange'], self::SUPPORTED_EXCHANGES) ||
-            ! in_array($opportunity['sell_exchange'], self::SUPPORTED_EXCHANGES)) {
+        if (
+            ! in_array($opportunity['buy_exchange'], self::SUPPORTED_EXCHANGES) ||
+            ! in_array($opportunity['sell_exchange'], self::SUPPORTED_EXCHANGES)
+        ) {
             return [
                 'success' => false,
                 'message' => 'Unsupported exchange in opportunity',
