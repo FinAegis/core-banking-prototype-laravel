@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Account\Workflows\BatchProcessingWorkflow;
+use App\Domain\Batch\Models\BatchJob;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -215,58 +216,50 @@ class BatchProcessingController extends Controller
      */
     public function getBatchStatus(string $batchId): JsonResponse
     {
-        // TODO: In a real implementation, fetch from batch tracking table
-        // For now, return mock status data
-        $mockStatus = [
-            'batch_id'             => $batchId,
-            'status'               => 'running',
-            'progress'             => 65,
-            'operations_total'     => 4,
-            'operations_completed' => 2,
-            'operations_failed'    => 0,
-            'current_operation'    => 'balance_reconciliation',
-            'started_at'           => now()->subMinutes(15)->toISOString(),
-            'estimated_completion' => now()->addMinutes(10)->toISOString(),
-            'error_message'        => null,
-            'operations'           => [
+        $batch = BatchJob::where('uuid', $batchId)->with('items')->first();
+
+        if (! $batch) {
+            return response()->json(
                 [
-                    'type'              => 'account_interest',
-                    'status'            => 'completed',
-                    'started_at'        => now()->subMinutes(15)->toISOString(),
-                    'completed_at'      => now()->subMinutes(10)->toISOString(),
-                    'records_processed' => 1250,
-                    'error_message'     => null,
+                    'error'   => 'Batch not found',
+                    'message' => "No batch found with ID: {$batchId}",
                 ],
-                [
-                    'type'              => 'fee_collection',
-                    'status'            => 'completed',
-                    'started_at'        => now()->subMinutes(10)->toISOString(),
-                    'completed_at'      => now()->subMinutes(5)->toISOString(),
-                    'records_processed' => 890,
-                    'error_message'     => null,
-                ],
-                [
-                    'type'              => 'balance_reconciliation',
-                    'status'            => 'running',
-                    'started_at'        => now()->subMinutes(5)->toISOString(),
-                    'completed_at'      => null,
-                    'records_processed' => 450,
-                    'error_message'     => null,
-                ],
-                [
-                    'type'              => 'report_generation',
-                    'status'            => 'pending',
-                    'started_at'        => null,
-                    'completed_at'      => null,
-                    'records_processed' => 0,
-                    'error_message'     => null,
-                ],
-            ],
+                404
+            );
+        }
+
+        // Calculate progress percentage
+        $progress = $batch->total_items > 0
+            ? (int) round(($batch->processed_items / $batch->total_items) * 100)
+            : 0;
+
+        // Build operations list from batch items
+        $operations = $batch->items->map(fn ($item) => [
+            'type'              => $item->data['type'] ?? 'unknown',
+            'status'            => $item->status,
+            'started_at'        => $item->created_at?->toISOString(),
+            'completed_at'      => $item->processed_at?->toISOString(),
+            'records_processed' => $item->result['records_processed'] ?? 0,
+            'error_message'     => $item->error_message,
+        ])->toArray();
+
+        $status = [
+            'batch_id'             => $batch->uuid,
+            'batch_name'           => $batch->name,
+            'status'               => $batch->status,
+            'progress'             => $progress,
+            'operations_total'     => $batch->total_items,
+            'operations_completed' => $batch->processed_items,
+            'operations_failed'    => $batch->failed_items,
+            'started_at'           => $batch->started_at?->toISOString(),
+            'completed_at'         => $batch->completed_at?->toISOString(),
+            'error_message'        => $batch->metadata['error_message'] ?? null,
+            'operations'           => $operations,
         ];
 
         return response()->json(
             [
-                'data' => $mockStatus,
+                'data' => $status,
             ]
         );
     }
@@ -344,47 +337,66 @@ class BatchProcessingController extends Controller
     {
         $validated = $request->validate(
             [
-                'status'    => 'string|in:initiated,running,completed,failed,scheduled',
+                'status'    => 'string|in:pending,processing,completed,failed,cancelled',
                 'date_from' => 'date',
                 'date_to'   => 'date',
                 'limit'     => 'integer|min:1|max:100',
+                'offset'    => 'integer|min:0',
             ]
         );
 
         $limit = $validated['limit'] ?? 20;
+        $offset = $validated['offset'] ?? 0;
 
-        // TODO: In a real implementation, fetch from batch history table
-        // For now, return mock history data
-        $mockHistory = [
-            [
-                'batch_id'         => 'batch_' . Str::uuid(),
-                'batch_name'       => 'EOD_2023_12_31',
-                'status'           => 'completed',
-                'operations_count' => 4,
-                'started_at'       => now()->subDays(1)->toISOString(),
-                'completed_at'     => now()->subDays(1)->addMinutes(25)->toISOString(),
-                'duration_minutes' => 25,
-                'started_by'       => 'admin@finaegis.org',
-            ],
-            [
-                'batch_id'         => 'batch_' . Str::uuid(),
-                'batch_name'       => 'Monthly_Interest_Dec_2023',
-                'status'           => 'completed',
-                'operations_count' => 2,
-                'started_at'       => now()->subDays(7)->toISOString(),
-                'completed_at'     => now()->subDays(7)->addMinutes(12)->toISOString(),
-                'duration_minutes' => 12,
-                'started_by'       => 'system@finaegis.org',
-            ],
-        ];
+        $query = BatchJob::query()->with('user:id,uuid,name,email');
+
+        // Apply filters
+        if (isset($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        if (isset($validated['date_from'])) {
+            $query->whereDate('created_at', '>=', $validated['date_from']);
+        }
+
+        if (isset($validated['date_to'])) {
+            $query->whereDate('created_at', '<=', $validated['date_to']);
+        }
+
+        $total = $query->count();
+        $batches = $query->orderBy('created_at', 'desc')
+            ->skip($offset)
+            ->take($limit)
+            ->get();
+
+        $history = $batches->map(function ($batch) {
+            $durationMinutes = null;
+            if ($batch->started_at && $batch->completed_at) {
+                $durationMinutes = $batch->started_at->diffInMinutes($batch->completed_at);
+            }
+
+            return [
+                'batch_id'         => $batch->uuid,
+                'batch_name'       => $batch->name,
+                'type'             => $batch->type,
+                'status'           => $batch->status,
+                'operations_count' => $batch->total_items,
+                'processed_count'  => $batch->processed_items,
+                'failed_count'     => $batch->failed_items,
+                'started_at'       => $batch->started_at?->toISOString(),
+                'completed_at'     => $batch->completed_at?->toISOString(),
+                'duration_minutes' => $durationMinutes,
+                'started_by'       => data_get($batch, 'user.email', 'system'),
+            ];
+        })->toArray();
 
         return response()->json(
             [
-                'data'       => array_slice($mockHistory, 0, $limit),
+                'data'       => $history,
                 'pagination' => [
-                    'total'  => count($mockHistory),
+                    'total'  => $total,
                     'limit'  => $limit,
-                    'offset' => 0,
+                    'offset' => $offset,
                 ],
             ]
         );
