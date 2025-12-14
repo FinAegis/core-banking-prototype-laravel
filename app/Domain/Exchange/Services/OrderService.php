@@ -209,7 +209,14 @@ class OrderService
             return;
         }
 
-        $metadata = $order->metadata ?? [];
+        $rawMetadata = $order->metadata;
+        if (is_array($rawMetadata)) {
+            $metadata = $rawMetadata;
+        } elseif (is_string($rawMetadata)) {
+            $metadata = json_decode($rawMetadata, true) ?? [];
+        } else {
+            $metadata = [];
+        }
         $metadata['routing'] = [
             'pool_id'         => $poolId,
             'effective_price' => $effectivePrice,
@@ -297,7 +304,14 @@ class OrderService
             return;
         }
 
-        $metadata = $order->metadata ?? [];
+        $rawMetadata = $order->metadata;
+        if (is_array($rawMetadata)) {
+            $metadata = $rawMetadata;
+        } elseif (is_string($rawMetadata)) {
+            $metadata = json_decode($rawMetadata, true) ?? [];
+        } else {
+            $metadata = [];
+        }
         $metadata['rejection'] = [
             'reason'      => $reason,
             'rejected_at' => now()->toIso8601String(),
