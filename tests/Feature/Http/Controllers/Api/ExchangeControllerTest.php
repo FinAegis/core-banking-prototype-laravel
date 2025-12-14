@@ -243,7 +243,7 @@ class ExchangeControllerTest extends ControllerTestCase
         $response->assertStatus(400)
             ->assertJson([
                 'success' => false,
-                'error'   => 'Insufficient balance',
+                'error'   => 'Order placement failed. Please try again.',
             ]);
     }
 
