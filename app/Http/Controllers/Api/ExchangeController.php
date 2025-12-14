@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Domain\Exchange\Projections\LiquidityPool;
 use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Services\ExchangeService;
@@ -356,12 +357,24 @@ class ExchangeController extends Controller
      */
     public function getMarkets(): JsonResponse
     {
-        // For now, return hardcoded trading pairs
-        // In a real implementation, this would come from configuration or database
-        $tradingPairs = [
-            ['base' => 'BTC', 'quote' => 'EUR'],
-            ['base' => 'ETH', 'quote' => 'EUR'],
-        ];
+        // Load active trading pairs from liquidity pools
+        $activePools = LiquidityPool::where('is_active', true)
+            ->select(['base_currency', 'quote_currency'])
+            ->distinct()
+            ->get();
+
+        // Fallback to default pairs if no active pools exist
+        if ($activePools->isEmpty()) {
+            $tradingPairs = [
+                ['base' => 'BTC', 'quote' => 'EUR'],
+                ['base' => 'ETH', 'quote' => 'EUR'],
+            ];
+        } else {
+            $tradingPairs = $activePools->map(fn ($pool) => [
+                'base'  => $pool->base_currency,
+                'quote' => $pool->quote_currency,
+            ])->toArray();
+        }
 
         $markets = [];
         foreach ($tradingPairs as $pair) {
