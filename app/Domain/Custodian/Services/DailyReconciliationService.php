@@ -233,9 +233,10 @@ class DailyReconciliationService
 
         foreach ($account->custodianAccounts as $custodianAccount) {
             // Only check accounts that have been synced at least once
-            if ($custodianAccount->last_synced_at &&
-                $custodianAccount->last_synced_at->isBefore($staleCutoff)) {
-
+            if (
+                $custodianAccount->last_synced_at &&
+                $custodianAccount->last_synced_at->isBefore($staleCutoff)
+            ) {
                 $this->discrepancies[] = [
                     'account_uuid'   => $account->uuid,
                     'custodian_id'   => $custodianAccount->custodian_name,
