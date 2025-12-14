@@ -223,30 +223,31 @@ class DailyReconciliationService
 
     /**
      * Check for stale data.
+     *
+     * Identifies custodian accounts that haven't been synced in over 24 hours,
+     * which may indicate connectivity issues or data staleness.
      */
     private function checkStaleData(Account $account): void
     {
-        // TODO: Implement stale data check when last_synced_at column is added
-        // For now, we'll skip this check
+        $staleCutoff = now()->subHours(24);
 
-        // $staleCutoff = now()->subHours(24);
-        //
-        // foreach ($account->custodianAccounts as $custodianAccount) {
-        //     if ($custodianAccount->last_synced_at &&
-        //         $custodianAccount->last_synced_at->isBefore($staleCutoff)) {
-        //
-        //         $this->discrepancies[] = [
-        //             'account_uuid' => $account->uuid,
-        //             'custodian_id' => $custodianAccount->custodian_name,
-        //             'type' => 'stale_data',
-        //             'message' => 'Custodian account not synced in 24 hours',
-        //             'last_synced_at' => $custodianAccount->last_synced_at,
-        //             'detected_at' => now(),
-        //         ];
-        //
-        //         $this->reconciliationResults['discrepancies_found']++;
-        //     }
-        // }
+        foreach ($account->custodianAccounts as $custodianAccount) {
+            // Only check accounts that have been synced at least once
+            if ($custodianAccount->last_synced_at &&
+                $custodianAccount->last_synced_at->isBefore($staleCutoff)) {
+
+                $this->discrepancies[] = [
+                    'account_uuid'   => $account->uuid,
+                    'custodian_id'   => $custodianAccount->custodian_name,
+                    'type'           => 'stale_data',
+                    'message'        => 'Custodian account not synced in 24 hours',
+                    'last_synced_at' => $custodianAccount->last_synced_at,
+                    'detected_at'    => now(),
+                ];
+
+                $this->reconciliationResults['discrepancies_found']++;
+            }
+        }
     }
 
     /**
