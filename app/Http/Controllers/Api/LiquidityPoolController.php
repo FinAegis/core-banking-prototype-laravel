@@ -53,25 +53,8 @@ class LiquidityPoolController extends Controller
      */
     public function index(): JsonResponse
     {
-        $pools = $this->liquidityService->getActivePools();
-
-        $poolData = $pools->map(
-            function ($pool) {
-                $metrics = $this->liquidityService->getPoolMetrics($pool->pool_id);
-
-                return [
-                    'pool_id'        => $pool->pool_id,
-                    'base_currency'  => $pool->base_currency,
-                    'quote_currency' => $pool->quote_currency,
-                    'base_reserve'   => $pool->base_reserve,
-                    'quote_reserve'  => $pool->quote_reserve,
-                    'fee_rate'       => $pool->fee_rate,
-                    'tvl'            => $metrics['tvl'],
-                    'apy'            => $metrics['apy'],
-                    'volume_24h'     => $pool->volume_24h,
-                ];
-            }
-        );
+        // Use optimized batch method to avoid N+1 queries
+        $poolData = $this->liquidityService->getActivePoolsWithMetrics();
 
         return response()->json(
             [

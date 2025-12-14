@@ -151,7 +151,7 @@ class BatchProcessingController extends Controller
             return response()->json(
                 [
                     'message' => 'Batch processing initiation failed',
-                    'error'   => $e->getMessage(),
+                    'error'   => 'An internal error occurred. Please try again later.',
                 ],
                 500
             );
@@ -479,10 +479,12 @@ class BatchProcessingController extends Controller
                 ]
             );
         } catch (Exception $e) {
+            logger()->error('Failed to cancel batch operation', ['error' => $e->getMessage()]);
+
             return response()->json(
                 [
                     'message' => 'Failed to cancel batch operation',
-                    'error'   => $e->getMessage(),
+                    'error'   => 'An internal error occurred. Please try again later.',
                 ],
                 500
             );

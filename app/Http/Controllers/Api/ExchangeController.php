@@ -103,10 +103,15 @@ class ExchangeController extends Controller
 
             return response()->json($result);
         } catch (Exception $e) {
+            logger()->error('Order placement failed', [
+                'error'   => $e->getMessage(),
+                'user_id' => Auth::id(),
+            ]);
+
             return response()->json(
                 [
                     'success' => false,
-                    'error'   => $e->getMessage(),
+                    'error'   => 'Order placement failed. Please try again.',
                 ],
                 400
             );
@@ -168,10 +173,15 @@ class ExchangeController extends Controller
 
             return response()->json($result);
         } catch (Exception $e) {
+            logger()->error('Order cancellation failed', [
+                'order_id' => $orderId,
+                'error'    => $e->getMessage(),
+            ]);
+
             return response()->json(
                 [
                     'success' => false,
-                    'error'   => $e->getMessage(),
+                    'error'   => 'Order cancellation failed. Please try again.',
                 ],
                 400
             );

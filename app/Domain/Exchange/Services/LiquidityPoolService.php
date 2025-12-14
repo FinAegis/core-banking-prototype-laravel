@@ -188,6 +188,58 @@ class LiquidityPoolService implements LiquidityPoolServiceInterface
     }
 
     /**
+     * Get all active pools with pre-calculated metrics (N+1 optimized).
+     *
+     * @return Collection<int, array>
+     */
+    public function getActivePoolsWithMetrics(): Collection
+    {
+        // Load pools with provider counts in a single optimized query
+        $pools = PoolProjection::active()
+            ->withCount('providers')
+            ->get();
+
+        return $pools->map(fn ($pool) => $this->calculateMetricsFromPool($pool));
+    }
+
+    /**
+     * Calculate pool metrics from a loaded pool model (no additional queries).
+     */
+    public function calculateMetricsFromPool(PoolProjection $pool): array
+    {
+        $baseReserve = BigDecimal::of($pool->base_reserve);
+        $quoteReserve = BigDecimal::of($pool->quote_reserve);
+
+        // Calculate TVL (Total Value Locked) in quote currency
+        $spotPrice = $quoteReserve->isZero() || $baseReserve->isZero()
+            ? BigDecimal::zero()
+            : $quoteReserve->dividedBy($baseReserve, 18);
+        $baseValueInQuote = $baseReserve->multipliedBy($spotPrice);
+        $tvl = $baseValueInQuote->plus($quoteReserve);
+
+        // Calculate APY based on fees collected
+        $feesCollected24h = BigDecimal::of($pool->fees_collected_24h ?? '0');
+        $dailyReturn = $tvl->isZero() ? BigDecimal::zero() : $feesCollected24h->dividedBy($tvl, 18);
+        $apy = $dailyReturn->multipliedBy(365)->multipliedBy(100);
+
+        return [
+            'pool_id'        => $pool->pool_id,
+            'base_currency'  => $pool->base_currency,
+            'quote_currency' => $pool->quote_currency,
+            'base_reserve'   => $pool->base_reserve,
+            'quote_reserve'  => $pool->quote_reserve,
+            'total_shares'   => $pool->total_shares,
+            'fee_rate'       => $pool->fee_rate,
+            'spot_price'     => $spotPrice->__toString(),
+            'tvl'            => $tvl->__toString(),
+            'volume_24h'     => $pool->volume_24h,
+            'fees_24h'       => $pool->fees_collected_24h ?? '0',
+            'apy'            => $apy->__toString(),
+            'provider_count' => $pool->providers_count ?? $pool->providers()->count(),
+        ];
+    }
+
+    /**
      * Rebalance pool to target ratio.
      */
     public function rebalancePool(string $poolId, string $targetRatio): array

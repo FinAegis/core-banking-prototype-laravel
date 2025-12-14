@@ -327,24 +327,64 @@ class DynamicRateLimitService
      */
     private function getCpuCount(): int
     {
-        return (int) (shell_exec('nproc') ?: 1);
+        // Use cached CPU count to avoid repeated system calls
+        // Falls back to configured value or sensible default
+        return Cache::remember('system:cpu_count', 3600, function () {
+            // Try to get CPU count from environment or config first (safest)
+            $configuredCpuCount = (int) config('app.cpu_count', 0);
+            if ($configuredCpuCount > 0) {
+                return $configuredCpuCount;
+            }
+
+            // Fallback: Try reading from /proc/cpuinfo (read-only, safe)
+            if (is_readable('/proc/cpuinfo')) {
+                $cpuinfo = @file_get_contents('/proc/cpuinfo');
+                if ($cpuinfo !== false) {
+                    $count = substr_count($cpuinfo, 'processor');
+                    if ($count > 0) {
+                        return $count;
+                    }
+                }
+            }
+
+            // Final fallback: assume 4 cores (common default)
+            return 4;
+        });
     }
 
     private function getMemoryInfo(): array
     {
-        $meminfo = file_get_contents('/proc/meminfo');
-        if (! $meminfo) {
-            return ['total' => 0, 'used' => 0];
+        // Use PHP's memory functions for safer, cross-platform memory info
+        $used = memory_get_usage(true);
+        $peak = memory_get_peak_usage(true);
+
+        // Get memory limit from PHP config
+        $memoryLimit = $this->getPhpMemoryLimitBytes();
+
+        return [
+            'total' => $memoryLimit,
+            'used'  => $used,
+            'peak'  => $peak,
+        ];
+    }
+
+    private function getPhpMemoryLimitBytes(): int
+    {
+        $memoryLimit = ini_get('memory_limit');
+        if ($memoryLimit === '-1') {
+            // No limit set, assume 512MB for calculations
+            return 512 * 1024 * 1024;
         }
 
-        preg_match('/MemTotal:\s+(\d+)/', $meminfo, $totalMatch);
-        preg_match('/MemAvailable:\s+(\d+)/', $meminfo, $availableMatch);
+        $unit = strtolower(substr($memoryLimit, -1));
+        $value = (int) $memoryLimit;
 
-        $total = ($totalMatch[1] ?? 0) * 1024; // Convert to bytes
-        $available = ($availableMatch[1] ?? 0) * 1024;
-        $used = $total - $available;
-
-        return ['total' => $total, 'used' => $used];
+        return match ($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => $value,
+        };
     }
 
     private function getUserTransactionCount(int $userId): int
