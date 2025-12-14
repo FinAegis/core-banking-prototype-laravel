@@ -349,8 +349,27 @@ class DynamicRateLimitService
 
     private function getUserTransactionCount(int $userId): int
     {
-        // This would query your transaction tables
-        return 0; // Placeholder
+        $user = User::find($userId);
+
+        if (! $user) {
+            return 0;
+        }
+
+        // Get user's account UUIDs using DB query builder
+        $accountUuids = DB::table('accounts')
+            ->where('user_uuid', $user->uuid)
+            ->pluck('uuid')
+            ->toArray();
+
+        if (empty($accountUuids)) {
+            return 0;
+        }
+
+        // Count transactions from the last 30 days for rate limiting context
+        return DB::table('transaction_projections')
+            ->whereIn('account_uuid', $accountUuids)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->count();
     }
 
     private function getUserViolationCount(int $userId): int
