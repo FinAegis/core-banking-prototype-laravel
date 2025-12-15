@@ -6,7 +6,7 @@ namespace App\Domain\AgentProtocol\Services;
 
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Account\DataObjects\Money;
-use App\Domain\Account\Services\AccountService;
+use App\Domain\Account\Models\Account;
 use App\Domain\Account\Workflows\DepositAccountWorkflow;
 use App\Domain\Account\Workflows\WithdrawAccountWorkflow;
 use App\Domain\AgentProtocol\Aggregates\AgentTransactionAggregate;
@@ -16,7 +16,6 @@ use App\Domain\AgentProtocol\Events\AgentWithdrewToMainAccount;
 use App\Domain\AgentProtocol\Models\AgentTransaction;
 use App\Domain\AgentProtocol\Models\AgentWallet;
 use App\Domain\Asset\Services\ExchangeRateService;
-use App\Models\Account;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,8 +32,6 @@ use Workflow\WorkflowStub;
 class AgentPaymentIntegrationService
 {
     public function __construct(
-        private readonly AccountService $accountService,
-        private readonly AgentWalletService $agentWalletService,
         private readonly ?ExchangeRateService $exchangeRateService = null
     ) {
     }
@@ -93,7 +90,7 @@ class AgentPaymentIntegrationService
             $workflow = WorkflowStub::make(WithdrawAccountWorkflow::class);
             $workflow->start(
                 new AccountUuid($mainAccountUuid),
-                new Money((int) ($amount * 100), $currency) // Money expects cents
+                new Money((int) ($amount * 100)) // Money expects cents
             );
 
             // Credit agent wallet
@@ -258,7 +255,7 @@ class AgentPaymentIntegrationService
             $workflow = WorkflowStub::make(DepositAccountWorkflow::class);
             $workflow->start(
                 new AccountUuid($mainAccountUuid),
-                new Money((int) ($amount * 100), $currency) // Money expects cents
+                new Money((int) ($amount * 100)) // Money expects cents
             );
 
             // Create transaction aggregate for audit trail
@@ -423,7 +420,7 @@ class AgentPaymentIntegrationService
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get()
-            ->map(function ($transaction) use ($agentId) {
+            ->map(function ($transaction) {
                 return [
                     'transaction_id' => $transaction->transaction_id,
                     'type'           => $transaction->type,

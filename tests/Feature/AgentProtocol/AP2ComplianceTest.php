@@ -497,7 +497,7 @@ class AP2ComplianceTest extends TestCase
 
         // The rate limiter should be tracking requests
         // Exact behavior depends on configuration
-        $this->assertTrue(true); // Placeholder - actual rate limit testing
+        $this->markTestIncomplete('Rate limiting test requires proper rate limiter configuration');
     }
 
     // ==========================================
