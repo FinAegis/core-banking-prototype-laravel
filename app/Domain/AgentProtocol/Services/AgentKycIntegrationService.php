@@ -10,7 +10,6 @@ use App\Domain\AgentProtocol\Enums\KycVerificationStatus;
 use App\Domain\AgentProtocol\Models\AgentIdentity;
 use App\Domain\Compliance\Models\AuditLog;
 use App\Domain\Compliance\Services\AmlScreeningService;
-use App\Domain\Compliance\Services\CustomerRiskService;
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
 use Exception;
@@ -27,7 +26,6 @@ class AgentKycIntegrationService
 {
     public function __construct(
         private readonly KycService $kycService,
-        private readonly ?CustomerRiskService $customerRiskService = null,
         private readonly ?AmlScreeningService $amlScreeningService = null
     ) {
     }
@@ -58,12 +56,12 @@ class AgentKycIntegrationService
             // Check if agent is linked to a user
             $user = null;
             if ($linkedUserId) {
-                $user = User::find($linkedUserId);
+                $user = User::where('id', $linkedUserId)->first();
             } elseif (isset($agent->metadata['linked_user_id'])) {
-                $user = User::find($agent->metadata['linked_user_id']);
+                $user = User::where('id', $agent->metadata['linked_user_id'])->first();
             }
 
-            if ($user && $this->kycService->isKycApproved($user)) {
+            if ($user instanceof User && $this->kycService->isKycApproved($user)) {
                 // User has approved KYC - approve agent automatically
                 return $this->approveAgentFromUserKyc($agentId, $user);
             }
@@ -147,13 +145,21 @@ class AgentKycIntegrationService
                 'level'    => $agentLevel->value,
             ]);
 
+            // Handle expires_at which could be Carbon, string, or null
+            $expiresAt = null;
+            if ($user->kyc_expires_at !== null) {
+                $expiresAt = $user->kyc_expires_at instanceof \Carbon\Carbon
+                    ? $user->kyc_expires_at->toIso8601String()
+                    : (string) $user->kyc_expires_at;
+            }
+
             return [
                 'success'    => true,
                 'status'     => KycVerificationStatus::VERIFIED->value,
                 'level'      => $agentLevel->value,
                 'message'    => 'Agent KYC approved based on linked user verification',
                 'limits'     => $limits,
-                'expires_at' => $user->kyc_expires_at?->toIso8601String(),
+                'expires_at' => $expiresAt,
             ];
         } catch (Exception $e) {
             DB::rollBack();
@@ -177,9 +183,9 @@ class AgentKycIntegrationService
     {
         try {
             $agent = AgentIdentity::where('did', $agentId)->first();
-            $user = User::find($userId);
+            $user = User::where('id', $userId)->first();
 
-            if (! $agent || ! $user) {
+            if (! $agent || ! $user instanceof User) {
                 return false;
             }
 
@@ -229,13 +235,13 @@ class AgentKycIntegrationService
         try {
             // Get agent's KYC level to determine limits
             $agent = AgentIdentity::where('did', $agentId)->first();
-            $agentMetadata = $agent?->metadata ?? [];
+            $agentMetadata = $agent !== null ? ($agent->metadata ?? []) : [];
             $kycLevel = $agentMetadata['kyc_level'] ?? KycVerificationLevel::BASIC->value;
             $limits = $agentMetadata['transaction_limits'] ?? [];
 
             // Check transaction limits
             $dailyLimit = $limits['daily_transaction'] ?? 100000; // Default $1,000
-            if ($dailyLimit !== null && ($amount * 100) > $dailyLimit) {
+            if (($amount * 100) > $dailyLimit) {
                 return [
                     'passed' => false,
                     'reason' => 'Transaction exceeds daily limit',
@@ -249,10 +255,10 @@ class AgentKycIntegrationService
                 // Get linked user for screening
                 $user = null;
                 if (isset($agentMetadata['linked_user_id'])) {
-                    $user = User::find($agentMetadata['linked_user_id']);
+                    $user = User::where('id', $agentMetadata['linked_user_id'])->first();
                 }
 
-                if ($user) {
+                if ($user instanceof User) {
                     // Use existing AML screening
                     $screeningResult = $this->performAmlScreening($user, $amount, $metadata);
                     if (! $screeningResult['passed']) {
@@ -301,7 +307,7 @@ class AgentKycIntegrationService
 
         if (! $agent) {
             return [
-                'status'  => KycVerificationStatus::NOT_STARTED->value,
+                'status'  => KycVerificationStatus::PENDING->value,
                 'level'   => null,
                 'message' => 'Agent not found',
             ];
@@ -310,7 +316,7 @@ class AgentKycIntegrationService
         $metadata = $agent->metadata ?? [];
 
         return [
-            'status'             => $metadata['kyc_status'] ?? KycVerificationStatus::NOT_STARTED->value,
+            'status'             => $metadata['kyc_status'] ?? KycVerificationStatus::PENDING->value,
             'level'              => $metadata['kyc_level'] ?? null,
             'verified_at'        => $metadata['kyc_verified_at'] ?? null,
             'source'             => $metadata['kyc_source'] ?? null,
@@ -357,10 +363,6 @@ class AgentKycIntegrationService
                     'monthly_transaction'    => null,
                     'max_single_transaction' => null,
                 ],
-            ],
-            default => [
-                'requirements' => ['Contact support for verification'],
-                'limits'       => ['daily_transaction' => 0],
             ],
         };
     }
@@ -429,8 +431,26 @@ class AgentKycIntegrationService
             $patterns[] = 'round_amount_near_threshold';
         }
 
-        // Check for rapid successive transactions (would need transaction history)
-        // This is a placeholder for more sophisticated pattern detection
+        // Check for very large transactions
+        if ($amount >= 50000) {
+            $riskScore += 25;
+            $patterns[] = 'very_large_transaction';
+        }
+
+        // Check for suspicious metadata flags
+        if (isset($metadata['high_risk_indicator']) && $metadata['high_risk_indicator'] === true) {
+            $riskScore += 20;
+            $patterns[] = 'high_risk_indicator_present';
+        }
+
+        // Check for unusual time patterns (e.g., late night transactions)
+        if (isset($metadata['transaction_hour'])) {
+            $hour = (int) $metadata['transaction_hour'];
+            if ($hour >= 0 && $hour <= 5) {
+                $riskScore += 10;
+                $patterns[] = 'unusual_time_transaction';
+            }
+        }
 
         return [
             'passed'     => $riskScore < 50,
