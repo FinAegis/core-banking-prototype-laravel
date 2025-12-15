@@ -306,6 +306,7 @@ php artisan demo:cleanup
 app/
 ├── Domain/                    # Business logic (DDD)
 │   ├── Account/              # Account management domain
+│   ├── AgentProtocol/        # AI Agent payment protocol (AP2)
 │   ├── Exchange/             # Trading & exchange engine
 │   ├── Stablecoin/          # Stablecoin framework
 │   ├── Lending/             # P2P lending platform
@@ -321,6 +322,79 @@ app/
 ├── Models/                   # Eloquent models
 ├── Services/                 # Application services
 └── Filament/Admin/Resources/ # Admin panel resources
+```
+
+### Agent Protocol (AP2) Domain
+
+The Agent Protocol domain implements Google's Agent Payments Protocol for AI agent commerce. It provides secure transaction processing, escrow services, and reputation management for AI agents.
+
+#### Domain Structure
+```
+app/Domain/AgentProtocol/
+├── Aggregates/               # Event-sourced aggregates
+│   ├── AgentComplianceAggregate.php
+│   ├── AgentTransactionAggregate.php
+│   └── AgentWalletAggregate.php
+├── Contracts/                # Interfaces for DI
+│   ├── RiskScoringInterface.php
+│   ├── TransactionVerifierInterface.php
+│   └── WalletOperationInterface.php
+├── DataObjects/              # Immutable data transfer objects
+├── Enums/                    # Status and type enumerations
+├── Events/                   # Domain events
+├── Models/                   # Eloquent models
+├── Repositories/             # Data access layer
+├── Services/                 # Business logic services
+│   ├── AgentKycIntegrationService.php
+│   ├── AgentPaymentIntegrationService.php
+│   ├── AgentRegistryService.php
+│   ├── AgentWalletService.php
+│   ├── EscrowService.php
+│   ├── FraudDetectionService.php
+│   ├── ReputationService.php
+│   └── TransactionVerificationService.php
+└── Workflows/                # Laravel Workflow definitions
+    ├── Activities/           # Workflow activities
+    └── PaymentOrchestrationWorkflow.php
+```
+
+#### Configuration
+All Agent Protocol settings are centralized in `config/agent_protocol.php`:
+
+```php
+// Key configuration sections:
+'reputation' => [...]    // Reputation scoring thresholds and weights
+'kyc' => [...]           // KYC verification levels and limits
+'verification' => [...]  // Transaction verification settings
+'fraud_detection' => [...] // Fraud detection thresholds
+'aml' => [...]           // AML screening configuration
+'wallet' => [...]        // Wallet and currency settings
+```
+
+#### Working with Agent Protocol
+
+```php
+// Register an agent with DID
+$registryService = app(AgentRegistryService::class);
+$agent = $registryService->registerAgent([
+    'did' => 'did:agent:example:123',
+    'name' => 'Shopping Assistant',
+    'capabilities' => ['payments', 'escrow'],
+]);
+
+// Create escrow transaction
+$escrowService = app(EscrowService::class);
+$escrow = $escrowService->createEscrow(
+    senderId: 'did:agent:buyer:1',
+    receiverId: 'did:agent:seller:2',
+    amount: 100.00,
+    currency: 'USD',
+    conditions: ['delivery_confirmed']
+);
+
+// Link agent to user for KYC inheritance
+$kycService = app(AgentKycIntegrationService::class);
+$kycService->linkAgentToUser($agentDid, $userId);
 ```
 
 ### Event Sourcing Pattern

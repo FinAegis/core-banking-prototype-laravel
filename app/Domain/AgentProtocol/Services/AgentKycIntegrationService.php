@@ -327,9 +327,14 @@ class AgentKycIntegrationService
 
     /**
      * Get KYC requirements for an agent based on level.
+     *
+     * @param KycVerificationLevel $level The KYC verification level
+     * @return array{requirements: array<string>, limits: array<string, int|null>}
      */
     public function getAgentKycRequirements(KycVerificationLevel $level): array
     {
+        $kycConfig = config('agent_protocol.kyc.levels', []);
+
         return match ($level) {
             KycVerificationLevel::BASIC => [
                 'requirements' => [
@@ -337,9 +342,9 @@ class AgentKycIntegrationService
                     'Or submit: Agent registration document, Controller ID',
                 ],
                 'limits' => [
-                    'daily_transaction'      => 1000,
-                    'monthly_transaction'    => 5000,
-                    'max_single_transaction' => 500,
+                    'daily_transaction'      => $kycConfig['basic']['daily_limit'] ?? 1000,
+                    'monthly_transaction'    => $kycConfig['basic']['monthly_limit'] ?? 5000,
+                    'max_single_transaction' => $kycConfig['basic']['max_single'] ?? 500,
                 ],
             ],
             KycVerificationLevel::ENHANCED => [
@@ -348,9 +353,9 @@ class AgentKycIntegrationService
                     'Or submit: Agent registration, Controller ID, Business registration',
                 ],
                 'limits' => [
-                    'daily_transaction'      => 10000,
-                    'monthly_transaction'    => 50000,
-                    'max_single_transaction' => 5000,
+                    'daily_transaction'      => $kycConfig['enhanced']['daily_limit'] ?? 10000,
+                    'monthly_transaction'    => $kycConfig['enhanced']['monthly_limit'] ?? 50000,
+                    'max_single_transaction' => $kycConfig['enhanced']['max_single'] ?? 5000,
                 ],
             ],
             KycVerificationLevel::FULL => [
@@ -359,9 +364,9 @@ class AgentKycIntegrationService
                     'Or complete full agent verification process',
                 ],
                 'limits' => [
-                    'daily_transaction'      => null, // Unlimited
-                    'monthly_transaction'    => null,
-                    'max_single_transaction' => null,
+                    'daily_transaction'      => $kycConfig['full']['daily_limit'] ?? null,
+                    'monthly_transaction'    => $kycConfig['full']['monthly_limit'] ?? null,
+                    'max_single_transaction' => $kycConfig['full']['max_single'] ?? null,
                 ],
             ],
         };
@@ -382,22 +387,28 @@ class AgentKycIntegrationService
 
     /**
      * Perform AML screening using the main compliance service.
+     *
+     * @param User $user The user associated with the agent
+     * @param float $amount The transaction amount
+     * @param array<string, mixed> $metadata Transaction metadata
+     * @return array{passed: bool, risk_score: int, risk_factors: array<string>, reason: string|null}
      */
     private function performAmlScreening(User $user, float $amount, array $metadata): array
     {
-        // Basic AML checks
+        $amlConfig = config('agent_protocol.aml', []);
         $riskFactors = [];
 
-        // Check for high-risk countries (simplified)
+        // Check for high-risk countries from config
         if (isset($metadata['destination_country'])) {
-            $highRiskCountries = ['KP', 'IR', 'SY', 'CU'];
-            if (in_array($metadata['destination_country'], $highRiskCountries)) {
+            $highRiskCountries = $amlConfig['high_risk_countries'] ?? ['KP', 'IR', 'SY', 'CU'];
+            if (in_array($metadata['destination_country'], $highRiskCountries, true)) {
                 $riskFactors[] = 'high_risk_country';
             }
         }
 
-        // Check for unusual amounts
-        if ($amount > 10000) {
+        // Check for large transactions using config threshold
+        $largeTransactionThreshold = $amlConfig['large_transaction'] ?? 10000;
+        if ($amount > $largeTransactionThreshold) {
             $riskFactors[] = 'large_transaction';
         }
 
@@ -407,32 +418,40 @@ class AgentKycIntegrationService
         }
 
         $riskScore = count($riskFactors) * 25;
+        $riskThreshold = $amlConfig['risk_score_threshold'] ?? 75;
 
         return [
-            'passed'       => $riskScore < 75,
+            'passed'       => $riskScore < $riskThreshold,
             'risk_score'   => $riskScore,
             'risk_factors' => $riskFactors,
-            'reason'       => $riskScore >= 75 ? 'High risk transaction' : null,
+            'reason'       => $riskScore >= $riskThreshold ? 'High risk transaction' : null,
         ];
     }
 
     /**
      * Check for suspicious transaction patterns.
+     *
+     * @param string $agentId The agent's DID
+     * @param float $amount The transaction amount
+     * @param array<string, mixed> $metadata Transaction metadata
+     * @return array{passed: bool, risk_score: int, patterns: array<string>}
      */
     private function checkSuspiciousPatterns(string $agentId, float $amount, array $metadata): array
     {
-        // Basic pattern detection
+        $fraudConfig = config('agent_protocol.fraud_detection', []);
         $riskScore = 0;
         $patterns = [];
 
         // Check for round amounts (potential structuring)
-        if (fmod($amount, 1000) === 0.0 && $amount >= 9000) {
+        $structuringThreshold = $fraudConfig['structuring_threshold'] ?? 1000;
+        if (fmod($amount, $structuringThreshold) === 0.0 && $amount >= 9000) {
             $riskScore += 15;
             $patterns[] = 'round_amount_near_threshold';
         }
 
-        // Check for very large transactions
-        if ($amount >= 50000) {
+        // Check for very large transactions using config
+        $largeTransactionThreshold = $fraudConfig['large_transaction'] ?? 50000;
+        if ($amount >= $largeTransactionThreshold) {
             $riskScore += 25;
             $patterns[] = 'very_large_transaction';
         }
@@ -443,17 +462,22 @@ class AgentKycIntegrationService
             $patterns[] = 'high_risk_indicator_present';
         }
 
-        // Check for unusual time patterns (e.g., late night transactions)
+        // Check for unusual time patterns using config
         if (isset($metadata['transaction_hour'])) {
             $hour = (int) $metadata['transaction_hour'];
-            if ($hour >= 0 && $hour <= 5) {
+            $suspiciousHourStart = $fraudConfig['suspicious_hours']['start'] ?? 2;
+            $suspiciousHourEnd = $fraudConfig['suspicious_hours']['end'] ?? 5;
+            if ($hour >= $suspiciousHourStart && $hour <= $suspiciousHourEnd) {
                 $riskScore += 10;
                 $patterns[] = 'unusual_time_transaction';
             }
         }
 
+        // Use config threshold for pass/fail determination
+        $riskThreshold = $fraudConfig['risk_weights']['pattern'] ?? 50;
+
         return [
-            'passed'     => $riskScore < 50,
+            'passed'     => $riskScore < $riskThreshold,
             'risk_score' => $riskScore,
             'patterns'   => $patterns,
         ];
