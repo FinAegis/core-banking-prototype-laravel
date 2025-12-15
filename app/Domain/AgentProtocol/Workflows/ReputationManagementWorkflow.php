@@ -7,6 +7,9 @@ namespace App\Domain\AgentProtocol\Workflows;
 use App\Domain\AgentProtocol\DataObjects\ReputationScore;
 use App\Domain\AgentProtocol\Workflows\Activities\ApplyReputationUpdateActivity;
 use App\Domain\AgentProtocol\Workflows\Activities\CalculateReputationScoreActivity;
+use App\Domain\AgentProtocol\Workflows\Activities\CheckReputationThresholdActivity;
+use App\Domain\AgentProtocol\Workflows\Activities\GenerateReputationReportActivity;
+use App\Domain\AgentProtocol\Workflows\Activities\NotifyReputationChangeActivity;
 use Carbon\CarbonInterval;
 use Exception;
 use Generator;
@@ -53,27 +56,34 @@ class ReputationManagementWorkflow extends Workflow
             )->withTimeout(CarbonInterval::seconds(10));
 
             // Step 3: Check reputation thresholds
-            // TODO: Implement CheckReputationThresholdActivity
-            $thresholdCheck = [
-                'level_changed' => false,
-                'new_level'     => $this->currentScore ? $this->currentScore->trustLevel : 'neutral',
-            ];
+            $thresholdCheck = yield Activity::make(
+                CheckReputationThresholdActivity::class,
+                $agentId,
+                $this->currentScore,
+                $calculationResult['previous_score'] ?? null
+            )->withTimeout(CarbonInterval::seconds(10));
 
             // Step 4: Send notifications if significant change
-            // TODO: Implement NotifyReputationChangeActivity
             if (abs($scoreChange) > 5.0) {
-                // Will be implemented when activity is created
+                yield Activity::make(
+                    NotifyReputationChangeActivity::class,
+                    $agentId,
+                    $this->currentScore,
+                    $scoreChange,
+                    $eventType,
+                    $eventData
+                )->withTimeout(CarbonInterval::seconds(15));
             }
 
             // Step 5: Generate report if requested
             $report = null;
             if ($eventData['generate_report'] ?? false) {
-                // TODO: Implement GenerateReputationReportActivity
-                $report = [
-                    'agent_id' => $agentId,
-                    'score'    => $this->currentScore,
-                    'history'  => $this->reputationHistory,
-                ];
+                $report = yield Activity::make(
+                    GenerateReputationReportActivity::class,
+                    $agentId,
+                    $this->currentScore,
+                    ['period' => $eventData['report_period'] ?? 'month']
+                )->withTimeout(CarbonInterval::seconds(20));
             }
 
             // Record in history
@@ -93,6 +103,7 @@ class ReputationManagementWorkflow extends Workflow
                 'score_change'    => $scoreChange,
                 'threshold_check' => $thresholdCheck,
                 'report'          => $report,
+                'history'         => $this->reputationHistory,
                 'timestamp'       => now()->toIso8601String(),
             ];
         } catch (Exception $e) {
