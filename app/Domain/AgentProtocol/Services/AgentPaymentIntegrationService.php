@@ -28,12 +28,71 @@ use Workflow\WorkflowStub;
  *
  * This service bridges the Agent Protocol domain with the core Account domain,
  * allowing seamless fund transfers between agent wallets and main accounts.
+ *
+ * Configuration is loaded from config/agent_protocol.php:
+ * - wallet.default_currency: Default currency for transactions
+ * - fees.*: Fee structure for integration transactions
  */
 class AgentPaymentIntegrationService
 {
+    /**
+     * @param ExchangeRateService|null $exchangeRateService Service for currency conversion
+     */
     public function __construct(
         private readonly ?ExchangeRateService $exchangeRateService = null
     ) {
+    }
+
+    /**
+     * Get the default currency from configuration.
+     *
+     * Useful for callers who need to know what currency to use
+     * when initiating integration transactions.
+     */
+    public function getDefaultCurrency(): string
+    {
+        return config('agent_protocol.wallet.default_currency', 'USD');
+    }
+
+    /**
+     * Calculate the fee for an integration transaction.
+     *
+     * @param float $amount The transaction amount
+     * @param string $transactionType Type of transaction (funding, withdrawal)
+     * @return array{amount: float, type: string, rate: float}
+     */
+    private function calculateIntegrationFee(float $amount, string $transactionType): array
+    {
+        $feesConfig = config('agent_protocol.fees', []);
+
+        // Integration transactions typically have no fees
+        // but can be configured if needed
+        $feeRate = $feesConfig['standard_rate'] ?? 0.0;
+        $minFee = $feesConfig['minimum_fee'] ?? 0.0;
+        $maxFee = $feesConfig['maximum_fee'] ?? 100.0;
+        $exemptionThreshold = $feesConfig['exemption_threshold'] ?? 1.0;
+
+        // Exempt small transactions from fees
+        if ($amount < $exemptionThreshold) {
+            return ['amount' => 0.0, 'type' => 'exempt', 'rate' => 0.0];
+        }
+
+        // For integration transactions, default to no fee
+        // Override in config if fees should apply
+        $integrationFeeRate = config('agent_protocol.fees.integration_rate', 0.0);
+
+        if ($integrationFeeRate <= 0) {
+            return ['amount' => 0.0, 'type' => 'none', 'rate' => 0.0];
+        }
+
+        $calculatedFee = round($amount * $integrationFeeRate, 2);
+        $finalFee = max($minFee, min($maxFee, $calculatedFee));
+
+        return [
+            'amount' => $finalFee,
+            'type'   => 'percentage',
+            'rate'   => $integrationFeeRate,
+        ];
     }
 
     /**
@@ -142,6 +201,9 @@ class AgentPaymentIntegrationService
                 transactionId: $transactionId
             ));
 
+            // Calculate integration fee
+            $feeInfo = $this->calculateIntegrationFee($amount, 'funding');
+
             // Create transaction record
             $transaction = AgentTransaction::create([
                 'transaction_id' => $transactionId,
@@ -149,8 +211,8 @@ class AgentPaymentIntegrationService
                 'to_agent_id'    => $agentWallet->agent_id,
                 'amount'         => $amount,
                 'currency'       => $currency,
-                'fee_amount'     => 0,
-                'fee_type'       => 'none',
+                'fee_amount'     => $feeInfo['amount'],
+                'fee_type'       => $feeInfo['type'],
                 'status'         => 'completed',
                 'type'           => 'funding',
                 'metadata'       => array_merge($metadata, [
@@ -158,6 +220,7 @@ class AgentPaymentIntegrationService
                     'main_account_uuid' => $mainAccountUuid,
                     'converted_amount'  => $convertedAmount,
                     'exchange_rate'     => $exchangeRate,
+                    'fee_rate'          => $feeInfo['rate'],
                 ]),
             ]);
 
@@ -285,6 +348,9 @@ class AgentPaymentIntegrationService
                 transactionId: $transactionId
             ));
 
+            // Calculate integration fee
+            $feeInfo = $this->calculateIntegrationFee($amount, 'withdrawal');
+
             // Create transaction record
             $transaction = AgentTransaction::create([
                 'transaction_id' => $transactionId,
@@ -292,8 +358,8 @@ class AgentPaymentIntegrationService
                 'to_agent_id'    => 'main_account_' . $mainAccountUuid,
                 'amount'         => $amount,
                 'currency'       => $currency,
-                'fee_amount'     => 0,
-                'fee_type'       => 'none',
+                'fee_amount'     => $feeInfo['amount'],
+                'fee_type'       => $feeInfo['type'],
                 'status'         => 'completed',
                 'type'           => 'withdrawal',
                 'metadata'       => array_merge($metadata, [
@@ -301,6 +367,7 @@ class AgentPaymentIntegrationService
                     'main_account_uuid' => $mainAccountUuid,
                     'wallet_amount'     => $walletAmount,
                     'exchange_rate'     => $exchangeRate,
+                    'fee_rate'          => $feeInfo['rate'],
                 ]),
             ]);
 
