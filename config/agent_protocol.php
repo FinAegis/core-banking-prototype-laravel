@@ -138,13 +138,13 @@ return [
     |--------------------------------------------------------------------------
     */
     'reputation' => [
-        'cache_ttl'         => env('REPUTATION_CACHE_TTL', 300), // 5 minutes
-        'initial_score'     => env('REPUTATION_INITIAL_SCORE', 50),
-        'min_score'         => env('REPUTATION_MIN_SCORE', 0),
-        'max_score'         => env('REPUTATION_MAX_SCORE', 100),
-        'decay_enabled'     => env('REPUTATION_DECAY_ENABLED', true),
+        'cache_ttl'           => env('REPUTATION_CACHE_TTL', 300), // 5 minutes
+        'initial_score'       => env('REPUTATION_INITIAL_SCORE', 50),
+        'min_score'           => env('REPUTATION_MIN_SCORE', 0),
+        'max_score'           => env('REPUTATION_MAX_SCORE', 100),
+        'decay_enabled'       => env('REPUTATION_DECAY_ENABLED', true),
         'decay_inactive_days' => env('REPUTATION_DECAY_INACTIVE_DAYS', 30),
-        'thresholds' => [
+        'thresholds'          => [
             'excellent' => env('REPUTATION_THRESHOLD_EXCELLENT', 80),
             'good'      => env('REPUTATION_THRESHOLD_GOOD', 60),
             'fair'      => env('REPUTATION_THRESHOLD_FAIR', 40),
@@ -164,23 +164,23 @@ return [
     |--------------------------------------------------------------------------
     */
     'kyc' => [
-        'enabled'                   => env('AGENT_KYC_ENABLED', true),
-        'inherit_from_linked_user'  => env('AGENT_KYC_INHERIT', true),
-        'levels' => [
+        'enabled'                  => env('AGENT_KYC_ENABLED', true),
+        'inherit_from_linked_user' => env('AGENT_KYC_INHERIT', true),
+        'levels'                   => [
             'basic' => [
-                'daily_limit'       => env('KYC_BASIC_DAILY_LIMIT', 1000),
-                'monthly_limit'     => env('KYC_BASIC_MONTHLY_LIMIT', 5000),
-                'max_single'        => env('KYC_BASIC_MAX_SINGLE', 500),
+                'daily_limit'   => env('KYC_BASIC_DAILY_LIMIT', 1000),
+                'monthly_limit' => env('KYC_BASIC_MONTHLY_LIMIT', 5000),
+                'max_single'    => env('KYC_BASIC_MAX_SINGLE', 500),
             ],
             'enhanced' => [
-                'daily_limit'       => env('KYC_ENHANCED_DAILY_LIMIT', 10000),
-                'monthly_limit'     => env('KYC_ENHANCED_MONTHLY_LIMIT', 50000),
-                'max_single'        => env('KYC_ENHANCED_MAX_SINGLE', 5000),
+                'daily_limit'   => env('KYC_ENHANCED_DAILY_LIMIT', 10000),
+                'monthly_limit' => env('KYC_ENHANCED_MONTHLY_LIMIT', 50000),
+                'max_single'    => env('KYC_ENHANCED_MAX_SINGLE', 5000),
             ],
             'full' => [
-                'daily_limit'       => null, // Unlimited
-                'monthly_limit'     => null,
-                'max_single'        => null,
+                'daily_limit'   => null, // Unlimited
+                'monthly_limit' => null,
+                'max_single'    => null,
             ],
         ],
     ],
@@ -191,9 +191,9 @@ return [
     |--------------------------------------------------------------------------
     */
     'verification' => [
-        'cache_ttl'               => env('VERIFICATION_CACHE_TTL', 2592000), // 30 days
-        'multi_factor_threshold'  => env('VERIFICATION_MF_THRESHOLD', 2), // Required factors
-        'risk_thresholds' => [
+        'cache_ttl'              => env('VERIFICATION_CACHE_TTL', 2592000), // 30 days
+        'multi_factor_threshold' => env('VERIFICATION_MF_THRESHOLD', 2), // Required factors
+        'risk_thresholds'        => [
             'low'      => env('VERIFICATION_RISK_LOW', 20),
             'medium'   => env('VERIFICATION_RISK_MEDIUM', 50),
             'high'     => env('VERIFICATION_RISK_HIGH', 75),
@@ -212,16 +212,16 @@ return [
     |--------------------------------------------------------------------------
     */
     'fraud_detection' => [
-        'enabled'             => env('FRAUD_DETECTION_ENABLED', true),
-        'cache_ttl'           => env('FRAUD_CACHE_TTL', 2592000), // 30 days
-        'min_reputation'      => env('FRAUD_MIN_REPUTATION', 30),
-        'risk_weights' => [
-            'velocity'        => env('FRAUD_WEIGHT_VELOCITY', 25),
-            'amount_anomaly'  => env('FRAUD_WEIGHT_AMOUNT', 20),
-            'reputation'      => env('FRAUD_WEIGHT_REPUTATION', 15),
-            'pattern'         => env('FRAUD_WEIGHT_PATTERN', 20),
-            'time_of_day'     => env('FRAUD_WEIGHT_TIME', 10),
-            'geographic'      => env('FRAUD_WEIGHT_GEO', 10),
+        'enabled'        => env('FRAUD_DETECTION_ENABLED', true),
+        'cache_ttl'      => env('FRAUD_CACHE_TTL', 2592000), // 30 days
+        'min_reputation' => env('FRAUD_MIN_REPUTATION', 30),
+        'risk_weights'   => [
+            'velocity'       => env('FRAUD_WEIGHT_VELOCITY', 25),
+            'amount_anomaly' => env('FRAUD_WEIGHT_AMOUNT', 20),
+            'reputation'     => env('FRAUD_WEIGHT_REPUTATION', 15),
+            'pattern'        => env('FRAUD_WEIGHT_PATTERN', 20),
+            'time_of_day'    => env('FRAUD_WEIGHT_TIME', 10),
+            'geographic'     => env('FRAUD_WEIGHT_GEO', 10),
         ],
         'suspicious_hours' => [
             'start' => env('FRAUD_SUSPICIOUS_HOUR_START', 2),
@@ -237,10 +237,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'encryption' => [
-        'default_cipher'      => env('AGENT_CIPHER', 'aes-256-gcm'),
-        'key_rotation_days'   => env('KEY_ROTATION_DAYS', 30),
-        'key_cache_ttl'       => env('KEY_CACHE_TTL', 86400), // 24 hours
-        'archive_cache_ttl'   => env('KEY_ARCHIVE_TTL', 2592000), // 30 days
+        'default_cipher'    => env('AGENT_CIPHER', 'aes-256-gcm'),
+        'key_rotation_days' => env('KEY_ROTATION_DAYS', 30),
+        'key_cache_ttl'     => env('KEY_CACHE_TTL', 86400), // 24 hours
+        'archive_cache_ttl' => env('KEY_ARCHIVE_TTL', 2592000), // 30 days
     ],
 
     /*
@@ -249,13 +249,13 @@ return [
     |--------------------------------------------------------------------------
     */
     'wallet' => [
-        'default_currency'         => env('AGENT_DEFAULT_CURRENCY', 'USD'),
-        'supported_currencies'     => explode(',', env('AGENT_SUPPORTED_CURRENCIES', 'USD,EUR,GBP,BTC,ETH')),
-        'exchange_rate_cache_ttl'  => env('EXCHANGE_RATE_CACHE_TTL', 300), // 5 minutes
-        'fee_rates' => [
-            'standard'    => env('WALLET_FEE_STANDARD', 0.025),
-            'premium'     => env('WALLET_FEE_PREMIUM', 0.01),
-            'enterprise'  => env('WALLET_FEE_ENTERPRISE', 0.005),
+        'default_currency'        => env('AGENT_DEFAULT_CURRENCY', 'USD'),
+        'supported_currencies'    => explode(',', env('AGENT_SUPPORTED_CURRENCIES', 'USD,EUR,GBP,BTC,ETH')),
+        'exchange_rate_cache_ttl' => env('EXCHANGE_RATE_CACHE_TTL', 300), // 5 minutes
+        'fee_rates'               => [
+            'standard'   => env('WALLET_FEE_STANDARD', 0.025),
+            'premium'    => env('WALLET_FEE_PREMIUM', 0.01),
+            'enterprise' => env('WALLET_FEE_ENTERPRISE', 0.005),
         ],
         'minimum_balance' => env('WALLET_MIN_BALANCE', 0),
     ],
