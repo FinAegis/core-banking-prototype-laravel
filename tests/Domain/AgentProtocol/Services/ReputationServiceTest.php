@@ -220,8 +220,10 @@ class ReputationServiceTest extends TestCase
 
         $this->service->initializeAgentReputation($agent->did, 85.0);
 
-        $this->assertTrue($this->service->meetsThreshold($agent->did, 'high'));
-        $this->assertTrue($this->service->meetsThreshold($agent->did, 'neutral'));
+        // Score 85 should meet all thresholds (escrow=40, high_value=60, instant_settlement=80)
+        $this->assertTrue($this->service->meetsThreshold($agent->did, 'escrow'));
+        $this->assertTrue($this->service->meetsThreshold($agent->did, 'high_value'));
+        $this->assertTrue($this->service->meetsThreshold($agent->did, 'instant_settlement'));
     }
 
     public function test_does_not_meet_threshold_for_low_reputation(): void
@@ -232,8 +234,10 @@ class ReputationServiceTest extends TestCase
 
         $this->service->initializeAgentReputation($agent->did, 25.0);
 
-        $this->assertFalse($this->service->meetsThreshold($agent->did, 'high'));
-        $this->assertFalse($this->service->meetsThreshold($agent->did, 'trusted'));
+        // Score 25 should not meet any thresholds (escrow=40, high_value=60, instant_settlement=80)
+        $this->assertFalse($this->service->meetsThreshold($agent->did, 'escrow'));
+        $this->assertFalse($this->service->meetsThreshold($agent->did, 'high_value'));
+        $this->assertFalse($this->service->meetsThreshold($agent->did, 'instant_settlement'));
     }
 
     // =============================================

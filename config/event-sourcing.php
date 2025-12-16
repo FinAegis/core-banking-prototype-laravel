@@ -378,6 +378,14 @@ return [
         'escrow_dispute_resolved' => App\Domain\AgentProtocol\Events\EscrowDisputeResolved::class,
         'escrow_expired'          => App\Domain\AgentProtocol\Events\EscrowExpired::class,
         'escrow_cancelled'        => App\Domain\AgentProtocol\Events\EscrowCancelled::class,
+
+        // Agent Protocol Events - Reputation System
+        'reputation_initialized'     => App\Domain\AgentProtocol\Events\ReputationInitialized::class,
+        'reputation_updated'         => App\Domain\AgentProtocol\Events\ReputationUpdated::class,
+        'reputation_boosted'         => App\Domain\AgentProtocol\Events\ReputationBoosted::class,
+        'reputation_penalty_applied' => App\Domain\AgentProtocol\Events\ReputationPenaltyApplied::class,
+        'reputation_decayed'         => App\Domain\AgentProtocol\Events\ReputationDecayed::class,
+        'trust_level_changed'        => App\Domain\AgentProtocol\Events\TrustLevelChanged::class,
     ],
 
     /*
