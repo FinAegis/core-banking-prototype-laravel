@@ -6,6 +6,7 @@ namespace App\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Aggregates\AgentTransactionAggregate;
 use App\Domain\AgentProtocol\Aggregates\EscrowAggregate;
+use App\Domain\AgentProtocol\Exceptions\WalletNotFoundException;
 use App\Domain\AgentProtocol\Models\AgentWallet;
 use App\Domain\AgentProtocol\Models\Escrow;
 use App\Domain\AgentProtocol\Models\EscrowDispute;
@@ -615,7 +616,7 @@ class EscrowService
      *
      * @param string $agentId The agent's DID
      * @return string The wallet ID for the sender
-     * @throws InvalidArgumentException If no active wallet found for agent
+     * @throws WalletNotFoundException If no active wallet found for agent
      */
     private function getSenderWallet(string $agentId): string
     {
@@ -627,7 +628,7 @@ class EscrowService
      *
      * @param string $agentId The agent's DID
      * @return string The wallet ID for the receiver
-     * @throws InvalidArgumentException If no active wallet found for agent
+     * @throws WalletNotFoundException If no active wallet found for agent
      */
     private function getReceiverWallet(string $agentId): string
     {
@@ -641,7 +642,7 @@ class EscrowService
      *
      * @param string $agentId The agent's DID
      * @return string The wallet ID
-     * @throws InvalidArgumentException If no active wallet found for agent
+     * @throws WalletNotFoundException If no active wallet found for agent
      */
     private function getAgentWalletId(string $agentId): string
     {
@@ -650,7 +651,7 @@ class EscrowService
             ->first();
 
         if (! $wallet) {
-            throw new InvalidArgumentException("No active wallet found for agent: {$agentId}");
+            throw WalletNotFoundException::forAgent($agentId);
         }
 
         return $wallet->wallet_id;
