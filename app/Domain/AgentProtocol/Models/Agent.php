@@ -16,10 +16,12 @@ class Agent extends Model
 
     /**
      * Create a new factory instance for the model.
+     *
+     * Uses the domain-specific factory to ensure proper field mapping.
      */
     protected static function newFactory()
     {
-        return \Database\Factories\AgentFactory::new();
+        return \Database\Factories\Domain\AgentProtocol\AgentProtocolAgentFactory::new();
     }
 
     protected $table = 'agents';

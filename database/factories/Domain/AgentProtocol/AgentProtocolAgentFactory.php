@@ -1,14 +1,21 @@
 <?php
 
-namespace Database\Factories;
+declare(strict_types=1);
 
-use App\Models\Agent;
+namespace Database\Factories\Domain\AgentProtocol;
+
+use App\Domain\AgentProtocol\Models\Agent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Agent>
+ * Factory for creating App\Domain\AgentProtocol\Models\Agent instances.
+ *
+ * This factory is specifically for the Domain Agent model used in the Agent Protocol domain.
+ * For the standard App\Models\Agent model, use Database\Factories\AgentFactory instead.
+ *
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Domain\AgentProtocol\Models\Agent>
  */
-class AgentFactory extends Factory
+class AgentProtocolAgentFactory extends Factory
 {
     protected $model = Agent::class;
 
@@ -16,6 +23,8 @@ class AgentFactory extends Factory
      * Define the model's default state.
      *
      * @return array<string, mixed>
+     *
+     * @phpstan-ignore method.childReturnType
      */
     public function definition(): array
     {
