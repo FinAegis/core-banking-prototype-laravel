@@ -2,15 +2,18 @@
 
 namespace App\Testing;
 
+use BackedEnum;
 use Carbon\Carbon;
 use DateTime;
 use DateTimeImmutable;
 use Exception;
 use ReflectionClass;
+use ReflectionEnum;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Spatie\EventSourcing\EventSerializers\EventSerializer;
 use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
+use UnitEnum;
 
 class TestEventSerializer implements EventSerializer
 {
@@ -34,6 +37,12 @@ class TestEventSerializer implements EventSerializer
                 $properties[$property->getName()] = $value->toIso8601String();
             } elseif ($value instanceof DateTimeImmutable || $value instanceof DateTime) {
                 $properties[$property->getName()] = $value->format('c');
+            } elseif ($value instanceof BackedEnum) {
+                // Handle backed enums - store their backing value
+                $properties[$property->getName()] = $value->value;
+            } elseif ($value instanceof UnitEnum) {
+                // Handle unit enums - store the name
+                $properties[$property->getName()] = $value->name;
             } elseif (is_object($value) && method_exists($value, 'toArray')) {
                 // Handle DataObjects
                 $properties[$property->getName()] = $value->toArray();
@@ -74,6 +83,24 @@ class TestEventSerializer implements EventSerializer
                         $value = new DateTimeImmutable($value);
                     } elseif ($typeName === DateTime::class) {
                         $value = new DateTime($value);
+                    } elseif (enum_exists($typeName)) {
+                        // Handle PHP 8.1+ enum types
+                        $reflectionEnum = new ReflectionEnum($typeName);
+                        if ($reflectionEnum->isBacked()) {
+                            // Backed enum - use from() method
+                            /** @var class-string<BackedEnum> $typeName */
+                            $value = $typeName::from($value);
+                        } else {
+                            // Unit enum - use name constant
+                            /** @var class-string<UnitEnum> $typeName */
+                            $cases = $typeName::cases();
+                            foreach ($cases as $case) {
+                                if ($case->name === $value) {
+                                    $value = $case;
+                                    break;
+                                }
+                            }
+                        }
                     } elseif (is_array($value) && function_exists('hydrate')) {
                         // Handle DataObject hydration
                         try {

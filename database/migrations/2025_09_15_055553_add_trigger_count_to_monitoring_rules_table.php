@@ -11,9 +11,21 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::table('monitoring_rules', function (Blueprint $table) {
-            $table->unsignedInteger('trigger_count')->default(0)->after('false_positive_rate');
-            $table->unsignedInteger('true_positives')->default(0)->after('trigger_count');
-            $table->unsignedInteger('false_positives')->default(0)->after('true_positives');
+            if (! Schema::hasColumn('monitoring_rules', 'trigger_count')) {
+                $table->unsignedInteger('trigger_count')->default(0);
+            }
+        });
+
+        Schema::table('monitoring_rules', function (Blueprint $table) {
+            if (! Schema::hasColumn('monitoring_rules', 'true_positives')) {
+                $table->unsignedInteger('true_positives')->default(0);
+            }
+        });
+
+        Schema::table('monitoring_rules', function (Blueprint $table) {
+            if (! Schema::hasColumn('monitoring_rules', 'false_positives')) {
+                $table->unsignedInteger('false_positives')->default(0);
+            }
         });
     }
 

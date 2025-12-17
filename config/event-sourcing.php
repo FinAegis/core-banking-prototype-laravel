@@ -386,6 +386,51 @@ return [
         'reputation_penalty_applied' => App\Domain\AgentProtocol\Events\ReputationPenaltyApplied::class,
         'reputation_decayed'         => App\Domain\AgentProtocol\Events\ReputationDecayed::class,
         'trust_level_changed'        => App\Domain\AgentProtocol\Events\TrustLevelChanged::class,
+
+        // Agent Protocol Events - KYC & Compliance
+        'agent_kyc_initiated'           => App\Domain\AgentProtocol\Events\AgentKycInitiated::class,
+        'agent_kyc_documents_submitted' => App\Domain\AgentProtocol\Events\AgentKycDocumentsSubmitted::class,
+        'agent_kyc_verified'            => App\Domain\AgentProtocol\Events\AgentKycVerified::class,
+        'agent_kyc_rejected'            => App\Domain\AgentProtocol\Events\AgentKycRejected::class,
+        'agent_kyc_requires_review'     => App\Domain\AgentProtocol\Events\AgentKycRequiresReview::class,
+
+        // Agent Protocol Events - Transaction Limits
+        'agent_transaction_limit_set'      => App\Domain\AgentProtocol\Events\AgentTransactionLimitSet::class,
+        'agent_transaction_limit_exceeded' => App\Domain\AgentProtocol\Events\AgentTransactionLimitExceeded::class,
+        'agent_transaction_limit_reset'    => App\Domain\AgentProtocol\Events\AgentTransactionLimitReset::class,
+
+        // Agent Protocol Events - Wallet Funding
+        'agent_funded_from_main_account' => App\Domain\AgentProtocol\Events\AgentFundedFromMainAccount::class,
+        'agent_withdrew_to_main_account' => App\Domain\AgentProtocol\Events\AgentWithdrewToMainAccount::class,
+
+        // Agent Protocol Events - Capabilities
+        'capability_registered'    => App\Domain\AgentProtocol\Events\CapabilityRegistered::class,
+        'capability_enabled'       => App\Domain\AgentProtocol\Events\CapabilityEnabled::class,
+        'capability_updated'       => App\Domain\AgentProtocol\Events\CapabilityUpdated::class,
+        'capability_deprecated'    => App\Domain\AgentProtocol\Events\CapabilityDeprecated::class,
+        'capability_version_added' => App\Domain\AgentProtocol\Events\CapabilityVersionAdded::class,
+
+        // Agent Protocol Events - Messaging
+        'message_sent'         => App\Domain\AgentProtocol\Events\MessageSent::class,
+        'message_delivered'    => App\Domain\AgentProtocol\Events\MessageDelivered::class,
+        'message_acknowledged' => App\Domain\AgentProtocol\Events\MessageAcknowledged::class,
+        'message_failed'       => App\Domain\AgentProtocol\Events\MessageFailed::class,
+        'message_expired'      => App\Domain\AgentProtocol\Events\MessageExpired::class,
+        'message_queued'       => App\Domain\AgentProtocol\Events\MessageQueued::class,
+        'message_retried'      => App\Domain\AgentProtocol\Events\MessageRetried::class,
+
+        // Agent Protocol Events - Transaction Security
+        'transaction_signed'               => App\Domain\AgentProtocol\Events\TransactionSigned::class,
+        'transaction_verified'             => App\Domain\AgentProtocol\Events\TransactionVerified::class,
+        'transaction_encrypted'            => App\Domain\AgentProtocol\Events\TransactionEncrypted::class,
+        'transaction_fraud_checked'        => App\Domain\AgentProtocol\Events\TransactionFraudChecked::class,
+        'transaction_security_initialized' => App\Domain\AgentProtocol\Events\TransactionSecurityInitialized::class,
+
+        // Agent Protocol Events - Notifications
+        'payment_recorded'                => App\Domain\AgentProtocol\Events\PaymentRecorded::class,
+        'payment_status_changed'          => App\Domain\AgentProtocol\Events\PaymentStatusChanged::class,
+        'payment_notification_sent'       => App\Domain\AgentProtocol\Events\PaymentNotificationSent::class,
+        'escrow_status_notification_sent' => App\Domain\AgentProtocol\Events\EscrowStatusNotificationSent::class,
     ],
 
     /*

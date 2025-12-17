@@ -72,6 +72,17 @@ After pushing, monitor GitHub Actions for:
 - Coverage requirements met
 
 ## Quick Validation Commands
+
+### Recommended: Use Pre-commit Script
+```bash
+# Best option - checks modified files and can auto-fix
+./bin/pre-commit-check.sh --fix
+
+# Full codebase check
+./bin/pre-commit-check.sh --all --fix
+```
+
+### Manual Commands (if needed)
 ```bash
 # One-liner to check everything before commit
 ./vendor/bin/pest --parallel && TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G && ./vendor/bin/php-cs-fixer fix --dry-run --diff

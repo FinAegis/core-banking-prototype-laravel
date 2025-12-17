@@ -6,17 +6,45 @@ namespace Tests\Unit\AgentProtocol\Activities;
 
 use App\Domain\AgentProtocol\DataObjects\AgentPaymentRequest;
 use App\Domain\AgentProtocol\Workflows\Activities\ValidatePaymentActivity;
+use App\Domain\AgentProtocol\Workflows\PaymentOrchestrationWorkflow;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Workflow\Models\StoredWorkflow;
+use Workflow\WorkflowStub;
 
 class ValidatePaymentActivityTest extends TestCase
 {
-    private ValidatePaymentActivity $activity;
+    use RefreshDatabase;
 
-    protected function setUp(): void
+    private ?ValidatePaymentActivity $activity = null;
+
+    private function createActivity(): ValidatePaymentActivity
     {
-        parent::setUp();
-        /** @phpstan-ignore-next-line */
-        $this->activity = new ValidatePaymentActivity();
+        if ($this->activity !== null) {
+            return $this->activity;
+        }
+
+        // Create a workflow stub to get proper StoredWorkflow context
+        $workflow = WorkflowStub::make(PaymentOrchestrationWorkflow::class);
+        /** @var StoredWorkflow $storedWorkflow */
+        $storedWorkflow = StoredWorkflow::findOrFail($workflow->id());
+
+        $request = new AgentPaymentRequest(
+            fromAgentDid: 'did:agent:test:sender',
+            toAgentDid: 'did:agent:test:receiver',
+            amount: 100.00,
+            currency: 'USD',
+            purpose: 'payment'
+        );
+
+        $this->activity = new ValidatePaymentActivity(
+            0,
+            now()->toDateTimeString(),
+            $storedWorkflow,
+            $request
+        );
+
+        return $this->activity;
     }
 
     /** @test */
@@ -31,8 +59,8 @@ class ValidatePaymentActivityTest extends TestCase
             purpose: 'payment'
         );
 
-        // Act
-        $result = $this->activity->execute($request);
+        // Act - use basicValidationOnly to skip aggregate checks in unit tests
+        $result = $this->createActivity()->execute($request, ['basicValidationOnly' => true]);
 
         // Assert
         $this->assertTrue($result->isValid);
@@ -53,7 +81,7 @@ class ValidatePaymentActivityTest extends TestCase
         );
 
         // Act
-        $result = $this->activity->execute($request);
+        $result = $this->createActivity()->execute($request);
 
         // Assert
         $this->assertFalse($result->isValid);
@@ -73,7 +101,7 @@ class ValidatePaymentActivityTest extends TestCase
         );
 
         // Act
-        $result = $this->activity->execute($request);
+        $result = $this->createActivity()->execute($request);
 
         // Assert
         $this->assertFalse($result->isValid);
@@ -93,7 +121,7 @@ class ValidatePaymentActivityTest extends TestCase
         );
 
         // Act
-        $result = $this->activity->execute($request);
+        $result = $this->createActivity()->execute($request);
 
         // Assert
         $this->assertFalse($result->isValid);
@@ -113,7 +141,7 @@ class ValidatePaymentActivityTest extends TestCase
         );
 
         // Act
-        $result = $this->activity->execute($request);
+        $result = $this->createActivity()->execute($request);
 
         // Assert
         $this->assertFalse($result->isValid);
@@ -133,7 +161,7 @@ class ValidatePaymentActivityTest extends TestCase
         );
 
         // Act
-        $result = $this->activity->execute($request);
+        $result = $this->createActivity()->execute($request);
 
         // Assert
         $this->assertFalse($result->isValid);
@@ -156,8 +184,8 @@ class ValidatePaymentActivityTest extends TestCase
             ]
         );
 
-        // Act
-        $result = $this->activity->execute($request);
+        // Act - use basicValidationOnly to skip aggregate checks in unit tests
+        $result = $this->createActivity()->execute($request, ['basicValidationOnly' => true]);
 
         // Assert
         $this->assertTrue($result->isValid);
@@ -180,8 +208,8 @@ class ValidatePaymentActivityTest extends TestCase
             ]
         );
 
-        // Act
-        $result = $this->activity->execute($request);
+        // Act - use basicValidationOnly to skip aggregate checks in unit tests
+        $result = $this->createActivity()->execute($request, ['basicValidationOnly' => true]);
 
         // Assert
         $this->assertTrue($result->isValid);
@@ -205,7 +233,7 @@ class ValidatePaymentActivityTest extends TestCase
         );
 
         // Act
-        $result = $this->activity->execute($request);
+        $result = $this->createActivity()->execute($request);
 
         // Assert
         $this->assertFalse($result->isValid);

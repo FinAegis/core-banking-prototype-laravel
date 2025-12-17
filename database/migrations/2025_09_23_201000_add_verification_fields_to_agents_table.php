@@ -19,7 +19,8 @@ return new class () extends Migration {
             // KYC/Compliance fields
             $table->boolean('kyc_verified')->default(false)->after('suspended_at');
             $table->string('kyc_status')->default('pending')->after('kyc_verified'); // pending, verified, rejected
-            $table->timestamp('kyc_verified_at')->nullable()->after('kyc_status');
+            $table->string('kyc_verification_level')->default('basic')->after('kyc_status'); // basic, enhanced, full
+            $table->timestamp('kyc_verified_at')->nullable()->after('kyc_verification_level');
 
             // Reputation and limits
             $table->integer('reputation_score')->default(50)->after('kyc_verified_at');
@@ -47,6 +48,7 @@ return new class () extends Migration {
                 'suspended_at',
                 'kyc_verified',
                 'kyc_status',
+                'kyc_verification_level',
                 'kyc_verified_at',
                 'reputation_score',
                 'total_transactions',

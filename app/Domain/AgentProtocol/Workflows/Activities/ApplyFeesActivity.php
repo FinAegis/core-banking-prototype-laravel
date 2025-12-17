@@ -56,11 +56,12 @@ class ApplyFeesActivity extends Activity
 
                 try {
                     if (! $isReversal) {
-                        // Charge fee from sender using initiatePayment
+                        // Charge fee from sender using initiatePayment + completePayment for immediate settlement
                         $feeCollectorDid = config('agent_protocol.fees.fee_collector_did', 'did:agent:finaegis:fee-collector');
+                        $feeTransactionId = 'fee-' . $request->transactionId;
                         $senderWallet = AgentWalletAggregate::retrieve($request->fromAgentDid);
                         $senderWallet->initiatePayment(
-                            transactionId: 'fee-' . $request->transactionId,
+                            transactionId: $feeTransactionId,
                             toAgentId: $feeCollectorDid,
                             amount: $appliedFee,
                             type: 'fee',
@@ -70,6 +71,13 @@ class ApplyFeesActivity extends Activity
                                 'payment_amount' => $request->amount,
                                 'description'    => 'Transaction fee for payment to ' . $request->toAgentDid,
                             ]
+                        );
+                        // Complete the payment to actually debit the balance
+                        $senderWallet->completePayment(
+                            transactionId: $feeTransactionId,
+                            amount: $appliedFee,
+                            toAgentId: $feeCollectorDid,
+                            metadata: ['fee_type' => 'transaction']
                         );
                         $senderWallet->persist();
 

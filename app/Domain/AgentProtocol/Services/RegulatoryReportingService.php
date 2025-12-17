@@ -324,12 +324,46 @@ class RegulatoryReportingService
      */
     private function storeReport(string $type, ?string $agentId, array $data): RegulatoryReport
     {
+        // Generate unique report ID
+        $reportId = sprintf('%s-%s-%04d', $type, now()->format('Y'), RegulatoryReport::where('report_type', $type)->count() + 1);
+
+        // Determine reporting period from data
+        $periodStart = isset($data['reporting_period']['start'])
+            ? Carbon::parse($data['reporting_period']['start'])
+            : now()->startOfMonth();
+        $periodEnd = isset($data['reporting_period']['end'])
+            ? Carbon::parse($data['reporting_period']['end'])
+            : now()->endOfMonth();
+
+        // Calculate total amount from data
+        $totalAmount = 0.0;
+        $recordCount = 0;
+        if (isset($data['transactions'])) {
+            $transactions = $data['transactions'] instanceof Collection
+                ? $data['transactions']->toArray()
+                : $data['transactions'];
+            $recordCount = count($transactions);
+            $totalAmount = array_sum(array_column($transactions, 'amount'));
+        } elseif (isset($data['summary']['total_amount'])) {
+            $totalAmount = $data['summary']['total_amount'];
+        } elseif (isset($data['total_suspicious_amount'])) {
+            $totalAmount = $data['total_suspicious_amount'];
+        }
+
         return RegulatoryReport::create([
-            'report_type'  => $type,
-            'agent_id'     => $agentId,
-            'report_data'  => $data,
-            'status'       => 'generated',
-            'generated_at' => now(),
+            'report_id'              => $reportId,
+            'report_type'            => $type,
+            'agent_id'               => $agentId,
+            'jurisdiction'           => config('agent_protocol.regulatory.jurisdiction', 'US'),
+            'reporting_period_start' => $periodStart,
+            'reporting_period_end'   => $periodEnd,
+            'status'                 => 'generated',
+            'priority'               => $type === 'SAR' ? 5 : 1,
+            'file_format'            => 'json',
+            'report_data'            => $data,
+            'record_count'           => $recordCount,
+            'total_amount'           => $totalAmount,
+            'generated_at'           => now(),
         ]);
     }
 

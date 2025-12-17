@@ -275,9 +275,19 @@ class DigitalSignatureServiceTest extends TestCase
         $this->assertEquals($agentId, $rotationResult['agent_id']);
         $this->assertNotEquals($initialPublicKey, $rotationResult['new_public_key']);
 
-        // Verify old keys are archived
-        $this->assertTrue(Cache::has("archived_private_key:{$agentId}:" . time()));
-        $this->assertTrue(Cache::has("archived_public_key:{$agentId}:" . time()));
+        // Verify old keys are archived (check within a small time window to avoid timing issues)
+        $archived = false;
+        $currentTime = time();
+        // Check for archived keys in a 2-second window
+        for ($offset = -1; $offset <= 1; $offset++) {
+            $timestamp = $currentTime + $offset;
+            if (Cache::has("archived_private_key:{$agentId}:{$timestamp}") &&
+                Cache::has("archived_public_key:{$agentId}:{$timestamp}")) {
+                $archived = true;
+                break;
+            }
+        }
+        $this->assertTrue($archived, 'Archived keys should exist in cache');
     }
 
     /** @test */

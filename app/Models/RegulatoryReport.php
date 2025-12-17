@@ -5,44 +5,87 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int $id
+ * @property string $id
+ * @property string $report_id
  * @property string $report_type
  * @property string|null $agent_id
- * @property array $report_data
+ * @property string $jurisdiction
+ * @property Carbon $reporting_period_start
+ * @property Carbon $reporting_period_end
  * @property string $status
+ * @property int $priority
+ * @property string|null $file_path
+ * @property string $file_format
+ * @property int|null $file_size
+ * @property string|null $file_hash
  * @property Carbon $generated_at
  * @property Carbon|null $submitted_at
+ * @property string|null $submitted_by
  * @property string|null $submission_reference
+ * @property array|null $submission_response
  * @property string|null $regulatory_authority
+ * @property array|null $report_data
+ * @property int $record_count
+ * @property float|null $total_amount
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
 class RegulatoryReport extends Model
 {
     use HasFactory;
+    use HasUuids;
 
     protected $table = 'regulatory_reports';
 
     protected $fillable = [
+        'report_id',
         'report_type',
         'agent_id',
-        'report_data',
+        'jurisdiction',
+        'reporting_period_start',
+        'reporting_period_end',
         'status',
+        'priority',
+        'file_path',
+        'file_format',
+        'file_size',
+        'file_hash',
         'generated_at',
         'submitted_at',
+        'submitted_by',
         'submission_reference',
+        'submission_response',
         'regulatory_authority',
+        'report_data',
+        'record_count',
+        'total_amount',
+        'entities_included',
+        'risk_indicators',
+        'audit_trail',
+        'tags',
     ];
 
     protected $casts = [
-        'report_data'  => 'array',
-        'generated_at' => 'datetime',
-        'submitted_at' => 'datetime',
+        'report_data'            => 'array',
+        'submission_response'    => 'array',
+        'entities_included'      => 'array',
+        'risk_indicators'        => 'array',
+        'audit_trail'            => 'array',
+        'corrections_required'   => 'array',
+        'tags'                   => 'array',
+        'reporting_period_start' => 'date',
+        'reporting_period_end'   => 'date',
+        'generated_at'           => 'datetime',
+        'submitted_at'           => 'datetime',
+        'reviewed_at'            => 'datetime',
+        'due_date'               => 'datetime',
+        'total_amount'           => 'decimal:2',
     ];
 
     /**

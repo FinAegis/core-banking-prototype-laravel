@@ -75,7 +75,8 @@ class AgentComplianceAggregate extends AggregateRoot
         KycVerificationLevel $level,
         array $requiredDocuments = []
     ): self {
-        $aggregate = new self();
+        // Use the agentId as the aggregate's UUID so it can be retrieved later
+        $aggregate = self::retrieve($agentId);
         $aggregate->recordThat(new AgentKycInitiated(
             agentId: $agentId,
             agentDid: $agentDid,

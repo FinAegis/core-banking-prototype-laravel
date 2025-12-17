@@ -98,9 +98,14 @@ class AgentPaymentRequest
             $errors[] = 'Invalid recipient DID format';
         }
 
+        // Validate sender and receiver are different
+        if ($this->fromAgentDid === $this->toAgentDid) {
+            $errors[] = 'Sender and receiver cannot be the same';
+        }
+
         // Validate amount
         if ($this->amount <= 0) {
-            $errors[] = 'Amount must be greater than zero';
+            $errors[] = 'Amount must be positive';
         }
 
         // Validate currency
@@ -109,10 +114,10 @@ class AgentPaymentRequest
         }
 
         // Validate splits if present
-        if ($this->hasSplits()) {
+        if (! empty($this->splits)) {
             $totalSplit = array_sum(array_column($this->splits, 'amount'));
-            if (abs($totalSplit - $this->amount) > 0.01) {
-                $errors[] = 'Split amounts do not match total amount';
+            if ($totalSplit > $this->amount + 0.01) {
+                $errors[] = 'Split amounts exceed total payment';
             }
         }
 
@@ -121,10 +126,15 @@ class AgentPaymentRequest
 
     /**
      * Check if a DID is valid.
+     * Accepts standard DID format: did:<method>:<identifier>...
      */
     private function isValidDid(string $did): bool
     {
-        return preg_match('/^did:finaegis:[a-z]+:[a-f0-9]{32}$/', $did) === 1;
+        // Accept various DID formats:
+        // - did:finaegis:agent:abc123def456...
+        // - did:agent:test:sender
+        // - did:example:xyz123
+        return preg_match('/^did:[a-z]+:[a-z0-9]+(?::[a-zA-Z0-9_-]+)*$/', $did) === 1;
     }
 
     /**

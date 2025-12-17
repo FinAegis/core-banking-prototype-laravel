@@ -9,6 +9,7 @@ use App\Domain\AgentProtocol\Enums\KycVerificationLevel;
 use App\Domain\AgentProtocol\Enums\KycVerificationStatus;
 use App\Domain\AgentProtocol\Services\RegulatoryReportingService;
 use App\Domain\AgentProtocol\Workflows\Activities\CheckTransactionLimitActivity;
+use App\Domain\AgentProtocol\Workflows\PaymentOrchestrationWorkflow;
 use App\Models\Agent;
 use App\Models\AgentTransaction;
 use App\Models\AgentTransactionTotal;
@@ -17,6 +18,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
+use Workflow\Models\StoredWorkflow;
+use Workflow\WorkflowStub;
 
 class AgentComplianceTest extends TestCase
 {
@@ -169,9 +172,18 @@ class AgentComplianceTest extends TestCase
             'last_monthly_reset' => now()->startOfMonth(),
         ]);
 
-        // Act
-        /** @phpstan-ignore-next-line */
-        $activity = new CheckTransactionLimitActivity();
+        // Act - Create workflow stub for proper Activity instantiation
+        $workflow = WorkflowStub::make(PaymentOrchestrationWorkflow::class);
+        $storedWorkflow = StoredWorkflow::findOrFail($workflow->id());
+
+        $activity = new CheckTransactionLimitActivity(
+            0,
+            now()->toDateTimeString(),
+            $storedWorkflow,
+            $agentId,
+            300.00,
+            'USD'
+        );
 
         // Test within limits
         $result = $activity->execute($agentId, 300.00, 'USD');
@@ -235,7 +247,7 @@ class AgentComplianceTest extends TestCase
         $agentId = Str::uuid()->toString();
         $agent = Agent::factory()->create([
             'agent_id'   => $agentId,
-            'risk_score' => 75,
+            'risk_level' => 'high',
         ]);
 
         $transactionIds = [];
