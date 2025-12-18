@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\AgentProtocol\Messaging;
 
-use App\Domain\AgentProtocol\Messaging\NegotiationResult;
 use App\Domain\AgentProtocol\Messaging\ProtocolAgreement;
 use DateTimeImmutable;
 use Tests\TestCase;
