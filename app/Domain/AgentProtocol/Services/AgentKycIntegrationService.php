@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Log;
 class AgentKycIntegrationService
 {
     public function __construct(
-        private readonly KycService $kycService,
+        private readonly ?KycService $kycService = null,
         private readonly ?AmlScreeningService $amlScreeningService = null
     ) {
     }

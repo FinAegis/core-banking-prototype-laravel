@@ -77,7 +77,7 @@ class AgentProtocolServiceProvider extends ServiceProvider
         // Transaction verification contract
         $this->app->bind(TransactionVerifierInterface::class, function ($app) {
             return new TransactionVerificationService(
-                $app->make(SignatureService::class),
+                $app->make(DigitalSignatureService::class),
                 $app->make(EncryptionService::class),
                 $app->make(FraudDetectionService::class)
             );
@@ -195,7 +195,7 @@ class AgentProtocolServiceProvider extends ServiceProvider
         // Transaction Verification Service - Comprehensive verification
         $this->app->singleton(TransactionVerificationService::class, function ($app) {
             return new TransactionVerificationService(
-                $app->make(SignatureService::class),
+                $app->make(DigitalSignatureService::class),
                 $app->make(EncryptionService::class),
                 $app->make(FraudDetectionService::class)
             );
