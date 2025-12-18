@@ -25,29 +25,43 @@ class AgentMessageBusServiceTest extends TestCase
     private AgentMessageBusService $service;
 
     /** @var AgentRegistryService&MockInterface */
-    private AgentRegistryService $registryService;
+    private MockInterface $registryService;
 
     /** @var DigitalSignatureService&MockInterface */
-    private DigitalSignatureService $signatureService;
+    private MockInterface $signatureService;
 
     /** @var QueueFactory&MockInterface */
-    private QueueFactory $queueFactory;
+    private MockInterface $queueFactory;
 
     /** @var CacheRepository&MockInterface */
-    private CacheRepository $cache;
+    private MockInterface $cache;
 
     /** @var Dispatcher&MockInterface */
-    private Dispatcher $events;
+    private MockInterface $events;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->registryService = Mockery::mock(AgentRegistryService::class);
-        $this->signatureService = Mockery::mock(DigitalSignatureService::class);
-        $this->queueFactory = Mockery::mock(QueueFactory::class);
-        $this->cache = Mockery::mock(CacheRepository::class);
-        $this->events = Mockery::mock(Dispatcher::class);
+        /** @var AgentRegistryService&MockInterface $registryService */
+        $registryService = Mockery::mock(AgentRegistryService::class);
+        $this->registryService = $registryService;
+
+        /** @var DigitalSignatureService&MockInterface $signatureService */
+        $signatureService = Mockery::mock(DigitalSignatureService::class);
+        $this->signatureService = $signatureService;
+
+        /** @var QueueFactory&MockInterface $queueFactory */
+        $queueFactory = Mockery::mock(QueueFactory::class);
+        $this->queueFactory = $queueFactory;
+
+        /** @var CacheRepository&MockInterface $cache */
+        $cache = Mockery::mock(CacheRepository::class);
+        $this->cache = $cache;
+
+        /** @var Dispatcher&MockInterface $events */
+        $events = Mockery::mock(Dispatcher::class);
+        $this->events = $events;
 
         $this->service = new AgentMessageBusService(
             $this->registryService,
