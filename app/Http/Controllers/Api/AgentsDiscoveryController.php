@@ -22,7 +22,7 @@ class AgentsDiscoveryController extends Controller
      *
      * @OA\Get(
      *     path="/api/agents/discovery",
-     *     operationId="discoverAgents",
+     *     operationId="discoverAgentsDocumentation",
      *     tags={"AI Agents"},
      *     summary="Discover all AGENTS.md files",
      *     description="Returns a list of all AGENTS.md files in the project with their locations and metadata",
