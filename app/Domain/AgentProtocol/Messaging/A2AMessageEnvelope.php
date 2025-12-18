@@ -19,50 +19,29 @@ use JsonSerializable;
 final class A2AMessageEnvelope implements JsonSerializable
 {
     public function __construct(
-        // Identification
         public readonly string $messageId,
         public readonly string $protocolVersion,
-
-        // Routing
         public readonly string $senderDid,
         public readonly string $recipientDid,
-
-        // Message metadata
         public readonly MessageType $messageType,
         public readonly MessagePriority $priority,
-
-        // Payload
         public readonly array $payload,
-
-        // Headers and extensions
         public readonly array $headers = [],
-
-        // Correlation and threading
         public readonly ?string $correlationId = null,
         public readonly ?string $conversationId = null,
         public readonly ?string $replyTo = null,
         public readonly ?string $inReplyTo = null,
-
-        // Timing
         public readonly ?DateTimeImmutable $createdAt = null,
         public readonly ?DateTimeImmutable $expiresAt = null,
         public readonly ?int $ttlSeconds = null,
-
-        // Delivery options
         public readonly bool $requiresAcknowledgment = true,
         public readonly ?int $acknowledgmentTimeout = null,
         public readonly bool $enableRetry = true,
         public readonly int $maxRetries = 3,
-
-        // Security
         public readonly ?string $signature = null,
         public readonly ?string $encryptionKeyId = null,
         public readonly bool $isEncrypted = false,
-
-        // Status tracking
         public readonly MessageStatus $status = MessageStatus::PENDING,
-
-        // Metadata
         public readonly array $metadata = []
     ) {
     }
