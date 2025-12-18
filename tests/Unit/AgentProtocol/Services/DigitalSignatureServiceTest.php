@@ -38,7 +38,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_generate_agent_key_pair()
+    public function itCanGenerateAgentKeyPair()
     {
         $agentId = 'agent_' . uniqid();
 
@@ -61,7 +61,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_sign_and_verify_agent_transaction()
+    public function itCanSignAndVerifyAgentTransaction()
     {
         $agentId = 'agent_' . uniqid();
         $transactionId = 'txn_' . uniqid();
@@ -108,7 +108,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_detects_invalid_signatures()
+    public function itDetectsInvalidSignatures()
     {
         $agentId = 'agent_' . uniqid();
         $transactionId = 'txn_' . uniqid();
@@ -144,7 +144,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_detects_expired_signatures()
+    public function itDetectsExpiredSignatures()
     {
         $agentId = 'agent_' . uniqid();
         $transactionId = 'txn_' . uniqid();
@@ -176,7 +176,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_prevents_replay_attacks_with_nonce_verification()
+    public function itPreventsReplayAttacksWithNonceVerification()
     {
         $agentId = 'agent_' . uniqid();
         $transactionId = 'txn_' . uniqid();
@@ -218,7 +218,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_create_multi_party_signatures()
+    public function itCanCreateMultiPartySignatures()
     {
         $transactionId = 'txn_' . uniqid();
         $transactionData = [
@@ -256,7 +256,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_rotate_agent_keys()
+    public function itCanRotateAgentKeys()
     {
         $agentId = 'agent_' . uniqid();
 
@@ -281,8 +281,10 @@ class DigitalSignatureServiceTest extends TestCase
         // Check for archived keys in a 2-second window
         for ($offset = -1; $offset <= 1; $offset++) {
             $timestamp = $currentTime + $offset;
-            if (Cache::has("archived_private_key:{$agentId}:{$timestamp}") &&
-                Cache::has("archived_public_key:{$agentId}:{$timestamp}")) {
+            if (
+                Cache::has("archived_private_key:{$agentId}:{$timestamp}") &&
+                Cache::has("archived_public_key:{$agentId}:{$timestamp}")
+            ) {
                 $archived = true;
                 break;
             }
@@ -291,7 +293,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_selects_appropriate_algorithm_based_on_security_level()
+    public function itSelectsAppropriateAlgorithmBasedOnSecurityLevel()
     {
         $agentId = 'agent_' . uniqid();
         $transactionId = 'txn_' . uniqid();
@@ -329,7 +331,7 @@ class DigitalSignatureServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_create_signature_proof_for_zero_knowledge_verification()
+    public function itCanCreateSignatureProofForZeroKnowledgeVerification()
     {
         $transactionId = 'txn_' . uniqid();
         $agentId = 'agent_' . uniqid();
