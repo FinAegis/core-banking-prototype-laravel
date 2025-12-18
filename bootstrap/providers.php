@@ -4,6 +4,7 @@ return [
     App\Providers\AccountServiceProvider::class,
     App\Providers\AgentProtocolServiceProvider::class,
     App\Providers\AIInfrastructureServiceProvider::class,
+    App\Providers\MCPToolServiceProvider::class,
     App\Providers\AppServiceProvider::class,
     App\Providers\BankIntegrationServiceProvider::class,
     App\Providers\BlockchainServiceProvider::class,
