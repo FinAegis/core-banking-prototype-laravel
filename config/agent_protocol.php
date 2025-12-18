@@ -45,6 +45,12 @@ return [
             'escrow:dispute' => 'Dispute escrow transactions',
             'escrow:*'       => 'Full access to escrow operations',
 
+            // Messaging scopes
+            'messages:read'  => 'View A2A messages and conversations',
+            'messages:send'  => 'Send A2A messages to other agents',
+            'messages:write' => 'Create and manage A2A messages',
+            'messages:*'     => 'Full access to messaging operations',
+
             // Agent management scopes
             'agent:read'     => 'View agent profile and capabilities',
             'agent:update'   => 'Update agent profile',
@@ -75,6 +81,7 @@ return [
             'wallet:read',
             'agent:read',
             'reputation:read',
+            'messages:read',
         ],
     ],
 
