@@ -62,7 +62,7 @@ interface AccountOperationsInterface
      * @param array<string, mixed> $metadata Additional transaction metadata
      * @return string Transaction ID
      *
-     * @throws \App\Domain\Account\Exceptions\InsufficientBalanceException
+     * @throws \App\Domain\Account\Exceptions\NotEnoughFunds When balance is insufficient
      */
     public function debit(
         string $accountId,
@@ -83,7 +83,7 @@ interface AccountOperationsInterface
      * @param array<string, mixed> $metadata Additional transaction metadata
      * @return string Transfer ID
      *
-     * @throws \App\Domain\Account\Exceptions\InsufficientBalanceException
+     * @throws \App\Domain\Account\Exceptions\NotEnoughFunds When source account balance is insufficient
      */
     public function transfer(
         string $fromAccountId,
@@ -103,7 +103,7 @@ interface AccountOperationsInterface
      * @param string $reason Reason for the lock
      * @return string Lock ID (use to unlock later)
      *
-     * @throws \App\Domain\Account\Exceptions\InsufficientBalanceException
+     * @throws \App\Domain\Account\Exceptions\NotEnoughFunds When balance is insufficient for lock
      */
     public function lockBalance(
         string $accountId,

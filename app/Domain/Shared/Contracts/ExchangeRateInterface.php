@@ -22,7 +22,7 @@ interface ExchangeRateInterface
      * @param string $toCurrency Target currency code (e.g., 'USD')
      * @return string Exchange rate as string for precision
      *
-     * @throws \App\Domain\Exchange\Exceptions\UnsupportedPairException
+     * @throws \RuntimeException When the currency pair is not supported
      */
     public function getRate(string $fromCurrency, string $toCurrency): string;
 
