@@ -1,33 +1,76 @@
-# FinAegis Core Banking Prototype
+# FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**An open-source core banking prototype built with event sourcing, domain-driven design, and modern banking patterns.**
+**An open-source core banking platform built with event sourcing, domain-driven design, and modern financial patterns.**
 
-FinAegis demonstrates how a modern core banking platform could be built. It's not production-ready, but it's a great learning resource and starting point for building financial applications.
+FinAegis provides the foundation for building digital banking applications. The **Global Currency Unit (GCU)** serves as a complete reference implementation demonstrating how to build basket currencies, governance systems, and democratic financial instruments on this platform.
 
-[Live Demo](https://finaegis.org) | [Documentation](docs/README.md) | [Quick Start](#quick-start) | [Contributing](#contributing)
+[Live Demo](https://finaegis.org) | [Documentation](docs/README.md) | [Quick Start](#quick-start) | [Contributing](CONTRIBUTING.md)
 
 ---
 
-## What is FinAegis?
+## Why FinAegis?
 
-FinAegis is a prototype that showcases:
+| Challenge | FinAegis Solution |
+|-----------|-------------------|
+| Building financial systems from scratch | 29 production-ready domain modules |
+| Audit trail requirements | Event sourcing captures every state change |
+| Complex multi-step transactions | Saga pattern with automatic compensation |
+| Regulatory compliance | Built-in KYC/AML workflows |
+| Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
 
-- **Event-Sourced Architecture** - Every state change is captured as an immutable event, enabling complete audit trails
-- **Domain-Driven Design** - 25+ bounded contexts covering accounts, trading, lending, compliance, and more
-- **Modern Banking Patterns** - CQRS, sagas, workflow orchestration, and multi-asset support
-- **AI Agent Framework** - Production-ready MCP server with 20+ banking tools for AI integration
-- **Global Currency Unit (GCU)** - A conceptual democratic digital currency backed by a basket of assets
+---
+
+## GCU: The Reference Implementation
+
+<table>
+<tr>
+<td width="60%">
+
+The **Global Currency Unit (GCU)** demonstrates FinAegis capabilities through a democratic basket currency:
+
+- **Multi-Asset Basket** - USD (40%), EUR (30%), GBP (15%), CHF (10%), JPY (3%), XAU (2%)
+- **Democratic Governance** - Community votes on basket composition
+- **Automatic Rebalancing** - Monthly adjustment to maintain target weights
+- **Transparent NAV** - Real-time Net Asset Value calculation
+- **Full Integration** - Uses Exchange, Governance, Compliance, and Treasury domains
+
+GCU shows how to build complex financial products using FinAegis primitives.
+
+</td>
+<td width="40%">
+
+```
+┌─────────────────────┐
+│   GCU Basket        │
+├─────────────────────┤
+│ USD ████████░░ 40%  │
+│ EUR ██████░░░░ 30%  │
+│ GBP ███░░░░░░░ 15%  │
+│ CHF ██░░░░░░░░ 10%  │
+│ JPY █░░░░░░░░░  3%  │
+│ XAU █░░░░░░░░░  2%  │
+└─────────────────────┘
+```
+
+</td>
+</tr>
+</table>
+
+See [ADR-004: GCU Basket Design](docs/ADR/ADR-004-gcu-basket-design.md) for architecture details.
+
+---
 
 ## Quick Start
 
-### Try Demo Mode (Recommended)
+### Demo Mode (Recommended)
 
-No external dependencies needed - everything runs locally:
+No external dependencies - everything runs locally:
 
 ```bash
 git clone https://github.com/finaegis/core-banking-prototype-laravel.git
@@ -40,138 +83,162 @@ npm install && npm run build
 php artisan serve
 ```
 
-Visit `http://localhost:8000` and log in with any demo account:
+Visit `http://localhost:8000` with demo credentials:
 - `demo.user@gcu.global` / `demo123`
 - `demo.business@gcu.global` / `demo123`
 - `demo.investor@gcu.global` / `demo123`
 
 ### Full Installation
 
-For development with all features:
-
 ```bash
-# Clone and install
 git clone https://github.com/finaegis/core-banking-prototype-laravel.git
 cd core-banking-prototype-laravel
-composer install
-npm install
-
-# Configure environment
+composer install && npm install
 cp .env.example .env
 php artisan key:generate
-# Edit .env with your MySQL/PostgreSQL and Redis settings
-
-# Setup database
+# Configure MySQL/PostgreSQL and Redis in .env
 php artisan migrate --seed
 npm run build
-
-# Start services
 php artisan serve
 php artisan queue:work --queue=events,ledger,transactions,transfers,webhooks
 ```
 
-**Requirements**: PHP 8.4+, MySQL 8.0+ or PostgreSQL 13+, Redis 6.0+, Node.js 18+
+**Requirements**: PHP 8.4+, MySQL 8.0+/PostgreSQL 13+, Redis 6.0+, Node.js 18+
 
-## Key Features
+---
 
-| Domain | What It Does |
-|--------|--------------|
-| **Account Management** | Multi-asset accounts, deposits, withdrawals, transfers |
-| **Exchange & Trading** | Order book, liquidity pools, external exchange integration |
-| **Stablecoin** | Collateralized token issuance with liquidation mechanisms |
-| **P2P Lending** | Loan lifecycle, credit scoring, risk assessment |
-| **Blockchain Wallets** | Multi-chain support (BTC, ETH, Polygon, BSC) |
-| **Governance** | Democratic voting, poll management |
-| **Compliance** | KYC/AML workflows, regulatory reporting |
+## Platform Capabilities
+
+### Core Banking
+
+| Domain | Capabilities |
+|--------|-------------|
+| **Account** | Multi-asset accounts, deposits, withdrawals, statements |
+| **Banking** | SEPA/SWIFT transfers, multi-bank routing, reconciliation |
+| **Compliance** | 3-tier KYC, AML screening, SAR/CTR reporting |
+| **Treasury** | Portfolio management, cash allocation, yield optimization |
+
+### Digital Assets
+
+| Domain | Capabilities |
+|--------|-------------|
+| **Exchange** | Order matching, liquidity pools, AMM, external connectors |
+| **Stablecoin** | Multi-collateral minting, burning, liquidation |
+| **Wallet** | Multi-chain support (BTC, ETH, Polygon, BSC) |
+| **Basket (GCU)** | Weighted currency basket, NAV calculation, rebalancing |
+
+### Platform Services
+
+| Domain | Capabilities |
+|--------|-------------|
+| **Governance** | Democratic voting, proposals, asset-weighted strategies |
+| **Lending** | P2P loans, credit scoring, risk assessment |
 | **AI Framework** | MCP server, 20+ banking tools, event-sourced interactions |
+| **Agent Protocol** | A2A messaging, escrow, reputation system |
+
+---
 
 ## Architecture
 
 ```
-app/Domain/
-├── Account/        # Account management
-├── Exchange/       # Trading engine
-├── Lending/        # P2P lending
-├── Stablecoin/     # Token management
-├── Wallet/         # Blockchain integration
-├── Governance/     # Voting system
-├── Compliance/     # KYC/AML
-├── AI/             # AI Agent Framework
-└── ... (25+ domains)
+┌─────────────────────────────────────────────────────────────────────┐
+│                         API / Admin Panel                           │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │ Account  │ │ Exchange │ │ Basket   │ │Compliance│ │ Treasury │  │
+│  │  Domain  │ │  Domain  │ │  (GCU)   │ │  Domain  │ │  Domain  │  │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘  │
+│       │            │            │            │            │         │
+│  ┌────▼────────────▼────────────▼────────────▼────────────▼─────┐  │
+│  │                    CQRS + Event Sourcing                      │  │
+│  │  Commands → Aggregates → Events → Projectors → Read Models   │  │
+│  └──────────────────────────────┬────────────────────────────────┘  │
+│                                 │                                    │
+│  ┌──────────────────────────────▼────────────────────────────────┐  │
+│  │                    Saga / Workflow Engine                      │  │
+│  │         Multi-step transactions with compensation              │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-Each domain follows event sourcing patterns with:
-- **Aggregates** - Business logic containers
-- **Events** - Immutable state changes
-- **Projectors** - Read model builders
-- **Workflows** - Saga-based orchestration
+**Key Patterns:**
+- **Event Sourcing** - Complete audit trail, temporal queries, replay capability
+- **CQRS** - Separated read/write models for optimal performance
+- **Saga Pattern** - Distributed transactions with automatic rollback
+- **DDD** - 29 bounded contexts with clear boundaries
 
-See [Architecture Documentation](docs/02-ARCHITECTURE/) for details.
+See [Architecture Decision Records](docs/ADR/) for detailed design rationale.
+
+---
 
 ## Documentation
 
-| Topic | Description |
-|-------|-------------|
-| [Getting Started](docs/05-USER-GUIDES/GETTING-STARTED.md) | First steps with the platform |
-| [User Guides](docs/05-USER-GUIDES/) | Feature walkthroughs |
-| [API Reference](docs/04-API/REST_API_REFERENCE.md) | REST API documentation |
-| [AI Framework](docs/13-AI-FRAMEWORK/) | AI agent integration |
-| [Development](docs/06-DEVELOPMENT/) | Developer guides |
-| [Architecture](docs/02-ARCHITECTURE/) | Technical deep-dives |
+| Category | Links |
+|----------|-------|
+| **Getting Started** | [Quick Start](#quick-start) · [User Guides](docs/05-USER-GUIDES/) |
+| **Architecture** | [Overview](docs/02-ARCHITECTURE/) · [ADRs](docs/ADR/) · [Roadmap](docs/ARCHITECTURAL_ROADMAP.md) |
+| **API** | [REST Reference](docs/04-API/REST_API_REFERENCE.md) · [OpenAPI](/api/documentation) |
+| **Development** | [Contributing](CONTRIBUTING.md) · [Dev Guides](docs/06-DEVELOPMENT/) |
+| **Reference** | [GCU Design](docs/ADR/ADR-004-gcu-basket-design.md) · [Event Sourcing](docs/ADR/ADR-001-event-sourcing.md) |
 
-API documentation is also available at `/api/documentation` when running locally.
-
-## Testing
-
-```bash
-# Run all tests
-./vendor/bin/pest --parallel
-
-# Run with coverage
-./vendor/bin/pest --coverage --min=50
-
-# Code quality checks
-./bin/pre-commit-check.sh --fix
-```
+---
 
 ## Contributing
 
-We welcome contributions! Whether you're fixing bugs, adding features, or improving docs, your help is appreciated.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes with tests
-4. Run quality checks: `./bin/pre-commit-check.sh --fix`
-5. Submit a pull request
+```bash
+# Fork, clone, then:
+git checkout -b feature/your-feature
+# Make changes with tests
+./bin/pre-commit-check.sh --fix
+# Submit PR
+```
 
-**Standards**: PSR-12 coding style, PHPStan level 5, 50%+ test coverage
+**Standards**: PSR-12 · PHPStan Level 5 · 50%+ Coverage · Conventional Commits
 
-This project also supports AI coding assistants (Claude Code, GitHub Copilot, Cursor). Look for `AGENTS.md` files throughout the codebase for context-aware guidance.
+This project supports AI coding assistants. Look for `AGENTS.md` files for context-aware guidance.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Backend** | Laravel 12, PHP 8.4+ |
+| **Event Sourcing** | Spatie Event Sourcing |
+| **Workflows** | Laravel Workflow (Waterline) |
+| **Database** | MySQL 8.0+ / PostgreSQL 13+ |
+| **Cache/Queue** | Redis, Laravel Horizon |
+| **Testing** | Pest PHP (parallel) |
+| **Admin** | Filament v3 |
+| **Frontend** | Livewire, Tailwind CSS |
+
+---
 
 ## Project Status
 
-This is a **demonstration prototype**. It showcases modern banking architecture but is not production-ready. Use it for:
+This is a **demonstration platform** showcasing modern banking architecture. Use it for:
+
 - Learning event sourcing and DDD patterns
 - Understanding core banking concepts
 - Building proof-of-concepts
 - Contributing to open-source fintech
+- Studying GCU as a basket currency reference
 
-## Tech Stack
+**Not recommended** for production use without security audit and compliance review.
 
-- **Backend**: Laravel 12, PHP 8.4+
-- **Event Sourcing**: Spatie Event Sourcing
-- **Workflows**: Laravel Workflow
-- **Database**: MySQL/PostgreSQL
-- **Cache/Queue**: Redis
-- **Testing**: Pest PHP
-- **Admin Panel**: Filament v3
-- **Frontend**: Livewire, Tailwind CSS
+---
 
-## Support
+## Community
 
-- [Documentation](docs/README.md)
-- [GitHub Issues](https://github.com/finaegis/core-banking-prototype-laravel/issues)
-- [GitHub Discussions](https://github.com/finaegis/core-banking-prototype-laravel/discussions)
+- [GitHub Discussions](https://github.com/finaegis/core-banking-prototype-laravel/discussions) - Questions & Ideas
+- [GitHub Issues](https://github.com/finaegis/core-banking-prototype-laravel/issues) - Bug Reports
+- [Security Policy](SECURITY.md) - Vulnerability Reporting
+- [Code of Conduct](CODE_OF_CONDUCT.md) - Community Guidelines
+- [Changelog](CHANGELOG.md) - Version History
+
+---
 
 ## License
 
@@ -179,4 +246,6 @@ This is a **demonstration prototype**. It showcases modern banking architecture 
 
 ---
 
-**Built with care for the open-source community**
+<p align="center">
+<strong>Built for the open-source financial community</strong>
+</p>
