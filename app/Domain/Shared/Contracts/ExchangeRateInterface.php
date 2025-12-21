@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Contracts;
 
+use DateTimeInterface;
+use RuntimeException;
+
 /**
  * Interface for exchange rate operations used by external domains.
  *
@@ -22,7 +25,7 @@ interface ExchangeRateInterface
      * @param string $toCurrency Target currency code (e.g., 'USD')
      * @return string Exchange rate as string for precision
      *
-     * @throws \RuntimeException When the currency pair is not supported
+     * @throws RuntimeException When the currency pair is not supported
      */
     public function getRate(string $fromCurrency, string $toCurrency): string;
 
@@ -49,13 +52,13 @@ interface ExchangeRateInterface
      *
      * @param string $fromCurrency Source currency code
      * @param string $toCurrency Target currency code
-     * @param \DateTimeInterface $date Historical date
+     * @param DateTimeInterface $date Historical date
      * @return string|null Exchange rate or null if not available
      */
     public function getHistoricalRate(
         string $fromCurrency,
         string $toCurrency,
-        \DateTimeInterface $date
+        DateTimeInterface $date
     ): ?string;
 
     /**

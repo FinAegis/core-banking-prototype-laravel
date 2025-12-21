@@ -19,8 +19,11 @@ interface ComplianceCheckInterface
      * KYC verification status levels.
      */
     public const KYC_NONE = 'none';
+
     public const KYC_BASIC = 'basic';           // $1,000/day limit
+
     public const KYC_ENHANCED = 'enhanced';     // $10,000/day limit
+
     public const KYC_FULL = 'full';             // Unlimited
 
     /**
