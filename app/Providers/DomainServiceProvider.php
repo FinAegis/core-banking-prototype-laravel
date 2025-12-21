@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Account\Services\AccountOperationsAdapter;
 use App\Domain\Compliance\Projectors\ComplianceAlertProjector;
 // Repository Interfaces and Implementations
 use App\Domain\Compliance\Projectors\TransactionMonitoringProjector;
+// Shared Contracts for domain decoupling
+use App\Domain\Shared\Contracts\AccountOperationsInterface;
 use App\Domain\Compliance\Repositories\ComplianceEventRepository;
 use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
 use App\Domain\Exchange\Contracts\LiquidityPoolRepositoryInterface;
@@ -39,11 +42,31 @@ class DomainServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->registerSharedContracts();
         $this->registerRepositories();
         $this->registerCQRSInfrastructure();
         $this->registerDomainEventBus();
         $this->registerSagas();
         $this->registerEventSourcingRepositories();
+    }
+
+    /**
+     * Register shared contracts for domain decoupling.
+     *
+     * These bindings enable domains to depend on abstractions rather than
+     * concrete implementations, supporting the platform's modularity goals.
+     *
+     * @see \App\Domain\Shared\Contracts\README.md
+     */
+    private function registerSharedContracts(): void
+    {
+        // Account operations - used by 17+ domains
+        $this->app->bind(AccountOperationsInterface::class, AccountOperationsAdapter::class);
+
+        // Additional contracts can be bound here as implementations are created:
+        // $this->app->bind(ComplianceCheckInterface::class, ComplianceCheckAdapter::class);
+        // $this->app->bind(ExchangeRateInterface::class, ExchangeRateAdapter::class);
+        // $this->app->bind(GovernanceVotingInterface::class, GovernanceVotingAdapter::class);
     }
 
     /**
