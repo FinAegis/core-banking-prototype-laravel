@@ -9,14 +9,14 @@ use App\Domain\Compliance\Projectors\ComplianceAlertProjector;
 // Repository Interfaces and Implementations
 use App\Domain\Compliance\Projectors\TransactionMonitoringProjector;
 // Shared Contracts for domain decoupling
-use App\Domain\Shared\Contracts\AccountOperationsInterface;
 use App\Domain\Compliance\Repositories\ComplianceEventRepository;
 use App\Domain\Compliance\Repositories\ComplianceSnapshotRepository;
 use App\Domain\Exchange\Contracts\LiquidityPoolRepositoryInterface;
 use App\Domain\Exchange\Contracts\OrderRepositoryInterface;
 use App\Domain\Exchange\Repositories\LiquidityPoolRepository;
-// CQRS Infrastructure
 use App\Domain\Exchange\Repositories\OrderRepository;
+// CQRS Infrastructure
+use App\Domain\Shared\Contracts\AccountOperationsInterface;
 use App\Domain\Shared\CQRS\CommandBus;
 // Compliance domain repositories (Spatie Event Sourcing)
 use App\Domain\Shared\CQRS\QueryBus;
