@@ -82,7 +82,7 @@ app/Domain/
 
 ### Testing
 - **Pest PHP** with parallel testing support
-- **PHPStan Level 5** for static analysis
+- **PHPStan Level 8** for static analysis (upgraded in v1.1.0)
 - **PHP-CS-Fixer** for code standards
 - **Mockery** for mocking
 
@@ -110,8 +110,14 @@ app/Domain/
 - Queue-based processing for heavy operations
 - Horizontal scaling support
 
-## Current Development Focus
-- **Phase 8.1**: FinAegis Exchange - Liquidity Pool Management
-- Demo environment implementation (completed)
-- Production readiness preparation
-- Sandbox mode for third-party integrations
+## Current Development Focus (v1.2.0)
+- **Agent Protocol Integration**: Payment, Compliance, and MCP bridges
+- **Treasury Yield Optimization**: Complete the portfolio optimization system
+- **Production Observability**: Grafana dashboards, alerting rules
+- **Enhanced Due Diligence**: Advanced compliance workflows
+
+### Recently Completed (v1.1.0)
+- PHPStan Level 8 compliance
+- Comprehensive domain test suites (Banking, Governance, User, Compliance, Treasury, Lending)
+- 22 Behat E2E features
+- CI/CD security enforcement

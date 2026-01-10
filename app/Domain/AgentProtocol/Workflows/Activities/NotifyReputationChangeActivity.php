@@ -8,9 +8,9 @@ use App\Domain\AgentProtocol\DataObjects\ReputationScore;
 use App\Domain\AgentProtocol\Models\AgentIdentity;
 use App\Domain\AgentProtocol\Services\AgentNotificationService;
 use App\Models\User;
+use App\Notifications\AgentReputationChanged;
 use Exception;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 use Workflow\Activity;
 
 /**
@@ -230,20 +230,33 @@ class NotifyReputationChangeActivity extends Activity
 
     private function notifyUser(User $user, array $notification): array
     {
-        // TODO: Implement actual Laravel notification
-        // $user->notify(new AgentReputationChanged($notification));
+        try {
+            $user->notify(new AgentReputationChanged($notification));
 
-        // For now, log the notification attempt and return success
-        Log::info('User notification queued', [
-            'user_id'      => $user->id,
-            'notification' => $notification['type'] ?? 'reputation_change',
-        ]);
+            Log::info('User notification sent', [
+                'user_id'      => $user->id,
+                'notification' => $notification['type'] ?? 'reputation_change',
+                'priority'     => $notification['priority'] ?? 'normal',
+            ]);
 
-        return [
-            'channel'   => 'user_notification',
-            'status'    => 'sent',
-            'recipient' => $user->email,
-        ];
+            return [
+                'channel'   => 'user_notification',
+                'status'    => 'sent',
+                'recipient' => $user->email,
+            ];
+        } catch (Exception $e) {
+            Log::error('Failed to send user notification', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+
+            return [
+                'channel'   => 'user_notification',
+                'status'    => 'failed',
+                'recipient' => $user->email,
+                'error'     => $e->getMessage(),
+            ];
+        }
     }
 
     private function sendWebhook(string $url, array $notification): array

@@ -14,11 +14,11 @@
 
 ### 2. Check Code Quality
 ```bash
-# Run PHPStan analysis
-TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse --memory-limit=2G
+# Run PHPStan analysis (Level 8 as of v1.1.0)
+XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G
 
 # Check for PHPStan errors in your modified files specifically
-TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [your-modified-files] --level=5
+TMPDIR=/tmp/phpstan-$$ vendor/bin/phpstan analyse [your-modified-files] --level=8
 ```
 
 ### 3. Fix Code Style
