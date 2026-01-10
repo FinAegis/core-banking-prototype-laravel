@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned for v1.1.0 - Quality & Completeness Release
+
+#### Code Quality Improvements
+- **PHPStan Baseline Reduction**
+  - Target: Reduce total baseline lines by 50%+
+  - Fix event sourcing aggregate return types (use `static` instead of concrete classes)
+  - Add null-safe operators in AI/MCP services
+  - Resolve factory return type mismatches
+
+- **TODO/FIXME Resolution**
+  - Complete or document all 12 TODO items in production code
+  - Implement LoanDisbursementSaga
+  - Complete YieldOptimizationController functionality
+  - Finish AgentProtocol notification implementation
+
+- **Static Method Consolidation**
+  - Convert high-value static helpers to injectable services
+  - Target: Reduce from 394 to <250 static methods
+
+#### Test Coverage Expansion
+- **Domain Test Coverage**
+  - Banking Domain: Add 30+ tests (currently 0)
+  - Governance Domain: Add 25+ tests (currently 0)
+  - Regulatory Domain: Add 15+ tests
+  - Product Domain: Add 10+ tests
+
+- **E2E/Behavioral Tests**
+  - Expand from 1 to 10+ Behat feature files
+  - Add critical path coverage for all major domains
+
+- **Coverage Reporting**
+  - Enable PCOV-based coverage in CI
+  - Target: 60% coverage (up from ~50%)
+
+#### Feature Completion
+- **Phase 6 Integration** (Agent Protocol)
+  - Connect agent wallets to main payment system
+  - Integrate with existing KYC/AML workflows
+  - Link to AI Agent framework
+
+- **Treasury Yield Optimization**
+  - Complete YieldOptimizationService
+  - Implement portfolio optimization algorithms
+
+#### CI/CD Hardening
+- Enforce security audit (fail on critical/high vulnerabilities)
+- Add N+1 query detection in tests
+- Remove backup files and consolidate workflows
+
+---
+
 ## [1.0.0] - 2024-12-21
 
 ### 🎉 Open Source Release
