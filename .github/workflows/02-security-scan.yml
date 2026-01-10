@@ -56,7 +56,54 @@ jobs:
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --no-dev
         
-      - name: Run Security Audit
+      - name: Run Security Audit (Production Dependencies)
+        id: audit-prod
         run: |
-          composer audit --no-dev --format=table || true
-          composer audit --format=table || true
+          echo "## Production Dependencies Audit" >> $GITHUB_STEP_SUMMARY
+          # Run audit and capture output
+          if ! composer audit --no-dev --format=json > audit-prod.json 2>&1; then
+            echo "Vulnerabilities found in production dependencies"
+            cat audit-prod.json | jq '.' || cat audit-prod.json
+
+            # Check for critical or high severity vulnerabilities
+            CRITICAL_COUNT=$(cat audit-prod.json | jq '[.advisories[]? | select(.severity == "critical" or .severity == "high")] | length // 0' 2>/dev/null || echo "0")
+
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "::error::Found $CRITICAL_COUNT critical/high severity vulnerabilities in production dependencies!"
+              echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+              echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Critical/High | $CRITICAL_COUNT |" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+
+            echo "::warning::Found vulnerabilities in production dependencies (no critical/high severity)"
+          else
+            echo "No vulnerabilities found in production dependencies"
+            echo "✅ No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Run Security Audit (All Dependencies)
+        id: audit-all
+        run: |
+          echo "## All Dependencies Audit" >> $GITHUB_STEP_SUMMARY
+          # Run audit on all dependencies including dev
+          if ! composer audit --format=json > audit-all.json 2>&1; then
+            echo "Vulnerabilities found in all dependencies"
+            cat audit-all.json | jq '.' || cat audit-all.json
+
+            # Check for critical or high severity vulnerabilities
+            CRITICAL_COUNT=$(cat audit-all.json | jq '[.advisories[]? | select(.severity == "critical" or .severity == "high")] | length // 0' 2>/dev/null || echo "0")
+
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "::error::Found $CRITICAL_COUNT critical/high severity vulnerabilities!"
+              echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+              echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Critical/High | $CRITICAL_COUNT |" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+
+            echo "::warning::Found vulnerabilities (no critical/high severity)"
+          else
+            echo "No vulnerabilities found"
+            echo "✅ No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
