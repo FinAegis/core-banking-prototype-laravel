@@ -122,7 +122,7 @@ class AccountBalanceTool implements MCPToolInterface
                         'asset_code'   => $assetBalance->asset_code,
                         'balance'      => $assetBalance->balance,
                         'formatted'    => $this->formatMoney($assetBalance->balance, $assetBalance->asset_code),
-                        'last_updated' => $assetBalance->updated_at->toIso8601String(),
+                        'last_updated' => $assetBalance->updated_at?->toIso8601String() ?? now()->toIso8601String(),
                     ];
                 }
             }

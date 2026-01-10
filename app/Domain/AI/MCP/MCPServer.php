@@ -273,6 +273,10 @@ class MCPServer implements MCPServerInterface
         ToolExecutionResult $result,
         int $duration
     ): void {
+        if ($this->currentConversationId === null) {
+            return;
+        }
+
         $aggregate = AIInteractionAggregate::retrieve($this->currentConversationId);
 
         $aggregate->executeTool($toolName, $parameters, $result);

@@ -310,7 +310,7 @@ class PaymentStatusTool implements MCPToolInterface
                 'external_reference' => $transaction->external_reference,
                 'from_account'       => $transaction->account_uuid,
                 'to_account'         => $transaction->related_account_uuid,
-                'updated_at'         => $transaction->updated_at->toIso8601String(),
+                'updated_at'         => $transaction->updated_at?->toIso8601String() ?? $transaction->created_at?->toIso8601String(),
                 'metadata'           => $transaction->metadata,
             ]);
 

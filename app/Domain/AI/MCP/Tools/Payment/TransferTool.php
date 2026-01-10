@@ -163,8 +163,8 @@ class TransferTool implements MCPToolInterface
             ]);
 
             // After workflow execution, get the new balances
-            $fromNewBalance = $fromAccount->fresh()->getBalance($currency);
-            $toNewBalance = $toAccount->fresh()->getBalance($currency);
+            $fromNewBalance = $fromAccount->fresh()?->getBalance($currency) ?? 0;
+            $toNewBalance = $toAccount->fresh()?->getBalance($currency) ?? 0;
 
             $result = [
                 'transfer_id'      => \Illuminate\Support\Str::uuid()->toString(),

@@ -133,7 +133,7 @@ class DepositTool implements MCPToolInterface
             ]);
 
             // After workflow execution, get the new balance
-            $newBalance = $account->fresh()->getBalance($currency);
+            $newBalance = $account->fresh()?->getBalance($currency) ?? 0;
 
             $result = [
                 'transaction_id' => \Illuminate\Support\Str::uuid()->toString(),
