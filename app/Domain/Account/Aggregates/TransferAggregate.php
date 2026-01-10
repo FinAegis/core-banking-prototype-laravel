@@ -60,7 +60,7 @@ class TransferAggregate extends AggregateRoot
     }
 
     /**
-     * @return TransferAggregate
+     * @return $this
      */
     public function applyMoneyTransferred(MoneyTransferred $event): static
     {

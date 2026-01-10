@@ -63,7 +63,7 @@ class TransactionAggregate extends AggregateRoot
     }
 
     /**
-     * @return TransactionAggregate
+     * @return $this
      */
     public function applyMoneyAdded(MoneyAdded $event): static
     {
@@ -87,7 +87,7 @@ class TransactionAggregate extends AggregateRoot
     }
 
     /**
-     * @return TransactionAggregate
+     * @return $this
      */
     public function debit(Money $money): static
     {
@@ -112,7 +112,7 @@ class TransactionAggregate extends AggregateRoot
     }
 
     /**
-     * @return TransactionAggregate
+     * @return $this
      */
     public function applyMoneySubtracted(MoneySubtracted $event): static
     {

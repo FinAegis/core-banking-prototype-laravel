@@ -66,7 +66,7 @@ class AssetTransactionAggregate extends AggregateRoot
     }
 
     /**
-     * @return AssetTransactionAggregate
+     * @return $this
      */
     public function applyAssetBalanceAdded(AssetBalanceAdded $event): static
     {
@@ -95,7 +95,7 @@ class AssetTransactionAggregate extends AggregateRoot
     }
 
     /**
-     * @return AssetTransactionAggregate
+     * @return $this
      */
     public function debit(string $assetCode, int $amount): static
     {
@@ -121,7 +121,7 @@ class AssetTransactionAggregate extends AggregateRoot
     }
 
     /**
-     * @return AssetTransactionAggregate
+     * @return $this
      */
     public function applyAssetBalanceSubtracted(AssetBalanceSubtracted $event): static
     {

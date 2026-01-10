@@ -68,7 +68,7 @@ class AssetTransferAggregate extends AggregateRoot
     }
 
     /**
-     * @return AssetTransferAggregate
+     * @return $this
      */
     public function applyAssetTransferred(AssetTransferred $event): static
     {
