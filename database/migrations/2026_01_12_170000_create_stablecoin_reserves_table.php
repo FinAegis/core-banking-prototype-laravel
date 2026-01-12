@@ -74,8 +74,8 @@ return new class () extends Migration {
             $table->timestamps();
 
             // Indexes
-            $table->index(['reserve_id', 'executed_at']);
-            $table->index(['stablecoin_code', 'action', 'executed_at']);
+            $table->index(['reserve_id', 'executed_at'], 'reserve_audit_reserve_executed_idx');
+            $table->index(['stablecoin_code', 'action', 'executed_at'], 'reserve_audit_code_action_idx');
         });
     }
 
