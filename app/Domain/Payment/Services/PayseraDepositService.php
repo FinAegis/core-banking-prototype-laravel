@@ -21,7 +21,8 @@ class PayseraDepositService implements PayseraDepositServiceInterface
 
     public function __construct(
         private readonly PaymentServiceInterface $paymentService
-    ) {}
+    ) {
+    }
 
     /**
      * Initiate a Paysera deposit.

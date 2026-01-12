@@ -33,7 +33,8 @@ class DemoPayseraDepositService implements PayseraDepositServiceInterface
 
     public function __construct(
         private readonly PaymentServiceInterface $paymentService
-    ) {}
+    ) {
+    }
 
     /**
      * Initiate a demo Paysera deposit.

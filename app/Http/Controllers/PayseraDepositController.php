@@ -23,7 +23,8 @@ class PayseraDepositController extends Controller
 {
     public function __construct(
         private readonly PayseraDepositServiceInterface $payseraDepositService
-    ) {}
+    ) {
+    }
 
     /**
      * Initiate a Paysera deposit.
