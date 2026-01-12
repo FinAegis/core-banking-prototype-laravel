@@ -132,9 +132,9 @@ class DemoPayseraDepositService implements PayseraDepositServiceInterface
         $status = $callbackData['status'];
 
         Log::info('Processing demo Paysera callback', [
-            'order_id'   => $orderId,
-            'status'     => $status,
-            'demo_mode'  => true,
+            'order_id'  => $orderId,
+            'status'    => $status,
+            'demo_mode' => true,
         ]);
 
         // Retrieve order data

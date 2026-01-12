@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Payment\Contracts\PayseraDepositServiceInterface;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,7 +88,7 @@ class PayseraDepositController extends Controller
 
             // Otherwise redirect to Paysera
             return redirect()->away($result['redirect_url']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Paysera deposit initiation failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -175,7 +176,7 @@ class PayseraDepositController extends Controller
             }
 
             return redirect()->route('dashboard')->with('error', $result['message']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Paysera callback processing failed', [
                 'error'    => $e->getMessage(),
                 'order_id' => $request->input('order_id'),

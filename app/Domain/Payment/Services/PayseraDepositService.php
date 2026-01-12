@@ -72,17 +72,17 @@ class PayseraDepositService implements PayseraDepositServiceInterface
         $signPassword = config('services.paysera.sign_password', '');
 
         $payseraData = [
-            'projectid'     => $projectId,
-            'orderid'       => $orderId,
-            'amount'        => $data['amount'],
-            'currency'      => $data['currency'],
-            'accepturl'     => $data['return_url'] ?? route('paysera.callback'),
-            'cancelurl'     => $data['cancel_url'] ?? route('paysera.callback') . '?cancelled=1',
-            'callbackurl'   => route('paysera.callback'),
-            'payment'       => 'card,bank',
-            'country'       => 'LT',
-            'paytext'       => $data['description'] ?? 'Deposit to FinAegis',
-            'test'          => app()->environment('production') ? 0 : 1,
+            'projectid'   => $projectId,
+            'orderid'     => $orderId,
+            'amount'      => $data['amount'],
+            'currency'    => $data['currency'],
+            'accepturl'   => $data['return_url'] ?? route('paysera.callback'),
+            'cancelurl'   => $data['cancel_url'] ?? route('paysera.callback') . '?cancelled=1',
+            'callbackurl' => route('paysera.callback'),
+            'payment'     => 'card,bank',
+            'country'     => 'LT',
+            'paytext'     => $data['description'] ?? 'Deposit to FinAegis',
+            'test'        => app()->environment('production') ? 0 : 1,
         ];
 
         // Create encoded data and sign
@@ -155,9 +155,9 @@ class PayseraDepositService implements PayseraDepositServiceInterface
                     'payment_method'      => 'paysera',
                     'payment_method_type' => $callbackData['payment_type'] ?? 'bank_transfer',
                     'metadata'            => [
-                        'paysera_order_id'      => $orderId,
-                        'paysera_transaction'   => $callbackData['transaction_id'] ?? null,
-                        'payment_type'          => $callbackData['payment_type'] ?? null,
+                        'paysera_order_id'    => $orderId,
+                        'paysera_transaction' => $callbackData['transaction_id'] ?? null,
+                        'payment_type'        => $callbackData['payment_type'] ?? null,
                     ],
                 ]);
 
