@@ -10,9 +10,12 @@ use App\Domain\Exchange\Services\DemoExchangeService;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Domain\Lending\Services\DemoLendingService;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
+use App\Domain\Payment\Contracts\PayseraDepositServiceInterface;
 use App\Domain\Payment\Services\DemoPaymentGatewayService;
 use App\Domain\Payment\Services\DemoPaymentService;
+use App\Domain\Payment\Services\DemoPayseraDepositService;
 use App\Domain\Payment\Services\PaymentGatewayService;
+use App\Domain\Payment\Services\PayseraDepositService;
 use App\Domain\Payment\Services\ProductionPaymentService;
 use App\Domain\Payment\Services\SandboxPaymentService;
 use App\Domain\Stablecoin\Services\DemoStablecoinService;
@@ -29,12 +32,15 @@ class DemoServiceProvider extends ServiceProvider
         if ($this->app->environment('demo')) {
             // Demo environment: Use DemoPaymentService that bypasses external APIs
             $this->app->bind(PaymentServiceInterface::class, DemoPaymentService::class);
+            $this->app->bind(PayseraDepositServiceInterface::class, DemoPayseraDepositService::class);
         } elseif (config('demo.sandbox.enabled')) {
             // Sandbox mode: Use SandboxPaymentService with real sandbox APIs
             $this->app->bind(PaymentServiceInterface::class, SandboxPaymentService::class);
+            $this->app->bind(PayseraDepositServiceInterface::class, PayseraDepositService::class);
         } else {
             // Production mode: Use ProductionPaymentService
             $this->app->bind(PaymentServiceInterface::class, ProductionPaymentService::class);
+            $this->app->bind(PayseraDepositServiceInterface::class, PayseraDepositService::class);
         }
 
         // Register demo services for Exchange, Lending, and Stablecoin domains

@@ -23,10 +23,10 @@ git branch --show-current
 ### Current Session State (Update After Each Session)
 | Item | Status |
 |------|--------|
-| Current Branch | `main` (PR #326 pending merge) |
-| Open PRs | #326 - TODO cleanup |
-| Last Action | Created LoanDisbursementSaga, pushed PR #326 |
-| Next Action | Merge PR #326, then Grafana dashboards or EDD |
+| Current Branch | `main` |
+| Open PRs | None |
+| Last Action | Completed v1.2.0 feature work, merged PR #326 |
+| Next Action | Review v1.2.0 for release readiness |
 
 ---
 
@@ -35,7 +35,7 @@ git branch --show-current
 | Version | Status | Theme | Key Items |
 |---------|--------|-------|-----------|
 | **v1.1.0** | ✅ RELEASED | Foundation Hardening | PHPStan L8, 5073 tests, 22 Behat |
-| **v1.2.0** | 🔄 IN PROGRESS | Feature Completion | Observability, remaining TODOs |
+| **v1.2.0** | ✅ FEATURE COMPLETE | Feature Completion | All targets met (5 blocked TODOs external) |
 | v1.3.0 | 📅 Q2 2026 | Platform Modularity | Plugin system, multi-tenancy |
 | v2.0.0 | 📅 Q3-Q4 2026 | Major Evolution | GraphQL, microservices prep |
 
@@ -46,12 +46,13 @@ git branch --show-current
 - ✅ BatchProcessingController (scheduling + cancellation + compensation)
 - ✅ ProcessCustodianWebhook (wired to WebhookProcessorService)
 - ✅ LoanDisbursementSaga (multi-step orchestration)
+- ✅ AgentMCPBridgeService (MCP tool integration for AI agents)
+- ✅ EnhancedDueDiligenceService (EDD workflow management)
+- ✅ Grafana dashboards (10 domain dashboards in `infrastructure/observability/grafana/`)
+- ✅ Prometheus alerting rules (comprehensive critical/warning rules)
 
 ### v1.2.0 Remaining Items
-- ⏳ Grafana dashboards (`infrastructure/grafana/`)
-- ⏳ Enhanced Due Diligence (EDD workflows)
-- ⏳ Alerting rules configuration
-- 🚫 Blocked TODOs (see Technical Debt section)
+- 🚫 5 Blocked TODOs (see Technical Debt section - external dependencies)
 
 ---
 
