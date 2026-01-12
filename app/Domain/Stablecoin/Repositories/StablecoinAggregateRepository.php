@@ -152,20 +152,45 @@ class StablecoinAggregateRepository implements StablecoinAggregateRepositoryInte
             return [];
         }
 
-        // TODO: Implement reserves when StablecoinReserve model is created
-        // For now, return basic statistics from the stablecoin model
-        $totalReserves = 0.0;
-        $reserveComposition = collect();
+        // Get reserves from the StablecoinReserve read model
+        $reserves = \App\Domain\Stablecoin\Models\StablecoinReserve::where('stablecoin_code', $stablecoin->code)
+            ->where('status', 'active')
+            ->get();
+
+        $totalReserves = $reserves->sum(fn ($r) => (float) $r->value_usd);
+        $totalSupply = (float) $stablecoin->total_supply;
+        $reserveRatio = $totalSupply > 0 ? $totalReserves / $totalSupply : 0.0;
+
+        // Build reserve composition with percentages and verification status
+        $reserveComposition = $reserves->map(fn ($reserve) => [
+            'asset_code'            => $reserve->asset_code,
+            'amount'                => $reserve->amount,
+            'value_usd'             => $reserve->value_usd,
+            'allocation_percentage' => $reserve->allocation_percentage,
+            'custodian'             => $reserve->custodian_name,
+            'custodian_type'        => $reserve->custodian_type,
+            'last_verified_at'      => $reserve->last_verified_at?->toIso8601String(),
+            'verification_source'   => $reserve->verification_source,
+            'is_recently_verified'  => $reserve->isRecentlyVerified(),
+        ]);
+
+        // Get the most recent verification across all reserves
+        $lastAuditAt = $reserves->max('last_verified_at');
+
+        // Get primary wallet address (first active reserve with wallet)
+        $primaryWallet = $reserves->firstWhere('wallet_address', '!=', null);
 
         return [
             'stablecoin_id'          => $stablecoinId,
             'stablecoin_code'        => $stablecoin->code,
             'total_reserves'         => $totalReserves,
-            'total_supply'           => $stablecoin->total_supply,
-            'reserve_ratio'          => 0.0,
+            'total_supply'           => $totalSupply,
+            'reserve_ratio'          => round($reserveRatio, 4),
+            'is_fully_backed'        => $reserveRatio >= 1.0,
             'reserve_composition'    => $reserveComposition,
-            'last_audit_at'          => $stablecoin->last_audit_at ?? null,
-            'reserve_wallet_address' => $stablecoin->reserve_wallet_address ?? null,
+            'reserve_count'          => $reserves->count(),
+            'last_audit_at'          => $lastAuditAt?->toIso8601String() ?? $stablecoin->last_audit_at ?? null,
+            'reserve_wallet_address' => $primaryWallet !== null ? $primaryWallet->wallet_address : ($stablecoin->reserve_wallet_address ?? null),
         ];
     }
 }
