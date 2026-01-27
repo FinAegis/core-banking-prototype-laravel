@@ -19,7 +19,9 @@ class CreateTenantsTable extends Migration
             $table->string('id')->primary();
 
             // Custom columns for FinAegis
-            $table->foreignId('team_id')->nullable()->constrained()->nullOnDelete();
+            // Note: No foreign key constraint here because teams table is created later
+            // The relationship is enforced at the application level via Eloquent
+            $table->unsignedBigInteger('team_id')->nullable();
             $table->string('name');
             $table->string('plan')->default('default');
             $table->timestamp('trial_ends_at')->nullable();
