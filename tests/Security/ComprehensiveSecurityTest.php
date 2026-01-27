@@ -212,21 +212,41 @@ class ComprehensiveSecurityTest extends TestCase
 
     /**
      * Test secure headers.
+     *
+     * Tests that security headers are properly set by the SecurityHeaders middleware
+     * on both web and API routes.
      */
     #[Test]
     public function test_security_headers()
     {
-        $response = $this->get('/');
+        // Test web route - the home page
+        $webResponse = $this->get('/');
 
-        // Check security headers
-        $response->assertHeader('X-Content-Type-Options', 'nosniff');
-        $response->assertHeader('X-Frame-Options', 'DENY');
-        $response->assertHeader('X-XSS-Protection', '1; mode=block');
-        $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        // Ensure the request completed (2xx or 3xx)
+        $this->assertTrue(
+            $webResponse->status() < 400,
+            "Web request to / should succeed but got status {$webResponse->status()}"
+        );
 
-        // Check HSTS for HTTPS
+        // Check security headers on web response
+        $webResponse->assertHeader('X-Content-Type-Options', 'nosniff');
+        $webResponse->assertHeader('X-Frame-Options', 'DENY');
+        $webResponse->assertHeader('X-XSS-Protection', '1; mode=block');
+        $webResponse->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+        // Test API route - public status endpoint (unauthenticated)
+        $apiResponse = $this->getJson('/api/status');
+
+        // Check security headers on API response
+        $apiResponse->assertHeader('X-Content-Type-Options', 'nosniff');
+        $apiResponse->assertHeader('X-Frame-Options', 'DENY');
+        $apiResponse->assertHeader('X-XSS-Protection', '1; mode=block');
+        $apiResponse->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+        // Check HSTS for HTTPS (only in production)
         if (app()->environment('production')) {
-            $response->assertHeader('Strict-Transport-Security');
+            $webResponse->assertHeader('Strict-Transport-Security');
+            $apiResponse->assertHeader('Strict-Transport-Security');
         }
     }
 
