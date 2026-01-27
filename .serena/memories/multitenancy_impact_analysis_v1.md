@@ -4,6 +4,9 @@
 **Codebase**: Core Banking Prototype Laravel v1.4.0
 **Analysis Type**: READ-ONLY Codebase Impact Assessment
 
+> ⚠️ **UPDATE**: POC implementation has started. See `multitenancy_poc_v2_status` memory for current implementation status.
+> Branch: `feature/v2.0.0-multi-tenancy-poc` | PR: #328
+
 ---
 
 ## Executive Summary

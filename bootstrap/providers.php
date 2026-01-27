@@ -25,6 +25,7 @@ return [
     App\Providers\LendingServiceProvider::class,
     App\Providers\StablecoinServiceProvider::class,
     App\Providers\TelescopeServiceProvider::class,
+    App\Providers\TenancyServiceProvider::class,
     App\Providers\TestingServiceProvider::class,
     App\Providers\WalletServiceProvider::class,
     App\Providers\WebhookServiceProvider::class,

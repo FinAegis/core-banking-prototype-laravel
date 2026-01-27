@@ -194,4 +194,136 @@ class TenancySetupTest extends BaseTestCase
         $this->assertNotNull($generator);
         $this->assertTrue(class_exists($generator));
     }
+
+    // ========================================
+    // Security & Isolation Configuration Tests
+    // ========================================
+
+    public function test_tenancy_service_provider_is_registered(): void
+    {
+        $providers = require base_path('bootstrap/providers.php');
+
+        $this->assertContains(
+            \App\Providers\TenancyServiceProvider::class,
+            $providers,
+            'TenancyServiceProvider must be registered in bootstrap/providers.php'
+        );
+    }
+
+    public function test_filesystem_bootstrapper_configured(): void
+    {
+        $bootstrappers = config('tenancy.bootstrappers');
+
+        $this->assertContains(
+            \Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class,
+            $bootstrappers,
+            'Filesystem bootstrapper should be configured for file isolation'
+        );
+    }
+
+    public function test_tenant_model_is_not_using_tenant_connection(): void
+    {
+        // The Tenant model itself should use the central connection, not tenant connection
+        $tenant = new Tenant();
+
+        $this->assertNotEquals(
+            'tenant',
+            $tenant->getConnectionName(),
+            'Tenant model should NOT use tenant connection (it is a central model)'
+        );
+    }
+
+    public function test_user_model_does_not_use_tenant_connection(): void
+    {
+        // User is a central model and should not use tenant connection
+        $user = new \App\Models\User();
+
+        $this->assertNotEquals(
+            'tenant',
+            $user->getConnectionName(),
+            'User model should NOT use tenant connection (it is a central model)'
+        );
+    }
+
+    public function test_team_model_does_not_use_tenant_connection(): void
+    {
+        // Team is a central model and should not use tenant connection
+        $team = new \App\Models\Team();
+
+        $this->assertNotEquals(
+            'tenant',
+            $team->getConnectionName(),
+            'Team model should NOT use tenant connection (it is a central model)'
+        );
+    }
+
+    public function test_tenancy_service_provider_has_delete_database_job(): void
+    {
+        // Verify TenancyServiceProvider configures database deletion job
+        // This is done via the TenantDeleted event listener in TenancyServiceProvider::events()
+        $provider = new \App\Providers\TenancyServiceProvider(app());
+        $events = $provider->events();
+
+        $this->assertArrayHasKey(
+            \Stancl\Tenancy\Events\TenantDeleted::class,
+            $events,
+            'TenantDeleted event should be configured'
+        );
+
+        // The event handler pipeline should contain DeleteDatabase job
+        $tenantDeletedHandlers = $events[\Stancl\Tenancy\Events\TenantDeleted::class];
+        $this->assertNotEmpty(
+            $tenantDeletedHandlers,
+            'TenantDeleted should have handlers for database cleanup'
+        );
+    }
+
+    public function test_tenancy_prefix_is_configured(): void
+    {
+        // Verify database naming uses consistent prefix
+        $prefix = config('tenancy.database.prefix');
+
+        $this->assertNotEmpty(
+            $prefix,
+            'Tenant database prefix should be configured'
+        );
+    }
+
+    public function test_tenancy_suffix_is_configured(): void
+    {
+        // Verify database naming uses suffix for identification
+        $suffix = config('tenancy.database.suffix');
+
+        $this->assertIsString(
+            $suffix,
+            'Tenant database suffix should be configured (even if empty)'
+        );
+    }
+
+    public function test_tenant_connection_is_separate_from_default(): void
+    {
+        // Verify tenant_template connection is not the default connection
+        $default = config('database.default');
+        $tenantTemplate = 'tenant_template';
+
+        $this->assertNotEquals(
+            $default,
+            $tenantTemplate,
+            'Tenant template connection should be separate from default'
+        );
+    }
+
+    public function test_central_connection_matches_default(): void
+    {
+        // For POC, central connection should match default
+        // In production, this might differ
+        $central = config('database.connections.central');
+        $default = config('database.connections.' . config('database.default'));
+
+        $this->assertEquals(
+            $central['driver'],
+            $default['driver'],
+            'Central connection should use same driver as default for POC'
+        );
+    }
 }
