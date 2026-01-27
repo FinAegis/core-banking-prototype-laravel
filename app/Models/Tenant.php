@@ -61,8 +61,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return static::create([
             'team_id' => $team->id,
-            'name' => $team->name,
-            'plan' => 'default',
+            'name'    => $team->name,
+            'plan'    => 'default',
         ]);
     }
 }

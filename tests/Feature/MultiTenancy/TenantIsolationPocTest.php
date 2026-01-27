@@ -8,7 +8,6 @@ use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -39,9 +38,9 @@ class TenantIsolationPocTest extends TestCase
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Ensure tenants table exists in central database
-        if (!Schema::hasTable('tenants')) {
+        if (! Schema::hasTable('tenants')) {
             $this->artisan('migrate', [
-                '--path' => 'database/migrations/2019_09_15_000010_create_tenants_table.php',
+                '--path'     => 'database/migrations/2019_09_15_000010_create_tenants_table.php',
                 '--realpath' => true,
             ]);
         }
@@ -50,12 +49,12 @@ class TenantIsolationPocTest extends TestCase
     public function test_tenant_model_can_be_created(): void
     {
         // Skip if tenancy not properly configured
-        if (!class_exists(Tenant::class)) {
+        if (! class_exists(Tenant::class)) {
             $this->markTestSkipped('Tenant model not available');
         }
 
         $tenant = Tenant::create([
-            'id' => 'test-tenant-1',
+            'id'   => 'test-tenant-1',
             'name' => 'Test Tenant',
             'plan' => 'default',
         ]);
@@ -71,15 +70,15 @@ class TenantIsolationPocTest extends TestCase
         $user = User::factory()->create();
         $team = Team::factory()->create([
             'user_id' => $user->id,
-            'name' => 'Acme Corp',
+            'name'    => 'Acme Corp',
         ]);
 
         // Create tenant linked to team
         $tenant = Tenant::create([
-            'id' => 'acme-tenant',
+            'id'      => 'acme-tenant',
             'team_id' => $team->id,
-            'name' => $team->name,
-            'plan' => 'enterprise',
+            'name'    => $team->name,
+            'plan'    => 'enterprise',
         ]);
 
         $this->assertEquals($team->id, $tenant->team_id);
@@ -95,7 +94,7 @@ class TenantIsolationPocTest extends TestCase
         $user = User::factory()->create();
         $team = Team::factory()->create([
             'user_id' => $user->id,
-            'name' => 'Beta Inc',
+            'name'    => 'Beta Inc',
         ]);
 
         $tenant = Tenant::createFromTeam($team);
@@ -169,7 +168,7 @@ class TenantIsolationPocTest extends TestCase
     public function test_uses_tenant_connection_trait_returns_tenant_connection(): void
     {
         // Create a mock model using the trait
-        $model = new class extends \Illuminate\Database\Eloquent\Model {
+        $model = new class () extends \Illuminate\Database\Eloquent\Model {
             use \App\Domain\Shared\Traits\UsesTenantConnection;
 
             protected $table = 'test_models';

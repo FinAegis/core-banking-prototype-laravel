@@ -18,8 +18,6 @@ namespace App\Domain\Shared\Traits;
  *     use UsesTenantConnection;
  * }
  * ```
- *
- * @package App\Domain\Shared\Traits
  */
 trait UsesTenantConnection
 {
