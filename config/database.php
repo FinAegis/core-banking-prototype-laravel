@@ -42,6 +42,38 @@ return [
             'synchronous'             => null,
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Multi-Tenancy Connections (v2.0.0)
+        |--------------------------------------------------------------------------
+        |
+        | Central database stores tenants, users, teams, and global reference data.
+        | Tenant template is used by stancl/tenancy to create per-tenant databases.
+        |
+        */
+
+        'central' => [
+            'driver'                  => 'sqlite',
+            'url'                     => env('DB_URL'),
+            'database'                => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix'                  => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout'            => null,
+            'journal_mode'            => null,
+            'synchronous'             => null,
+        ],
+
+        'tenant_template' => [
+            'driver'                  => 'sqlite',
+            'url'                     => env('DB_URL'),
+            'database'                => null, // Set dynamically by stancl/tenancy
+            'prefix'                  => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout'            => null,
+            'journal_mode'            => null,
+            'synchronous'             => null,
+        ],
+
         'mysql' => [
             'driver'         => 'mysql',
             'url'            => env('DB_URL'),

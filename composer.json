@@ -61,6 +61,7 @@
         "spatie/laravel-data": "^4.0",
         "spatie/laravel-event-sourcing": "^7.7",
         "spatie/laravel-permission": "^6.9",
+        "stancl/tenancy": "^3.9",
         "symfony/http-client": "^7.3"
     },
     "require-dev": {
