@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Http\Middleware\InitializeTenancyByTeam;
+use App\Resolvers\TeamTenantResolver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -99,7 +101,9 @@ class TenancyServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        //
+        // Register the TeamTenantResolver as a singleton
+        // The CachedTenantResolver base class requires a Cache Factory
+        $this->app->singleton(TeamTenantResolver::class);
     }
 
     public function boot(): void
@@ -144,6 +148,9 @@ class TenancyServiceProvider extends ServiceProvider
             Middleware\InitializeTenancyByDomainOrSubdomain::class,
             Middleware\InitializeTenancyByPath::class,
             Middleware\InitializeTenancyByRequestData::class,
+
+            // Custom team-based tenant identification
+            InitializeTenancyByTeam::class,
         ];
 
         /** @var \Illuminate\Contracts\Http\Kernel $kernel */

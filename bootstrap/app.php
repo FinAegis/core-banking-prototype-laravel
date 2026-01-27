@@ -67,6 +67,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.agent' => \App\Http\Middleware\AuthenticateAgentDID::class,
             'agent.scope' => \App\Http\Middleware\CheckAgentScope::class,
             'agent.capability' => \App\Http\Middleware\CheckAgentCapability::class,
+            // Multi-tenancy middleware
+            'tenant' => \App\Http\Middleware\InitializeTenancyByTeam::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware

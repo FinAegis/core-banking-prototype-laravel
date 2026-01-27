@@ -7,9 +7,10 @@ namespace Tests\Feature\MultiTenancy;
 use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Schema;
-use Tests\TestCase;
+use Tests\CreatesApplication;
 
 /**
  * Proof-of-Concept test for multi-tenancy isolation.
@@ -18,24 +19,25 @@ use Tests\TestCase;
  * 1. Tenants can be created and linked to teams
  * 2. Tenant databases are isolated
  * 3. Data in one tenant is not visible in another
- *
- * @group multitenancy
- * @group poc
  */
-class TenantIsolationPocTest extends TestCase
+class TenantIsolationPocTest extends BaseTestCase
 {
-    use RefreshDatabase;
+    use CreatesApplication;
+    use LazilyRefreshDatabase;
+
+    /**
+     * Define environment setup - called before setUp().
+     */
+    protected function defineEnvironment($app): void
+    {
+        $app['config']->set('cache.default', 'array');
+        $app['config']->set('session.driver', 'array');
+        $app['config']->set('permission.cache.store', 'array');
+    }
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Use array cache to avoid Redis dependency in tests
-        config(['cache.default' => 'array']);
-        config(['session.driver' => 'array']);
-
-        // Clear any cached permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Ensure tenants table exists in central database
         if (! Schema::hasTable('tenants')) {
