@@ -219,6 +219,30 @@ class ComprehensiveSecurityTest extends TestCase
     #[Test]
     public function test_security_headers()
     {
+        // Test API route first - public status endpoint (unauthenticated)
+        // API routes are more reliable in testing environments
+        $apiResponse = $this->getJson('/api/status');
+
+        // Debug: Show all headers if test fails
+        $headers = $apiResponse->headers->all();
+        $headerKeys = array_keys($headers);
+
+        $this->assertTrue(
+            $apiResponse->status() < 400,
+            "API request to /api/status should succeed but got status {$apiResponse->status()}"
+        );
+
+        // Check security headers on API response
+        $this->assertArrayHasKey(
+            'x-content-type-options',
+            $headers,
+            'Missing X-Content-Type-Options header. Available headers: ' . implode(', ', $headerKeys)
+        );
+        $apiResponse->assertHeader('X-Content-Type-Options', 'nosniff');
+        $apiResponse->assertHeader('X-Frame-Options', 'DENY');
+        $apiResponse->assertHeader('X-XSS-Protection', '1; mode=block');
+        $apiResponse->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
         // Test web route - the home page
         $webResponse = $this->get('/');
 
@@ -233,15 +257,6 @@ class ComprehensiveSecurityTest extends TestCase
         $webResponse->assertHeader('X-Frame-Options', 'DENY');
         $webResponse->assertHeader('X-XSS-Protection', '1; mode=block');
         $webResponse->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-        // Test API route - public status endpoint (unauthenticated)
-        $apiResponse = $this->getJson('/api/status');
-
-        // Check security headers on API response
-        $apiResponse->assertHeader('X-Content-Type-Options', 'nosniff');
-        $apiResponse->assertHeader('X-Frame-Options', 'DENY');
-        $apiResponse->assertHeader('X-XSS-Protection', '1; mode=block');
-        $apiResponse->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // Check HSTS for HTTPS (only in production)
         if (app()->environment('production')) {
