@@ -7,6 +7,7 @@ namespace Tests\Unit\MultiTenancy;
 use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\Tenant;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use ReflectionClass;
 use Tests\CreatesApplication;
 
 /**
@@ -29,15 +30,17 @@ class TenancySetupTest extends BaseTestCase
 
     public function test_tenant_model_extends_base_tenant(): void
     {
+        $reflection = new ReflectionClass(Tenant::class);
+
         $this->assertTrue(
-            is_subclass_of(Tenant::class, \Stancl\Tenancy\Database\Models\Tenant::class),
+            $reflection->isSubclassOf(\Stancl\Tenancy\Database\Models\Tenant::class),
             'Tenant model should extend stancl/tenancy base Tenant'
         );
     }
 
     public function test_tenant_model_implements_tenant_with_database(): void
     {
-        $reflection = new \ReflectionClass(Tenant::class);
+        $reflection = new ReflectionClass(Tenant::class);
 
         $this->assertTrue(
             $reflection->implementsInterface(\Stancl\Tenancy\Contracts\TenantWithDatabase::class),
@@ -70,16 +73,20 @@ class TenancySetupTest extends BaseTestCase
 
     public function test_tenant_model_has_team_relationship(): void
     {
+        $reflection = new ReflectionClass(Tenant::class);
+
         $this->assertTrue(
-            method_exists(Tenant::class, 'team'),
+            $reflection->hasMethod('team'),
             'Tenant model should have team() relationship method'
         );
     }
 
     public function test_tenant_model_has_create_from_team_method(): void
     {
+        $reflection = new ReflectionClass(Tenant::class);
+
         $this->assertTrue(
-            method_exists(Tenant::class, 'createFromTeam'),
+            $reflection->hasMethod('createFromTeam'),
             'Tenant model should have createFromTeam() factory method'
         );
     }
@@ -163,7 +170,7 @@ class TenancySetupTest extends BaseTestCase
 
     public function test_uses_tenant_connection_trait_returns_tenant_connection(): void
     {
-        $model = new class extends \Illuminate\Database\Eloquent\Model {
+        $model = new class () extends \Illuminate\Database\Eloquent\Model {
             use UsesTenantConnection;
 
             protected $table = 'test';
