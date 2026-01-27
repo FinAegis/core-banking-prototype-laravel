@@ -167,4 +167,120 @@ class TeamTenantResolverTest extends BaseTestCase
             TeamTenantResolver::$autoCreateTenant = false;
         }
     }
+
+    // ========================================
+    // Cache Invalidation Tests
+    // ========================================
+
+    public function test_cache_can_be_invalidated_for_team(): void
+    {
+        $user = User::factory()->create();
+        $team = Team::factory()->create(['user_id' => $user->id]);
+        Tenant::createFromTeam($team);
+
+        // First resolve - populates cache
+        $resolved1 = $this->resolver->resolve($team->id);
+        $this->assertInstanceOf(Tenant::class, $resolved1);
+
+        // Invalidate cache
+        TeamTenantResolver::invalidateCacheForTeam($team->id);
+
+        // Second resolve - should still work (fetches fresh)
+        $resolved2 = $this->resolver->resolve($team->id);
+        $this->assertInstanceOf(Tenant::class, $resolved2);
+        /** @var Tenant $resolved1 */
+        /** @var Tenant $resolved2 */
+        $this->assertEquals($resolved1->id, $resolved2->id);
+    }
+
+    public function test_cache_can_be_invalidated_for_tenant(): void
+    {
+        $user = User::factory()->create();
+        $team = Team::factory()->create(['user_id' => $user->id]);
+        $tenant = Tenant::createFromTeam($team);
+
+        // First resolve
+        $this->resolver->resolve($team->id);
+
+        // Invalidate cache via tenant
+        TeamTenantResolver::invalidateCacheForTenant($tenant);
+
+        // Should still resolve correctly
+        $resolved = $this->resolver->resolve($team->id);
+        $this->assertInstanceOf(Tenant::class, $resolved);
+    }
+
+    // ========================================
+    // Configuration Tests
+    // ========================================
+
+    public function test_resolver_can_be_configured(): void
+    {
+        $originalCache = TeamTenantResolver::$shouldCache;
+        $originalTTL = TeamTenantResolver::$cacheTTL;
+        $originalStore = TeamTenantResolver::$cacheStore;
+        $originalAutoCreate = TeamTenantResolver::$autoCreateTenant;
+
+        try {
+            TeamTenantResolver::configure([
+                'cache'       => false,
+                'cache_ttl'   => 7200,
+                'cache_store' => 'array',
+                'auto_create' => true,
+            ]);
+
+            $this->assertFalse(TeamTenantResolver::$shouldCache);
+            $this->assertEquals(7200, TeamTenantResolver::$cacheTTL);
+            $this->assertEquals('array', TeamTenantResolver::$cacheStore);
+            $this->assertTrue(TeamTenantResolver::$autoCreateTenant);
+        } finally {
+            TeamTenantResolver::$shouldCache = $originalCache;
+            TeamTenantResolver::$cacheTTL = $originalTTL;
+            TeamTenantResolver::$cacheStore = $originalStore;
+            TeamTenantResolver::$autoCreateTenant = $originalAutoCreate;
+        }
+    }
+
+    public function test_resolver_configuration_can_be_reset(): void
+    {
+        TeamTenantResolver::configure([
+            'cache'       => false,
+            'cache_ttl'   => 7200,
+            'cache_store' => 'custom',
+            'auto_create' => true,
+        ]);
+
+        TeamTenantResolver::resetConfiguration();
+
+        $this->assertTrue(TeamTenantResolver::$shouldCache);
+        $this->assertEquals(3600, TeamTenantResolver::$cacheTTL);
+        $this->assertNull(TeamTenantResolver::$cacheStore);
+        $this->assertFalse(TeamTenantResolver::$autoCreateTenant);
+    }
+
+    // ========================================
+    // Input Validation Tests
+    // ========================================
+
+    public function test_resolver_rejects_invalid_team_id_type(): void
+    {
+        $this->expectException(TenantCouldNotBeIdentifiedByTeamException::class);
+
+        // @phpstan-ignore-next-line
+        $this->resolver->resolve('invalid-string');
+    }
+
+    public function test_resolver_rejects_negative_team_id(): void
+    {
+        $this->expectException(TenantCouldNotBeIdentifiedByTeamException::class);
+
+        $this->resolver->resolve(-1);
+    }
+
+    public function test_resolver_rejects_zero_team_id(): void
+    {
+        $this->expectException(TenantCouldNotBeIdentifiedByTeamException::class);
+
+        $this->resolver->resolve(0);
+    }
 }

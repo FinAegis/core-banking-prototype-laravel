@@ -60,4 +60,28 @@ class TenantCouldNotBeIdentifiedByTeamExceptionTest extends TestCase
 
         throw new TenantCouldNotBeIdentifiedByTeamException(789);
     }
+
+    public function test_get_log_context_without_team_id(): void
+    {
+        $exception = new TenantCouldNotBeIdentifiedByTeamException();
+        $context = $exception->getLogContext();
+
+        $this->assertIsArray($context);
+        $this->assertArrayHasKey('exception', $context);
+        $this->assertArrayHasKey('team_id', $context);
+        $this->assertArrayHasKey('has_team_id', $context);
+        $this->assertNull($context['team_id']);
+        $this->assertFalse($context['has_team_id']);
+    }
+
+    public function test_get_log_context_with_team_id(): void
+    {
+        $exception = new TenantCouldNotBeIdentifiedByTeamException(123);
+        $context = $exception->getLogContext();
+
+        $this->assertIsArray($context);
+        $this->assertEquals(123, $context['team_id']);
+        $this->assertTrue($context['has_team_id']);
+        $this->assertEquals(TenantCouldNotBeIdentifiedByTeamException::class, $context['exception']);
+    }
 }

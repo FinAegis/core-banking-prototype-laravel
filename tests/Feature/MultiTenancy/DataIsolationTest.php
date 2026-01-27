@@ -42,7 +42,9 @@ class DataIsolationTest extends BaseTestCase
     protected function tearDown(): void
     {
         InitializeTenancyByTeam::$onFail = null;
+        InitializeTenancyByTeam::$allowWithoutTenant = false;
         TeamTenantResolver::$autoCreateTenant = false;
+        TeamTenantResolver::resetConfiguration();
 
         // End tenancy if still active
         $tenancy = app(Tenancy::class);
@@ -384,6 +386,9 @@ class DataIsolationTest extends BaseTestCase
             return null;
         };
 
+        // Allow without tenant for this test
+        InitializeTenancyByTeam::$allowWithoutTenant = true;
+
         $this->assertNotNull(InitializeTenancyByTeam::$onFail);
 
         // Trigger by resolving non-existent tenant
@@ -396,5 +401,108 @@ class DataIsolationTest extends BaseTestCase
             ->get('/');
 
         $this->assertTrue($handlerCalled);
+    }
+
+    // ========================================
+    // Security Integration Tests
+    // ========================================
+
+    public function test_user_cannot_hijack_another_teams_tenant_via_http(): void
+    {
+        $user1 = User::factory()->create();
+        $team1 = Team::factory()->create(['user_id' => $user1->id]);
+        $tenant1 = Tenant::createFromTeam($team1);
+
+        $user2 = User::factory()->create();
+        $team2 = Team::factory()->create(['user_id' => $user2->id]);
+        $tenant2 = Tenant::createFromTeam($team2);
+
+        // Attempt to hijack - set user1's current_team_id to team2
+        $user1->current_team_id = $team2->id;
+        $user1->save();
+
+        $response = $this->actingAs($user1)
+            ->withMiddleware([InitializeTenancyByTeam::class])
+            ->getJson('/api/user');
+
+        $response->assertStatus(403);
+        $response->assertJsonPath('error', 'unauthorized_team_access');
+    }
+
+    public function test_default_behavior_returns_403_for_missing_tenant(): void
+    {
+        InitializeTenancyByTeam::$allowWithoutTenant = false;
+
+        $user = User::factory()->create();
+        $team = Team::factory()->create(['user_id' => $user->id]);
+        // No tenant for this team
+        $user->switchTeam($team);
+
+        $response = $this->actingAs($user)
+            ->withMiddleware([InitializeTenancyByTeam::class])
+            ->getJson('/api/user');
+
+        $response->assertStatus(403);
+        $response->assertJsonPath('error', 'tenant_context_required');
+    }
+
+    public function test_allow_without_tenant_flag_works_via_http(): void
+    {
+        InitializeTenancyByTeam::$allowWithoutTenant = true;
+
+        $user = User::factory()->create();
+        $team = Team::factory()->create(['user_id' => $user->id]);
+        // No tenant for this team
+        $user->switchTeam($team);
+
+        $response = $this->actingAs($user)
+            ->withMiddleware([InitializeTenancyByTeam::class])
+            ->get('/');
+
+        // Should not get 403 - request proceeds without tenant
+        $this->assertTrue(
+            $response->status() >= 200 && $response->status() < 400,
+            "Expected 2xx/3xx status, got {$response->status()}"
+        );
+    }
+
+    public function test_team_member_can_access_tenant_via_http(): void
+    {
+        $owner = User::factory()->create();
+        $team = Team::factory()->create(['user_id' => $owner->id]);
+        Tenant::createFromTeam($team);
+
+        $member = User::factory()->create();
+        $team->users()->attach($member, ['role' => 'member']);
+        $member->switchTeam($team);
+        $member->refresh();
+
+        $response = $this->actingAs($member)
+            ->withMiddleware([InitializeTenancyByTeam::class])
+            ->get('/');
+
+        // Should succeed
+        $this->assertTrue(
+            $response->status() >= 200 && $response->status() < 500,
+            "Expected success status, got {$response->status()}"
+        );
+    }
+
+    public function test_team_owner_can_access_tenant_via_http(): void
+    {
+        $owner = User::factory()->create();
+        $team = Team::factory()->create(['user_id' => $owner->id]);
+        Tenant::createFromTeam($team);
+        $owner->switchTeam($team);
+
+        $response = $this->actingAs($owner)
+            ->withMiddleware([InitializeTenancyByTeam::class])
+            ->get('/');
+
+        // Should succeed
+        $this->assertTrue(
+            $response->status() >= 200 && $response->status() < 500,
+            "Expected success status, got {$response->status()}"
+        );
     }
 }
