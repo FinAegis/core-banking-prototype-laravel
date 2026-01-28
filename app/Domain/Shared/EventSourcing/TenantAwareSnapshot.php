@@ -11,7 +11,8 @@ use Spatie\EventSourcing\Snapshots\EloquentSnapshot;
  * Base class for tenant-aware snapshots.
  *
  * Extend this class for any snapshot model that should be isolated per tenant.
- * The model will automatically use the 'tenant' database connection.
+ * The model will automatically use the 'tenant' database connection when tenancy
+ * is initialized, and falls back to the default connection otherwise.
  *
  * Usage:
  * ```php

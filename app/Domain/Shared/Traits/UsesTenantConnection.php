@@ -18,6 +18,10 @@ namespace App\Domain\Shared\Traits;
  *     use UsesTenantConnection;
  * }
  * ```
+ *
+ * Note: The 'tenant' connection must be configured in the database config.
+ * For testing, ensure phpunit.xml or .env.testing includes the tenant
+ * connection configuration pointing to the test database.
  */
 trait UsesTenantConnection
 {

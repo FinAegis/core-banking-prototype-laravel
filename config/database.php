@@ -74,6 +74,27 @@ return [
             'synchronous'             => null,
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Tenant Connection Fallback
+        |--------------------------------------------------------------------------
+        |
+        | This connection is used as a fallback when tenancy is not initialized.
+        | stancl/tenancy will override this connection when a tenant is active.
+        | For testing without tenancy, this mirrors the default connection.
+        |
+        */
+        'tenant' => [
+            'driver'                  => env('DB_CONNECTION', 'sqlite'),
+            'url'                     => env('DB_URL'),
+            'database'                => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix'                  => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout'            => null,
+            'journal_mode'            => null,
+            'synchronous'             => null,
+        ],
+
         'mysql' => [
             'driver'         => 'mysql',
             'url'            => env('DB_URL'),
