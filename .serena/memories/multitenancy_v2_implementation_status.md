@@ -28,7 +28,7 @@
 - [x] README documentation for tenant migrations
 - [ ] Add remaining domain migrations (stablecoin, treasury, exchange, etc.)
 
-### Phase 3: Event Sourcing Integration 🔄 IN PROGRESS (PR #330)
+### Phase 3: Event Sourcing Integration ✅ COMPLETED (PR #330 merged)
 - [x] TenantAwareStoredEvent base class
 - [x] TenantAwareSnapshot base class
 - [x] TenantAwareAggregateRoot base class
@@ -37,11 +37,15 @@
 - [x] Account domain example implementation
 - [x] Tenant event sourcing migration (7 domains)
 - [x] 16 unit tests passing
-- [ ] Apply to remaining 43 aggregates
 
-### Phase 4-9: NOT STARTED
-- Phase 3: Event sourcing integration (tenant-aware aggregates)
-- Phase 4: Model scoping (83 models)
+### Phase 4: Model Scoping ✅ COMPLETED (PR #331)
+- [x] Applied UsesTenantConnection trait to 83 regular Eloquent models
+- [x] Updated 16 event sourcing models to extend TenantAwareStoredEvent
+- [x] Updated 5 snapshot models to extend TenantAwareSnapshot
+- [x] Added ModelTenantConnectionTest (25 test cases)
+- [x] All domains covered (Account, AgentProtocol, Banking, Compliance, etc.)
+
+### Phase 5-9: NOT STARTED
 - Phase 5: Queue job tenant context
 - Phase 6: WebSocket channel authorization
 - Phase 7: Filament admin tenant filtering

@@ -19,10 +19,14 @@ class ModelTenantConnectionTest extends TestCase
 {
     private const TRAIT_NAME = 'App\Domain\Shared\Traits\UsesTenantConnection';
 
+    /**
+     * @param class-string $modelClass
+     */
     #[Test]
     #[DataProvider('tenantModelProvider')]
     public function model_uses_tenant_connection_trait(string $modelClass): void
     {
+        /** @var ReflectionClass<object> $reflection */
         $reflection = new ReflectionClass($modelClass);
         $traits = $this->getAllTraits($reflection);
 
@@ -33,10 +37,15 @@ class ModelTenantConnectionTest extends TestCase
         );
     }
 
+    /**
+     * @param class-string $modelClass
+     * @param class-string $expectedBase
+     */
     #[Test]
     #[DataProvider('eventSourcingModelProvider')]
     public function event_sourcing_model_extends_tenant_aware_base(string $modelClass, string $expectedBase): void
     {
+        /** @var ReflectionClass<object> $reflection */
         $reflection = new ReflectionClass($modelClass);
 
         $this->assertTrue(
@@ -48,6 +57,7 @@ class ModelTenantConnectionTest extends TestCase
     /**
      * Get all traits used by a class, including those from parent classes.
      *
+     * @param  ReflectionClass<object> $reflection
      * @return array<string>
      */
     private function getAllTraits(ReflectionClass $reflection): array
