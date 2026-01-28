@@ -121,9 +121,11 @@ class TenancyServiceProvider extends ServiceProvider
      * Configure the tenant database connection to mirror the default connection.
      *
      * When tenancy is not initialized (e.g., during testing), the 'tenant' connection
-     * should point to the same database as the default connection. This is especially
-     * important for in-memory SQLite testing where each :memory: connection creates
-     * a separate isolated database.
+     * should point to the same database as the default connection.
+     *
+     * For in-memory SQLite, we use a custom connection resolver that returns the
+     * default connection when 'tenant' is requested. This ensures both connection
+     * names access the same in-memory database.
      *
      * Once stancl/tenancy initializes a tenant, it will override the 'tenant' connection
      * to point to the tenant's specific database.
@@ -138,25 +140,20 @@ class TenancyServiceProvider extends ServiceProvider
             return;
         }
 
-        // Copy the default connection's config to the tenant connection
+        // Copy the default config to tenant connection (needed for config lookups)
         Config::set('database.connections.tenant', $defaultConfig);
 
-        // For in-memory SQLite databases, we need to share the same PDO connection
-        // across default and tenant connections. In-memory databases are isolated
-        // per connection, so we need to reuse the same PDO instance.
+        // Check if we're using in-memory SQLite
         $database = $defaultConfig['database'] ?? '';
         $isSqliteInMemory = ($defaultConfig['driver'] ?? '') === 'sqlite'
             && ($database === ':memory:' || str_contains((string) $database, ':memory:'));
 
         if ($isSqliteInMemory) {
-            // Register a callback to share the PDO connection when both are resolved
-            $this->app->booted(function () use ($defaultConnection) {
-                // Get the default connection's PDO instance
-                $defaultPdo = DB::connection($defaultConnection)->getPdo();
-
-                // Set the tenant connection to reuse the same PDO instance
-                // This ensures both connections access the same in-memory database
-                DB::connection('tenant')->setPdo($defaultPdo)->setReadPdo($defaultPdo);
+            // Register a custom connection resolver that returns the default
+            // connection when 'tenant' is requested. This way both 'default'
+            // and 'tenant' use the same SQLite in-memory database.
+            DB::resolverFor('tenant', function () use ($defaultConnection) {
+                return DB::connection($defaultConnection);
             });
         }
     }
