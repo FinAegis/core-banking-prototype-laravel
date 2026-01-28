@@ -58,15 +58,71 @@ For initial setup migrations, we use a special prefix:
 - `ledger_entries` - Detailed ledger records
 - `ledger_snapshots` - Event sourcing snapshots
 
-### Domain-Specific Tables (to be added)
-- Banking tables (bank_accounts, bank_transfers, etc.)
-- Lending tables (loans, loan_applications, etc.)
-- Compliance tables (alerts, cases, kyc documents, etc.)
-- Stablecoin tables (operations, collateral positions, etc.)
-- Treasury tables (portfolios, investments, etc.)
-- Exchange tables (orders, positions, etc.)
-- Wallet tables (blockchain accounts, etc.)
-- Payment tables (deposits, withdrawals, etc.)
+### Banking Domain
+- `bank_connections` - Bank API/OAuth connections
+- `bank_accounts` - Linked bank accounts
+- `bank_transfers` - Bank wire transfers
+- `bank_statements` - Statement reconciliation
+
+### Lending Domain
+- `loans` - Loan records
+- `loan_applications` - Loan applications
+- `loan_collateral` - Collateral tracking
+- `loan_repayments` - Repayment schedules
+
+### Compliance Domain
+- `compliance_alerts` - Compliance alerts
+- `compliance_cases` - Investigation cases
+- `kyc_documents` - KYC document uploads
+- `kyc_verifications` - Verification records
+
+### Exchange Domain (v2.0.0)
+- `orders` - Trading orders
+- `order_books` - Order book state
+- `trades` - Executed trades
+- `exchange_fees` - Fee configurations
+- `exchange_matching_errors` - Error tracking
+
+### Stablecoin Domain (v2.0.0)
+- `stablecoins` - Stablecoin configurations
+- `stablecoin_collateral_positions` - CDP positions
+- `stablecoin_operations` - Mint/burn operations
+
+### Wallet Domain (v2.0.0)
+- `blockchain_wallets` - Blockchain wallets
+- `wallet_addresses` - Derived addresses
+- `blockchain_transactions` - On-chain transactions
+- `wallet_seeds` - Encrypted seeds
+- `token_balances` - Token balance tracking
+- `wallet_backups` - Wallet backups
+
+### Treasury Domain (v2.0.0)
+- `asset_allocations` - Portfolio allocations
+- `cash_allocations` - Cash management
+- `yield_optimizations` - Yield tracking
+- `portfolio_events/snapshots` - Event sourcing
+
+### CGO Domain (v2.0.0)
+- `cgo_pricing_rounds` - Investment rounds
+- `cgo_investments` - Investment records
+- `cgo_refunds` - Refund tracking
+- `cgo_notifications` - Investor notifications
+- `cgo_events/snapshots` - Event sourcing
+
+### Agent Protocol Domain (v2.0.0)
+- `agent_identities` - AI agent DIDs
+- `agent_wallets` - Agent wallets
+- `agent_transactions` - Agent transactions
+- `escrows` - Escrow services
+- `escrow_disputes` - Dispute resolution
+- `agent_protocol_events/snapshots` - Event sourcing
+
+### Event Sourcing Tables
+All domains have event sourcing infrastructure:
+- `stored_events` - Generic events
+- `snapshots` - Generic snapshots
+- `{domain}_events` - Domain-specific events
+- `{domain}_snapshots` - Domain-specific snapshots
 
 ## Tables in Central Database
 
