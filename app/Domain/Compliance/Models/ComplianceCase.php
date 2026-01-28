@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class ComplianceCase extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
     use SoftDeletes;

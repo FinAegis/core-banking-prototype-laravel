@@ -2,6 +2,7 @@
 
 namespace App\Domain\Compliance\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class AuditLog extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     public const UPDATED_AT = null;

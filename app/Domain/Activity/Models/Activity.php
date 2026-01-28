@@ -2,6 +2,7 @@
 
 namespace App\Domain\Activity\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class Activity extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'activity_log';
 
     protected $fillable = [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Stablecoin\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class LiquidationAuction extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'liquidation_auctions';
 
     protected $fillable = [

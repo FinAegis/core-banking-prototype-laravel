@@ -2,9 +2,9 @@
 
 namespace App\Domain\Account\Models;
 
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
 
 /**
  * @property int $id
@@ -26,7 +26,7 @@ use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
  * @property string|null $cleared_by
  * @property string|null $clear_reason
  */
-class Transaction extends EloquentStoredEvent
+class Transaction extends TenantAwareStoredEvent
 {
     use HasFactory;
 

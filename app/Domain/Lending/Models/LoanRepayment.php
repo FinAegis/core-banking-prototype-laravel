@@ -2,6 +2,7 @@
 
 namespace App\Domain\Lending\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,6 +46,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class LoanRepayment extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     protected $fillable = [

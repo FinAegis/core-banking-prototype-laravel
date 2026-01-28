@@ -2,9 +2,9 @@
 
 namespace App\Domain\Cgo\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class CgoEvent extends EloquentStoredEvent
+class CgoEvent extends TenantAwareStoredEvent
 {
     public $table = 'cgo_events';
 }

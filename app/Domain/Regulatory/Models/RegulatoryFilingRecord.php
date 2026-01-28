@@ -2,6 +2,7 @@
 
 namespace App\Domain\Regulatory\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,6 +46,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class RegulatoryFilingRecord extends Model
 {
+    use UsesTenantConnection;
     use HasUuids;
 
     protected $fillable = [

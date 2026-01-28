@@ -2,9 +2,9 @@
 
 namespace App\Domain\Exchange\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class LiquidityPoolEvent extends EloquentStoredEvent
+class LiquidityPoolEvent extends TenantAwareStoredEvent
 {
     public $table = 'liquidity_pool_events';
 }

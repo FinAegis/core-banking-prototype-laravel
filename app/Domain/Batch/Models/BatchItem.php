@@ -2,6 +2,7 @@
 
 namespace App\Domain\Batch\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -44,6 +45,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class BatchItem extends Model
 {
+    use UsesTenantConnection;
+
     protected $fillable = [
         'batch_job_id',
         'sequence',

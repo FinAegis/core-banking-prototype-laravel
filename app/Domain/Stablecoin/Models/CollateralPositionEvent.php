@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Stablecoin\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class CollateralPositionEvent extends EloquentStoredEvent
+class CollateralPositionEvent extends TenantAwareStoredEvent
 {
     protected $table = 'collateral_position_events';
 

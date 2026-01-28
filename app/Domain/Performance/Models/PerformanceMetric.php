@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Performance\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 
 class PerformanceMetric extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'performance_metrics';
 
     protected $fillable = [

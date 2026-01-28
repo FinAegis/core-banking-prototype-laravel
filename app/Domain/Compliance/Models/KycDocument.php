@@ -2,6 +2,7 @@
 
 namespace App\Domain\Compliance\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Database\Factories\KycDocumentFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -48,6 +49,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class KycDocument extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
 

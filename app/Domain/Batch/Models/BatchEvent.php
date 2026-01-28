@@ -2,9 +2,9 @@
 
 namespace App\Domain\Batch\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class BatchEvent extends EloquentStoredEvent
+class BatchEvent extends TenantAwareStoredEvent
 {
     public $table = 'batch_events';
 }

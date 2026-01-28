@@ -2,6 +2,7 @@
 
 namespace App\Domain\Cgo\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,7 @@ use Illuminate\Support\Str;
  */
 class CgoInvestment extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     // Status constants

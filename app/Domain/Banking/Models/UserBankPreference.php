@@ -2,6 +2,7 @@
 
 namespace App\Domain\Banking\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,6 +48,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class UserBankPreference extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     protected $fillable = [

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Models;
 
-use Spatie\EventSourcing\Snapshots\EloquentSnapshot;
+use App\Domain\Shared\EventSourcing\TenantAwareSnapshot;
 
-class AgentProtocolSnapshot extends EloquentSnapshot
+class AgentProtocolSnapshot extends TenantAwareSnapshot
 {
     protected $table = 'agent_protocol_snapshots';
 }

@@ -2,6 +2,7 @@
 
 namespace App\Domain\FinancialInstitution\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +48,7 @@ use Illuminate\Support\Str;
  */
 class FinancialInstitutionPartner extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
     use SoftDeletes;

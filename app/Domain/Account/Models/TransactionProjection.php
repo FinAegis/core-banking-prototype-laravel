@@ -2,6 +2,7 @@
 
 namespace App\Domain\Account\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Database\Factories\TransactionProjectionFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -49,6 +50,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TransactionProjection extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
 

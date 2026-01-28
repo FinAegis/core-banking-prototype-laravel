@@ -2,9 +2,9 @@
 
 namespace App\Domain\Account\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class Ledger extends EloquentStoredEvent
+class Ledger extends TenantAwareStoredEvent
 {
     public $table = 'ledgers';
 }

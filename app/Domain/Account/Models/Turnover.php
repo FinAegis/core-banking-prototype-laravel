@@ -2,6 +2,7 @@
 
 namespace App\Domain\Account\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Database\Factories\TurnoverFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Turnover extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     protected static function newFactory(): TurnoverFactory

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AgentConnection extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'agent_connections';
 
     protected $fillable = [

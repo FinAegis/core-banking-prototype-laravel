@@ -3,6 +3,7 @@
 namespace App\Domain\Payment\Models;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -45,6 +46,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class PaymentTransaction extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     protected $fillable = [

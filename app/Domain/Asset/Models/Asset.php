@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Asset\Models;
 
 use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -61,6 +62,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Asset extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     /**

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Stablecoin\Models;
 
-use Spatie\EventSourcing\Snapshots\EloquentSnapshot;
+use App\Domain\Shared\EventSourcing\TenantAwareSnapshot;
 
-class CollateralPositionSnapshot extends EloquentSnapshot
+class CollateralPositionSnapshot extends TenantAwareSnapshot
 {
     protected $table = 'collateral_position_snapshots';
 

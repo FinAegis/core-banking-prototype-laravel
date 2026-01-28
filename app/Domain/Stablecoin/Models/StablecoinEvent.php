@@ -2,9 +2,9 @@
 
 namespace App\Domain\Stablecoin\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class StablecoinEvent extends EloquentStoredEvent
+class StablecoinEvent extends TenantAwareStoredEvent
 {
     public $table = 'stablecoin_events';
 }

@@ -7,6 +7,7 @@ namespace App\Domain\Governance\Models;
 use App\Domain\Governance\Database\Factories\PollFactory;
 use App\Domain\Governance\Enums\PollStatus;
 use App\Domain\Governance\Enums\PollType;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +34,7 @@ use Illuminate\Support\Str;
  */
 class Poll extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     protected static function newFactory()

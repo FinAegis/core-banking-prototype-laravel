@@ -2,6 +2,7 @@
 
 namespace App\Domain\Cgo\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CgoNotification extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     protected $fillable = [

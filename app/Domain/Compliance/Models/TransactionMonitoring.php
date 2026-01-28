@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TransactionMonitoring extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'transaction_monitorings';
 
     protected $fillable = [

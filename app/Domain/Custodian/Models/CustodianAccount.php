@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Custodian\Models;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -70,6 +71,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CustodianAccount extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
 

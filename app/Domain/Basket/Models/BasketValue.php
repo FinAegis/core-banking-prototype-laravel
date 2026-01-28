@@ -2,6 +2,7 @@
 
 namespace App\Domain\Basket\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Database\Factories\BasketValueFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -59,6 +60,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class BasketValue extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     /**

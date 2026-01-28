@@ -6,13 +6,13 @@
 
 namespace App\Domain\Compliance\Models;
 
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
 
 /**
  * Model for AML screening events stored in the event sourcing table.
  */
-class AmlScreeningEvent extends EloquentStoredEvent
+class AmlScreeningEvent extends TenantAwareStoredEvent
 {
     use HasFactory;
 

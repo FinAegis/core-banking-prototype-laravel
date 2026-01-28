@@ -3,6 +3,7 @@
 namespace App\Domain\Fraud\Models;
 
 use App\Domain\Account\Models\Account;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use App\Traits\BelongsToTeam;
 use Database\Factories\FraudCaseFactory;
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class FraudCase extends Model
 {
+    use UsesTenantConnection;
     use BelongsToTeam;
     use HasFactory;
     use HasUuids;

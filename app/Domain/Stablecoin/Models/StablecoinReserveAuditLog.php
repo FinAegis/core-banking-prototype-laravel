@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Stablecoin\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,6 +44,7 @@ use Illuminate\Support\Str;
  */
 class StablecoinReserveAuditLog extends Model
 {
+    use UsesTenantConnection;
     /** @use HasFactory<\Illuminate\Database\Eloquent\Factories\Factory<static>> */
     use HasFactory;
 

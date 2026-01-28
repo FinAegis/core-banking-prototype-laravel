@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class ComplianceEvent extends EloquentStoredEvent
+class ComplianceEvent extends TenantAwareStoredEvent
 {
     protected $table = 'compliance_events';
 

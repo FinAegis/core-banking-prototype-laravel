@@ -2,6 +2,7 @@
 
 namespace App\Domain\Batch\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +48,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class BatchJob extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     /**

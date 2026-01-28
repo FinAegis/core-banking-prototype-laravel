@@ -2,11 +2,14 @@
 
 namespace App\Domain\Wallet\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SecureKeyStorage extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'secure_key_storage';
 
     protected $fillable = [

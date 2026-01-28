@@ -4,6 +4,7 @@ namespace App\Domain\Stablecoin\Models;
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Asset\Models\Asset;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -59,6 +60,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class StablecoinCollateralPosition extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
 

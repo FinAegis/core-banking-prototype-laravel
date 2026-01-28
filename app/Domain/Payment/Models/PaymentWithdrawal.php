@@ -2,9 +2,9 @@
 
 namespace App\Domain\Payment\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class PaymentWithdrawal extends EloquentStoredEvent
+class PaymentWithdrawal extends TenantAwareStoredEvent
 {
     public $table = 'payment_withdrawals';
 }

@@ -2,11 +2,11 @@
 
 namespace App\Domain\Account\Models;
 
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 use Database\Factories\TransferFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
 
-class Transfer extends EloquentStoredEvent
+class Transfer extends TenantAwareStoredEvent
 {
     use HasFactory;
 

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Product\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserProduct extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'user_products';
 
     protected $fillable = [

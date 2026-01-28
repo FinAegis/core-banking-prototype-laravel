@@ -2,12 +2,15 @@
 
 namespace App\Domain\Wallet\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class KeyAccessLog extends Model
 {
+    use UsesTenantConnection;
+
     protected $table = 'key_access_logs';
 
     public $timestamps = false;

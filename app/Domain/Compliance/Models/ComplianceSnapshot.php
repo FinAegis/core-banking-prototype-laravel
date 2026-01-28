@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Compliance\Models;
 
-use Spatie\EventSourcing\Snapshots\EloquentSnapshot;
+use App\Domain\Shared\EventSourcing\TenantAwareSnapshot;
 
-class ComplianceSnapshot extends EloquentSnapshot
+class ComplianceSnapshot extends TenantAwareSnapshot
 {
     protected $table = 'compliance_snapshots';
 

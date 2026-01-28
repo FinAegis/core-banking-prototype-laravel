@@ -2,6 +2,7 @@
 
 namespace App\Domain\Lending\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,6 +49,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class LoanApplication extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
 

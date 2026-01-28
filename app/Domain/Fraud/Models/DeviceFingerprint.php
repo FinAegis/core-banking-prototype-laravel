@@ -2,6 +2,7 @@
 
 namespace App\Domain\Fraud\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +47,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class DeviceFingerprint extends Model
 {
+    use UsesTenantConnection;
     use HasUuids;
 
     protected $fillable = [

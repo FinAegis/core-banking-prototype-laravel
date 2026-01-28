@@ -2,6 +2,7 @@
 
 namespace App\Domain\Regulatory\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -45,6 +46,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class RegulatoryThreshold extends Model
 {
+    use UsesTenantConnection;
     use HasUuids;
 
     protected $fillable = [

@@ -2,9 +2,9 @@
 
 namespace App\Domain\Lending\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class LendingEvent extends EloquentStoredEvent
+class LendingEvent extends TenantAwareStoredEvent
 {
     protected $table = 'lending_events';
 

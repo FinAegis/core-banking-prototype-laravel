@@ -4,6 +4,7 @@ namespace App\Domain\Account\Models;
 
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Custodian\Models\CustodianAccount;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Traits\BelongsToTeam;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Account extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
     use HasUuids;
     use BelongsToTeam;

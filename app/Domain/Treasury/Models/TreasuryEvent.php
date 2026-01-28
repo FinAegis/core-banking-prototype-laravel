@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Treasury\Models;
 
-use Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent;
+use App\Domain\Shared\EventSourcing\TenantAwareStoredEvent;
 
-class TreasuryEvent extends EloquentStoredEvent
+class TreasuryEvent extends TenantAwareStoredEvent
 {
     protected $table = 'treasury_events';
 

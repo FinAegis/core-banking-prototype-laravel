@@ -3,6 +3,7 @@
 namespace App\Domain\Basket\Models;
 
 use App\Domain\Asset\Models\Asset;
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use App\Models\User;
 use Database\Factories\BasketAssetFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class BasketAsset extends Model
 {
+    use UsesTenantConnection;
     use HasFactory;
 
     /**

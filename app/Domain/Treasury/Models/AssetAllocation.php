@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Treasury\Models;
 
+use App\Domain\Shared\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class AssetAllocation extends Model
 {
+    use UsesTenantConnection;
     use HasUuids;
 
     protected $fillable = [

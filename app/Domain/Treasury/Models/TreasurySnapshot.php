@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Treasury\Models;
 
-use Spatie\EventSourcing\Snapshots\EloquentSnapshot;
+use App\Domain\Shared\EventSourcing\TenantAwareSnapshot;
 
-class TreasurySnapshot extends EloquentSnapshot
+class TreasurySnapshot extends TenantAwareSnapshot
 {
     protected $table = 'treasury_snapshots';
 
