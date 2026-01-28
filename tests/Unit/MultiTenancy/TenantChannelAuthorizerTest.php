@@ -9,6 +9,7 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionNamedType;
 
 /**
  * Tests for TenantChannelAuthorizer.
@@ -77,12 +78,14 @@ class TenantChannelAuthorizerTest extends TestCase
 
         // Verify first param type is User
         $userType = $params[0]->getType();
-        $this->assertNotNull($userType);
+        $this->assertInstanceOf(ReflectionNamedType::class, $userType);
+        /** @var ReflectionNamedType $userType */
         $this->assertEquals(User::class, $userType->getName());
 
         // Verify second param type is string
         $tenantIdType = $params[1]->getType();
-        $this->assertNotNull($tenantIdType);
+        $this->assertInstanceOf(ReflectionNamedType::class, $tenantIdType);
+        /** @var ReflectionNamedType $tenantIdType */
         $this->assertEquals('string', $tenantIdType->getName());
     }
 }

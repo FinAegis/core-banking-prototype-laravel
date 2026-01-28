@@ -20,6 +20,7 @@ class TenantBroadcastEventTest extends TestCase
     {
         $event = $this->createBroadcastEvent();
 
+        /** @phpstan-ignore method.notFound */
         $channels = $event->broadcastOn();
 
         $this->assertIsArray($channels);
@@ -31,6 +32,7 @@ class TenantBroadcastEventTest extends TestCase
     {
         $event = $this->createBroadcastEventWithTenantId('test-tenant-123');
 
+        /** @phpstan-ignore method.notFound */
         $channels = $event->broadcastOn();
 
         $this->assertCount(1, $channels);
@@ -43,6 +45,7 @@ class TenantBroadcastEventTest extends TestCase
     {
         $event = $this->createBroadcastEventWithSuffix('test-tenant-456', 'accounts');
 
+        /** @phpstan-ignore method.notFound */
         $channels = $event->broadcastOn();
 
         $this->assertCount(1, $channels);
@@ -54,6 +57,7 @@ class TenantBroadcastEventTest extends TestCase
     {
         $event = $this->createBroadcastEventWithTenantId(null);
 
+        /** @phpstan-ignore method.notFound */
         $channels = $event->broadcastOn();
 
         $this->assertEmpty($channels);
