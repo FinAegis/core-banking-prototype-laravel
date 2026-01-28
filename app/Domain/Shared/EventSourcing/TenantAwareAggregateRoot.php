@@ -46,7 +46,7 @@ abstract class TenantAwareAggregateRoot extends AggregateRoot
         // Add tenant context to the event if available
         if (function_exists('tenant') && tenant()) {
             $this->metaData = array_merge($this->metaData ?? [], [
-                'tenant_id' => tenant()->id,
+                'tenant_id'   => tenant()->id,
                 'recorded_at' => now()->toIso8601String(),
             ]);
         }

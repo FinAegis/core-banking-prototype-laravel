@@ -28,7 +28,18 @@
 - [x] README documentation for tenant migrations
 - [ ] Add remaining domain migrations (stablecoin, treasury, exchange, etc.)
 
-### Phase 3-9: NOT STARTED
+### Phase 3: Event Sourcing Integration 🔄 IN PROGRESS (PR #330)
+- [x] TenantAwareStoredEvent base class
+- [x] TenantAwareSnapshot base class
+- [x] TenantAwareAggregateRoot base class
+- [x] TenantAwareStoredEventRepository
+- [x] TenantAwareSnapshotRepository
+- [x] Account domain example implementation
+- [x] Tenant event sourcing migration (7 domains)
+- [x] 16 unit tests passing
+- [ ] Apply to remaining 43 aggregates
+
+### Phase 4-9: NOT STARTED
 - Phase 3: Event sourcing integration (tenant-aware aggregates)
 - Phase 4: Model scoping (83 models)
 - Phase 5: Queue job tenant context
