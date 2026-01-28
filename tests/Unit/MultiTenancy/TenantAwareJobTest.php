@@ -34,7 +34,8 @@ class TenantAwareJobTest extends TestCase
     {
         $job = $this->createTenantAwareJob();
 
-        $tags = $job->tenantTags();
+        /** @var array<int, string> $tags */
+        $tags = $job->tenantTags(); // @phpstan-ignore method.notFound
 
         $this->assertContains('tenant-aware', $tags);
 
@@ -77,7 +78,7 @@ class TenantAwareJobTest extends TestCase
         $job = $this->createTenantAwareJob();
 
         // The trait's default implementation returns true
-        $this->assertTrue($job->requiresTenantContext());
+        $this->assertTrue($job->requiresTenantContext()); // @phpstan-ignore method.notFound
     }
 
     #[Test]
@@ -85,7 +86,7 @@ class TenantAwareJobTest extends TestCase
     {
         $job = $this->createOptionalTenantJob();
 
-        $this->assertFalse($job->requiresTenantContext());
+        $this->assertFalse($job->requiresTenantContext()); // @phpstan-ignore method.notFound
     }
 
     #[Test]
@@ -93,7 +94,8 @@ class TenantAwareJobTest extends TestCase
     {
         $job = $this->createTenantAwareJob();
 
-        $tenantTags = $job->tenantTags();
+        /** @var array<int, string> $tenantTags */
+        $tenantTags = $job->tenantTags(); // @phpstan-ignore method.notFound
 
         $this->assertContains('tenant-aware', $tenantTags);
     }
