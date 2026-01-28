@@ -41,10 +41,15 @@ class TenantIsolationSecurityTest extends TestCase
     #[Test]
     public function tenant_model_has_required_security_attributes(): void
     {
-        $tenant = new Tenant();
+        // Use reflection to check fillable property without instantiating model
+        // (instantiation triggers Laravel container which isn't available in pure unit tests)
+        $reflection = new ReflectionClass(Tenant::class);
+        $fillableProperty = $reflection->getProperty('fillable');
+
+        /** @var array<string> $fillable */
+        $fillable = $fillableProperty->getDefaultValue();
 
         // Verify fillable attributes don't include sensitive fields
-        $fillable = $tenant->getFillable();
         $this->assertNotContains('password', $fillable);
         $this->assertNotContains('secret', $fillable);
     }
@@ -52,9 +57,13 @@ class TenantIsolationSecurityTest extends TestCase
     #[Test]
     public function user_model_does_not_expose_sensitive_data(): void
     {
-        $user = new User();
+        // Use reflection to check hidden property without instantiating model
+        $reflection = new ReflectionClass(User::class);
+        $hiddenProperty = $reflection->getProperty('hidden');
 
-        $hidden = $user->getHidden();
+        /** @var array<string> $hidden */
+        $hidden = $hiddenProperty->getDefaultValue();
+
         $this->assertContains('password', $hidden);
         $this->assertContains('remember_token', $hidden);
     }
