@@ -7573,6 +7573,12 @@ parameters:
 			path: tests/Traits/InteractsWithFilament.php
 
 		-
+			message: '#^Trait App\\Broadcasting\\TenantBroadcastEvent is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: app/Broadcasting/TenantBroadcastEvent.php
+
+		-
 			message: '#^Call to an undefined method App\\Domain\\Wallet\\Services\\SecureKeyStorageService\:\:shouldReceive\(\)\.$#'
 			identifier: method.notFound
 			count: 13

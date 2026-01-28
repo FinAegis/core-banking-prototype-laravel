@@ -53,8 +53,15 @@
 - [x] Created TenantAwareJobTest with 10 test cases
 - [x] PHPStan Level 8 compliant
 
-### Phase 6-9: NOT STARTED
-- Phase 6: WebSocket channel authorization
+### Phase 6: WebSocket Channel Authorization ✅ COMPLETED (PR #333)
+- [x] Created TenantChannelAuthorizer for tenant-scoped channel auth
+- [x] Created TenantBroadcastEvent trait for tenant-scoped broadcasting
+- [x] Created routes/channels.php with tenant-scoped channel definitions
+- [x] Added PHPStan baseline entry for unused trait
+- [x] Created TenantChannelAuthorizerTest (6 tests)
+- [x] Created TenantBroadcastEventTest (5 tests)
+
+### Phase 7-9: NOT STARTED
 - Phase 7: Filament admin tenant filtering
 - Phase 8: Data migration tooling
 - Phase 9: Security audit
