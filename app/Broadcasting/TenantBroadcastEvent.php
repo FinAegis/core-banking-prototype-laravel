@@ -73,7 +73,7 @@ trait TenantBroadcastEvent
         }
 
         // Try to get from a tenantId property on the event
-        /** @phpstan-ignore function.impossibleType */
+        /** @phpstan-ignore function.impossibleType, function.alreadyNarrowedType */
         if (property_exists($this, 'tenantId') && $this->tenantId !== null) {
             return (string) $this->tenantId;
         }
