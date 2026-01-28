@@ -2,6 +2,31 @@
 
 use Illuminate\Support\Str;
 
+/*
+|--------------------------------------------------------------------------
+| SQLite In-Memory Database Helper
+|--------------------------------------------------------------------------
+|
+| When using SQLite in-memory databases for testing, each connection creates
+| a separate isolated database by default. To share the same in-memory database
+| across multiple connections (e.g., default, central, tenant), we need to use
+| SQLite's shared cache mode with `file::memory:?cache=shared`.
+|
+| This helper function converts :memory: to the shared cache format.
+|
+*/
+$getSqliteDatabase = function (): string {
+    $database = env('DB_DATABASE', database_path('database.sqlite'));
+
+    // Use shared cache mode for in-memory SQLite databases
+    // This allows multiple connections to share the same in-memory database
+    if ($database === ':memory:') {
+        return 'file::memory:?cache=shared';
+    }
+
+    return $database;
+};
+
 return [
 
     /*
@@ -34,7 +59,7 @@ return [
         'sqlite' => [
             'driver'                  => 'sqlite',
             'url'                     => env('DB_URL'),
-            'database'                => env('DB_DATABASE', database_path('database.sqlite')),
+            'database'                => $getSqliteDatabase(),
             'prefix'                  => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout'            => null,
@@ -55,7 +80,7 @@ return [
         'central' => [
             'driver'                  => 'sqlite',
             'url'                     => env('DB_URL'),
-            'database'                => env('DB_DATABASE', database_path('database.sqlite')),
+            'database'                => $getSqliteDatabase(),
             'prefix'                  => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout'            => null,
@@ -90,8 +115,8 @@ return [
         'tenant' => [
             'driver' => env('DB_CONNECTION', 'sqlite'),
             'url'    => env('DB_URL'),
-            // SQLite fields
-            'database'                => env('DB_DATABASE', database_path('database.sqlite')),
+            // SQLite fields - use shared cache for in-memory databases
+            'database'                => $getSqliteDatabase(),
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout'            => null,
             'journal_mode'            => null,
