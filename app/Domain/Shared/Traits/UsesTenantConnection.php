@@ -55,23 +55,19 @@ trait UsesTenantConnection
     /**
      * Determine if the model should use the default connection instead of tenant.
      *
-     * This returns true when:
-     * - APP_ENV is 'testing'
-     * - Database is SQLite in-memory (:memory:)
+     * This returns true when APP_ENV is 'testing'. In testing environments,
+     * using a separate 'tenant' connection causes issues:
      *
-     * This is necessary because SQLite in-memory databases are isolated
-     * per connection, and there's no reliable way to share them in Laravel.
+     * - SQLite in-memory: Each connection has isolated database
+     * - MySQL: Separate connections can cause lock wait timeouts with transactions
+     *
+     * In production, stancl/tenancy properly configures the tenant connection
+     * to point to tenant-specific databases.
      */
     protected function shouldUseDefaultConnection(): bool
     {
-        // Only apply this workaround in testing environment
-        if (Config::get('app.env') !== 'testing') {
-            return false;
-        }
-
-        // Check if we're using in-memory SQLite
-        $database = Config::get('database.connections.sqlite.database');
-
-        return $database === ':memory:';
+        // In testing environment, always use the default connection
+        // to avoid isolation issues with separate database connections
+        return Config::get('app.env') === 'testing';
     }
 }
