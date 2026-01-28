@@ -7,7 +7,6 @@ namespace App\Providers;
 use App\Http\Middleware\InitializeTenancyByTeam;
 use App\Resolvers\TeamTenantResolver;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -123,9 +122,9 @@ class TenancyServiceProvider extends ServiceProvider
      * When tenancy is not initialized (e.g., during testing), the 'tenant' connection
      * should point to the same database as the default connection.
      *
-     * For in-memory SQLite, we use a custom connection resolver that returns the
-     * default connection when 'tenant' is requested. This ensures both connection
-     * names access the same in-memory database.
+     * Note: For in-memory SQLite testing, the UsesTenantConnection trait has
+     * been modified to return null (use default connection) in testing mode.
+     * This is simpler and more reliable than trying to share PDO connections.
      *
      * Once stancl/tenancy initializes a tenant, it will override the 'tenant' connection
      * to point to the tenant's specific database.
@@ -140,22 +139,10 @@ class TenancyServiceProvider extends ServiceProvider
             return;
         }
 
-        // Copy the default config to tenant connection (needed for config lookups)
+        // Copy the default config to tenant connection
+        // This ensures 'tenant' is a valid connection name even when
+        // the UsesTenantConnection trait falls back to the default connection
         Config::set('database.connections.tenant', $defaultConfig);
-
-        // Check if we're using in-memory SQLite
-        $database = $defaultConfig['database'] ?? '';
-        $isSqliteInMemory = ($defaultConfig['driver'] ?? '') === 'sqlite'
-            && ($database === ':memory:' || str_contains((string) $database, ':memory:'));
-
-        if ($isSqliteInMemory) {
-            // Register a custom connection resolver that returns the default
-            // connection when 'tenant' is requested. This way both 'default'
-            // and 'tenant' use the same SQLite in-memory database.
-            DB::resolverFor('tenant', function () use ($defaultConnection) {
-                return DB::connection($defaultConnection);
-            });
-        }
     }
 
     protected function bootEvents(): void
