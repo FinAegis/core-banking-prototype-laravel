@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Http\Middleware\InitializeTenancyByTeam;
 use App\Resolvers\TeamTenantResolver;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -129,16 +130,34 @@ class TenancyServiceProvider extends ServiceProvider
      */
     protected function configureTenantConnection(): void
     {
-        // Get the default connection name
+        // Get the default connection name and its configuration
         $defaultConnection = Config::get('database.default');
-
-        // Get the default connection's configuration
         $defaultConfig = Config::get("database.connections.{$defaultConnection}");
 
-        if ($defaultConfig) {
-            // Override the tenant connection with the default connection's config
-            // This ensures tenant models use the same database during testing
-            Config::set('database.connections.tenant', $defaultConfig);
+        if (! $defaultConfig) {
+            return;
+        }
+
+        // Copy the default connection's config to the tenant connection
+        Config::set('database.connections.tenant', $defaultConfig);
+
+        // For in-memory SQLite databases, we need to share the same PDO connection
+        // across default and tenant connections. In-memory databases are isolated
+        // per connection, so we need to reuse the same PDO instance.
+        $database = $defaultConfig['database'] ?? '';
+        $isSqliteInMemory = ($defaultConfig['driver'] ?? '') === 'sqlite'
+            && ($database === ':memory:' || str_contains((string) $database, ':memory:'));
+
+        if ($isSqliteInMemory) {
+            // Register a callback to share the PDO connection when both are resolved
+            $this->app->booted(function () use ($defaultConnection) {
+                // Get the default connection's PDO instance
+                $defaultPdo = DB::connection($defaultConnection)->getPdo();
+
+                // Set the tenant connection to reuse the same PDO instance
+                // This ensures both connections access the same in-memory database
+                DB::connection('tenant')->setPdo($defaultPdo)->setReadPdo($defaultPdo);
+            });
         }
     }
 
