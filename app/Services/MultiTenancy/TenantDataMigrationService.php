@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use stdClass;
 
 /**
  * Service for migrating data from central database to tenant databases.
@@ -276,7 +277,7 @@ class TenantDataMigrationService
     /**
      * Get migration history for a tenant.
      *
-     * @return Collection<int, \stdClass>
+     * @return Collection<int, stdClass>
      */
     public function getMigrationHistory(Tenant $tenant): Collection
     {
