@@ -21,6 +21,7 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 
 ### Architecture
 - [System Architecture](02-ARCHITECTURE/ARCHITECTURE.md) - Technical overview
+- [Multi-Tenancy v2.0](V2.0.0_MULTI_TENANCY_ARCHITECTURE.md) - Team-based tenant isolation
 - [Multi-Asset Support](02-ARCHITECTURE/MULTI_ASSET_ARCHITECTURE.md) - Multi-currency implementation
 - [Workflow Patterns](02-ARCHITECTURE/WORKFLOW_PATTERNS.md) - Saga and orchestration patterns
 
@@ -91,9 +92,9 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 
 ## Platform Status
 
-- **Version**: 2.0
+- **Version**: 1.4.1 (v2.0.0 Multi-Tenancy merged)
 - **Status**: Demonstration Prototype
-- **Last Updated**: December 2024
+- **Last Updated**: January 2026
 
 This is an educational prototype demonstrating modern banking architecture patterns. It's not production-ready.
 

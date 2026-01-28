@@ -1,7 +1,7 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
@@ -23,6 +23,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Audit trail requirements | Event sourcing captures every state change |
 | Complex multi-step transactions | Saga pattern with automatic compensation |
 | Regulatory compliance | Built-in KYC/AML workflows |
+| Multi-tenant SaaS deployment | Team-based tenant isolation (v2.0.0) |
 | Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
 
 ---
@@ -164,6 +165,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 | **Lending** | P2P loans, credit scoring, risk assessment |
 | **AI Framework** | MCP server, 20+ banking tools, event-sourced interactions |
 | **Agent Protocol** | A2A messaging, escrow, reputation system |
+| **Multi-Tenancy** | Team-based isolation, tenant-aware event sourcing |
 
 ---
 
@@ -195,6 +197,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 - **CQRS** - Separated read/write models for optimal performance
 - **Saga Pattern** - Distributed transactions with automatic rollback
 - **DDD** - 29 bounded contexts with clear boundaries
+- **Multi-Tenancy** - Team-based data isolation with stancl/tenancy v3.9
 
 See [Architecture Decision Records](docs/ADR/) for detailed design rationale.
 
@@ -224,7 +227,7 @@ git checkout -b feature/your-feature
 # Submit PR
 ```
 
-**Standards**: PSR-12 · PHPStan Level 5 · 50%+ Coverage · Conventional Commits
+**Standards**: PSR-12 · PHPStan Level 8 · 50%+ Coverage · Conventional Commits
 
 This project supports AI coding assistants. Look for `AGENTS.md` files for context-aware guidance.
 
@@ -237,9 +240,10 @@ This project supports AI coding assistants. Look for `AGENTS.md` files for conte
 | **Backend** | Laravel 12, PHP 8.4+ |
 | **Event Sourcing** | Spatie Event Sourcing |
 | **Workflows** | Laravel Workflow (Waterline) |
+| **Multi-Tenancy** | stancl/tenancy v3.9 |
 | **Database** | MySQL 8.0+ / PostgreSQL 13+ |
 | **Cache/Queue** | Redis, Laravel Horizon |
-| **Testing** | Pest PHP (parallel) |
+| **Testing** | Pest PHP (parallel), PHPStan Level 8 |
 | **Admin** | Filament v3 |
 | **Frontend** | Livewire, Tailwind CSS |
 

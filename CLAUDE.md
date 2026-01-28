@@ -23,7 +23,11 @@ gh pr list --state open
 | Version | Status | Notes |
 |---------|--------|-------|
 | **v1.1.0** | ✅ Released | Foundation Hardening complete |
-| **v1.2.0** | 🔄 In Progress | Feature Completion - check memory for details |
+| **v1.2.0** | ✅ Released | Feature Completion |
+| **v1.3.0** | ✅ Released | Platform Modularity |
+| **v1.4.0** | ✅ Released | Test Coverage Expansion (319 domain tests) |
+| **v1.4.1** | ✅ Released | Database cache connection fix |
+| **v2.0.0** | ✅ Merged | Multi-Tenancy (9 phases complete) |
 
 ### Key Services (DON'T RECREATE)
 Before implementing new features, check if these exist:
@@ -37,8 +41,9 @@ Before implementing new features, check if these exist:
 
 ### Memory Hierarchy (Serena)
 1. **Read first**: `development_continuation_guide` - Master handoff document
-2. **Reference**: `project_architecture_overview`, `todo_fixme_analysis_v120`
-3. **Historical**: Feature-specific memories (ai-framework-*, etc.)
+2. **Multi-tenancy**: `multitenancy_v2_implementation_status` - v2.0.0 status
+3. **Reference**: `project_architecture_overview`, `coding_standards_and_conventions`
+4. **Historical**: Feature-specific memories (ai-framework-*, agent-*, etc.)
 
 ---
 
@@ -338,6 +343,42 @@ php artisan demo:cleanup
 4. **Document demo behaviors** in service classes
 5. **Test both production and demo** implementations
 6. **Keep demo data isolated** using scopes or flags
+
+## Multi-Tenancy (v2.0.0)
+
+### Overview
+The platform supports team-based multi-tenancy using `stancl/tenancy` v3.9:
+
+- **Team-Based Isolation**: Each team gets isolated tenant database
+- **83 Tenant-Aware Models**: All domain models use `UsesTenantConnection` trait
+- **Tenant Event Sourcing**: Event streams isolated per tenant
+- **Filament Admin**: Tenant selector widget for admins
+
+### Key Components
+| Component | Location |
+|-----------|----------|
+| Tenant Model | `app/Models/Tenant.php` |
+| Team Resolver | `app/Resolvers/TeamTenantResolver.php` |
+| Middleware | `app/Http/Middleware/InitializeTenancyByTeam.php` |
+| Tenant Migrations | `database/migrations/tenant/` |
+
+### Tenant Commands
+```bash
+# Run tenant migrations
+php artisan tenants:migrate
+
+# Migrate data from central to tenant
+php artisan tenants:migrate-data --tenant=<uuid>
+
+# Export tenant data
+php artisan tenants:export-data <tenant-id> --format=json
+
+# Import tenant data
+php artisan tenants:import-data <tenant-id> <file-path>
+```
+
+### Multi-Tenancy Memory
+For implementation details: `mcp__serena__read_memory("multitenancy_v2_implementation_status")`
 
 ## Architecture Overview
 
