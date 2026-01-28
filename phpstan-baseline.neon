@@ -8771,3 +8771,9 @@ parameters:
 			identifier: property.onlyRead
 			count: 1
 			path: tests/Unit/Testing/Support/EventWithPrivateProperties.php
+
+		-
+			message: '#^Trait App\\Filament\\Admin\\TenantAwareResource is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: app/Filament/Admin/TenantAwareResource.php
