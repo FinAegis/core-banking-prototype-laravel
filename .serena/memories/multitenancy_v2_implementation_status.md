@@ -68,9 +68,16 @@
 - [x] Created Blade view for tenant selector
 - [x] Added unit tests (18 test cases)
 
-### Phase 8-9: NOT STARTED
-- Phase 8: Data migration tooling
-- Phase 9: Security audit
+### Phase 8: Data Migration Tooling 🔄 IN PROGRESS
+- [x] TenantDataMigrationService - Core service for data migration
+- [x] MigrateTenantDataCommand - Artisan command for central-to-tenant migration
+- [x] ExportTenantDataCommand - Export tenant data (JSON/CSV/SQL)
+- [x] ImportTenantDataCommand - Import tenant data from backups
+- [x] Migration for tracking tables (tenant_data_migrations, tenant_data_imports, tenant_data_exports)
+- [x] Unit tests for service and commands (56 tests)
+- [ ] Create and merge PR
+
+### Phase 9: Security Audit - NOT STARTED
 
 ## Key Files
 
