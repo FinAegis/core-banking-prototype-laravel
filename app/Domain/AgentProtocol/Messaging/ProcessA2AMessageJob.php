@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Messaging;
 
+use App\Domain\Shared\Jobs\TenantAwareJob;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -14,6 +15,10 @@ use Throwable;
 
 /**
  * Job to process A2A messages asynchronously.
+ *
+ * This job is tenant-aware since agents and their messages are scoped to
+ * specific tenants. The tenant_id is captured at dispatch time and restored
+ * by stancl/tenancy's QueueTenancyBootstrapper when the job is processed.
  */
 class ProcessA2AMessageJob implements ShouldQueue
 {
@@ -21,6 +26,7 @@ class ProcessA2AMessageJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+    use TenantAwareJob;
 
     /**
      * The number of times the job may be attempted.
@@ -43,6 +49,7 @@ class ProcessA2AMessageJob implements ShouldQueue
     public function __construct(
         private readonly array $envelopeData
     ) {
+        $this->initializeTenantAwareJob();
     }
 
     /**
@@ -109,10 +116,13 @@ class ProcessA2AMessageJob implements ShouldQueue
      */
     public function tags(): array
     {
-        return [
-            'a2a-message',
-            'message-type:' . ($this->envelopeData['messageType'] ?? 'unknown'),
-            'sender:' . ($this->envelopeData['senderDid'] ?? 'unknown'),
-        ];
+        return array_merge(
+            [
+                'a2a-message',
+                'message-type:' . ($this->envelopeData['messageType'] ?? 'unknown'),
+                'sender:' . ($this->envelopeData['senderDid'] ?? 'unknown'),
+            ],
+            $this->tenantTags()
+        );
     }
 }
