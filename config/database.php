@@ -83,16 +83,34 @@ return [
         | stancl/tenancy will override this connection when a tenant is active.
         | For testing without tenancy, this mirrors the default connection.
         |
+        | Note: This is a union config supporting both SQLite and MySQL. Each driver
+        | uses only the fields relevant to it and ignores the others.
+        |
         */
         'tenant' => [
-            'driver'                  => env('DB_CONNECTION', 'sqlite'),
-            'url'                     => env('DB_URL'),
+            'driver' => env('DB_CONNECTION', 'sqlite'),
+            'url'    => env('DB_URL'),
+            // SQLite fields
             'database'                => env('DB_DATABASE', database_path('database.sqlite')),
-            'prefix'                  => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout'            => null,
             'journal_mode'            => null,
             'synchronous'             => null,
+            // MySQL/MariaDB/PostgreSQL fields
+            'host'           => env('DB_HOST', '127.0.0.1'),
+            'port'           => env('DB_PORT', '3306'),
+            'username'       => env('DB_USERNAME', 'root'),
+            'password'       => env('DB_PASSWORD', ''),
+            'unix_socket'    => env('DB_SOCKET', ''),
+            'charset'        => env('DB_CHARSET', 'utf8mb4'),
+            'collation'      => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix'         => '',
+            'prefix_indexes' => true,
+            'strict'         => true,
+            'engine'         => null,
+            'options'        => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
         ],
 
         'mysql' => [
