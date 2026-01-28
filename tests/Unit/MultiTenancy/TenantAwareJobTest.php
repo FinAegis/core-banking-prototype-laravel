@@ -12,6 +12,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use RuntimeException;
 
 /**
  * Tests for TenantAwareJob trait functionality.
@@ -50,7 +52,7 @@ class TenantAwareJobTest extends TestCase
         $job = $this->createTenantAwareJob();
 
         // Use reflection to test the protected method
-        $reflection = new \ReflectionClass($job);
+        $reflection = new ReflectionClass($job);
         $method = $reflection->getMethod('getCurrentTenantId');
         $method->setAccessible(true);
 
@@ -62,11 +64,11 @@ class TenantAwareJobTest extends TestCase
     {
         $job = $this->createTenantRequiredJob();
 
-        $reflection = new \ReflectionClass($job);
+        $reflection = new ReflectionClass($job);
         $method = $reflection->getMethod('verifyTenantContext');
         $method->setAccessible(true);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Job requires tenant context but none is initialized');
 
         $method->invoke($job);

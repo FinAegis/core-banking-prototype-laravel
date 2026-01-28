@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Jobs;
 
+use RuntimeException;
+
 /**
  * Trait for queue jobs that should be aware of tenant context.
  *
@@ -91,23 +93,23 @@ trait TenantAwareJob
     /**
      * Verify tenant context is available and matches expected tenant.
      *
-     * @throws \RuntimeException if tenant context is missing or mismatched
+     * @throws RuntimeException if tenant context is missing or mismatched
      */
     protected function verifyTenantContext(): void
     {
-        if (!function_exists('tenant')) {
-            throw new \RuntimeException('Tenancy package not available');
+        if (! function_exists('tenant')) {
+            throw new RuntimeException('Tenancy package not available');
         }
 
-        if (!tenant()) {
-            throw new \RuntimeException('Job requires tenant context but none is initialized');
+        if (! tenant()) {
+            throw new RuntimeException('Job requires tenant context but none is initialized');
         }
 
         // If we tracked the original tenant, verify it matches
         if ($this->dispatchedTenantId !== null) {
             $currentTenantId = (string) tenant()->getTenantKey();
             if ($currentTenantId !== $this->dispatchedTenantId) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Tenant context mismatch: expected %s, got %s',
                     $this->dispatchedTenantId,
                     $currentTenantId
