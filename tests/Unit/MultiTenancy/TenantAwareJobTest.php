@@ -14,96 +14,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test job class that uses the TenantAwareJob trait.
- */
-class TestTenantAwareJob implements ShouldQueue
-{
-    use Dispatchable;
-    use InteractsWithQueue;
-    use Queueable;
-    use SerializesModels;
-    use TenantAwareJob;
-
-    public bool $handled = false;
-
-    public ?string $tenantIdDuringHandle = null;
-
-    public function __construct(
-        public readonly string $testData = 'test'
-    ) {
-        $this->initializeTenantAwareJob();
-    }
-
-    public function handle(): void
-    {
-        $this->handled = true;
-        $this->tenantIdDuringHandle = $this->getCurrentTenantId();
-    }
-
-    public function tags(): array
-    {
-        return array_merge(
-            ['test-job'],
-            $this->tenantTags()
-        );
-    }
-}
-
-/**
- * Test job that requires tenant context.
- */
-class TestTenantRequiredJob implements ShouldQueue
-{
-    use Dispatchable;
-    use InteractsWithQueue;
-    use Queueable;
-    use SerializesModels;
-    use TenantAwareJob;
-
-    public function __construct()
-    {
-        $this->initializeTenantAwareJob();
-    }
-
-    public function handle(): void
-    {
-        $this->verifyTenantContext();
-    }
-
-    public function requiresTenantContext(): bool
-    {
-        return true;
-    }
-}
-
-/**
- * Test job that does not require tenant context.
- */
-class TestOptionalTenantJob implements ShouldQueue
-{
-    use Dispatchable;
-    use InteractsWithQueue;
-    use Queueable;
-    use SerializesModels;
-    use TenantAwareJob;
-
-    public function __construct()
-    {
-        $this->initializeTenantAwareJob();
-    }
-
-    public function handle(): void
-    {
-        // This job works with or without tenant context
-    }
-
-    public function requiresTenantContext(): bool
-    {
-        return false;
-    }
-}
-
-/**
  * Tests for TenantAwareJob trait functionality.
  *
  * These are pure unit tests that don't require database or Redis.
@@ -114,7 +24,7 @@ class TenantAwareJobTest extends TestCase
     public function it_does_not_capture_tenant_id_when_no_tenant_is_active(): void
     {
         // In unit test context, tenant() function doesn't exist or returns null
-        $job = new TestTenantAwareJob('test-data');
+        $job = $this->createTenantAwareJob('test-data');
 
         $this->assertNull($job->dispatchedTenantId);
     }
@@ -122,11 +32,10 @@ class TenantAwareJobTest extends TestCase
     #[Test]
     public function it_returns_minimal_tenant_tags_when_no_tenant(): void
     {
-        $job = new TestTenantAwareJob();
+        $job = $this->createTenantAwareJob();
 
-        $tags = $job->tags();
+        $tags = $job->tenantTags();
 
-        $this->assertContains('test-job', $tags);
         $this->assertContains('tenant-aware', $tags);
 
         // Should not have a tenant:xxx tag (only 'tenant-aware')
@@ -137,27 +46,35 @@ class TenantAwareJobTest extends TestCase
     #[Test]
     public function it_returns_null_for_current_tenant_id_when_no_tenant(): void
     {
-        $job = new TestTenantAwareJob();
-        $job->handle();
+        $job = $this->createTenantAwareJob();
 
-        $this->assertNull($job->tenantIdDuringHandle);
+        // Use reflection to test the protected method
+        $reflection = new \ReflectionClass($job);
+        $method = $reflection->getMethod('getCurrentTenantId');
+        $method->setAccessible(true);
+
+        $this->assertNull($method->invoke($job));
     }
 
     #[Test]
     public function verify_tenant_context_throws_when_no_tenant_and_required(): void
     {
-        $job = new TestTenantRequiredJob();
+        $job = $this->createTenantRequiredJob();
+
+        $reflection = new \ReflectionClass($job);
+        $method = $reflection->getMethod('verifyTenantContext');
+        $method->setAccessible(true);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Job requires tenant context but none is initialized');
 
-        $job->handle();
+        $method->invoke($job);
     }
 
     #[Test]
     public function requires_tenant_context_returns_true_by_default(): void
     {
-        $job = new TestTenantAwareJob();
+        $job = $this->createTenantAwareJob();
 
         // The trait's default implementation returns true
         $this->assertTrue($job->requiresTenantContext());
@@ -166,31 +83,15 @@ class TenantAwareJobTest extends TestCase
     #[Test]
     public function requires_tenant_context_can_be_overridden_to_false(): void
     {
-        $job = new TestOptionalTenantJob();
+        $job = $this->createOptionalTenantJob();
 
         $this->assertFalse($job->requiresTenantContext());
     }
 
     #[Test]
-    public function required_tenant_job_returns_true_for_requires_context(): void
-    {
-        $job = new TestTenantRequiredJob();
-
-        $this->assertTrue($job->requiresTenantContext());
-    }
-
-    #[Test]
-    public function job_stores_test_data_correctly(): void
-    {
-        $job = new TestTenantAwareJob('my-data');
-
-        $this->assertEquals('my-data', $job->testData);
-    }
-
-    #[Test]
     public function tenant_tags_always_includes_tenant_aware_tag(): void
     {
-        $job = new TestTenantAwareJob();
+        $job = $this->createTenantAwareJob();
 
         $tenantTags = $job->tenantTags();
 
@@ -198,14 +99,92 @@ class TenantAwareJobTest extends TestCase
     }
 
     #[Test]
-    public function job_can_be_handled(): void
+    public function job_properties_are_initialized(): void
     {
-        $job = new TestTenantAwareJob();
+        $job = $this->createTenantAwareJob();
 
-        $this->assertFalse($job->handled);
+        // dispatchedTenantId should be null when no tenant is active
+        $this->assertNull($job->dispatchedTenantId);
+    }
 
-        $job->handle();
+    /**
+     * Create a test job that uses the TenantAwareJob trait.
+     */
+    private function createTenantAwareJob(string $testData = 'test'): object
+    {
+        return new class ($testData) implements ShouldQueue {
+            use Dispatchable;
+            use InteractsWithQueue;
+            use Queueable;
+            use SerializesModels;
+            use TenantAwareJob;
 
-        $this->assertTrue($job->handled);
+            public function __construct(
+                public readonly string $testData = 'test'
+            ) {
+                $this->initializeTenantAwareJob();
+            }
+
+            public function handle(): void
+            {
+            }
+        };
+    }
+
+    /**
+     * Create a test job that requires tenant context.
+     */
+    private function createTenantRequiredJob(): object
+    {
+        return new class () implements ShouldQueue {
+            use Dispatchable;
+            use InteractsWithQueue;
+            use Queueable;
+            use SerializesModels;
+            use TenantAwareJob;
+
+            public function __construct()
+            {
+                $this->initializeTenantAwareJob();
+            }
+
+            public function handle(): void
+            {
+                $this->verifyTenantContext();
+            }
+
+            public function requiresTenantContext(): bool
+            {
+                return true;
+            }
+        };
+    }
+
+    /**
+     * Create a test job that does not require tenant context.
+     */
+    private function createOptionalTenantJob(): object
+    {
+        return new class () implements ShouldQueue {
+            use Dispatchable;
+            use InteractsWithQueue;
+            use Queueable;
+            use SerializesModels;
+            use TenantAwareJob;
+
+            public function __construct()
+            {
+                $this->initializeTenantAwareJob();
+            }
+
+            public function handle(): void
+            {
+            }
+
+            public function requiresTenantContext(): bool
+            {
+                return false;
+            }
+        };
     }
 }
