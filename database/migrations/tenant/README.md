@@ -79,6 +79,40 @@ These remain in `database/migrations/` (central):
 - `settings`, `feature_flags`
 - Cache, jobs, workflows infrastructure
 
+## Security Guidelines
+
+### Encrypted Fields
+Sensitive data fields are marked with `_encrypted` suffix and require Laravel's `encrypted` cast:
+
+```php
+// In Model
+protected $casts = [
+    'access_data_encrypted' => 'encrypted:array',
+    'beneficiary_details_encrypted' => 'encrypted:array',
+    'iban_encrypted' => 'encrypted',
+];
+```
+
+**Fields requiring encryption:**
+- `bank_connections.access_data_encrypted` - OAuth/API tokens
+- `bank_accounts.iban_encrypted`, `bic_swift_encrypted`, `routing_number_encrypted`
+- `bank_transfers.beneficiary_details_encrypted`
+- `kyc_documents.document_data_encrypted`
+
+### Audit Trail Fields
+All financial tables include audit fields:
+- `created_by` - UUID of user who created the record
+- `updated_by` - UUID of user who last modified
+- `authorized_by` - UUID of user who authorized (for transfers)
+- `processed_by` - UUID of user/system that processed
+
+### AML/Compliance Fields
+Financial tables include compliance tracking:
+- `aml_status` - AML screening status (pending, cleared, flagged)
+- `aml_screened_at` - When AML screening was performed
+- `sanctions_status` - Sanctions check status
+- `sanctions_checked_at` - When sanctions check was performed
+
 ## Best Practices
 
 1. **Never reference central tables** in tenant migrations using foreign keys
@@ -86,3 +120,7 @@ These remain in `database/migrations/` (central):
 3. **Use `uuid` columns** instead of auto-increment IDs for cross-database references
 4. **Include soft deletes** for financial audit compliance
 5. **Add proper indexes** for user_uuid/account_uuid lookups
+6. **Always encrypt sensitive data** using Laravel's encrypted casts
+7. **Include audit fields** for all financial operations
+8. **Add AML/compliance fields** where money movement occurs
+9. **Use value_date and processing_date** for settlement tracking

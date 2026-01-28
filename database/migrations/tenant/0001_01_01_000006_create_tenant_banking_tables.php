@@ -27,11 +27,16 @@ return new class () extends Migration {
             $table->string('institution_name');
             $table->string('institution_id')->nullable();
             $table->string('status')->default('pending');
-            $table->json('access_data')->nullable();
+            // SECURITY: Use Laravel's encrypted cast in model for this field
+            $table->text('access_data_encrypted')->nullable()->comment('Encrypted OAuth/API tokens');
             $table->timestamp('authorized_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('last_synced_at')->nullable();
             $table->json('metadata')->nullable();
+
+            // Audit fields
+            $table->string('created_by')->nullable()->index();
+            $table->string('updated_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
@@ -50,19 +55,39 @@ return new class () extends Migration {
             $table->string('currency', 10)->default('USD');
             $table->decimal('balance', 20, 8)->nullable();
             $table->decimal('available_balance', 20, 8)->nullable();
-            $table->string('iban')->nullable();
-            $table->string('bic_swift')->nullable();
-            $table->string('sort_code')->nullable();
-            $table->string('routing_number')->nullable();
+
+            // SECURITY: Sensitive banking details - use encrypted cast in model
+            $table->text('iban_encrypted')->nullable()->comment('Encrypted IBAN');
+            $table->text('bic_swift_encrypted')->nullable()->comment('Encrypted BIC/SWIFT');
+            $table->text('sort_code_encrypted')->nullable()->comment('Encrypted sort code');
+            $table->text('routing_number_encrypted')->nullable()->comment('Encrypted routing number');
+
+            // Masked versions for display (safe to show)
+            $table->string('iban_masked')->nullable();
+            $table->string('bic_swift')->nullable(); // BIC/SWIFT is not sensitive
+            $table->string('sort_code_masked')->nullable();
+            $table->string('routing_number_masked')->nullable();
+
             $table->string('status')->default('active');
             $table->boolean('is_primary')->default(false);
             $table->timestamp('last_synced_at')->nullable();
+
+            // AML/Compliance
+            $table->boolean('aml_verified')->default(false);
+            $table->timestamp('aml_verified_at')->nullable();
+            $table->string('verification_status')->default('pending');
+
             $table->json('metadata')->nullable();
+
+            // Audit fields
+            $table->string('created_by')->nullable()->index();
+            $table->string('verified_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->index(['user_uuid', 'account_type']);
             $table->index(['currency', 'status']);
+            $table->index(['verification_status', 'aml_verified']);
         });
 
         Schema::create('bank_transfers', function (Blueprint $table) {
@@ -77,23 +102,48 @@ return new class () extends Migration {
             $table->decimal('amount', 20, 8);
             $table->string('currency', 10);
             $table->decimal('fee', 20, 8)->default(0);
+            $table->string('fee_type')->nullable();
             $table->decimal('exchange_rate', 20, 10)->nullable();
             $table->string('status')->default('pending');
             $table->string('reference')->nullable()->index();
-            $table->string('provider_reference')->nullable();
+            $table->string('provider_reference')->nullable()->index();
             $table->text('description')->nullable();
-            $table->json('beneficiary_details')->nullable();
+            $table->string('purpose')->nullable(); // Required by regulators
+
+            // SECURITY: Sensitive beneficiary data - use encrypted cast in model
+            $table->text('beneficiary_details_encrypted')->nullable()->comment('Encrypted beneficiary banking details');
+            $table->string('beneficiary_name')->nullable(); // Safe to display
+
+            // Value/Processing dates for settlement
+            $table->date('value_date')->nullable()->index();
+            $table->date('processing_date')->nullable();
+
             $table->timestamp('initiated_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('failed_at')->nullable();
             $table->text('failure_reason')->nullable();
+
+            // AML/Sanctions screening
+            $table->string('aml_status')->default('pending');
+            $table->timestamp('aml_screened_at')->nullable();
+            $table->string('sanctions_status')->default('pending');
+            $table->timestamp('sanctions_checked_at')->nullable();
+
             $table->json('metadata')->nullable();
+
+            // Audit fields
+            $table->string('initiated_by')->nullable()->index();
+            $table->string('authorized_by')->nullable();
+            $table->timestamp('authorized_at')->nullable();
+            $table->text('authorization_notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->index(['user_uuid', 'status']);
             $table->index(['type', 'status']);
             $table->index(['direction', 'created_at']);
+            $table->index(['aml_status', 'sanctions_status']);
+            $table->index(['source_bank_account_id', 'status']);
         });
 
         Schema::create('bank_statements', function (Blueprint $table) {
@@ -110,11 +160,23 @@ return new class () extends Migration {
             $table->unsignedInteger('transaction_count')->default(0);
             $table->string('currency', 10);
             $table->string('file_path')->nullable();
+
+            // Reconciliation
+            $table->string('reconciliation_status')->default('pending');
+            $table->timestamp('reconciled_at')->nullable();
+            $table->string('reconciled_by')->nullable();
+            $table->decimal('discrepancy_amount', 20, 8)->nullable();
+            $table->text('discrepancy_notes')->nullable();
+
             $table->json('metadata')->nullable();
+
+            // Audit fields
+            $table->string('imported_by')->nullable();
             $table->timestamps();
 
             $table->index(['bank_account_id', 'statement_date']);
             $table->index(['period_start', 'period_end']);
+            $table->index(['reconciliation_status']);
         });
     }
 

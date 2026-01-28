@@ -30,14 +30,37 @@ return new class () extends Migration {
             $table->string('status')->default('pending');
             $table->string('reference')->nullable()->index();
             $table->string('description')->nullable();
+
+            // Fee tracking
+            $table->decimal('fee_amount', 20, 8)->default(0);
+            $table->string('fee_type')->nullable();
+
+            // Counterparty info (for transfers)
+            $table->string('counterparty_name')->nullable();
+            $table->uuid('counterparty_account_uuid')->nullable()->index();
+
+            // Value/Processing dates
+            $table->date('value_date')->nullable()->index();
+            $table->date('processing_date')->nullable();
+
+            // Compliance
+            $table->string('aml_status')->default('not_required');
+            $table->timestamp('aml_screened_at')->nullable();
+            $table->string('regulatory_reference')->nullable(); // For cross-border
+
             $table->json('metadata')->nullable();
             $table->timestamp('processed_at')->nullable();
+
+            // Audit fields
+            $table->string('created_by')->nullable()->index();
+            $table->string('processed_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->index(['account_uuid', 'type']);
             $table->index(['status', 'created_at']);
             $table->index(['type', 'processed_at']);
+            $table->index(['value_date', 'status']);
         });
 
         Schema::create('transaction_snapshots', function (Blueprint $table) {
