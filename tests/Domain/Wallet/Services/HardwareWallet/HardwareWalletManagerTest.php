@@ -100,15 +100,16 @@ class HardwareWalletManagerTest extends TestCase
     public function it_creates_signing_request(): void
     {
         $association = HardwareWalletAssociation::create([
-            'user_id'         => 1,
-            'device_type'     => 'ledger_nano_x',
-            'device_id'       => 'ledger_123',
-            'device_label'    => 'Test Ledger',
-            'public_key'      => '04' . str_repeat('ab', 64),
-            'address'         => '0x1234567890123456789012345678901234567890',
-            'chain'           => 'ethereum',
-            'derivation_path' => "44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 1,
+            'device_type'      => 'ledger_nano_x',
+            'device_id'        => 'ledger_123',
+            'device_label'     => 'Test Ledger',
+            'public_key'       => '04' . str_repeat('ab', 64),
+            'address'          => '0x1234567890123456789012345678901234567890',
+            'chain'            => 'ethereum',
+            'derivation_path'  => "44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum', 'polygon'],
+            'is_active'        => true,
         ]);
 
         $transaction = new TransactionData(
@@ -133,15 +134,16 @@ class HardwareWalletManagerTest extends TestCase
     public function it_submits_signature_successfully(): void
     {
         $association = HardwareWalletAssociation::create([
-            'user_id'         => 1,
-            'device_type'     => 'ledger_nano_x',
-            'device_id'       => 'ledger_123',
-            'device_label'    => 'Test Ledger',
-            'public_key'      => '04' . str_repeat('ab', 64),
-            'address'         => '0x1234567890123456789012345678901234567890',
-            'chain'           => 'ethereum',
-            'derivation_path' => "44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 1,
+            'device_type'      => 'ledger_nano_x',
+            'device_id'        => 'ledger_123',
+            'device_label'     => 'Test Ledger',
+            'public_key'       => '04' . str_repeat('ab', 64),
+            'address'          => '0x1234567890123456789012345678901234567890',
+            'chain'            => 'ethereum',
+            'derivation_path'  => "44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum', 'polygon'],
+            'is_active'        => true,
         ]);
 
         $request = PendingSigningRequest::create([
@@ -176,15 +178,16 @@ class HardwareWalletManagerTest extends TestCase
     public function it_cancels_signing_request(): void
     {
         $association = HardwareWalletAssociation::create([
-            'user_id'         => 1,
-            'device_type'     => 'ledger_nano_x',
-            'device_id'       => 'ledger_123',
-            'device_label'    => 'Test Ledger',
-            'public_key'      => '04' . str_repeat('ab', 64),
-            'address'         => '0x1234567890123456789012345678901234567890',
-            'chain'           => 'ethereum',
-            'derivation_path' => "44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 1,
+            'device_type'      => 'ledger_nano_x',
+            'device_id'        => 'ledger_123',
+            'device_label'     => 'Test Ledger',
+            'public_key'       => '04' . str_repeat('ab', 64),
+            'address'          => '0x1234567890123456789012345678901234567890',
+            'chain'            => 'ethereum',
+            'derivation_path'  => "44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum', 'polygon'],
+            'is_active'        => true,
         ]);
 
         $request = PendingSigningRequest::create([
@@ -205,15 +208,16 @@ class HardwareWalletManagerTest extends TestCase
     public function it_cannot_cancel_completed_request(): void
     {
         $association = HardwareWalletAssociation::create([
-            'user_id'         => 1,
-            'device_type'     => 'ledger_nano_x',
-            'device_id'       => 'ledger_123',
-            'device_label'    => 'Test Ledger',
-            'public_key'      => '04' . str_repeat('ab', 64),
-            'address'         => '0x1234567890123456789012345678901234567890',
-            'chain'           => 'ethereum',
-            'derivation_path' => "44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 1,
+            'device_type'      => 'ledger_nano_x',
+            'device_id'        => 'ledger_123',
+            'device_label'     => 'Test Ledger',
+            'public_key'       => '04' . str_repeat('ab', 64),
+            'address'          => '0x1234567890123456789012345678901234567890',
+            'chain'            => 'ethereum',
+            'derivation_path'  => "44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum', 'polygon'],
+            'is_active'        => true,
         ]);
 
         $request = PendingSigningRequest::create([
@@ -234,39 +238,42 @@ class HardwareWalletManagerTest extends TestCase
     public function it_gets_user_associations(): void
     {
         HardwareWalletAssociation::create([
-            'user_id'         => 1,
-            'device_type'     => 'ledger_nano_x',
-            'device_id'       => 'ledger_123',
-            'device_label'    => 'Ledger 1',
-            'public_key'      => '04' . str_repeat('ab', 64),
-            'address'         => '0x1111111111111111111111111111111111111111',
-            'chain'           => 'ethereum',
-            'derivation_path' => "44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 1,
+            'device_type'      => 'ledger_nano_x',
+            'device_id'        => 'ledger_123',
+            'device_label'     => 'Ledger 1',
+            'public_key'       => '04' . str_repeat('ab', 64),
+            'address'          => '0x1111111111111111111111111111111111111111',
+            'chain'            => 'ethereum',
+            'derivation_path'  => "44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum', 'polygon'],
+            'is_active'        => true,
         ]);
 
         HardwareWalletAssociation::create([
-            'user_id'         => 1,
-            'device_type'     => 'trezor_model_t',
-            'device_id'       => 'trezor_456',
-            'device_label'    => 'Trezor 1',
-            'public_key'      => '04' . str_repeat('cd', 64),
-            'address'         => '0x2222222222222222222222222222222222222222',
-            'chain'           => 'polygon',
-            'derivation_path' => "m/44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 1,
+            'device_type'      => 'trezor_model_t',
+            'device_id'        => 'trezor_456',
+            'device_label'     => 'Trezor 1',
+            'public_key'       => '04' . str_repeat('cd', 64),
+            'address'          => '0x2222222222222222222222222222222222222222',
+            'chain'            => 'polygon',
+            'derivation_path'  => "m/44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum', 'polygon', 'bitcoin'],
+            'is_active'        => true,
         ]);
 
         HardwareWalletAssociation::create([
-            'user_id'         => 2,
-            'device_type'     => 'ledger_nano_s',
-            'device_id'       => 'ledger_789',
-            'device_label'    => 'Other User Ledger',
-            'public_key'      => '04' . str_repeat('ef', 64),
-            'address'         => '0x3333333333333333333333333333333333333333',
-            'chain'           => 'ethereum',
-            'derivation_path' => "44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 2,
+            'device_type'      => 'ledger_nano_s',
+            'device_id'        => 'ledger_789',
+            'device_label'     => 'Other User Ledger',
+            'public_key'       => '04' . str_repeat('ef', 64),
+            'address'          => '0x3333333333333333333333333333333333333333',
+            'chain'            => 'ethereum',
+            'derivation_path'  => "44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum'],
+            'is_active'        => true,
         ]);
 
         $associations = $this->manager->getUserAssociations(1);
@@ -278,15 +285,16 @@ class HardwareWalletManagerTest extends TestCase
     public function it_removes_association(): void
     {
         $association = HardwareWalletAssociation::create([
-            'user_id'         => 1,
-            'device_type'     => 'ledger_nano_x',
-            'device_id'       => 'ledger_123',
-            'device_label'    => 'Test Ledger',
-            'public_key'      => '04' . str_repeat('ab', 64),
-            'address'         => '0x1234567890123456789012345678901234567890',
-            'chain'           => 'ethereum',
-            'derivation_path' => "44'/60'/0'/0/0",
-            'is_active'       => true,
+            'user_id'          => 1,
+            'device_type'      => 'ledger_nano_x',
+            'device_id'        => 'ledger_123',
+            'device_label'     => 'Test Ledger',
+            'public_key'       => '04' . str_repeat('ab', 64),
+            'address'          => '0x1234567890123456789012345678901234567890',
+            'chain'            => 'ethereum',
+            'derivation_path'  => "44'/60'/0'/0/0",
+            'supported_chains' => ['ethereum', 'polygon'],
+            'is_active'        => true,
         ]);
 
         $this->manager->removeAssociation($association);

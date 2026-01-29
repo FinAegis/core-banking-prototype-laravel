@@ -226,6 +226,11 @@ return [
         'key_stored'                => App\Domain\Wallet\Events\KeyStored::class,
         'key_accessed'              => App\Domain\Wallet\Events\KeyAccessed::class,
 
+        // Hardware wallet events
+        'hardware_wallet_connected'         => App\Domain\Wallet\Events\HardwareWalletConnected::class,
+        'hardware_wallet_signing_requested' => App\Domain\Wallet\Events\HardwareWalletSigningRequested::class,
+        'hardware_wallet_signing_completed' => App\Domain\Wallet\Events\HardwareWalletSigningCompleted::class,
+
         // Lending events
         'loan_application_submitted'                 => App\Domain\Lending\Events\LoanApplicationSubmitted::class,
         'loan_application_credit_check_completed'    => App\Domain\Lending\Events\LoanApplicationCreditCheckCompleted::class,
