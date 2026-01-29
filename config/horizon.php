@@ -209,6 +209,17 @@ return [
                 'processes'  => 1,
                 'tries'      => 3,
             ],
+            'broadcasts-supervisor' => [
+                'connection'          => 'redis',
+                'queue'               => ['broadcasts'],
+                'balance'             => 'auto',
+                'autoScalingStrategy' => 'time',
+                'minProcesses'        => 1,
+                'maxProcesses'        => 5,
+                'tries'               => 3,
+                'timeout'             => 30,
+                'memory'              => 128,
+            ],
         ],
 
         'local' => [
@@ -221,6 +232,14 @@ return [
                 'balance'    => 'simple',
                 'processes'  => 1,
                 'tries'      => 3,
+            ],
+            'broadcasts-supervisor' => [
+                'connection'   => 'redis',
+                'queue'        => ['broadcasts'],
+                'balance'      => 'simple',
+                'processes'    => 1,
+                'tries'        => 3,
+                'timeout'      => 30,
             ],
         ],
     ],

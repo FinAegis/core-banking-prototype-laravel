@@ -60,3 +60,8 @@ Broadcast::channel('tenant.{tenantId}.compliance', function ($user, string $tena
 Broadcast::channel('tenant.{tenantId}.exchange', function ($user, string $tenantId) {
     return TenantChannelAuthorizer::authorizeUser($user, $tenantId);
 });
+
+// Tenant-specific multi-sig wallet updates (v2.1.0)
+Broadcast::channel('tenant.{tenantId}.wallet.multi-sig', function ($user, string $tenantId) {
+    return TenantChannelAuthorizer::authorizeUser($user, $tenantId);
+});

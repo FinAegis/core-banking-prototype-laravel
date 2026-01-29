@@ -74,6 +74,20 @@ Route::prefix('monitoring')->group(function () {
     Route::get('/alive', [App\Http\Controllers\Api\MonitoringController::class, 'alive'])->name('monitoring.alive');
 });
 
+// WebSocket configuration endpoints (public - for client initialization)
+Route::prefix('websocket')->name('api.websocket.')->group(function () {
+    Route::get('/config', [App\Http\Controllers\Api\WebSocketController::class, 'config'])->name('config');
+    Route::get('/status', [App\Http\Controllers\Api\WebSocketController::class, 'status'])->name('status');
+    Route::get('/channels/{type}', [App\Http\Controllers\Api\WebSocketController::class, 'channelInfo'])->name('channel-info');
+});
+
+// WebSocket authenticated endpoints
+Route::prefix('websocket')->name('api.websocket.')
+    ->middleware(['auth:sanctum', 'check.token.expiration'])
+    ->group(function () {
+        Route::get('/channels', [App\Http\Controllers\Api\WebSocketController::class, 'channels'])->name('channels');
+    });
+
 // Legacy authentication routes for backward compatibility
 Route::post('/login', [LoginController::class, 'login'])->middleware('api.rate_limit:auth');
 Route::post('/register', [RegisterController::class, 'register'])->middleware('api.rate_limit:auth');
