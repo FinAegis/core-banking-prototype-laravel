@@ -8,6 +8,7 @@ use App\Domain\Wallet\Contracts\ExternalSignerInterface;
 use App\Domain\Wallet\ValueObjects\SignedTransaction;
 use App\Domain\Wallet\ValueObjects\TransactionData;
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Ledger hardware wallet signer service.
@@ -97,12 +98,22 @@ class LedgerSignerService implements ExternalSignerInterface
         string $signature,
         string $publicKey
     ): bool {
-        if ($this->isEvmChain($transaction->chain)) {
-            return $this->validateEvmSignature($transaction, $signature, $publicKey);
+        // Basic validation - reject empty values
+        if (empty($signature) || empty($publicKey)) {
+            return false;
         }
 
-        if ($transaction->chain === 'bitcoin') {
-            return $this->validateBitcoinSignature($transaction, $signature, $publicKey);
+        try {
+            if ($this->isEvmChain($transaction->chain)) {
+                return $this->validateEvmSignature($transaction, $signature, $publicKey);
+            }
+
+            if ($transaction->chain === 'bitcoin') {
+                return $this->validateBitcoinSignature($transaction, $signature, $publicKey);
+            }
+        } catch (Throwable) {
+            // Invalid signature format
+            return false;
         }
 
         return false;
@@ -167,7 +178,7 @@ class LedgerSignerService implements ExternalSignerInterface
                 : '0x3B9ACA00'; // 1 Gwei default
         }
 
-        $rawData = $this->rlpEncode($txData);
+        $rawData = '0x' . $this->rlpEncode($txData);
 
         return [
             'raw_data'     => $rawData,
@@ -275,7 +286,11 @@ class LedgerSignerService implements ExternalSignerInterface
     }
 
     /**
-     * Validate an EVM signature using ecrecover.
+     * Validate an EVM signature.
+     *
+     * NOTE: This is a prototype implementation that performs basic format validation.
+     * Production implementation should use proper ECDSA signature verification
+     * with ecrecover to verify the signature matches the public key.
      */
     private function validateEvmSignature(
         TransactionData $transaction,
@@ -285,13 +300,12 @@ class LedgerSignerService implements ExternalSignerInterface
         // Parse signature components
         $sig = $this->parseEvmSignature($signature);
 
-        // Recover address from signature and verify it matches the public key
-        // In production, use a proper ECDSA library
-        $preparedData = $this->prepareEvmTransaction($transaction);
-        $messageHash = hash('keccak256', hex2bin($preparedData['raw_data']) ?: '');
+        // Basic format validation
+        // In production, use proper ecrecover to verify signature matches public key
+        $rWithoutPrefix = str_starts_with($sig['r'], '0x') ? substr($sig['r'], 2) : $sig['r'];
+        $sWithoutPrefix = str_starts_with($sig['s'], '0x') ? substr($sig['s'], 2) : $sig['s'];
 
-        // Simplified validation - in production use proper ecrecover
-        return strlen($sig['r']) === 64 && strlen($sig['s']) === 64;
+        return strlen($rWithoutPrefix) === 64 && strlen($sWithoutPrefix) === 64;
     }
 
     /**
@@ -313,7 +327,8 @@ class LedgerSignerService implements ExternalSignerInterface
      */
     private function parseEvmSignature(string $signature): array
     {
-        $sig = ltrim($signature, '0x');
+        // Remove 0x prefix if present
+        $sig = str_starts_with($signature, '0x') ? substr($signature, 2) : $signature;
 
         if (strlen($sig) !== 130) {
             throw new InvalidArgumentException('Invalid signature length');
@@ -339,12 +354,26 @@ class LedgerSignerService implements ExternalSignerInterface
      */
     private function getChainId(string $chain): int
     {
-        return match ($chain) {
-            'ethereum' => (int) config('blockchain.ethereum.chain_id', 1),
-            'polygon'  => (int) config('blockchain.polygon.chain_id', 137),
-            'bsc'      => (int) config('blockchain.bsc.chain_id', 56),
-            default    => 1,
-        };
+        $defaults = [
+            'ethereum' => 1,
+            'polygon'  => 137,
+            'bsc'      => 56,
+        ];
+
+        if (! isset($defaults[$chain])) {
+            return 1;
+        }
+
+        // Use config if Laravel is available, otherwise fall back to defaults
+        try {
+            if (function_exists('config') && function_exists('app') && app()->bound('config')) {
+                return (int) config("blockchain.{$chain}.chain_id", $defaults[$chain]);
+            }
+        } catch (Throwable) {
+            // Laravel not bootstrapped, use defaults
+        }
+
+        return $defaults[$chain];
     }
 
     /**

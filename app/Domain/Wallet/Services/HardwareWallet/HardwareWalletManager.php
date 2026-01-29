@@ -15,6 +15,7 @@ use App\Domain\Wallet\ValueObjects\PendingSigningRequest as PendingSigningReques
 use App\Domain\Wallet\ValueObjects\SignedTransaction;
 use App\Domain\Wallet\ValueObjects\TransactionData;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
@@ -22,6 +23,15 @@ use InvalidArgumentException;
  *
  * Coordinates hardware wallet operations including device registration,
  * signing request lifecycle management, and signature validation.
+ *
+ * SECURITY NOTICE: This implementation is designed for educational/prototype use.
+ * For production deployment, the following should be implemented:
+ * - Proper ECDSA signature verification using a cryptography library
+ * - Hardware security module (HSM) integration for key operations
+ * - Formal security audit of all cryptographic operations
+ * - Rate limiting at multiple layers (endpoint, user, device, IP)
+ *
+ * @see https://github.com/FinAegis/core-banking-prototype-laravel/docs/security
  */
 class HardwareWalletManager
 {
@@ -101,64 +111,69 @@ class HardwareWalletManager
 
     /**
      * Create a signing request for a hardware wallet transaction.
+     *
+     * Uses database transaction with locking to prevent race conditions.
      */
     public function createSigningRequest(
         HardwareWalletAssociation $association,
         TransactionData $transaction
     ): PendingSigningRequest {
-        // Check pending request limit
-        $pendingCount = PendingSigningRequest::where('user_id', $association->user_id)
-            ->whereIn('status', [
-                PendingSigningRequestVO::STATUS_PENDING,
-                PendingSigningRequestVO::STATUS_AWAITING_DEVICE,
-            ])
-            ->count();
+        return DB::transaction(function () use ($association, $transaction) {
+            // Check pending request limit with row locking to prevent race conditions
+            $pendingCount = PendingSigningRequest::where('user_id', $association->user_id)
+                ->whereIn('status', [
+                    PendingSigningRequestVO::STATUS_PENDING,
+                    PendingSigningRequestVO::STATUS_AWAITING_DEVICE,
+                ])
+                ->lockForUpdate()
+                ->count();
 
-        $maxPending = (int) config('blockchain.hardware_wallets.security.max_pending_requests', 5);
-        if ($pendingCount >= $maxPending) {
-            throw new InvalidArgumentException("Maximum pending requests ({$maxPending}) reached");
-        }
+            $maxPending = (int) config('blockchain.hardware_wallets.security.max_pending_requests', 5);
+            if ($pendingCount >= $maxPending) {
+                throw new InvalidArgumentException("Maximum pending requests ({$maxPending}) reached");
+            }
 
-        // Get signer for device type
-        $signer = $this->getSignerForDevice($association);
+            // Get signer for device type
+            $signer = $this->getSignerForDevice($association);
 
-        // Prepare transaction for signing
-        $preparedData = $signer->prepareForSigning($transaction);
+            // Prepare transaction for signing
+            $preparedData = $signer->prepareForSigning($transaction);
 
-        // Get TTL from config
-        $ttlSeconds = (int) config('blockchain.hardware_wallets.signing_request.ttl_seconds', 300);
+            // Get TTL from config
+            $ttlSeconds = (int) config('blockchain.hardware_wallets.signing_request.ttl_seconds', 300);
 
-        // Create signing request
-        $request = new PendingSigningRequest([
-            'user_id'          => $association->user_id,
-            'association_id'   => $association->id,
-            'status'           => PendingSigningRequestVO::STATUS_PENDING,
-            'transaction_data' => $transaction->toArray(),
-            'raw_data_to_sign' => $preparedData['raw_data'],
-            'chain'            => $transaction->chain,
-            'metadata'         => [
-                'encoding'     => $preparedData['encoding'],
-                'display_data' => $preparedData['display_data'],
-                'device_type'  => $association->device_type,
-            ],
-            'expires_at' => now()->addSeconds($ttlSeconds),
-        ]);
+            // Create signing request
+            $request = new PendingSigningRequest([
+                'user_id'          => $association->user_id,
+                'association_id'   => $association->id,
+                'status'           => PendingSigningRequestVO::STATUS_PENDING,
+                'transaction_data' => $transaction->toArray(),
+                'raw_data_to_sign' => $preparedData['raw_data'],
+                'chain'            => $transaction->chain,
+                'metadata'         => [
+                    'encoding'     => $preparedData['encoding'],
+                    'display_data' => $preparedData['display_data'],
+                    'device_type'  => $association->device_type,
+                ],
+                'expires_at' => now()->addSeconds($ttlSeconds),
+            ]);
 
-        $request->save();
+            $request->save();
 
-        // Record event
-        event(new HardwareWalletSigningRequested(
-            requestId: $request->id,
-            associationId: $association->id,
-            userId: (string) $association->user_id,
-            chain: $transaction->chain,
-            transactionData: $transaction->toArray(),
-            rawDataToSign: $preparedData['raw_data'],
-            expiresAt: $request->expires_at->toIso8601String(),
-            metadata: $request->metadata ?? []
-        ));
+            // Record event
+            event(new HardwareWalletSigningRequested(
+                requestId: $request->id,
+                associationId: $association->id,
+                userId: (string) $association->user_id,
+                chain: $transaction->chain,
+                transactionData: $transaction->toArray(),
+                rawDataToSign: $preparedData['raw_data'],
+                expiresAt: $request->expires_at->toIso8601String(),
+                metadata: $request->metadata ?? []
+            ));
 
-        return $request;
+            return $request;
+        });
     }
 
     /**

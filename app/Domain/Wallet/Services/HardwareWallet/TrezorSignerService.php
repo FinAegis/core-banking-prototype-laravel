@@ -8,6 +8,7 @@ use App\Domain\Wallet\Contracts\ExternalSignerInterface;
 use App\Domain\Wallet\ValueObjects\SignedTransaction;
 use App\Domain\Wallet\ValueObjects\TransactionData;
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Trezor hardware wallet signer service.
@@ -97,12 +98,22 @@ class TrezorSignerService implements ExternalSignerInterface
         string $signature,
         string $publicKey
     ): bool {
-        if ($this->isEvmChain($transaction->chain)) {
-            return $this->validateTrezorEvmSignature($transaction, $signature, $publicKey);
+        // Basic validation - reject empty values
+        if (empty($signature) || empty($publicKey)) {
+            return false;
         }
 
-        if ($transaction->chain === 'bitcoin') {
-            return $this->validateTrezorBitcoinSignature($transaction, $signature, $publicKey);
+        try {
+            if ($this->isEvmChain($transaction->chain)) {
+                return $this->validateTrezorEvmSignature($transaction, $signature, $publicKey);
+            }
+
+            if ($transaction->chain === 'bitcoin') {
+                return $this->validateTrezorBitcoinSignature($transaction, $signature, $publicKey);
+            }
+        } catch (Throwable) {
+            // Invalid signature format
+            return false;
         }
 
         return false;
@@ -304,7 +315,8 @@ class TrezorSignerService implements ExternalSignerInterface
      */
     private function parseTrezorSignature(string $signature): array
     {
-        $sig = ltrim($signature, '0x');
+        // Remove 0x prefix if present
+        $sig = str_starts_with($signature, '0x') ? substr($signature, 2) : $signature;
 
         // Trezor may return signature in different formats
         if (strlen($sig) === 130) {
@@ -342,12 +354,26 @@ class TrezorSignerService implements ExternalSignerInterface
      */
     private function getChainId(string $chain): int
     {
-        return match ($chain) {
-            'ethereum' => (int) config('blockchain.ethereum.chain_id', 1),
-            'polygon'  => (int) config('blockchain.polygon.chain_id', 137),
-            'bsc'      => (int) config('blockchain.bsc.chain_id', 56),
-            default    => 1,
-        };
+        $defaults = [
+            'ethereum' => 1,
+            'polygon'  => 137,
+            'bsc'      => 56,
+        ];
+
+        if (! isset($defaults[$chain])) {
+            return 1;
+        }
+
+        // Use config if Laravel is available, otherwise fall back to defaults
+        try {
+            if (function_exists('config') && function_exists('app') && app()->bound('config')) {
+                return (int) config("blockchain.{$chain}.chain_id", $defaults[$chain]);
+            }
+        } catch (Throwable) {
+            // Laravel not bootstrapped, use defaults
+        }
+
+        return $defaults[$chain];
     }
 
     /**

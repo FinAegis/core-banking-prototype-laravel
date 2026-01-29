@@ -256,11 +256,18 @@ class TrezorSignerServiceTest extends TestCase
     #[Test]
     public function it_returns_confirmation_steps(): void
     {
-        $steps = $this->service->getConfirmationSteps();
+        $result = $this->service->getConfirmationSteps();
 
-        $this->assertIsArray($steps);
-        $this->assertNotEmpty($steps);
-        $this->assertContains('Connect your Trezor device via USB', $steps);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('steps', $result);
+        $this->assertArrayHasKey('estimated_time_seconds', $result);
+        $this->assertArrayHasKey('requires_physical_confirmation', $result);
+
+        $steps = $result['steps'];
+        $this->assertArrayHasKey('connect', $steps);
+        $this->assertArrayHasKey('unlock', $steps);
+        $this->assertArrayHasKey('confirm', $steps);
+        $this->assertTrue($result['requires_physical_confirmation']);
     }
 
     #[Test]

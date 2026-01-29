@@ -69,14 +69,14 @@ class HardwareWalletController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'device_type'        => ['required', 'string', Rule::in(HardwareWalletDevice::SUPPORTED_TYPES)],
-            'device_id'          => ['required', 'string', 'max:255'],
+            'device_id'          => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_\-]+$/'],
             'device_label'       => ['nullable', 'string', 'max:100'],
-            'firmware_version'   => ['nullable', 'string', 'max:50'],
-            'public_key'         => ['required', 'string'],
-            'address'            => ['required', 'string'],
+            'firmware_version'   => ['nullable', 'string', 'max:50', 'regex:/^[\d\.]+$/'],
+            'public_key'         => ['required', 'string', 'regex:/^(0x)?[a-fA-F0-9]{64,130}$/'],
+            'address'            => ['required', 'string', 'regex:/^(0x[a-fA-F0-9]{40}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{25,90})$/'],
             'chain'              => ['required', 'string', Rule::in(['ethereum', 'bitcoin', 'polygon', 'bsc'])],
-            'derivation_path'    => ['nullable', 'string'],
-            'supported_chains'   => ['nullable', 'array'],
+            'derivation_path'    => ['nullable', 'string', 'regex:/^m?\/44\'\/\d+\'\/\d+\'\/\d+\/\d+$/'],
+            'supported_chains'   => ['nullable', 'array', 'max:10'],
             'supported_chains.*' => ['string', Rule::in(['ethereum', 'bitcoin', 'polygon', 'bsc'])],
         ]);
 
@@ -86,6 +86,18 @@ class HardwareWalletController extends Controller
 
         /** @var \App\Models\User $user */
         $user = $request->user();
+
+        // Security: Check for duplicate registration
+        $existingAssociation = HardwareWalletAssociation::where('address', $request->input('address'))
+            ->where('chain', $request->input('chain'))
+            ->where('is_active', true)
+            ->first();
+
+        if ($existingAssociation) {
+            return response()->json([
+                'error' => 'This address is already registered for this chain',
+            ], 422);
+        }
 
         $device = HardwareWalletDevice::create(
             type: $request->input('device_type'),
@@ -161,16 +173,16 @@ class HardwareWalletController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'association_id'                       => ['required', 'uuid', 'exists:hardware_wallet_associations,id'],
-            'transaction.from'                     => ['required', 'string'],
-            'transaction.to'                       => ['required', 'string'],
-            'transaction.value'                    => ['required', 'string'],
+            'transaction.from'                     => ['required', 'string', 'regex:/^(0x[a-fA-F0-9]{40}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{25,90})$/'],
+            'transaction.to'                       => ['required', 'string', 'regex:/^(0x[a-fA-F0-9]{40}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{25,90})$/'],
+            'transaction.value'                    => ['required', 'string', 'regex:/^\d+$/'],
             'transaction.chain'                    => ['required', 'string', Rule::in(['ethereum', 'bitcoin', 'polygon', 'bsc'])],
-            'transaction.data'                     => ['nullable', 'string'],
-            'transaction.gas_limit'                => ['nullable', 'string'],
-            'transaction.gas_price'                => ['nullable', 'string'],
-            'transaction.max_fee_per_gas'          => ['nullable', 'string'],
-            'transaction.max_priority_fee_per_gas' => ['nullable', 'string'],
-            'transaction.nonce'                    => ['nullable', 'integer', 'min:0'],
+            'transaction.data'                     => ['nullable', 'string', 'regex:/^(0x)?[a-fA-F0-9]*$/'],
+            'transaction.gas_limit'                => ['nullable', 'string', 'regex:/^\d+$/'],
+            'transaction.gas_price'                => ['nullable', 'string', 'regex:/^\d+$/'],
+            'transaction.max_fee_per_gas'          => ['nullable', 'string', 'regex:/^\d+$/'],
+            'transaction.max_priority_fee_per_gas' => ['nullable', 'string', 'regex:/^\d+$/'],
+            'transaction.nonce'                    => ['nullable', 'integer', 'min:0', 'max:2147483647'],
         ]);
 
         if ($validator->fails()) {
@@ -190,6 +202,15 @@ class HardwareWalletController extends Controller
         }
 
         $txInput = $request->input('transaction');
+
+        // Security: Verify transaction 'from' address matches association address
+        $fromAddress = strtolower((string) $txInput['from']);
+        $assocAddress = strtolower((string) $association->address);
+        if ($fromAddress !== $assocAddress) {
+            return response()->json([
+                'error' => 'Transaction from address does not match registered device address',
+            ], 422);
+        }
         $transaction = new TransactionData(
             from: $txInput['from'],
             to: $txInput['to'],
@@ -248,8 +269,8 @@ class HardwareWalletController extends Controller
     public function submitSignature(Request $request, string $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'signature'  => ['required', 'string'],
-            'public_key' => ['required', 'string'],
+            'signature'  => ['required', 'string', 'regex:/^(0x)?[a-fA-F0-9]{128,132}$/'],
+            'public_key' => ['required', 'string', 'regex:/^(0x)?[a-fA-F0-9]{64,130}$/'],
         ]);
 
         if ($validator->fails()) {
@@ -265,6 +286,16 @@ class HardwareWalletController extends Controller
 
         if (! $signingRequest) {
             return response()->json(['error' => 'Signing request not found'], 404);
+        }
+
+        // Security: Verify public key matches the stored association
+        $association = $signingRequest->association;
+        if ($association) {
+            $submittedKey = ltrim($request->input('public_key'), '0x');
+            $storedKey = ltrim($association->public_key, '0x');
+            if (strcasecmp($submittedKey, $storedKey) !== 0) {
+                return response()->json(['error' => 'Public key does not match registered device'], 403);
+            }
         }
 
         try {
