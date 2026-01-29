@@ -152,46 +152,46 @@ return [
 
         'ledger' => [
             'supported_models' => ['nano_s', 'nano_x'],
-            'app_versions' => [
+            'app_versions'     => [
                 'ethereum' => '1.9.0',
-                'bitcoin' => '2.0.0',
+                'bitcoin'  => '2.0.0',
             ],
         ],
 
         'trezor' => [
             'supported_models' => ['one', 'model_t'],
-            'webusb_enabled' => true,
+            'webusb_enabled'   => true,
         ],
 
         'signing_request' => [
-            'ttl_seconds' => env('HARDWARE_WALLET_SIGNING_TTL', 300), // 5 minutes
-            'max_retries' => 3,
+            'ttl_seconds'      => env('HARDWARE_WALLET_SIGNING_TTL', 300), // 5 minutes
+            'max_retries'      => 3,
             'poll_interval_ms' => 1000,
         ],
 
         'supported_chains' => [
             'ethereum' => [
-                'coin_type' => 60,
+                'coin_type'       => 60,
                 'derivation_path' => "m/44'/60'/0'/0/{index}",
             ],
             'bitcoin' => [
-                'coin_type' => 0,
+                'coin_type'       => 0,
                 'derivation_path' => "m/44'/0'/0'/0/{index}",
             ],
             'polygon' => [
-                'coin_type' => 60, // Same as Ethereum (EVM compatible)
+                'coin_type'       => 60, // Same as Ethereum (EVM compatible)
                 'derivation_path' => "m/44'/60'/0'/0/{index}",
             ],
             'bsc' => [
-                'coin_type' => 60, // Same as Ethereum (EVM compatible)
+                'coin_type'       => 60, // Same as Ethereum (EVM compatible)
                 'derivation_path' => "m/44'/60'/0'/0/{index}",
             ],
         ],
 
         'security' => [
-            'require_verification' => true,
+            'require_verification'      => true,
             'max_associations_per_user' => 10,
-            'max_pending_requests' => 5,
+            'max_pending_requests'      => 5,
         ],
     ],
 ];
