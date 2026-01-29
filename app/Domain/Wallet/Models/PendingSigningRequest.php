@@ -159,6 +159,14 @@ class PendingSigningRequest extends Model
     }
 
     /**
+     * Check if this request has failed.
+     */
+    public function isFailed(): bool
+    {
+        return $this->status === PendingSigningRequestVO::STATUS_FAILED;
+    }
+
+    /**
      * Check if this request can be processed.
      */
     public function canBeProcessed(): bool
