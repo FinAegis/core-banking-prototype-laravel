@@ -262,11 +262,13 @@ class HardwareWalletManager
 
     /**
      * Cancel a pending signing request.
+     *
+     * Silently does nothing for completed or failed requests.
      */
     public function cancelSigningRequest(PendingSigningRequest $request): void
     {
         if ($request->isCompleted() || $request->isFailed()) {
-            throw new InvalidArgumentException('Cannot cancel a completed or failed request');
+            return; // Silently ignore - cannot cancel completed/failed requests
         }
 
         $request->markAsCancelled();
