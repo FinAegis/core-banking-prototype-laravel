@@ -1,0 +1,12 @@
+{{- if and .Values.istio.enabled .Values.istio.destinationRule.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ include "finaegis.fullname" . }}
+  labels:
+    {{- include "finaegis.labels" . | nindent 4 }}
+spec:
+  host: {{ include "finaegis.fullname" . }}
+  trafficPolicy:
+    {{- toYaml .Values.istio.destinationRule.trafficPolicy | nindent 4 }}
+{{- end }}

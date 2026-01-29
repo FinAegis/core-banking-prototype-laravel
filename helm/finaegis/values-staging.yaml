@@ -1,0 +1,143 @@
+# ============================================================================
+# FinAegis Core Banking Platform - Staging Values
+# ============================================================================
+
+# Staging image (latest build)
+image:
+  tag: "staging"
+  pullPolicy: Always
+
+# Web configuration for staging
+web:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+# Horizon for staging
+horizon:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  autoscaling:
+    enabled: false
+
+# Scheduler
+scheduler:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+# Staging ingress
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  hosts:
+    - host: api.staging.finaegis.org
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: finaegis-staging-tls
+      hosts:
+        - api.staging.finaegis.org
+
+# Disable Istio in staging
+istio:
+  enabled: false
+
+# External secrets for staging
+externalSecrets:
+  enabled: true
+  refreshInterval: 15m
+  secretStore:
+    name: vault-backend
+    kind: ClusterSecretStore
+  keys:
+    - secretKey: APP_KEY
+      remoteRef:
+        key: finaegis/staging/app
+        property: key
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: finaegis/staging/database
+        property: password
+    - secretKey: REDIS_PASSWORD
+      remoteRef:
+        key: finaegis/staging/redis
+        property: password
+
+# Staging configuration
+config:
+  APP_NAME: "FinAegis Staging"
+  APP_ENV: "staging"
+  APP_DEBUG: "true"
+  APP_URL: "https://api.staging.finaegis.org"
+  LOG_CHANNEL: "stack"
+  LOG_LEVEL: "debug"
+
+  DB_CONNECTION: "mariadb"
+  DB_HOST: "finaegis-mariadb"
+  DB_PORT: "3306"
+  DB_DATABASE: "finaegis_staging"
+
+  CACHE_STORE: "redis"
+  SESSION_DRIVER: "redis"
+  QUEUE_CONNECTION: "redis"
+  BROADCAST_CONNECTION: "pusher"
+
+  REDIS_HOST: "finaegis-redis-master"
+  REDIS_PORT: "6379"
+
+# Service monitor for staging
+serviceMonitor:
+  enabled: true
+
+# Relaxed network policy for staging
+networkPolicy:
+  enabled: false
+
+# Redis for staging (single replica)
+redis:
+  enabled: true
+  auth:
+    enabled: true
+  replica:
+    replicaCount: 1
+    persistence:
+      size: 1Gi
+
+# MariaDB subchart for staging
+mariadb:
+  enabled: true
+  auth:
+    database: finaegis_staging
+  primary:
+    persistence:
+      size: 10Gi

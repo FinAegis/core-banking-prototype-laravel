@@ -1,0 +1,290 @@
+name: CI/CD Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  HELM_VERSION: '3.13.0'
+
+jobs:
+  # ============================================================================
+  # Build and Test
+  # ============================================================================
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # Build Horizon image
+      - name: Build and push Horizon image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          target: horizon
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}-horizon
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Build Scheduler image
+      - name: Build and push Scheduler image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          target: scheduler
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}-scheduler
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # Helm Lint and Test
+  # ============================================================================
+  helm-lint:
+    name: Helm Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Add Bitnami repo
+        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+      - name: Update dependencies
+        run: helm dependency update helm/finaegis
+
+      - name: Lint Helm chart
+        run: helm lint helm/finaegis/
+
+      - name: Template Helm chart (staging)
+        run: |
+          helm template finaegis helm/finaegis/ \
+            --values helm/finaegis/values-staging.yaml \
+            --debug
+
+      - name: Template Helm chart (production)
+        run: |
+          helm template finaegis helm/finaegis/ \
+            --values helm/finaegis/values-production.yaml \
+            --debug
+
+  # ============================================================================
+  # Security Scanning
+  # ============================================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    permissions:
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================================================
+  # Deploy to Staging
+  # ============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, helm-lint]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://api.staging.finaegis.org
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Add Bitnami repo
+        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+      - name: Update dependencies
+        run: helm dependency update helm/finaegis
+
+      - name: Deploy to staging
+        run: |
+          helm upgrade --install finaegis helm/finaegis/ \
+            --namespace finaegis-staging \
+            --create-namespace \
+            --values helm/finaegis/values-staging.yaml \
+            --set image.tag=${{ github.sha }} \
+            --wait \
+            --timeout 10m
+
+      - name: Run database migrations
+        run: |
+          kubectl exec -n finaegis-staging \
+            deployment/finaegis-web -- \
+            php artisan migrate --force
+
+      - name: Clear caches
+        run: |
+          kubectl exec -n finaegis-staging \
+            deployment/finaegis-web -- \
+            php artisan cache:clear
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status -n finaegis-staging deployment/finaegis-web
+          kubectl rollout status -n finaegis-staging deployment/finaegis-horizon
+
+  # ============================================================================
+  # Deploy to Production
+  # ============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, helm-lint, security-scan]
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://api.finaegis.org
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Add Bitnami repo
+        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+      - name: Update dependencies
+        run: helm dependency update helm/finaegis
+
+      - name: Deploy to production
+        run: |
+          helm upgrade --install finaegis helm/finaegis/ \
+            --namespace finaegis \
+            --values helm/finaegis/values-production.yaml \
+            --set image.tag=${{ github.ref_name }} \
+            --wait \
+            --timeout 15m
+
+      - name: Run database migrations
+        run: |
+          kubectl exec -n finaegis \
+            deployment/finaegis-web -- \
+            php artisan migrate --force
+
+      - name: Clear and warm caches
+        run: |
+          kubectl exec -n finaegis \
+            deployment/finaegis-web -- \
+            php artisan config:cache
+          kubectl exec -n finaegis \
+            deployment/finaegis-web -- \
+            php artisan route:cache
+          kubectl exec -n finaegis \
+            deployment/finaegis-web -- \
+            php artisan view:cache
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status -n finaegis deployment/finaegis-web
+          kubectl rollout status -n finaegis deployment/finaegis-horizon
+          kubectl rollout status -n finaegis deployment/finaegis-scheduler
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          files: |
+            helm/finaegis/Chart.yaml

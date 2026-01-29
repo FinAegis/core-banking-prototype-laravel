@@ -1,0 +1,73 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Development files
+.env
+.env.local
+.env.*.local
+.env.testing
+.env.example
+
+# Node modules (rebuilt in Docker)
+node_modules
+
+# Vendor (rebuilt in Docker)
+vendor
+
+# Build artifacts
+public/build
+public/hot
+public/storage
+
+# Storage
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+!storage/app/.gitignore
+!storage/framework/.gitignore
+!storage/framework/cache/.gitignore
+!storage/framework/sessions/.gitignore
+!storage/framework/views/.gitignore
+!storage/logs/.gitignore
+
+# Testing
+coverage
+.phpunit.result.cache
+phpunit.xml
+
+# Docker
+docker-compose*.yml
+Dockerfile
+.docker
+
+# Helm
+helm
+
+# CI/CD
+.github
+.gitlab-ci.yml
+Jenkinsfile
+
+# Documentation
+docs
+*.md
+!README.md
+LICENSE
+
+# Other
+.editorconfig
+.styleci.yml
+phpstan.neon
+.php-cs-fixer.php
+.php-cs-fixer.cache

@@ -1,0 +1,351 @@
+# ============================================================================
+# FinAegis Core Banking Platform - Default Helm Values
+# ============================================================================
+
+# Global settings
+global:
+  imageRegistry: ghcr.io
+  imagePullSecrets: []
+  storageClass: ""
+
+# ============================================================================
+# Application Configuration
+# ============================================================================
+
+# Image configuration
+image:
+  repository: finaegis/core-banking
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Application replicas and scaling
+replicaCount: 2
+
+# ============================================================================
+# Web Application (PHP-FPM + Nginx)
+# ============================================================================
+
+web:
+  enabled: true
+  replicaCount: 2
+
+  # Resource requests and limits
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "512Mi"
+
+  # Pod disruption budget
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  # Horizontal Pod Autoscaler
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    scaleDown:
+      stabilizationWindowSeconds: 300
+
+  # Liveness and readiness probes
+  livenessProbe:
+    httpGet:
+      path: /api/monitoring/alive
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /api/monitoring/ready
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  # Node selector, tolerations, affinity
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: web
+            topologyKey: kubernetes.io/hostname
+
+# ============================================================================
+# Horizon (Queue Worker)
+# ============================================================================
+
+horizon:
+  enabled: true
+  replicaCount: 2
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  # Horizon-specific autoscaling based on queue depth
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    metrics:
+      - type: External
+        external:
+          metric:
+            name: redis_queue_jobs_pending
+            selector:
+              matchLabels:
+                queue: default
+          target:
+            type: AverageValue
+            averageValue: "100"
+
+  livenessProbe:
+    exec:
+      command:
+        - php
+        - artisan
+        - horizon:status
+    initialDelaySeconds: 30
+    periodSeconds: 60
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+# ============================================================================
+# Scheduler (Cron)
+# ============================================================================
+
+scheduler:
+  enabled: true
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+  # Use Recreate strategy - only one scheduler should run
+  strategy:
+    type: Recreate
+
+# ============================================================================
+# Service Configuration
+# ============================================================================
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+# ============================================================================
+# Ingress Configuration
+# ============================================================================
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+  hosts:
+    - host: api.finaegis.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# ============================================================================
+# Istio Service Mesh Configuration
+# ============================================================================
+
+istio:
+  enabled: false
+
+  # Virtual Service for routing
+  virtualService:
+    enabled: true
+    hosts:
+      - api.finaegis.local
+    gateways:
+      - istio-system/main-gateway
+    timeout: 60s
+    retries:
+      attempts: 3
+      perTryTimeout: 20s
+      retryOn: 5xx,reset,connect-failure,retriable-4xx
+
+  # Destination Rule for circuit breaking
+  destinationRule:
+    enabled: true
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 100
+        http:
+          h2UpgradePolicy: UPGRADE
+          http1MaxPendingRequests: 100
+          http2MaxRequests: 1000
+          maxRequestsPerConnection: 100
+      outlierDetection:
+        consecutive5xxErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+
+  # Peer Authentication (mTLS)
+  peerAuthentication:
+    enabled: true
+    mode: STRICT
+
+# ============================================================================
+# External Secrets Configuration
+# ============================================================================
+
+externalSecrets:
+  enabled: false
+  refreshInterval: 1h
+  secretStore:
+    name: vault
+    kind: ClusterSecretStore
+  # Keys to fetch from secret store
+  keys:
+    - secretKey: APP_KEY
+      remoteRef:
+        key: finaegis/production/app
+        property: key
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: finaegis/production/database
+        property: password
+    - secretKey: REDIS_PASSWORD
+      remoteRef:
+        key: finaegis/production/redis
+        property: password
+
+# ============================================================================
+# ConfigMap (Non-sensitive configuration)
+# ============================================================================
+
+config:
+  APP_NAME: "FinAegis"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_URL: "https://api.finaegis.local"
+  LOG_CHANNEL: "stack"
+  LOG_LEVEL: "info"
+
+  # Database
+  DB_CONNECTION: "mariadb"
+  DB_HOST: "finaegis-mariadb"
+  DB_PORT: "3306"
+  DB_DATABASE: "finaegis"
+
+  # Cache and Session
+  CACHE_STORE: "redis"
+  SESSION_DRIVER: "redis"
+  QUEUE_CONNECTION: "redis"
+  BROADCAST_CONNECTION: "pusher"
+
+  # Redis
+  REDIS_HOST: "finaegis-redis-master"
+  REDIS_PORT: "6379"
+
+# ============================================================================
+# Service Monitor (Prometheus)
+# ============================================================================
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  path: /api/monitoring/prometheus
+  scrapeTimeout: 10s
+  labels: {}
+
+# ============================================================================
+# Network Policy
+# ============================================================================
+
+networkPolicy:
+  enabled: true
+  # Allow ingress from ingress controller and Prometheus
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+  # Allow egress to database, redis, and external services
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: mariadb
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+
+# ============================================================================
+# Dependencies (Bitnami Charts)
+# ============================================================================
+
+# Redis subchart configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    existingSecret: finaegis-redis-secret
+    existingSecretPasswordKey: redis-password
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# MariaDB subchart configuration
+mariadb:
+  enabled: false  # Usually use external managed database
+  auth:
+    database: finaegis
+    existingSecret: finaegis-mariadb-secret
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi

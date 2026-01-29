@@ -1,0 +1,159 @@
+# ============================================================================
+# FinAegis Core Banking Platform - Production Values
+# ============================================================================
+
+# Production image
+image:
+  tag: "2.1.0"
+  pullPolicy: Always
+
+# Web configuration for production
+web:
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "1Gi"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 30
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+
+# Horizon for production
+horizon:
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 15
+
+# Scheduler
+scheduler:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Production ingress with TLS
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api.finaegis.org
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: finaegis-api-tls
+      hosts:
+        - api.finaegis.org
+
+# Enable Istio in production
+istio:
+  enabled: true
+  virtualService:
+    hosts:
+      - api.finaegis.org
+  peerAuthentication:
+    mode: STRICT
+
+# External secrets for production
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStore:
+    name: vault-backend
+    kind: ClusterSecretStore
+  keys:
+    - secretKey: APP_KEY
+      remoteRef:
+        key: finaegis/production/app
+        property: key
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: finaegis/production/database
+        property: password
+    - secretKey: REDIS_PASSWORD
+      remoteRef:
+        key: finaegis/production/redis
+        property: password
+    - secretKey: PUSHER_APP_SECRET
+      remoteRef:
+        key: finaegis/production/pusher
+        property: secret
+
+# Production configuration
+config:
+  APP_NAME: "FinAegis"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_URL: "https://api.finaegis.org"
+  LOG_CHANNEL: "stack"
+  LOG_LEVEL: "warning"
+
+  DB_CONNECTION: "mariadb"
+  DB_HOST: "finaegis-mariadb-primary.finaegis.svc.cluster.local"
+  DB_PORT: "3306"
+  DB_DATABASE: "finaegis"
+
+  CACHE_STORE: "redis"
+  SESSION_DRIVER: "redis"
+  QUEUE_CONNECTION: "redis"
+  BROADCAST_CONNECTION: "pusher"
+
+  REDIS_HOST: "finaegis-redis-master.finaegis.svc.cluster.local"
+  REDIS_PORT: "6379"
+
+# Service monitor for production
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus
+
+# Network policy in production
+networkPolicy:
+  enabled: true
+
+# Redis in production (high availability)
+redis:
+  enabled: true
+  auth:
+    enabled: true
+  master:
+    persistence:
+      size: 20Gi
+  replica:
+    replicaCount: 3
+    persistence:
+      size: 20Gi
+
+# External managed database (disable MariaDB subchart)
+mariadb:
+  enabled: false

@@ -1,0 +1,36 @@
+{{- if and .Values.istio.enabled .Values.istio.virtualService.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "finaegis.fullname" . }}
+  labels:
+    {{- include "finaegis.labels" . | nindent 4 }}
+spec:
+  hosts:
+    {{- toYaml .Values.istio.virtualService.hosts | nindent 4 }}
+  gateways:
+    {{- toYaml .Values.istio.virtualService.gateways | nindent 4 }}
+  http:
+    - match:
+        - uri:
+            prefix: /api/monitoring
+      route:
+        - destination:
+            host: {{ include "finaegis.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+      timeout: 10s
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: {{ include "finaegis.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+      timeout: {{ .Values.istio.virtualService.timeout }}
+      retries:
+        attempts: {{ .Values.istio.virtualService.retries.attempts }}
+        perTryTimeout: {{ .Values.istio.virtualService.retries.perTryTimeout }}
+        retryOn: {{ .Values.istio.virtualService.retries.retryOn }}
+{{- end }}
