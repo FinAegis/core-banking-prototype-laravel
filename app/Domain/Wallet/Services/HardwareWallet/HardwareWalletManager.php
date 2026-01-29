@@ -356,7 +356,11 @@ class HardwareWalletManager
      */
     public function getSupportedChains(string $deviceType): array
     {
-        $signerType = $this->mapDeviceTypeToSignerType($deviceType);
+        try {
+            $signerType = $this->mapDeviceTypeToSignerType($deviceType);
+        } catch (InvalidArgumentException) {
+            return [];
+        }
 
         if (! isset($this->signers[$signerType])) {
             return [];

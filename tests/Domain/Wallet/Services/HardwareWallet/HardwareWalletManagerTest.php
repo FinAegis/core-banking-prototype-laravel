@@ -147,6 +147,7 @@ class HardwareWalletManagerTest extends TestCase
         ]);
 
         $request = PendingSigningRequest::create([
+            'user_id'          => 1,
             'association_id'   => $association->id,
             'transaction_data' => json_encode([
                 'from'     => '0x1234567890123456789012345678901234567890',
@@ -157,6 +158,7 @@ class HardwareWalletManagerTest extends TestCase
                 'gasPrice' => '50000000000',
                 'nonce'    => 5,
             ]),
+            'chain'            => 'ethereum',
             'raw_data_to_sign' => '0x' . str_repeat('ef', 100),
             'status'           => PendingSigningRequestVO::STATUS_PENDING,
             'expires_at'       => now()->addMinutes(5),
@@ -191,8 +193,10 @@ class HardwareWalletManagerTest extends TestCase
         ]);
 
         $request = PendingSigningRequest::create([
+            'user_id'          => 1,
             'association_id'   => $association->id,
             'transaction_data' => json_encode(['test' => 'data']),
+            'chain'            => 'ethereum',
             'raw_data_to_sign' => '0x123',
             'status'           => PendingSigningRequestVO::STATUS_PENDING,
             'expires_at'       => now()->addMinutes(5),
@@ -221,8 +225,10 @@ class HardwareWalletManagerTest extends TestCase
         ]);
 
         $request = PendingSigningRequest::create([
+            'user_id'          => 1,
             'association_id'   => $association->id,
             'transaction_data' => json_encode(['test' => 'data']),
+            'chain'            => 'ethereum',
             'raw_data_to_sign' => '0x123',
             'status'           => PendingSigningRequestVO::STATUS_COMPLETED,
             'expires_at'       => now()->addMinutes(5),
