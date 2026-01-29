@@ -685,6 +685,43 @@ Route::prefix('blockchain-wallets')->middleware(['auth:sanctum', 'check.token.ex
     Route::post('/generate-mnemonic', [App\Http\Controllers\Api\BlockchainWalletController::class, 'generateMnemonic']);
 });
 
+// Hardware Wallet endpoints (v2.1.0)
+Route::prefix('hardware-wallet')->name('api.hardware-wallet.')->group(function () {
+    // Public endpoint for supported devices/chains
+    Route::get('/supported', [App\Http\Controllers\Api\HardwareWalletController::class, 'supported'])
+        ->name('supported');
+
+    // Authenticated endpoints
+    Route::middleware(['auth:sanctum', 'check.token.expiration', 'sub_product:blockchain'])->group(function () {
+        // Device registration
+        Route::post('/register', [App\Http\Controllers\Api\HardwareWalletController::class, 'register'])
+            ->middleware('transaction.rate_limit:blockchain')
+            ->name('register');
+
+        // Signing requests
+        Route::post('/signing-request', [App\Http\Controllers\Api\HardwareWalletController::class, 'createSigningRequest'])
+            ->middleware('transaction.rate_limit:blockchain')
+            ->name('signing-request.create');
+
+        Route::get('/signing-request/{id}', [App\Http\Controllers\Api\HardwareWalletController::class, 'getSigningRequestStatus'])
+            ->name('signing-request.status');
+
+        Route::post('/signing-request/{id}/submit', [App\Http\Controllers\Api\HardwareWalletController::class, 'submitSignature'])
+            ->middleware('transaction.rate_limit:blockchain')
+            ->name('signing-request.submit');
+
+        Route::post('/signing-request/{id}/cancel', [App\Http\Controllers\Api\HardwareWalletController::class, 'cancelSigningRequest'])
+            ->name('signing-request.cancel');
+
+        // Associations management
+        Route::get('/associations', [App\Http\Controllers\Api\HardwareWalletController::class, 'listAssociations'])
+            ->name('associations.list');
+
+        Route::delete('/associations/{uuid}', [App\Http\Controllers\Api\HardwareWalletController::class, 'removeAssociation'])
+            ->name('associations.remove');
+    });
+});
+
 // P2P Lending endpoints
 Route::prefix('lending')->middleware(['auth:sanctum', 'check.token.expiration', 'sub_product:lending'])->group(function () {
     // Loan applications
