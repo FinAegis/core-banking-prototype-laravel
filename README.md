@@ -154,7 +154,7 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 |--------|-------------|
 | **Exchange** | Order matching, liquidity pools, AMM, external connectors |
 | **Stablecoin** | Multi-collateral minting, burning, liquidation |
-| **Wallet** | Multi-chain support (BTC, ETH, Polygon, BSC) |
+| **Wallet** | Multi-chain support (BTC, ETH, Polygon, BSC), Hardware wallets (Ledger, Trezor) |
 | **Basket (GCU)** | Weighted currency basket, NAV calculation, rebalancing |
 
 ### Platform Services
