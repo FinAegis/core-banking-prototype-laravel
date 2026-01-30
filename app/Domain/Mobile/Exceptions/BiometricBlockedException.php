@@ -35,9 +35,10 @@ class BiometricBlockedException extends Exception
      */
     public function getRetryAfterSeconds(): int
     {
-        $seconds = $this->blockedUntil->diffInSeconds(now());
+        // Calculate explicitly to avoid Carbon diff behavior variations
+        $seconds = $this->blockedUntil->getTimestamp() - now()->getTimestamp();
 
-        return max(0, (int) $seconds);
+        return max(0, $seconds);
     }
 
     /**
