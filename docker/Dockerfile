@@ -24,8 +24,8 @@ RUN composer install \
 # Copy application code
 COPY . .
 
-# Generate optimized autoloader
-RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+# Generate optimized autoloader (skip scripts to avoid artisan commands without APP_KEY)
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative --no-scripts
 
 # ----------------------------------------------------------------------------
 # Stage 2: Node.js - Build frontend assets

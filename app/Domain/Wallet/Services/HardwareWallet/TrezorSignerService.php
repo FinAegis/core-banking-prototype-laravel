@@ -493,7 +493,6 @@ class TrezorSignerService implements ExternalSignerInterface
         return number_format($btc, 8) . ' BTC';
     }
 
-
     /**
      * Compute the transaction hash for Trezor signature verification.
      */
@@ -544,8 +543,8 @@ class TrezorSignerService implements ExternalSignerInterface
             $ec = new \Elliptic\EC('secp256k1');
 
             $signature = [
-                'r' => $r,
-                's' => $s,
+                'r'             => $r,
+                's'             => $s,
                 'recoveryParam' => $recoveryParam,
             ];
 

@@ -475,7 +475,6 @@ class LedgerSignerService implements ExternalSignerInterface
         return number_format($btc, 8) . ' BTC';
     }
 
-
     /**
      * Compute the transaction hash for signature verification.
      *
@@ -533,8 +532,8 @@ class LedgerSignerService implements ExternalSignerInterface
 
             // Create signature object
             $signature = [
-                'r' => $r,
-                's' => $s,
+                'r'             => $r,
+                's'             => $s,
                 'recoveryParam' => $recoveryParam,
             ];
 
