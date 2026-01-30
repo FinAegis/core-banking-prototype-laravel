@@ -207,6 +207,9 @@ class RefundAggregateTest extends DomainTestCase
     #[Test]
     public function test_can_complete_processing_refund()
     {
+        $this->freezeTime();
+        $completedAt = now()->toIso8601String();
+
         RefundAggregate::fake()
             ->given([
                 new RefundRequested(
@@ -232,15 +235,15 @@ class RefundAggregateTest extends DomainTestCase
                     []
                 ),
             ])
-            ->when(function (RefundAggregate $aggregate) {
-                $aggregate->complete(now()->toIso8601String());
+            ->when(function (RefundAggregate $aggregate) use ($completedAt) {
+                $aggregate->complete($completedAt);
             })
             ->assertRecorded([
                 new RefundCompleted(
                     $this->refundId,
                     $this->investmentId,
                     10000,
-                    now()->toIso8601String(),
+                    $completedAt,
                     []
                 ),
             ]);
@@ -249,6 +252,9 @@ class RefundAggregateTest extends DomainTestCase
     #[Test]
     public function test_can_fail_refund()
     {
+        $this->freezeTime();
+        $failedAt = now()->toIso8601String();
+
         RefundAggregate::fake()
             ->given([
                 new RefundRequested(
@@ -267,17 +273,17 @@ class RefundAggregateTest extends DomainTestCase
                     'Approved'
                 ),
             ])
-            ->when(function (RefundAggregate $aggregate) {
+            ->when(function (RefundAggregate $aggregate) use ($failedAt) {
                 $aggregate->fail(
                     'Payment processor error: Insufficient funds',
-                    now()->toIso8601String()
+                    $failedAt
                 );
             })
             ->assertRecorded([
                 new RefundFailed(
                     $this->refundId,
                     'Payment processor error: Insufficient funds',
-                    now()->toIso8601String(),
+                    $failedAt,
                     []
                 ),
             ]);
@@ -286,6 +292,9 @@ class RefundAggregateTest extends DomainTestCase
     #[Test]
     public function test_can_cancel_refund()
     {
+        $this->freezeTime();
+        $cancelledAt = now()->toIso8601String();
+
         RefundAggregate::fake()
             ->given([
                 new RefundRequested(
@@ -299,11 +308,11 @@ class RefundAggregateTest extends DomainTestCase
                     $this->userId
                 ),
             ])
-            ->when(function (RefundAggregate $aggregate) {
+            ->when(function (RefundAggregate $aggregate) use ($cancelledAt) {
                 $aggregate->cancel(
                     'Customer requested cancellation',
                     $this->userId,
-                    now()->toIso8601String()
+                    $cancelledAt
                 );
             })
             ->assertRecorded([
@@ -311,7 +320,7 @@ class RefundAggregateTest extends DomainTestCase
                     $this->refundId,
                     'Customer requested cancellation',
                     $this->userId,
-                    now()->toIso8601String(),
+                    $cancelledAt,
                     []
                 ),
             ]);
@@ -320,6 +329,9 @@ class RefundAggregateTest extends DomainTestCase
     #[Test]
     public function test_cannot_cancel_completed_refund()
     {
+        $this->freezeTime();
+        $timestamp = now()->toIso8601String();
+
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Cannot cancel refunds in status: completed');
 
@@ -351,14 +363,14 @@ class RefundAggregateTest extends DomainTestCase
                     $this->refundId,
                     $this->investmentId,
                     10000,
-                    now()->toIso8601String()
+                    $timestamp
                 ),
             ])
-            ->when(function (RefundAggregate $aggregate) {
+            ->when(function (RefundAggregate $aggregate) use ($timestamp) {
                 $aggregate->cancel(
                     'Trying to cancel completed refund',
                     $this->userId,
-                    now()->toIso8601String()
+                    $timestamp
                 );
             });
     }
