@@ -284,11 +284,26 @@ class KeyManagementService implements KeyManagementServiceInterface
     }
 
     /**
-     * Get user-specific encryption key.
+     * Get user-specific encryption key using PBKDF2.
+     *
+     * Uses PBKDF2-HMAC-SHA256 with 100,000 iterations for secure key derivation.
+     * This protects against brute-force attacks by making key derivation computationally expensive.
      */
     protected function getUserEncryptionKey(string $userId): string
     {
-        return hash('sha256', $this->encryptionKey . $userId);
+        // Use PBKDF2 with high iteration count for secure key derivation
+        // OWASP recommends at least 100,000 iterations for PBKDF2-HMAC-SHA256
+        $iterations = 100000;
+        $keyLength = 32; // 256 bits
+
+        return hash_pbkdf2(
+            'sha256',
+            $this->encryptionKey,
+            $userId,
+            $iterations,
+            $keyLength,
+            false // Return hex string
+        );
     }
 
     /**

@@ -284,7 +284,10 @@ class TrezorSignerService implements ExternalSignerInterface
     }
 
     /**
-     * Validate a Trezor EVM signature.
+     * Validate a Trezor EVM signature using ECDSA ecrecover.
+     *
+     * Recovers the public key from the signature and verifies it matches
+     * the expected public key to prevent signature forgery attacks.
      */
     private function validateTrezorEvmSignature(
         TransactionData $transaction,
@@ -293,8 +296,54 @@ class TrezorSignerService implements ExternalSignerInterface
     ): bool {
         $sig = $this->parseTrezorSignature($signature);
 
-        // Basic validation
-        return strlen($sig['r']) > 0 && strlen($sig['s']) > 0;
+        // Validate component lengths
+        $rWithoutPrefix = str_starts_with($sig['r'], '0x') ? substr($sig['r'], 2) : $sig['r'];
+        $sWithoutPrefix = str_starts_with($sig['s'], '0x') ? substr($sig['s'], 2) : $sig['s'];
+        $vWithoutPrefix = str_starts_with($sig['v'], '0x') ? substr($sig['v'], 2) : $sig['v'];
+
+        if (strlen($rWithoutPrefix) !== 64 || strlen($sWithoutPrefix) !== 64) {
+            return false;
+        }
+
+        // Validate v value
+        $v = hexdec($vWithoutPrefix);
+        $chainId = $this->getChainId($transaction->chain);
+        $isValidV = $v === 27 || $v === 28 ||
+                    $v === (35 + 2 * $chainId) || $v === (36 + 2 * $chainId);
+
+        if (! $isValidV) {
+            return false;
+        }
+
+        // Validate s value is in lower half of curve order (EIP-2)
+        $curveOrder = gmp_init('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+        $halfOrder = gmp_div($curveOrder, 2);
+        $sValue = gmp_init('0x' . $sWithoutPrefix, 16);
+
+        if (gmp_cmp($sValue, $halfOrder) > 0) {
+            return false;
+        }
+
+        // Recover public key from signature and verify it matches expected
+        try {
+            $messageHash = $this->computeTrezorTransactionHash($transaction);
+            $recoveredKey = $this->trezorEcRecover($messageHash, $rWithoutPrefix, $sWithoutPrefix, $v);
+
+            if ($recoveredKey === null) {
+                return false;
+            }
+
+            // Normalize public keys for comparison
+            $expectedKey = str_starts_with($publicKey, '0x')
+                ? strtolower(substr($publicKey, 2))
+                : strtolower($publicKey);
+            $recoveredKey = strtolower($recoveredKey);
+
+            // Use timing-safe comparison to prevent timing attacks
+            return hash_equals($expectedKey, $recoveredKey);
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -442,5 +491,84 @@ class TrezorSignerService implements ExternalSignerInterface
         $btc = $satoshi / 1e8;
 
         return number_format($btc, 8) . ' BTC';
+    }
+
+
+    /**
+     * Compute the transaction hash for Trezor signature verification.
+     */
+    private function computeTrezorTransactionHash(TransactionData $transaction): string
+    {
+        // Build unsigned transaction for hashing
+        $unsignedTx = [
+            $this->toTrezorHex((string) ($transaction->nonce ?? 0)),
+            $this->toTrezorHex($transaction->gasPrice ?? '0'),
+            $this->toTrezorHex($transaction->gasLimit ?? '21000'),
+            $transaction->to ?? '',
+            $this->toTrezorHex($transaction->value ?? '0'),
+            $transaction->data ?? '',
+        ];
+
+        // Add chain ID for EIP-155 replay protection
+        $chainId = $this->getChainId($transaction->chain);
+        if ($chainId > 0) {
+            $unsignedTx[] = $this->toTrezorHex((string) $chainId);
+            $unsignedTx[] = '0x';
+            $unsignedTx[] = '0x';
+        }
+
+        $rlpEncoded = $this->rlpEncode($unsignedTx);
+
+        // Use Keccak-256 hash
+        return \kornrunner\Keccak::hash(hex2bin(substr($rlpEncoded, 2)), 256);
+    }
+
+    /**
+     * Recover public key from ECDSA signature for Trezor.
+     *
+     * @param  string  $messageHash  32-byte message hash (hex without 0x)
+     * @param  string  $r  Signature r value (hex without 0x)
+     * @param  string  $s  Signature s value (hex without 0x)
+     * @param  int  $v  Recovery parameter
+     * @return string|null Recovered public key (hex without 0x) or null on failure
+     */
+    private function trezorEcRecover(string $messageHash, string $r, string $s, int $v): ?string
+    {
+        try {
+            // Normalize v to 0 or 1 for recovery
+            $recoveryParam = $v - 27;
+            if ($recoveryParam > 3) {
+                $recoveryParam = ($v - 35) % 2;
+            }
+
+            $ec = new \Elliptic\EC('secp256k1');
+
+            $signature = [
+                'r' => $r,
+                's' => $s,
+                'recoveryParam' => $recoveryParam,
+            ];
+
+            $publicKey = $ec->recoverPubKey(
+                hex2bin($messageHash),
+                $signature,
+                $recoveryParam
+            );
+
+            if ($publicKey === null) {
+                return null;
+            }
+
+            $pubKeyHex = $publicKey->encode('hex');
+
+            // Remove the 04 prefix (uncompressed point indicator)
+            if (str_starts_with($pubKeyHex, '04') && strlen($pubKeyHex) === 130) {
+                return substr($pubKeyHex, 2);
+            }
+
+            return $pubKeyHex;
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

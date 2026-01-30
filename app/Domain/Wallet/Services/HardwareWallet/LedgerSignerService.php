@@ -286,11 +286,10 @@ class LedgerSignerService implements ExternalSignerInterface
     }
 
     /**
-     * Validate an EVM signature.
+     * Validate an EVM signature using ECDSA ecrecover.
      *
-     * NOTE: This is a prototype implementation that performs basic format validation.
-     * Production implementation should use proper ECDSA signature verification
-     * with ecrecover to verify the signature matches the public key.
+     * Recovers the public key from the signature and verifies it matches
+     * the expected public key to prevent signature forgery attacks.
      */
     private function validateEvmSignature(
         TransactionData $transaction,
@@ -300,12 +299,55 @@ class LedgerSignerService implements ExternalSignerInterface
         // Parse signature components
         $sig = $this->parseEvmSignature($signature);
 
-        // Basic format validation
-        // In production, use proper ecrecover to verify signature matches public key
+        // Validate component lengths
         $rWithoutPrefix = str_starts_with($sig['r'], '0x') ? substr($sig['r'], 2) : $sig['r'];
         $sWithoutPrefix = str_starts_with($sig['s'], '0x') ? substr($sig['s'], 2) : $sig['s'];
+        $vWithoutPrefix = str_starts_with($sig['v'], '0x') ? substr($sig['v'], 2) : $sig['v'];
 
-        return strlen($rWithoutPrefix) === 64 && strlen($sWithoutPrefix) === 64;
+        if (strlen($rWithoutPrefix) !== 64 || strlen($sWithoutPrefix) !== 64) {
+            return false;
+        }
+
+        // Validate v value (should be 27, 28, or EIP-155 adjusted)
+        $v = hexdec($vWithoutPrefix);
+        $chainId = $this->getChainId($transaction->chain);
+        $isValidV = $v === 27 || $v === 28 ||
+                    $v === (35 + 2 * $chainId) || $v === (36 + 2 * $chainId);
+
+        if (! $isValidV) {
+            return false;
+        }
+
+        // Validate s value is in lower half of curve order (EIP-2)
+        // secp256k1 curve order n
+        $curveOrder = gmp_init('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+        $halfOrder = gmp_div($curveOrder, 2);
+        $sValue = gmp_init('0x' . $sWithoutPrefix, 16);
+
+        if (gmp_cmp($sValue, $halfOrder) > 0) {
+            return false;
+        }
+
+        // Recover public key from signature and verify it matches expected
+        try {
+            $messageHash = $this->computeTransactionHash($transaction);
+            $recoveredKey = $this->ecRecover($messageHash, $rWithoutPrefix, $sWithoutPrefix, $v);
+
+            if ($recoveredKey === null) {
+                return false;
+            }
+
+            // Normalize public keys for comparison (remove 0x prefix if present)
+            $expectedKey = str_starts_with($publicKey, '0x')
+                ? strtolower(substr($publicKey, 2))
+                : strtolower($publicKey);
+            $recoveredKey = strtolower($recoveredKey);
+
+            // Use timing-safe comparison to prevent timing attacks
+            return hash_equals($expectedKey, $recoveredKey);
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -431,5 +473,93 @@ class LedgerSignerService implements ExternalSignerInterface
         $btc = $satoshi / 1e8;
 
         return number_format($btc, 8) . ' BTC';
+    }
+
+
+    /**
+     * Compute the transaction hash for signature verification.
+     *
+     * For EVM transactions, this computes the Keccak-256 hash of the
+     * RLP-encoded unsigned transaction.
+     */
+    private function computeTransactionHash(TransactionData $transaction): string
+    {
+        // Build unsigned transaction for hashing
+        $unsignedTx = [
+            $this->toHex((string) ($transaction->nonce ?? 0)),
+            $this->toHex($transaction->gasPrice ?? '0'),
+            $this->toHex($transaction->gasLimit ?? '21000'),
+            $transaction->to ?? '',
+            $this->toHex($transaction->value ?? '0'),
+            $transaction->data ?? '',
+        ];
+
+        // Add chain ID for EIP-155 replay protection
+        $chainId = $this->getChainId($transaction->chain);
+        if ($chainId > 0) {
+            $unsignedTx[] = $this->toHex((string) $chainId);
+            $unsignedTx[] = '0x';
+            $unsignedTx[] = '0x';
+        }
+
+        $rlpEncoded = $this->rlpEncode($unsignedTx);
+
+        // Use Keccak-256 hash
+        return \kornrunner\Keccak::hash(hex2bin(substr($rlpEncoded, 2)), 256);
+    }
+
+    /**
+     * Recover public key from ECDSA signature using ecrecover.
+     *
+     * @param  string  $messageHash  32-byte message hash (hex without 0x)
+     * @param  string  $r  Signature r value (hex without 0x)
+     * @param  string  $s  Signature s value (hex without 0x)
+     * @param  int  $v  Recovery parameter (27 or 28, or EIP-155 adjusted)
+     * @return string|null Recovered public key (hex without 0x) or null on failure
+     */
+    private function ecRecover(string $messageHash, string $r, string $s, int $v): ?string
+    {
+        try {
+            // Normalize v to 0 or 1 for recovery
+            $recoveryParam = $v - 27;
+            if ($recoveryParam > 3) {
+                // EIP-155: v = chainId * 2 + 35/36, so recoveryParam = v - 35 - chainId * 2
+                // For our purposes, we just need 0 or 1
+                $recoveryParam = ($v - 35) % 2;
+            }
+
+            // Use elliptic-php for ECDSA recovery
+            $ec = new \Elliptic\EC('secp256k1');
+
+            // Create signature object
+            $signature = [
+                'r' => $r,
+                's' => $s,
+                'recoveryParam' => $recoveryParam,
+            ];
+
+            // Recover the public key
+            $publicKey = $ec->recoverPubKey(
+                hex2bin($messageHash),
+                $signature,
+                $recoveryParam
+            );
+
+            if ($publicKey === null) {
+                return null;
+            }
+
+            // Return the uncompressed public key (without 04 prefix)
+            $pubKeyHex = $publicKey->encode('hex');
+
+            // Remove the 04 prefix (uncompressed point indicator)
+            if (str_starts_with($pubKeyHex, '04') && strlen($pubKeyHex) === 130) {
+                return substr($pubKeyHex, 2);
+            }
+
+            return $pubKeyHex;
+        } catch (Throwable) {
+            return null;
+        }
     }
 }
