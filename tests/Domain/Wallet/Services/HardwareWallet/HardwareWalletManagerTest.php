@@ -141,7 +141,15 @@ class HardwareWalletManagerTest extends TestCase
             ->willReturn(new \App\Domain\Wallet\ValueObjects\SignedTransaction(
                 rawTransaction: '0xf86c058502540be40082520894' . str_repeat('0', 40) . '880de0b6b3a764000080',
                 hash: '0x' . str_repeat('ab', 32),
-                chainId: 1
+                transactionData: new TransactionData(
+                    from: '0x1234567890123456789012345678901234567890',
+                    to: '0x0987654321098765432109876543210987654321',
+                    value: '1000000000000000000',
+                    chain: 'ethereum',
+                    gasLimit: '21000',
+                    gasPrice: '50000000000',
+                    nonce: 5
+                )
             ));
 
         $manager = new HardwareWalletManager(
