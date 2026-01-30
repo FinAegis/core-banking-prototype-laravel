@@ -104,6 +104,7 @@ class WebSocketConfigTest extends TestCase
     {
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
+        $this->assertNotNull($team);
 
         $response = $this->actingAs($user, 'sanctum')
             ->getJson('/api/websocket/channels');
@@ -145,6 +146,7 @@ class WebSocketConfigTest extends TestCase
     {
         $user = User::factory()->withPersonalTeam()->create();
         $team = $user->currentTeam;
+        $this->assertNotNull($team);
 
         // User is team owner, so should be admin
         $response = $this->actingAs($user, 'sanctum')
@@ -164,6 +166,7 @@ class WebSocketConfigTest extends TestCase
     {
         $owner = User::factory()->withPersonalTeam()->create();
         $team = $owner->currentTeam;
+        $this->assertNotNull($team);
 
         // Create a regular team member
         $member = User::factory()->create();
