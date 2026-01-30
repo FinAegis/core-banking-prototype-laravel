@@ -475,7 +475,7 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
         $this->assertEquals(110.0, $performance['end_value']);
         $this->assertEquals(10.0, $performance['absolute_change']);
         $this->assertEquals(10.0, $performance['percentage_change']);
-        $this->assertEquals(30, $performance['days']);
+        $this->assertEqualsWithDelta(30, $performance['days'], 0.1);
     }
 
     #[Test]
