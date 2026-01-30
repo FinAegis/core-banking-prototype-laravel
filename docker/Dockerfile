@@ -107,6 +107,12 @@ RUN apk add --no-cache \
     tzdata \
     && rm -rf /var/cache/apk/*
 
+# Install build dependencies for PECL extensions
+RUN apk add --no-cache --virtual .build-deps \
+    autoconf \
+    g++ \
+    make
+
 # Install PHP extensions
 RUN docker-php-ext-install \
     bcmath \
@@ -117,7 +123,8 @@ RUN docker-php-ext-install \
     pdo_mysql \
     zip \
     && pecl install redis \
-    && docker-php-ext-enable redis
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
 
 # Configure PHP
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/99-custom.ini
