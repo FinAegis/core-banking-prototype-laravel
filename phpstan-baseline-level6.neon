@@ -45660,10 +45660,11 @@ parameters:
 			count: 1
 			path: tests/Unit/Values/EventQueuesTest.php
 
-		# Multi-Sig events use TenantBroadcastEvent trait with non-nullable tenantId
+		# Broadcast events use TenantBroadcastEvent trait with non-nullable tenantId
+		# Multi-Sig (3) + WebSocket streaming (7) = 10 events
 		-
 			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
-			count: 3
+			count: 10
 			path: app/Broadcasting/TenantBroadcastEvent.php
 
