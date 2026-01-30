@@ -92,11 +92,83 @@ return [
         // Days of inactivity before a device is considered stale
         'stale_device_days' => env('MOBILE_STALE_DEVICE_DAYS', 90),
 
-        // Maximum failed biometric attempts before blocking
-        'max_biometric_failures' => env('MOBILE_MAX_BIOMETRIC_FAILURES', 5),
+        // Maximum failed biometric attempts within rate limit window before blocking
+        // SECURITY: Reduced to 3 to prevent brute force attacks on biometric auth
+        'max_biometric_failures' => env('MOBILE_MAX_BIOMETRIC_FAILURES', 3),
+
+        // Rate limit window in minutes for counting biometric failures
+        'biometric_rate_limit_window' => env('MOBILE_BIOMETRIC_RATE_WINDOW', 10),
 
         // Block duration in minutes after max failures
         'biometric_block_minutes' => env('MOBILE_BIOMETRIC_BLOCK_MINUTES', 30),
+
+        // Enable IP network validation for biometric (challenge vs verify)
+        'validate_ip_network' => env('MOBILE_VALIDATE_IP_NETWORK', true),
+
+        // Enable user-agent validation for biometric endpoints
+        'validate_user_agent' => env('MOBILE_VALIDATE_USER_AGENT', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limiting
+    |--------------------------------------------------------------------------
+    |
+    | Rate limits for various mobile endpoints.
+    | Format: 'max_attempts,decay_minutes'
+    |
+    */
+
+    'rate_limits' => [
+        // Biometric challenge requests per device
+        'biometric_challenge' => env('MOBILE_RATE_BIOMETRIC_CHALLENGE', '3,5'),
+
+        // Biometric verification attempts per device
+        'biometric_verify' => env('MOBILE_RATE_BIOMETRIC_VERIFY', '5,1'),
+
+        // Device registration attempts per user
+        'device_register' => env('MOBILE_RATE_DEVICE_REGISTER', '10,60'),
+
+        // Push token updates
+        'push_token_update' => env('MOBILE_RATE_PUSH_TOKEN', '10,1'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queue Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Settings for mobile-related queue jobs.
+    |
+    */
+
+    'queue' => [
+        'name'                => env('MOBILE_QUEUE_NAME', 'mobile'),
+        'notifications_batch' => env('MOBILE_NOTIFICATION_BATCH', 100),
+        'retry_attempts'      => env('MOBILE_RETRY_ATTEMPTS', 3),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Data Cleanup Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Settings for automatic cleanup of old mobile data.
+    |
+    */
+
+    'cleanup' => [
+        // Days to keep expired biometric challenges
+        'challenges_days' => env('MOBILE_CLEANUP_CHALLENGES', 1),
+
+        // Days of inactivity before removing stale devices
+        'stale_devices_days' => env('MOBILE_CLEANUP_DEVICES', 90),
+
+        // Days to keep delivered notifications
+        'old_notifications_days' => env('MOBILE_CLEANUP_NOTIFICATIONS', 30),
+
+        // Days to keep biometric failure records
+        'failures_days' => env('MOBILE_CLEANUP_FAILURES', 7),
     ],
 
     /*

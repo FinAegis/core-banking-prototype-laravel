@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Mobile\Services;
 
+use App\Domain\Mobile\Exceptions\BiometricBlockedException;
 use App\Domain\Mobile\Models\BiometricChallenge;
+use App\Domain\Mobile\Models\BiometricFailure;
 use App\Domain\Mobile\Models\MobileDevice;
 use App\Domain\Mobile\Models\MobileDeviceSession;
 use App\Models\User;
@@ -98,7 +100,9 @@ class BiometricAuthenticationService
      * @param string $challenge The challenge that was signed
      * @param string $signature The signature from the device (base64 encoded DER)
      * @param string|null $ipAddress The IP address of the request
-     * @return array{token: string, expires_at: \Carbon\Carbon}|null
+     * @return array{token: string, expires_at: \Carbon\Carbon, session_id: string}|null
+     *
+     * @throws BiometricBlockedException If the device is temporarily blocked
      */
     public function verifyAndCreateSession(
         MobileDevice $device,
@@ -106,11 +110,50 @@ class BiometricAuthenticationService
         string $signature,
         ?string $ipAddress = null
     ): ?array {
-        // Check if device can use biometric
-        if (! $device->canUseBiometric()) {
+        // SECURITY CHECK 1: Is device blocked for device-level issues?
+        if ($device->is_blocked) {
+            Log::warning('Device is blocked, cannot use biometric', [
+                'device_id' => $device->id,
+                'reason'    => $device->blocked_reason,
+            ]);
+            $this->recordFailure($device, BiometricFailure::REASON_DEVICE_BLOCKED, $ipAddress);
+
+            return null;
+        }
+
+        // SECURITY CHECK 2: Is biometric temporarily blocked due to failures?
+        if ($device->isBiometricBlocked()) {
+            Log::warning('Biometric temporarily blocked for device', [
+                'device_id'     => $device->id,
+                'blocked_until' => $device->biometric_blocked_until,
+            ]);
+
+            // isBiometricBlocked() guarantees biometric_blocked_until is not null
+            /** @var \Carbon\Carbon $blockedUntil */
+            $blockedUntil = $device->biometric_blocked_until;
+
+            throw new BiometricBlockedException($blockedUntil);
+        }
+
+        // SECURITY CHECK 3: Per-device rate limit check
+        $maxFailures = (int) config('mobile.security.max_biometric_failures', 3);
+        $recentFailures = BiometricFailure::countRecentForDevice($device->id, 10);
+
+        if ($recentFailures >= $maxFailures) {
+            $this->blockDeviceBiometric($device);
+            $device->refresh();
+
+            // blockDeviceBiometric() guarantees biometric_blocked_until is set
+            /** @var \Carbon\Carbon $blockedUntil */
+            $blockedUntil = $device->biometric_blocked_until;
+
+            throw new BiometricBlockedException($blockedUntil);
+        }
+
+        // Check if device can use biometric (enabled, has public key)
+        if (! $device->biometric_enabled || $device->biometric_public_key === null) {
             Log::warning('Device cannot use biometric', [
                 'device_id'         => $device->id,
-                'is_blocked'        => $device->is_blocked,
                 'biometric_enabled' => $device->biometric_enabled,
             ]);
 
@@ -127,19 +170,34 @@ class BiometricAuthenticationService
             Log::warning('Biometric challenge not found or expired', [
                 'device_id' => $device->id,
             ]);
+            $this->recordFailure($device, BiometricFailure::REASON_CHALLENGE_NOT_FOUND, $ipAddress);
 
             return null;
         }
 
-        // Verify the signature (biometric_public_key is guaranteed non-null by canUseBiometric() check above)
+        // SECURITY CHECK 4: IP network validation (if both IPs available)
+        if (! $this->validateIpNetwork($biometricChallenge->ip_address, $ipAddress)) {
+            Log::warning('Biometric verification from different network', [
+                'device_id'    => $device->id,
+                'challenge_ip' => $biometricChallenge->ip_address,
+                'verify_ip'    => $ipAddress,
+            ]);
+            $this->recordFailure($device, BiometricFailure::REASON_IP_MISMATCH, $ipAddress);
+
+            return null;
+        }
+
+        // Verify the signature (biometric_public_key is guaranteed non-null by check above)
         /** @var string $publicKey */
         $publicKey = $device->biometric_public_key;
         if (! $this->verifySignature($challenge, $signature, $publicKey)) {
             $biometricChallenge->markAsFailed();
+            $this->recordFailure($device, BiometricFailure::REASON_SIGNATURE_INVALID, $ipAddress);
 
             Log::warning('Biometric signature verification failed', [
-                'device_id'    => $device->id,
-                'challenge_id' => $biometricChallenge->id,
+                'device_id'     => $device->id,
+                'challenge_id'  => $biometricChallenge->id,
+                'failure_count' => $device->biometric_failure_count + 1,
             ]);
 
             return null;
@@ -150,6 +208,9 @@ class BiometricAuthenticationService
             return DB::transaction(function () use ($device, $biometricChallenge, $ipAddress) {
                 // Mark challenge as verified
                 $biometricChallenge->markAsVerified();
+
+                // SUCCESS: Reset failure count on successful auth
+                $device->resetBiometricFailures();
 
                 // Create session
                 $sessionDuration = $device->is_trusted
@@ -189,6 +250,9 @@ class BiometricAuthenticationService
                     'session_id' => $session->id,
                 ];
             });
+        } catch (BiometricBlockedException $e) {
+            // Re-throw blocking exceptions
+            throw $e;
         } catch (Throwable $e) {
             Log::error('Biometric session creation failed', [
                 'device_id' => $device->id,
@@ -339,5 +403,91 @@ class BiometricAuthenticationService
     public function invalidateDeviceSessions(MobileDevice $device): int
     {
         return MobileDeviceSession::where('mobile_device_id', $device->id)->delete();
+    }
+
+    /**
+     * Record a biometric authentication failure.
+     */
+    private function recordFailure(MobileDevice $device, string $reason, ?string $ipAddress): void
+    {
+        BiometricFailure::record($device->id, $reason, $ipAddress);
+        $device->incrementBiometricFailures();
+
+        Log::warning('Biometric authentication failure recorded', [
+            'device_id'     => $device->id,
+            'user_id'       => $device->user_id,
+            'reason'        => $reason,
+            'failure_count' => $device->biometric_failure_count,
+            'ip_address'    => $ipAddress,
+        ]);
+    }
+
+    /**
+     * Block device biometric authentication temporarily.
+     */
+    private function blockDeviceBiometric(MobileDevice $device): void
+    {
+        $blockMinutes = (int) config('mobile.security.biometric_block_minutes', 30);
+        $device->blockBiometric($blockMinutes);
+
+        Log::critical('Device biometric blocked due to excessive failures', [
+            'device_id'     => $device->id,
+            'user_id'       => $device->user_id,
+            'blocked_until' => $device->biometric_blocked_until,
+            'block_minutes' => $blockMinutes,
+        ]);
+    }
+
+    /**
+     * Validate that two IP addresses are in the same network.
+     *
+     * Compares /24 networks for IPv4 addresses to detect if the verification
+     * request comes from a significantly different network than the challenge.
+     */
+    private function validateIpNetwork(?string $challengeIp, ?string $verifyIp): bool
+    {
+        // Skip validation if either IP is unavailable
+        if ($challengeIp === null || $verifyIp === null) {
+            return true;
+        }
+
+        // Skip validation for IPv6 (more complex, handle in future)
+        if (str_contains($challengeIp, ':') || str_contains($verifyIp, ':')) {
+            return true;
+        }
+
+        // Compare /24 networks for IPv4
+        $challengeParts = explode('.', $challengeIp);
+        $verifyParts = explode('.', $verifyIp);
+
+        if (count($challengeParts) !== 4 || count($verifyParts) !== 4) {
+            return true; // Invalid format, skip validation
+        }
+
+        $challengeNetwork = implode('.', array_slice($challengeParts, 0, 3));
+        $verifyNetwork = implode('.', array_slice($verifyParts, 0, 3));
+
+        return $challengeNetwork === $verifyNetwork;
+    }
+
+    /**
+     * Check if a device's biometric is currently blocked.
+     */
+    public function isDeviceBlocked(MobileDevice $device): bool
+    {
+        return $device->isBiometricBlocked();
+    }
+
+    /**
+     * Unblock biometric for a device manually (admin action).
+     */
+    public function unblockDeviceBiometric(MobileDevice $device): void
+    {
+        $device->unblockBiometric();
+
+        Log::info('Device biometric manually unblocked', [
+            'device_id' => $device->id,
+            'user_id'   => $device->user_id,
+        ]);
     }
 }

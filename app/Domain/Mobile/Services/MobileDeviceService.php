@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Mobile\Services;
 
+use App\Domain\Mobile\Exceptions\DeviceTakeoverAttemptException;
 use App\Domain\Mobile\Models\MobileDevice;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -38,19 +39,22 @@ class MobileDeviceService
         $existingDevice = MobileDevice::where('device_id', $deviceId)->first();
 
         if ($existingDevice) {
-            // Security: Prevent device takeover - do not allow changing user_id
+            // SECURITY FIX: Reject device takeover attempts - never allow changing user_id
+            // This prevents attackers from taking over legitimate user devices
             if ($existingDevice->user_id !== $user->id) {
-                Log::warning('Attempted device takeover blocked', [
+                Log::critical('Device takeover attempt blocked', [
                     'device_id'         => $deviceId,
                     'existing_user_id'  => $existingDevice->user_id,
                     'attempted_user_id' => $user->id,
+                    'ip_address'        => request()->ip(),
+                    'user_agent'        => request()->userAgent(),
                 ]);
 
-                // Unregister the device from the previous user first (this clears biometric)
-                // This is the safe approach - requires re-enrollment
-                $existingDevice->disableBiometric();
-                $existingDevice->sessions()->delete();
-                $existingDevice->update(['user_id' => $user->id, 'is_trusted' => false]);
+                throw new DeviceTakeoverAttemptException(
+                    deviceId: $deviceId,
+                    existingUserId: $existingDevice->user_id,
+                    attemptedUserId: $user->id,
+                );
             }
 
             // Device exists for same user - update it

@@ -28,6 +28,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $biometric_key_id
  * @property \Carbon\Carbon|null $last_active_at
  * @property \Carbon\Carbon|null $biometric_enabled_at
+ * @property int $biometric_failure_count
+ * @property \Carbon\Carbon|null $biometric_blocked_until
  * @property bool $is_trusted
  * @property \Carbon\Carbon|null $trusted_at
  * @property string|null $trusted_by
@@ -62,6 +64,8 @@ class MobileDevice extends Model
         'biometric_key_id',
         'last_active_at',
         'biometric_enabled_at',
+        'biometric_failure_count',
+        'biometric_blocked_until',
         'is_trusted',
         'trusted_at',
         'trusted_by',
@@ -72,14 +76,16 @@ class MobileDevice extends Model
     ];
 
     protected $casts = [
-        'biometric_enabled'    => 'boolean',
-        'is_trusted'           => 'boolean',
-        'is_blocked'           => 'boolean',
-        'last_active_at'       => 'datetime',
-        'biometric_enabled_at' => 'datetime',
-        'trusted_at'           => 'datetime',
-        'blocked_at'           => 'datetime',
-        'metadata'             => 'array',
+        'biometric_enabled'       => 'boolean',
+        'is_trusted'              => 'boolean',
+        'is_blocked'              => 'boolean',
+        'last_active_at'          => 'datetime',
+        'biometric_enabled_at'    => 'datetime',
+        'biometric_failure_count' => 'integer',
+        'biometric_blocked_until' => 'datetime',
+        'trusted_at'              => 'datetime',
+        'blocked_at'              => 'datetime',
+        'metadata'                => 'array',
     ];
 
     protected $hidden = [
@@ -134,6 +140,16 @@ class MobileDevice extends Model
     public function biometricChallenges(): HasMany
     {
         return $this->hasMany(BiometricChallenge::class);
+    }
+
+    /**
+     * Get the biometric authentication failures for this device.
+     *
+     * @return HasMany<BiometricFailure, $this>
+     */
+    public function biometricFailures(): HasMany
+    {
+        return $this->hasMany(BiometricFailure::class);
     }
 
     /**
@@ -194,8 +210,56 @@ class MobileDevice extends Model
     public function canUseBiometric(): bool
     {
         return ! $this->is_blocked
+            && ! $this->isBiometricBlocked()
             && $this->biometric_enabled
             && $this->biometric_public_key !== null;
+    }
+
+    /**
+     * Check if biometric authentication is temporarily blocked.
+     */
+    public function isBiometricBlocked(): bool
+    {
+        return $this->biometric_blocked_until !== null
+            && $this->biometric_blocked_until->isFuture();
+    }
+
+    /**
+     * Block biometric authentication temporarily.
+     */
+    public function blockBiometric(int $minutes = 30): void
+    {
+        $this->update([
+            'biometric_blocked_until' => now()->addMinutes($minutes),
+            'biometric_failure_count' => 0,
+        ]);
+    }
+
+    /**
+     * Unblock biometric authentication.
+     */
+    public function unblockBiometric(): void
+    {
+        $this->update([
+            'biometric_blocked_until' => null,
+            'biometric_failure_count' => 0,
+        ]);
+    }
+
+    /**
+     * Increment the biometric failure count.
+     */
+    public function incrementBiometricFailures(): void
+    {
+        $this->increment('biometric_failure_count');
+    }
+
+    /**
+     * Reset the biometric failure count (on successful auth).
+     */
+    public function resetBiometricFailures(): void
+    {
+        $this->update(['biometric_failure_count' => 0]);
     }
 
     /**
