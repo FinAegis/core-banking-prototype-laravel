@@ -16,8 +16,7 @@ use Illuminate\Support\Facades\Schema;
  * Security rationale: Per-device rate limiting prevents brute force attacks
  * on biometric authentication while not affecting other users.
  */
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         // Create biometric failures tracking table
