@@ -46,6 +46,8 @@ class BiometricFailure extends Model
         'mobile_device_id',
         'ip_address',
         'failure_reason',
+        'created_at',
+        'updated_at',
     ];
 
     /**
