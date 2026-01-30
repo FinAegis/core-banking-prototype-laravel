@@ -207,8 +207,11 @@ class LedgerSignerServiceTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_correct_evm_signature(): void
+    public function it_rejects_cryptographically_invalid_signature(): void
     {
+        // This test verifies that the cryptographic validation works correctly.
+        // A random signature will not recover to the expected public key,
+        // so validateSignature should return false - this is correct behavior.
         $transaction = new TransactionData(
             from: '0x1234567890123456789012345678901234567890',
             to: '0x0987654321098765432109876543210987654321',
@@ -219,12 +222,14 @@ class LedgerSignerServiceTest extends TestCase
             nonce: 5
         );
 
+        // Well-formatted but cryptographically invalid signature (random data)
         $signature = '0x' . str_repeat('ab', 32) . str_repeat('cd', 32) . '1b';
         $publicKey = '0x04' . str_repeat('ef', 64);
 
         $isValid = $this->service->validateSignature($transaction, $signature, $publicKey);
 
-        $this->assertTrue($isValid);
+        // The signature won't recover to the expected public key, so validation fails
+        $this->assertFalse($isValid);
     }
 
     #[Test]

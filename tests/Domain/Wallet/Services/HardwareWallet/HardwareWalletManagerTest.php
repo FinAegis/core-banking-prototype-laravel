@@ -133,6 +133,22 @@ class HardwareWalletManagerTest extends TestCase
     #[Test]
     public function it_submits_signature_successfully(): void
     {
+        // Create a mock Ledger service that accepts any signature (for testing flow)
+        $mockLedgerService = $this->createMock(LedgerSignerService::class);
+        $mockLedgerService->method('getType')->willReturn('hardware_ledger');
+        $mockLedgerService->method('validateSignature')->willReturn(true);
+        $mockLedgerService->method('constructSignedTransaction')
+            ->willReturn(new \App\Domain\Wallet\ValueObjects\SignedTransaction(
+                rawTransaction: '0xf86c058502540be40082520894' . str_repeat('0', 40) . '880de0b6b3a764000080',
+                hash: '0x' . str_repeat('ab', 32),
+                chainId: 1
+            ));
+
+        $manager = new HardwareWalletManager(
+            $mockLedgerService,
+            $this->trezorService
+        );
+
         $association = HardwareWalletAssociation::create([
             'user_id'          => 1,
             'device_type'      => 'ledger_nano_x',
@@ -167,7 +183,7 @@ class HardwareWalletManagerTest extends TestCase
         $signature = '0x' . str_repeat('ab', 32) . str_repeat('cd', 32) . '1b';
         $publicKey = '04' . str_repeat('ef', 64);
 
-        $signedTx = $this->manager->submitSignature($request, $signature, $publicKey);
+        $signedTx = $manager->submitSignature($request, $signature, $publicKey);
 
         $request->refresh();
 
