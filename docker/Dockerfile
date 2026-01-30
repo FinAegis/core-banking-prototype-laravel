@@ -34,10 +34,19 @@ FROM node:22-alpine AS node
 
 WORKDIR /app
 
+# Install build dependencies for native modules (usb, node-hid for hardware wallets)
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    linux-headers \
+    eudev-dev \
+    libusb-dev
+
 # Copy package files for layer caching
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install dependencies (USB/HID modules need native compilation)
 RUN npm ci --prefer-offline
 
 # Copy source files needed for build
