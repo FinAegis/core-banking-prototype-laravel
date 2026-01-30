@@ -160,10 +160,9 @@ RUN mkdir -p \
     /var/run/php-fpm \
     && chown -R www-data:www-data /var/www/html/storage
 
-# Cache Laravel configuration, routes, and views
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Note: Laravel config/route/view caching should be done at container startup
+# via entrypoint script, as they require environment variables (APP_KEY, DB_*, etc.)
+# that are not available during Docker build.
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
