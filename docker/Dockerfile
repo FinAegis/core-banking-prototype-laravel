@@ -51,7 +51,7 @@ RUN npm ci --prefer-offline
 
 # Copy source files needed for build
 COPY resources ./resources
-COPY vite.config.js tailwind.config.js postcss.config.js ./
+COPY vite.config.js tailwind.config.js tailwind.safelist.js postcss.config.js ./
 COPY public ./public
 
 # Build production assets
