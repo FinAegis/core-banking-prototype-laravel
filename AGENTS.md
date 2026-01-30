@@ -68,7 +68,7 @@ php artisan l5-swagger:generate
 ## Code Style Guidelines
 
 ### PHP Standards
-- PHP 8.4+ with strict types
+- PHP 8.3+ with strict types
 - Laravel 12 conventions
 - PSR-12 coding standard
 - PHPStan Level 5 (minimum)

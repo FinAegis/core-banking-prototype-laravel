@@ -1,9 +1,9 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.3-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
@@ -108,7 +108,7 @@ php artisan serve
 php artisan queue:work --queue=events,ledger,transactions,transfers,webhooks
 ```
 
-**Requirements**: PHP 8.4+, MySQL 8.0+ / MariaDB 10.3+ / PostgreSQL 13+, Redis 6.0+, Node.js 18+
+**Requirements**: PHP 8.3+, MySQL 8.0+ / MariaDB 10.3+ / PostgreSQL 13+, Redis 6.0+, Node.js 18+
 
 ### Modular Installation (v1.3.0+)
 
@@ -274,7 +274,7 @@ See [Kubernetes Deployment Guide](docs/06-DEVELOPMENT/KUBERNETES.md) for details
 
 | Layer | Technology |
 |-------|------------|
-| **Backend** | Laravel 12, PHP 8.4+ |
+| **Backend** | Laravel 12, PHP 8.3+ |
 | **Event Sourcing** | Spatie Event Sourcing |
 | **Workflows** | Laravel Workflow (Waterline) |
 | **Multi-Tenancy** | stancl/tenancy v3.9 |

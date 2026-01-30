@@ -27,7 +27,7 @@ This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participatin
 
 ### Prerequisites
 
-- PHP 8.4+
+- PHP 8.3+
 - Composer 2.x
 - MySQL 8.0+ or PostgreSQL 13+
 - Redis 6.0+

@@ -24,10 +24,10 @@ git branch --show-current
 | Item | Status |
 |------|--------|
 | Current Branch | `feature/v2.1.0-security-hardening` |
-| Open PRs | #345 (Security Hardening) |
+| Open PRs | #345 (Security Hardening - awaiting merge) |
 | Open Issues | None |
-| Last Action | v2.1.0 Security Hardening PR created (#345) |
-| Next Action | Merge security PR, update README.md |
+| Last Action | Fixed HW wallet tests, updated docs, cleaned Serena memories |
+| Next Action | Merge PR #345, tag v2.1.0 release |
 | Session Date | January 30, 2026 |
 
 ### Recent Commits This Session
@@ -239,7 +239,7 @@ app/Domain/
 - **DDD**: Aggregates, Value Objects, Domain Events
 
 ### Stack
-- PHP 8.4+ / Laravel 12
+- PHP 8.3+ / Laravel 12
 - MySQL 8.0 / Redis
 - Pest PHP / PHPStan Level 8
 - Filament 3.0 / Livewire
