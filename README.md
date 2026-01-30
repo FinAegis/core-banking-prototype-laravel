@@ -1,7 +1,7 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
@@ -24,6 +24,9 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Complex multi-step transactions | Saga pattern with automatic compensation |
 | Regulatory compliance | Built-in KYC/AML workflows |
 | Multi-tenant SaaS deployment | Team-based tenant isolation (v2.0.0) |
+| Hardware wallet security | Ledger/Trezor support with multi-sig (v2.1.0) |
+| Real-time data streaming | WebSocket broadcasting for trading (v2.1.0) |
+| Cloud-native deployment | Kubernetes Helm charts, HPA, Istio (v2.1.0) |
 | Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
 
 ---
@@ -152,9 +155,9 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 
 | Domain | Capabilities |
 |--------|-------------|
-| **Exchange** | Order matching, liquidity pools, AMM, external connectors |
+| **Exchange** | Order matching, liquidity pools, AMM, external connectors, WebSocket streaming |
 | **Stablecoin** | Multi-collateral minting, burning, liquidation |
-| **Wallet** | Multi-chain support (BTC, ETH, Polygon, BSC), Hardware wallets (Ledger, Trezor) |
+| **Wallet** | Multi-chain (BTC, ETH, Polygon, BSC), Hardware wallets (Ledger, Trezor), Multi-sig (M-of-N) |
 | **Basket (GCU)** | Weighted currency basket, NAV calculation, rebalancing |
 
 ### Platform Services
@@ -233,6 +236,40 @@ This project supports AI coding assistants. Look for `AGENTS.md` files for conte
 
 ---
 
+## Deployment
+
+### Kubernetes (v2.1.0+)
+
+Deploy to any Kubernetes cluster with Helm:
+
+```bash
+# Add Bitnami repo for dependencies
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+# Install with staging values
+helm upgrade --install finaegis ./helm/finaegis \
+  --values ./helm/finaegis/values-staging.yaml \
+  --namespace finaegis-staging \
+  --create-namespace
+
+# Install with production values
+helm upgrade --install finaegis ./helm/finaegis \
+  --values ./helm/finaegis/values-production.yaml \
+  --namespace finaegis
+```
+
+**Features:**
+- Multi-stage Docker build (PHP 8.4-fpm-alpine)
+- Horizontal Pod Autoscaler (CPU, memory, queue depth)
+- Istio service mesh compatible (mTLS, circuit breaker)
+- External Secrets for Vault/AWS integration
+- Prometheus ServiceMonitor for observability
+- Network Policies for pod isolation
+
+See [Kubernetes Deployment Guide](docs/06-DEVELOPMENT/KUBERNETES.md) for details.
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -243,9 +280,11 @@ This project supports AI coding assistants. Look for `AGENTS.md` files for conte
 | **Multi-Tenancy** | stancl/tenancy v3.9 |
 | **Database** | MySQL 8.0+ / MariaDB 10.3+ / PostgreSQL 13+ |
 | **Cache/Queue** | Redis, Laravel Horizon |
+| **Real-time** | Soketi (Pusher-compatible), Laravel Echo |
 | **Testing** | Pest PHP (parallel), PHPStan Level 8 |
 | **Admin** | Filament v3 |
 | **Frontend** | Livewire, Tailwind CSS |
+| **Deployment** | Docker, Kubernetes (Helm), Istio |
 
 ---
 
