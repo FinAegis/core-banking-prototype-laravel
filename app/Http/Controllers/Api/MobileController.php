@@ -14,10 +14,16 @@ use App\Domain\Mobile\Services\MobileSessionService;
 use App\Domain\Mobile\Services\NotificationPreferenceService;
 use App\Domain\Mobile\Services\PushNotificationService;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Mobile\BlockDeviceRequest;
+use App\Http\Requests\Mobile\DeviceIdRequest;
+use App\Http\Requests\Mobile\EnableBiometricRequest;
+use App\Http\Requests\Mobile\RegisterDeviceRequest;
+use App\Http\Requests\Mobile\UpdateNotificationPreferencesRequest;
+use App\Http\Requests\Mobile\UpdatePushTokenRequest;
+use App\Http\Requests\Mobile\VerifyBiometricRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use RuntimeException;
 
 /**
@@ -67,38 +73,19 @@ class MobileController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function registerDevice(Request $request): JsonResponse
+    public function registerDevice(RegisterDeviceRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'device_id'    => 'required|string|max:100',
-            'platform'     => 'required|in:ios,android',
-            'app_version'  => 'required|string|max:20',
-            'push_token'   => 'nullable|string|max:500',
-            'device_name'  => 'nullable|string|max:100',
-            'device_model' => 'nullable|string|max:100',
-            'os_version'   => 'nullable|string|max:50',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors(),
-                ],
-            ], 422);
-        }
-
-        $user = $this->getAuthenticatedUser($request);
+        /** @var User $user */
+        $user = $request->user();
         $device = $this->deviceService->registerDevice(
             $user,
-            $request->input('device_id'),
-            $request->input('platform'),
-            $request->input('app_version'),
-            $request->input('push_token'),
-            $request->input('device_name'),
-            $request->input('device_model'),
-            $request->input('os_version')
+            $request->device_id,
+            $request->platform,
+            $request->app_version,
+            $request->push_token,
+            $request->device_name,
+            $request->device_model,
+            $request->os_version
         );
 
         return response()->json([
@@ -218,23 +205,10 @@ class MobileController extends Controller
      *     @OA\Response(response=404, description="Device not found")
      * )
      */
-    public function updatePushToken(Request $request, string $id): JsonResponse
+    public function updatePushToken(UpdatePushTokenRequest $request, string $id): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'push_token' => 'required|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors(),
-                ],
-            ], 422);
-        }
-
-        $user = $this->getAuthenticatedUser($request);
+        /** @var User $user */
+        $user = $request->user();
         $device = $this->deviceService->findByIdForUser($id, $user);
 
         if (! $device) {
@@ -246,7 +220,7 @@ class MobileController extends Controller
             ], 404);
         }
 
-        $this->deviceService->updatePushToken($device, $request->input('push_token'));
+        $this->deviceService->updatePushToken($device, $request->push_token);
 
         return response()->json([
             'message' => 'Push token updated successfully',
@@ -276,26 +250,11 @@ class MobileController extends Controller
      *     @OA\Response(response=404, description="Device not found")
      * )
      */
-    public function enableBiometric(Request $request): JsonResponse
+    public function enableBiometric(EnableBiometricRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'device_id'  => 'required|string',
-            'public_key' => 'required|string',
-            'key_id'     => 'nullable|string|max:100',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors(),
-                ],
-            ], 422);
-        }
-
-        $user = $this->getAuthenticatedUser($request);
-        $device = $this->deviceService->findByDeviceId($request->input('device_id'));
+        /** @var User $user */
+        $user = $request->user();
+        $device = $this->deviceService->findByDeviceId($request->device_id);
 
         if (! $device || $device->user_id !== $user->id) {
             return response()->json([
@@ -317,8 +276,8 @@ class MobileController extends Controller
 
         $success = $this->biometricService->enableBiometric(
             $device,
-            $request->input('public_key'),
-            $request->input('key_id')
+            $request->public_key,
+            $request->key_id
         );
 
         if (! $success) {
@@ -359,24 +318,11 @@ class MobileController extends Controller
      *     @OA\Response(response=404, description="Device not found")
      * )
      */
-    public function disableBiometric(Request $request): JsonResponse
+    public function disableBiometric(DeviceIdRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'device_id' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors(),
-                ],
-            ], 422);
-        }
-
-        $user = $this->getAuthenticatedUser($request);
-        $device = $this->deviceService->findByDeviceId($request->input('device_id'));
+        /** @var User $user */
+        $user = $request->user();
+        $device = $this->deviceService->findByDeviceId($request->device_id);
 
         if (! $device || $device->user_id !== $user->id) {
             return response()->json([
@@ -414,23 +360,9 @@ class MobileController extends Controller
      *     @OA\Response(response=404, description="Device not found")
      * )
      */
-    public function getBiometricChallenge(Request $request): JsonResponse
+    public function getBiometricChallenge(DeviceIdRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'device_id' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors(),
-                ],
-            ], 422);
-        }
-
-        $device = $this->deviceService->findByDeviceId($request->input('device_id'));
+        $device = $this->deviceService->findByDeviceId($request->device_id);
 
         if (! $device) {
             return response()->json([
@@ -482,25 +414,9 @@ class MobileController extends Controller
      *     @OA\Response(response=404, description="Device not found")
      * )
      */
-    public function verifyBiometric(Request $request): JsonResponse
+    public function verifyBiometric(VerifyBiometricRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'device_id' => 'required|string',
-            'challenge' => 'required|string',
-            'signature' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors(),
-                ],
-            ], 422);
-        }
-
-        $device = $this->deviceService->findByDeviceId($request->input('device_id'));
+        $device = $this->deviceService->findByDeviceId($request->device_id);
 
         if (! $device) {
             return response()->json([
@@ -513,8 +429,8 @@ class MobileController extends Controller
 
         $result = $this->biometricService->verifyAndCreateSession(
             $device,
-            $request->input('challenge'),
-            $request->input('signature'),
+            $request->challenge,
+            $request->signature,
             $request->ip()
         );
 
@@ -685,23 +601,10 @@ class MobileController extends Controller
      *     @OA\Response(response="404", description="Device not found")
      * )
      */
-    public function blockDevice(Request $request, string $id): JsonResponse
+    public function blockDevice(BlockDeviceRequest $request, string $id): JsonResponse
     {
-        $user = $this->getAuthenticatedUser($request);
-
-        $validator = Validator::make($request->all(), [
-            'reason' => ['sometimes', 'string', 'max:255'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors()->toArray(),
-                ],
-            ], 422);
-        }
+        /** @var User $user */
+        $user = $request->user();
 
         $device = $this->deviceService->findByIdForUser($id, $user);
         if (! $device instanceof MobileDevice) {
@@ -713,8 +616,7 @@ class MobileController extends Controller
             ], 404);
         }
 
-        $reason = $request->input('reason', 'User requested block');
-        $this->deviceService->blockDevice($device, $reason);
+        $this->deviceService->blockDevice($device, $request->getBlockReason());
 
         // Revoke all sessions for this device
         $this->sessionService->revokeDeviceSessions($device);
@@ -1022,27 +924,10 @@ class MobileController extends Controller
      *     @OA\Response(response="200", description="Preferences updated")
      * )
      */
-    public function updateNotificationPreferences(Request $request): JsonResponse
+    public function updateNotificationPreferences(UpdateNotificationPreferencesRequest $request): JsonResponse
     {
-        $user = $this->getAuthenticatedUser($request);
-
-        $validator = Validator::make($request->all(), [
-            'preferences'                 => ['required', 'array'],
-            'preferences.*'               => ['array'],
-            'preferences.*.push_enabled'  => ['sometimes', 'boolean'],
-            'preferences.*.email_enabled' => ['sometimes', 'boolean'],
-            'device_id'                   => ['sometimes', 'uuid'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'error' => [
-                    'code'    => 'VALIDATION_ERROR',
-                    'message' => 'Validation failed',
-                    'details' => $validator->errors()->toArray(),
-                ],
-            ], 422);
-        }
+        /** @var User $user */
+        $user = $request->user();
 
         $device = null;
         $deviceId = $request->input('device_id');
@@ -1058,9 +943,7 @@ class MobileController extends Controller
             }
         }
 
-        /** @var array<string, array{push_enabled?: bool, email_enabled?: bool}> $preferences */
-        $preferences = $request->input('preferences');
-        $this->preferenceService->updatePreferences($user, $preferences, $device);
+        $this->preferenceService->updatePreferences($user, $request->getPreferences(), $device);
 
         $updatedPreferences = $this->preferenceService->getUserPreferences($user, $device);
 
