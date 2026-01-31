@@ -61,6 +61,9 @@ class FinancialInstitutionPartner extends Model
         'institution_type',
         'country',
         'status',
+        'tier',
+        'custom_domain',
+        'white_label_enabled',
         'api_client_id',
         'api_client_secret',
         'webhook_secret',
@@ -125,6 +128,7 @@ class FinancialInstitutionPartner extends Model
         'sandbox_enabled'           => 'boolean',
         'production_enabled'        => 'boolean',
         'webhook_active'            => 'boolean',
+        'white_label_enabled'       => 'boolean',
         'max_transaction_amount'    => 'decimal:2',
         'daily_transaction_limit'   => 'decimal:2',
         'monthly_transaction_limit' => 'decimal:2',
@@ -458,5 +462,96 @@ class FinancialInstitutionPartner extends Model
     public function logs()
     {
         return $this->morphMany(\App\Domain\Activity\Models\Activity::class, 'subject');
+    }
+
+    /**
+     * Get the branding configuration for this partner.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function branding()
+    {
+        return $this->hasOne(PartnerBranding::class, 'partner_id');
+    }
+
+    /**
+     * Get usage records for this partner.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function usageRecords()
+    {
+        return $this->hasMany(PartnerUsageRecord::class, 'partner_id');
+    }
+
+    /**
+     * Get invoices for this partner.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function invoices()
+    {
+        return $this->hasMany(PartnerInvoice::class, 'partner_id');
+    }
+
+    /**
+     * Get the tier enum.
+     */
+    public function getTierEnum(): ?\App\Domain\FinancialInstitution\Enums\PartnerTier
+    {
+        return \App\Domain\FinancialInstitution\Enums\PartnerTier::tryFrom($this->tier ?? 'starter');
+    }
+
+    /**
+     * Check if partner has white-label access.
+     */
+    public function hasWhiteLabelAccess(): bool
+    {
+        $tier = $this->getTierEnum();
+
+        return $tier && $tier->hasWhiteLabel() && ($this->white_label_enabled ?? false);
+    }
+
+    /**
+     * Check if partner has custom domain access.
+     */
+    public function hasCustomDomainAccess(): bool
+    {
+        $tier = $this->getTierEnum();
+
+        return $tier && $tier->hasCustomDomain() && ! empty($this->custom_domain);
+    }
+
+    /**
+     * Get the monthly API call limit based on tier.
+     */
+    public function getApiCallLimit(): int
+    {
+        $tier = $this->getTierEnum();
+
+        return $tier ? $tier->apiCallLimit() : 10000;
+    }
+
+    /**
+     * Scope to filter by tier.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $tier
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTier($query, string $tier)
+    {
+        return $query->where('tier', $tier);
+    }
+
+    /**
+     * Scope to filter white-label enabled partners.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWhiteLabelEnabled($query)
+    {
+        return $query->where('white_label_enabled', true);
     }
 }
