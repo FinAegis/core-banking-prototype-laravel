@@ -66,10 +66,16 @@ echo "========================================"
 echo ""
 
 # Build parallel flags if enabled
+# NOTE: Paratest only accepts a single path, so parallel mode is only used
+# when a single directory is provided. Multiple directories run sequentially.
 PARALLEL_FLAGS=""
-if [ "$PEST_PARALLEL_ENABLED" = "true" ]; then
+if [ "$PEST_PARALLEL_ENABLED" = "true" ] && [ ${#VALID_PATHS[@]} -eq 1 ]; then
     PARALLEL_FLAGS="--parallel --processes=$PARALLEL_PROCS"
     export PEST_PARALLEL=true
+    echo "Running in parallel mode with $PARALLEL_PROCS processes..."
+elif [ "$PEST_PARALLEL_ENABLED" = "true" ] && [ ${#VALID_PATHS[@]} -gt 1 ]; then
+    echo "Note: Multiple paths provided - running sequentially (paratest requires single path)"
+    export PEST_PARALLEL=false
 else
     export PEST_PARALLEL=false
 fi
