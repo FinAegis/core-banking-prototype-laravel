@@ -28,7 +28,8 @@ class BiometricDeviceBlocked extends ShouldBeStored implements ShouldBroadcast
         public readonly int $failureCount,
         public readonly Carbon $blockedUntil,
         public readonly Carbon $blockedAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

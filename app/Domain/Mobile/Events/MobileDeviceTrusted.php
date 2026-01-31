@@ -27,7 +27,8 @@ class MobileDeviceTrusted extends ShouldBeStored implements ShouldBroadcast
         public readonly string $userId,
         public readonly Carbon $trustedAt,
         public readonly ?string $trustedBy,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

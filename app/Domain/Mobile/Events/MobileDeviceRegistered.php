@@ -28,7 +28,8 @@ class MobileDeviceRegistered extends ShouldBeStored implements ShouldBroadcast
         public readonly string $platform,
         public readonly string $appVersion,
         public readonly Carbon $registeredAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

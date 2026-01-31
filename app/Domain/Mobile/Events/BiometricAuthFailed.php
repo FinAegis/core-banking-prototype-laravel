@@ -29,7 +29,8 @@ class BiometricAuthFailed extends ShouldBeStored implements ShouldBroadcast
         public readonly ?string $ipAddress,
         public readonly int $failureCount,
         public readonly Carbon $failedAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

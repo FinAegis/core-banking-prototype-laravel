@@ -29,7 +29,8 @@ class MobileSessionCreated extends ShouldBeStored implements ShouldBroadcast
         public readonly ?string $ipAddress,
         public readonly Carbon $expiresAt,
         public readonly Carbon $createdAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

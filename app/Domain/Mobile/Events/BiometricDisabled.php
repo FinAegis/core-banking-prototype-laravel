@@ -28,7 +28,8 @@ class BiometricDisabled extends ShouldBeStored implements ShouldBroadcast
         public readonly string $reason,
         public readonly ?string $disabledBy,
         public readonly Carbon $disabledAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

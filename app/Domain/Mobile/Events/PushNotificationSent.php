@@ -30,7 +30,8 @@ class PushNotificationSent extends ShouldBeStored implements ShouldBroadcast
         public readonly string $title,
         public readonly ?string $messageId,
         public readonly Carbon $sentAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

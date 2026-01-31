@@ -27,7 +27,8 @@ class BiometricAuthSucceeded extends ShouldBeStored implements ShouldBroadcast
         public readonly string $userId,
         public readonly ?string $ipAddress,
         public readonly Carbon $authenticatedAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 

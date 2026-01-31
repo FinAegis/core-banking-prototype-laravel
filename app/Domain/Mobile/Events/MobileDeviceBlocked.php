@@ -28,7 +28,8 @@ class MobileDeviceBlocked extends ShouldBeStored implements ShouldBroadcast
         public readonly string $reason,
         public readonly ?string $blockedBy,
         public readonly Carbon $blockedAt,
-        /** @var array<string, mixed> */ public readonly array $metadata = [],
+        /** @var array<string, mixed> */
+        public readonly array $metadata = [],
     ) {
     }
 
