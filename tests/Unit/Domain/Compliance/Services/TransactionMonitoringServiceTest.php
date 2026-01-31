@@ -10,7 +10,6 @@ use App\Domain\Compliance\Services\CustomerRiskService;
 use App\Domain\Compliance\Services\SuspiciousActivityReportService;
 use App\Domain\Compliance\Services\TransactionMonitoringService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Mockery;
@@ -19,8 +18,6 @@ use Tests\TestCase;
 
 class TransactionMonitoringServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private TransactionMonitoringService $service;
 
     private SuspiciousActivityReportService $sarService;

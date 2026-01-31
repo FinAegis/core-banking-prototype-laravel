@@ -10,7 +10,6 @@ use App\Domain\Treasury\Services\PortfolioManagementService;
 use App\Domain\Treasury\Services\RebalancingService;
 use App\Domain\Treasury\ValueObjects\InvestmentStrategy;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -21,7 +20,6 @@ use Tests\TestCase;
 
 class PortfolioControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use WithFaker;
 
     protected User $testUser;

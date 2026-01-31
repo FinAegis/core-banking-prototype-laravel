@@ -12,7 +12,6 @@ use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\AI\MCP\Tools\Account\CreateAccountTool;
 use App\Domain\AI\ValueObjects\MCPRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -20,8 +19,6 @@ use Tests\TestCase;
 
 class CreateAccountToolTest extends TestCase
 {
-    use RefreshDatabase;
-
     private MCPServer $server;
 
     private ToolRegistry $registry;

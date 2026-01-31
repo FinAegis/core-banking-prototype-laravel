@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Middleware;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
@@ -12,8 +11,6 @@ use Tests\TestCase;
 
 class TransactionRateLimitMiddlewareTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected function setUp(): void

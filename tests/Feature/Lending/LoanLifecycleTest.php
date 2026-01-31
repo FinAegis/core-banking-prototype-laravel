@@ -4,14 +4,11 @@ namespace Tests\Feature\Lending;
 
 use App\Domain\Lending\Services\CreditScoringService;
 use App\Domain\Lending\Services\LoanApplicationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class LoanLifecycleTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     private LoanApplicationService $loanService;
 
     private CreditScoringService $creditScoringService;

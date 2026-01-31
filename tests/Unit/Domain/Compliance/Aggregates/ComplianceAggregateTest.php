@@ -11,15 +11,12 @@ use App\Domain\Compliance\Events\KycSubmissionReceived;
 use App\Domain\Compliance\Events\KycVerificationCompleted;
 use App\Domain\Compliance\Events\KycVerificationRejected;
 use App\Domain\Compliance\Events\RegulatoryReportGenerated;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
 use Tests\DomainTestCase;
 
 class ComplianceAggregateTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function submit_kyc_records_submission_and_document_events(): void
     {

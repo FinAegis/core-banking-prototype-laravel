@@ -9,7 +9,6 @@ use App\Domain\Account\DataObjects\Money;
 use App\Domain\Account\Events\MoneyTransferred;
 use App\Domain\Account\Events\TransferThresholdReached;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
@@ -17,8 +16,6 @@ use Tests\DomainTestCase;
 
 class TransferAggregateTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_transfers_money_between_accounts(): void
     {

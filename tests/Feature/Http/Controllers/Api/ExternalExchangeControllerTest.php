@@ -9,7 +9,6 @@ use App\Domain\Exchange\ValueObjects\ExternalTicker;
 use App\Models\User;
 use Brick\Math\BigDecimal;
 use DateTimeImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
@@ -19,8 +18,6 @@ use Tests\ControllerTestCase;
 
 class ExternalExchangeControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     /**

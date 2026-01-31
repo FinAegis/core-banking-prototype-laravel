@@ -4,15 +4,12 @@ namespace Tests\Feature\Security;
 
 use App\Domain\User\Values\UserRoles;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TwoFactorAdminTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function admin_without_2fa_enabled_is_blocked()
     {

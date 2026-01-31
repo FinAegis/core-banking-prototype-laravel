@@ -9,7 +9,6 @@ use App\Domain\AgentProtocol\DataObjects\ReputationUpdate;
 use App\Domain\AgentProtocol\Models\Agent;
 use App\Domain\AgentProtocol\Services\ReputationService;
 use DomainException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class ReputationServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private ReputationService $service;
 
     protected function setUp(): void

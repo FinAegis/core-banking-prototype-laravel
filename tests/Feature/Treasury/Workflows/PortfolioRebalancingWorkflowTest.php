@@ -11,7 +11,6 @@ use App\Domain\Treasury\Events\Portfolio\RebalancingCompleted;
 use App\Domain\Treasury\Services\PortfolioManagementService;
 use App\Domain\Treasury\Services\RebalancingService;
 use App\Domain\Treasury\Workflows\PortfolioRebalancingWorkflow;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Mockery;
@@ -23,8 +22,6 @@ use Workflow\WorkflowStub;
 
 class PortfolioRebalancingWorkflowTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $portfolioId;
 
     private PortfolioManagementService $portfolioService;

@@ -11,7 +11,6 @@ use App\Domain\Compliance\Services\TransactionMonitoringService;
 use App\Domain\Compliance\Streaming\PatternDetectionEngine;
 use App\Domain\Compliance\Streaming\TransactionStreamProcessor;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Mockery;
@@ -19,8 +18,6 @@ use Tests\TestCase;
 
 class TransactionStreamProcessorTest extends TestCase
 {
-    use RefreshDatabase;
-
     private TransactionStreamProcessor $processor;
 
     private $monitoringServiceMock;

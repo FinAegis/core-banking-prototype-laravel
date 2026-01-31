@@ -8,13 +8,10 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\TransactionProjection;
 use App\Domain\Payment\Services\DemoPaymentService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class DemoPaymentServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DemoPaymentService $service;
 
     protected User $user;

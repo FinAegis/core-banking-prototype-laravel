@@ -10,14 +10,11 @@ use App\Models\User;
 // use App\Domain\Account\Models\Account;
 // use App\Domain\Asset\Models\Asset;
 // use App\Domain\Account\Models\Transaction;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class PrometheusExporterTest extends TestCase
 {
-    use RefreshDatabase;
-
     private PrometheusExporter $exporter;
 
     protected function setUp(): void

@@ -15,15 +15,12 @@ use App\Domain\Mobile\Events\MobileDeviceRegistered;
 use App\Domain\Mobile\Events\MobileDeviceTrusted;
 use App\Domain\Mobile\Events\MobileSessionCreated;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class MobileDeviceAggregateTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     private string $deviceId;
 
     private string $userId;

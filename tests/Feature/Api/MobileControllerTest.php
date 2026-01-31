@@ -8,13 +8,10 @@ use App\Domain\Mobile\Models\BiometricChallenge;
 use App\Domain\Mobile\Models\MobileDevice;
 use App\Domain\Mobile\Models\MobilePushNotification;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MobileControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected string $token;

@@ -8,14 +8,11 @@ use App\Domain\Exchange\LiquidityPool\Services\ImpermanentLossProtectionService;
 use App\Domain\Exchange\Projections\LiquidityPool;
 use App\Domain\Exchange\Projections\LiquidityProvider;
 use Brick\Math\BigDecimal;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ImpermanentLossProtectionServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private ImpermanentLossProtectionService $service;
 
     protected function setUp(): void

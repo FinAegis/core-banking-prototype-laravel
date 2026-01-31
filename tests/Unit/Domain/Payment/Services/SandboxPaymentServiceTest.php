@@ -7,15 +7,12 @@ namespace Tests\Unit\Domain\Payment\Services;
 use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Services\SandboxPaymentService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Tests\TestCase;
 
 class SandboxPaymentServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private SandboxPaymentService $service;
 
     protected User $user;

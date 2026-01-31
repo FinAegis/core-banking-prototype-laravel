@@ -9,14 +9,11 @@ use App\Domain\Monitoring\Services\MetricsCollector;
 use App\Domain\Monitoring\Services\PrometheusExporter;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class MonitoringSystemTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * Clear only monitoring-related cache keys to avoid conflicts in parallel tests.
      */

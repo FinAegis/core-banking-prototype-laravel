@@ -9,15 +9,12 @@ use App\Domain\Account\Events\MoneySubtracted;
 use App\Domain\Account\Events\TransactionThresholdReached;
 use App\Domain\Account\Exceptions\NotEnoughFunds;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
 use Tests\DomainTestCase;
 
 class TransactionAggregateTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_credits_money_to_account(): void
     {

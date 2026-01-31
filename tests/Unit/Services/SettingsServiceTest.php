@@ -6,15 +6,12 @@ namespace Tests\Unit\Services;
 
 use App\Models\Setting;
 use App\Services\SettingsService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
 class SettingsServiceTest extends ServiceTestCase
 {
-    use RefreshDatabase;
-
     protected SettingsService $service;
 
     protected function setUp(): void

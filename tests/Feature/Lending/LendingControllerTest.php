@@ -7,15 +7,12 @@ use App\Domain\Lending\Enums\EmploymentStatus;
 use App\Domain\Lending\Enums\LoanPurpose;
 use App\Domain\Lending\Models\Loan;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
 class LendingControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Account $account;

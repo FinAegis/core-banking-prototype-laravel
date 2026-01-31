@@ -7,7 +7,6 @@ namespace Tests\Feature\AgentProtocol;
 use App\Domain\AgentProtocol\Aggregates\EscrowAggregate;
 use App\Domain\AgentProtocol\DataObjects\EscrowRequest;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -19,8 +18,6 @@ use Tests\TestCase;
  */
 class EscrowWorkflowTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $buyerDid;
 
     private string $sellerDid;

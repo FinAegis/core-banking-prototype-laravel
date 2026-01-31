@@ -6,14 +6,11 @@ namespace Tests\Feature\Basket;
 
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Basket\Models\BasketAsset;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BasketAssetTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

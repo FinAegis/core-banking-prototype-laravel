@@ -5,15 +5,12 @@ namespace Tests\Unit\Domain\Fraud\Events;
 use App\Domain\Account\Models\Transaction;
 use App\Domain\Fraud\Events\FraudDetected;
 use App\Domain\Fraud\Models\FraudScore;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class FraudDetectedTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_creates_event_with_fraud_score(): void
     {

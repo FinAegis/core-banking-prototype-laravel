@@ -7,13 +7,11 @@ namespace Tests\Unit\Domain\Mobile\Services;
 use App\Domain\Mobile\Models\MobileDevice;
 use App\Domain\Mobile\Services\MobileDeviceService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class MobileDeviceServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected MobileDeviceService $service;
 
     protected User $user;
@@ -69,7 +67,8 @@ class MobileDeviceServiceTest extends TestCase
 
     public function test_removes_oldest_device_when_limit_reached(): void
     {
-        // Create max devices (5)
+        // Create max devices (5) with time travel for different timestamps
+        Carbon::setTestNow(now());
         for ($i = 1; $i <= 5; $i++) {
             $this->service->registerDevice(
                 $this->user,
@@ -77,9 +76,10 @@ class MobileDeviceServiceTest extends TestCase
                 'android',
                 '1.0.0'
             );
-            // Add small delay to ensure different timestamps
-            sleep(1);
+            // Advance time instead of sleeping to ensure different timestamps
+            Carbon::setTestNow(now()->addSecond());
         }
+        Carbon::setTestNow(); // Reset time
 
         $this->assertEquals(5, MobileDevice::where('user_id', $this->user->id)->count());
 

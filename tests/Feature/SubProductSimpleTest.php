@@ -3,14 +3,11 @@
 namespace Tests\Feature;
 
 use App\Domain\Product\Services\SubProductService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SubProductSimpleTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_sub_product_configuration_exists(): void
     {

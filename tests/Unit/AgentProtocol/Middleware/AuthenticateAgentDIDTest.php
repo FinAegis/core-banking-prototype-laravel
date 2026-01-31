@@ -7,7 +7,6 @@ namespace Tests\Unit\AgentProtocol\Middleware;
 use App\Domain\AgentProtocol\Services\AgentAuthenticationService;
 use App\Http\Middleware\AuthenticateAgentDID;
 use App\Models\Agent;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class AuthenticateAgentDIDTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AuthenticateAgentDID $middleware;
 
     /** @var AgentAuthenticationService&MockInterface */

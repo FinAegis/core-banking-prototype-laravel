@@ -4,7 +4,6 @@ namespace Tests\Security\Penetration;
 
 use App\Domain\Account\Models\Account;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
@@ -14,8 +13,6 @@ use Tests\DomainTestCase;
 
 class CsrfTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected string $token;

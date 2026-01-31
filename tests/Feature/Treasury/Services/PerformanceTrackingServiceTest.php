@@ -7,15 +7,12 @@ namespace Tests\Feature\Treasury\Services;
 use App\Domain\Treasury\Services\AssetValuationService;
 use App\Domain\Treasury\Services\PerformanceTrackingService;
 use App\Domain\Treasury\Services\PortfolioManagementService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use Tests\TestCase;
 
 class PerformanceTrackingServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private PerformanceTrackingService $service;
 
     private PortfolioManagementService $portfolioService;

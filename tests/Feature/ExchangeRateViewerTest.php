@@ -6,15 +6,12 @@ use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ExchangeRateViewerTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Team $team;

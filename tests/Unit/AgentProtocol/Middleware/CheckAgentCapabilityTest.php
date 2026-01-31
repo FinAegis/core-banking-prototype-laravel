@@ -6,15 +6,12 @@ namespace Tests\Unit\AgentProtocol\Middleware;
 
 use App\Http\Middleware\CheckAgentCapability;
 use App\Models\Agent;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CheckAgentCapabilityTest extends TestCase
 {
-    use RefreshDatabase;
-
     private CheckAgentCapability $middleware;
 
     protected function setUp(): void

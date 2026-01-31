@@ -9,15 +9,12 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Repositories\AccountRepository;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class DebitAccountTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     private DebitAccount $action;
 
     private AccountRepository $accountRepository;

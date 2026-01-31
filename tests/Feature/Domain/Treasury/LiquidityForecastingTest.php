@@ -11,7 +11,6 @@ use App\Domain\Treasury\ValueObjects\CashFlowProjection;
 use App\Domain\Treasury\ValueObjects\LiquidityMetrics;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,8 +18,6 @@ use Tests\TestCase;
 
 class LiquidityForecastingTest extends TestCase
 {
-    use RefreshDatabase;
-
     private LiquidityForecastingService $service;
 
     private string $treasuryId;

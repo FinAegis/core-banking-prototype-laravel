@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Monitoring\Services;
 
 use App\Domain\Monitoring\Services\MetricsCollector;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class MetricsCollectorTest extends TestCase
 {
-    use RefreshDatabase;
-
     private MetricsCollector $collector;
 
     protected function setUp(): void

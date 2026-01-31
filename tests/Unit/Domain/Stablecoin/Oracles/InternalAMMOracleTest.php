@@ -8,7 +8,6 @@ use App\Domain\Stablecoin\Oracles\InternalAMMOracle;
 use App\Domain\Stablecoin\ValueObjects\PriceData;
 use Brick\Math\BigDecimal;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class InternalAMMOracleTest extends TestCase
 {
-    use RefreshDatabase;
-
     private InternalAMMOracle $oracle;
 
     protected function setUp(): void

@@ -11,7 +11,6 @@ use App\Domain\Exchange\Projections\OrderBook as OrderBookProjection;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Domain\Exchange\Services\FeeCalculator;
 use Brick\Math\BigDecimal;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
 use Mockery;
@@ -23,8 +22,6 @@ use Workflow\WorkflowStub;
 
 class ExchangeServiceTest extends ServiceTestCase
 {
-    use RefreshDatabase;
-
     private ExchangeService $service;
 
     private FeeCalculator $feeCalculator;

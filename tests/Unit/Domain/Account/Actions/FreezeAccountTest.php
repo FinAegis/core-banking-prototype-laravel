@@ -5,15 +5,12 @@ namespace Tests\Unit\Domain\Account\Actions;
 use App\Domain\Account\Actions\FreezeAccount;
 use App\Domain\Account\Events\AccountFrozen;
 use App\Domain\Account\Models\Account;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class FreezeAccountTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     private FreezeAccount $action;
 
     protected function setUp(): void

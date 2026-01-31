@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Tests\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Services\DIDService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class DIDServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DIDService $service;
 
     protected function setUp(): void

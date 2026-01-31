@@ -7,15 +7,12 @@ use App\Domain\Account\Models\Transaction;
 use App\Domain\Compliance\Events\SuspiciousActivityDetected;
 use App\Models\User;
 use Error;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class SuspiciousActivityDetectedTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     private function createTransaction(array $eventProperties = []): Transaction
     {
         $user = User::factory()->create();

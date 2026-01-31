@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Tests\Domain\AgentProtocol\Services;
 
 use App\Domain\AgentProtocol\Services\AgentPaymentIntegrationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use ReflectionClass;
 use Tests\TestCase;
 
 class AgentPaymentIntegrationServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AgentPaymentIntegrationService $service;
 
     protected function setUp(): void

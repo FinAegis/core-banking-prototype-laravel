@@ -7,7 +7,6 @@ namespace Tests\Feature\AgentProtocol;
 use App\Models\Agent;
 use App\Models\AgentApiKey;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
@@ -19,8 +18,6 @@ use Tests\TestCase;
  */
 class AgentAuthApiTest extends TestCase
 {
-    use RefreshDatabase;
-
     private Agent $agent;
 
     protected User $user;

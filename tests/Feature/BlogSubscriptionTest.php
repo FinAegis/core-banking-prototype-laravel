@@ -2,15 +2,12 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BlogSubscriptionTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function user_can_view_blog_page()
     {

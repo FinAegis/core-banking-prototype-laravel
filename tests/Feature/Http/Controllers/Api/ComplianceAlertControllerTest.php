@@ -7,14 +7,11 @@ namespace Tests\Feature\Http\Controllers\Api;
 use App\Domain\Account\Models\Account;
 use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ComplianceAlertControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Account $account;

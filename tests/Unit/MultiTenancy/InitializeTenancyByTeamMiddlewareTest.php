@@ -9,7 +9,6 @@ use App\Http\Middleware\InitializeTenancyByTeam;
 use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use ReflectionClass;
@@ -25,8 +24,6 @@ use Tests\TestCase;
  */
 class InitializeTenancyByTeamMiddlewareTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected InitializeTenancyByTeam $middleware;
 
     protected function setUp(): void

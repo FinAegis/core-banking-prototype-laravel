@@ -8,7 +8,6 @@ use App\Domain\Wallet\Models\HardwareWalletAssociation;
 use App\Domain\Wallet\Models\PendingSigningRequest;
 use App\Domain\Wallet\ValueObjects\PendingSigningRequest as PendingSigningRequestVO;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -21,8 +20,6 @@ use Tests\TestCase;
  */
 class HardwareWalletSigningTest extends TestCase
 {
-    use RefreshDatabase;
-
     private HardwareWalletAssociation $association;
 
     protected function setUp(): void

@@ -8,14 +8,11 @@ use App\Domain\Wallet\Services\BlockchainWalletService;
 use App\Domain\Wallet\Services\KeyManagementService;
 use App\Domain\Wallet\Services\SecureKeyStorageService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\DomainTestCase;
 
 class BlockchainWalletTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected BlockchainWalletService $walletService;
 
     protected KeyManagementService $keyManager;

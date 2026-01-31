@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Tests\Domain\AgentProtocol\Aggregates;
 
 use App\Domain\AgentProtocol\Aggregates\AgentIdentityAggregate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AgentIdentityAggregateTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

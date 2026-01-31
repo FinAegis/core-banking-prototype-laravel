@@ -5,15 +5,12 @@ namespace Tests\Unit\Console\Commands;
 use App\Domain\Wallet\Models\SecureKeyStorage;
 use App\Domain\Wallet\Services\SecureKeyStorageService;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Tests\TestCase;
 
 class RotateWalletKeysTest extends TestCase
 {
-    use RefreshDatabase;
-
     private SecureKeyStorageService $keyStorage;
 
     protected function setUp(): void

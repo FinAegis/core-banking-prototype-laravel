@@ -12,7 +12,6 @@ use App\Http\Requests\Mobile\UpdateNotificationPreferencesRequest;
 use App\Http\Requests\Mobile\UpdatePushTokenRequest;
 use App\Http\Requests\Mobile\VerifyBiometricRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
@@ -21,8 +20,6 @@ use Tests\TestCase;
  */
 class MobileFormRequestsTest extends TestCase
 {
-    use RefreshDatabase;
-
     // =========================================================
     // RegisterDeviceRequest Tests
     // =========================================================

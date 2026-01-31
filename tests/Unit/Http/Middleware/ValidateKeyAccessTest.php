@@ -5,7 +5,6 @@ namespace Tests\Unit\Http\Middleware;
 use App\Domain\Wallet\Models\KeyAccessLog;
 use App\Http\Middleware\ValidateKeyAccess;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class ValidateKeyAccessTest extends TestCase
 {
-    use RefreshDatabase;
-
     private ValidateKeyAccess $middleware;
 
     protected function setUp(): void

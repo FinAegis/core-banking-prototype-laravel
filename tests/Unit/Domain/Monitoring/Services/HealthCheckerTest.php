@@ -6,7 +6,6 @@ namespace Tests\Unit\Domain\Monitoring\Services;
 
 use App\Domain\Monitoring\Services\HealthChecker;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -14,8 +13,6 @@ use Tests\TestCase;
 
 class HealthCheckerTest extends TestCase
 {
-    use RefreshDatabase;
-
     private HealthChecker $healthChecker;
 
     protected function setUp(): void

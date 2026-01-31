@@ -9,7 +9,6 @@ use App\Domain\Compliance\Services\AmlScreeningService;
 use App\Domain\Compliance\Services\CustomerRiskService;
 use App\Domain\Compliance\Services\EnhancedKycService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
@@ -19,8 +18,6 @@ use Tests\ControllerTestCase;
 
 class ComplianceControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected string $apiPrefix = '/api/v2';

@@ -6,7 +6,6 @@ use App\Domain\Compliance\Models\AuditLog;
 use App\Domain\Compliance\Models\KycDocument;
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,8 +14,6 @@ use Tests\ServiceTestCase;
 
 class KycServiceTest extends ServiceTestCase
 {
-    use RefreshDatabase;
-
     private KycService $service;
 
     protected function setUp(): void

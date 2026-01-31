@@ -4,14 +4,11 @@ namespace Tests\Feature\Http\Controllers\Api\Auth;
 
 use App\Models\User;
 use Hash;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
 class RegisterControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_register_with_valid_data(): void
     {

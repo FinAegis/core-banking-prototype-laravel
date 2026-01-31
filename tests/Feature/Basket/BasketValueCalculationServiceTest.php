@@ -9,15 +9,12 @@ use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Models\BasketValue;
 use App\Domain\Basket\Services\BasketValueCalculationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
 class BasketValueCalculationServiceTest extends ServiceTestCase
 {
-    use RefreshDatabase;
-
     protected BasketValueCalculationService $service;
 
     protected BasketAsset $basket;
@@ -184,11 +181,14 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
         // First call with cache
         $value1 = $this->service->calculateValue($this->basket, true);
 
-        // Wait a moment
-        sleep(1);
+        // Use time travel instead of sleep
+        $this->travel(1)->seconds();
 
         // Second call without cache
         $value2 = $this->service->calculateValue($this->basket, false);
+
+        // Reset time
+        $this->travelBack();
 
         // Values should be the same but calculated at different times
         $this->assertEqualsWithDelta($value1->value, $value2->value, 0.1);

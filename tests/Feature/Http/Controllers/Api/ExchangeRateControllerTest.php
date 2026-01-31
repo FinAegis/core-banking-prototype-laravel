@@ -6,15 +6,12 @@ use App\Domain\Asset\Models\Asset;
 use App\Domain\Asset\Models\ExchangeRate;
 use App\Domain\Asset\Services\ExchangeRateService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
 class ExchangeRateControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Asset $usd;

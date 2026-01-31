@@ -13,15 +13,12 @@ use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\AI\MCP\Tools\Payment\PaymentStatusTool;
 use App\Domain\AI\ValueObjects\MCPRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PaymentStatusToolTest extends TestCase
 {
-    use RefreshDatabase;
-
     private MCPServer $server;
 
     private ToolRegistry $registry;

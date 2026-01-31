@@ -10,7 +10,6 @@ use App\Domain\Account\Services\Cache\TurnoverCacheService;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,8 +17,6 @@ use Tests\ControllerTestCase;
 
 class BalanceControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Account $account;

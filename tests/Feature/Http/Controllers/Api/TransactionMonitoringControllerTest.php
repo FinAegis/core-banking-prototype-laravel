@@ -8,14 +8,11 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\Transaction;
 use App\Domain\Compliance\Models\MonitoringRule;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class TransactionMonitoringControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Account $account;

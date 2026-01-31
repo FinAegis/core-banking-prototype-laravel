@@ -6,7 +6,6 @@ namespace Tests\Unit\Domain\Monitoring\Services;
 
 use App\Domain\Monitoring\Services\TracingService;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
 use OpenTelemetry\API\Trace\SpanBuilderInterface;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class TracingServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private TracingService $service;
 
     private MockInterface $tracer;

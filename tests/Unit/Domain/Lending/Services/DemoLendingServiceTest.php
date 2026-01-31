@@ -13,7 +13,6 @@ use App\Domain\Lending\Models\Loan;
 use App\Domain\Lending\Models\LoanApplication;
 use App\Domain\Lending\Services\DemoLendingService;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,8 +20,6 @@ use Tests\TestCase;
 
 class DemoLendingServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DemoLendingService $service;
 
     protected function setUp(): void

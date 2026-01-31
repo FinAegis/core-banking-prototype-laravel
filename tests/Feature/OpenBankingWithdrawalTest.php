@@ -8,7 +8,6 @@ use App\Domain\Asset\Models\Asset;
 use App\Domain\Banking\Contracts\IBankConnector;
 use App\Domain\Banking\Services\BankIntegrationService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,8 +15,6 @@ use Tests\DomainTestCase;
 
 class OpenBankingWithdrawalTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Account $account;

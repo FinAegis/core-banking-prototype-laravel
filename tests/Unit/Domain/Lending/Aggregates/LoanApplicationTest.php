@@ -6,7 +6,6 @@ use App\Domain\Lending\Aggregates\LoanApplication;
 use App\Domain\Lending\Events\LoanApplicationSubmitted;
 use App\Domain\Lending\Exceptions\LoanApplicationException;
 use DateTimeImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
 use ReflectionMethod;
@@ -14,8 +13,6 @@ use Tests\DomainTestCase;
 
 class LoanApplicationTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_submit_loan_application_successfully(): void
     {

@@ -7,15 +7,12 @@ use App\Domain\Exchange\Projections\LiquidityProvider;
 use App\Domain\Exchange\Services\ExchangeService;
 use App\Domain\Exchange\Services\LiquidityPoolService;
 use DomainException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
 class LiquidityPoolServiceTest extends ServiceTestCase
 {
-    use RefreshDatabase;
-
     private LiquidityPoolService $service;
 
     private ExchangeService $exchangeService;

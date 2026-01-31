@@ -7,7 +7,6 @@ namespace Tests\Unit\Domain\Custodian\Connectors;
 use App\Domain\Account\DataObjects\Money;
 use App\Domain\Custodian\Connectors\DemoBankConnector;
 use App\Domain\Custodian\ValueObjects\TransferRequest;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Mockery;
@@ -15,8 +14,6 @@ use Tests\TestCase;
 
 class DemoBankConnectorTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DemoBankConnector $connector;
 
     protected function setUp(): void

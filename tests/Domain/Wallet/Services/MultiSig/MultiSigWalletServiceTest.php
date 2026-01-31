@@ -10,7 +10,6 @@ use App\Domain\Wallet\Models\MultiSigWalletSigner;
 use App\Domain\Wallet\Services\MultiSigWalletService;
 use App\Domain\Wallet\ValueObjects\MultiSigConfiguration;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -18,8 +17,6 @@ use Tests\TestCase;
 
 class MultiSigWalletServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected MultiSigWalletService $service;
 
     protected User $user;

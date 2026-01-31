@@ -3,14 +3,11 @@
 namespace Tests\Feature\Api\Auth;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
 class RegisterControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_user_can_register_via_api(): void
     {

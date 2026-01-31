@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Controllers\Api;
 use App\Domain\Compliance\Services\KycService;
 use App\Models\User;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
@@ -15,8 +14,6 @@ use Tests\ControllerTestCase;
 
 class KycControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected KycService|Mockery\MockInterface $kycService;

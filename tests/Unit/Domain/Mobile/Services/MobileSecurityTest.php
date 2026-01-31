@@ -11,7 +11,6 @@ use App\Domain\Mobile\Models\MobileDevice;
 use App\Domain\Mobile\Services\BiometricAuthenticationService;
 use App\Domain\Mobile\Services\MobileDeviceService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
@@ -22,8 +21,6 @@ use Tests\TestCase;
  */
 class MobileSecurityTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected MobileDeviceService $deviceService;
 
     protected BiometricAuthenticationService $biometricService;

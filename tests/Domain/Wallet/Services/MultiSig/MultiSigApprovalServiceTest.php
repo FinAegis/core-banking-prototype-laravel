@@ -15,7 +15,6 @@ use App\Domain\Wallet\Services\MultiSigApprovalService;
 use App\Domain\Wallet\Services\MultiSigWalletService;
 use App\Domain\Wallet\ValueObjects\MultiSigConfiguration;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,8 +23,6 @@ use Tests\TestCase;
 
 class MultiSigApprovalServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private MultiSigApprovalService $approvalService;
 
     private MultiSigWalletService $walletService;

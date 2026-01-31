@@ -5,7 +5,6 @@ uses(
     // Illuminate\Foundation\Testing\DatabaseMigrations::class,
 )->in('Browser');
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -19,9 +18,9 @@ use Tests\TestCase;
 |
 */
 
-uses(TestCase::class, RefreshDatabase::class)->in('Feature');
-uses(TestCase::class, RefreshDatabase::class)->in('Domain');
-uses(TestCase::class, RefreshDatabase::class)->in('Console');
+uses(TestCase::class)->in('Feature');
+uses(TestCase::class)->in('Domain');
+uses(TestCase::class)->in('Console');
 
 // Use InteractsWithFilament trait for Filament tests
 uses(Tests\Traits\InteractsWithFilament::class)->in('Feature/Filament');

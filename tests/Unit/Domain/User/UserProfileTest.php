@@ -7,13 +7,10 @@ namespace Tests\Unit\Domain\User;
 use App\Domain\User\Models\UserProfile;
 use App\Domain\User\Services\UserProfileService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UserProfileTest extends TestCase
 {
-    use RefreshDatabase;
-
     private UserProfileService $service;
 
     protected function setUp(): void

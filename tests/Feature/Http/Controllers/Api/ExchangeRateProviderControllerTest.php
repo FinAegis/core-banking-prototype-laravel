@@ -8,7 +8,6 @@ use App\Domain\Exchange\Services\ExchangeRateProviderRegistry;
 use App\Domain\Exchange\ValueObjects\ExchangeRateQuote;
 use App\Domain\Exchange\ValueObjects\RateProviderCapabilities;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
@@ -18,8 +17,6 @@ use Tests\ControllerTestCase;
 
 class ExchangeRateProviderControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     /**

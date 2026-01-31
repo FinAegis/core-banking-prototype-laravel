@@ -4,7 +4,6 @@ namespace Tests\Security\API;
 
 use App\Domain\Account\Models\Account;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -12,8 +11,6 @@ use Tests\DomainTestCase;
 
 class ApiSecurityTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected string $token;

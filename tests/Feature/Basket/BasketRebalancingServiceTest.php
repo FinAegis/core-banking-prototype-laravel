@@ -11,15 +11,12 @@ use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketRebalancingService;
 use DateTimeInterface;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
 class BasketRebalancingServiceTest extends ServiceTestCase
 {
-    use RefreshDatabase;
-
     protected BasketRebalancingService $service;
 
     protected BasketAsset $dynamicBasket;

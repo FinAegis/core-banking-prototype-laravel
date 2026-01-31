@@ -11,15 +11,12 @@ use App\Domain\Wallet\Services\WalletService;
 use App\Models\User;
 use Error;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use TypeError;
 
 class WalletServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private WalletService $walletService;
 
     private string $testUuid = '550e8400-e29b-41d4-a716-446655440000';

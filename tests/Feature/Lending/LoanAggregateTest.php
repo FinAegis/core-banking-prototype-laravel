@@ -10,14 +10,11 @@ use App\Domain\Lending\Events\LoanFunded;
 use App\Domain\Lending\Events\LoanRepaymentMade;
 use App\Domain\Lending\Events\LoanSettledEarly;
 use App\Domain\Lending\ValueObjects\RepaymentSchedule;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class LoanAggregateTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

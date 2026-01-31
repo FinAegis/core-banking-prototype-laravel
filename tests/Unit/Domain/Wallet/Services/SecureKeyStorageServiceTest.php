@@ -10,7 +10,6 @@ use App\Domain\Wallet\Models\KeyAccessLog;
 use App\Domain\Wallet\Models\SecureKeyStorage;
 use App\Domain\Wallet\Services\SecureKeyStorageService;
 use Illuminate\Contracts\Encryption\Encrypter;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -19,8 +18,6 @@ use Tests\TestCase;
 
 class SecureKeyStorageServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private SecureKeyStorageService $service;
 
     private Encrypter $encrypter;

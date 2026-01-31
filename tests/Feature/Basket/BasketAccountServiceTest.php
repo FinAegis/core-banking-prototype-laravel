@@ -13,14 +13,11 @@ use App\Domain\Basket\Services\BasketAccountService;
 use App\Domain\Basket\Services\BasketValueCalculationService;
 use App\Models\User;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ServiceTestCase;
 
 class BasketAccountServiceTest extends ServiceTestCase
 {
-    use RefreshDatabase;
-
     protected BasketAccountService $service;
 
     protected Account $account;

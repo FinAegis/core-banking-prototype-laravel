@@ -8,7 +8,6 @@ use App\Domain\AgentProtocol\Services\AgentAuthenticationService;
 use App\Domain\AgentProtocol\Services\DIDService;
 use App\Models\Agent;
 use App\Models\AgentApiKey;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Mockery;
@@ -18,8 +17,6 @@ use Tests\TestCase;
 
 class AgentAuthenticationServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AgentAuthenticationService $service;
 
     /** @var DIDService&MockInterface */

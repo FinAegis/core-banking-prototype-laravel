@@ -11,7 +11,6 @@ use App\Models\Agent;
 use App\Models\AgentApiKey;
 use App\Models\User;
 use DateTimeImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Mockery;
@@ -19,8 +18,6 @@ use Tests\TestCase;
 
 class AgentProtocolNegotiationApiTest extends TestCase
 {
-    use RefreshDatabase;
-
     private Agent $agent1;
 
     private Agent $agent2;

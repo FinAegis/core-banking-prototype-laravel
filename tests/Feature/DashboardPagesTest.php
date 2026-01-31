@@ -6,14 +6,11 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Asset\Models\Asset;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class DashboardPagesTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

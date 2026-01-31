@@ -6,15 +6,12 @@ namespace Tests\Domain\AgentProtocol\Aggregates;
 
 use App\Domain\AgentProtocol\Aggregates\AgentWalletAggregate;
 use DomainException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Tests\TestCase;
 
 class AgentWalletAggregateTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

@@ -8,15 +8,12 @@ use App\Domain\Account\Models\Transaction;
 use App\Domain\Asset\Models\Asset;
 use App\Models\User;
 use DB;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Str;
 use Tests\DomainTestCase;
 
 class TransactionStatusTrackingTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected Account $account;

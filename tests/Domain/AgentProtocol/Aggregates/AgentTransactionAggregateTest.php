@@ -9,15 +9,12 @@ use App\Domain\AgentProtocol\Events\FeeCalculated;
 use App\Domain\AgentProtocol\Events\TransactionCompleted;
 use App\Domain\AgentProtocol\Events\TransactionInitiated;
 use App\Domain\AgentProtocol\Events\TransactionValidated;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AgentTransactionAggregateTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $transactionId;
 
     private string $fromAgentId;

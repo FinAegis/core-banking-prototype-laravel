@@ -9,8 +9,8 @@ use App\Domain\AgentProtocol\Models\AgentIdentity;
 use App\Domain\AgentProtocol\Models\AgentTransaction;
 use App\Domain\AgentProtocol\Models\AgentWallet;
 use App\Domain\AgentProtocol\Services\AgentWalletService;
+use Carbon\Carbon;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,8 +18,6 @@ use Tests\TestCase;
 
 class AgentWalletServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AgentWalletService $service;
 
     private string $agentId1;
@@ -376,7 +374,8 @@ class AgentWalletServiceTest extends TestCase
             initialBalance: 500.00
         );
 
-        // Create some transactions with a small delay to ensure different timestamps
+        // Create some transactions with time travel to ensure different timestamps
+        Carbon::setTestNow(now());
         $this->service->transfer(
             fromWalletId: $wallet1->wallet_id,
             toWalletId: $wallet2->wallet_id,
@@ -384,8 +383,8 @@ class AgentWalletServiceTest extends TestCase
             currency: 'USD'
         );
 
-        // Add a small delay to ensure different created_at timestamps
-        sleep(1);
+        // Advance time instead of sleeping to ensure different created_at timestamps
+        Carbon::setTestNow(now()->addSecond());
 
         $this->service->transfer(
             fromWalletId: $wallet2->wallet_id,
@@ -393,6 +392,7 @@ class AgentWalletServiceTest extends TestCase
             amount: 50.00,
             currency: 'USD'
         );
+        Carbon::setTestNow(); // Reset time
 
         // Get history for wallet1
         $history = $this->service->getTransactionHistory($wallet1->wallet_id);

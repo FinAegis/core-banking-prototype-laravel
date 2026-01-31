@@ -8,15 +8,12 @@ use App\Domain\AgentProtocol\Models\Agent;
 use App\Domain\AgentProtocol\Services\DigitalSignatureService;
 use App\Domain\AgentProtocol\Services\EncryptionService;
 use App\Domain\AgentProtocol\Services\SignatureService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DigitalSignatureServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DigitalSignatureService $service;
 
     private SignatureService $signatureService;

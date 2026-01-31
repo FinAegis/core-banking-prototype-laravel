@@ -9,7 +9,6 @@ use App\Models\Team;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Resolvers\TeamTenantResolver;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Stancl\Tenancy\Tenancy;
 use Tests\TestCase;
 
@@ -22,8 +21,6 @@ use Tests\TestCase;
  */
 class TeamTenantResolverTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected TeamTenantResolver $resolver;
 
     protected function setUp(): void

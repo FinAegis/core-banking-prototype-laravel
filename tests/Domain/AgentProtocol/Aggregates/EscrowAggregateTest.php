@@ -9,15 +9,12 @@ use App\Domain\AgentProtocol\Events\EscrowCreated;
 use App\Domain\AgentProtocol\Events\EscrowDisputed;
 use App\Domain\AgentProtocol\Events\EscrowDisputeResolved;
 use App\Domain\AgentProtocol\Events\EscrowFundsDeposited;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EscrowAggregateTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $escrowId;
 
     private string $transactionId;

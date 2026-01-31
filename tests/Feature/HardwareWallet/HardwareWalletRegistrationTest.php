@@ -6,7 +6,6 @@ namespace Tests\Feature\HardwareWallet;
 
 use App\Domain\Wallet\Models\HardwareWalletAssociation;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -19,8 +18,6 @@ use Tests\TestCase;
  */
 class HardwareWalletRegistrationTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

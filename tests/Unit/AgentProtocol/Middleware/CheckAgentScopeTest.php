@@ -6,14 +6,11 @@ namespace Tests\Unit\AgentProtocol\Middleware;
 
 use App\Http\Middleware\CheckAgentScope;
 use App\Models\Agent;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class CheckAgentScopeTest extends TestCase
 {
-    use RefreshDatabase;
-
     private CheckAgentScope $middleware;
 
     protected function setUp(): void

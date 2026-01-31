@@ -2,14 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FinancialInstitutionApplicationTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_can_display_the_application_page()
     {

@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Api\V2;
 
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionApplication;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
@@ -13,8 +12,6 @@ use Tests\ControllerTestCase;
 
 class FinancialInstitutionControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected function setUp(): void

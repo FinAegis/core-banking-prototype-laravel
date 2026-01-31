@@ -6,15 +6,12 @@ use App\Domain\Newsletter\Mail\SubscriberNewsletter;
 use App\Domain\Newsletter\Mail\SubscriberWelcome;
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Newsletter\Services\SubscriberEmailService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class SubscriberTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_creates_a_new_subscriber()
     {

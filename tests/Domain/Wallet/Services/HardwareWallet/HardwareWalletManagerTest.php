@@ -12,7 +12,6 @@ use App\Domain\Wallet\Services\HardwareWallet\TrezorSignerService;
 use App\Domain\Wallet\ValueObjects\HardwareWalletDevice;
 use App\Domain\Wallet\ValueObjects\PendingSigningRequest as PendingSigningRequestVO;
 use App\Domain\Wallet\ValueObjects\TransactionData;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -24,8 +23,6 @@ use Tests\TestCase;
  */
 class HardwareWalletManagerTest extends TestCase
 {
-    use RefreshDatabase;
-
     private HardwareWalletManager $manager;
 
     private LedgerSignerService $ledgerService;

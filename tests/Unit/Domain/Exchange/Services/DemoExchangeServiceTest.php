@@ -9,7 +9,6 @@ use App\Domain\Exchange\Events\OrderPlaced;
 use App\Domain\Exchange\Projections\Order;
 use App\Domain\Exchange\Projections\Trade;
 use App\Domain\Exchange\Services\DemoExchangeService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class DemoExchangeServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DemoExchangeService $service;
 
     protected function setUp(): void

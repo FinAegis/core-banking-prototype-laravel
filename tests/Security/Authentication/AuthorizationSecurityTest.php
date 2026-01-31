@@ -4,14 +4,11 @@ namespace Tests\Security\Authentication;
 
 use App\Domain\Account\Models\Account;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class AuthorizationSecurityTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected User $user1;
 
     protected User $user2;

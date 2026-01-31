@@ -7,14 +7,11 @@ return;
 
 use App\Domain\Account\Models\Account;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
 class ExchangeControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected string $accountId;

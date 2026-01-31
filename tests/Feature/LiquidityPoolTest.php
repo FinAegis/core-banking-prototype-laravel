@@ -11,14 +11,11 @@ use App\Domain\Exchange\Projections\LiquidityProvider;
 use App\Domain\Exchange\Services\LiquidityPoolService;
 use App\Models\User;
 use DomainException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\DomainTestCase;
 
 class LiquidityPoolTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     protected LiquidityPoolService $liquidityService;
 
     protected User $systemUser;

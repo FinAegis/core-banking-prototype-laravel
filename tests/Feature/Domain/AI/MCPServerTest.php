@@ -10,14 +10,11 @@ use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\AI\MCP\Tools\Account\AccountBalanceTool;
 use App\Domain\AI\ValueObjects\MCPRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MCPServerTest extends TestCase
 {
-    use RefreshDatabase;
-
     private MCPServer $server;
 
     private ToolRegistry $registry;

@@ -7,7 +7,6 @@ namespace Tests\Unit\Http\Middleware;
 use App\Domain\Monitoring\Services\MetricsCollector;
 use App\Http\Middleware\MetricsMiddleware;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -16,8 +15,6 @@ use Tests\TestCase;
 
 class MetricsMiddlewareTest extends TestCase
 {
-    use RefreshDatabase;
-
     private MetricsMiddleware $middleware;
 
     private MetricsCollector $metricsCollector;
@@ -74,11 +71,11 @@ class MetricsMiddlewareTest extends TestCase
     {
         // Arrange
         $request = Request::create('/api/slow', 'GET');
-        $processingTime = 0.1; // 100ms
+        $processingTime = 0.01; // 10ms - reduced from 100ms
 
         // Act
         $this->middleware->handle($request, function ($req) use ($processingTime) {
-            usleep((int) ($processingTime * 1000000)); // Sleep for 100ms
+            usleep((int) ($processingTime * 1000000)); // Sleep for 10ms - minimal for timing test
 
             return new Response('Success', 200);
         });

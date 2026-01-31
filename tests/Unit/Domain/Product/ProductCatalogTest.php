@@ -8,13 +8,10 @@ use App\Domain\Product\Models\Product;
 use App\Domain\Product\Services\ProductCatalogService;
 use App\Domain\Product\ValueObjects\Feature;
 use App\Domain\Product\ValueObjects\Price;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ProductCatalogTest extends TestCase
 {
-    use RefreshDatabase;
-
     private ProductCatalogService $service;
 
     protected function setUp(): void

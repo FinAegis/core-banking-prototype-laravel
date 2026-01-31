@@ -8,15 +8,12 @@ use App\Domain\Account\Events\AssetBalanceAdded;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Repositories\AccountRepository;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\DomainTestCase;
 
 class CreditAccountTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     private CreditAccount $action;
 
     private AccountRepository $accountRepository;

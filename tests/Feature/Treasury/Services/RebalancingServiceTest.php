@@ -6,7 +6,6 @@ namespace Tests\Feature\Treasury\Services;
 
 use App\Domain\Treasury\Services\PortfolioManagementService;
 use App\Domain\Treasury\Services\RebalancingService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use RuntimeException;
@@ -14,8 +13,6 @@ use Tests\TestCase;
 
 class RebalancingServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private RebalancingService $service;
 
     private PortfolioManagementService $portfolioService;

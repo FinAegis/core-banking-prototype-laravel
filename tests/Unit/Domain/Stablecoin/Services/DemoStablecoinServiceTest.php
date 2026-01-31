@@ -9,7 +9,6 @@ use App\Domain\Stablecoin\Models\StablecoinCollateralPosition;
 use App\Domain\Stablecoin\Services\DemoStablecoinService;
 use App\Models\User;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class DemoStablecoinServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected DemoStablecoinService $service;
 
     protected function setUp(): void

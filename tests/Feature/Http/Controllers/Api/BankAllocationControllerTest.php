@@ -6,15 +6,12 @@ use App\Domain\Account\Services\BankAllocationService;
 use App\Domain\Asset\Models\Asset;
 use App\Domain\Banking\Models\UserBankPreference;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\ControllerTestCase;
 
 class BankAllocationControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected BankAllocationService $bankAllocationService;

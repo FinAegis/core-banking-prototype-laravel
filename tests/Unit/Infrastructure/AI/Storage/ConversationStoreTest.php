@@ -6,6 +6,7 @@ namespace Tests\Unit\Infrastructure\AI\Storage;
 
 use App\Domain\AI\ValueObjects\ConversationContext;
 use App\Infrastructure\AI\Storage\ConversationStore;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Redis;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -121,7 +122,8 @@ class ConversationStoreTest extends TestCase
         // Arrange
         $userId = 'user-123';
 
-        // Create multiple conversations
+        // Create multiple conversations with time travel for different timestamps
+        Carbon::setTestNow(now());
         for ($i = 0; $i < 5; $i++) {
             $context = new ConversationContext(
                 'conv-' . $i,
@@ -129,8 +131,9 @@ class ConversationStoreTest extends TestCase
                 [['role' => 'user', 'content' => "Message $i"]]
             );
             $this->store->store($context);
-            usleep(1000); // Small delay to ensure different timestamps
+            Carbon::setTestNow(now()->addSecond()); // Advance time instead of sleeping
         }
+        Carbon::setTestNow(); // Reset time
 
         // Act
         $conversations = $this->store->getUserConversations($userId, 3);

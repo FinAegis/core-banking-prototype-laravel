@@ -11,15 +11,12 @@ use App\Domain\AgentProtocol\Services\EncryptionService;
 use App\Domain\AgentProtocol\Services\FraudDetectionService;
 use App\Domain\AgentProtocol\Services\SignatureService;
 use App\Domain\AgentProtocol\Services\TransactionVerificationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TransactionVerificationServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private TransactionVerificationService $service;
 
     private DigitalSignatureService $signatureService;

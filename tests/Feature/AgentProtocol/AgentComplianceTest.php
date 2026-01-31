@@ -13,15 +13,12 @@ use App\Models\Agent;
 use App\Models\AgentTransaction;
 use App\Models\AgentTransactionTotal;
 use App\Models\RegulatoryReport;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AgentComplianceTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

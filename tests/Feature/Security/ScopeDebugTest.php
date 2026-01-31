@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Security;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ScopeDebugTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function test_debug_sanctum_acting_as(): void
     {
         $user = User::factory()->create();

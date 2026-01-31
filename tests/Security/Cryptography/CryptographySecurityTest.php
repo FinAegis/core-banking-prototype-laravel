@@ -5,7 +5,6 @@ namespace Tests\Security\Cryptography;
 use App\Domain\Account\DataObjects\Hash;
 use App\Models\User;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash as HashFacade;
@@ -15,8 +14,6 @@ use Tests\TestCase;
 
 class CryptographySecurityTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected function setUp(): void

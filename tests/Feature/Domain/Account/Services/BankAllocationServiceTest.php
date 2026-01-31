@@ -7,14 +7,11 @@ namespace Tests\Feature\Domain\Account\Services;
 use App\Domain\Account\Services\BankAllocationService;
 use App\Models\User;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BankAllocationServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private BankAllocationService $bankAllocationService;
 
     protected function setUp(): void

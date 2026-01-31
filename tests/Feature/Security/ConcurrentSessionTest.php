@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Security;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Carbon\Carbon;
 use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
 class ConcurrentSessionTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected function setUp(): void
@@ -102,7 +100,8 @@ class ConcurrentSessionTest extends TestCase
     {
         config(['auth.max_concurrent_sessions' => 3]);
 
-        // Create tokens with delays to ensure different timestamps
+        // Create tokens with time travel to ensure different timestamps
+        Carbon::setTestNow(now());
         $deviceNames = [];
         for ($i = 1; $i <= 3; $i++) {
             $deviceName = "Device {$i}";
@@ -115,9 +114,10 @@ class ConcurrentSessionTest extends TestCase
             ]);
             $response->assertOk();
 
-            // Small delay to ensure different created_at times
-            usleep(100000); // 100ms
+            // Advance time instead of sleeping to ensure different created_at times
+            Carbon::setTestNow(now()->addSecond());
         }
+        Carbon::setTestNow(); // Reset time
 
         // Get the oldest token name
         $oldestToken = $this->user->tokens()

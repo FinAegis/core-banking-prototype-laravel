@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Api\Auth;
 
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
@@ -15,8 +14,6 @@ use Tests\ControllerTestCase;
 
 class EmailVerificationControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $unverifiedUser;
 
     protected User $verifiedUser;

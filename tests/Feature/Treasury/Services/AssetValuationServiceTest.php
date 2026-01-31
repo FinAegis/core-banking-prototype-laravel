@@ -7,15 +7,12 @@ namespace Tests\Feature\Treasury\Services;
 use App\Domain\Treasury\Services\AssetValuationService;
 use App\Domain\Treasury\Services\PortfolioManagementService;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use Tests\TestCase;
 
 class AssetValuationServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AssetValuationService $service;
 
     private PortfolioManagementService $portfolioService;

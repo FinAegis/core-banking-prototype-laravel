@@ -10,14 +10,11 @@ use App\Domain\Compliance\Models\ComplianceAlert;
 use App\Domain\Compliance\Models\ComplianceCase;
 use App\Domain\Compliance\Services\AlertManagementService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class AlertManagementServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AlertManagementService $service;
 
     protected function setUp(): void

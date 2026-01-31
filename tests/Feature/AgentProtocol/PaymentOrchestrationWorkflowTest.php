@@ -6,7 +6,6 @@ namespace Tests\Feature\AgentProtocol;
 
 use App\Domain\AgentProtocol\Aggregates\AgentWalletAggregate;
 use App\Domain\AgentProtocol\DataObjects\AgentPaymentRequest;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -20,8 +19,6 @@ use Tests\TestCase;
  */
 class PaymentOrchestrationWorkflowTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $senderDid;
 
     private string $receiverDid;

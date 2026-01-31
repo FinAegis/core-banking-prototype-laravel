@@ -5,7 +5,6 @@ namespace Tests\Security;
 use App\Domain\Account\Models\Account;
 use App\Models\User;
 use Cache;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Group;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 #[Group('memory-intensive')]
 class ComprehensiveSecurityTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * Test SQL injection prevention in various endpoints.
      */

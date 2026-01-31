@@ -8,7 +8,6 @@ use App\Domain\Custodian\Services\CustodianHealthMonitor;
 use App\Domain\Custodian\Services\CustodianRegistry;
 use App\Models\User;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
 use Mockery\MockInterface;
@@ -17,8 +16,6 @@ use Tests\ControllerTestCase;
 
 class BankAlertingControllerTest extends ControllerTestCase
 {
-    use RefreshDatabase;
-
     protected User $adminUser;
 
     protected User $regularUser;

@@ -7,7 +7,6 @@ namespace Tests\Unit\Domain\Exchange\Services;
 use App\Domain\Exchange\Events\FeeTierUpdated;
 use App\Domain\Exchange\Events\UserFeeTierAssigned;
 use App\Domain\Exchange\Services\FeeTierService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -15,8 +14,6 @@ use Tests\TestCase;
 
 class FeeTierServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private FeeTierService $service;
 
     protected function setUp(): void

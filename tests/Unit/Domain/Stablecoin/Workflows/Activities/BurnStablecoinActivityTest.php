@@ -5,15 +5,12 @@ namespace Tests\Unit\Domain\Stablecoin\Workflows\Activities;
 use App\Domain\Account\DataObjects\AccountUuid;
 use App\Domain\Stablecoin\Models\Stablecoin;
 use App\Domain\Stablecoin\Workflows\Activities\BurnStablecoinActivity;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
 use Tests\DomainTestCase;
 
 class BurnStablecoinActivityTest extends DomainTestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function test_class_exists(): void
     {

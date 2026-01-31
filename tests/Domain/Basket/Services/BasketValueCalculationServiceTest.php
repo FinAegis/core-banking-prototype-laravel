@@ -6,6 +6,7 @@ use App\Domain\Asset\Services\ExchangeRateService;
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Models\BasketValue;
 use App\Domain\Basket\Services\BasketValueCalculationService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 
@@ -155,11 +156,13 @@ it('can bypass cache when requested', function () {
     ]);
 
     // First calculation
+    Carbon::setTestNow(now());
     $value1 = $this->service->calculateValue($basket, false);
 
-    // Second calculation without cache (add small delay for timestamp difference)
-    usleep(1000); // 1ms delay
+    // Second calculation without cache - use time travel for timestamp difference
+    Carbon::setTestNow(now()->addSecond());
     $value2 = $this->service->calculateValue($basket, false);
+    Carbon::setTestNow(); // Reset time
 
     expect($value2->id)->not->toBe($value1->id);
     expect($value2->calculated_at->greaterThanOrEqualTo($value1->calculated_at))->toBeTrue();

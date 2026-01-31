@@ -6,14 +6,11 @@ use App\Models\Setting;
 use App\Services\SettingsService;
 use Cache;
 use DB;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SettingsTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected SettingsService $settingsService;
 
     protected function setUp(): void

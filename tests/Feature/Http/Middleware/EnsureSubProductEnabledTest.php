@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Middleware;
 
 use App\Domain\Product\Services\SubProductService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Mockery;
 use Mockery\MockInterface;
@@ -12,8 +11,6 @@ use Tests\TestCase;
 
 class EnsureSubProductEnabledTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * @var SubProductService&MockInterface
      */

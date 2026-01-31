@@ -8,13 +8,10 @@ use App\Domain\Performance\Models\PerformanceMetric;
 use App\Domain\Performance\Services\MetricsCollectorService;
 use App\Domain\Performance\ValueObjects\MetricType;
 use App\Domain\Performance\ValueObjects\PerformanceThreshold;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MetricsCollectorTest extends TestCase
 {
-    use RefreshDatabase;
-
     private MetricsCollectorService $service;
 
     protected function setUp(): void

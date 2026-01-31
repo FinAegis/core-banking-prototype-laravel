@@ -6,14 +6,11 @@ namespace Tests\Feature\WebSocket;
 
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class WebSocketConfigTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_returns_websocket_configuration(): void
     {

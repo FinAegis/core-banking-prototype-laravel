@@ -12,14 +12,11 @@ use App\Domain\Monitoring\Events\SpanEventRecorded;
 use App\Domain\Monitoring\Events\SpanStarted;
 use App\Domain\Monitoring\Events\TraceCompleted;
 use App\Domain\Monitoring\ValueObjects\SpanStatus;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class TraceAggregateTest extends TestCase
 {
-    use RefreshDatabase;
-
     private TraceAggregate $aggregate;
 
     private string $traceId;

@@ -7,14 +7,11 @@ namespace Tests\Feature\Security;
 use App\Models\User;
 use App\Services\IpBlockingService;
 use DB;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class EnhancedSecurityTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected User $adminUser;

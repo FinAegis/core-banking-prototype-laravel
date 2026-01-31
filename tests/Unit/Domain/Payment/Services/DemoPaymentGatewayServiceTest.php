@@ -8,15 +8,12 @@ use App\Domain\Account\Models\Account;
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
 use App\Domain\Payment\Services\DemoPaymentGatewayService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
 class DemoPaymentGatewayServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DemoPaymentGatewayService $service;
 
     private PaymentServiceInterface&MockInterface $paymentService;
