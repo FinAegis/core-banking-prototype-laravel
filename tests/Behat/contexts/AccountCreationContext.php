@@ -14,6 +14,19 @@ class AccountCreationContext extends MinkContext implements Context
     private $currentUser;
 
     /**
+     * Get wait time in milliseconds - reduced in CI environment for faster execution.
+     *
+     * @param  int $defaultMs Default wait time in milliseconds for local development
+     * @return int Wait time to use (500ms in CI, default locally)
+     */
+    private function getWaitTime(int $defaultMs = 2000): int
+    {
+        // In CI environment, use shorter waits (500ms) since there's no real browser rendering
+        // Locally, use longer waits (2-3 seconds) for actual browser interactions
+        return getenv('CI') ? 500 : $defaultMs;
+    }
+
+    /**
      * @Given I am logged in as a user
      */
     public function iAmLoggedInAsAUser(): void
@@ -29,8 +42,8 @@ class AccountCreationContext extends MinkContext implements Context
         $this->fillField('password', 'password');
         $this->pressButton('Log in');
 
-        // Wait for redirect
-        $this->getSession()->wait(2000);
+        // Wait for redirect (reduced in CI for faster execution)
+        $this->getSession()->wait($this->getWaitTime(2000));
 
         Assert::assertStringContainsString('/dashboard', $this->getSession()->getCurrentUrl());
     }
@@ -88,8 +101,8 @@ class AccountCreationContext extends MinkContext implements Context
         Assert::assertNotNull($btn, "Button '$button' not found in modal");
         $btn->click();
 
-        // Wait for AJAX request to complete
-        $this->getSession()->wait(3000);
+        // Wait for AJAX request to complete (reduced in CI for faster execution)
+        $this->getSession()->wait($this->getWaitTime(3000));
     }
 
     /**
