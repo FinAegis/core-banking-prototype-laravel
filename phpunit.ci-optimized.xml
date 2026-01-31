@@ -61,8 +61,10 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <!-- Parallel testing configuration -->
-        <!-- Temporarily disabled due to memory issues -->
-        <env name="PEST_PARALLEL" value="false"/>
+        <!-- Re-enabled with 2 processes after memory increase to 1G -->
+        <!-- Can be disabled by setting PEST_PARALLEL=false in environment -->
+        <env name="PEST_PARALLEL" value="true" force="false"/>
+        <env name="PEST_PARALLEL_PROCESSES" value="2" force="false"/>
         <!-- Redis configuration for parallel testing -->
         <env name="REDIS_CLIENT" value="phpredis"/>
         <env name="REDIS_HOST" value="127.0.0.1"/>

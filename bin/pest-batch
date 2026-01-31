@@ -1,34 +1,100 @@
 #!/bin/bash
 
-# Pest Batch Runner - Simple batch execution for CI
+# Pest Batch Runner - Memory-efficient batch execution for CI
 # Usage: ./bin/pest-batch [directories...]
+#
+# Environment variables:
+#   MEMORY_LIMIT      - PHP memory limit (default: 1G)
+#   CONFIG_FILE       - PHPUnit config file (default: phpunit.ci-optimized.xml)
+#   PEST_PARALLEL     - Enable parallel execution (default: false)
+#   PARALLEL_PROCS    - Number of parallel processes (default: 2)
 
-set -e
+set -euo pipefail
 
 # Configuration
-MEMORY_LIMIT=${MEMORY_LIMIT:-768M}
+MEMORY_LIMIT=${MEMORY_LIMIT:-1G}
 CONFIG_FILE=${CONFIG_FILE:-phpunit.ci-optimized.xml}
+PEST_PARALLEL_ENABLED=${PEST_PARALLEL:-false}
+PARALLEL_PROCS=${PARALLEL_PROCS:-2}
 
 # Export CI environment variables
 export CI=true
 export PEST_NO_SORT=true
-export PEST_PARALLEL=false
 
 # Check if directories were provided
 if [ $# -eq 0 ]; then
     echo "Usage: $0 [test directories...]"
     echo "Example: $0 tests/Unit/Domain tests/Unit/Http"
+    echo ""
+    echo "Environment variables:"
+    echo "  MEMORY_LIMIT      - PHP memory limit (default: 1G)"
+    echo "  PEST_PARALLEL     - Enable parallel execution (default: false)"
+    echo "  PARALLEL_PROCS    - Number of parallel processes (default: 2)"
     exit 1
 fi
 
-# Run tests for specified directories
-echo "Running tests with memory limit: $MEMORY_LIMIT"
-echo "Directories: $@"
+# Validate directories exist
+for dir in "$@"; do
+    if [ ! -d "$dir" ] && [ ! -f "$dir" ]; then
+        echo "Warning: Directory or file '$dir' does not exist, skipping..."
+    fi
+done
+
+# Filter to only existing paths
+VALID_PATHS=()
+for path in "$@"; do
+    if [ -d "$path" ] || [ -f "$path" ]; then
+        VALID_PATHS+=("$path")
+    fi
+done
+
+# Exit if no valid paths
+if [ ${#VALID_PATHS[@]} -eq 0 ]; then
+    echo "No valid test directories found. Exiting."
+    exit 0
+fi
+
+# Build command
+echo "========================================"
+echo "Pest Batch Runner"
+echo "========================================"
+echo "Memory limit: $MEMORY_LIMIT"
+echo "Config file: $CONFIG_FILE"
+echo "Parallel: $PEST_PARALLEL_ENABLED (procs: $PARALLEL_PROCS)"
+echo "Directories: ${VALID_PATHS[*]}"
+echo "========================================"
 echo ""
 
-php -d memory_limit=$MEMORY_LIMIT ./vendor/bin/pest "$@" \
+# Build parallel flags if enabled
+PARALLEL_FLAGS=""
+if [ "$PEST_PARALLEL_ENABLED" = "true" ]; then
+    PARALLEL_FLAGS="--parallel --processes=$PARALLEL_PROCS"
+    export PEST_PARALLEL=true
+else
+    export PEST_PARALLEL=false
+fi
+
+# Run tests with error handling
+set +e
+php -d memory_limit=$MEMORY_LIMIT ./vendor/bin/pest "${VALID_PATHS[@]}" \
     --configuration=$CONFIG_FILE \
     --no-coverage \
-    --stop-on-failure
+    --stop-on-failure \
+    $PARALLEL_FLAGS
+EXIT_CODE=$?
+set -e
 
-exit $?
+# Report result
+if [ $EXIT_CODE -eq 0 ]; then
+    echo ""
+    echo "========================================"
+    echo "Tests passed successfully!"
+    echo "========================================"
+else
+    echo ""
+    echo "========================================"
+    echo "Tests failed with exit code: $EXIT_CODE"
+    echo "========================================"
+fi
+
+exit $EXIT_CODE
