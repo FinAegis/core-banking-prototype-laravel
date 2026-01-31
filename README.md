@@ -1,7 +1,7 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.3-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
@@ -27,6 +27,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Hardware wallet security | Ledger/Trezor support with multi-sig (v2.1.0) |
 | Real-time data streaming | WebSocket broadcasting for trading (v2.1.0) |
 | Cloud-native deployment | Kubernetes Helm charts, HPA, Istio (v2.1.0) |
+| Mobile wallet backend | Biometric auth, push notifications, device mgmt (v2.2.0) |
 | Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
 
 ---

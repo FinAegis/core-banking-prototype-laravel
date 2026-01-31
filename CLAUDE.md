@@ -20,15 +20,15 @@ git status && git branch --show-current
 ### Version Status
 | Version | Status | Key Changes |
 |---------|--------|-------------|
-| v2.1.0 | ✅ Current | Security hardening, Hardware wallets, WebSocket, Kubernetes |
+| v2.2.0 | 🚧 In Progress | Mobile backend: device mgmt, biometrics, push notifications |
+| v2.1.0 | ✅ Released | Security hardening, Hardware wallets, WebSocket, Kubernetes |
 | v2.0.0 | ✅ Released | Multi-Tenancy (stancl/tenancy v3.9) |
-| v1.4.1 | ✅ Released | Database cache connection fix |
 
 ### Key Serena Memories
 | Memory | Purpose |
 |--------|---------|
 | `development_continuation_guide` | Master handoff document |
-| `multitenancy_v2_implementation_status` | v2.0.0 implementation details |
+| `v2.2.0_mobile_backend_implementation` | v2.2.0 Mobile implementation details |
 | `coding_standards_and_conventions` | Code style reference |
 | `project_architecture_overview` | Architecture details |
 
@@ -78,10 +78,11 @@ php artisan tenants:export-data <id> --format=json       # Export data
 
 ```
 app/
-├── Domain/           # DDD bounded contexts (29 domains)
+├── Domain/           # DDD bounded contexts (30 domains)
 │   ├── Account/      # Account management
 │   ├── Exchange/     # Trading engine
 │   ├── Lending/      # P2P lending
+│   ├── Mobile/       # Mobile wallet backend (v2.2.0)
 │   ├── Treasury/     # Portfolio management
 │   ├── Wallet/       # Blockchain wallets
 │   ├── Compliance/   # KYC/AML
@@ -107,6 +108,10 @@ app/
 | Webhook Processing | `WebhookProcessorService` (Custodian) |
 | Agent Payments | `AgentPaymentIntegrationService` (AgentProtocol) |
 | Yield Optimization | `YieldOptimizationService` (Treasury) |
+| Mobile Devices | `MobileDeviceService` (Mobile) |
+| Biometric Auth | `BiometricAuthenticationService` (Mobile) |
+| Push Notifications | `PushNotificationService` (Mobile) |
+| Mobile Sessions | `MobileSessionService` (Mobile) |
 
 ---
 

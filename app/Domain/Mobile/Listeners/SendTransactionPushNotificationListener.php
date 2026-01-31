@@ -17,6 +17,8 @@ use Throwable;
 
 /**
  * Listens to money transfer events and sends push notifications.
+ *
+ * Optimized to minimize database queries by loading accounts and users in batch.
  */
 class SendTransactionPushNotificationListener implements ShouldQueue
 {
@@ -49,8 +51,40 @@ class SendTransactionPushNotificationListener implements ShouldQueue
     public function handle(MoneyTransferred $event): void
     {
         try {
-            $this->notifyRecipient($event);
-            $this->notifySender($event);
+            // Load both accounts in a single query to prevent N+1
+            $accountUuids = [(string) $event->from, (string) $event->to];
+            $accounts = Account::whereIn('uuid', $accountUuids)->get()->keyBy('uuid');
+
+            $fromAccount = $accounts->get((string) $event->from);
+            $toAccount = $accounts->get((string) $event->to);
+
+            if ($fromAccount === null && $toAccount === null) {
+                return;
+            }
+
+            // Load users in a single query
+            $userUuids = array_filter([
+                $fromAccount?->user_uuid,
+                $toAccount?->user_uuid,
+            ]);
+
+            $users = User::whereIn('uuid', $userUuids)->get()->keyBy('uuid');
+
+            $sender = $fromAccount !== null ? $users->get($fromAccount->user_uuid) : null;
+            $recipient = $toAccount !== null ? $users->get($toAccount->user_uuid) : null;
+
+            $amount = $this->formatAmount($event->money->getAmount());
+            $currency = 'GCU'; // Default platform currency
+
+            // Notify recipient
+            if ($recipient !== null) {
+                $this->notifyRecipient($recipient, $sender, $amount, $currency, $event);
+            }
+
+            // Notify sender
+            if ($sender !== null) {
+                $this->notifySender($sender, $recipient, $amount, $currency, $event);
+            }
         } catch (Throwable $e) {
             Log::error('Failed to send transaction push notification', [
                 'from_account' => (string) $event->from,
@@ -63,33 +97,19 @@ class SendTransactionPushNotificationListener implements ShouldQueue
     /**
      * Notify the recipient of a transfer.
      */
-    private function notifyRecipient(MoneyTransferred $event): void
-    {
-        $toAccount = Account::where('uuid', (string) $event->to)->first();
-
-        if ($toAccount === null) {
-            return;
-        }
-
-        $recipient = User::where('uuid', $toAccount->user_uuid)->first();
-
-        if ($recipient === null) {
-            return;
-        }
-
+    private function notifyRecipient(
+        User $recipient,
+        ?User $sender,
+        string $amount,
+        string $currency,
+        MoneyTransferred $event
+    ): void {
         // Check if push notifications are enabled for this type
         if (! $this->preferenceService->isPushEnabled($recipient, MobileNotificationPreference::TYPE_TRANSACTION_RECEIVED)) {
             return;
         }
 
-        $fromAccount = Account::where('uuid', (string) $event->from)->first();
-        $sender = $fromAccount !== null
-            ? User::where('uuid', $fromAccount->user_uuid)->first()
-            : null;
-
         $senderName = $sender !== null ? $sender->name : 'Unknown';
-        $amount = $this->formatAmount($event->money->getAmount());
-        $currency = 'GCU'; // Default platform currency
 
         $this->pushService->sendTransactionReceived(
             $recipient,
@@ -110,33 +130,19 @@ class SendTransactionPushNotificationListener implements ShouldQueue
     /**
      * Notify the sender of a completed transfer.
      */
-    private function notifySender(MoneyTransferred $event): void
-    {
-        $fromAccount = Account::where('uuid', (string) $event->from)->first();
-
-        if ($fromAccount === null) {
-            return;
-        }
-
-        $sender = User::where('uuid', $fromAccount->user_uuid)->first();
-
-        if ($sender === null) {
-            return;
-        }
-
+    private function notifySender(
+        User $sender,
+        ?User $recipient,
+        string $amount,
+        string $currency,
+        MoneyTransferred $event
+    ): void {
         // Check if push notifications are enabled for this type
         if (! $this->preferenceService->isPushEnabled($sender, MobileNotificationPreference::TYPE_TRANSACTION_SENT)) {
             return;
         }
 
-        $toAccount = Account::where('uuid', (string) $event->to)->first();
-        $recipient = $toAccount !== null
-            ? User::where('uuid', $toAccount->user_uuid)->first()
-            : null;
-
         $recipientName = $recipient !== null ? $recipient->name : 'Unknown';
-        $amount = $this->formatAmount($event->money->getAmount());
-        $currency = 'GCU'; // Default platform currency
 
         $this->pushService->sendTransactionSent(
             $sender,

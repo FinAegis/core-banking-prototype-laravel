@@ -5,6 +5,97 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-01-31 (In Progress)
+
+### 📱 Mobile Backend & Biometric Authentication Release
+
+This release delivers complete mobile backend infrastructure with enterprise-grade security, event sourcing integration, and real-time push notifications for mobile wallet applications.
+
+### Highlights
+
+| Feature | Description | PRs |
+|---------|-------------|-----|
+| Mobile Device Management | Device registration, blocking, trust levels | #347-352 |
+| Biometric Authentication | ECDSA P-256 challenge-response, device binding | #348-349 |
+| Push Notifications | Firebase Cloud Messaging, preference management | #351 |
+| Event Sourcing | Mobile domain events with tenant awareness | #349 |
+| Cross-Domain Integration | Transaction and security event listeners | #352 |
+
+### Added
+
+#### Mobile Device Management
+- **MobileDeviceService** - Device registration, blocking, trust management
+- **MobileDevice model** - Multi-device support per user (max 5)
+- Device takeover prevention with automatic session invalidation
+- Platform-specific tracking (iOS/Android)
+- Push token management with duplicate detection
+
+#### Biometric Authentication
+- **BiometricAuthenticationService** - ECDSA P-256 signature verification
+- **Challenge-response flow** - 5-minute TTL challenges
+- **Device binding** - Public key stored per device
+- **Rate limiting** - Auto-lockout after 5 failed attempts
+- IP network validation for challenge responses
+
+#### Push Notifications
+- **PushNotificationService** - Firebase Cloud Messaging integration
+- **NotificationPreferenceService** - User/device preferences
+- Notification types: transaction, security, marketing, system
+- Scheduled and retry mechanisms
+- Read/unread tracking
+
+#### Session Management
+- **MobileSessionService** - Device-bound session management
+- Token refresh endpoints
+- Revoke single/all sessions
+- Trusted device extended sessions (8 hours vs 1 hour)
+
+#### Event Sourcing Integration
+- **MobileDeviceAggregate** - Event-sourced device state
+- 10 domain events for complete audit trail
+- WebSocket broadcasting on tenant channels
+- Tenant-aware background jobs
+
+#### Cross-Domain Event Listeners
+- **SendTransactionPushNotificationListener** - Transaction alerts
+- **SendSecurityAlertListener** - Security event notifications
+- **LogMobileAuditEventListener** - Compliance audit logging
+
+### API Endpoints
+
+| Category | Endpoints |
+|----------|-----------|
+| Device Management | `POST/GET/DELETE /api/mobile/devices`, `POST /devices/{id}/block` |
+| Biometric Auth | `POST /api/mobile/auth/biometric/challenge`, `/verify` |
+| Sessions | `GET/DELETE /api/mobile/sessions` |
+| Notifications | `GET /api/mobile/notifications`, `PUT /notifications/preferences` |
+
+### Configuration
+
+New `config/mobile.php`:
+- App version management with force update flag
+- Device limits and session durations
+- Biometric challenge TTL and failure thresholds
+- Push notification batch size and retry settings
+
+### Security
+
+- ECDSA P-256 public key verification
+- Challenge expiration (5 minutes)
+- Biometric lockout after 5 failures (30 minutes)
+- Device takeover detection with session invalidation
+- IP network validation for challenge responses
+- Sensitive fields hidden in API responses
+
+### Documentation
+
+- Created Mobile domain README
+- Added API endpoint documentation
+- Updated CLAUDE.md with Mobile services
+- Updated version badges
+
+---
+
 ## [2.1.0] - 2026-01-30
 
 ### 🔐 Security & Enterprise Features Release
