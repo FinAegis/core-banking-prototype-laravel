@@ -65,3 +65,8 @@ Broadcast::channel('tenant.{tenantId}.exchange', function ($user, string $tenant
 Broadcast::channel('tenant.{tenantId}.wallet.multi-sig', function ($user, string $tenantId) {
     return TenantChannelAuthorizer::authorizeUser($user, $tenantId);
 });
+
+// Tenant-specific mobile device/session updates (v2.2.0)
+Broadcast::channel('tenant.{tenantId}.mobile', function ($user, string $tenantId) {
+    return TenantChannelAuthorizer::authorizeUser($user, $tenantId);
+});
