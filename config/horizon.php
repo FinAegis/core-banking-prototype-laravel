@@ -220,6 +220,17 @@ return [
                 'timeout'             => 30,
                 'memory'              => 128,
             ],
+            'mobile-supervisor' => [
+                'connection'          => 'redis',
+                'queue'               => ['mobile'],
+                'balance'             => 'auto',
+                'autoScalingStrategy' => 'time',
+                'minProcesses'        => 1,
+                'maxProcesses'        => 3,
+                'tries'               => 3,
+                'timeout'             => 60,
+                'memory'              => 128,
+            ],
         ],
 
         'local' => [
@@ -240,6 +251,14 @@ return [
                 'processes'  => 1,
                 'tries'      => 3,
                 'timeout'    => 30,
+            ],
+            'mobile-supervisor' => [
+                'connection' => 'redis',
+                'queue'      => ['mobile'],
+                'balance'    => 'simple',
+                'processes'  => 1,
+                'tries'      => 3,
+                'timeout'    => 60,
             ],
         ],
     ],

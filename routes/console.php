@@ -161,3 +161,29 @@ if (app()->environment('demo')) {
         ->appendOutputTo(storage_path('logs/demo-cleanup.log'))
         ->withoutOverlapping();
 }
+
+// Mobile Backend Jobs
+// Process scheduled mobile push notifications every minute
+Schedule::job(new App\Domain\Mobile\Jobs\ProcessScheduledNotifications())
+    ->everyMinute()
+    ->description('Process scheduled mobile push notifications')
+    ->withoutOverlapping();
+
+// Retry failed mobile push notifications every 5 minutes
+Schedule::job(new App\Domain\Mobile\Jobs\RetryFailedNotifications())
+    ->everyFiveMinutes()
+    ->description('Retry failed mobile push notifications')
+    ->withoutOverlapping();
+
+// Cleanup expired biometric challenges every 5 minutes
+Schedule::job(new App\Domain\Mobile\Jobs\CleanupExpiredChallenges())
+    ->everyFiveMinutes()
+    ->description('Cleanup expired biometric authentication challenges')
+    ->withoutOverlapping();
+
+// Cleanup stale mobile devices daily at 3 AM
+Schedule::job(new App\Domain\Mobile\Jobs\CleanupStaleDevices())
+    ->dailyAt('03:00')
+    ->description('Cleanup stale mobile devices')
+    ->appendOutputTo(storage_path('logs/mobile-cleanup.log'))
+    ->withoutOverlapping();

@@ -323,10 +323,10 @@ class PushNotificationService
     /**
      * Retry failed notifications.
      */
-    public function retryFailedNotifications(): int
+    public function retryFailedNotifications(int $batchSize = 50): int
     {
         $notifications = MobilePushNotification::retryable()
-            ->limit(50)
+            ->limit($batchSize)
             ->get();
 
         $sent = 0;
