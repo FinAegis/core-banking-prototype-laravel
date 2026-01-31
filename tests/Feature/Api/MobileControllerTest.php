@@ -352,7 +352,9 @@ class MobileControllerTest extends TestCase
                 'data' => [
                     '*' => ['id', 'type', 'title', 'body', 'status', 'created_at'],
                 ],
-                'unread_count',
+                'meta' => [
+                    'unread_count',
+                ],
             ]);
     }
 
@@ -396,7 +398,7 @@ class MobileControllerTest extends TestCase
         $response = $this->withToken($this->token)->postJson('/api/mobile/notifications/read-all');
 
         $response->assertOk()
-            ->assertJsonPath('count', 2);
+            ->assertJsonPath('data.count', 2);
 
         $this->assertEquals(0, MobilePushNotification::where('user_id', $this->user->id)->unread()->count());
     }

@@ -90,7 +90,7 @@ class MobileController extends Controller
 
         return response()->json([
             'data'    => $this->formatDeviceResponse($device),
-            'message' => 'Device registered successfully',
+            'message' => 'Your device has been registered',
         ], 201);
     }
 
@@ -110,9 +110,13 @@ class MobileController extends Controller
     {
         $user = $this->getAuthenticatedUser($request);
         $devices = $this->deviceService->getUserDevices($user);
+        $currentDeviceId = $request->header('X-Device-ID');
 
         return response()->json([
-            'data' => $devices->map(fn (MobileDevice $device) => $this->formatDeviceResponse($device)),
+            'data' => $devices->map(fn (MobileDevice $device) => array_merge(
+                $this->formatDeviceResponse($device),
+                ['is_current' => $currentDeviceId !== null && $device->device_id === $currentDeviceId]
+            )),
         ]);
     }
 
@@ -139,13 +143,18 @@ class MobileController extends Controller
             return response()->json([
                 'error' => [
                     'code'    => 'NOT_FOUND',
-                    'message' => 'Device not found',
+                    'message' => 'The requested device could not be found',
                 ],
             ], 404);
         }
 
+        $currentDeviceId = $request->header('X-Device-ID');
+
         return response()->json([
-            'data' => $this->formatDeviceResponse($device),
+            'data' => array_merge(
+                $this->formatDeviceResponse($device),
+                ['is_current' => $currentDeviceId !== null && $device->device_id === $currentDeviceId]
+            ),
         ]);
     }
 
@@ -260,7 +269,7 @@ class MobileController extends Controller
             return response()->json([
                 'error' => [
                     'code'    => 'NOT_FOUND',
-                    'message' => 'Device not found',
+                    'message' => 'The requested device could not be found',
                 ],
             ], 404);
         }
@@ -284,7 +293,7 @@ class MobileController extends Controller
             return response()->json([
                 'error' => [
                     'code'    => 'INVALID_PUBLIC_KEY',
-                    'message' => 'Invalid public key format',
+                    'message' => 'Unable to set up biometric authentication',
                 ],
             ], 400);
         }
@@ -422,7 +431,7 @@ class MobileController extends Controller
             return response()->json([
                 'error' => [
                     'code'    => 'NOT_FOUND',
-                    'message' => 'Device not found',
+                    'message' => 'The requested device could not be found',
                 ],
             ], 404);
         }
@@ -438,7 +447,7 @@ class MobileController extends Controller
             return response()->json([
                 'error' => [
                     'code'    => 'AUTHENTICATION_FAILED',
-                    'message' => 'Biometric verification failed',
+                    'message' => 'Unable to verify your identity. Please try again.',
                 ],
             ], 401);
         }
@@ -483,7 +492,9 @@ class MobileController extends Controller
                 'read_at'    => $n->read_at?->toIso8601String(),
                 'created_at' => $n->created_at->toIso8601String(),
             ]),
-            'unread_count' => $this->pushService->getUnreadCount($user),
+            'meta' => [
+                'unread_count' => $this->pushService->getUnreadCount($user),
+            ],
         ]);
     }
 
@@ -519,7 +530,14 @@ class MobileController extends Controller
 
         $this->pushService->markAsRead($notification);
 
+        // Refresh the notification to get updated read_at timestamp
+        $notification->refresh();
+
         return response()->json([
+            'data' => [
+                'id'      => $notification->id,
+                'read_at' => $notification->read_at?->toIso8601String(),
+            ],
             'message' => 'Notification marked as read',
         ]);
     }
@@ -542,8 +560,10 @@ class MobileController extends Controller
         $count = $this->pushService->markAllAsRead($user);
 
         return response()->json([
+            'data' => [
+                'count' => $count,
+            ],
             'message' => "{$count} notifications marked as read",
-            'count'   => $count,
         ]);
     }
 
@@ -746,8 +766,12 @@ class MobileController extends Controller
         $sessions = $this->sessionService->getUserSessions($user);
         $stats = $this->sessionService->getSessionStats($user);
 
+        /** @var \Laravel\Sanctum\PersonalAccessToken|null $currentToken */
+        $currentToken = $user->currentAccessToken();
+        $currentTokenId = $currentToken?->id;
+
         return response()->json([
-            'sessions' => $sessions->map(fn (MobileDeviceSession $session) => [
+            'data' => $sessions->map(fn (MobileDeviceSession $session) => [
                 'id'     => $session->id,
                 'device' => $session->mobileDevice ? [
                     'id'       => $session->mobileDevice->id,
@@ -756,11 +780,14 @@ class MobileController extends Controller
                 ] : null,
                 'ip_address'       => $session->ip_address,
                 'is_biometric'     => $session->is_biometric_session,
+                'is_current'       => $currentTokenId !== null && $session->token_id === $currentTokenId,
                 'last_activity_at' => $session->last_activity_at->toIso8601String(),
                 'expires_at'       => $session->expires_at->toIso8601String(),
                 'created_at'       => $session->created_at->toIso8601String(),
             ]),
-            'stats' => $stats,
+            'meta' => [
+                'stats' => $stats,
+            ],
         ]);
     }
 
@@ -861,8 +888,10 @@ class MobileController extends Controller
         $newToken = $user->createToken('mobile-app', $abilities);
 
         return response()->json([
-            'token'      => $newToken->plainTextToken,
-            'expires_at' => $newToken->accessToken->expires_at?->toIso8601String(),
+            'data' => [
+                'token'      => $newToken->plainTextToken,
+                'expires_at' => $newToken->accessToken->expires_at?->toIso8601String(),
+            ],
         ]);
     }
 
@@ -892,8 +921,10 @@ class MobileController extends Controller
         $preferences = $this->preferenceService->getUserPreferences($user, $device);
 
         return response()->json([
-            'preferences'     => array_values($preferences),
-            'available_types' => MobileNotificationPreference::getAvailableTypes(),
+            'data' => [
+                'preferences'     => array_values($preferences),
+                'available_types' => MobileNotificationPreference::getAvailableTypes(),
+            ],
         ]);
     }
 
@@ -937,7 +968,7 @@ class MobileController extends Controller
                 return response()->json([
                     'error' => [
                         'code'    => 'DEVICE_NOT_FOUND',
-                        'message' => 'Device not found',
+                        'message' => 'The requested device could not be found',
                     ],
                 ], 404);
             }
@@ -948,8 +979,10 @@ class MobileController extends Controller
         $updatedPreferences = $this->preferenceService->getUserPreferences($user, $device);
 
         return response()->json([
-            'message'     => 'Preferences updated successfully',
-            'preferences' => array_values($updatedPreferences),
+            'data' => [
+                'preferences' => array_values($updatedPreferences),
+            ],
+            'message' => 'Preferences updated successfully',
         ]);
     }
 
