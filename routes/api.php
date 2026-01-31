@@ -1067,6 +1067,11 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::get('/{id}', [MobileController::class, 'getDevice'])->name('show');
             Route::delete('/{id}', [MobileController::class, 'unregisterDevice'])->name('destroy');
             Route::patch('/{id}/token', [MobileController::class, 'updatePushToken'])->name('token');
+
+            // Device security actions
+            Route::post('/{id}/block', [MobileController::class, 'blockDevice'])->name('block');
+            Route::post('/{id}/unblock', [MobileController::class, 'unblockDevice'])->name('unblock');
+            Route::post('/{id}/trust', [MobileController::class, 'trustDevice'])->name('trust');
         });
 
         // Biometric management (requires auth to enable/disable)
@@ -1075,11 +1080,25 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::delete('/disable', [MobileController::class, 'disableBiometric'])->name('disable');
         });
 
+        // Token refresh
+        Route::post('/auth/refresh', [MobileController::class, 'refreshToken'])->name('auth.refresh');
+
+        // Session management
+        Route::prefix('sessions')->name('sessions.')->group(function () {
+            Route::get('/', [MobileController::class, 'listSessions'])->name('index');
+            Route::delete('/{id}', [MobileController::class, 'revokeSession'])->name('revoke');
+            Route::delete('/', [MobileController::class, 'revokeAllSessions'])->name('revoke-all');
+        });
+
         // Push notifications
         Route::prefix('notifications')->name('notifications.')->group(function () {
             Route::get('/', [MobileController::class, 'getNotifications'])->name('index');
             Route::post('/{id}/read', [MobileController::class, 'markNotificationRead'])->name('read');
             Route::post('/read-all', [MobileController::class, 'markAllNotificationsRead'])->name('read-all');
+
+            // Notification preferences
+            Route::get('/preferences', [MobileController::class, 'getNotificationPreferences'])->name('preferences.index');
+            Route::put('/preferences', [MobileController::class, 'updateNotificationPreferences'])->name('preferences.update');
         });
     });
 });

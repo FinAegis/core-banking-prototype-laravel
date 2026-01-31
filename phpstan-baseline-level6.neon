@@ -24361,6 +24361,12 @@ parameters:
 			path: app/Domain/Mobile/Models/MobileDeviceSession.php
 
 		-
+			message: '#^Class App\\Domain\\Mobile\\Models\\MobileNotificationPreference uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/Mobile/Models/MobileNotificationPreference.php
+
+		-
 			message: '#^Class App\\Domain\\Mobile\\Models\\MobilePushNotification uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
 			identifier: missingType.generics
 			count: 1

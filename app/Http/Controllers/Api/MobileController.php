@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Domain\Mobile\Models\MobileDevice;
+use App\Domain\Mobile\Models\MobileDeviceSession;
+use App\Domain\Mobile\Models\MobileNotificationPreference;
 use App\Domain\Mobile\Models\MobilePushNotification;
 use App\Domain\Mobile\Services\BiometricAuthenticationService;
 use App\Domain\Mobile\Services\MobileDeviceService;
+use App\Domain\Mobile\Services\MobileSessionService;
+use App\Domain\Mobile\Services\NotificationPreferenceService;
 use App\Domain\Mobile\Services\PushNotificationService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -31,7 +35,9 @@ class MobileController extends Controller
     public function __construct(
         private readonly MobileDeviceService $deviceService,
         private readonly BiometricAuthenticationService $biometricService,
-        private readonly PushNotificationService $pushService
+        private readonly PushNotificationService $pushService,
+        private readonly MobileSessionService $sessionService,
+        private readonly NotificationPreferenceService $preferenceService,
     ) {
     }
 
@@ -657,6 +663,410 @@ class MobileController extends Controller
                     'key'     => config('broadcasting.connections.pusher.key'),
                 ],
             ],
+        ]);
+    }
+
+    /**
+     * Block a mobile device.
+     *
+     * @OA\Post(
+     *     path="/api/mobile/devices/{id}/block",
+     *     operationId="blockMobileDevice",
+     *     tags={"Mobile"},
+     *     summary="Block a mobile device",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(response="200", description="Device blocked"),
+     *     @OA\Response(response="404", description="Device not found")
+     * )
+     */
+    public function blockDevice(Request $request, string $id): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        $validator = Validator::make($request->all(), [
+            'reason' => ['sometimes', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'VALIDATION_ERROR',
+                    'message' => 'Validation failed',
+                    'details' => $validator->errors()->toArray(),
+                ],
+            ], 422);
+        }
+
+        $device = $this->deviceService->findByIdForUser($id, $user);
+        if (! $device instanceof MobileDevice) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'DEVICE_NOT_FOUND',
+                    'message' => 'Device not found',
+                ],
+            ], 404);
+        }
+
+        $reason = $request->input('reason', 'User requested block');
+        $this->deviceService->blockDevice($device, $reason);
+
+        // Revoke all sessions for this device
+        $this->sessionService->revokeDeviceSessions($device);
+
+        /** @var MobileDevice $refreshedDevice */
+        $refreshedDevice = $device->fresh();
+
+        return response()->json([
+            'message' => 'Device blocked successfully',
+            'device'  => $this->formatDeviceResponse($refreshedDevice),
+        ]);
+    }
+
+    /**
+     * Unblock a mobile device.
+     *
+     * @OA\Post(
+     *     path="/api/mobile/devices/{id}/unblock",
+     *     operationId="unblockMobileDevice",
+     *     tags={"Mobile"},
+     *     summary="Unblock a mobile device",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(response="200", description="Device unblocked"),
+     *     @OA\Response(response="404", description="Device not found")
+     * )
+     */
+    public function unblockDevice(Request $request, string $id): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        $device = $this->deviceService->findByIdForUser($id, $user);
+        if (! $device instanceof MobileDevice) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'DEVICE_NOT_FOUND',
+                    'message' => 'Device not found',
+                ],
+            ], 404);
+        }
+
+        $this->deviceService->unblockDevice($device);
+
+        /** @var MobileDevice $refreshedDevice */
+        $refreshedDevice = $device->fresh();
+
+        return response()->json([
+            'message' => 'Device unblocked successfully',
+            'device'  => $this->formatDeviceResponse($refreshedDevice),
+        ]);
+    }
+
+    /**
+     * Trust a mobile device.
+     *
+     * @OA\Post(
+     *     path="/api/mobile/devices/{id}/trust",
+     *     operationId="trustMobileDevice",
+     *     tags={"Mobile"},
+     *     summary="Mark a device as trusted",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(response="200", description="Device trusted"),
+     *     @OA\Response(response="404", description="Device not found")
+     * )
+     */
+    public function trustDevice(Request $request, string $id): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        $device = $this->deviceService->findByIdForUser($id, $user);
+        if (! $device instanceof MobileDevice) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'DEVICE_NOT_FOUND',
+                    'message' => 'Device not found',
+                ],
+            ], 404);
+        }
+
+        if ($device->is_blocked) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'DEVICE_BLOCKED',
+                    'message' => 'Cannot trust a blocked device',
+                ],
+            ], 400);
+        }
+
+        $this->deviceService->trustDevice($device, (string) $user->id);
+
+        /** @var MobileDevice $refreshedDevice */
+        $refreshedDevice = $device->fresh();
+
+        return response()->json([
+            'message' => 'Device trusted successfully',
+            'device'  => $this->formatDeviceResponse($refreshedDevice),
+        ]);
+    }
+
+    /**
+     * List active sessions for the authenticated user.
+     *
+     * @OA\Get(
+     *     path="/api/mobile/sessions",
+     *     operationId="listMobileSessions",
+     *     tags={"Mobile"},
+     *     summary="List active mobile sessions",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response="200", description="List of active sessions")
+     * )
+     */
+    public function listSessions(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        $sessions = $this->sessionService->getUserSessions($user);
+        $stats = $this->sessionService->getSessionStats($user);
+
+        return response()->json([
+            'sessions' => $sessions->map(fn (MobileDeviceSession $session) => [
+                'id'     => $session->id,
+                'device' => $session->mobileDevice ? [
+                    'id'       => $session->mobileDevice->id,
+                    'name'     => $session->mobileDevice->getDisplayName(),
+                    'platform' => $session->mobileDevice->platform,
+                ] : null,
+                'ip_address'       => $session->ip_address,
+                'is_biometric'     => $session->is_biometric_session,
+                'last_activity_at' => $session->last_activity_at->toIso8601String(),
+                'expires_at'       => $session->expires_at->toIso8601String(),
+                'created_at'       => $session->created_at->toIso8601String(),
+            ]),
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Revoke a specific session.
+     *
+     * @OA\Delete(
+     *     path="/api/mobile/sessions/{id}",
+     *     operationId="revokeMobileSession",
+     *     tags={"Mobile"},
+     *     summary="Revoke a specific mobile session",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(response="200", description="Session revoked"),
+     *     @OA\Response(response="404", description="Session not found")
+     * )
+     */
+    public function revokeSession(Request $request, string $id): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        $session = $this->sessionService->findSessionForUser($id, $user);
+        if (! $session instanceof MobileDeviceSession) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'SESSION_NOT_FOUND',
+                    'message' => 'Session not found',
+                ],
+            ], 404);
+        }
+
+        $this->sessionService->revokeSession($session);
+
+        return response()->json([
+            'message' => 'Session revoked successfully',
+        ]);
+    }
+
+    /**
+     * Revoke all sessions except the current one.
+     *
+     * @OA\Delete(
+     *     path="/api/mobile/sessions",
+     *     operationId="revokeAllMobileSessions",
+     *     tags={"Mobile"},
+     *     summary="Revoke all mobile sessions except current",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response="200", description="Sessions revoked")
+     * )
+     */
+    public function revokeAllSessions(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        // Get current session ID from header if available
+        $currentSessionId = $request->header('X-Mobile-Session-Id');
+
+        $count = $this->sessionService->revokeAllUserSessions($user, $currentSessionId);
+
+        return response()->json([
+            'message'       => 'Sessions revoked successfully',
+            'revoked_count' => $count,
+        ]);
+    }
+
+    /**
+     * Refresh the authentication token.
+     *
+     * @OA\Post(
+     *     path="/api/mobile/auth/refresh",
+     *     operationId="refreshMobileToken",
+     *     tags={"Mobile"},
+     *     summary="Refresh the authentication token",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response="200", description="Token refreshed")
+     * )
+     */
+    public function refreshToken(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        // Get current token and its abilities before deleting
+        /** @var \Laravel\Sanctum\PersonalAccessToken|null $currentToken */
+        $currentToken = $user->currentAccessToken();
+        $abilities = $currentToken !== null ? ($currentToken->abilities ?? ['*']) : ['*'];
+
+        // Delete current token
+        if ($currentToken !== null) {
+            $currentToken->delete();
+        }
+
+        // Create new token with same abilities
+        $newToken = $user->createToken('mobile-app', $abilities);
+
+        return response()->json([
+            'token'      => $newToken->plainTextToken,
+            'expires_at' => $newToken->accessToken->expires_at?->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Get notification preferences.
+     *
+     * @OA\Get(
+     *     path="/api/mobile/notifications/preferences",
+     *     operationId="getNotificationPreferences",
+     *     tags={"Mobile"},
+     *     summary="Get notification preferences",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response="200", description="Notification preferences")
+     * )
+     */
+    public function getNotificationPreferences(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        // Check if device-specific preferences requested
+        $deviceId = $request->query('device_id');
+        $device = null;
+        if ($deviceId !== null) {
+            $device = $this->deviceService->findByIdForUser((string) $deviceId, $user);
+        }
+
+        $preferences = $this->preferenceService->getUserPreferences($user, $device);
+
+        return response()->json([
+            'preferences'     => array_values($preferences),
+            'available_types' => MobileNotificationPreference::getAvailableTypes(),
+        ]);
+    }
+
+    /**
+     * Update notification preferences.
+     *
+     * @OA\Put(
+     *     path="/api/mobile/notifications/preferences",
+     *     operationId="updateNotificationPreferences",
+     *     tags={"Mobile"},
+     *     summary="Update notification preferences",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"preferences"},
+     *             @OA\Property(
+     *                 property="preferences",
+     *                 type="object",
+     *                 additionalProperties=@OA\Schema(
+     *                     type="object",
+     *                     @OA\Property(property="push_enabled", type="boolean"),
+     *                     @OA\Property(property="email_enabled", type="boolean")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="200", description="Preferences updated")
+     * )
+     */
+    public function updateNotificationPreferences(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        $validator = Validator::make($request->all(), [
+            'preferences'                 => ['required', 'array'],
+            'preferences.*'               => ['array'],
+            'preferences.*.push_enabled'  => ['sometimes', 'boolean'],
+            'preferences.*.email_enabled' => ['sometimes', 'boolean'],
+            'device_id'                   => ['sometimes', 'uuid'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => [
+                    'code'    => 'VALIDATION_ERROR',
+                    'message' => 'Validation failed',
+                    'details' => $validator->errors()->toArray(),
+                ],
+            ], 422);
+        }
+
+        $device = null;
+        $deviceId = $request->input('device_id');
+        if ($deviceId !== null) {
+            $device = $this->deviceService->findByIdForUser($deviceId, $user);
+            if (! $device instanceof MobileDevice) {
+                return response()->json([
+                    'error' => [
+                        'code'    => 'DEVICE_NOT_FOUND',
+                        'message' => 'Device not found',
+                    ],
+                ], 404);
+            }
+        }
+
+        /** @var array<string, array{push_enabled?: bool, email_enabled?: bool}> $preferences */
+        $preferences = $request->input('preferences');
+        $this->preferenceService->updatePreferences($user, $preferences, $device);
+
+        $updatedPreferences = $this->preferenceService->getUserPreferences($user, $device);
+
+        return response()->json([
+            'message'     => 'Preferences updated successfully',
+            'preferences' => array_values($updatedPreferences),
         ]);
     }
 
