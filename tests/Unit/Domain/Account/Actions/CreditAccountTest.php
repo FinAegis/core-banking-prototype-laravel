@@ -32,6 +32,7 @@ class CreditAccountTest extends DomainTestCase
         return new class ($assetCode, $amount, Hash::fromData("test-{$assetCode}-{$amount}"), ['test' => true], $aggregateRootUuid) extends AssetBalanceAdded {
             private string $testAggregateRootUuid;
 
+            /** @param array<string, mixed>|null $metadata */
             public function __construct(
                 string $assetCode,
                 int $amount,
