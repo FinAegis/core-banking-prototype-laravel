@@ -209,7 +209,7 @@ class AiLlmUsageTest extends TestCase
 
         expect($stats['total_requests'])->toBe(3);
         expect($stats['total_tokens'])->toBe(550);
-        expect($stats['total_cost_usd'])->toBe(0.018);
+        expect(round($stats['total_cost_usd'], 3))->toBe(0.018);
         expect($stats['avg_latency_ms'])->toBeGreaterThan(0);
         expect($stats['success_rate'])->toBe(66.67);
     }
