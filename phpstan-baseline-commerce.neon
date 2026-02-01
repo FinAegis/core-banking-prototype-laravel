@@ -1,0 +1,25 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$service\.$#'
+			identifier: property.notFound
+			count: 18
+			path: tests/Unit/Domain/Commerce/Services/CredentialIssuanceServiceTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$service\.$#'
+			identifier: property.notFound
+			count: 44
+			path: tests/Unit/Domain/Commerce/Services/MerchantOnboardingServiceTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$service\.$#'
+			identifier: property.notFound
+			count: 21
+			path: tests/Unit/Domain/Commerce/Services/PaymentAttestationServiceTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$service\.$#'
+			identifier: property.notFound
+			count: 22
+			path: tests/Unit/Domain/Commerce/Services/SoulboundTokenServiceTest.php

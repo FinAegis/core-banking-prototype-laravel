@@ -1120,27 +1120,38 @@ main ─────────●─────────●─────
 | Models | `KeyShardRecord`, `KeyReconstructionLog`, `RecoveryBackup` | ✅ |
 | Tests | 57 unit tests, 117 assertions | ✅ |
 
-### Phase 2: Privacy Domain (Planned)
+### Phase 2: Privacy Domain ✅ COMPLETE
 
 **Scope**: Zero-Knowledge KYC, Privacy-Preserving Payments
 
-| Component | Description |
-|-----------|-------------|
-| `ZkKycService` | Zero-knowledge KYC verification without exposing PII |
-| `SelectiveDisclosureService` | Prove claims without revealing full data |
-| `PrivacyPoolIntegration` | RAILGUN-style privacy payments |
-| `ProofOfInnocenceService` | Compliance-friendly privacy proofs |
+| Component | Description | Status |
+|-----------|-------------|--------|
+| `ZkKycService` | Zero-knowledge KYC verification without exposing PII | ✅ |
+| `SelectiveDisclosureService` | Prove claims without revealing full data | ✅ |
+| `DemoZkProver` | Demo implementation of ZK proof generation | ✅ |
+| `ProofOfInnocenceService` | RAILGUN-inspired compliance proofs | ✅ |
+| Enums | `ProofType`, `PrivacyLevel` | ✅ |
+| Value Objects | `ZkProof`, `SelectiveDisclosure` | ✅ |
+| Events | `ZkKycVerified`, `ZkKycVerificationFailed`, `ProofOfInnocenceGenerated` | ✅ |
+| Config | `config/privacy.php` with ZK, selective disclosure, POI settings | ✅ |
+| Tests | 60 unit tests, 166 assertions | ✅ |
 
-### Phase 3: Commerce Domain (Planned)
+### Phase 3: Commerce Domain ✅ COMPLETE
 
 **Scope**: On-Chain Credentials, Merchant Integration
 
-| Component | Description |
-|-----------|-------------|
-| `SoulboundTokenService` | ERC-5114 attestation tokens |
-| `MerchantOnboardingService` | KYC-verified merchant registration |
-| `PaymentAttestationService` | On-chain payment proofs |
-| `CredentialIssuanceService` | Verifiable credentials issuance |
+| Component | Description | Status |
+|-----------|-------------|--------|
+| `SoulboundTokenService` | Non-transferable tokens for identity/credentials | ✅ |
+| `MerchantOnboardingService` | KYC-verified merchant registration with state machine | ✅ |
+| `PaymentAttestationService` | Cryptographic attestations for payments/transactions | ✅ |
+| `CredentialIssuanceService` | W3C Verifiable Credentials issuance | ✅ |
+| Enums | `TokenType`, `MerchantStatus`, `AttestationType`, `CredentialType` | ✅ |
+| Value Objects | `SoulboundToken`, `PaymentAttestation`, `VerifiableCredential` | ✅ |
+| Events | `SoulboundTokenIssued`, `MerchantOnboarded`, `PaymentAttested`, `CredentialIssued` | ✅ |
+| Contracts | `TokenIssuerInterface`, `AttestationServiceInterface` | ✅ |
+| Config | `config/commerce.php` with SBT, merchant, attestation settings | ✅ |
+| Tests | 66 unit tests, 197 assertions | ✅ |
 
 ### Phase 4: TrustCert Domain (Planned)
 
@@ -1157,5 +1168,5 @@ main ─────────●─────────●─────
 
 *Document Version: 2.4*
 *Created: January 11, 2026*
-*Updated: February 1, 2026 (v2.4.0 Privacy & Identity)*
-*Next Review: After v2.4.0 Phase 2 Release*
+*Updated: February 1, 2026 (v2.4.0 Privacy & Commerce Domains)*
+*Next Review: After v2.4.0 Phase 4 (TrustCert) Release*
