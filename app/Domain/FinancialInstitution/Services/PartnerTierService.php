@@ -53,16 +53,16 @@ class PartnerTierService
         }
 
         $changes = [
-            'previous_tier' => $currentTier->value,
-            'new_tier' => $newTier->value,
+            'previous_tier'       => $currentTier->value,
+            'new_tier'            => $newTier->value,
             'previous_rate_limit' => $currentTier->rateLimitPerMinute(),
-            'new_rate_limit' => $newTier->rateLimitPerMinute(),
-            'previous_api_limit' => $currentTier->apiCallLimit(),
-            'new_api_limit' => $newTier->apiCallLimit(),
+            'new_rate_limit'      => $newTier->rateLimitPerMinute(),
+            'previous_api_limit'  => $currentTier->apiCallLimit(),
+            'new_api_limit'       => $newTier->apiCallLimit(),
         ];
 
         $partner->update([
-            'tier' => $newTier->value,
+            'tier'                  => $newTier->value,
             'rate_limit_per_minute' => $newTier->rateLimitPerMinute(),
         ]);
 
@@ -75,7 +75,7 @@ class PartnerTierService
 
         Log::info('Partner tier upgraded', [
             'partner_id' => $partner->id,
-            'changes' => $changes,
+            'changes'    => $changes,
         ]);
 
         return [
@@ -97,13 +97,13 @@ class PartnerTierService
         $currentTier = $this->getPartnerTier($partner);
 
         $changes = [
-            'previous_tier' => $currentTier->value,
-            'new_tier' => $newTier->value,
+            'previous_tier'       => $currentTier->value,
+            'new_tier'            => $newTier->value,
             'previous_rate_limit' => $currentTier->rateLimitPerMinute(),
-            'new_rate_limit' => $newTier->rateLimitPerMinute(),
-            'previous_api_limit' => $currentTier->apiCallLimit(),
-            'new_api_limit' => $newTier->apiCallLimit(),
-            'features_removed' => [],
+            'new_rate_limit'      => $newTier->rateLimitPerMinute(),
+            'previous_api_limit'  => $currentTier->apiCallLimit(),
+            'new_api_limit'       => $newTier->apiCallLimit(),
+            'features_removed'    => [],
         ];
 
         // Check for feature losses
@@ -126,13 +126,13 @@ class PartnerTierService
         }
 
         $partner->update([
-            'tier' => $newTier->value,
+            'tier'                  => $newTier->value,
             'rate_limit_per_minute' => $newTier->rateLimitPerMinute(),
         ]);
 
         Log::info('Partner tier downgraded', [
             'partner_id' => $partner->id,
-            'changes' => $changes,
+            'changes'    => $changes,
         ]);
 
         return [
@@ -226,17 +226,17 @@ class PartnerTierService
         $overageAmount = ($overageCalls / 1000) * $tier->overagePricePerThousand();
 
         return [
-            'tier' => $tier->value,
-            'tier_label' => $tier->label(),
-            'year' => $year,
-            'month' => $month,
-            'api_calls_total' => $totalCalls,
-            'api_calls_limit' => $limit,
+            'tier'                => $tier->value,
+            'tier_label'          => $tier->label(),
+            'year'                => $year,
+            'month'               => $month,
+            'api_calls_total'     => $totalCalls,
+            'api_calls_limit'     => $limit,
             'api_calls_remaining' => max(0, $limit - $totalCalls),
-            'usage_percentage' => $limit > 0 ? round(($totalCalls / $limit) * 100, 2) : 0,
-            'overage_calls' => $overageCalls,
-            'overage_amount_usd' => round($overageAmount, 2),
-            'base_price_usd' => $tier->monthlyPrice(),
+            'usage_percentage'    => $limit > 0 ? round(($totalCalls / $limit) * 100, 2) : 0,
+            'overage_calls'       => $overageCalls,
+            'overage_amount_usd'  => round($overageAmount, 2),
+            'base_price_usd'      => $tier->monthlyPrice(),
             'projected_total_usd' => round($tier->monthlyPrice() + $overageAmount, 2),
         ];
     }
@@ -249,9 +249,9 @@ class PartnerTierService
         $defaultBranding = config('baas.white_label.default_branding', []);
 
         return PartnerBranding::create([
-            'partner_id' => $partner->id,
-            'company_name' => $partner->institution_name ?? $defaultBranding['company_name'] ?? 'Partner',
-            'primary_color' => $defaultBranding['primary_color'] ?? '#1a365d',
+            'partner_id'      => $partner->id,
+            'company_name'    => $partner->institution_name ?? $defaultBranding['company_name'] ?? 'Partner',
+            'primary_color'   => $defaultBranding['primary_color'] ?? '#1a365d',
             'secondary_color' => $defaultBranding['secondary_color'] ?? '#2b6cb0',
         ]);
     }
@@ -268,13 +268,13 @@ class PartnerTierService
 
         foreach (PartnerTier::cases() as $tier) {
             $comparison[$tier->value] = [
-                'label' => $tier->label(),
-                'price' => $tier->monthlyPrice(),
-                'api_limit' => $tier->apiCallLimit(),
-                'rate_limit' => $tier->rateLimitPerMinute(),
-                'features' => $tier->features(),
-                'is_current' => $tier->value === $currentTier->value,
-                'is_upgrade' => $this->isUpgrade($currentTier, $tier),
+                'label'        => $tier->label(),
+                'price'        => $tier->monthlyPrice(),
+                'api_limit'    => $tier->apiCallLimit(),
+                'rate_limit'   => $tier->rateLimitPerMinute(),
+                'features'     => $tier->features(),
+                'is_current'   => $tier->value === $currentTier->value,
+                'is_upgrade'   => $this->isUpgrade($currentTier, $tier),
                 'is_downgrade' => $this->isDowngrade($currentTier, $tier),
             ];
         }

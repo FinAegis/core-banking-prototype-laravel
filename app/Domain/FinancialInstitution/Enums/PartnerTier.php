@@ -16,8 +16,8 @@ enum PartnerTier: string
     public function label(): string
     {
         return match ($this) {
-            self::STARTER => 'Starter',
-            self::GROWTH => 'Growth',
+            self::STARTER    => 'Starter',
+            self::GROWTH     => 'Growth',
             self::ENTERPRISE => 'Enterprise',
         };
     }
@@ -28,8 +28,8 @@ enum PartnerTier: string
     public function apiCallLimit(): int
     {
         return match ($this) {
-            self::STARTER => 10000,      // 10K calls
-            self::GROWTH => 100000,      // 100K calls
+            self::STARTER    => 10000,      // 10K calls
+            self::GROWTH     => 100000,      // 100K calls
             self::ENTERPRISE => 1000000, // 1M calls
         };
     }
@@ -40,8 +40,8 @@ enum PartnerTier: string
     public function rateLimitPerMinute(): int
     {
         return match ($this) {
-            self::STARTER => 60,
-            self::GROWTH => 300,
+            self::STARTER    => 60,
+            self::GROWTH     => 300,
             self::ENTERPRISE => 1000,
         };
     }
@@ -52,8 +52,8 @@ enum PartnerTier: string
     public function hasWhiteLabel(): bool
     {
         return match ($this) {
-            self::STARTER => false,
-            self::GROWTH => true,
+            self::STARTER    => false,
+            self::GROWTH     => true,
             self::ENTERPRISE => true,
         };
     }
@@ -64,8 +64,8 @@ enum PartnerTier: string
     public function hasCustomDomain(): bool
     {
         return match ($this) {
-            self::STARTER => false,
-            self::GROWTH => false,
+            self::STARTER    => false,
+            self::GROWTH     => false,
             self::ENTERPRISE => true,
         };
     }
@@ -76,8 +76,8 @@ enum PartnerTier: string
     public function hasDedicatedSupport(): bool
     {
         return match ($this) {
-            self::STARTER => false,
-            self::GROWTH => false,
+            self::STARTER    => false,
+            self::GROWTH     => false,
             self::ENTERPRISE => true,
         };
     }
@@ -88,8 +88,8 @@ enum PartnerTier: string
     public function hasSdkAccess(): bool
     {
         return match ($this) {
-            self::STARTER => false,
-            self::GROWTH => true,
+            self::STARTER    => false,
+            self::GROWTH     => true,
             self::ENTERPRISE => true,
         };
     }
@@ -100,8 +100,8 @@ enum PartnerTier: string
     public function hasWidgets(): bool
     {
         return match ($this) {
-            self::STARTER => false,
-            self::GROWTH => true,
+            self::STARTER    => false,
+            self::GROWTH     => true,
             self::ENTERPRISE => true,
         };
     }
@@ -112,8 +112,8 @@ enum PartnerTier: string
     public function monthlyPrice(): float
     {
         return match ($this) {
-            self::STARTER => 99.00,
-            self::GROWTH => 499.00,
+            self::STARTER    => 99.00,
+            self::GROWTH     => 499.00,
             self::ENTERPRISE => 1999.00,
         };
     }
@@ -124,8 +124,8 @@ enum PartnerTier: string
     public function overagePricePerThousand(): float
     {
         return match ($this) {
-            self::STARTER => 1.00,
-            self::GROWTH => 0.50,
+            self::STARTER    => 1.00,
+            self::GROWTH     => 0.50,
             self::ENTERPRISE => 0.25,
         };
     }
@@ -138,17 +138,17 @@ enum PartnerTier: string
     public function features(): array
     {
         return [
-            'white_label' => $this->hasWhiteLabel(),
-            'custom_domain' => $this->hasCustomDomain(),
+            'white_label'       => $this->hasWhiteLabel(),
+            'custom_domain'     => $this->hasCustomDomain(),
             'dedicated_support' => $this->hasDedicatedSupport(),
-            'sdk_access' => $this->hasSdkAccess(),
-            'widgets' => $this->hasWidgets(),
-            'webhooks' => true,
-            'sandbox' => true,
-            'production' => $this !== self::STARTER,
-            'api_analytics' => true,
-            'priority_support' => $this === self::ENTERPRISE,
-            'sla_guarantee' => $this === self::ENTERPRISE,
+            'sdk_access'        => $this->hasSdkAccess(),
+            'widgets'           => $this->hasWidgets(),
+            'webhooks'          => true,
+            'sandbox'           => true,
+            'production'        => $this !== self::STARTER,
+            'api_analytics'     => true,
+            'priority_support'  => $this === self::ENTERPRISE,
+            'sla_guarantee'     => $this === self::ENTERPRISE,
         ];
     }
 

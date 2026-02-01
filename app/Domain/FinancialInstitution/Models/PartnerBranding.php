@@ -80,16 +80,16 @@ class PartnerBranding extends Model
 
     protected $casts = [
         'widget_config' => 'array',
-        'metadata' => 'array',
-        'is_active' => 'boolean',
+        'metadata'      => 'array',
+        'is_active'     => 'boolean',
     ];
 
     protected $attributes = [
-        'primary_color' => '#1a365d',
-        'secondary_color' => '#2b6cb0',
-        'text_color' => '#1a202c',
+        'primary_color'    => '#1a365d',
+        'secondary_color'  => '#2b6cb0',
+        'text_color'       => '#1a202c',
         'background_color' => '#ffffff',
-        'is_active' => true,
+        'is_active'        => true,
     ];
 
     /**
@@ -129,10 +129,10 @@ class PartnerBranding extends Model
     public function getCssVariables(): array
     {
         return [
-            '--fa-primary-color' => $this->primary_color,
-            '--fa-secondary-color' => $this->secondary_color,
-            '--fa-accent-color' => $this->accent_color ?? $this->secondary_color,
-            '--fa-text-color' => $this->text_color,
+            '--fa-primary-color'    => $this->primary_color,
+            '--fa-secondary-color'  => $this->secondary_color,
+            '--fa-accent-color'     => $this->accent_color ?? $this->secondary_color,
+            '--fa-text-color'       => $this->text_color,
             '--fa-background-color' => $this->background_color,
         ];
     }
@@ -167,11 +167,11 @@ class PartnerBranding extends Model
     public function getWidgetConfig(): array
     {
         return array_merge([
-            'colors' => $this->getCssVariables(),
-            'logo' => $this->logo_url,
-            'logo_dark' => $this->logo_dark_url,
-            'company_name' => $this->company_name,
-            'tagline' => $this->tagline,
+            'colors'        => $this->getCssVariables(),
+            'logo'          => $this->logo_url,
+            'logo_dark'     => $this->logo_dark_url,
+            'company_name'  => $this->company_name,
+            'tagline'       => $this->tagline,
             'support_email' => $this->support_email,
         ], $this->widget_config ?? []);
     }

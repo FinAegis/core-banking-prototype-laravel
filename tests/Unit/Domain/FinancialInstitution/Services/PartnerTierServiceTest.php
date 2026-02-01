@@ -7,7 +7,6 @@ namespace Tests\Unit\Domain\FinancialInstitution\Services;
 use App\Domain\FinancialInstitution\Enums\PartnerTier;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionPartner;
 use App\Domain\FinancialInstitution\Models\PartnerBranding;
-use App\Domain\FinancialInstitution\Models\PartnerUsageRecord;
 use App\Domain\FinancialInstitution\Services\PartnerTierService;
 use Mockery;
 use Tests\TestCase;
@@ -36,12 +35,12 @@ class PartnerTierServiceTest extends TestCase
 
         // Set default attributes
         $defaults = [
-            'id' => fake()->uuid(),
-            'tier' => 'starter',
-            'white_label_enabled' => false,
-            'custom_domain' => null,
+            'id'                    => fake()->uuid(),
+            'tier'                  => 'starter',
+            'white_label_enabled'   => false,
+            'custom_domain'         => null,
             'rate_limit_per_minute' => 60,
-            'institution_name' => 'Test Partner',
+            'institution_name'      => 'Test Partner',
         ];
 
         foreach (array_merge($defaults, $attributes) as $key => $value) {
@@ -122,9 +121,9 @@ class PartnerTierServiceTest extends TestCase
     public function test_downgrade_tier(): void
     {
         $partner = $this->createMockPartner([
-            'tier' => 'enterprise',
+            'tier'                => 'enterprise',
             'white_label_enabled' => true,
-            'custom_domain' => 'custom.example.com',
+            'custom_domain'       => 'custom.example.com',
         ]);
 
         $result = $this->service->downgradeTier($partner, PartnerTier::STARTER);
@@ -159,15 +158,15 @@ class PartnerTierServiceTest extends TestCase
     public function test_can_use_white_label(): void
     {
         $enabledPartner = $this->createMockPartner([
-            'tier' => 'growth',
+            'tier'                => 'growth',
             'white_label_enabled' => true,
         ]);
         $disabledPartner = $this->createMockPartner([
-            'tier' => 'growth',
+            'tier'                => 'growth',
             'white_label_enabled' => false,
         ]);
         $starterPartner = $this->createMockPartner([
-            'tier' => 'starter',
+            'tier'                => 'starter',
             'white_label_enabled' => true,
         ]);
 
@@ -179,15 +178,15 @@ class PartnerTierServiceTest extends TestCase
     public function test_can_use_custom_domain(): void
     {
         $withDomain = $this->createMockPartner([
-            'tier' => 'enterprise',
+            'tier'          => 'enterprise',
             'custom_domain' => 'custom.example.com',
         ]);
         $withoutDomain = $this->createMockPartner([
-            'tier' => 'enterprise',
+            'tier'          => 'enterprise',
             'custom_domain' => null,
         ]);
         $growthWithDomain = $this->createMockPartner([
-            'tier' => 'growth',
+            'tier'          => 'growth',
             'custom_domain' => 'custom.example.com',
         ]);
 

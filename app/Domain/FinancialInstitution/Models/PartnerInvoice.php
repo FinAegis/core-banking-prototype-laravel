@@ -114,38 +114,38 @@ class PartnerInvoice extends Model
     ];
 
     protected $casts = [
-        'period_start' => 'date',
-        'period_end' => 'date',
-        'due_date' => 'date',
-        'paid_at' => 'datetime',
-        'pdf_generated_at' => 'datetime',
-        'line_items' => 'array',
-        'metadata' => 'array',
-        'base_amount_usd' => 'decimal:2',
-        'discount_amount_usd' => 'decimal:2',
-        'overage_amount_usd' => 'decimal:2',
+        'period_start'           => 'date',
+        'period_end'             => 'date',
+        'due_date'               => 'date',
+        'paid_at'                => 'datetime',
+        'pdf_generated_at'       => 'datetime',
+        'line_items'             => 'array',
+        'metadata'               => 'array',
+        'base_amount_usd'        => 'decimal:2',
+        'discount_amount_usd'    => 'decimal:2',
+        'overage_amount_usd'     => 'decimal:2',
         'additional_charges_usd' => 'decimal:2',
-        'subtotal_usd' => 'decimal:2',
-        'tax_amount_usd' => 'decimal:2',
-        'tax_rate' => 'decimal:2',
-        'total_amount_usd' => 'decimal:2',
-        'exchange_rate' => 'decimal:6',
-        'total_amount_display' => 'decimal:2',
-        'total_api_calls' => 'integer',
-        'included_api_calls' => 'integer',
-        'overage_api_calls' => 'integer',
+        'subtotal_usd'           => 'decimal:2',
+        'tax_amount_usd'         => 'decimal:2',
+        'tax_rate'               => 'decimal:2',
+        'total_amount_usd'       => 'decimal:2',
+        'exchange_rate'          => 'decimal:6',
+        'total_amount_display'   => 'decimal:2',
+        'total_api_calls'        => 'integer',
+        'included_api_calls'     => 'integer',
+        'overage_api_calls'      => 'integer',
     ];
 
     protected $attributes = [
-        'status' => self::STATUS_DRAFT,
-        'discount_amount_usd' => 0,
-        'overage_api_calls' => 0,
-        'overage_amount_usd' => 0,
+        'status'                 => self::STATUS_DRAFT,
+        'discount_amount_usd'    => 0,
+        'overage_api_calls'      => 0,
+        'overage_amount_usd'     => 0,
         'additional_charges_usd' => 0,
-        'tax_amount_usd' => 0,
-        'tax_rate' => 0,
-        'display_currency' => 'USD',
-        'exchange_rate' => 1.0,
+        'tax_amount_usd'         => 0,
+        'tax_rate'               => 0,
+        'display_currency'       => 'USD',
+        'exchange_rate'          => 1.0,
     ];
 
     /**
@@ -275,9 +275,9 @@ class PartnerInvoice extends Model
     public function markAsPaid(?string $paymentMethod = null, ?string $paymentReference = null): void
     {
         $this->update([
-            'status' => self::STATUS_PAID,
-            'paid_at' => now(),
-            'payment_method' => $paymentMethod,
+            'status'            => self::STATUS_PAID,
+            'paid_at'           => now(),
+            'payment_method'    => $paymentMethod,
             'payment_reference' => $paymentReference,
         ]);
     }
@@ -307,9 +307,9 @@ class PartnerInvoice extends Model
         $totalDisplay = $totalUsd * $this->exchange_rate;
 
         $this->update([
-            'subtotal_usd' => $subtotal,
-            'tax_amount_usd' => $taxAmount,
-            'total_amount_usd' => $totalUsd,
+            'subtotal_usd'         => $subtotal,
+            'tax_amount_usd'       => $taxAmount,
+            'total_amount_usd'     => $totalUsd,
             'total_amount_display' => $totalDisplay,
         ]);
     }
@@ -320,13 +320,13 @@ class PartnerInvoice extends Model
     public function getStatusBadgeColor(): string
     {
         return match ($this->status) {
-            self::STATUS_DRAFT => 'gray',
-            self::STATUS_PENDING => 'yellow',
-            self::STATUS_PAID => 'green',
-            self::STATUS_OVERDUE => 'red',
+            self::STATUS_DRAFT     => 'gray',
+            self::STATUS_PENDING   => 'yellow',
+            self::STATUS_PAID      => 'green',
+            self::STATUS_OVERDUE   => 'red',
             self::STATUS_CANCELLED => 'gray',
-            self::STATUS_REFUNDED => 'blue',
-            default => 'gray',
+            self::STATUS_REFUNDED  => 'blue',
+            default                => 'gray',
         };
     }
 
