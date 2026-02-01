@@ -1,0 +1,385 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\:\:branding\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\:\:invoices\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\:\:scopeTier\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\:\:scopeTier\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\:\:scopeWhiteLabelEnabled\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\:\:scopeWhiteLabelEnabled\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\FinancialInstitutionPartner\:\:usageRecords\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''tier'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''white_label_enabled'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/FinancialInstitutionPartner.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerBranding has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerBranding has PHPDoc tag @method for method find\(\) parameter \#2 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerBranding has PHPDoc tag @method for method first\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerBranding has PHPDoc tag @method for method get\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerBranding has PHPDoc tag @property for property \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerBranding has PHPDoc tag @property for property \$widget_config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerBranding uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerBranding\:\:partner\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerBranding\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerBranding\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerBranding\:\:active\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerBranding\:\:get\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Collection but does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerBranding\:\:where\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''is_active'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerBranding.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice has PHPDoc tag @method for method find\(\) parameter \#2 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice has PHPDoc tag @method for method first\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice has PHPDoc tag @method for method get\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice has PHPDoc tag @property for property \$line_items with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice has PHPDoc tag @property for property \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:partner\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:scopeOverdue\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:scopeOverdue\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:scopePaid\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:scopePaid\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:scopePending\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:scopePending\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:get\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Collection but does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:overdue\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:paid\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:pending\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerInvoice\:\:where\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerInvoice.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord has PHPDoc tag @method for method find\(\) parameter \#2 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord has PHPDoc tag @method for method first\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord has PHPDoc tag @method for method get\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord has PHPDoc tag @property for property \$endpoint_breakdown with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord has PHPDoc tag @property for property \$error_breakdown with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Class App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:partner\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:scopeBillable\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:scopeBillable\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:scopeDaily\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:scopeDaily\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:scopeForDate\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:scopeForDate\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:billable\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:daily\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:forDate\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:get\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Collection but does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\FinancialInstitution\\Models\\PartnerUsageRecord\:\:where\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''is_billable'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''period_type'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''usage_date'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/FinancialInstitution/Models/PartnerUsageRecord.php
