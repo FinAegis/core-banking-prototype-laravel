@@ -2,6 +2,7 @@ includes:
     - ./vendor/larastan/larastan/extension.neon
     - phpstan-baseline.neon
     - phpstan-baseline-ai-tests.neon
+    - phpstan-baseline-ai-models.neon
     - phpstan-baseline-compliance-projector.neon
     - phpstan-baseline-level6.neon
     - phpstan-baseline-level7.neon
