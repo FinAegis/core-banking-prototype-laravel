@@ -8,7 +8,6 @@ use App\Domain\Privacy\Contracts\ZkProverInterface;
 use App\Domain\Privacy\Enums\ProofType;
 use App\Domain\Privacy\Events\ProofOfInnocenceGenerated;
 use App\Domain\Privacy\ValueObjects\ZkProof;
-use DateTimeInterface;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -164,18 +163,5 @@ class ProofOfInnocenceService
     private function generateTransactionCommitment(string $transactionId): string
     {
         return hash('sha256', 'tx_commitment:' . $transactionId);
-    }
-}
-
-/**
- * Result object for Proof of Innocence verification.
- */
-final readonly class ProofOfInnocenceResult
-{
-    public function __construct(
-        public bool $valid,
-        public ?string $reason = null,
-        public ?DateTimeInterface $validUntil = null,
-    ) {
     }
 }
