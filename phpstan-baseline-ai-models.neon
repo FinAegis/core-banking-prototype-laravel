@@ -1,0 +1,271 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiLlmUsage has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiLlmUsage has PHPDoc tag @method for method find\(\) parameter \#2 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiLlmUsage has PHPDoc tag @method for method first\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiLlmUsage has PHPDoc tag @method for method firstOrFail\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiLlmUsage has PHPDoc tag @method for method get\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiLlmUsage has PHPDoc tag @property for property \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiLlmUsage uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiLlmUsage\:\:scopeFailed\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiLlmUsage\:\:scopeFailed\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiLlmUsage\:\:scopeProvider\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiLlmUsage\:\:scopeProvider\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiLlmUsage\:\:scopeSuccessful\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiLlmUsage\:\:scopeSuccessful\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiLlmUsage\:\:failed\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiLlmUsage\:\:get\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Collection but does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiLlmUsage\:\:provider\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiLlmUsage\:\:successful\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiLlmUsage\:\:where\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiLlmUsage\:\:whereIn\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''provider'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''success'' given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/AI/Models/AiLlmUsage.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate has PHPDoc tag @method for method find\(\) parameter \#2 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate has PHPDoc tag @method for method first\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate has PHPDoc tag @method for method firstOrFail\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate has PHPDoc tag @method for method get\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate has PHPDoc tag @property for property \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate has PHPDoc tag @property for property \$variables with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Class App\\Domain\\AI\\Models\\AiPromptTemplate uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:scopeCategory\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:scopeCategory\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Offset 1 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:active\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:category\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:get\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Collection but does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:where\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\AI\\Models\\AiPromptTemplate\:\:whereIn\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''category'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''is_active'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/AI/Models/AiPromptTemplate.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>completionTokens" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/AI/Services/LLMOrchestrationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>model" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/AI/Services/LLMOrchestrationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>promptTokens" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Domain/AI/Services/LLMOrchestrationService.php
+
+		-
+			message: '#^Method App\\Domain\\AI\\Services\\PromptTemplateService\:\:getTemplatesByCategory\(\) return type with generic class Illuminate\\Database\\Eloquent\\Collection does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/AI/Services/PromptTemplateService.php

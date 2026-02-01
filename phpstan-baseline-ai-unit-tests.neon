@@ -1,0 +1,127 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method Tests\\Unit\\Domain\\AI\\Models\\AiLlmUsageTest\:\:costCalculationProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Domain/AI/Models/AiLlmUsageTest.php
+
+		-
+			message: '#^Cannot access property \$name on App\\Domain\\AI\\Models\\AiPromptTemplate\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Models/AiPromptTemplateTest.php
+
+		-
+			message: '#^Offset ''author'' might not exist on array\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Domain/AI/Models/AiPromptTemplateTest.php
+
+		-
+			message: '#^Offset ''var'' might not exist on array\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Domain/AI/Models/AiPromptTemplateTest.php
+
+		-
+			message: '#^Cannot access property \$provider on App\\Domain\\AI\\Models\\AiLlmUsage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/LLMOrchestrationServiceTest.php
+
+		-
+			message: '#^Cannot access property \$success on App\\Domain\\AI\\Models\\AiLlmUsage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/LLMOrchestrationServiceTest.php
+
+		-
+			message: '#^Cannot access property \$user_uuid on App\\Domain\\AI\\Models\\AiLlmUsage\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/LLMOrchestrationServiceTest.php
+
+		-
+			message: '#^Parameter \#2 \$provider of method App\\Domain\\AI\\Services\\LLMOrchestrationService\:\:registerProvider\(\) expects App\\Domain\\AI\\Contracts\\LLMProviderInterface, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 7
+			path: tests/Unit/Domain/AI/Services/LLMOrchestrationServiceTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Domain\\AI\\Services\\NaturalLanguageProcessorServiceTest\:\:balanceQueryProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Domain/AI/Services/NaturalLanguageProcessorServiceTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Domain\\AI\\Services\\NaturalLanguageProcessorServiceTest\:\:investmentQueryProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Domain/AI/Services/NaturalLanguageProcessorServiceTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Domain\\AI\\Services\\NaturalLanguageProcessorServiceTest\:\:loanInquiryProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Domain/AI/Services/NaturalLanguageProcessorServiceTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Domain\\AI\\Services\\NaturalLanguageProcessorServiceTest\:\:transactionQueryProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Domain/AI/Services/NaturalLanguageProcessorServiceTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Domain\\AI\\Services\\NaturalLanguageProcessorServiceTest\:\:transferRequestProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Domain/AI/Services/NaturalLanguageProcessorServiceTest.php
+
+		-
+			message: '#^Property Tests\\Unit\\Domain\\AI\\Services\\NaturalLanguageProcessorServiceTest\:\:\$mockLlmService \(App\\Domain\\AI\\Services\\LLMOrchestrationService\) does not accept Mockery\\MockInterface\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: tests/Unit/Domain/AI/Services/NaturalLanguageProcessorServiceTest.php
+
+		-
+			message: '#^Cannot access property \$category on App\\Domain\\AI\\Models\\AiPromptTemplate\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/PromptTemplateServiceTest.php
+
+		-
+			message: '#^Cannot access property \$is_active on App\\Domain\\AI\\Models\\AiPromptTemplate\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/PromptTemplateServiceTest.php
+
+		-
+			message: '#^Cannot access property \$name on App\\Domain\\AI\\Models\\AiPromptTemplate\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/PromptTemplateServiceTest.php
+
+		-
+			message: '#^Cannot access property \$system_prompt on App\\Domain\\AI\\Models\\AiPromptTemplate\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/PromptTemplateServiceTest.php
+
+		-
+			message: '#^Cannot access property \$usage_count on App\\Domain\\AI\\Models\\AiPromptTemplate\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/AI/Services/PromptTemplateServiceTest.php
+
+		-
+			message: '#^Offset ''system_prompt'' might not exist on array\{system_prompt\: string, user_prompt\: string\}\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Domain/AI/Services/PromptTemplateServiceTest.php
+
+		-
+			message: '#^Offset ''user_prompt'' might not exist on array\{system_prompt\: string, user_prompt\: string\}\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Domain/AI/Services/PromptTemplateServiceTest.php
