@@ -1,0 +1,301 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\FilingSchedule has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\FilingSchedule has PHPDoc tag @method for method find\(\) parameter \#2 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\FilingSchedule has PHPDoc tag @method for method first\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\FilingSchedule has PHPDoc tag @method for method get\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\FilingSchedule has PHPDoc tag @property for property \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\FilingSchedule has PHPDoc tag @property for property \$notification_settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\FilingSchedule uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:scopeDueWithinDays\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:scopeDueWithinDays\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:scopeJurisdiction\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:scopeJurisdiction\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:active\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:dueWithinDays\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:get\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Collection but does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:jurisdiction\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\FilingSchedule\:\:where\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''is_active'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''jurisdiction'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\: Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''next_due_date'' given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/RegTech/Models/FilingSchedule.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint has PHPDoc tag @method for method find\(\) parameter \#2 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint has PHPDoc tag @method for method first\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint has PHPDoc tag @method for method get\(\) parameter \#1 \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint has PHPDoc tag @property for property \$auth_config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint has PHPDoc tag @property for property \$headers with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint has PHPDoc tag @property for property \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Class App\\Domain\\RegTech\\Models\\RegulatoryEndpoint uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeJurisdiction\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeJurisdiction\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeProduction\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeProduction\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeSandbox\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:scopeSandbox\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:active\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:get\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Collection but does not specify its types\: TKey, TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:production\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:sandbox\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\:\:where\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''is_active'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''is_sandbox'' given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:where\(\) expects array\<int\|model property of Illuminate\\Database\\Eloquent\\Model, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: Illuminate\\Database\\Eloquent\\Builder\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of Illuminate\\Database\\Eloquent\\Model, ''jurisdiction'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/RegTech/Models/RegulatoryEndpoint.php
+
+		-
+			message: '#^Parameter \#1 \$jurisdiction of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\RegTech\\Models\\FilingSchedule\>\:\:jurisdiction\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/RegTech/Services/RegTechOrchestrationService.php
+
+		-
+			message: '#^Cannot call method endOfDay\(\) on Carbon\\Carbon\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Domain/RegTech/Services/RegulatoryCalendarService.php
+
+		-
+			message: '#^Cannot call method startOfDay\(\) on Carbon\\Carbon\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Domain/RegTech/Services/RegulatoryCalendarService.php
+
+		-
+			message: '#^Method App\\Domain\\RegTech\\Services\\RegulatoryCalendarService\:\:getSchedulesRequiringNotification\(\) should return Illuminate\\Support\\Collection\<int, array\{schedule\: App\\Domain\\RegTech\\Models\\FilingSchedule, days_until_due\: int\}\> but returns Illuminate\\Support\\Collection\<int, array\{schedule\: App\\Domain\\RegTech\\Models\\FilingSchedule, days_until_due\: int\|null\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/RegTech/Services/RegulatoryCalendarService.php
+
+		-
+			message: '#^Property App\\Domain\\RegTech\\Services\\RegulatoryCalendarService\:\:\$jurisdictionService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Domain/RegTech/Services/RegulatoryCalendarService.php
