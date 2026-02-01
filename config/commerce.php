@@ -62,10 +62,10 @@ return [
 
         // KYB verification requirements
         'kyb_requirements' => [
-            'business_registration' => true,
+            'business_registration'  => true,
             'ownership_verification' => true,
-            'beneficial_owners'     => true,
-            'bank_account'          => true,
+            'beneficial_owners'      => true,
+            'bank_account'           => true,
         ],
     ],
 
