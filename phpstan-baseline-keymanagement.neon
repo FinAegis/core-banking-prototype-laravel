@@ -101,3 +101,39 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: app/Domain/KeyManagement/Models/RecoveryBackup.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$provider\.$#'
+			identifier: property.notFound
+			count: 18
+			path: tests/Unit/Domain/KeyManagement/HSM/DemoHsmProviderTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$service\.$#'
+			identifier: property.notFound
+			count: 26
+			path: tests/Unit/Domain/KeyManagement/Services/EncryptionServiceTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$encryption\.$#'
+			identifier: property.notFound
+			count: 4
+			path: tests/Unit/Domain/KeyManagement/Services/ShamirServiceTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$hsm\.$#'
+			identifier: property.notFound
+			count: 4
+			path: tests/Unit/Domain/KeyManagement/Services/ShamirServiceTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$service\.$#'
+			identifier: property.notFound
+			count: 30
+			path: tests/Unit/Domain/KeyManagement/Services/ShamirServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/KeyManagement/ValueObjects/KeyShardTest.php
