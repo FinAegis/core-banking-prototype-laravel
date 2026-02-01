@@ -10,12 +10,12 @@ describe('SelectiveDisclosureService', function () {
     beforeEach(function () {
         $this->service = new SelectiveDisclosureService();
         $this->testCredential = [
-            'full_name' => 'John Doe',
+            'full_name'     => 'John Doe',
             'date_of_birth' => '1990-05-15',
-            'country' => 'Germany',
-            'kyc_tier' => 3,
-            'email' => 'john@example.com',
-            'phone' => '+49123456789',
+            'country'       => 'Germany',
+            'kyc_tier'      => 3,
+            'email'         => 'john@example.com',
+            'phone'         => '+49123456789',
         ];
     });
 

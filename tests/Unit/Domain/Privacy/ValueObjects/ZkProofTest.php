@@ -159,13 +159,13 @@ describe('ZkProof Value Object', function () {
 
     it('can be created from array', function () {
         $data = [
-            'type' => 'kyc_tier',
-            'proof' => 'proof-data',
-            'public_inputs' => ['minimum_tier' => 2],
+            'type'             => 'kyc_tier',
+            'proof'            => 'proof-data',
+            'public_inputs'    => ['minimum_tier' => 2],
             'verifier_address' => '0x456',
-            'created_at' => '2026-01-01T00:00:00+00:00',
-            'expires_at' => '2026-04-01T00:00:00+00:00',
-            'metadata' => ['version' => '1.0'],
+            'created_at'       => '2026-01-01T00:00:00+00:00',
+            'expires_at'       => '2026-04-01T00:00:00+00:00',
+            'metadata'         => ['version' => '1.0'],
         ];
 
         $proof = ZkProof::fromArray($data);

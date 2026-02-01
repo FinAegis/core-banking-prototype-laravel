@@ -18,7 +18,7 @@ describe('DemoZkProver', function () {
             $proof = $this->prover->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01', 'minimum_age' => 18],
-                ['user_id_hash' => hash('sha256', 'user-123'), 'minimum_age' => 18],
+                ['user_id_hash'  => hash('sha256', 'user-123'), 'minimum_age' => 18],
             );
 
             expect($proof)->toBeInstanceOf(ZkProof::class)
@@ -30,7 +30,7 @@ describe('DemoZkProver', function () {
         it('generates residency proof', function () {
             $proof = $this->prover->generateProof(
                 ProofType::RESIDENCY,
-                ['country' => 'US', 'region' => 'CA'],
+                ['country'      => 'US', 'region' => 'CA'],
                 ['user_id_hash' => hash('sha256', 'user-123')],
             );
 
@@ -41,7 +41,7 @@ describe('DemoZkProver', function () {
         it('generates KYC tier proof', function () {
             $proof = $this->prover->generateProof(
                 ProofType::KYC_TIER,
-                ['kyc_tier' => 3, 'kyc_provider' => 'jumio'],
+                ['kyc_tier'     => 3, 'kyc_provider' => 'jumio'],
                 ['user_id_hash' => hash('sha256', 'user-123'), 'minimum_tier' => 2],
             );
 
@@ -53,7 +53,7 @@ describe('DemoZkProver', function () {
             $proof = $this->prover->generateProof(
                 ProofType::SANCTIONS_CLEAR,
                 ['identity_hash' => 'hash', 'sanctions_list_hash' => 'list-hash'],
-                ['user_id_hash' => hash('sha256', 'user-123')],
+                ['user_id_hash'  => hash('sha256', 'user-123')],
             );
 
             expect($proof)->toBeInstanceOf(ZkProof::class)
@@ -98,7 +98,7 @@ describe('DemoZkProver', function () {
             $proof = $this->prover->generateProof(
                 ProofType::AGE_VERIFICATION,
                 ['date_of_birth' => '1990-01-01', 'minimum_age' => 18],
-                ['user_id_hash' => hash('sha256', 'user-123'), 'minimum_age' => 18],
+                ['user_id_hash'  => hash('sha256', 'user-123'), 'minimum_age' => 18],
             );
 
             $isValid = $this->prover->verifyProof($proof);
@@ -110,10 +110,10 @@ describe('DemoZkProver', function () {
             $proof = new ZkProof(
                 type: ProofType::AGE_VERIFICATION,
                 proof: base64_encode(json_encode([
-                    'statement' => 'test',
+                    'statement'  => 'test',
                     'commitment' => 'test',
-                    'challenge' => 'test',
-                    'response' => 'test',
+                    'challenge'  => 'test',
+                    'response'   => 'test',
                 ])),
                 publicInputs: [],
                 verifierAddress: '0x0',

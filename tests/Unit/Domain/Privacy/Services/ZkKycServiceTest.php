@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Privacy\Enums\ProofType;
-use App\Domain\Privacy\Events\ZkKycVerified;
 use App\Domain\Privacy\Events\ZkKycVerificationFailed;
+use App\Domain\Privacy\Events\ZkKycVerified;
 use App\Domain\Privacy\Services\DemoZkProver;
 use App\Domain\Privacy\Services\ZkKycService;
 use App\Domain\Privacy\ValueObjects\ZkProof;
@@ -169,10 +169,10 @@ describe('ZkKycService', function () {
             $expiredProof = new ZkProof(
                 type: ProofType::AGE_VERIFICATION,
                 proof: base64_encode(json_encode([
-                    'statement' => 'test',
+                    'statement'  => 'test',
                     'commitment' => 'test',
-                    'challenge' => 'test',
-                    'response' => 'test',
+                    'challenge'  => 'test',
+                    'response'   => 'test',
                 ])),
                 publicInputs: [],
                 verifierAddress: '0x0',
