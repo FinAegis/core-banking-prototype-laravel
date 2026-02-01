@@ -4,6 +4,8 @@ includes:
     - phpstan-baseline-ai-tests.neon
     - phpstan-baseline-ai-unit-tests.neon
     - phpstan-baseline-ai-models.neon
+    - phpstan-baseline-regtech-models.neon
+    - phpstan-baseline-regtech-unit-tests.neon
     - phpstan-baseline-baas-models.neon
     - phpstan-baseline-baas-unit-tests.neon
     - phpstan-baseline-compliance-projector.neon

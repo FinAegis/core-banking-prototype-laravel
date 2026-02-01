@@ -1,0 +1,55 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Cannot access property \$name on App\\Domain\\RegTech\\Models\\FilingSchedule\|null\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: tests/Unit/Domain/RegTech/Models/FilingScheduleTest.php
+
+		-
+			message: '#^Cannot access property \$api_key_encrypted on App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/RegTech/Models/RegulatoryEndpointTest.php
+
+		-
+			message: '#^Cannot access property \$api_secret_encrypted on App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/RegTech/Models/RegulatoryEndpointTest.php
+
+		-
+			message: '#^Cannot access property \$name on App\\Domain\\RegTech\\Models\\RegulatoryEndpoint\|null\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: tests/Unit/Domain/RegTech/Models/RegulatoryEndpointTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsFloat\(\) with float will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Domain/RegTech/Services/JurisdictionConfigurationServiceTest.php
+
+		-
+			message: '#^Parameter \#2 \$adapter of method App\\Domain\\RegTech\\Services\\RegTechOrchestrationService\:\:registerAdapter\(\) expects App\\Domain\\RegTech\\Contracts\\RegulatoryFilingAdapterInterface, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 7
+			path: tests/Unit/Domain/RegTech/Services/RegTechOrchestrationServiceTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/RegTech/Services/RegTechOrchestrationServiceTest.php
+
+		-
+			message: '#^Cannot access property \$name on App\\Domain\\RegTech\\Models\\FilingSchedule\|null\.$#'
+			identifier: property.nonObject
+			count: 4
+			path: tests/Unit/Domain/RegTech/Services/RegulatoryCalendarServiceTest.php
+
+		-
+			message: '#^Offset ''days_until_due'' might not exist on array\{schedule\: App\\Domain\\RegTech\\Models\\FilingSchedule, days_until_due\: int\}\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Domain/RegTech/Services/RegulatoryCalendarServiceTest.php
