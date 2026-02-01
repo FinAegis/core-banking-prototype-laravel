@@ -1,0 +1,103 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Class App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyReconstructionLog.php
+
+		-
+			message: '#^Method App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyReconstructionLog.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog\:\:failed\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyReconstructionLog.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog\:\:forUser\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyReconstructionLog.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog\:\:query\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyReconstructionLog.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyReconstructionLog\:\:successful\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyReconstructionLog.php
+
+		-
+			message: '#^Class App\\Domain\\KeyManagement\\Models\\KeyShardRecord uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyShardRecord.php
+
+		-
+			message: '#^Method App\\Domain\\KeyManagement\\Models\\KeyShardRecord\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Domain\\KeyManagement\\Models\\KeyShardRecord\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Domain\\KeyManagement\\Models\\KeyShardRecord\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyShardRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyShardRecord\:\:active\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyShardRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyShardRecord\:\:forUser\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyShardRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyShardRecord\:\:ofType\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyShardRecord.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\KeyShardRecord\:\:query\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/KeyShardRecord.php
+
+		-
+			message: '#^Class App\\Domain\\KeyManagement\\Models\\RecoveryBackup uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/RecoveryBackup.php
+
+		-
+			message: '#^Method App\\Domain\\KeyManagement\\Models\\RecoveryBackup\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Domain\\KeyManagement\\Models\\RecoveryBackup\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Domain\\KeyManagement\\Models\\RecoveryBackup\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/KeyManagement/Models/RecoveryBackup.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\RecoveryBackup\:\:forUser\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/RecoveryBackup.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\RecoveryBackup\:\:query\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/RecoveryBackup.php
+
+		-
+			message: '#^PHPDoc tag @method for method App\\Domain\\KeyManagement\\Models\\RecoveryBackup\:\:verified\(\) return type contains generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Domain/KeyManagement/Models/RecoveryBackup.php
