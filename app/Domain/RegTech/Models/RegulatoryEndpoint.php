@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
+use Throwable;
 
 /**
  * @property int $id
@@ -89,14 +90,14 @@ class RegulatoryEndpoint extends Model
     ];
 
     protected $casts = [
-        'headers'             => 'array',
-        'auth_config'         => 'array',
-        'metadata'            => 'array',
-        'is_sandbox'          => 'boolean',
-        'is_active'           => 'boolean',
+        'headers'               => 'array',
+        'auth_config'           => 'array',
+        'metadata'              => 'array',
+        'is_sandbox'            => 'boolean',
+        'is_active'             => 'boolean',
         'rate_limit_per_minute' => 'integer',
-        'timeout_seconds'     => 'integer',
-        'last_health_check'   => 'datetime',
+        'timeout_seconds'       => 'integer',
+        'last_health_check'     => 'datetime',
     ];
 
     protected $hidden = [
@@ -105,12 +106,12 @@ class RegulatoryEndpoint extends Model
     ];
 
     protected $attributes = [
-        'is_active'            => true,
-        'is_sandbox'           => true,
+        'is_active'             => true,
+        'is_sandbox'            => true,
         'rate_limit_per_minute' => 60,
-        'timeout_seconds'      => 30,
-        'health_status'        => 'unknown',
-        'endpoint_type'        => 'filing',
+        'timeout_seconds'       => 30,
+        'health_status'         => 'unknown',
+        'endpoint_type'         => 'filing',
     ];
 
     /**
@@ -202,7 +203,7 @@ class RegulatoryEndpoint extends Model
 
         try {
             return Crypt::decryptString($this->api_key_encrypted);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return null;
         }
     }
@@ -227,7 +228,7 @@ class RegulatoryEndpoint extends Model
 
         try {
             return Crypt::decryptString($this->api_secret_encrypted);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return null;
         }
     }

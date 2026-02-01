@@ -9,6 +9,7 @@ use App\Domain\RegTech\Enums\Jurisdiction;
 use App\Domain\RegTech\Models\FilingSchedule;
 use App\Domain\RegTech\Models\RegulatoryEndpoint;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Orchestrates RegTech automation across jurisdictions and regulators.
@@ -151,7 +152,7 @@ class RegTechOrchestrationService
                 'errors'    => $result['errors'],
                 'details'   => $result['response'],
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('RegTech: Report submission failed', [
                 'error' => $e->getMessage(),
             ]);
@@ -233,7 +234,7 @@ class RegTechOrchestrationService
 
         try {
             return $adapter->checkStatus($reference);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return [
                 'status'  => 'error',
                 'message' => $e->getMessage(),
@@ -281,12 +282,12 @@ class RegTechOrchestrationService
         $overdueFilings = $this->calendarService->getOverdueFilings($jurisdictionKey);
 
         return [
-            'total_scheduled'    => FilingSchedule::active()->when($jurisdictionKey, fn ($q) => $q->jurisdiction($jurisdictionKey))->count(),
-            'upcoming_deadlines' => $upcomingDeadlines->count(),
-            'overdue_filings'    => $overdueFilings->count(),
-            'next_deadline'      => $upcomingDeadlines->first()?->next_due_date?->toIso8601String(),
-            'jurisdiction'       => $jurisdictionKey ?? 'all',
-            'demo_mode'          => $this->isDemoMode(),
+            'total_scheduled'     => FilingSchedule::active()->when($jurisdictionKey, fn ($q) => $q->jurisdiction($jurisdictionKey))->count(),
+            'upcoming_deadlines'  => $upcomingDeadlines->count(),
+            'overdue_filings'     => $overdueFilings->count(),
+            'next_deadline'       => $upcomingDeadlines->first()?->next_due_date?->toIso8601String(),
+            'jurisdiction'        => $jurisdictionKey ?? 'all',
+            'demo_mode'           => $this->isDemoMode(),
             'adapters_registered' => count($this->adapters),
         ];
     }
@@ -304,9 +305,9 @@ class RegTechOrchestrationService
 
         foreach ($endpoints as $endpoint) {
             $health[$endpoint->name] = [
-                'status'      => $endpoint->health_status,
-                'last_check'  => $endpoint->last_health_check?->toIso8601String(),
-                'is_sandbox'  => $endpoint->is_sandbox,
+                'status'       => $endpoint->health_status,
+                'last_check'   => $endpoint->last_health_check?->toIso8601String(),
+                'is_sandbox'   => $endpoint->is_sandbox,
                 'jurisdiction' => $endpoint->jurisdiction,
             ];
         }
@@ -335,7 +336,7 @@ class RegTechOrchestrationService
                         'HTTP ' . $response->status()
                     );
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $endpoint->updateHealthStatus(
                     RegulatoryEndpoint::HEALTH_UNHEALTHY,
                     $e->getMessage()
@@ -373,10 +374,10 @@ class RegTechOrchestrationService
 
         if ($amount >= $ctrThreshold) {
             $regulations['ctr'] = [
-                'name'       => 'Currency Transaction Report',
-                'required'   => true,
-                'threshold'  => $ctrThreshold,
-                'amount'     => $amount,
+                'name'         => 'Currency Transaction Report',
+                'required'     => true,
+                'threshold'    => $ctrThreshold,
+                'amount'       => $amount,
                 'jurisdiction' => $jurisdiction->value,
             ];
         }
@@ -384,9 +385,9 @@ class RegTechOrchestrationService
         // Check MiFID II applicability
         if ($this->jurisdictionService->isMifidApplicable($jurisdiction)) {
             $regulations['mifid'] = [
-                'name'       => 'MiFID II Transaction Reporting',
-                'required'   => true,
-                'deadline'   => 'T+1',
+                'name'         => 'MiFID II Transaction Reporting',
+                'required'     => true,
+                'deadline'     => 'T+1',
                 'jurisdiction' => $jurisdiction->value,
             ];
         }
@@ -399,9 +400,9 @@ class RegTechOrchestrationService
             $micaConfig = $this->jurisdictionService->getMicaConfig();
 
             $regulations['mica_travel_rule'] = [
-                'name'       => 'MiCA Travel Rule',
-                'required'   => $amount >= ($micaConfig['travel_rule']['threshold_eur'] ?? 1000),
-                'threshold'  => $micaConfig['travel_rule']['threshold_eur'] ?? 1000,
+                'name'         => 'MiCA Travel Rule',
+                'required'     => $amount >= ($micaConfig['travel_rule']['threshold_eur'] ?? 1000),
+                'threshold'    => $micaConfig['travel_rule']['threshold_eur'] ?? 1000,
                 'jurisdiction' => $jurisdiction->value,
             ];
         }

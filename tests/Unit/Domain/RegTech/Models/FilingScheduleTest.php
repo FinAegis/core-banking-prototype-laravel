@@ -28,17 +28,17 @@ class FilingScheduleTest extends TestCase
     public function test_can_create_filing_schedule(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Quarterly SAR Report',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
-            'regulator' => 'FinCEN',
-            'frequency' => 'quarterly',
+            'name'          => 'Quarterly SAR Report',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
+            'regulator'     => 'FinCEN',
+            'frequency'     => 'quarterly',
             'deadline_days' => 45,
         ]);
 
         $this->assertDatabaseHas('filing_schedules', [
-            'name' => 'Quarterly SAR Report',
-            'report_type' => 'SAR',
+            'name'         => 'Quarterly SAR Report',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
@@ -49,8 +49,8 @@ class FilingScheduleTest extends TestCase
     public function test_generates_uuid_on_creation(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Test Schedule',
-            'report_type' => 'CTR',
+            'name'         => 'Test Schedule',
+            'report_type'  => 'CTR',
             'jurisdiction' => 'US',
         ]);
 
@@ -64,17 +64,17 @@ class FilingScheduleTest extends TestCase
     public function test_active_scope(): void
     {
         FilingSchedule::create([
-            'name' => 'Active Schedule',
-            'report_type' => 'SAR',
+            'name'         => 'Active Schedule',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
-            'is_active' => true,
+            'is_active'    => true,
         ]);
 
         FilingSchedule::create([
-            'name' => 'Inactive Schedule',
-            'report_type' => 'CTR',
+            'name'         => 'Inactive Schedule',
+            'report_type'  => 'CTR',
             'jurisdiction' => 'US',
-            'is_active' => false,
+            'is_active'    => false,
         ]);
 
         $activeSchedules = FilingSchedule::active()->get();
@@ -86,14 +86,14 @@ class FilingScheduleTest extends TestCase
     public function test_jurisdiction_scope(): void
     {
         FilingSchedule::create([
-            'name' => 'US Schedule',
-            'report_type' => 'SAR',
+            'name'         => 'US Schedule',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
         FilingSchedule::create([
-            'name' => 'EU Schedule',
-            'report_type' => 'MiFID',
+            'name'         => 'EU Schedule',
+            'report_type'  => 'MiFID',
             'jurisdiction' => 'EU',
         ]);
 
@@ -106,16 +106,16 @@ class FilingScheduleTest extends TestCase
     public function test_due_within_days_scope(): void
     {
         FilingSchedule::create([
-            'name' => 'Due Soon',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Due Soon',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(5),
         ]);
 
         FilingSchedule::create([
-            'name' => 'Due Later',
-            'report_type' => 'CTR',
-            'jurisdiction' => 'US',
+            'name'          => 'Due Later',
+            'report_type'   => 'CTR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(60),
         ]);
 
@@ -128,9 +128,9 @@ class FilingScheduleTest extends TestCase
     public function test_is_overdue_returns_true_when_past_due(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Overdue Schedule',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Overdue Schedule',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->subDays(5),
         ]);
 
@@ -140,9 +140,9 @@ class FilingScheduleTest extends TestCase
     public function test_is_overdue_returns_false_when_not_past_due(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Future Schedule',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Future Schedule',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(10),
         ]);
 
@@ -152,8 +152,8 @@ class FilingScheduleTest extends TestCase
     public function test_is_overdue_returns_false_when_no_due_date(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'No Due Date',
-            'report_type' => 'SAR',
+            'name'         => 'No Due Date',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
@@ -163,9 +163,9 @@ class FilingScheduleTest extends TestCase
     public function test_days_until_due_calculation(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Test Schedule',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Test Schedule',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(15),
         ]);
 
@@ -175,8 +175,8 @@ class FilingScheduleTest extends TestCase
     public function test_days_until_due_returns_null_when_no_due_date(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Test Schedule',
-            'report_type' => 'SAR',
+            'name'         => 'Test Schedule',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
@@ -186,10 +186,10 @@ class FilingScheduleTest extends TestCase
     public function test_calculate_next_due_date_for_quarterly(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Quarterly Report',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
-            'frequency' => 'quarterly',
+            'name'          => 'Quarterly Report',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
+            'frequency'     => 'quarterly',
             'deadline_days' => 45,
         ]);
 
@@ -202,10 +202,10 @@ class FilingScheduleTest extends TestCase
     public function test_calculate_next_due_date_for_monthly(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Monthly Report',
-            'report_type' => 'CTR',
-            'jurisdiction' => 'US',
-            'frequency' => 'monthly',
+            'name'          => 'Monthly Report',
+            'report_type'   => 'CTR',
+            'jurisdiction'  => 'US',
+            'frequency'     => 'monthly',
             'deadline_days' => 15,
         ]);
 
@@ -217,10 +217,10 @@ class FilingScheduleTest extends TestCase
     public function test_calculate_next_due_date_for_annually(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Annual Report',
-            'report_type' => 'AnnualAudit',
-            'jurisdiction' => 'US',
-            'frequency' => 'annually',
+            'name'          => 'Annual Report',
+            'report_type'   => 'AnnualAudit',
+            'jurisdiction'  => 'US',
+            'frequency'     => 'annually',
             'deadline_days' => 90,
         ]);
 
@@ -234,9 +234,9 @@ class FilingScheduleTest extends TestCase
         $settings = ['email' => true, 'sms' => false, 'warning_days' => [7, 3, 1]];
 
         $schedule = FilingSchedule::create([
-            'name' => 'Test Schedule',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'                  => 'Test Schedule',
+            'report_type'           => 'SAR',
+            'jurisdiction'          => 'US',
             'notification_settings' => $settings,
         ]);
 
@@ -249,10 +249,10 @@ class FilingScheduleTest extends TestCase
         $metadata = ['custom_field' => 'value', 'priority' => 'high'];
 
         $schedule = FilingSchedule::create([
-            'name' => 'Test Schedule',
-            'report_type' => 'SAR',
+            'name'         => 'Test Schedule',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
-            'metadata' => $metadata,
+            'metadata'     => $metadata,
         ]);
 
         $this->assertIsArray($schedule->metadata);
@@ -262,8 +262,8 @@ class FilingScheduleTest extends TestCase
     public function test_soft_delete(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'To Be Deleted',
-            'report_type' => 'SAR',
+            'name'         => 'To Be Deleted',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
@@ -277,8 +277,8 @@ class FilingScheduleTest extends TestCase
     public function test_default_values(): void
     {
         $schedule = FilingSchedule::create([
-            'name' => 'Minimal Schedule',
-            'report_type' => 'SAR',
+            'name'         => 'Minimal Schedule',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 

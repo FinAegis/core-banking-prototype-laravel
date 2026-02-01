@@ -28,15 +28,15 @@ class RegulatoryEndpointTest extends TestCase
     public function test_can_create_regulatory_endpoint(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'FinCEN BSA E-Filing',
-            'regulator' => 'FinCEN',
+            'name'         => 'FinCEN BSA E-Filing',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://bsaefiling.fincen.treas.gov/api',
+            'base_url'     => 'https://bsaefiling.fincen.treas.gov/api',
         ]);
 
         $this->assertDatabaseHas('regulatory_endpoints', [
-            'name' => 'FinCEN BSA E-Filing',
-            'regulator' => 'FinCEN',
+            'name'         => 'FinCEN BSA E-Filing',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
         ]);
 
@@ -46,10 +46,10 @@ class RegulatoryEndpointTest extends TestCase
     public function test_generates_uuid_on_creation(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FCA',
+            'name'         => 'Test Endpoint',
+            'regulator'    => 'FCA',
             'jurisdiction' => 'UK',
-            'base_url' => 'https://api.fca.org.uk',
+            'base_url'     => 'https://api.fca.org.uk',
         ]);
 
         $this->assertMatchesRegularExpression(
@@ -61,19 +61,19 @@ class RegulatoryEndpointTest extends TestCase
     public function test_active_scope(): void
     {
         RegulatoryEndpoint::create([
-            'name' => 'Active Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Active Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
-            'is_active' => true,
+            'base_url'     => 'https://api.example.com',
+            'is_active'    => true,
         ]);
 
         RegulatoryEndpoint::create([
-            'name' => 'Inactive Endpoint',
-            'regulator' => 'ESMA',
+            'name'         => 'Inactive Endpoint',
+            'regulator'    => 'ESMA',
             'jurisdiction' => 'EU',
-            'base_url' => 'https://api.esma.eu',
-            'is_active' => false,
+            'base_url'     => 'https://api.esma.eu',
+            'is_active'    => false,
         ]);
 
         $activeEndpoints = RegulatoryEndpoint::active()->get();
@@ -85,17 +85,17 @@ class RegulatoryEndpointTest extends TestCase
     public function test_jurisdiction_scope(): void
     {
         RegulatoryEndpoint::create([
-            'name' => 'US Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'US Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.fincen.gov',
+            'base_url'     => 'https://api.fincen.gov',
         ]);
 
         RegulatoryEndpoint::create([
-            'name' => 'EU Endpoint',
-            'regulator' => 'ESMA',
+            'name'         => 'EU Endpoint',
+            'regulator'    => 'ESMA',
             'jurisdiction' => 'EU',
-            'base_url' => 'https://api.esma.eu',
+            'base_url'     => 'https://api.esma.eu',
         ]);
 
         $usEndpoints = RegulatoryEndpoint::jurisdiction('US')->get();
@@ -107,19 +107,19 @@ class RegulatoryEndpointTest extends TestCase
     public function test_sandbox_scope(): void
     {
         RegulatoryEndpoint::create([
-            'name' => 'Sandbox Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Sandbox Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://sandbox.api.example.com',
-            'is_sandbox' => true,
+            'base_url'     => 'https://sandbox.api.example.com',
+            'is_sandbox'   => true,
         ]);
 
         RegulatoryEndpoint::create([
-            'name' => 'Production Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Production Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
-            'is_sandbox' => false,
+            'base_url'     => 'https://api.example.com',
+            'is_sandbox'   => false,
         ]);
 
         $sandboxEndpoints = RegulatoryEndpoint::sandbox()->get();
@@ -132,11 +132,11 @@ class RegulatoryEndpointTest extends TestCase
     public function test_build_url(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Test Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
-            'api_version' => 'v2',
+            'base_url'     => 'https://api.example.com',
+            'api_version'  => 'v2',
         ]);
 
         $this->assertEquals(
@@ -148,10 +148,10 @@ class RegulatoryEndpointTest extends TestCase
     public function test_build_url_without_version(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Test Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
+            'base_url'     => 'https://api.example.com',
         ]);
 
         $this->assertEquals(
@@ -163,11 +163,11 @@ class RegulatoryEndpointTest extends TestCase
     public function test_api_credentials_encryption(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FinCEN',
-            'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
-            'api_key_encrypted' => 'test-api-key-123',
+            'name'                 => 'Test Endpoint',
+            'regulator'            => 'FinCEN',
+            'jurisdiction'         => 'US',
+            'base_url'             => 'https://api.example.com',
+            'api_key_encrypted'    => 'test-api-key-123',
             'api_secret_encrypted' => 'test-secret-456',
         ]);
 
@@ -182,10 +182,10 @@ class RegulatoryEndpointTest extends TestCase
     public function test_update_health_status(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Test Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
+            'base_url'     => 'https://api.example.com',
         ]);
 
         $endpoint->updateHealthStatus(RegulatoryEndpoint::HEALTH_HEALTHY);
@@ -197,10 +197,10 @@ class RegulatoryEndpointTest extends TestCase
     public function test_update_health_status_with_error(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Test Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
+            'base_url'     => 'https://api.example.com',
         ]);
 
         $endpoint->updateHealthStatus(RegulatoryEndpoint::HEALTH_UNHEALTHY, 'Connection timeout');
@@ -225,11 +225,11 @@ class RegulatoryEndpointTest extends TestCase
         $headers = ['Authorization' => 'Bearer token', 'X-Custom-Header' => 'value'];
 
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Test Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
-            'headers' => $headers,
+            'base_url'     => 'https://api.example.com',
+            'headers'      => $headers,
         ]);
 
         $this->assertIsArray($endpoint->headers);
@@ -241,11 +241,11 @@ class RegulatoryEndpointTest extends TestCase
         $authConfig = ['type' => 'oauth2', 'token_url' => 'https://auth.example.com/token'];
 
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Test Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Test Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
-            'auth_config' => $authConfig,
+            'base_url'     => 'https://api.example.com',
+            'auth_config'  => $authConfig,
         ]);
 
         $this->assertIsArray($endpoint->auth_config);
@@ -255,10 +255,10 @@ class RegulatoryEndpointTest extends TestCase
     public function test_default_values(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'Minimal Endpoint',
-            'regulator' => 'FinCEN',
+            'name'         => 'Minimal Endpoint',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
+            'base_url'     => 'https://api.example.com',
         ]);
 
         $this->assertEquals('filing', $endpoint->endpoint_type);
@@ -272,10 +272,10 @@ class RegulatoryEndpointTest extends TestCase
     public function test_soft_delete(): void
     {
         $endpoint = RegulatoryEndpoint::create([
-            'name' => 'To Be Deleted',
-            'regulator' => 'FinCEN',
+            'name'         => 'To Be Deleted',
+            'regulator'    => 'FinCEN',
             'jurisdiction' => 'US',
-            'base_url' => 'https://api.example.com',
+            'base_url'     => 'https://api.example.com',
         ]);
 
         $endpoint->delete();

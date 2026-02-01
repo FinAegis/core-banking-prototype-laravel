@@ -9,11 +9,12 @@ use App\Domain\RegTech\Enums\Jurisdiction;
 use App\Domain\RegTech\Models\FilingSchedule;
 use App\Domain\RegTech\Models\RegulatoryEndpoint;
 use App\Domain\RegTech\Services\JurisdictionConfigurationService;
-use App\Domain\RegTech\Services\RegulatoryCalendarService;
 use App\Domain\RegTech\Services\RegTechOrchestrationService;
+use App\Domain\RegTech\Services\RegulatoryCalendarService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 class RegTechOrchestrationServiceTest extends TestCase
@@ -21,7 +22,9 @@ class RegTechOrchestrationServiceTest extends TestCase
     use RefreshDatabase;
 
     private RegTechOrchestrationService $service;
+
     private JurisdictionConfigurationService $jurisdictionService;
+
     private RegulatoryCalendarService $calendarService;
 
     protected function setUp(): void
@@ -152,10 +155,10 @@ class RegTechOrchestrationServiceTest extends TestCase
         $adapter->shouldReceive('submitReport')
             ->once()
             ->andReturn([
-                'success' => true,
+                'success'   => true,
                 'reference' => 'REF-123',
-                'errors' => [],
-                'response' => ['status' => 'accepted'],
+                'errors'    => [],
+                'response'  => ['status' => 'accepted'],
             ]);
 
         $this->service->registerAdapter('us_sar', $adapter);
@@ -175,7 +178,7 @@ class RegTechOrchestrationServiceTest extends TestCase
         $adapter->shouldReceive('validateReport')
             ->once()
             ->andReturn([
-                'valid' => false,
+                'valid'  => false,
                 'errors' => ['Missing required field: amount'],
             ]);
 
@@ -199,7 +202,7 @@ class RegTechOrchestrationServiceTest extends TestCase
             ->andReturn(['valid' => true, 'errors' => []]);
         $adapter->shouldReceive('submitReport')
             ->once()
-            ->andThrow(new \RuntimeException('Connection timeout'));
+            ->andThrow(new RuntimeException('Connection timeout'));
 
         $this->service->registerAdapter('us_sar', $adapter);
 
@@ -240,7 +243,7 @@ class RegTechOrchestrationServiceTest extends TestCase
             ->once()
             ->with('REF-123')
             ->andReturn([
-                'status' => 'accepted',
+                'status'  => 'accepted',
                 'message' => 'Report accepted',
                 'details' => ['timestamp' => '2026-02-01'],
             ]);
@@ -255,11 +258,11 @@ class RegTechOrchestrationServiceTest extends TestCase
     public function test_get_compliance_summary(): void
     {
         FilingSchedule::create([
-            'name' => 'Test Schedule',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Test Schedule',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(10),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         config(['regtech.demo_mode' => true]);
@@ -276,17 +279,17 @@ class RegTechOrchestrationServiceTest extends TestCase
     public function test_get_compliance_summary_filtered_by_jurisdiction(): void
     {
         FilingSchedule::create([
-            'name' => 'US Schedule',
-            'report_type' => 'SAR',
+            'name'         => 'US Schedule',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
-            'is_active' => true,
+            'is_active'    => true,
         ]);
 
         FilingSchedule::create([
-            'name' => 'EU Schedule',
-            'report_type' => 'MiFID',
+            'name'         => 'EU Schedule',
+            'report_type'  => 'MiFID',
             'jurisdiction' => 'EU',
-            'is_active' => true,
+            'is_active'    => true,
         ]);
 
         $summary = $this->service->getComplianceSummary(Jurisdiction::US);
@@ -297,12 +300,12 @@ class RegTechOrchestrationServiceTest extends TestCase
     public function test_get_endpoint_health(): void
     {
         RegulatoryEndpoint::create([
-            'name' => 'FinCEN API',
-            'regulator' => 'FinCEN',
-            'jurisdiction' => 'US',
-            'base_url' => 'https://api.fincen.gov',
+            'name'          => 'FinCEN API',
+            'regulator'     => 'FinCEN',
+            'jurisdiction'  => 'US',
+            'base_url'      => 'https://api.fincen.gov',
             'health_status' => 'healthy',
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         $health = $this->service->getEndpointHealth();

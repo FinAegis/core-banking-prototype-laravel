@@ -6,6 +6,7 @@ namespace Tests\Unit\Domain\RegTech\Enums;
 
 use App\Domain\RegTech\Enums\Jurisdiction;
 use Tests\TestCase;
+use ValueError;
 
 class JurisdictionTest extends TestCase
 {
@@ -65,7 +66,7 @@ class JurisdictionTest extends TestCase
 
     public function test_from_invalid_throws_exception(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
 
         Jurisdiction::from('INVALID');
     }

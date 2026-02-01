@@ -22,14 +22,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $frequency
  * @property int $deadline_days
  * @property string|null $deadline_time
- * @property \Carbon\Carbon|null $next_due_date
- * @property \Carbon\Carbon|null $last_filed_at
+ * @property Carbon|null $next_due_date
+ * @property Carbon|null $last_filed_at
  * @property bool $is_active
  * @property bool $auto_generate
  * @property array|null $notification_settings
  * @property array|null $metadata
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, mixed $operator = null, mixed $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Builder active()

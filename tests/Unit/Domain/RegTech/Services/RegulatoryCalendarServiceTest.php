@@ -36,19 +36,19 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_get_upcoming_deadlines(): void
     {
         FilingSchedule::create([
-            'name' => 'Due Soon',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Due Soon',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(10),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         FilingSchedule::create([
-            'name' => 'Due Later',
-            'report_type' => 'CTR',
-            'jurisdiction' => 'US',
+            'name'          => 'Due Later',
+            'report_type'   => 'CTR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(60),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         $deadlines = $this->service->getUpcomingDeadlines(30);
@@ -60,19 +60,19 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_get_upcoming_deadlines_filtered_by_jurisdiction(): void
     {
         FilingSchedule::create([
-            'name' => 'US Filing',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'US Filing',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(10),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         FilingSchedule::create([
-            'name' => 'EU Filing',
-            'report_type' => 'MiFID',
-            'jurisdiction' => 'EU',
+            'name'          => 'EU Filing',
+            'report_type'   => 'MiFID',
+            'jurisdiction'  => 'EU',
             'next_due_date' => Carbon::now()->addDays(10),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         $deadlines = $this->service->getUpcomingDeadlines(30, 'US');
@@ -84,19 +84,19 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_get_overdue_filings(): void
     {
         FilingSchedule::create([
-            'name' => 'Overdue Filing',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Overdue Filing',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->subDays(5),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         FilingSchedule::create([
-            'name' => 'Future Filing',
-            'report_type' => 'CTR',
-            'jurisdiction' => 'US',
+            'name'          => 'Future Filing',
+            'report_type'   => 'CTR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(10),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         $overdue = $this->service->getOverdueFilings();
@@ -108,8 +108,8 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_get_filing_schedule(): void
     {
         FilingSchedule::create([
-            'name' => 'SAR Schedule',
-            'report_type' => 'SAR',
+            'name'         => 'SAR Schedule',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
@@ -122,14 +122,14 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_get_filing_schedule_filtered_by_jurisdiction(): void
     {
         FilingSchedule::create([
-            'name' => 'US SAR',
-            'report_type' => 'SAR',
+            'name'         => 'US SAR',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
         FilingSchedule::create([
-            'name' => 'UK SAR',
-            'report_type' => 'SAR',
+            'name'         => 'UK SAR',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'UK',
         ]);
 
@@ -231,20 +231,20 @@ class RegulatoryCalendarServiceTest extends TestCase
     {
         // Due in 7 days (should trigger notification)
         FilingSchedule::create([
-            'name' => 'Due in 7 days',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
+            'name'          => 'Due in 7 days',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(7),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         // Due in 5 days (should NOT trigger notification)
         FilingSchedule::create([
-            'name' => 'Due in 5 days',
-            'report_type' => 'CTR',
-            'jurisdiction' => 'US',
+            'name'          => 'Due in 5 days',
+            'report_type'   => 'CTR',
+            'jurisdiction'  => 'US',
             'next_due_date' => Carbon::now()->addDays(5),
-            'is_active' => true,
+            'is_active'     => true,
         ]);
 
         $notifications = $this->service->getSchedulesRequiringNotification();
@@ -256,15 +256,15 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_upsert_filing_schedule_creates_new(): void
     {
         $schedule = $this->service->upsertFilingSchedule([
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
-            'name' => 'Quarterly SAR',
-            'frequency' => 'quarterly',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
+            'name'          => 'Quarterly SAR',
+            'frequency'     => 'quarterly',
             'deadline_days' => 45,
         ]);
 
         $this->assertDatabaseHas('filing_schedules', [
-            'report_type' => 'SAR',
+            'report_type'  => 'SAR',
             'jurisdiction' => 'US',
         ]);
 
@@ -274,18 +274,18 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_upsert_filing_schedule_updates_existing(): void
     {
         FilingSchedule::create([
-            'name' => 'Original Name',
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
-            'regulator' => 'FinCEN',
+            'name'          => 'Original Name',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
+            'regulator'     => 'FinCEN',
             'deadline_days' => 30,
         ]);
 
         $schedule = $this->service->upsertFilingSchedule([
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
-            'regulator' => 'FinCEN',
-            'name' => 'Updated Name',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
+            'regulator'     => 'FinCEN',
+            'name'          => 'Updated Name',
             'deadline_days' => 45,
         ]);
 
@@ -297,9 +297,9 @@ class RegulatoryCalendarServiceTest extends TestCase
     public function test_upsert_filing_schedule_calculates_next_due_date(): void
     {
         $schedule = $this->service->upsertFilingSchedule([
-            'report_type' => 'SAR',
-            'jurisdiction' => 'US',
-            'frequency' => 'quarterly',
+            'report_type'   => 'SAR',
+            'jurisdiction'  => 'US',
+            'frequency'     => 'quarterly',
             'deadline_days' => 45,
         ]);
 
