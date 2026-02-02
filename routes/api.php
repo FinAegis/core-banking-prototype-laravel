@@ -1148,6 +1148,7 @@ Route::prefix('webhooks/card-issuer')->name('api.webhooks.card.')
 */
 
 use App\Http\Controllers\Api\Relayer\RelayerController;
+use App\Http\Controllers\Api\Relayer\SmartAccountController;
 
 Route::prefix('v1/relayer')->name('api.relayer.')->group(function () {
     // Public endpoint for supported networks
@@ -1159,6 +1160,14 @@ Route::prefix('v1/relayer')->name('api.relayer.')->group(function () {
             ->middleware('transaction.rate_limit:relayer')
             ->name('sponsor');
         Route::post('/estimate', [RelayerController::class, 'estimate'])->name('estimate');
+
+        // Smart Account Management (v2.6.0)
+        Route::post('/account', [SmartAccountController::class, 'createAccount'])
+            ->middleware('transaction.rate_limit:relayer')
+            ->name('account.create');
+        Route::get('/accounts', [SmartAccountController::class, 'listAccounts'])->name('accounts.list');
+        Route::get('/nonce/{address}', [SmartAccountController::class, 'getNonce'])->name('nonce');
+        Route::get('/init-code/{address}', [SmartAccountController::class, 'getInitCode'])->name('init-code');
     });
 });
 

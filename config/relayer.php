@@ -126,4 +126,43 @@ return [
         // Max sponsored value per user per day (in USD)
         'per_user_daily_value' => env('RELAYER_DAILY_VALUE_LIMIT', 1000),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Smart Account Configuration (v2.6.0)
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for ERC-4337 smart account factories.
+    |
+    */
+
+    'smart_accounts' => [
+        // Factory contract addresses per network (SimpleAccountFactory or custom)
+        'factory_addresses' => [
+            'polygon'  => env('POLYGON_FACTORY_ADDRESS'),
+            'base'     => env('BASE_FACTORY_ADDRESS'),
+            'arbitrum' => env('ARBITRUM_FACTORY_ADDRESS'),
+        ],
+
+        // Paymaster contract addresses per network
+        'paymaster_addresses' => [
+            'polygon'  => env('POLYGON_PAYMASTER_ADDRESS'),
+            'base'     => env('BASE_PAYMASTER_ADDRESS'),
+            'arbitrum' => env('ARBITRUM_PAYMASTER_ADDRESS'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pimlico Integration (v2.6.0)
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for Pimlico bundler service.
+    |
+    */
+
+    'pimlico' => [
+        'api_key'     => env('PIMLICO_API_KEY'),
+        'bundler_url' => env('PIMLICO_BUNDLER_URL'),
+    ],
 ];
