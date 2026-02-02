@@ -260,14 +260,24 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gmp
           tools: composer:v2
           coverage: none
-          
+
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            vendor
+            ~/.composer/cache
+          key: ${{ runner.os }}-load-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-load-
+
       - name: Setup Environment
         run: |
           cp .env.ci .env
-          
+
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
-          
+
       - name: Prepare Application
         run: |
           cp .env.ci .env
@@ -276,7 +286,7 @@ jobs:
           php artisan route:cache
           php artisan event:cache
           php artisan migrate --force
-          
+
       - name: Install k6
         run: |
           sudo gpg -k

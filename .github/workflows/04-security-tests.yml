@@ -16,7 +16,7 @@ jobs:
   penetration-tests:
     name: Penetration Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     
     services:
       mysql:
@@ -53,26 +53,40 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip, gmp
           tools: composer:v2
           coverage: none
-          
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            vendor
+          key: ${{ runner.os }}-security-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-security-composer-
+
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          
+
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
-          
+
       - name: Prepare Security Testing Environment
         run: |
           sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
           php artisan migrate --force
-          
+
       - name: Run Penetration Tests
         run: ./vendor/bin/pest tests/Security/Penetration --configuration=phpunit.security.xml --stop-on-failure
 
   authentication-tests:
     name: Authentication Security Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     
     services:
       mysql:
@@ -109,26 +123,40 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip, gmp
           tools: composer:v2
           coverage: none
-          
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            vendor
+          key: ${{ runner.os }}-security-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-security-composer-
+
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          
+
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
-          
+
       - name: Prepare Security Testing Environment
         run: |
           sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
           php artisan migrate --force
-          
+
       - name: Run Authentication Security Tests
         run: ./vendor/bin/pest tests/Security/Authentication --configuration=phpunit.security.xml --stop-on-failure
 
   api-security-tests:
     name: API Security Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     
     services:
       mysql:
@@ -165,26 +193,40 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip, gmp
           tools: composer:v2
           coverage: none
-          
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            vendor
+          key: ${{ runner.os }}-security-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-security-composer-
+
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          
+
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
-          
+
       - name: Prepare Security Testing Environment
         run: |
           sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
           php artisan migrate --force
-          
+
       - name: Run API Security Tests
         run: ./vendor/bin/pest tests/Security/API --configuration=phpunit.security.xml --stop-on-failure
 
   vulnerability-tests:
     name: Vulnerability Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     
     services:
       mysql:
@@ -221,20 +263,34 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip, gmp
           tools: composer:v2
           coverage: none
-          
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            vendor
+          key: ${{ runner.os }}-security-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-security-composer-
+
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          
+
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --optimize-autoloader
-          
+
       - name: Prepare Laravel Application
         run: |
           cp .env.testing .env
           sed -i 's/APP_ENV=testing/APP_ENV=security-testing/' .env
           php artisan key:generate
           php artisan migrate --force
-          
+
       - name: Run Vulnerability Tests
         run: ./vendor/bin/pest tests/Security/Vulnerabilities --configuration=phpunit.security.xml --stop-on-failure

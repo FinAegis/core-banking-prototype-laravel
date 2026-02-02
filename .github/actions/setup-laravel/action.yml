@@ -1,0 +1,124 @@
+name: 'Setup Laravel Environment'
+description: 'Reusable action to setup PHP, Composer, and optionally Node.js for Laravel projects'
+
+inputs:
+  php-version:
+    description: 'PHP version to use'
+    required: false
+    default: '8.3'
+  node-version:
+    description: 'Node.js version (empty to skip)'
+    required: false
+    default: ''
+  install-composer:
+    description: 'Install Composer dependencies'
+    required: false
+    default: 'true'
+  install-node:
+    description: 'Install Node.js dependencies'
+    required: false
+    default: 'false'
+  build-assets:
+    description: 'Run npm build'
+    required: false
+    default: 'false'
+  php-extensions:
+    description: 'PHP extensions to install'
+    required: false
+    default: 'mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, bcmath, intl, zip, gmp'
+  coverage:
+    description: 'PHP coverage driver (none, xdebug, pcov)'
+    required: false
+    default: 'none'
+
+outputs:
+  composer-cache-dir:
+    description: 'Composer cache directory'
+    value: ${{ steps.composer-cache.outputs.dir }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        extensions: ${{ inputs.php-extensions }}
+        tools: composer:v2
+        coverage: ${{ inputs.coverage }}
+
+    - name: Get Composer Cache Directory
+      id: composer-cache
+      shell: bash
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache Composer Dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ steps.composer-cache.outputs.dir }}
+          vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
+    - name: Setup Node.js
+      if: inputs.node-version != '' || inputs.install-node == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version || '20' }}
+        cache: 'npm'
+
+    - name: Cache Node Modules
+      if: inputs.install-node == 'true'
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Setup Environment
+      shell: bash
+      run: |
+        if [ -f .env.testing ]; then
+          cp .env.testing .env
+        elif [ -f .env.ci ]; then
+          cp .env.ci .env
+        fi
+
+    - name: Install Composer Dependencies
+      if: inputs.install-composer == 'true'
+      shell: bash
+      env:
+        COMPOSER_PROCESS_TIMEOUT: '0'
+        COMPOSER_NO_INTERACTION: '1'
+        COMPOSER_NO_AUDIT: '1'
+      run: |
+        for i in 1 2 3; do
+          if composer install --prefer-dist --no-progress --optimize-autoloader; then
+            echo "Composer install succeeded on attempt $i"
+            break
+          else
+            echo "Composer install failed on attempt $i"
+            if [ $i -eq 3 ]; then
+              echo "All attempts failed"
+              exit 1
+            fi
+            echo "Retrying in 5 seconds..."
+            sleep 5
+            composer clear-cache
+          fi
+        done
+
+    - name: Install Node Dependencies
+      if: inputs.install-node == 'true'
+      shell: bash
+      run: npm ci --prefer-offline --no-audit
+
+    - name: Build Assets
+      if: inputs.build-assets == 'true'
+      shell: bash
+      run: npm run build

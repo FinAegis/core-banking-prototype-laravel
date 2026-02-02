@@ -224,11 +224,26 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-feature-deps-${{ hashFiles('**/composer.lock', '**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-feature-deps-
+
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          
+
       - name: Install Dependencies
         run: |
           # Try composer install with retry logic for flaky downloads
@@ -250,7 +265,7 @@ jobs:
           done
           npm ci --prefer-offline --no-audit
           npm run build
-          
+
       - name: Prepare Laravel Application
         run: |
           # Configure MySQL database connection for CI
@@ -260,12 +275,12 @@ jobs:
           echo "DB_DATABASE=testing" >> .env
           echo "DB_USERNAME=root" >> .env
           echo "DB_PASSWORD=root" >> .env
-          
+
           # Note: Route caching disabled to prevent memory exhaustion in tests
           php artisan config:clear
           php artisan route:clear
           php artisan migrate --force
-          
+
       - name: Run Feature Tests
         env:
           DB_CONNECTION: mysql
@@ -334,11 +349,25 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, gmp
           tools: composer:v2
           coverage: xdebug
-          
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            vendor
+          key: ${{ runner.os }}-integration-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-integration-composer-
+
       - name: Setup Environment
         run: |
           cp .env.testing .env
-          
+
       - name: Install Dependencies
         run: |
           # Try composer install with retry logic for flaky downloads
@@ -358,7 +387,7 @@ jobs:
               composer clear-cache
             fi
           done
-          
+
       - name: Prepare Laravel Application
         run: |
           cp .env.testing .env
@@ -369,11 +398,11 @@ jobs:
           echo "DB_DATABASE=testing" >> .env
           echo "DB_USERNAME=root" >> .env
           echo "DB_PASSWORD=root" >> .env
-          
+
           php artisan key:generate
           php artisan config:cache
           php artisan migrate --force
-          
+
       - name: Run Integration Tests
         env:
           DB_CONNECTION: mysql

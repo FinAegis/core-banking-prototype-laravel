@@ -82,29 +82,5 @@ jobs:
       - name: Check PHP Code Style
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
-  dependency-security:
-    name: Dependency Security Audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ env.PHP_VERSION }}
-          tools: composer:v2
-          coverage: none
-          
-      - name: Cache Dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.composer/cache
-          key: ${{ runner.os }}-composer-security-${{ hashFiles('**/composer.lock') }}
-          
-      - name: Security Audit Dependencies
-        run: |
-          composer audit --no-dev || true
-          composer audit || true
+  # NOTE: Dependency security audit moved to 02-security-scan.yml to avoid duplication
+  # The security-scan workflow performs comprehensive composer audit with detailed reporting
