@@ -7,9 +7,11 @@ namespace App\Providers;
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Contracts\PaymasterInterface;
 use App\Domain\Relayer\Contracts\SmartAccountFactoryInterface;
+use App\Domain\Relayer\Contracts\UserOperationSignerInterface;
 use App\Domain\Relayer\Services\DemoBundlerService;
 use App\Domain\Relayer\Services\DemoPaymasterService;
 use App\Domain\Relayer\Services\DemoSmartAccountFactory;
+use App\Domain\Relayer\Services\UserOperationSigningService;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -21,9 +23,6 @@ use Illuminate\Support\ServiceProvider;
  */
 class RelayerServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         // Bind the bundler interface to the demo implementation
@@ -42,6 +41,12 @@ class RelayerServiceProvider extends ServiceProvider
         // For production, implement with actual factory contract calls
         $this->app->bind(SmartAccountFactoryInterface::class, function ($app) {
             return new DemoSmartAccountFactory();
+        });
+
+        // Bind the UserOperation signer interface for auth shard signing
+        // For production, integrate with HSM-backed key management
+        $this->app->bind(UserOperationSignerInterface::class, function ($app) {
+            return new UserOperationSigningService();
         });
     }
 

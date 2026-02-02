@@ -129,6 +129,10 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
             Route::post('/verify', [TwoFactorAuthController::class, 'verify']);
             Route::post('/recovery-codes', [TwoFactorAuthController::class, 'regenerateRecoveryCodes']);
         });
+
+        // UserOperation signing with auth shard (v2.6.0)
+        Route::post('/sign-userop', [App\Http\Controllers\Api\Auth\UserOpSigningController::class, 'sign'])
+            ->name('api.auth.sign-userop');
     });
 });
 
