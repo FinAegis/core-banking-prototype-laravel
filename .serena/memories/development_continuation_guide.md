@@ -1,7 +1,7 @@
 # FinAegis Development Continuation Guide
 
 > **Purpose**: Master handoff document for session continuity. **READ THIS FIRST** when resuming development.
-> **Last Updated**: January 30, 2026 (v2.1.0 Released, v2.2.0 Mobile in progress)
+> **Last Updated**: February 2, 2026 (v2.6.0 Released - Mobile Backend Privacy & Relayer)
 
 ---
 
@@ -26,9 +26,9 @@ git branch --show-current
 | Current Branch | `main` |
 | Open PRs | None |
 | Open Issues | None |
-| Last Action | Released v2.2.0 - Mobile Backend complete |
-| Next Action | Start v2.3.0 or create finaegis-mobile repo |
-| Session Date | January 31, 2026 |
+| Last Action | Released v2.6.0 - Privacy Layer & ERC-4337 Relayer |
+| Next Action | Plan v2.7.0 or production hardening |
+| Session Date | February 2, 2026 |
 
 ### Recent Commits This Session
 - **v2.2.0 Released** - Mobile Backend complete
@@ -73,6 +73,10 @@ git branch --show-current
 | **v2.0.0** | ✅ RELEASED | Multi-Tenancy | Released Jan 28, 2026, 9 phases |
 | **v2.1.0** | ✅ RELEASED | Security & Enterprise | Released Jan 30, 2026 - HW wallets, Multi-sig, WebSocket, K8s, Security |
 | **v2.2.0** | ✅ RELEASED | Mobile App Backend | Mobile device mgmt, biometrics, push notifications, WebSocket, CI optimization |
+| **v2.3.0** | ✅ RELEASED | AI Framework & RegTech | AI Framework, RegTech Foundation, BaaS Configuration |
+| **v2.4.0** | ✅ RELEASED | Privacy & Identity | Key Management, Shamir's Secret Sharing, ZK-KYC, Commerce, TrustCert |
+| **v2.5.0** | ✅ RELEASED | Mobile App Launch | Expo/React Native mobile app (separate repo) |
+| **v2.6.0** | ✅ RELEASED | Privacy Layer & Relayer | Merkle Trees, Smart Accounts, Delegated Proofs, UserOp Signing |
 
 ### v2.2.0 Completed PRs (All Merged)
 - #347: Mobile Backend Core (Device, Biometric, Push)
@@ -142,6 +146,18 @@ git branch --show-current
 | Push Notifications | `PushNotificationService` | `app/Domain/Mobile/Services/` |
 | Mobile Sessions | `MobileSessionService` | `app/Domain/Mobile/Services/` |
 | Notification Prefs | `NotificationPreferenceService` | `app/Domain/Mobile/Services/` |
+| Key Sharding | `ShamirService` | `app/Domain/KeyManagement/Services/` |
+| ZK-KYC Proofs | `ZkKycService` | `app/Domain/Privacy/Services/` |
+| Proof of Innocence | `ProofOfInnocenceService` | `app/Domain/Privacy/Services/` |
+| Merkle Trees | `MerkleTreeService` | `app/Domain/Privacy/Services/` |
+| Delegated Proofs | `DelegatedProofService` | `app/Domain/Privacy/Services/` |
+| SRS Manifest | `SrsManifestService` | `app/Domain/Privacy/Services/` |
+| Smart Accounts | `SmartAccountService` | `app/Domain/Relayer/Services/` |
+| Gas Station | `GasStationService` | `app/Domain/Relayer/Services/` |
+| UserOp Signing | `UserOperationSigningService` | `app/Domain/Relayer/Services/` |
+| Verifiable Credentials | `VerifiableCredentialService` | `app/Domain/TrustCert/Services/` |
+| Certificate Authority | `CertificateAuthorityService` | `app/Domain/TrustCert/Services/` |
+| Soulbound Tokens | `SoulboundTokenService` | `app/Domain/Commerce/Services/` |
 
 ### MCP Tools (Already Exist)
 - `AgentPaymentTool` - Payment operations

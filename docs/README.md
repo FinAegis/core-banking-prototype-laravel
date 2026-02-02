@@ -94,17 +94,18 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 
 ## Platform Status
 
-- **Version**: 2.4.0 (Privacy & Identity)
+- **Version**: 2.6.0 (Privacy Layer & ERC-4337 Relayer)
 - **Status**: Demonstration Prototype
-- **Last Updated**: February 1, 2026
+- **Last Updated**: February 2, 2026
 
-### Current Release Features (v2.4.0)
-- **Key Management**: Shamir's Secret Sharing, HSM integration
-- **Privacy Layer**: Zero-Knowledge KYC, Proof of Innocence
-- **Commerce**: Soulbound Tokens, Merchant Onboarding, Payment Attestations
-- **TrustCert**: W3C Verifiable Credentials, Certificate Authority, Trust Framework
+### Current Release Features (v2.6.0)
+- **Privacy Pool**: Merkle Tree infrastructure, Delegated proof generation
+- **Relayer**: ERC-4337 Smart Accounts, Gas abstraction, UserOp signing
+- **Mobile Support**: SRS manifest for ZK circuits, WebSocket Merkle updates
 
 ### Previous Releases
+- v2.5.0: Mobile App Launch (Expo/React Native, separate repository)
+- v2.4.0: Privacy & Identity (Key Management, ZK-KYC, Commerce, TrustCert)
 - v2.3.0: AI-Powered Banking, RegTech Automation, Embedded Finance (BaaS)
 - v2.2.0: Mobile Backend (Device Management, Biometrics, Push Notifications)
 - v2.1.0: Hardware Wallets, Multi-Sig, WebSocket Streaming, Kubernetes

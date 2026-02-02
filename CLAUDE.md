@@ -20,8 +20,9 @@ git status && git branch --show-current
 ### Version Status
 | Version | Status | Key Changes |
 |---------|--------|-------------|
-| v2.5.0 | 🚧 In Progress | Mobile App Launch (Expo/React Native, separate repo) |
-| v2.6.0 | 📋 Planned | AI Query Endpoints, RegTech Adapters, SDK Generation, BaaS Implementation |
+| v2.7.0 | 📋 Planned | AI Query Endpoints, RegTech Adapters, SDK Generation, BaaS Implementation |
+| v2.6.0 | ✅ Released | Privacy Layer & ERC-4337: Merkle Trees, Smart Accounts, Delegated Proofs, UserOp Signing |
+| v2.5.0 | ✅ Released | Mobile App Launch (Expo/React Native, separate repo) |
 | v2.4.0 | ✅ Released | Privacy & Identity: Key Management, Privacy Layer, Commerce, TrustCert |
 | v2.3.0 | ✅ Released | AI Framework, RegTech Foundation, BaaS Configuration |
 | v2.2.0 | ✅ Released | Mobile backend: device mgmt, biometrics, push notifications |
@@ -91,9 +92,10 @@ app/
 │   ├── Wallet/       # Blockchain wallets
 │   ├── Compliance/   # KYC/AML
 │   ├── KeyManagement/# Shamir's Secret Sharing, HSM (v2.4.0)
-│   ├── Privacy/      # ZK-KYC, Proof of Innocence (v2.4.0)
+│   ├── Privacy/      # ZK-KYC, Proof of Innocence, Merkle Trees (v2.4.0+v2.6.0)
 │   ├── Commerce/     # SBT, Merchants, Attestations (v2.4.0)
 │   ├── TrustCert/    # W3C VCs, Certificate Authority (v2.4.0)
+│   ├── Relayer/      # ERC-4337 Gas Abstraction, Smart Accounts (v2.6.0)
 │   └── Shared/       # CQRS interfaces, events
 ├── Infrastructure/   # CQRS bus implementations
 ├── Http/Controllers/ # REST API
@@ -128,6 +130,12 @@ app/
 | Verifiable Credentials | `VerifiableCredentialService` (TrustCert) |
 | Certificate Authority | `CertificateAuthorityService` (TrustCert) |
 | Trust Framework | `TrustFrameworkService` (TrustCert) |
+| Smart Accounts | `SmartAccountService` (Relayer) |
+| Gas Station | `GasStationService` (Relayer) |
+| UserOp Signing | `UserOperationSigningService` (Relayer) |
+| Merkle Trees | `MerkleTreeService` (Privacy) |
+| Delegated Proofs | `DelegatedProofService` (Privacy) |
+| SRS Manifest | `SrsManifestService` (Privacy) |
 
 ---
 

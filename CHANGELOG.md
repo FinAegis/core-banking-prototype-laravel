@@ -5,6 +5,122 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-02-02
+
+### 🔐 Privacy Layer & Enhanced ERC-4337 Relayer for Mobile
+
+This release implements the backend APIs required for mobile app privacy features, completing the server-side infrastructure for ERC-4337 account abstraction and ZK-proof based privacy pools.
+
+### Highlights
+
+| Feature | Description | PRs |
+|---------|-------------|-----|
+| Merkle Tree Infrastructure | Privacy pool state sync for mobile | #368 |
+| Smart Account Management | ERC-4337 account deployment | #369 |
+| Delegated Proof Generation | Server-side ZK proofs for low-end devices | #370 |
+| SRS Manifest | ZK circuit parameters for mobile | #371 |
+| WebSocket Merkle Updates | Real-time tree sync | #372 |
+| Enhanced Relayer | initCode support, network details | #373 |
+| UserOperation Signing | Auth shard signing with biometrics | #374 |
+| Security Hardening | Rate limiting, input validation | #375 |
+
+### Added
+
+#### Privacy Domain
+- **MerkleTreeService** - Real-time privacy pool state synchronization
+- **DelegatedProofService** - Server-side ZK proof generation for mobile
+- **SrsManifestService** - ZK circuit SRS file management
+- **MerkleRootUpdated** event - WebSocket broadcasting for tree updates
+
+#### Relayer Domain
+- **SmartAccountService** - ERC-4337 smart account deployment
+- **GasStationService** - Enhanced with initCode support for first transactions
+- **UserOperationSigningService** - Auth shard signing with biometric verification
+
+### API Endpoints
+
+| Category | Endpoints |
+|----------|-----------|
+| Privacy | `GET /api/v1/privacy/merkle-root`, `POST /merkle-path`, `GET /srs-manifest` |
+| Delegated Proofs | `POST /api/v1/privacy/delegated-proof`, `GET /{jobId}` |
+| Smart Accounts | `POST /api/v1/relayer/account`, `GET /nonce/{address}` |
+| UserOp Signing | `POST /api/auth/sign-userop` |
+
+### Security
+- Route-level rate limiting on sensitive endpoints (throttle:10,1)
+- Input validation with bounds checking for hex strings
+- Atomic rate limiting with Cache::increment()
+- Production TODO annotations for demo implementations
+
+---
+
+## [2.5.0] - 2026-02-01
+
+### 📱 Mobile App Launch
+
+Mobile app infrastructure for Expo/React Native application (separate repository).
+
+### Added
+- Mobile app specification and architecture
+- Backend API refinements for mobile consumption
+- Passkey/WebAuthn specification (v2.5.1)
+- Privacy protocol decision framework
+
+---
+
+## [2.4.0] - 2026-02-01
+
+### 🔐 Privacy & Identity Release
+
+Enterprise privacy infrastructure with zero-knowledge proofs and decentralized identity.
+
+### Highlights
+
+| Feature | Description |
+|---------|-------------|
+| Key Management | Shamir's Secret Sharing for distributed key custody |
+| Privacy Layer | ZK-KYC, Proof of Innocence, Selective Disclosure |
+| Commerce | Soulbound Tokens, Merchant Onboarding, Payment Attestations |
+| TrustCert | W3C Verifiable Credentials, Certificate Authority |
+
+### Added
+
+#### KeyManagement Domain
+- **ShamirService** - Secret sharing with configurable thresholds
+- **KeyRecoveryService** - Multi-party key reconstruction
+- HSM integration interfaces
+
+#### Privacy Domain
+- **ZkKycService** - Zero-knowledge KYC verification
+- **ProofOfInnocenceService** - Compliance-friendly privacy proofs
+- **SelectiveDisclosureService** - Attribute-level credential sharing
+
+#### Commerce Domain
+- **SoulboundTokenService** - Non-transferable identity tokens
+- **MerchantOnboardingService** - Merchant verification workflow
+- **PaymentAttestationService** - Transaction attestation proofs
+
+#### TrustCert Domain
+- **VerifiableCredentialService** - W3C VC issuance/verification
+- **CertificateAuthorityService** - PKI certificate management
+- **TrustFrameworkService** - Multi-issuer trust policies
+
+---
+
+## [2.3.0] - 2026-01-31
+
+### 🤖 AI Framework & RegTech Foundation
+
+AI-powered financial services with regulatory technology foundation.
+
+### Added
+- AI Framework with multi-provider support (OpenAI, Anthropic, Mistral)
+- RegTech adapters for compliance automation
+- BaaS (Banking-as-a-Service) configuration system
+- Enhanced AI agent protocols
+
+---
+
 ## [2.2.0] - 2026-01-31
 
 ### 📱 Mobile Backend & Biometric Authentication Release
