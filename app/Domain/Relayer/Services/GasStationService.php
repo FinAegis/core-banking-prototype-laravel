@@ -77,7 +77,7 @@ class GasStationService
         $feeAmount = $feeToken === 'USDC' ? $feeEstimate['fee_usdc'] : $feeEstimate['fee_usdt'];
 
         // 5. Check if user has sufficient balance
-        if (! $this->hassufficientBalance($userAddress, $feeToken, $feeAmount)) {
+        if (! $this->hasSufficientBalance($userAddress, $feeToken, $feeAmount)) {
             throw new RuntimeException("Insufficient {$feeToken} balance for gas fee");
         }
 

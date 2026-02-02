@@ -64,11 +64,13 @@ class DelegatedProofController extends Controller
      */
     public function requestProof(Request $request): JsonResponse
     {
+        // Validate with size constraints to prevent DoS
         $validated = $request->validate([
             'proof_type'               => 'required|string|in:shield_1_1,unshield_2_1,transfer_2_2,proof_of_innocence',
             'network'                  => 'required|string|in:polygon,base,arbitrum',
-            'public_inputs'            => 'required|array',
-            'encrypted_private_inputs' => 'required|string',
+            'public_inputs'            => 'required|array|max:50', // Max 50 keys
+            'public_inputs.*'          => 'string|max:1000', // Each value max 1KB
+            'encrypted_private_inputs' => ['required', 'string', 'min:32', 'max:102400'], // Min 32 chars, max 100KB
         ]);
 
         try {

@@ -22,12 +22,17 @@ class UserOpSigningException extends RuntimeException
 
     public const CODE_SIGNING_FAILED = 'ERR_RELAYER_205';
 
-    protected string $errorCode;
+    public const CODE_RATE_LIMITED = 'ERR_RELAYER_206';
 
-    public function __construct(string $message, string $errorCode, ?Throwable $previous = null)
+    public readonly string $errorCode;
+
+    public readonly int $httpStatusCode;
+
+    public function __construct(string $message, string $errorCode, int $httpStatusCode = 400, ?Throwable $previous = null)
     {
         parent::__construct($message, 0, $previous);
         $this->errorCode = $errorCode;
+        $this->httpStatusCode = $httpStatusCode;
     }
 
     public function getErrorCode(): string
@@ -42,7 +47,7 @@ class UserOpSigningException extends RuntimeException
             $message .= ": {$details}";
         }
 
-        return new self($message, self::CODE_INVALID_USER_OP_HASH);
+        return new self($message, self::CODE_INVALID_USER_OP_HASH, 400);
     }
 
     public static function invalidDeviceShard(string $details = ''): self
@@ -52,7 +57,7 @@ class UserOpSigningException extends RuntimeException
             $message .= ": {$details}";
         }
 
-        return new self($message, self::CODE_INVALID_DEVICE_SHARD);
+        return new self($message, self::CODE_INVALID_DEVICE_SHARD, 400);
     }
 
     public static function biometricVerificationFailed(string $details = ''): self
@@ -62,7 +67,7 @@ class UserOpSigningException extends RuntimeException
             $message .= ": {$details}";
         }
 
-        return new self($message, self::CODE_BIOMETRIC_FAILED);
+        return new self($message, self::CODE_BIOMETRIC_FAILED, 401);
     }
 
     public static function shardUnavailable(string $details = ''): self
@@ -72,7 +77,7 @@ class UserOpSigningException extends RuntimeException
             $message .= ": {$details}";
         }
 
-        return new self($message, self::CODE_SHARD_UNAVAILABLE);
+        return new self($message, self::CODE_SHARD_UNAVAILABLE, 503);
     }
 
     public static function signingFailed(string $details = ''): self
@@ -82,6 +87,16 @@ class UserOpSigningException extends RuntimeException
             $message .= ": {$details}";
         }
 
-        return new self($message, self::CODE_SIGNING_FAILED);
+        return new self($message, self::CODE_SIGNING_FAILED, 500);
+    }
+
+    public static function rateLimited(string $details = ''): self
+    {
+        $message = 'Rate limit exceeded for UserOperation signing';
+        if ($details !== '') {
+            $message .= ": {$details}";
+        }
+
+        return new self($message, self::CODE_RATE_LIMITED, 429);
     }
 }

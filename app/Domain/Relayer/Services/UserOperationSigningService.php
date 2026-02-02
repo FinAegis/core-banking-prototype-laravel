@@ -9,8 +9,8 @@ use App\Domain\Relayer\Exceptions\UserOpSigningException;
 use App\Models\User;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Service for signing UserOperations with the server's authentication shard.
@@ -167,23 +167,23 @@ class UserOperationSigningService implements UserOperationSignerInterface
     /**
      * Check rate limiting for signing requests.
      *
-     * Uses atomic increment to prevent race conditions.
+     * Uses Laravel's rate limiter for atomic operation.
      */
     private function checkRateLimit(User $user): void
     {
-        $key = "userop_signing_rate:{$user->id}";
+        $key = "userop_signing:{$user->id}";
 
-        // Use atomic increment to prevent race conditions
-        // If key doesn't exist, increment() initializes it to 1
-        $current = Cache::increment($key);
+        // Use Laravel's rate limiter for atomic rate limiting
+        $executed = RateLimiter::attempt(
+            $key,
+            self::MAX_REQUESTS_PER_MINUTE,
+            fn () => true, // Return true if under limit
+            self::RATE_LIMIT_WINDOW_SECONDS
+        );
 
-        // Set expiration on first request (when counter is 1)
-        if ($current === 1) {
-            Cache::put($key, 1, self::RATE_LIMIT_WINDOW_SECONDS);
-        }
-
-        if ($current > self::MAX_REQUESTS_PER_MINUTE) {
-            throw UserOpSigningException::signingFailed('Rate limit exceeded. Try again later.');
+        if (! $executed) {
+            $seconds = RateLimiter::availableIn($key);
+            throw UserOpSigningException::rateLimited("Try again in {$seconds} seconds.");
         }
     }
 }
