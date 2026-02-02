@@ -29,16 +29,22 @@ final readonly class UserOperation
 
     /**
      * Create an unsigned UserOperation (for estimation).
+     *
+     * @param  string       $sender    The Smart Account address
+     * @param  int          $nonce     The account nonce (0 for first-time deployment)
+     * @param  string       $callData  The encoded transaction data
+     * @param  string|null  $initCode  Optional factory calldata for account deployment
      */
     public static function createUnsigned(
         string $sender,
         int $nonce,
         string $callData,
+        ?string $initCode = null,
     ): self {
         return new self(
             sender: $sender,
             nonce: $nonce,
-            initCode: '0x',
+            initCode: $initCode ?? '0x',
             callData: $callData,
             callGasLimit: 0,
             verificationGasLimit: 0,

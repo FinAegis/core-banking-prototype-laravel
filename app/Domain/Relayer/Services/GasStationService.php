@@ -33,29 +33,40 @@ class GasStationService
      * The user signs a UserOperation, and we submit it through the bundler
      * with our paymaster paying the gas fees.
      *
-     * @return array{tx_hash: string, user_op_hash: string, gas_used: int, fee_charged: string, fee_currency: string}
+     * @param  string|null  $initCode  Optional initCode for first-time account deployment (CREATE2)
+     * @return array{tx_hash: string, user_op_hash: string, gas_used: int, fee_charged: string, fee_currency: string, is_deployment: bool}
      */
     public function sponsorTransaction(
         string $userAddress,
         string $callData,
         string $signature,
         SupportedNetwork $network = SupportedNetwork::POLYGON,
-        string $feeToken = 'USDC'
+        string $feeToken = 'USDC',
+        ?string $initCode = null
     ): array {
+        $isDeployment = $initCode !== null && $initCode !== '' && $initCode !== '0x';
+
         Log::info('Sponsoring transaction', [
-            'user_address' => $userAddress,
-            'network'      => $network->value,
-            'fee_token'    => $feeToken,
+            'user_address'  => $userAddress,
+            'network'       => $network->value,
+            'fee_token'     => $feeToken,
+            'is_deployment' => $isDeployment,
         ]);
 
-        // 1. Get nonce for user
-        $nonce = $this->getNonce($userAddress, $network);
+        // Validate initCode format if provided
+        if ($isDeployment && ! preg_match('/^0x[a-fA-F0-9]+$/', $initCode)) {
+            throw new RuntimeException('Invalid initCode format. Expected hex string with 0x prefix.');
+        }
 
-        // 2. Create unsigned UserOperation
+        // 1. Get nonce for user (0 for new accounts)
+        $nonce = $isDeployment ? 0 : $this->getNonce($userAddress, $network);
+
+        // 2. Create unsigned UserOperation with optional initCode
         $userOp = UserOperation::createUnsigned(
             sender: $userAddress,
             nonce: $nonce,
             callData: $callData,
+            initCode: $isDeployment ? $initCode : null,
         );
 
         // 3. Estimate gas
@@ -105,11 +116,12 @@ class GasStationService
         ));
 
         return [
-            'tx_hash'      => '', // Will be available after bundler processes
-            'user_op_hash' => $userOpHash,
-            'gas_used'     => $gasEstimate['callGasLimit'] + $gasEstimate['verificationGasLimit'],
-            'fee_charged'  => number_format($feeAmount, 6),
-            'fee_currency' => $feeToken,
+            'tx_hash'       => '', // Will be available after bundler processes
+            'user_op_hash'  => $userOpHash,
+            'gas_used'      => $gasEstimate['callGasLimit'] + $gasEstimate['verificationGasLimit'],
+            'fee_charged'   => number_format($feeAmount, 6),
+            'fee_currency'  => $feeToken,
+            'is_deployment' => $isDeployment,
         ];
     }
 
@@ -133,18 +145,23 @@ class GasStationService
     }
 
     /**
-     * Get all supported networks with their fee information.
+     * Get all supported networks with their detailed configuration.
      *
-     * @return array<array{chain_id: int, name: string, fee_token: string, average_fee: string}>
+     * @return array<array{chain_id: int, name: string, entrypoint_address: string, factory_address: string, paymaster_address: string, current_gas_price: string, average_fee_usdc: string, congestion_level: string, fee_token: string}>
      */
     public function getSupportedNetworks(): array
     {
         return array_map(
             fn (SupportedNetwork $network) => [
-                'chain_id'    => $network->getChainId(),
-                'name'        => $network->value,
-                'fee_token'   => 'USDC',
-                'average_fee' => number_format($network->getAverageGasCostUsd(), 4),
+                'chain_id'           => $network->getChainId(),
+                'name'               => $network->value,
+                'entrypoint_address' => $network->getEntryPointAddress(),
+                'factory_address'    => $network->getFactoryAddress(),
+                'paymaster_address'  => $network->getPaymasterAddress(),
+                'current_gas_price'  => $network->getCurrentGasPrice(),
+                'average_fee_usdc'   => number_format($network->getAverageGasCostUsd(), 4),
+                'congestion_level'   => $network->getCongestionLevel(),
+                'fee_token'          => 'USDC',
             ],
             SupportedNetwork::cases()
         );
