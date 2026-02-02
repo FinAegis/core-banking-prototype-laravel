@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Smart accounts are created deterministically from owner address + salt.
  *
  * @property string $id
- * @property string $user_id
+ * @property int $user_id
  * @property string $owner_address
  * @property string $account_address
  * @property string $network

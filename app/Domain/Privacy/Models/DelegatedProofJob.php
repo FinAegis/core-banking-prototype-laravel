@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * cannot perform client-side proof generation due to resource constraints.
  *
  * @property string $id
- * @property string $user_id
+ * @property int $user_id
  * @property string $proof_type
  * @property string $network
  * @property array<string, mixed> $public_inputs
