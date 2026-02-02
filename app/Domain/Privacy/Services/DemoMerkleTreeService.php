@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Privacy\Services;
 
 use App\Domain\Privacy\Contracts\MerkleTreeServiceInterface;
+use App\Domain\Privacy\Events\Broadcast\MerkleRootUpdated;
 use App\Domain\Privacy\Exceptions\CommitmentNotFoundException;
 use App\Domain\Privacy\ValueObjects\MerklePath;
 use App\Domain\Privacy\ValueObjects\MerkleRoot;
@@ -102,7 +103,19 @@ class DemoMerkleTreeService implements MerkleTreeServiceInterface
         $cacheKey = self::CACHE_PREFIX . 'root_' . $network;
         Cache::forget($cacheKey);
 
-        return $this->getMerkleRoot($network);
+        $root = $this->getMerkleRoot($network);
+
+        // Broadcast the updated root to connected clients
+        MerkleRootUpdated::dispatch(
+            $network,
+            $root->root,
+            $root->leafCount,
+            $root->blockNumber,
+            $root->treeDepth,
+            $root->syncedAt->format('c'),
+        );
+
+        return $root;
     }
 
     public function getTreeDepth(): int

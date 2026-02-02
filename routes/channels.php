@@ -70,3 +70,22 @@ Broadcast::channel('tenant.{tenantId}.wallet.multi-sig', function ($user, string
 Broadcast::channel('tenant.{tenantId}.mobile', function ($user, string $tenantId) {
     return TenantChannelAuthorizer::authorizeUser($user, $tenantId);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Privacy Pool Channels (v2.6.0)
+|--------------------------------------------------------------------------
+|
+| Network-specific channels for privacy pool Merkle tree updates.
+| Any authenticated user can subscribe to receive Merkle root updates
+| for a specific blockchain network (polygon, base, arbitrum).
+|
+*/
+
+// Privacy pool Merkle tree updates - network-specific
+Broadcast::channel('privacy.merkle.{network}', function ($user, string $network) {
+    // Validate network is supported
+    $supportedNetworks = config('privacy.merkle.networks', ['polygon', 'base', 'arbitrum']);
+
+    return in_array($network, $supportedNetworks, true);
+});

@@ -61,6 +61,12 @@ return [
             'max_per_second'  => env('WS_COMPLIANCE_MAX_PER_SECOND', 100),
             'batch_window_ms' => env('WS_COMPLIANCE_BATCH_WINDOW_MS', 0),
         ],
+
+        // Privacy pool Merkle tree updates - max 1 update/second per network
+        'privacy' => [
+            'max_per_second'  => env('WS_PRIVACY_MAX_PER_SECOND', 1),
+            'batch_window_ms' => env('WS_PRIVACY_BATCH_WINDOW_MS', 1000),
+        ],
     ],
 
     /*
@@ -142,6 +148,14 @@ return [
                 'approval.created',
                 'signature.submitted',
                 'approval.completed',
+            ],
+        ],
+
+        // Privacy pool updates (v2.6.0)
+        'privacy' => [
+            'suffix' => 'privacy.merkle.{network}',
+            'events' => [
+                'merkle.updated',
             ],
         ],
     ],
