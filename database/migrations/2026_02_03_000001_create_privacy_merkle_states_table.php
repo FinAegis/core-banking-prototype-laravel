@@ -35,7 +35,7 @@ return new class () extends Migration {
         // Table for tracking known commitments (for demo/testing purposes)
         Schema::create('privacy_commitments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('commitment', 66)->comment('32-byte commitment hash with 0x prefix');
             $table->string('network', 20);
             $table->unsignedBigInteger('leaf_index');
@@ -49,11 +49,6 @@ return new class () extends Migration {
             $table->index(['user_id', 'network']);
             $table->index(['network', 'is_spent']);
             $table->index('nullifier');
-
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->nullOnDelete();
         });
     }
 
