@@ -1193,11 +1193,16 @@ Route::prefix('v1/trustcert')->name('api.trustcert.')->group(function () {
 |
 */
 
+use App\Http\Controllers\Api\Privacy\DelegatedProofController;
 use App\Http\Controllers\Api\Privacy\PrivacyController;
 
 Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
     // Public endpoint for supported networks
     Route::get('/networks', [PrivacyController::class, 'getNetworks'])->name('networks');
+
+    // Public endpoint for delegated proof types
+    Route::get('/delegated-proof-types', [DelegatedProofController::class, 'getSupportedTypes'])
+        ->name('delegated-proof-types');
 
     // Authenticated endpoints
     Route::middleware(['auth:sanctum', 'check.token.expiration'])->group(function () {
@@ -1207,5 +1212,16 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
         Route::post('/sync', [PrivacyController::class, 'syncTree'])
             ->middleware('transaction.rate_limit:privacy_sync')
             ->name('sync');
+
+        // Delegated Proof Generation (v2.6.0)
+        Route::post('/delegated-proof', [DelegatedProofController::class, 'requestProof'])
+            ->middleware('transaction.rate_limit:delegated_proof')
+            ->name('delegated-proof.request');
+        Route::get('/delegated-proof/{jobId}', [DelegatedProofController::class, 'getProofStatus'])
+            ->name('delegated-proof.status');
+        Route::get('/delegated-proofs', [DelegatedProofController::class, 'listProofJobs'])
+            ->name('delegated-proofs.list');
+        Route::delete('/delegated-proof/{jobId}', [DelegatedProofController::class, 'cancelProofJob'])
+            ->name('delegated-proof.cancel');
     });
 });

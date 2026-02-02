@@ -174,4 +174,30 @@ return [
             'arbitrum' => env('MERKLE_POOL_ARBITRUM'),
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delegated Proof Generation (v2.6.0)
+    |--------------------------------------------------------------------------
+    |
+    | Server-side ZK proof generation for low-end mobile devices.
+    |
+    */
+
+    'delegated_proving' => [
+        // Enable delegated proof generation
+        'enabled' => env('DELEGATED_PROVING_ENABLED', true),
+
+        // Maximum pending jobs per user
+        'max_queue_size' => env('DELEGATED_PROVING_MAX_QUEUE', 100),
+
+        // Job timeout in seconds
+        'timeout_seconds' => env('DELEGATED_PROVING_TIMEOUT', 300),
+
+        // Minimum device RAM to recommend client-side proving (MB)
+        'min_device_ram_mb' => 2048,
+
+        // Queue name for proof generation jobs
+        'queue_name' => env('DELEGATED_PROVING_QUEUE', 'proofs'),
+    ],
 ];
