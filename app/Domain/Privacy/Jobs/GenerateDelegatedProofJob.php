@@ -77,7 +77,6 @@ class GenerateDelegatedProofJob implements ShouldQueue
 
             // Broadcast completion
             event(new DelegatedProofCompleted($this->proofJob));
-
         } catch (Throwable $e) {
             $this->handleFailure($e);
         }
