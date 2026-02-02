@@ -1213,6 +1213,9 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
     Route::get('/delegated-proof-types', [DelegatedProofController::class, 'getSupportedTypes'])
         ->name('delegated-proof-types');
 
+    // Public endpoint for SRS manifest (mobile needs this before auth)
+    Route::get('/srs-manifest', [PrivacyController::class, 'getSrsManifest'])->name('srs-manifest');
+
     // Authenticated endpoints
     Route::middleware(['auth:sanctum', 'check.token.expiration'])->group(function () {
         Route::get('/merkle-root', [PrivacyController::class, 'getMerkleRoot'])->name('merkle-root');
@@ -1232,5 +1235,8 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
             ->name('delegated-proofs.list');
         Route::delete('/delegated-proof/{jobId}', [DelegatedProofController::class, 'cancelProofJob'])
             ->name('delegated-proof.cancel');
+
+        // SRS download tracking for analytics
+        Route::post('/srs-downloaded', [PrivacyController::class, 'trackSrsDownload'])->name('srs-downloaded');
     });
 });

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Privacy;
 
 use App\Domain\Privacy\Contracts\MerkleTreeServiceInterface;
 use App\Domain\Privacy\Exceptions\CommitmentNotFoundException;
+use App\Domain\Privacy\Services\SrsManifestService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ class PrivacyController extends Controller
 {
     public function __construct(
         private readonly MerkleTreeServiceInterface $merkleService,
+        private readonly SrsManifestService $srsManifestService,
     ) {
     }
 
@@ -329,5 +331,139 @@ class PrivacyController extends Controller
                 ],
             ], 400);
         }
+    }
+
+    /**
+     * Get the SRS manifest for mobile ZK proof generation.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/srs-manifest",
+     *     operationId="getSrsManifest",
+     *     tags={"Privacy"},
+     *     summary="Get SRS (Structured Reference String) manifest for ZK circuits",
+     *     description="Returns the manifest of SRS files required for mobile ZK proof generation. Mobile clients use this to download the required cryptographic parameters.",
+     *     @OA\Response(
+     *         response=200,
+     *         description="SRS manifest",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="version", type="string", example="1.0.0"),
+     *                 @OA\Property(property="cdn_base_url", type="string", example="https://cdn.finaegis.com/srs"),
+     *                 @OA\Property(property="total_size", type="integer", example=47000000),
+     *                 @OA\Property(property="required_size", type="integer", example=27000000),
+     *                 @OA\Property(property="required_count", type="integer", example=2),
+     *                 @OA\Property(property="total_count", type="integer", example=3),
+     *                 @OA\Property(
+     *                     property="circuits",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="name", type="string", example="shield_1_1"),
+     *                         @OA\Property(property="version", type="string", example="1.0.0"),
+     *                         @OA\Property(property="size", type="integer", example=15000000),
+     *                         @OA\Property(property="size_human", type="string", example="14.31 MB"),
+     *                         @OA\Property(property="required", type="boolean", example=true),
+     *                         @OA\Property(property="download_url", type="string", example="https://cdn.finaegis.com/srs/1.0.0/shield_1_1.srs"),
+     *                         @OA\Property(property="checksum", type="string", example="abc123..."),
+     *                         @OA\Property(property="checksum_algorithm", type="string", example="sha256")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function getSrsManifest(): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->srsManifestService->getManifest(),
+        ]);
+    }
+
+    /**
+     * Track SRS download for analytics.
+     *
+     * @OA\Post(
+     *     path="/api/v1/privacy/srs-downloaded",
+     *     operationId="trackSrsDownload",
+     *     tags={"Privacy"},
+     *     summary="Track SRS file download completion",
+     *     description="Allows mobile clients to report successful SRS downloads for analytics and capability tracking.",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"circuits"},
+     *             @OA\Property(
+     *                 property="circuits",
+     *                 type="array",
+     *                 description="Names of the circuits that were downloaded",
+     *                 @OA\Items(type="string", example="shield_1_1")
+     *             ),
+     *             @OA\Property(
+     *                 property="device_info",
+     *                 type="string",
+     *                 description="Optional device information for analytics",
+     *                 example="iPhone 14 Pro / iOS 17.2"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Download tracked successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="tracked", type="boolean", example=true),
+     *                 @OA\Property(property="circuits", type="array", @OA\Items(type="string")),
+     *                 @OA\Property(property="srs_version", type="string", example="1.0.0")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Invalid circuits"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function trackSrsDownload(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'circuits'    => 'required|array|min:1',
+            'circuits.*'  => 'required|string|max:50',
+            'device_info' => 'nullable|string|max:255',
+        ]);
+
+        // Validate that all circuits exist in the manifest
+        $validCircuits = [];
+        foreach ($validated['circuits'] as $circuitName) {
+            $circuit = $this->srsManifestService->getCircuit($circuitName);
+            if ($circuit === null) {
+                return response()->json([
+                    'error' => [
+                        'code'               => 'ERR_PRIVACY_309',
+                        'message'            => "Unknown circuit: {$circuitName}",
+                        'available_circuits' => $this->srsManifestService->getCircuits()
+                            ->map(fn ($c) => $c->name)
+                            ->toArray(),
+                    ],
+                ], 400);
+            }
+            $validCircuits[] = $circuitName;
+        }
+
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $this->srsManifestService->trackDownload(
+            $user,
+            $validCircuits,
+            $validated['device_info'] ?? ''
+        );
+
+        return response()->json([
+            'data' => [
+                'tracked'     => true,
+                'circuits'    => $validCircuits,
+                'srs_version' => $this->srsManifestService->getVersion(),
+            ],
+        ]);
     }
 }

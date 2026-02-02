@@ -200,4 +200,41 @@ return [
         // Queue name for proof generation jobs
         'queue_name' => env('DELEGATED_PROVING_QUEUE', 'proofs'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SRS (Structured Reference String) Settings (v2.6.0)
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for ZK circuit SRS files required for mobile proof generation.
+    | SRS files are cryptographic parameters needed to generate ZK proofs.
+    |
+    */
+
+    'srs' => [
+        // CDN base URL for SRS file downloads
+        'cdn_base_url' => env('SRS_CDN_URL', 'https://cdn.finaegis.com/srs'),
+
+        // Current SRS version (used for cache invalidation)
+        'version' => '1.0.0',
+
+        // Available circuits and their metadata
+        'circuits' => [
+            'shield_1_1' => [
+                'size'     => 15000000,  // ~15 MB
+                'required' => true,
+                'checksum' => null,  // Will be computed from version if not set
+            ],
+            'unshield_2_1' => [
+                'size'     => 12000000,  // ~12 MB
+                'required' => true,
+                'checksum' => null,
+            ],
+            'transfer_2_2' => [
+                'size'     => 20000000,  // ~20 MB
+                'required' => false,  // Optional for basic operations
+                'checksum' => null,
+            ],
+        ],
+    ],
 ];
