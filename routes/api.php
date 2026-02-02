@@ -131,7 +131,9 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
         });
 
         // UserOperation signing with auth shard (v2.6.0)
+        // Rate limited: 10 requests per minute (additional service-level rate limiting applies)
         Route::post('/sign-userop', [App\Http\Controllers\Api\Auth\UserOpSigningController::class, 'sign'])
+            ->middleware('throttle:10,1')
             ->name('api.auth.sign-userop');
     });
 });

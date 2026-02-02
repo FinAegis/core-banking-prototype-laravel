@@ -173,18 +173,14 @@ class UserOpSigningControllerTest extends TestCase
             $response->assertStatus(200);
         }
 
-        // 11th request should be rate limited
+        // 11th request should be rate limited by route-level throttle middleware
+        // Returns 429 Too Many Requests (standard HTTP rate limiting status)
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => '0xabcdef1234567890',
             'biometric_token'    => str_repeat('a', 32),
         ]);
 
-        $response->assertStatus(400)
-            ->assertJson([
-                'success' => false,
-            ])
-            ->assertJsonPath('error.code', 'ERR_RELAYER_205')
-            ->assertJsonPath('error.message', 'Failed to sign UserOperation: Rate limit exceeded. Try again later.');
+        $response->assertStatus(429);
     }
 }

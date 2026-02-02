@@ -98,9 +98,11 @@ class UserOpSigningController extends Controller
     public function sign(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'user_op_hash'       => 'required|string|regex:/^0x[a-fA-F0-9]{64}$/',
-            'device_shard_proof' => 'required|string|regex:/^0x[a-fA-F0-9]+$/',
-            'biometric_token'    => 'required|string|min:32',
+            'user_op_hash' => 'required|string|regex:/^0x[a-fA-F0-9]{64}$/',
+            // ECDSA signatures are 65 bytes (130 hex chars) + 0x prefix = max 132 chars
+            // Allow up to 260 hex chars for flexibility with different signature schemes
+            'device_shard_proof' => 'required|string|regex:/^0x[a-fA-F0-9]{1,260}$/',
+            'biometric_token'    => 'required|string|min:32|max:2048',
         ]);
 
         /** @var \App\Models\User $user */

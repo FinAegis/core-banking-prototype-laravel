@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Schema;
  * This table caches the current Merkle root and tree metadata for each supported
  * privacy pool network. Used for mobile client synchronization.
  */
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */

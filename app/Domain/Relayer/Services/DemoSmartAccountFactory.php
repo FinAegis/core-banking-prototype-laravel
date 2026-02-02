@@ -39,21 +39,21 @@ class DemoSmartAccountFactory implements SmartAccountFactoryInterface
         // address = keccak256(0xff + factory + salt + keccak256(initCode))[12:]
         $initCodeHash = $this->computeInitCodeHash($ownerAddress, $salt);
         $factoryAddress = $this->getFactoryAddress($network);
-        
+
         if ($factoryAddress === null) {
             throw new InvalidArgumentException("No factory address for network: {$network}");
         }
-        
+
         $saltBytes = str_pad(dechex($salt), 64, '0', STR_PAD_LEFT);
 
         // Demo: compute a deterministic address
         $preImage = '0xff' . substr($factoryAddress, 2) . $saltBytes . $initCodeHash;
         $binaryData = hex2bin(substr($preImage, 2));
-        
+
         if ($binaryData === false) {
             throw new InvalidArgumentException('Invalid hex data for address computation');
         }
-        
+
         $hash = hash('sha3-256', $binaryData);
 
         return '0x' . substr($hash, 24); // Take last 20 bytes (40 hex chars)
