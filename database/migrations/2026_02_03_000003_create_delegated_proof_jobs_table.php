@@ -20,7 +20,7 @@ return new class () extends Migration {
     {
         Schema::create('delegated_proof_jobs', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('proof_type', 30)->comment('Type of proof: shield_1_1, unshield_2_1, transfer_2_2, proof_of_innocence');
             $table->string('network', 20);
             $table->json('public_inputs')->comment('Public inputs for the proof');
@@ -36,11 +36,6 @@ return new class () extends Migration {
             $table->index(['user_id', 'status']);
             $table->index(['status', 'created_at']);
             $table->index('proof_type');
-
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->cascadeOnDelete();
         });
     }
 

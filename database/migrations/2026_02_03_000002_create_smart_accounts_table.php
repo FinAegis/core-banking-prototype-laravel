@@ -20,7 +20,7 @@ return new class () extends Migration {
     {
         Schema::create('smart_accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('owner_address', 42)->comment('EOA owner address with 0x prefix');
             $table->string('account_address', 42)->comment('Smart account address with 0x prefix');
             $table->string('network', 20);
@@ -36,12 +36,6 @@ return new class () extends Migration {
             // Indexes for lookups
             $table->index('account_address');
             $table->index(['network', 'deployed']);
-            $table->index('user_id');
-
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->cascadeOnDelete();
         });
     }
 
