@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Relayer\Services;
 
+use App\Domain\KeyManagement\HSM\HsmIntegrationService;
 use App\Domain\Relayer\Contracts\UserOperationSignerInterface;
 use App\Domain\Relayer\Exceptions\UserOpSigningException;
 use App\Models\User;
@@ -11,24 +12,21 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Throwable;
 
 /**
  * Service for signing UserOperations with the server's authentication shard.
  *
- * DEMO IMPLEMENTATION - NOT FOR PRODUCTION USE
+ * This service uses the HSM integration from KeyManagement domain for cryptographic
+ * operations. In demo mode (HSM provider = 'demo'), it uses deterministic signatures
+ * that are suitable for testing but NOT for production.
  *
- * @todo PRODUCTION: Replace signWithAuthShard() with HSM integration via KeyManagement domain
- * @todo PRODUCTION: Replace verifyBiometricToken() with JWT verification + mobile attestation
- * @todo PRODUCTION: Add device binding validation against MobileDeviceSession
- * @todo PRODUCTION: Implement proper ECDSA signing with secp256k1
+ * Production Configuration:
+ * - Set HSM_PROVIDER=aws|azure|hashicorp in .env
+ * - Configure appropriate HSM credentials
+ * - Ensure secp256k1 signing key exists in HSM
  *
- * In production, this service would:
- * - Retrieve the user's auth shard from secure storage (HSM, KeyManagement)
- * - Verify biometric authentication with the mobile device using JWT + attestation
- * - Sign the UserOperation hash with the auth shard using proper ECDSA
- * - Return a signature that can be combined with the device shard
- *
- * This demo implementation returns deterministic mock signatures.
+ * @see \App\Domain\KeyManagement\HSM\HsmIntegrationService
  */
 class UserOperationSigningService implements UserOperationSignerInterface
 {
@@ -36,6 +34,20 @@ class UserOperationSigningService implements UserOperationSignerInterface
      * Signature validity period in seconds.
      */
     private const SIGNATURE_VALIDITY_SECONDS = 300; // 5 minutes
+
+    /**
+     * Maximum signing requests per user per minute.
+     */
+    private const MAX_REQUESTS_PER_MINUTE = 10;
+
+    /**
+     * Rate limit window in seconds.
+     */
+    private const RATE_LIMIT_WINDOW_SECONDS = 60;
+
+    public function __construct(
+        private readonly HsmIntegrationService $hsm
+    ) {}
 
     /**
      * Sign a UserOperation hash using the server's authentication shard.
@@ -68,17 +80,18 @@ class UserOperationSigningService implements UserOperationSignerInterface
         // 3. Check rate limiting
         $this->checkRateLimit($user);
 
-        // 4. Sign with auth shard (demo implementation)
-        $authShardSignature = $this->signWithAuthShard($user, $userOpHash);
+        // 4. Sign with HSM
+        $authShardSignature = $this->signWithHsm($user, $userOpHash);
 
         $signedAt = new DateTimeImmutable();
         $expiresAt = $signedAt->modify('+' . self::SIGNATURE_VALIDITY_SECONDS . ' seconds');
 
         // Log only first 6 chars (3 bytes) of hash to reduce correlation risk
         Log::info('UserOperation signed with auth shard', [
-            'user_id'    => $user->id,
-            'hash_hint'  => substr($userOpHash, 0, 6),
-            'expires_at' => $expiresAt->format('c'),
+            'user_id'      => $user->id,
+            'hash_hint'    => substr($userOpHash, 0, 6),
+            'hsm_provider' => $this->hsm->getProviderName(),
+            'expires_at'   => $expiresAt->format('c'),
         ]);
 
         return [
@@ -91,7 +104,7 @@ class UserOperationSigningService implements UserOperationSignerInterface
     /**
      * Verify biometric token validity.
      *
-     * In production, this would verify the token against the mobile biometric system.
+     * @todo PRODUCTION: Replace with JWT verification + mobile attestation
      */
     public function verifyBiometricToken(User $user, string $biometricToken): bool
     {
@@ -125,44 +138,66 @@ class UserOperationSigningService implements UserOperationSignerInterface
     }
 
     /**
-     * Sign with the authentication shard.
+     * Sign using HSM.
      *
-     * DEMO IMPLEMENTATION - Produces fake signatures for testing only.
+     * Uses the KeyManagement HSM integration service for cryptographic signing.
+     * The actual implementation depends on the configured HSM provider:
+     * - demo: Deterministic signatures for testing (NOT SECURE)
+     * - aws: AWS CloudHSM with secp256k1
+     * - azure: Azure Key Vault HSM
+     * - hashicorp: HashiCorp Vault Transit
      *
-     * @todo PRODUCTION: Use ShamirService to reconstruct signing key
-     * @todo PRODUCTION: Use HSM (simplehsm, AWS CloudHSM, Azure HSM) for signing
-     * @todo PRODUCTION: Implement proper secp256k1 ECDSA with random k
-     * @todo PRODUCTION: Never use config('app.key') for cryptographic operations
+     * @param  User  $user  The user whose auth shard key should be used
+     * @param  string  $userOpHash  The 32-byte hash to sign (hex with 0x prefix)
+     * @return string ECDSA signature in compact format (r || s || v, 65 bytes)
      *
-     * In production, this would:
-     * 1. Retrieve user's auth shard from KeyManagement (HSM-backed)
-     * 2. Sign the userOpHash with proper ECDSA using secp256k1
-     * 3. Return the (r, s, v) signature tuple
+     * @throws UserOpSigningException If HSM is unavailable or signing fails
      */
-    private function signWithAuthShard(User $user, string $userOpHash): string
+    private function signWithHsm(User $user, string $userOpHash): string
     {
-        // DEMO: Generate deterministic signature for testing
-        // WARNING: This is NOT cryptographically secure - do not use in production
-        $sigData = hash('sha256', $user->id . $userOpHash . config('app.key'));
+        try {
+            // Verify HSM is available
+            if (! $this->hsm->isAvailable()) {
+                Log::error('HSM not available for UserOp signing', [
+                    'user_id'  => $user->id,
+                    'provider' => $this->hsm->getProviderName(),
+                ]);
+                throw UserOpSigningException::shardUnavailable('HSM provider not available');
+            }
 
-        // Create an ECDSA-like signature structure (r, s, v)
-        // NOTE: This is a fake structure and will NOT verify on-chain
-        $r = '0x' . substr($sigData, 0, 64);
-        $s = '0x' . hash('sha256', $sigData);
-        $v = '1b'; // Recovery id (demo value)
+            // Get the user's signing key ID
+            // In production, this would retrieve the key ID from the user's key shard record
+            $keyId = $this->getUserSigningKeyId($user);
 
-        return $r . substr($s, 2) . $v;
+            // Sign using HSM
+            $signature = $this->hsm->sign($userOpHash, $keyId);
+
+            return $signature;
+        } catch (UserOpSigningException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            Log::error('HSM signing failed', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+            throw UserOpSigningException::signingFailed('HSM signing operation failed');
+        }
     }
 
     /**
-     * Maximum signing requests per user per minute.
+     * Get the signing key ID for a user.
+     *
+     * In production, this would query the KeyShardRecord to find the user's
+     * auth shard key stored in HSM.
+     *
+     * @todo PRODUCTION: Query KeyShardRecord for user's HSM key ID
      */
-    private const MAX_REQUESTS_PER_MINUTE = 10;
-
-    /**
-     * Rate limit window in seconds.
-     */
-    private const RATE_LIMIT_WINDOW_SECONDS = 60;
+    private function getUserSigningKeyId(User $user): string
+    {
+        // Demo: Use user UUID as key identifier
+        // Production: Query KeyShardRecord for the actual HSM key ID
+        return 'user_auth_shard_' . $user->uuid;
+    }
 
     /**
      * Check rate limiting for signing requests.

@@ -61,6 +61,48 @@ class HsmIntegrationService
         return $this->provider->getProviderName();
     }
 
+    /**
+     * Sign a message hash using ECDSA with secp256k1.
+     *
+     * @param  string  $messageHash  32-byte hash to sign (hex with 0x prefix)
+     * @param  string|null  $keyId  Optional key ID (defaults to configured key)
+     * @return string ECDSA signature in compact format (hex with 0x prefix)
+     */
+    public function sign(string $messageHash, ?string $keyId = null): string
+    {
+        $this->ensureAvailable();
+
+        return $this->provider->sign($messageHash, $keyId ?? $this->getSigningKeyId());
+    }
+
+    /**
+     * Verify an ECDSA signature.
+     *
+     * @param  string  $messageHash  32-byte hash that was signed (hex with 0x prefix)
+     * @param  string  $signature  ECDSA signature (hex with 0x prefix)
+     * @param  string  $publicKey  Public key to verify against (hex with 0x prefix)
+     * @return bool True if signature is valid
+     */
+    public function verify(string $messageHash, string $signature, string $publicKey): bool
+    {
+        $this->ensureAvailable();
+
+        return $this->provider->verify($messageHash, $signature, $publicKey);
+    }
+
+    /**
+     * Get the public key for signing operations.
+     *
+     * @param  string|null  $keyId  Optional key ID (defaults to configured key)
+     * @return string Public key (hex with 0x prefix)
+     */
+    public function getPublicKey(?string $keyId = null): string
+    {
+        $this->ensureAvailable();
+
+        return $this->provider->getPublicKey($keyId ?? $this->getSigningKeyId());
+    }
+
     private function resolveProvider(): HsmProviderInterface
     {
         $providerType = config('keymanagement.hsm.provider', 'demo');
@@ -76,6 +118,11 @@ class HsmIntegrationService
     private function getKeyId(): string
     {
         return config('keymanagement.hsm.key_id', 'default');
+    }
+
+    private function getSigningKeyId(): string
+    {
+        return config('keymanagement.hsm.signing_key_id', 'signing-default');
     }
 
     private function ensureAvailable(): void

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Relayer\Services;
 
+use App\Domain\KeyManagement\HSM\HsmIntegrationService;
 use App\Domain\Relayer\Exceptions\UserOpSigningException;
 use App\Domain\Relayer\Services\UserOperationSigningService;
 use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 class UserOperationSigningServiceTest extends TestCase
@@ -23,7 +25,11 @@ class UserOperationSigningServiceTest extends TestCase
         parent::setUp();
 
         Cache::flush();
-        $this->service = new UserOperationSigningService();
+        RateLimiter::clear('userop_signing:' . ($this->user->id ?? ''));
+
+        // Create service with HSM integration
+        $hsm = new HsmIntegrationService();
+        $this->service = new UserOperationSigningService($hsm);
         $this->user ??= User::factory()->create();
     }
 
