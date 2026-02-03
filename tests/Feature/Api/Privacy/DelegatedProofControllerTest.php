@@ -228,17 +228,20 @@ class DelegatedProofControllerTest extends TestCase
                 'encrypted_private_inputs' => str_repeat('c', 64),
             ]);
 
-        $this->withToken($this->token)
+        $createResponse2 = $this->withToken($this->token)
             ->postJson('/api/v1/privacy/delegated-proof', [
                 'proof_type'    => 'unshield_2_1',
                 'network'       => 'base',
                 'public_inputs' => [
                     'nullifier'   => '0x' . str_repeat('b', 64),
-                    'merkle_path' => [],
+                    'merkle_path' => '0x' . str_repeat('e', 64),
                     'merkle_root' => '0x' . str_repeat('c', 64),
                 ],
                 'encrypted_private_inputs' => str_repeat('d', 64),
             ]);
+
+        // Verify second job was created
+        $createResponse2->assertOk();
 
         $response = $this->withToken($this->token)
             ->getJson('/api/v1/privacy/delegated-proofs');
