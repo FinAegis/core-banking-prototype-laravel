@@ -8,7 +8,6 @@ use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Contracts\PaymasterInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Services\GasStationService;
-use App\Domain\Relayer\ValueObjects\UserOperation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Mockery;
@@ -32,8 +31,13 @@ class GasStationServiceTest extends TestCase
 
         Event::fake();
 
-        $this->paymaster = Mockery::mock(PaymasterInterface::class);
-        $this->bundler = Mockery::mock(BundlerInterface::class);
+        /** @var PaymasterInterface&MockInterface $paymaster */
+        $paymaster = Mockery::mock(PaymasterInterface::class);
+        $this->paymaster = $paymaster;
+
+        /** @var BundlerInterface&MockInterface $bundler */
+        $bundler = Mockery::mock(BundlerInterface::class);
+        $this->bundler = $bundler;
         $this->service = new GasStationService($this->paymaster, $this->bundler);
     }
 

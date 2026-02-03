@@ -26,21 +26,21 @@ class MobileDeviceFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'          => User::factory(),
-            'device_id'        => 'device_' . Str::uuid()->toString(),
-            'platform'         => $this->faker->randomElement(['ios', 'android']),
-            'push_token'       => 'fcm_' . Str::random(150),
-            'device_name'      => $this->faker->randomElement(['iPhone 15 Pro', 'Pixel 8', 'Galaxy S24']),
-            'device_model'     => $this->faker->randomElement(['iPhone15,3', 'Pixel8', 'SM-S928B']),
-            'os_version'       => $this->faker->randomElement(['17.0', '14', '15']),
-            'app_version'      => '1.0.0',
-            'biometric_enabled' => false,
+            'user_id'              => User::factory(),
+            'device_id'            => 'device_' . Str::uuid()->toString(),
+            'platform'             => $this->faker->randomElement(['ios', 'android']),
+            'push_token'           => 'fcm_' . Str::random(150),
+            'device_name'          => $this->faker->randomElement(['iPhone 15 Pro', 'Pixel 8', 'Galaxy S24']),
+            'device_model'         => $this->faker->randomElement(['iPhone15,3', 'Pixel8', 'SM-S928B']),
+            'os_version'           => $this->faker->randomElement(['17.0', '14', '15']),
+            'app_version'          => '1.0.0',
+            'biometric_enabled'    => false,
             'biometric_public_key' => null,
-            'biometric_key_id' => null,
-            'last_active_at'   => now(),
-            'is_trusted'       => false,
-            'is_blocked'       => false,
-            'metadata'         => [],
+            'biometric_key_id'     => null,
+            'last_active_at'       => now(),
+            'is_trusted'           => false,
+            'is_blocked'           => false,
+            'metadata'             => [],
         ];
     }
 
@@ -74,9 +74,9 @@ class MobileDeviceFactory extends Factory
     public function blocked(string $reason = 'Security violation'): static
     {
         return $this->state(fn (array $attributes) => [
-            'is_blocked'      => true,
-            'blocked_at'      => now(),
-            'blocked_reason'  => $reason,
+            'is_blocked'     => true,
+            'blocked_at'     => now(),
+            'blocked_reason' => $reason,
         ]);
     }
 

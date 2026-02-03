@@ -36,11 +36,11 @@ class BiometricJWTServiceTest extends TestCase
         $this->user = User::factory()->create();
 
         $this->device = MobileDevice::factory()->create([
-            'user_id'          => $this->user->id,
-            'biometric_enabled' => true,
+            'user_id'              => $this->user->id,
+            'biometric_enabled'    => true,
             'biometric_public_key' => 'test_public_key_base64_encoded',
-            'biometric_key_id' => 'test_key_id',
-            'is_trusted'       => true,
+            'biometric_key_id'     => 'test_key_id',
+            'is_trusted'           => true,
         ]);
 
         $this->session = MobileDeviceSession::create([
@@ -148,7 +148,9 @@ class BiometricJWTServiceTest extends TestCase
         $this->expectExceptionMessage('Invalid JWT signature');
 
         // Tampered token won't pass signature check
-        $parts[1] = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');
+        $encodedPayload = json_encode($payload);
+        $this->assertIsString($encodedPayload);
+        $parts[1] = rtrim(strtr(base64_encode($encodedPayload), '+/', '-_'), '=');
         $expiredToken = implode('.', $parts);
 
         $this->service->decodeToken($expiredToken);
@@ -160,6 +162,8 @@ class BiometricJWTServiceTest extends TestCase
 
         // Get the JTI and revoke it
         $claims = $this->service->decodeToken($token);
+        $this->assertIsArray($claims);
+        $this->assertArrayHasKey('jti', $claims);
         $this->service->revokeToken($claims['jti']);
 
         // Token should now be rejected
@@ -244,6 +248,9 @@ class BiometricJWTServiceTest extends TestCase
         $token = $this->service->generateToken($this->user, $this->device, $this->session);
         $claims = $this->service->decodeToken($token);
 
+        $this->assertIsArray($claims);
+        $this->assertArrayHasKey('claims', $claims);
+        $this->assertIsArray($claims['claims']);
         $this->assertEquals($this->device->device_id, $claims['claims']['device_fingerprint']);
         $this->assertEquals($this->device->biometric_key_id, $claims['claims']['biometric_key_id']);
         $this->assertEquals($this->device->is_trusted, $claims['claims']['is_trusted_device']);

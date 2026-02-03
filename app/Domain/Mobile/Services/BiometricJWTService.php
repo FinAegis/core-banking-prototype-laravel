@@ -80,16 +80,16 @@ class BiometricJWTService implements BiometricJWTServiceInterface
         ];
 
         $payload = [
-            'iss' => config('app.name', 'FinAegis'),
-            'sub' => $user->uuid,
-            'aud' => 'userop_signing',
-            'iat' => $now->getTimestamp(),
-            'exp' => $exp->getTimestamp(),
-            'jti' => bin2hex(random_bytes(16)),
+            'iss'    => config('app.name', 'FinAegis'),
+            'sub'    => $user->uuid,
+            'aud'    => 'userop_signing',
+            'iat'    => $now->getTimestamp(),
+            'exp'    => $exp->getTimestamp(),
+            'jti'    => bin2hex(random_bytes(16)),
             'claims' => [
-                'user_id'    => $user->id,
-                'device_id'  => $device->id,
-                'session_id' => $session->id,
+                'user_id'            => $user->id,
+                'device_id'          => $device->id,
+                'session_id'         => $session->id,
                 'device_fingerprint' => $device->device_id,
                 'biometric_key_id'   => $device->biometric_key_id,
                 'is_trusted_device'  => $device->is_trusted,
@@ -143,6 +143,7 @@ class BiometricJWTService implements BiometricJWTServiceInterface
 
             // Verify session is still valid
             if (isset($claims['claims']['session_id'])) {
+                /** @var MobileDeviceSession|null $session */
                 $session = MobileDeviceSession::find($claims['claims']['session_id']);
                 if ($session === null || $session->isExpired() || $session->user_id !== $user->id) {
                     Log::warning('Biometric JWT session invalid', [

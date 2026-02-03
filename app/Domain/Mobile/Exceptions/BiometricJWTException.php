@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Mobile\Exceptions;
 
 use RuntimeException;
+use Throwable;
 
 /**
  * Exception thrown for Biometric JWT verification failures.
@@ -12,17 +13,24 @@ use RuntimeException;
 class BiometricJWTException extends RuntimeException
 {
     public const CODE_INVALID_TOKEN = 'ERR_BIOMETRIC_JWT_001';
+
     public const CODE_EXPIRED_TOKEN = 'ERR_BIOMETRIC_JWT_002';
+
     public const CODE_INVALID_SIGNATURE = 'ERR_BIOMETRIC_JWT_003';
+
     public const CODE_INVALID_CLAIMS = 'ERR_BIOMETRIC_JWT_004';
+
     public const CODE_DEVICE_MISMATCH = 'ERR_BIOMETRIC_JWT_005';
+
     public const CODE_USER_MISMATCH = 'ERR_BIOMETRIC_JWT_006';
+
     public const CODE_SESSION_INVALID = 'ERR_BIOMETRIC_JWT_007';
+
     public const CODE_ATTESTATION_FAILED = 'ERR_BIOMETRIC_JWT_008';
 
     public readonly string $errorCode;
 
-    public function __construct(string $message, string $errorCode, ?\Throwable $previous = null)
+    public function __construct(string $message, string $errorCode, ?Throwable $previous = null)
     {
         $this->errorCode = $errorCode;
         parent::__construct($message, 0, $previous);
