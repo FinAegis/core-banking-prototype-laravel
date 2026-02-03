@@ -51,9 +51,14 @@ class RelayerServiceProvider extends ServiceProvider
         // Bind the UserOperation signer interface for auth shard signing
         // Integrates with HSM and BiometricJWT for production-ready signing
         $this->app->bind(UserOperationSignerInterface::class, function ($app) {
+            // Only inject JWT service when strict mode is enabled
+            $jwtService = config('mobile.biometric_jwt.strict_mode', false)
+                ? $app->make(BiometricJWTServiceInterface::class)
+                : null;
+
             return new UserOperationSigningService(
                 $app->make(HsmIntegrationService::class),
-                $app->make(BiometricJWTServiceInterface::class)
+                $jwtService
             );
         });
     }
