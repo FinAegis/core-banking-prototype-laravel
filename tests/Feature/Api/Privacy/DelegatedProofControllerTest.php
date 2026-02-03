@@ -53,7 +53,7 @@ class DelegatedProofControllerTest extends TestCase
             'proof_type'               => 'shield_1_1',
             'network'                  => 'polygon',
             'public_inputs'            => ['amount' => '1000000'],
-            'encrypted_private_inputs' => 'encrypted_data',
+            'encrypted_private_inputs' => str_repeat('a', 64),
         ]);
 
         $response->assertUnauthorized();
@@ -74,7 +74,7 @@ class DelegatedProofControllerTest extends TestCase
                 'proof_type'               => 'invalid_type',
                 'network'                  => 'polygon',
                 'public_inputs'            => ['amount' => '1000000'],
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         $response->assertUnprocessable();
@@ -87,7 +87,7 @@ class DelegatedProofControllerTest extends TestCase
                 'proof_type'               => 'shield_1_1',
                 'network'                  => 'invalid_network',
                 'public_inputs'            => ['amount' => '1000000'],
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         $response->assertUnprocessable();
@@ -104,7 +104,7 @@ class DelegatedProofControllerTest extends TestCase
                     'token'                => 'USDC',
                     'recipient_commitment' => '0x' . str_repeat('a', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data_here',
+                'encrypted_private_inputs' => str_repeat('b', 64),
             ]);
 
         $response->assertOk()
@@ -129,7 +129,7 @@ class DelegatedProofControllerTest extends TestCase
                 'proof_type'               => 'shield_1_1',
                 'network'                  => 'polygon',
                 'public_inputs'            => ['amount' => '1000000'], // Missing token and recipient_commitment
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         $response->assertStatus(400)
@@ -155,7 +155,7 @@ class DelegatedProofControllerTest extends TestCase
                     'token'                => 'USDC',
                     'recipient_commitment' => '0x' . str_repeat('a', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         $jobId = $createResponse->json('data.job_id');
@@ -199,7 +199,7 @@ class DelegatedProofControllerTest extends TestCase
                     'token'                => 'USDC',
                     'recipient_commitment' => '0x' . str_repeat('a', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         $jobId = $createResponse->json('data.job_id');
@@ -225,7 +225,7 @@ class DelegatedProofControllerTest extends TestCase
                     'token'                => 'USDC',
                     'recipient_commitment' => '0x' . str_repeat('a', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data_1',
+                'encrypted_private_inputs' => str_repeat('c', 64),
             ]);
 
         $this->withToken($this->token)
@@ -237,7 +237,7 @@ class DelegatedProofControllerTest extends TestCase
                     'merkle_path' => [],
                     'merkle_root' => '0x' . str_repeat('c', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data_2',
+                'encrypted_private_inputs' => str_repeat('d', 64),
             ]);
 
         $response = $this->withToken($this->token)
@@ -260,7 +260,7 @@ class DelegatedProofControllerTest extends TestCase
                     'token'                => 'USDC',
                     'recipient_commitment' => '0x' . str_repeat('a', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         // Mark one as completed directly
@@ -299,7 +299,7 @@ class DelegatedProofControllerTest extends TestCase
                     'token'                => 'USDC',
                     'recipient_commitment' => '0x' . str_repeat('a', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         $jobId = $createResponse->json('data.job_id');
@@ -328,7 +328,7 @@ class DelegatedProofControllerTest extends TestCase
                     'token'                => 'USDC',
                     'recipient_commitment' => '0x' . str_repeat('a', 64),
                 ],
-                'encrypted_private_inputs' => 'encrypted_data',
+                'encrypted_private_inputs' => str_repeat('a', 64),
             ]);
 
         $jobId = $createResponse->json('data.job_id');
