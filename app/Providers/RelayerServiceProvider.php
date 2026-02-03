@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\KeyManagement\HSM\HsmIntegrationService;
+use App\Domain\Mobile\Contracts\BiometricJWTServiceInterface;
+use App\Domain\Mobile\Services\BiometricJWTService;
 use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Contracts\PaymasterInterface;
 use App\Domain\Relayer\Contracts\SmartAccountFactoryInterface;
@@ -25,6 +28,8 @@ class RelayerServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Bind BiometricJWTService for mobile authentication
+        $this->app->bind(BiometricJWTServiceInterface::class, BiometricJWTService::class);
         // Bind the bundler interface to the demo implementation
         // For production, create AlchemyBundlerService, PimlicoBundlerService, etc.
         $this->app->bind(BundlerInterface::class, function ($app) {
@@ -44,9 +49,12 @@ class RelayerServiceProvider extends ServiceProvider
         });
 
         // Bind the UserOperation signer interface for auth shard signing
-        // For production, integrate with HSM-backed key management
+        // Integrates with HSM and BiometricJWT for production-ready signing
         $this->app->bind(UserOperationSignerInterface::class, function ($app) {
-            return new UserOperationSigningService();
+            return new UserOperationSigningService(
+                $app->make(HsmIntegrationService::class),
+                $app->make(BiometricJWTServiceInterface::class)
+            );
         });
     }
 

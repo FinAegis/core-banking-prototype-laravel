@@ -81,6 +81,60 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Biometric JWT Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Settings for JWT-based biometric authentication tokens.
+    | These tokens are used for UserOperation signing in the Relayer domain.
+    |
+    */
+
+    'biometric_jwt' => [
+        // Secret key for HMAC-SHA256 signing (min 32 bytes)
+        // PRODUCTION: Set BIOMETRIC_JWT_SECRET in .env
+        'secret' => env('BIOMETRIC_JWT_SECRET'),
+
+        // Token lifetime in seconds (default: 5 minutes)
+        'ttl_seconds' => env('BIOMETRIC_JWT_TTL', 300),
+
+        // Enable strict JWT verification (disable for demo mode)
+        'strict_mode' => env('BIOMETRIC_JWT_STRICT', false),
+
+        // Revoked token cache TTL in hours
+        'revoked_cache_hours' => env('BIOMETRIC_JWT_REVOKED_TTL', 24),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Device Attestation Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Settings for mobile device attestation verification.
+    | Production: Requires Apple App Attest / Google Play Integrity
+    |
+    */
+
+    'attestation' => [
+        // Enable device attestation verification
+        'enabled' => env('MOBILE_ATTESTATION_ENABLED', false),
+
+        // Apple App Attest settings
+        'apple' => [
+            'team_id'     => env('APPLE_TEAM_ID'),
+            'bundle_id'   => env('APPLE_BUNDLE_ID'),
+            'environment' => env('APPLE_ATTESTATION_ENV', 'production'),
+        ],
+
+        // Google Play Integrity settings
+        'google' => [
+            'package_name'     => env('GOOGLE_PACKAGE_NAME'),
+            'decryption_key'   => env('GOOGLE_INTEGRITY_DECRYPTION_KEY'),
+            'verification_key' => env('GOOGLE_INTEGRITY_VERIFICATION_KEY'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Security Configuration
     |--------------------------------------------------------------------------
     |

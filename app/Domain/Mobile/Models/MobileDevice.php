@@ -50,6 +50,11 @@ class MobileDevice extends Model
     use HasFactory;
     use HasUuids;
 
+    protected static function newFactory(): \Database\Factories\MobileDeviceFactory
+    {
+        return \Database\Factories\MobileDeviceFactory::new();
+    }
+
     protected $fillable = [
         'user_id',
         'device_id',
