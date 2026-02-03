@@ -11,10 +11,14 @@ use App\Domain\Relayer\Contracts\BundlerInterface;
 use App\Domain\Relayer\Contracts\PaymasterInterface;
 use App\Domain\Relayer\Contracts\SmartAccountFactoryInterface;
 use App\Domain\Relayer\Contracts\UserOperationSignerInterface;
+use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
 use App\Domain\Relayer\Services\DemoBundlerService;
 use App\Domain\Relayer\Services\DemoPaymasterService;
 use App\Domain\Relayer\Services\DemoSmartAccountFactory;
+use App\Domain\Relayer\Services\DemoWalletBalanceService;
+use App\Domain\Relayer\Services\GasStationService;
 use App\Domain\Relayer\Services\UserOperationSigningService;
+use App\Domain\Relayer\Services\WalletBalanceService;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -30,6 +34,26 @@ class RelayerServiceProvider extends ServiceProvider
     {
         // Bind BiometricJWTService for mobile authentication
         $this->app->bind(BiometricJWTServiceInterface::class, BiometricJWTService::class);
+
+        // Bind the wallet balance provider based on configuration
+        $this->app->bind(WalletBalanceProviderInterface::class, function ($app) {
+            $provider = config('relayer.balance_checking.provider', 'demo');
+
+            return match ($provider) {
+                'demo'  => new DemoWalletBalanceService(),
+                default => new WalletBalanceService(),
+            };
+        });
+
+        // Bind GasStationService with balance provider
+        $this->app->bind(GasStationService::class, function ($app) {
+            return new GasStationService(
+                $app->make(PaymasterInterface::class),
+                $app->make(BundlerInterface::class),
+                $app->make(WalletBalanceProviderInterface::class)
+            );
+        });
+
         // Bind the bundler interface to the demo implementation
         // For production, create AlchemyBundlerService, PimlicoBundlerService, etc.
         $this->app->bind(BundlerInterface::class, function ($app) {

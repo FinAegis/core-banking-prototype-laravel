@@ -165,4 +165,57 @@ return [
         'api_key'     => env('PIMLICO_API_KEY'),
         'bundler_url' => env('PIMLICO_BUNDLER_URL'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Balance Checking Configuration (v2.7.0)
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for ERC-20 balance checking via RPC providers.
+    |
+    */
+
+    'balance_checking' => [
+        // Provider: 'demo', 'alchemy', 'infura', 'custom'
+        'provider' => env('BALANCE_PROVIDER', 'demo'),
+
+        // Cache TTL in seconds
+        'cache_ttl_seconds' => (int) env('BALANCE_CACHE_TTL', 30),
+
+        // Alchemy configuration
+        'alchemy_api_key' => env('ALCHEMY_API_KEY'),
+
+        // Infura configuration
+        'infura_project_id' => env('INFURA_PROJECT_ID'),
+
+        // Custom RPC URLs per network
+        'custom_rpc' => [
+            'polygon'  => env('CUSTOM_RPC_POLYGON'),
+            'base'     => env('CUSTOM_RPC_BASE'),
+            'arbitrum' => env('CUSTOM_RPC_ARBITRUM'),
+            'optimism' => env('CUSTOM_RPC_OPTIMISM'),
+            'ethereum' => env('CUSTOM_RPC_ETHEREUM'),
+        ],
+
+        // Token contract addresses (can override defaults)
+        'tokens' => [
+            'USDC' => [
+                'polygon'  => env('USDC_POLYGON', '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'),
+                'base'     => env('USDC_BASE', '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'),
+                'arbitrum' => env('USDC_ARBITRUM', '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'),
+                'optimism' => env('USDC_OPTIMISM', '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85'),
+                'ethereum' => env('USDC_ETHEREUM', '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
+            ],
+            'USDT' => [
+                'polygon'  => env('USDT_POLYGON', '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'),
+                'ethereum' => env('USDT_ETHEREUM', '0xdAC17F958D2ee523a2206206994597C13D831ec7'),
+                'arbitrum' => env('USDT_ARBITRUM', '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'),
+            ],
+        ],
+
+        // Demo mode balances (for testing)
+        'demo_balances' => [
+            // Example: '0x123...' => ['USDC' => '1000.000000', 'USDT' => '500.000000']
+        ],
+    ],
 ];
