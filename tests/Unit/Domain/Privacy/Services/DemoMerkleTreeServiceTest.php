@@ -117,7 +117,7 @@ class DemoMerkleTreeServiceTest extends TestCase
 
         $leafIndex = $this->service->addDemoCommitment($newCommitment, 'polygon');
 
-        $this->assertIsInt($leafIndex);
+        // leafIndex is typed as int in the method signature
         $this->assertGreaterThanOrEqual(0, $leafIndex);
 
         // Should now be able to get the path

@@ -138,8 +138,11 @@ class MerkleRootUpdatedTest extends TestCase
 
     public function test_event_is_dispatchable(): void
     {
-        $this->assertTrue(
-            method_exists(MerkleRootUpdated::class, 'dispatch'),
+        // Verify the class uses the Dispatchable trait
+        $uses = class_uses_recursive(MerkleRootUpdated::class);
+        $this->assertContains(
+            \Illuminate\Foundation\Events\Dispatchable::class,
+            $uses,
             'Event should use Dispatchable trait'
         );
     }

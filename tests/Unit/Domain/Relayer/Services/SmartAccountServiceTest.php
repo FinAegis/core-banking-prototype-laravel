@@ -28,7 +28,9 @@ class SmartAccountServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->factory = Mockery::mock(SmartAccountFactoryInterface::class);
+        /** @var SmartAccountFactoryInterface&MockInterface $factory */
+        $factory = Mockery::mock(SmartAccountFactoryInterface::class);
+        $this->factory = $factory;
         $this->service = new SmartAccountService($this->factory);
         $this->user = User::factory()->create();
     }
