@@ -75,11 +75,11 @@ class RelayerController extends Controller
         // Max lengths: call_data 50KB (100000 hex chars), signature 132 chars (65 bytes), init_code 20KB
         $validated = $request->validate([
             'user_address' => 'required|string|regex:/^0x[a-fA-F0-9]{40}$/',
-            'call_data'    => ['required', 'string', 'regex:/^0x[a-fA-F0-9]+$/', 'max:100002'],
+            'call_data'    => ['required', 'string', 'regex:/^0x[a-fA-F0-9]*$/', 'max:100002'],
             'signature'    => ['required', 'string', 'regex:/^0x[a-fA-F0-9]+$/', 'min:4', 'max:1000'],
             'network'      => 'nullable|string|in:polygon,arbitrum,optimism,base,ethereum',
             'fee_token'    => 'nullable|string|in:USDC,USDT',
-            'init_code'    => ['nullable', 'string', 'regex:/^0x[a-fA-F0-9]+$/', 'max:40002'],
+            'init_code'    => ['nullable', 'string', 'regex:/^0x[a-fA-F0-9]*$/', 'max:40002'],
         ]);
 
         try {
