@@ -24,13 +24,14 @@ class UserOperationSigningServiceTest extends TestCase
     {
         parent::setUp();
 
+        $this->user ??= User::factory()->create();
+
         Cache::flush();
-        RateLimiter::clear('userop_signing:' . ($this->user->id ?? ''));
+        RateLimiter::clear('userop_signing:' . $this->user->id);
 
         // Create service with HSM integration
         $hsm = new HsmIntegrationService();
         $this->service = new UserOperationSigningService($hsm);
-        $this->user ??= User::factory()->create();
     }
 
     /**
