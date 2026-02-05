@@ -110,7 +110,7 @@ app/Domain/
 - Queue-based processing for heavy operations
 - Horizontal scaling support
 
-## Current Development Focus (v1.2.0)
+## Current Development Focus (v2.7.0)
 - **Agent Protocol Integration**: Payment, Compliance, and MCP bridges
 - **Treasury Yield Optimization**: Complete the portfolio optimization system
 - **Production Observability**: Grafana dashboards, alerting rules

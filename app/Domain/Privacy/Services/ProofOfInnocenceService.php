@@ -157,11 +157,16 @@ class ProofOfInnocenceService
 
     private function generateUserCommitment(string $userId): string
     {
-        return hash('sha256', 'user_commitment:' . $userId . ':' . time());
+        // Use cryptographic nonce instead of predictable time()
+        $nonce = bin2hex(random_bytes(16));
+
+        return hash('sha256', 'user_commitment:' . $userId . ':' . $nonce);
     }
 
     private function generateTransactionCommitment(string $transactionId): string
     {
-        return hash('sha256', 'tx_commitment:' . $transactionId);
+        $nonce = bin2hex(random_bytes(16));
+
+        return hash('sha256', 'tx_commitment:' . $transactionId . ':' . $nonce);
     }
 }

@@ -67,6 +67,25 @@ class MerkleTreeService implements MerkleTreeServiceInterface
 
     public function verifyCommitment(string $commitment, MerklePath $path): bool
     {
+        // Validate commitment format (32-byte hex with 0x prefix)
+        if (! preg_match('/^0x[a-fA-F0-9]{64}$/', $commitment)) {
+            return false;
+        }
+
+        // Validate all siblings in the path
+        foreach ($path->siblings as $sibling) {
+            if (! preg_match('/^0x[a-fA-F0-9]{64}$/', $sibling)) {
+                return false;
+            }
+        }
+
+        // Validate path indices only contain 0 or 1
+        foreach ($path->pathIndices as $index) {
+            if ($index !== 0 && $index !== 1) {
+                return false;
+            }
+        }
+
         // Verify the path length matches tree depth
         if (! $path->isValidForDepth($this->getTreeDepth())) {
             return false;
@@ -183,8 +202,21 @@ class MerkleTreeService implements MerkleTreeServiceInterface
 
     private function hashPair(string $left, string $right): string
     {
+        // Sort inputs for consistent ordering (prevents second-preimage attacks)
+        if (strcmp($left, $right) > 0) {
+            [$left, $right] = [$right, $left];
+        }
+
+        // Domain separation prefix prevents cross-level collision attacks
+        $leftBin = hex2bin(substr($left, 2));
+        $rightBin = hex2bin(substr($right, 2));
+
+        if ($leftBin === false || $rightBin === false) {
+            throw new RuntimeException('Invalid hex input for Merkle hash');
+        }
+
         // Poseidon hash would be used in production
-        // Using keccak256 as placeholder
-        return '0x' . hash('sha3-256', hex2bin(substr($left, 2)) . hex2bin(substr($right, 2)));
+        // Using sha3-256 as placeholder with domain separation
+        return '0x' . hash('sha3-256', 'merkle_node:' . $leftBin . $rightBin);
     }
 }

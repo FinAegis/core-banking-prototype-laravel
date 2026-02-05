@@ -10,6 +10,7 @@ use App\Domain\Commerce\Events\SoulboundTokenIssued;
 use App\Domain\Commerce\Events\SoulboundTokenRevoked;
 use App\Domain\Commerce\ValueObjects\SoulboundToken;
 use DateTimeImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
@@ -178,6 +179,8 @@ class SoulboundTokenService implements TokenIssuerInterface
 
     /**
      * Revoke a token.
+     *
+     * Persists revocation in cache to survive process restarts.
      */
     public function revokeToken(string $tokenId, string $reason): bool
     {
@@ -187,10 +190,14 @@ class SoulboundTokenService implements TokenIssuerInterface
 
         $revokedAt = new DateTimeImmutable();
 
-        $this->revocationList[$tokenId] = [
+        $revocationData = [
             'reason'     => $reason,
             'revoked_at' => $revokedAt->format('c'),
         ];
+
+        // Persist in both memory and cache
+        $this->revocationList[$tokenId] = $revocationData;
+        Cache::put("sbt_revoked:{$tokenId}", $revocationData);
 
         Event::dispatch(new SoulboundTokenRevoked(
             tokenId: $tokenId,
@@ -203,10 +210,13 @@ class SoulboundTokenService implements TokenIssuerInterface
 
     /**
      * Check if a token is revoked.
+     *
+     * Checks both in-memory cache and persistent cache store.
      */
     public function isRevoked(string $tokenId): bool
     {
-        return isset($this->revocationList[$tokenId]);
+        return isset($this->revocationList[$tokenId])
+            || Cache::has("sbt_revoked:{$tokenId}");
     }
 
     /**
@@ -216,11 +226,14 @@ class SoulboundTokenService implements TokenIssuerInterface
      */
     public function getRevocationDetails(string $tokenId): ?array
     {
-        return $this->revocationList[$tokenId] ?? null;
+        return $this->revocationList[$tokenId]
+            ?? Cache::get("sbt_revoked:{$tokenId}");
     }
 
     /**
-     * Calculate token hash for verification.
+     * Calculate HMAC token hash for verification.
+     *
+     * Includes all token fields to prevent undetected modification.
      */
     private function calculateTokenHash(SoulboundToken $token): string
     {
@@ -230,8 +243,13 @@ class SoulboundTokenService implements TokenIssuerInterface
             'issuer_id'    => $token->issuerId,
             'recipient_id' => $token->recipientId,
             'issued_at'    => $token->issuedAt->format('c'),
+            'metadata'     => $token->metadata,
         ];
 
-        return hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
+        if ($token->expiresAt !== null) {
+            $data['expires_at'] = $token->expiresAt->format('c');
+        }
+
+        return hash_hmac('sha256', json_encode($data, JSON_THROW_ON_ERROR), config('app.key'));
     }
 }

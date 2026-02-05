@@ -94,14 +94,15 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 
 ## Platform Status
 
-- **Version**: 2.6.0 (Privacy Layer & ERC-4337 Relayer)
+- **Version**: 2.6.0 (Privacy Layer & ERC-4337 Relayer with Security Enhancements)
 - **Status**: Demonstration Prototype
-- **Last Updated**: February 2, 2026
+- **Last Updated**: February 5, 2026
 
 ### Current Release Features (v2.6.0)
-- **Privacy Pool**: Merkle Tree infrastructure, Delegated proof generation
-- **Relayer**: ERC-4337 Smart Accounts, Gas abstraction, UserOp signing
-- **Mobile Support**: SRS manifest for ZK circuits, WebSocket Merkle updates
+- **Privacy Pool**: Merkle Tree infrastructure with domain separation, Delegated proof generation
+- **Relayer**: ERC-4337 Smart Accounts, Gas abstraction, UserOp signing with Biometric JWT verification, Production-ready balance checking
+- **Mobile Support**: SRS manifest for ZK circuits, WebSocket Merkle updates, Biometric authentication for UserOp signing
+- **Security**: Comprehensive audit hardening, encrypted private inputs, HMAC-verified SBTs
 
 ### Previous Releases
 - v2.5.0: Mobile App Launch (Expo/React Native, separate repository)

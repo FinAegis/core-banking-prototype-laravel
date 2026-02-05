@@ -189,7 +189,9 @@ class GasStationService
      * Check if user has sufficient stablecoin balance.
      *
      * Uses WalletBalanceProvider in production mode to query actual ERC-20 balances.
-     * Falls back to demo mode (always true) if provider not available.
+     * Falls back to demo mode with a warning if provider not available.
+     *
+     * @throws RuntimeException if balance provider is missing in production
      */
     private function hasSufficientBalance(
         string $userAddress,
@@ -202,11 +204,23 @@ class GasStationService
             return $this->balanceProvider->hasBalance($userAddress, $token, $amount, $network);
         }
 
-        // Demo mode: Always return true
-        Log::debug('Using demo balance check (always true)', [
-            'user'   => $userAddress,
-            'token'  => $token,
-            'amount' => $amount,
+        // Reject in production environment without a balance provider
+        if (app()->environment('production')) {
+            Log::critical('Balance provider not configured in production environment', [
+                'user'   => $userAddress,
+                'token'  => $token,
+                'amount' => $amount,
+            ]);
+
+            throw new RuntimeException('Balance verification unavailable. Contact support.');
+        }
+
+        // Demo mode: Allow in non-production with warning
+        Log::warning('Using demo balance check (always true) - NOT suitable for production', [
+            'user'        => $userAddress,
+            'token'       => $token,
+            'amount'      => $amount,
+            'environment' => app()->environment(),
         ]);
 
         return true;

@@ -57,9 +57,10 @@ class DelegatedProofJob extends Model
     ];
 
     protected $casts = [
-        'public_inputs'     => 'array',
-        'progress'          => 'integer',
-        'estimated_seconds' => 'integer',
+        'public_inputs'            => 'array',
+        'encrypted_private_inputs' => 'encrypted',
+        'progress'                 => 'integer',
+        'estimated_seconds'        => 'integer',
     ];
 
     /**

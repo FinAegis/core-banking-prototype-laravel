@@ -21,7 +21,7 @@ git status && git branch --show-current
 | Version | Status | Key Changes |
 |---------|--------|-------------|
 | v2.7.0 | 📋 Planned | AI Query Endpoints, RegTech Adapters, SDK Generation, BaaS Implementation |
-| v2.6.0 | ✅ Released | Privacy Layer & ERC-4337: Merkle Trees, Smart Accounts, Delegated Proofs, UserOp Signing |
+| v2.6.0 | ✅ Released | Privacy Layer & ERC-4337: Merkle Trees, Smart Accounts, Delegated Proofs, UserOp Signing with Biometric JWT, Production-Ready Gas Station |
 | v2.5.0 | ✅ Released | Mobile App Launch (Expo/React Native, separate repo) |
 | v2.4.0 | ✅ Released | Privacy & Identity: Key Management, Privacy Layer, Commerce, TrustCert |
 | v2.3.0 | ✅ Released | AI Framework, RegTech Foundation, BaaS Configuration |
@@ -133,6 +133,8 @@ app/
 | Smart Accounts | `SmartAccountService` (Relayer) |
 | Gas Station | `GasStationService` (Relayer) |
 | UserOp Signing | `UserOperationSigningService` (Relayer) |
+| Wallet Balance | `WalletBalanceService` (Relayer) |
+| Biometric JWT | `BiometricJWTService` (Mobile) |
 | Merkle Trees | `MerkleTreeService` (Privacy) |
 | Delegated Proofs | `DelegatedProofService` (Privacy) |
 | SRS Manifest | `SrsManifestService` (Privacy) |

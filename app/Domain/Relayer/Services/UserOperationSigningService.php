@@ -13,6 +13,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -119,7 +120,9 @@ class UserOperationSigningService implements UserOperationSignerInterface
      * - User binding (sub claim matches user UUID)
      * - Session validity (session still active and not expired)
      *
-     * In demo mode (without BiometricJWTService), falls back to length check.
+     * In demo mode (without BiometricJWTService), requires HMAC-signed demo token.
+     *
+     * @throws RuntimeException if JWT service is missing in production
      */
     public function verifyBiometricToken(User $user, string $biometricToken): bool
     {
@@ -132,13 +135,24 @@ class UserOperationSigningService implements UserOperationSignerInterface
             return $this->jwtService->verifyToken($user, $biometricToken);
         }
 
-        // Demo mode: Accept tokens with minimum length
-        // WARNING: This is NOT secure and only for development/testing
-        Log::debug('Using demo biometric verification (length check only)', [
-            'user_id' => $user->id,
+        // Reject in production environment without JWT service
+        if (app()->environment('production')) {
+            Log::critical('BiometricJWTService not configured in production', [
+                'user_id' => $user->id,
+            ]);
+
+            throw new RuntimeException('Biometric verification unavailable.');
+        }
+
+        // Demo mode: Verify using HMAC signature with app key
+        Log::warning('Using demo biometric verification - NOT suitable for production', [
+            'user_id'     => $user->id,
+            'environment' => app()->environment(),
         ]);
 
-        return strlen($biometricToken) >= 32;
+        $expectedToken = hash_hmac('sha256', 'demo_biometric:' . $user->id, config('app.key'));
+
+        return hash_equals($expectedToken, $biometricToken);
     }
 
     /**

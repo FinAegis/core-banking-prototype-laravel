@@ -6,12 +6,14 @@ use App\Domain\Commerce\Enums\TokenType;
 use App\Domain\Commerce\Events\SoulboundTokenIssued;
 use App\Domain\Commerce\Events\SoulboundTokenRevoked;
 use App\Domain\Commerce\Services\SoulboundTokenService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 
 uses(Tests\TestCase::class);
 
 beforeEach(function (): void {
     Event::fake();
+    Cache::flush();
     $this->service = new SoulboundTokenService('test-issuer');
 });
 

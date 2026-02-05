@@ -1,7 +1,7 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.3-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
@@ -20,7 +20,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 
 | Challenge | FinAegis Solution |
 |-----------|-------------------|
-| Building financial systems from scratch | 31 production-ready domain modules |
+| Building financial systems from scratch | 37 production-ready domain modules |
 | Audit trail requirements | Event sourcing captures every state change |
 | Complex multi-step transactions | Saga pattern with automatic compensation |
 | Regulatory compliance | Built-in KYC/AML workflows |
@@ -297,7 +297,7 @@ See [Kubernetes Deployment Guide](docs/06-DEVELOPMENT/KUBERNETES.md) for details
 | **Database** | MySQL 8.0+ / MariaDB 10.3+ / PostgreSQL 13+ |
 | **Cache/Queue** | Redis, Laravel Horizon |
 | **Real-time** | Soketi (Pusher-compatible), Laravel Echo |
-| **Testing** | Pest PHP (parallel, 5,700+ tests), PHPStan Level 5 |
+| **Testing** | Pest PHP (parallel, 5,700+ tests), PHPStan Level 8 |
 | **Admin** | Filament v3 |
 | **Frontend** | Livewire, Tailwind CSS |
 | **Deployment** | Docker, Kubernetes (Helm), Istio |

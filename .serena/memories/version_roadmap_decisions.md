@@ -78,7 +78,7 @@
 
 ---
 
-## Deferred Items (with reasoning)
+## Completed Versions (Summary)\n\n- **v2.6.0** (Feb 2, 2026): Privacy Layer & ERC-4337 (Merkle Trees, Smart Accounts, Delegated Proofs, UserOp Signing with Biometric JWT, Production-Ready Gas Station)\n- **v2.5.0**: Mobile App Launch (Expo/React Native)\n- **v2.4.0**: Privacy & Identity (Key Management, ZK-KYC, Commerce, TrustCert)\n- **v2.3.0**: AI Framework, RegTech Foundation, BaaS Configuration\n- **v2.2.0**: Mobile Backend (Device Management, Biometrics, Push Notifications)\n- **v2.1.0**: Security Hardening, Hardware Wallets, WebSocket, Kubernetes\n- **v2.0.0**: Multi-Tenancy with Team-Based Isolation\n\n---\n\n## Deferred Items (with reasoning)
 
 ### Deferred to v1.2.0+
 - Multi-agent coordination service (complex, needs bridges first)
