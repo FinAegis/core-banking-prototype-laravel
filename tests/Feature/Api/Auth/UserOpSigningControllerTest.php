@@ -21,12 +21,20 @@ class UserOpSigningControllerTest extends TestCase
         $this->user ??= User::factory()->create();
     }
 
+    /**
+     * Generate a valid HMAC-signed demo biometric token for testing.
+     */
+    private function demoBiometricToken(): string
+    {
+        return hash_hmac('sha256', 'demo_biometric:' . $this->user->id, config('app.key'));
+    }
+
     public function test_signs_user_operation_successfully(): void
     {
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => '0xabcdef1234567890',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => $this->demoBiometricToken(),
         ]);
 
         $response->assertStatus(200)
@@ -51,7 +59,7 @@ class UserOpSigningControllerTest extends TestCase
         $response = $this->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => '0xabcdef1234567890',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => 'any-token-doesnt-matter-unauthenticated',
         ]);
 
         $response->assertStatus(401);
@@ -62,7 +70,7 @@ class UserOpSigningControllerTest extends TestCase
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => 'invalid_hash',
             'device_shard_proof' => '0xabcdef1234567890',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => $this->demoBiometricToken(),
         ]);
 
         $response->assertStatus(422)
@@ -74,7 +82,7 @@ class UserOpSigningControllerTest extends TestCase
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => '0xabcdef1234567890',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => $this->demoBiometricToken(),
         ]);
 
         $response->assertStatus(422)
@@ -86,7 +94,7 @@ class UserOpSigningControllerTest extends TestCase
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => 'invalid_proof',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => $this->demoBiometricToken(),
         ]);
 
         $response->assertStatus(422)
@@ -132,7 +140,7 @@ class UserOpSigningControllerTest extends TestCase
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => '0xabcdef1234567890',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => $this->demoBiometricToken(),
         ]);
 
         $response->assertStatus(200);
@@ -148,7 +156,7 @@ class UserOpSigningControllerTest extends TestCase
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => '0xabcdef1234567890',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => $this->demoBiometricToken(),
         ]);
 
         $response->assertStatus(200);
@@ -163,12 +171,14 @@ class UserOpSigningControllerTest extends TestCase
 
     public function test_rate_limits_after_10_requests(): void
     {
+        $biometricToken = $this->demoBiometricToken();
+
         // Make 10 successful requests
         for ($i = 0; $i < 10; $i++) {
             $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
                 'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
                 'device_shard_proof' => '0xabcdef1234567890',
-                'biometric_token'    => str_repeat('a', 32),
+                'biometric_token'    => $biometricToken,
             ]);
             $response->assertStatus(200);
         }
@@ -178,7 +188,7 @@ class UserOpSigningControllerTest extends TestCase
         $response = $this->actingAs($this->user)->postJson('/api/auth/sign-userop', [
             'user_op_hash'       => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             'device_shard_proof' => '0xabcdef1234567890',
-            'biometric_token'    => str_repeat('a', 32),
+            'biometric_token'    => $biometricToken,
         ]);
 
         $response->assertStatus(429);

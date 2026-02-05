@@ -33,11 +33,21 @@ class UserOperationSigningServiceTest extends TestCase
         $this->user ??= User::factory()->create();
     }
 
+    /**
+     * Generate a valid HMAC-signed demo biometric token for testing.
+     */
+    private function demoBiometricToken(?User $user = null): string
+    {
+        $user ??= $this->user;
+
+        return hash_hmac('sha256', 'demo_biometric:' . $user->id, config('app.key'));
+    }
+
     public function test_signs_user_operation_successfully(): void
     {
         $userOpHash = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
         $deviceShardProof = '0xabcdef1234567890';
-        $biometricToken = str_repeat('a', 32);
+        $biometricToken = $this->demoBiometricToken();
 
         $result = $this->service->signUserOperation(
             user: $this->user,
@@ -58,7 +68,7 @@ class UserOperationSigningServiceTest extends TestCase
     {
         $userOpHash = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
         $deviceShardProof = '0xabcdef1234567890';
-        $biometricToken = str_repeat('a', 32);
+        $biometricToken = $this->demoBiometricToken();
 
         $result1 = $this->service->signUserOperation(
             user: $this->user,
@@ -86,7 +96,7 @@ class UserOperationSigningServiceTest extends TestCase
             user: $this->user,
             userOpHash: 'invalid_hash',
             deviceShardProof: '0xabcdef1234567890',
-            biometricToken: str_repeat('a', 32)
+            biometricToken: $this->demoBiometricToken()
         );
     }
 
@@ -99,7 +109,7 @@ class UserOperationSigningServiceTest extends TestCase
             user: $this->user,
             userOpHash: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             deviceShardProof: '0xabcdef1234567890',
-            biometricToken: str_repeat('a', 32)
+            biometricToken: $this->demoBiometricToken()
         );
     }
 
@@ -112,7 +122,7 @@ class UserOperationSigningServiceTest extends TestCase
             user: $this->user,
             userOpHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
             deviceShardProof: 'invalid_proof',
-            biometricToken: str_repeat('a', 32)
+            biometricToken: $this->demoBiometricToken()
         );
     }
 
@@ -144,13 +154,13 @@ class UserOperationSigningServiceTest extends TestCase
 
     public function test_verifies_biometric_token_format(): void
     {
-        // Valid token (32+ characters)
-        $this->assertTrue($this->service->verifyBiometricToken($this->user, str_repeat('a', 32)));
-        $this->assertTrue($this->service->verifyBiometricToken($this->user, str_repeat('b', 100)));
+        // Valid demo HMAC token
+        $this->assertTrue($this->service->verifyBiometricToken($this->user, $this->demoBiometricToken()));
 
         // Invalid tokens
         $this->assertFalse($this->service->verifyBiometricToken($this->user, ''));
-        $this->assertFalse($this->service->verifyBiometricToken($this->user, str_repeat('c', 31)));
+        $this->assertFalse($this->service->verifyBiometricToken($this->user, str_repeat('a', 32))); // arbitrary string
+        $this->assertFalse($this->service->verifyBiometricToken($this->user, 'wrong_token'));
     }
 
     public function test_validates_device_shard_proof_format(): void
@@ -171,7 +181,7 @@ class UserOperationSigningServiceTest extends TestCase
     {
         $userOpHash = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
         $deviceShardProof = '0xabcdef1234567890';
-        $biometricToken = str_repeat('a', 32);
+        $biometricToken = $this->demoBiometricToken();
 
         // First 10 requests should succeed
         for ($i = 0; $i < 10; $i++) {
@@ -200,7 +210,7 @@ class UserOperationSigningServiceTest extends TestCase
     {
         $userOpHash = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
         $deviceShardProof = '0xabcdef1234567890';
-        $biometricToken = str_repeat('a', 32);
+        $biometricToken = $this->demoBiometricToken();
 
         $result = $this->service->signUserOperation(
             user: $this->user,
