@@ -65,6 +65,8 @@ final readonly class SoulboundToken
 
     /**
      * Get the token hash for verification purposes.
+     *
+     * Uses HMAC with full field coverage to prevent undetected modification.
      */
     public function getTokenHash(): string
     {
@@ -74,9 +76,14 @@ final readonly class SoulboundToken
             'issuer_id'    => $this->issuerId,
             'recipient_id' => $this->recipientId,
             'issued_at'    => $this->issuedAt->format('c'),
+            'metadata'     => $this->metadata,
         ];
 
-        return hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
+        if ($this->expiresAt !== null) {
+            $data['expires_at'] = $this->expiresAt->format('c');
+        }
+
+        return hash_hmac('sha256', json_encode($data, JSON_THROW_ON_ERROR), config('app.key'));
     }
 
     /**
