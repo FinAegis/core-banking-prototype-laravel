@@ -1,5 +1,7 @@
 # Event Sourcing Patterns
 
+> **Version Context**: Core event sourcing patterns established in early development. As of v2.6.0, the platform has 37+ domains, many of which use event sourcing with dedicated event tables. The patterns below remain the standard for all new domains.
+
 This memory documents the event sourcing implementation patterns used in FinAegis.
 
 ## Standard Structure
@@ -122,6 +124,8 @@ php artisan event-sourcing:create-snapshot {uuid}   # Create snapshot
 
 ## Implemented Domains
 
+> **Note**: This table shows the original core event-sourced domains. Additional domains added in later versions (AgentProtocol, Privacy, Relayer, Commerce, TrustCert, Monitoring, etc.) also follow these patterns with their own dedicated event/snapshot tables. The platform now has 37+ domains total.
+
 | Domain | Event Table | Snapshot Table |
 |--------|-------------|----------------|
 | Treasury | `treasury_events` | `treasury_snapshots` |
@@ -131,6 +135,8 @@ php artisan event-sourcing:create-snapshot {uuid}   # Create snapshot
 | Stablecoin | `stablecoin_events` | `stablecoin_snapshots` |
 | Wallet | `wallet_events` | N/A |
 | CGO | `cgo_events` | N/A |
+| AgentProtocol | `agent_protocol_events` | `agent_protocol_snapshots` |
+| Monitoring | `monitoring_events` | N/A |
 
 ## Best Practices
 

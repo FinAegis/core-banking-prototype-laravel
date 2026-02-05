@@ -1,5 +1,7 @@
 # Treasury Management System Implementation
 
+> **Version Context**: Implemented in early platform development (pre-v1.0). The Treasury domain has been stable since initial release and continues to serve as a core domain through v2.6.0+. YieldOptimizationController was wired in v1.2.0.
+
 ## Overview
 Implemented a complete Treasury Management System following Domain-Driven Design (DDD) principles with event sourcing, sagas, and workflows.
 

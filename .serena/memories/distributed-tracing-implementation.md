@@ -1,5 +1,7 @@
 # Distributed Tracing Implementation - FinAegis Platform
 
+> **Version Context**: Implemented as part of the Monitoring domain in early platform development. Part of the production observability stack referenced in v1.2.0 (Grafana dashboards, Prometheus alerting). Stable through v2.6.0+.
+
 ## Overview
 Implemented comprehensive distributed tracing using OpenTelemetry with event sourcing, following DDD patterns.
 

@@ -1,5 +1,7 @@
 # Infrastructure Patterns - FinAegis Core Banking
 
+> **Version Context**: Core CQRS and event bus infrastructure established in early platform development. Stable foundation used by all 37+ domains through v2.6.0+. Multi-tenancy support added in v2.0.0.
+
 ## CQRS Implementation
 
 ### Location

@@ -31,7 +31,17 @@ app/Domain/
 │   └── Workflows/       # Payment workflows
 ├── CGO/                 # Continuous Growth Offering
 ├── Governance/          # Voting & governance system
-└── Compliance/          # KYC/AML & regulatory compliance
+├── Compliance/          # KYC/AML & regulatory compliance
+├── Mobile/             # Mobile wallet backend (v2.2.0)
+├── KeyManagement/      # Shamir's Secret Sharing, HSM (v2.4.0)
+├── Privacy/            # ZK-KYC, Merkle Trees, Delegated Proofs (v2.4.0+v2.6.0)
+├── Commerce/           # SBT, Merchants, Attestations (v2.4.0)
+├── TrustCert/          # W3C VCs, Certificate Authority (v2.4.0)
+├── Relayer/            # ERC-4337 Gas Abstraction, Smart Accounts (v2.6.0)
+├── AgentProtocol/      # AI agent commerce (AP2 & A2A)
+├── AI/                 # AI Framework, MCP tools
+├── Monitoring/         # Distributed tracing, metrics
+└── ... (37+ domains total)
 ```
 
 ## Key Architectural Patterns
@@ -116,8 +126,15 @@ app/Domain/
 - **Production Observability**: Grafana dashboards, alerting rules
 - **Enhanced Due Diligence**: Advanced compliance workflows
 
-### Recently Completed (v1.1.0)
-- PHPStan Level 8 compliance
-- Comprehensive domain test suites (Banking, Governance, User, Compliance, Treasury, Lending)
-- 22 Behat E2E features
-- CI/CD security enforcement
+### Recently Completed (v2.6.0)
+- Privacy Layer: Merkle Trees, Delegated Proofs, SRS Manifest
+- ERC-4337 Relayer: Smart Accounts, Gas Station, UserOp Signing with Biometric JWT
+- Security hardening for v2.6.0 audit findings
+- Production-ready balance checking for gas station
+- HSM ECDSA signing support
+
+### Historical Milestones
+- v1.1.0: PHPStan Level 8 compliance, 22 Behat E2E features
+- v2.0.0: Multi-tenancy with stancl/tenancy (9 phases)
+- v2.2.0: Mobile backend (device mgmt, biometrics, push)
+- v2.4.0: Privacy & Identity (Shamir's Secret Sharing, ZK-KYC, Commerce, TrustCert)
