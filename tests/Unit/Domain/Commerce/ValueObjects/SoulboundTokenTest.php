@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Domain\Commerce\Enums\TokenType;
 use App\Domain\Commerce\ValueObjects\SoulboundToken;
 
+uses(Tests\TestCase::class);
+
 describe('SoulboundToken Value Object', function (): void {
     it('creates a valid token', function (): void {
         $token = new SoulboundToken(
