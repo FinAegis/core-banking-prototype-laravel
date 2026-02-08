@@ -7,6 +7,14 @@ use App\Domain\MobilePayment\Enums\PaymentIntentStatus;
 use App\Domain\MobilePayment\Enums\PaymentNetwork;
 use App\Domain\MobilePayment\Exceptions\InvalidStateTransitionException;
 use App\Domain\MobilePayment\Models\PaymentIntent;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
+
+beforeEach(function (): void {
+    // Prevent Spatie EventSourcing EventSubscriber from being resolved
+    Illuminate\Support\Facades\Event::fake();
+});
 
 describe('PaymentIntent Model', function (): void {
     it('casts status to enum', function (): void {

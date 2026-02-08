@@ -5,6 +5,14 @@ declare(strict_types=1);
 use App\Domain\MobilePayment\Enums\PaymentIntentStatus;
 use App\Domain\MobilePayment\Events\Broadcast\PaymentStatusChanged;
 use App\Domain\MobilePayment\Models\PaymentIntent;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
+
+beforeEach(function (): void {
+    // Prevent Spatie EventSourcing EventSubscriber from being resolved
+    Illuminate\Support\Facades\Event::fake();
+});
 
 describe('PaymentStatusChanged Broadcast Event', function (): void {
     it('broadcasts on private payments channel', function (): void {
