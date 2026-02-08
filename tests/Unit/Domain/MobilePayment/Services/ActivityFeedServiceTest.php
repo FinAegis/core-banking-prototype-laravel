@@ -5,15 +5,19 @@ declare(strict_types=1);
 use App\Domain\MobilePayment\Enums\ActivityItemType;
 use App\Domain\MobilePayment\Models\ActivityFeedItem;
 use App\Domain\MobilePayment\Services\ActivityFeedService;
+use Tests\UnitTestCase;
+
+uses(UnitTestCase::class);
+
+beforeEach(function (): void {
+    Illuminate\Support\Facades\Event::fake();
+});
 
 describe('ActivityFeedService', function (): void {
-    it('returns empty feed for user with no activity', function (): void {
+    it('can be instantiated', function (): void {
         $service = new ActivityFeedService();
 
-        // Mock the query to return empty collection
-        $mock = Mockery::mock('alias:' . ActivityFeedItem::class);
-        // We'll just test the decode logic directly instead
-        expect(true)->toBeTrue();
+        expect($service)->toBeInstanceOf(ActivityFeedService::class);
     });
 
     it('decodes invalid cursor gracefully', function (): void {
