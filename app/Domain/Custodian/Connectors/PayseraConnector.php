@@ -41,8 +41,8 @@ class PayseraConnector extends BaseCustodianConnector
         $this->clientId = $config['client_id'] ?? '';
         $this->clientSecret = $config['client_secret'] ?? '';
 
-        // Allow empty credentials in testing/development environments
-        if ((empty($this->clientId) || empty($this->clientSecret)) && ! app()->environment(['local', 'testing'])) {
+        // Allow empty credentials in non-production environments
+        if ((empty($this->clientId) || empty($this->clientSecret)) && app()->environment('production')) {
             throw new InvalidArgumentException('Paysera client_id and client_secret are required');
         }
     }

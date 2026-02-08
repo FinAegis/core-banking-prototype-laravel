@@ -110,7 +110,7 @@ return [
 
     'banks' => [
         'paysera' => [
-            'enabled'       => env('BANK_PAYSERA_ENABLED', true),
+            'enabled'       => env('BANK_PAYSERA_ENABLED', false),
             'client_id'     => env('BANK_PAYSERA_CLIENT_ID'),
             'client_secret' => env('BANK_PAYSERA_CLIENT_SECRET'),
             'base_url'      => env('BANK_PAYSERA_BASE_URL', 'https://bank.paysera.com/rest/v1'),
@@ -118,14 +118,14 @@ return [
         ],
 
         'deutsche' => [
-            'enabled'       => env('BANK_DEUTSCHE_ENABLED', true),
+            'enabled'       => env('BANK_DEUTSCHE_ENABLED', false),
             'client_id'     => env('BANK_DEUTSCHE_CLIENT_ID'),
             'client_secret' => env('BANK_DEUTSCHE_CLIENT_SECRET'),
             'base_url'      => env('BANK_DEUTSCHE_BASE_URL', 'https://api.db.com/v2'),
         ],
 
         'santander' => [
-            'enabled'       => env('BANK_SANTANDER_ENABLED', true),
+            'enabled'       => env('BANK_SANTANDER_ENABLED', false),
             'client_id'     => env('BANK_SANTANDER_CLIENT_ID'),
             'client_secret' => env('BANK_SANTANDER_CLIENT_SECRET'),
             'base_url'      => env('BANK_SANTANDER_BASE_URL', 'https://api.santander.com/v2'),
