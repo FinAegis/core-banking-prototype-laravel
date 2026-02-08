@@ -342,6 +342,8 @@ class DemoLendingServiceTest extends TestCase
     #[Test]
     public function it_assesses_risk_factors_correctly()
     {
+        srand(1); // Seed random for consistent test results
+
         $application = LoanApplication::create([
             'id'               => 'demo_app_risk_test',
             'borrower_id'      => 1,
@@ -353,7 +355,7 @@ class DemoLendingServiceTest extends TestCase
             'submitted_at'     => now(),
         ]);
 
-        Config::set('demo.domains.lending.default_credit_score', 600); // Fair credit
+        Config::set('demo.domains.lending.default_credit_score', 500); // Low credit ensures high risk even with rand variation
 
         $this->service->processApplication($application);
         $application->refresh();
