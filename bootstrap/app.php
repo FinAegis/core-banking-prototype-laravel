@@ -97,8 +97,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Apply demo middleware to web routes in demo environment
-        // Check if we're in demo environment (APP_ENV=demo)
-        if (config('app.env') === 'demo') {
+        // Note: env() is used here because config() is not available during middleware registration
+        if (env('APP_ENV') === 'demo') {
             $middleware->appendToGroup('web', App\Http\Middleware\DemoMode::class);
         }
     })

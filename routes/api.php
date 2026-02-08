@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AIAgentController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\Auth\LoginController;
+use App\Http\Controllers\Api\Auth\PasskeyController;
 use App\Http\Controllers\Api\Auth\PasswordResetController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
@@ -1364,6 +1365,6 @@ Route::prefix('v1/auth/passkey')
     ->middleware('throttle:5,1')
     ->name('mobile.auth.passkey.')
     ->group(function () {
-        Route::post('/challenge', [Auth\PasskeyController::class, 'challenge'])->name('challenge');
-        Route::post('/authenticate', [Auth\PasskeyController::class, 'authenticate'])->name('authenticate');
+        Route::post('/challenge', [PasskeyController::class, 'challenge'])->name('challenge');
+        Route::post('/authenticate', [PasskeyController::class, 'authenticate'])->name('authenticate');
     });

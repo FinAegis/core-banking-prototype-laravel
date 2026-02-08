@@ -389,7 +389,7 @@ class DistributeReportActivity extends Activity
             'compliance_officer'   => ['compliance@example.com'],
             'operations_team'      => ['ops@example.com'],
             'investment_committee' => ['committee@example.com'],
-            default                => ["${recipient}@example.com"],
+            default                => ["{$recipient}@example.com"],
         };
     }
 
