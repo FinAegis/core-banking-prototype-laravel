@@ -26,7 +26,8 @@ class UserOperationSigningServiceTest extends TestCase
 
         $this->user ??= User::factory()->create();
 
-        Cache::flush();
+        // Only clear the specific rate limiter key — avoid Cache::flush() which
+        // wipes shared Redis in CI parallel testing and causes flaky failures
         RateLimiter::clear('userop_signing:' . $this->user->id);
 
         // Create service with HSM integration
@@ -180,6 +181,9 @@ class UserOperationSigningServiceTest extends TestCase
 
     public function test_enforces_rate_limiting(): void
     {
+        // Ensure clean rate limiter state — avoid Cache::flush() in parallel CI
+        RateLimiter::clear('userop_signing:' . $this->user->id);
+
         $userOpHash = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
         $deviceShardProof = '0xabcdef1234567890';
         $biometricToken = $this->demoBiometricToken();

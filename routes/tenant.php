@@ -23,7 +23,7 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    Route::get('/', function () {
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
-    });
+    // Tenant-specific routes go here.
+    // Note: Do NOT add a catch-all GET / route here, as it would override
+    // the central domain's web routes (registered earlier in bootstrap/app.php).
 });
