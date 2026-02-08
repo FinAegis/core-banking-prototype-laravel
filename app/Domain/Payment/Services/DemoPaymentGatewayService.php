@@ -135,28 +135,23 @@ class DemoPaymentGatewayService extends PaymentGatewayService
             'user_id' => $user->id,
         ]);
 
-        // Return demo payment methods
+        // Return demo payment methods matching the real PaymentGatewayService format
         return [
-            (object) [
-                'id'   => 'demo_pm_card',
-                'type' => 'card',
-                'card' => (object) [
-                    'brand'     => 'visa',
-                    'last4'     => '4242',
-                    'exp_month' => 12,
-                    'exp_year'  => date('Y') + 1,
-                ],
-                'created' => time(),
+            [
+                'id'         => 'demo_pm_card',
+                'brand'      => 'visa',
+                'last4'      => '4242',
+                'exp_month'  => 12,
+                'exp_year'   => date('Y') + 1,
+                'is_default' => true,
             ],
-            (object) [
-                'id'           => 'demo_pm_bank',
-                'type'         => 'bank_account',
-                'bank_account' => (object) [
-                    'bank_name'           => 'Demo Bank',
-                    'last4'               => '1234',
-                    'account_holder_name' => $user->name,
-                ],
-                'created' => time(),
+            [
+                'id'         => 'demo_pm_card_2',
+                'brand'      => 'mastercard',
+                'last4'      => '5555',
+                'exp_month'  => 6,
+                'exp_year'   => date('Y') + 2,
+                'is_default' => false,
             ],
         ];
     }

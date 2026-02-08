@@ -108,20 +108,19 @@ class DemoPaymentGatewayServiceTest extends TestCase
 
         $this->assertCount(2, $methods);
 
-        // Check card method
+        // Check card method (flat array matching real PaymentGatewayService format)
         $cardMethod = $methods[0];
-        $this->assertEquals('demo_pm_card', $cardMethod->id);
-        $this->assertEquals('card', $cardMethod->type);
-        $this->assertEquals('visa', $cardMethod->card->brand);
-        $this->assertEquals('4242', $cardMethod->card->last4);
+        $this->assertEquals('demo_pm_card', $cardMethod['id']);
+        $this->assertEquals('visa', $cardMethod['brand']);
+        $this->assertEquals('4242', $cardMethod['last4']);
+        $this->assertTrue($cardMethod['is_default']);
 
-        // Check bank method
-        $bankMethod = $methods[1];
-        $this->assertEquals('demo_pm_bank', $bankMethod->id);
-        $this->assertEquals('bank_account', $bankMethod->type);
-        $this->assertEquals('Demo Bank', $bankMethod->bank_account->bank_name);
-        $this->assertEquals('1234', $bankMethod->bank_account->last4);
-        $this->assertEquals($this->user->name, $bankMethod->bank_account->account_holder_name);
+        // Check second card method
+        $cardMethod2 = $methods[1];
+        $this->assertEquals('demo_pm_card_2', $cardMethod2['id']);
+        $this->assertEquals('mastercard', $cardMethod2['brand']);
+        $this->assertEquals('5555', $cardMethod2['last4']);
+        $this->assertFalse($cardMethod2['is_default']);
     }
 
     public function test_add_payment_method_returns_mock_cashier_method(): void
