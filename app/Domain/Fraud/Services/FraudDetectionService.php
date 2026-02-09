@@ -26,18 +26,22 @@ class FraudDetectionService
 
     private FraudCaseService $caseService;
 
+    private ?AnomalyDetectionOrchestrator $anomalyOrchestrator;
+
     public function __construct(
         RuleEngineService $ruleEngine,
         BehavioralAnalysisService $behavioralAnalysis,
         DeviceFingerprintService $deviceService,
         MachineLearningService $mlService,
-        FraudCaseService $caseService
+        FraudCaseService $caseService,
+        ?AnomalyDetectionOrchestrator $anomalyOrchestrator = null
     ) {
         $this->ruleEngine = $ruleEngine;
         $this->behavioralAnalysis = $behavioralAnalysis;
         $this->deviceService = $deviceService;
         $this->mlService = $mlService;
         $this->caseService = $caseService;
+        $this->anomalyOrchestrator = $anomalyOrchestrator;
     }
 
     /**
@@ -81,13 +85,30 @@ class FraudDetectionService
                     // 3. Device analysis
                     $deviceResults = $this->deviceService->analyzeDevice($analysisContext['device_data'] ?? []);
 
-                    // 4. ML prediction (if enabled)
-                    $mlResults = null;
-                    if ($this->mlService->isEnabled()) {
-                        $mlResults = $this->mlService->predict($analysisContext);
+                    // 4. Anomaly detection (if orchestrator available)
+                    $anomalyResults = null;
+                    if ($this->anomalyOrchestrator) {
+                        $anomalyResults = $this->anomalyOrchestrator->detectAnomalies(
+                            $analysisContext,
+                            (string) $transaction->id,
+                            Transaction::class,
+                            $user->id,
+                            (string) $fraudScore->id,
+                        );
                     }
 
-                    // 5. Calculate final score
+                    // 5. ML prediction (if enabled)
+                    $mlResults = null;
+                    if ($this->mlService->isEnabled()) {
+                        // Pass anomaly scores as additional features if available
+                        $mlContext = $analysisContext;
+                        if ($anomalyResults) {
+                            $mlContext['anomaly_scores'] = $anomalyResults;
+                        }
+                        $mlResults = $this->mlService->predict($mlContext);
+                    }
+
+                    // 6. Calculate final score
                     $totalScore = $this->calculateTotalScore(
                         $ruleResults,
                         $behavioralResults,
@@ -95,7 +116,7 @@ class FraudDetectionService
                         $mlResults
                     );
 
-                    // 6. Determine risk level and decision
+                    // 7. Determine risk level and decision
                     $riskLevel = FraudScore::calculateRiskLevel($totalScore);
                     $decision = $this->makeDecision($totalScore, $riskLevel, $ruleResults);
 
@@ -110,7 +131,11 @@ class FraudDetectionService
                         $analysisResults['ml_prediction'] = $mlResults;
                     }
 
-                    // 7. Update fraud score
+                    if ($anomalyResults) {
+                        $analysisResults['anomaly_detection'] = $anomalyResults;
+                    }
+
+                    // 8. Update fraud score
                     $fraudScore->update([
                         'total_score'     => $totalScore,
                         'risk_level'      => $riskLevel,
@@ -134,10 +159,10 @@ class FraudDetectionService
                         'analysis_results'   => $analysisResults,
                     ]);
 
-                    // 8. Take action based on decision
+                    // 9. Take action based on decision
                     $this->executeDecision($transaction, $fraudScore, $decision);
 
-                    // 9. Update behavioral profile
+                    // 10. Update behavioral profile
                     $this->behavioralAnalysis->updateProfile($user, $transaction, $fraudScore);
 
                     return $fraudScore;
