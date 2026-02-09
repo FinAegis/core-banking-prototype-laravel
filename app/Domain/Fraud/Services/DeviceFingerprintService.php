@@ -543,4 +543,97 @@ class DeviceFingerprintService
 
         return $network;
     }
+
+    /**
+     * Assess IP reputation based on historical association with fraudulent activity.
+     *
+     * @return array{risk_score: float, flags: array<string>, details: array}
+     */
+    public function assessIpReputation(string $ip): array
+    {
+        $threshold = (float) config('fraud.geolocation.ip_reputation_threshold', 60.0);
+
+        $ipData = $this->getIpData($ip);
+        $flags = [];
+        $riskScore = 0.0;
+
+        if (! $ipData) {
+            return [
+                'risk_score' => 0.0,
+                'flags'      => [],
+                'details'    => ['error' => 'IP data unavailable'],
+            ];
+        }
+
+        // VPN / Proxy / Tor flags
+        if ($ipData['is_vpn'] ?? false) {
+            $flags[] = 'vpn_detected';
+            $riskScore += 25.0;
+        }
+        if ($ipData['is_proxy'] ?? false) {
+            $flags[] = 'proxy_detected';
+            $riskScore += 30.0;
+        }
+        if ($ipData['is_tor'] ?? false) {
+            $flags[] = 'tor_detected';
+            $riskScore += 40.0;
+        }
+
+        // Provider risk score (from external service)
+        $providerRisk = (float) ($ipData['risk_score'] ?? 0);
+        if ($providerRisk > 50) {
+            $flags[] = 'high_provider_risk';
+            $riskScore += $providerRisk * 0.5;
+        }
+
+        // Check how many distinct users have used this IP with blocked transactions
+        $blockedAssociations = $this->countBlockedTransactionsForIp($ip);
+        if ($blockedAssociations >= 3) {
+            $flags[] = 'associated_with_blocked_transactions';
+            $riskScore += min($blockedAssociations * 10.0, 40.0);
+        }
+
+        $riskScore = min(round($riskScore, 2), 100.0);
+
+        return [
+            'risk_score' => $riskScore,
+            'flags'      => $flags,
+            'details'    => [
+                'ip'                   => $ip,
+                'country'              => $ipData['country'] ?? null,
+                'is_vpn'               => $ipData['is_vpn'] ?? false,
+                'is_proxy'             => $ipData['is_proxy'] ?? false,
+                'is_tor'               => $ipData['is_tor'] ?? false,
+                'provider_risk_score'  => $providerRisk,
+                'blocked_associations' => $blockedAssociations,
+                'exceeds_threshold'    => $riskScore >= $threshold,
+            ],
+        ];
+    }
+
+    /**
+     * Count blocked/flagged transactions associated with an IP address.
+     */
+    protected function countBlockedTransactionsForIp(string $ip): int
+    {
+        return Cache::remember(
+            "ip_blocked_count_{$ip}",
+            300,
+            function () use ($ip) {
+                return DeviceFingerprint::where('last_ip', $ip)
+                    ->whereHas(
+                        'user',
+                        function ($query) {
+                            $query->whereHas('accounts', function ($q) {
+                                $q->whereHas('transactions', function ($tq) {
+                                    $tq->where('status', 'blocked')
+                                        ->where('created_at', '>=', now()->subDays(90));
+                                });
+                            });
+                        }
+                    )
+                    ->count();
+            }
+        );
+    }
 }
