@@ -604,4 +604,161 @@ class RuleEngineService
             );
         }
     }
+
+    // ── v2.9.0 Velocity Anomaly Enhancements ──
+
+    /**
+     * Evaluate configurable sliding windows across multiple time periods.
+     *
+     * @return array<string, array{exceeded: bool, count: int, volume: float, max_count: int, max_volume: float|int}>
+     */
+    public function evaluateSlidingWindows(array $context): array
+    {
+        $windows = config('fraud.velocity.sliding_windows', []);
+        $results = [];
+        $userId = $context['user']['id'] ?? null;
+
+        foreach ($windows as $label => $config) {
+            $minutes = (int) ($config['minutes'] ?? 60);
+            $maxCount = (int) ($config['max_count'] ?? 100);
+            $maxVolume = (float) ($config['max_volume'] ?? 100000);
+
+            $count = $userId ? $this->getTransactionCountInWindow($userId, $label) : 0;
+            $volume = (float) ($context['daily_transaction_volume'] ?? 0);
+
+            // For short windows, estimate volume proportionally
+            if ($minutes < 1440 && $volume > 0) {
+                $volume = $volume * ($minutes / 1440);
+            }
+
+            $results[$label] = [
+                'exceeded'   => $count > $maxCount || $volume > $maxVolume,
+                'count'      => $count,
+                'volume'     => round($volume, 2),
+                'max_count'  => $maxCount,
+                'max_volume' => $maxVolume,
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Detect burst patterns using token-bucket algorithm approximation.
+     */
+    public function detectBurst(array $context): array
+    {
+        $burstThreshold = (float) config('fraud.velocity.burst_ratio_threshold', 3.0);
+
+        $currentRate = (float) ($context['hourly_transaction_count'] ?? 0);
+        $avgDailyCount = (float) ($context['avg_daily_transaction_count'] ?? 0);
+
+        // Baseline hourly rate = daily / 24
+        $baselineHourlyRate = $avgDailyCount / 24.0;
+
+        if ($baselineHourlyRate <= 0) {
+            return [
+                'burst_detected' => false,
+                'burst_ratio'    => 0.0,
+                'details'        => ['reason' => 'no_baseline'],
+            ];
+        }
+
+        $burstRatio = $currentRate / $baselineHourlyRate;
+        $detected = $burstRatio > $burstThreshold;
+
+        return [
+            'burst_detected' => $detected,
+            'burst_ratio'    => round($burstRatio, 4),
+            'details'        => [
+                'current_rate'  => $currentRate,
+                'baseline_rate' => round($baselineHourlyRate, 4),
+                'threshold'     => $burstThreshold,
+            ],
+        ];
+    }
+
+    /**
+     * Detect coordinated cross-account activity via shared device/IP.
+     */
+    public function detectCrossAccountActivity(array $context): array
+    {
+        $config = config('fraud.velocity.cross_account', []);
+        if (! ($config['enabled'] ?? false)) {
+            return ['detected' => false, 'details' => ['reason' => 'disabled']];
+        }
+
+        $deviceFingerprint = $context['device_data']['fingerprint'] ?? null;
+        $ipAddress = $context['device_data']['ip'] ?? ($context['ip_address'] ?? null);
+        $userId = $context['user']['id'] ?? null;
+        $windowMinutes = (int) ($config['time_window_minutes'] ?? 60);
+
+        $sharedDeviceCount = 0;
+        $sharedIpCount = 0;
+
+        if ($deviceFingerprint) {
+            $sharedDeviceCount = $this->countDistinctUsersForDevice($deviceFingerprint, $userId, $windowMinutes);
+        }
+
+        if ($ipAddress) {
+            $sharedIpCount = $this->countDistinctUsersForIp($ipAddress, $userId, $windowMinutes);
+        }
+
+        $deviceThreshold = (int) ($config['shared_device_threshold'] ?? 3);
+        $ipThreshold = (int) ($config['shared_ip_threshold'] ?? 5);
+
+        $detected = $sharedDeviceCount >= $deviceThreshold || $sharedIpCount >= $ipThreshold;
+
+        return [
+            'detected' => $detected,
+            'details'  => [
+                'shared_device_users' => $sharedDeviceCount,
+                'shared_ip_users'     => $sharedIpCount,
+                'device_threshold'    => $deviceThreshold,
+                'ip_threshold'        => $ipThreshold,
+            ],
+        ];
+    }
+
+    /**
+     * Count distinct users who used the same device fingerprint in the time window.
+     */
+    protected function countDistinctUsersForDevice(string $fingerprint, ?int $excludeUserId, int $minutes): int
+    {
+        return Cache::remember(
+            "cross_device_{$fingerprint}_{$minutes}",
+            60,
+            function () use ($fingerprint, $excludeUserId, $minutes) {
+                $query = \App\Domain\Fraud\Models\DeviceFingerprint::where('fingerprint_hash', $fingerprint)
+                    ->where('last_seen_at', '>=', now()->subMinutes($minutes));
+
+                if ($excludeUserId) {
+                    $query->where('user_id', '!=', $excludeUserId);
+                }
+
+                return $query->distinct('user_id')->count('user_id');
+            }
+        );
+    }
+
+    /**
+     * Count distinct users who used the same IP in the time window.
+     */
+    protected function countDistinctUsersForIp(string $ip, ?int $excludeUserId, int $minutes): int
+    {
+        return Cache::remember(
+            "cross_ip_{$ip}_{$minutes}",
+            60,
+            function () use ($ip, $excludeUserId, $minutes) {
+                $query = \App\Domain\Fraud\Models\DeviceFingerprint::where('ip_address', $ip)
+                    ->where('last_seen_at', '>=', now()->subMinutes($minutes));
+
+                if ($excludeUserId) {
+                    $query->where('user_id', '!=', $excludeUserId);
+                }
+
+                return $query->distinct('user_id')->count('user_id');
+            }
+        );
+    }
 }
