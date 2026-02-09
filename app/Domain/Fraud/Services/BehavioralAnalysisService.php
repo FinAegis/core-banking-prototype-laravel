@@ -685,4 +685,131 @@ class BehavioralAnalysisService
             'unusual_patterns'       => $unusualPatterns,
         ];
     }
+
+    // ── v2.9.0 Anomaly Detection Enhancements ──
+
+    /**
+     * Compute adaptive thresholds based on per-user variance.
+     */
+    public function computeAdaptiveThresholds(BehavioralProfile $profile): array
+    {
+        $sensitivity = (float) config('fraud.behavioral.adaptive_sensitivity', 1.5);
+
+        $avgAmount = (float) ($profile->avg_transaction_amount ?? 0);
+        $stdDev = (float) ($profile->transaction_amount_std_dev ?? 0);
+        $avgDaily = (int) ($profile->avg_daily_transaction_count ?? 0);
+        $maxDaily = (float) ($profile->max_daily_volume ?? 0);
+
+        $thresholds = [
+            'amount_upper'     => $avgAmount + ($sensitivity * $stdDev),
+            'amount_lower'     => max(0, $avgAmount - ($sensitivity * $stdDev)),
+            'daily_count_max'  => $avgDaily + (int) ceil($sensitivity * sqrt(max(1, $avgDaily))),
+            'daily_volume_max' => $maxDaily * (1 + ($sensitivity * 0.5)),
+        ];
+
+        $profile->update([
+            'adaptive_thresholds' => $thresholds,
+        ]);
+
+        return $thresholds;
+    }
+
+    /**
+     * Detect behavioral drift using CUSUM-based comparison.
+     */
+    public function detectDrift(BehavioralProfile $profile, array $recentTransactions): array
+    {
+        $driftThreshold = (float) config('fraud.behavioral.drift_threshold', 0.3);
+        $baselineDays = (int) config('fraud.behavioral.drift_baseline_days', 90);
+
+        // Baseline stats from profile
+        $baselineAmount = (float) ($profile->avg_transaction_amount ?? 0);
+        $baselineStdDev = (float) ($profile->transaction_amount_std_dev ?? 0);
+
+        if ($baselineAmount <= 0 || empty($recentTransactions)) {
+            return ['drifted' => false, 'drift_score' => 0.0, 'details' => []];
+        }
+
+        // Recent window (e.g., 7 days) stats
+        $recentAmounts = collect($recentTransactions)->pluck('amount')->map(fn ($v) => (float) $v);
+        $recentMean = $recentAmounts->average();
+        $recentCount = $recentAmounts->count();
+
+        // CUSUM-based drift score
+        $meanShift = abs($recentMean - $baselineAmount);
+        $normalizedShift = $baselineStdDev > 0 ? $meanShift / $baselineStdDev : ($meanShift > 0 ? 1.0 : 0.0);
+
+        // Frequency drift
+        $windowDays = (int) config('fraud.behavioral.drift_window_days', 7);
+        $expectedCount = ($profile->avg_daily_transaction_count ?? 0) * $windowDays;
+        $countRatio = $expectedCount > 0 ? abs($recentCount - $expectedCount) / $expectedCount : 0;
+
+        $driftScore = min(1.0, ($normalizedShift * 0.6) + ($countRatio * 0.4));
+        $drifted = $driftScore > $driftThreshold;
+
+        $profile->update([
+            'drift_score'   => round($driftScore * 100, 2),
+            'drift_metrics' => [
+                'baseline_mean'    => $baselineAmount,
+                'recent_mean'      => round($recentMean, 2),
+                'normalized_shift' => round($normalizedShift, 4),
+                'count_ratio'      => round($countRatio, 4),
+            ],
+            'last_drift_check_at' => now(),
+        ]);
+
+        return [
+            'drifted'     => $drifted,
+            'drift_score' => round($driftScore, 4),
+            'details'     => [
+                'baseline_mean'    => $baselineAmount,
+                'recent_mean'      => round($recentMean, 2),
+                'mean_shift'       => round($meanShift, 2),
+                'normalized_shift' => round($normalizedShift, 4),
+                'count_ratio'      => round($countRatio, 4),
+            ],
+        ];
+    }
+
+    /**
+     * Classify user into a behavioral segment.
+     */
+    public function classifySegment(BehavioralProfile $profile): string
+    {
+        $avgAmount = (float) ($profile->avg_transaction_amount ?? 0);
+        $totalCount = (int) ($profile->total_transaction_count ?? 0);
+        $daysSinceFirst = (int) ($profile->days_since_first_transaction ?? 0);
+        $avgMonthly = (int) ($profile->avg_monthly_transaction_count ?? 0);
+
+        // Dormant reactivated: was established but no recent activity
+        if ($profile->is_established && $daysSinceFirst > 90 && $avgMonthly < 1) {
+            $segment = 'dormant_reactivated';
+        }
+        // New account: less than 30 days
+        elseif ($daysSinceFirst < 30) {
+            $segment = 'new_account';
+        }
+        // High value trader: high volume, frequent transactions
+        elseif ($avgAmount > 10000 && $avgMonthly > 20) {
+            $segment = 'high_value_trader';
+        }
+        // Occasional user: infrequent
+        elseif ($avgMonthly < 5) {
+            $segment = 'occasional_user';
+        }
+        // Default: retail consumer
+        else {
+            $segment = 'retail_consumer';
+        }
+
+        $profile->update([
+            'user_segment' => $segment,
+            'segment_tags' => array_unique(array_merge(
+                $profile->segment_tags ?? [],
+                [$segment]
+            )),
+        ]);
+
+        return $segment;
+    }
 }
