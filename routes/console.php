@@ -194,6 +194,16 @@ Schedule::job(new App\Domain\MobilePayment\Jobs\ExpireStalePaymentIntents())
     ->description('Expire stale payment intents past their TTL')
     ->withoutOverlapping();
 
+// Fraud Anomaly Detection Batch Scan
+Schedule::command('fraud:scan-anomalies --hours=' . config('fraud.batch.lookback_hours', 24) . ' --chunk=' . config('fraud.batch.chunk_size', 100))
+    ->cron(config('fraud.batch.schedule', '0 */6 * * *'))
+    ->description('Batch scan recent transactions for anomaly detection')
+    ->appendOutputTo(storage_path('logs/fraud-anomaly-scan.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        Log::warning('Fraud anomaly batch scan failed to run');
+    });
+
 // TrustCert Certificate Management
 // Check for expired certificates and send renewal reminders daily at 6 AM
 Schedule::command('trustcert:check-expired')
