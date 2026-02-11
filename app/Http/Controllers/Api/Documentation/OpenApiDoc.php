@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api\Documentation;
 /**
  * @OA\Info(
  *     title="FinAegis Core Banking API",
- *     version="1.0.0",
- *     description="Open Source Core Banking as a Service - A modern, scalable, and secure core banking platform built with Laravel 12, featuring event sourcing, domain-driven design, workflow orchestration, and quantum-resistant security measures.",
+ *     version="3.1.0",
+ *     description="Open Source Core Banking as a Service - A modern, scalable, and secure core banking platform built with Laravel 12, featuring 41 DDD domains, event sourcing, CQRS, cross-chain bridges, DeFi protocol integration, privacy-preserving identity, RegTech compliance, Banking-as-a-Service, and AI-powered analytics.",
  *
  * @OA\Contact(
  *         email="support@finaegis.org",
@@ -58,6 +58,30 @@ namespace App\Http\Controllers\Api\Documentation;
  * @OA\Tag(
  *     name="MCP Tools",
  *     description="Model Context Protocol (MCP) tools for AI agent banking operations"
+ * )
+ * @OA\Tag(
+ *     name="CrossChain",
+ *     description="Cross-chain bridge operations, multi-chain transfers, and cross-chain swaps"
+ * )
+ * @OA\Tag(
+ *     name="DeFi",
+ *     description="Decentralized finance operations: DEX swaps, lending, staking, and yield optimization"
+ * )
+ * @OA\Tag(
+ *     name="RegTech",
+ *     description="Regulatory technology: MiFID II, MiCA, Travel Rule compliance and reporting"
+ * )
+ * @OA\Tag(
+ *     name="AI Query",
+ *     description="AI-powered natural language transaction queries and spending analysis"
+ * )
+ * @OA\Tag(
+ *     name="Mobile Payments",
+ *     description="Mobile payment intents, receipts, activity feed, and network status"
+ * )
+ * @OA\Tag(
+ *     name="Partner BaaS",
+ *     description="Banking-as-a-Service partner API: billing, SDKs, widgets, marketplace"
  * )
  */
 class OpenApiDoc

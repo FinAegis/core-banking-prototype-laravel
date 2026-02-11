@@ -944,11 +944,8 @@ class MobileController extends Controller
      *             @OA\Property(
      *                 property="preferences",
      *                 type="object",
-     *                 additionalProperties=@OA\Schema(
-     *                     type="object",
-     *                     @OA\Property(property="push_enabled", type="boolean"),
-     *                     @OA\Property(property="email_enabled", type="boolean")
-     *                 )
+     *                 description="Map of notification category to preference settings",
+     *                 example={"transactions": {"push_enabled": true, "email_enabled": false}}
      *             )
      *         )
      *     ),
