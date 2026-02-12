@@ -35,6 +35,42 @@ class ComplianceController extends Controller
 
     /**
      * Get user's KYC status.
+     *
+     * @OA\Get(
+     *     path="/api/v2/compliance/kyc/status",
+     *     operationId="complianceV2GetKycStatus",
+     *     summary="Get KYC status",
+     *     description="Returns the current KYC verification status, risk rating, verification history, and transaction limits for the authenticated user.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="kyc_level", type="string", example="basic"),
+     *                 @OA\Property(property="kyc_status", type="string", example="verified"),
+     *                 @OA\Property(property="risk_rating", type="string", example="low"),
+     *                 @OA\Property(property="requires_verification", type="array", @OA\Items(type="string", example="address")),
+     *                 @OA\Property(property="verifications", type="array",
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="id", type="string"),
+     *                         @OA\Property(property="type", type="string", example="identity"),
+     *                         @OA\Property(property="status", type="string", example="completed"),
+     *                         @OA\Property(property="completed_at", type="string", format="date-time", nullable=true),
+     *                         @OA\Property(property="expires_at", type="string", format="date-time", nullable=true)
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="limits", type="object",
+     *                     @OA\Property(property="daily", type="number", example=10000),
+     *                     @OA\Property(property="monthly", type="number", example=50000),
+     *                     @OA\Property(property="single", type="number", example=5000)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function getKycStatus(Request $request): JsonResponse
     {
@@ -75,6 +111,39 @@ class ComplianceController extends Controller
 
     /**
      * Start KYC verification.
+     *
+     * @OA\Post(
+     *     path="/api/v2/compliance/kyc/start",
+     *     operationId="complianceV2StartVerification",
+     *     summary="Start KYC verification",
+     *     description="Initiates a new KYC verification process for the authenticated user with the specified type and optional provider.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"type"},
+     *             @OA\Property(property="type", type="string", enum={"identity", "address", "income", "enhanced_due_diligence"}, example="identity"),
+     *             @OA\Property(property="provider", type="string", enum={"jumio", "onfido", "manual"}, nullable=true, example="onfido")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Verification started successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="verification_id", type="string"),
+     *                 @OA\Property(property="verification_number", type="string"),
+     *                 @OA\Property(property="type", type="string", example="identity"),
+     *                 @OA\Property(property="status", type="string", example="pending"),
+     *                 @OA\Property(property="provider", type="string", example="onfido"),
+     *                 @OA\Property(property="next_steps", type="array", @OA\Items(type="string", example="upload_identity_document"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error or verification failed to start")
+     * )
      */
     public function startVerification(Request $request): JsonResponse
     {
@@ -128,6 +197,49 @@ class ComplianceController extends Controller
 
     /**
      * Upload verification document.
+     *
+     * @OA\Post(
+     *     path="/api/v2/compliance/kyc/{verificationId}/document",
+     *     operationId="complianceV2UploadDocument",
+     *     summary="Upload verification document",
+     *     description="Uploads a document (identity or address proof) for an active KYC verification. Supports JPG, PNG, and PDF up to 10MB.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="verificationId",
+     *         in="path",
+     *         required=true,
+     *         description="The verification ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"document_type", "document"},
+     *                 @OA\Property(property="document_type", type="string", description="Type of document being uploaded", example="passport"),
+     *                 @OA\Property(property="document", type="string", format="binary", description="Document file (jpg, jpeg, png, pdf, max 10MB)"),
+     *                 @OA\Property(property="document_side", type="string", enum={"front", "back"}, nullable=true, description="Which side of the document")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Document processed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=true),
+     *                 @OA\Property(property="verification_id", type="string"),
+     *                 @OA\Property(property="confidence_score", type="number", format="float", nullable=true, example=95.5),
+     *                 @OA\Property(property="next_steps", type="array", @OA\Items(type="string", example="upload_selfie"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=404, description="Verification not found"),
+     *     @OA\Response(response=422, description="Verification not in valid state or document verification failed")
+     * )
      */
     public function uploadDocument(Request $request, string $verificationId): JsonResponse
     {
@@ -202,6 +314,47 @@ class ComplianceController extends Controller
 
     /**
      * Upload selfie for biometric verification.
+     *
+     * @OA\Post(
+     *     path="/api/v2/compliance/kyc/{verificationId}/selfie",
+     *     operationId="complianceV2UploadSelfie",
+     *     summary="Upload selfie for biometric verification",
+     *     description="Uploads a selfie image for biometric liveness and face-match verification. If all checks pass with sufficient confidence, the verification is automatically completed.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="verificationId",
+     *         in="path",
+     *         required=true,
+     *         description="The verification ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"selfie"},
+     *                 @OA\Property(property="selfie", type="string", format="binary", description="Selfie image file (jpg, jpeg, png, max 5MB)")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Selfie processed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=true),
+     *                 @OA\Property(property="liveness_score", type="number", format="float", example=98.2),
+     *                 @OA\Property(property="face_match_score", type="number", format="float", example=95.7),
+     *                 @OA\Property(property="verification_status", type="string", example="completed")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=404, description="Verification not found"),
+     *     @OA\Response(response=422, description="Biometric verification failed")
+     * )
      */
     public function uploadSelfie(Request $request, string $verificationId): JsonResponse
     {
@@ -264,6 +417,39 @@ class ComplianceController extends Controller
 
     /**
      * Get AML screening status.
+     *
+     * @OA\Get(
+     *     path="/api/v2/compliance/aml/status",
+     *     operationId="complianceV2GetScreeningStatus",
+     *     summary="Get AML screening status",
+     *     description="Returns the current AML screening status, including PEP/sanctions/adverse media flags and screening history for the authenticated user.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="is_pep", type="boolean", example=false),
+     *                 @OA\Property(property="is_sanctioned", type="boolean", example=false),
+     *                 @OA\Property(property="has_adverse_media", type="boolean", example=false),
+     *                 @OA\Property(property="last_screening_date", type="string", format="date-time", nullable=true),
+     *                 @OA\Property(property="screenings", type="array",
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="id", type="string"),
+     *                         @OA\Property(property="screening_number", type="string"),
+     *                         @OA\Property(property="type", type="string", example="comprehensive"),
+     *                         @OA\Property(property="status", type="string", example="completed"),
+     *                         @OA\Property(property="overall_risk", type="string", example="low"),
+     *                         @OA\Property(property="total_matches", type="integer", example=0),
+     *                         @OA\Property(property="completed_at", type="string", format="date-time", nullable=true)
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function getScreeningStatus(Request $request): JsonResponse
     {
@@ -301,7 +487,38 @@ class ComplianceController extends Controller
     }
 
     /**
-     * Request manual screening.
+     * Request AML screening.
+     *
+     * @OA\Post(
+     *     path="/api/v2/compliance/aml/request-screening",
+     *     operationId="complianceV2RequestScreening",
+     *     summary="Request AML screening",
+     *     description="Initiates a comprehensive AML screening for the authenticated user, checking sanctions lists, PEP databases, and adverse media.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"type"},
+     *             @OA\Property(property="type", type="string", enum={"sanctions", "pep", "adverse_media", "comprehensive"}, example="comprehensive"),
+     *             @OA\Property(property="reason", type="string", nullable=true, maxLength=500, example="Routine periodic review")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Screening initiated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="screening_id", type="string"),
+     *                 @OA\Property(property="screening_number", type="string"),
+     *                 @OA\Property(property="status", type="string", example="pending"),
+     *                 @OA\Property(property="estimated_completion", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error or screening failed to initiate")
+     * )
      */
     public function requestScreening(Request $request): JsonResponse
     {
@@ -354,7 +571,41 @@ class ComplianceController extends Controller
     }
 
     /**
-     * Get risk profile.
+     * Get user's risk profile.
+     *
+     * @OA\Get(
+     *     path="/api/v2/compliance/risk-profile",
+     *     operationId="complianceV2GetRiskProfile",
+     *     summary="Get risk profile",
+     *     description="Returns the authenticated user's compliance risk profile including risk rating, score, CDD level, transaction limits, country/currency restrictions, and monitoring status.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="profile_number", type="string"),
+     *                 @OA\Property(property="risk_rating", type="string", example="low"),
+     *                 @OA\Property(property="risk_score", type="number", example=25),
+     *                 @OA\Property(property="cdd_level", type="string", example="standard"),
+     *                 @OA\Property(property="factors", type="array", @OA\Items(type="string", example="high_risk_geography")),
+     *                 @OA\Property(property="limits", type="object",
+     *                     @OA\Property(property="daily", type="number", example=10000),
+     *                     @OA\Property(property="monthly", type="number", example=50000),
+     *                     @OA\Property(property="single", type="number", example=5000)
+     *                 ),
+     *                 @OA\Property(property="restrictions", type="object",
+     *                     @OA\Property(property="countries", type="array", @OA\Items(type="string", example="KP")),
+     *                     @OA\Property(property="currencies", type="array", @OA\Items(type="string", example="XMR"))
+     *                 ),
+     *                 @OA\Property(property="enhanced_monitoring", type="boolean", example=false),
+     *                 @OA\Property(property="next_review_date", type="string", format="date-time", nullable=true)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function getRiskProfile(Request $request): JsonResponse
     {
@@ -392,6 +643,40 @@ class ComplianceController extends Controller
 
     /**
      * Check transaction eligibility.
+     *
+     * @OA\Post(
+     *     path="/api/v2/compliance/check-transaction",
+     *     operationId="complianceV2CheckTransactionEligibility",
+     *     summary="Check transaction eligibility",
+     *     description="Checks whether the authenticated user is allowed to perform a transaction of the specified amount, currency, and type, based on their compliance profile and limits.",
+     *     tags={"Compliance V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount", "currency", "type"},
+     *             @OA\Property(property="amount", type="number", example=1500.00),
+     *             @OA\Property(property="currency", type="string", minLength=3, maxLength=3, example="USD"),
+     *             @OA\Property(property="type", type="string", example="transfer"),
+     *             @OA\Property(property="destination_country", type="string", minLength=2, maxLength=2, nullable=true, example="DE")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Eligibility check result",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="allowed", type="boolean", example=true),
+     *                 @OA\Property(property="reason", type="string", nullable=true, example="Within daily limit"),
+     *                 @OA\Property(property="limit", type="number", nullable=true, example=10000),
+     *                 @OA\Property(property="current_usage", type="number", nullable=true, example=3500),
+     *                 @OA\Property(property="requires_additional_verification", type="boolean", example=false)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function checkTransactionEligibility(Request $request): JsonResponse
     {

@@ -20,6 +20,35 @@ class BankIntegrationController extends Controller
 
     /**
      * Get available banks.
+     *
+     * @OA\Get(
+     *     path="/api/v2/banks/available",
+     *     operationId="bankGetAvailableBanks",
+     *     summary="Get available banks",
+     *     description="Returns list of available bank connectors with their capabilities, supported currencies, and features.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(type="object",
+     *                     @OA\Property(property="code", type="string", example="revolut"),
+     *                     @OA\Property(property="name", type="string", example="Revolut"),
+     *                     @OA\Property(property="available", type="boolean", example=true),
+     *                     @OA\Property(property="supported_currencies", type="array", @OA\Items(type="string", example="EUR")),
+     *                     @OA\Property(property="supported_transfer_types", type="array", @OA\Items(type="string", example="SEPA")),
+     *                     @OA\Property(property="features", type="array", @OA\Items(type="string", example="instant_transfers")),
+     *                     @OA\Property(property="supports_instant_transfers", type="boolean", example=true),
+     *                     @OA\Property(property="supports_multi_currency", type="boolean", example=true)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getAvailableBanks(): JsonResponse
     {
@@ -61,6 +90,36 @@ class BankIntegrationController extends Controller
 
     /**
      * Get user's bank connections.
+     *
+     * @OA\Get(
+     *     path="/api/v2/banks/connections",
+     *     operationId="bankGetUserConnections",
+     *     summary="Get user bank connections",
+     *     description="Returns list of the authenticated user's bank connections with status and sync information.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(type="object",
+     *                     @OA\Property(property="id", type="string", example="conn_abc123"),
+     *                     @OA\Property(property="bank_code", type="string", example="revolut"),
+     *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="active", type="boolean", example=true),
+     *                     @OA\Property(property="needs_renewal", type="boolean", example=false),
+     *                     @OA\Property(property="permissions", type="array", @OA\Items(type="string", example="read_accounts")),
+     *                     @OA\Property(property="last_sync_at", type="string", format="date-time", nullable=true),
+     *                     @OA\Property(property="expires_at", type="string", format="date-time", nullable=true),
+     *                     @OA\Property(property="created_at", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getUserConnections(Request $request): JsonResponse
     {
@@ -107,6 +166,41 @@ class BankIntegrationController extends Controller
 
     /**
      * Connect to a bank.
+     *
+     * @OA\Post(
+     *     path="/api/v2/banks/connect",
+     *     operationId="bankConnectBank",
+     *     summary="Connect to a bank",
+     *     description="Establishes a new connection between the authenticated user and a bank using provided credentials.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"bank_code", "credentials"},
+     *             @OA\Property(property="bank_code", type="string", example="revolut"),
+     *             @OA\Property(property="credentials", type="object",
+     *                 @OA\Property(property="api_key", type="string", example="sk_live_xxx"),
+     *                 @OA\Property(property="api_secret", type="string", example="secret_xxx")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Bank connected successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="conn_abc123"),
+     *                 @OA\Property(property="bank_code", type="string", example="revolut"),
+     *                 @OA\Property(property="status", type="string", example="active"),
+     *                 @OA\Property(property="expires_at", type="string", format="date-time", nullable=true),
+     *                 @OA\Property(property="message", type="string", example="Successfully connected to bank")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error or connection failure")
+     * )
      */
     public function connectBank(Request $request): JsonResponse
     {
@@ -157,6 +251,32 @@ class BankIntegrationController extends Controller
 
     /**
      * Disconnect from a bank.
+     *
+     * @OA\Delete(
+     *     path="/api/v2/banks/disconnect/{bankCode}",
+     *     operationId="bankDisconnectBank",
+     *     summary="Disconnect from a bank",
+     *     description="Removes the authenticated user's connection to the specified bank.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="bankCode",
+     *         in="path",
+     *         required=true,
+     *         description="Bank connector code",
+     *         @OA\Schema(type="string", example="revolut")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successfully disconnected",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Successfully disconnected from bank")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=404, description="Bank connection not found"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function disconnectBank(Request $request, string $bankCode): JsonResponse
     {
@@ -201,6 +321,43 @@ class BankIntegrationController extends Controller
 
     /**
      * Get user's bank accounts.
+     *
+     * @OA\Get(
+     *     path="/api/v2/banks/accounts",
+     *     operationId="bankGetBankAccounts",
+     *     summary="Get user bank accounts",
+     *     description="Returns list of the authenticated user's bank accounts, optionally filtered by bank code.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="bank_code",
+     *         in="query",
+     *         required=false,
+     *         description="Filter accounts by bank code",
+     *         @OA\Schema(type="string", example="revolut")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(type="object",
+     *                     @OA\Property(property="id", type="string", example="acct_abc123"),
+     *                     @OA\Property(property="bank_code", type="string", example="revolut"),
+     *                     @OA\Property(property="account_number", type="string", example="***1234"),
+     *                     @OA\Property(property="iban", type="string", example="GB82***5678"),
+     *                     @OA\Property(property="currency", type="string", example="EUR"),
+     *                     @OA\Property(property="account_type", type="string", example="checking"),
+     *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="label", type="string", example="Main Account"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getBankAccounts(Request $request): JsonResponse
     {
@@ -250,6 +407,32 @@ class BankIntegrationController extends Controller
 
     /**
      * Sync bank accounts.
+     *
+     * @OA\Post(
+     *     path="/api/v2/banks/accounts/sync/{bankCode}",
+     *     operationId="bankSyncAccounts",
+     *     summary="Sync bank accounts",
+     *     description="Triggers a synchronization of the authenticated user's accounts for the specified bank.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="bankCode",
+     *         in="path",
+     *         required=true,
+     *         description="Bank connector code",
+     *         @OA\Schema(type="string", example="revolut")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Accounts synced successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Bank accounts synced successfully"),
+     *             @OA\Property(property="accounts_synced", type="integer", example=3)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function syncAccounts(Request $request, string $bankCode): JsonResponse
     {
@@ -283,6 +466,36 @@ class BankIntegrationController extends Controller
 
     /**
      * Get aggregated balance.
+     *
+     * @OA\Get(
+     *     path="/api/v2/banks/balance/aggregate",
+     *     operationId="bankGetAggregatedBalance",
+     *     summary="Get aggregated balance",
+     *     description="Returns the aggregated balance across all connected bank accounts for the specified currency.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="currency",
+     *         in="query",
+     *         required=true,
+     *         description="Three-letter ISO currency code",
+     *         @OA\Schema(type="string", minLength=3, maxLength=3, example="EUR")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="currency", type="string", example="EUR"),
+     *                 @OA\Property(property="balance", type="integer", example=150000),
+     *                 @OA\Property(property="formatted", type="string", example="1,500.00")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getAggregatedBalance(Request $request): JsonResponse
     {
@@ -328,6 +541,49 @@ class BankIntegrationController extends Controller
 
     /**
      * Initiate inter-bank transfer.
+     *
+     * @OA\Post(
+     *     path="/api/v2/banks/transfer",
+     *     operationId="bankInitiateTransfer",
+     *     summary="Initiate inter-bank transfer",
+     *     description="Initiates a transfer between bank accounts, potentially across different banks. Amount is specified in the major currency unit (e.g., euros) and converted to minor units internally.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"from_bank_code", "from_account_id", "to_bank_code", "to_account_id", "amount", "currency"},
+     *             @OA\Property(property="from_bank_code", type="string", example="revolut"),
+     *             @OA\Property(property="from_account_id", type="string", example="acct_src_123"),
+     *             @OA\Property(property="to_bank_code", type="string", example="wise"),
+     *             @OA\Property(property="to_account_id", type="string", example="acct_dst_456"),
+     *             @OA\Property(property="amount", type="number", format="float", example=100.50),
+     *             @OA\Property(property="currency", type="string", minLength=3, maxLength=3, example="EUR"),
+     *             @OA\Property(property="reference", type="string", nullable=true, maxLength=140, example="Invoice #1234"),
+     *             @OA\Property(property="description", type="string", nullable=true, maxLength=500, example="Payment for services")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Transfer initiated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="txn_abc123"),
+     *                 @OA\Property(property="type", type="string", example="inter_bank"),
+     *                 @OA\Property(property="status", type="string", example="pending"),
+     *                 @OA\Property(property="amount", type="integer", example=10050),
+     *                 @OA\Property(property="currency", type="string", example="EUR"),
+     *                 @OA\Property(property="reference", type="string", example="Invoice #1234"),
+     *                 @OA\Property(property="total_amount", type="integer", example=10150),
+     *                 @OA\Property(property="fees", type="integer", example=100),
+     *                 @OA\Property(property="estimated_arrival", type="string", format="date-time", nullable=true),
+     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error or transfer failure")
+     * )
      */
     public function initiateTransfer(Request $request): JsonResponse
     {
@@ -397,6 +653,35 @@ class BankIntegrationController extends Controller
 
     /**
      * Get bank health status.
+     *
+     * @OA\Get(
+     *     path="/api/v2/banks/health/{bankCode}",
+     *     operationId="bankGetBankHealth",
+     *     summary="Get bank health status",
+     *     description="Returns the current health and availability status for the specified bank connector.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="bankCode",
+     *         in="path",
+     *         required=true,
+     *         description="Bank connector code",
+     *         @OA\Schema(type="string", example="revolut")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="status", type="string", example="healthy"),
+     *                 @OA\Property(property="latency_ms", type="integer", example=120),
+     *                 @OA\Property(property="last_checked_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getBankHealth(string $bankCode): JsonResponse
     {
@@ -428,6 +713,47 @@ class BankIntegrationController extends Controller
 
     /**
      * Get recommended banks for user.
+     *
+     * @OA\Get(
+     *     path="/api/v2/banks/recommendations",
+     *     operationId="bankGetRecommendedBanks",
+     *     summary="Get recommended banks",
+     *     description="Returns a list of recommended banks for the authenticated user based on optional currency, feature, and country filters.",
+     *     tags={"Banking V2"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="currencies[]",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by supported currencies (ISO 4217, 3-letter codes)",
+     *         @OA\Schema(type="array", @OA\Items(type="string", example="EUR"))
+     *     ),
+     *     @OA\Parameter(
+     *         name="features[]",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by required features",
+     *         @OA\Schema(type="array", @OA\Items(type="string", example="instant_transfers"))
+     *     ),
+     *     @OA\Parameter(
+     *         name="countries[]",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by supported countries (ISO 3166-1 alpha-2, 2-letter codes)",
+     *         @OA\Schema(type="array", @OA\Items(type="string", example="DE"))
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(type="object")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getRecommendedBanks(Request $request): JsonResponse
     {

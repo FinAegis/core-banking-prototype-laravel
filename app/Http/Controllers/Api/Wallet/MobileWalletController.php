@@ -29,7 +29,34 @@ class MobileWalletController extends Controller
     /**
      * Get supported token list with network and decimals info.
      *
-     * GET /api/v1/wallet/tokens
+     * @OA\Get(
+     *     path="/api/v1/wallet/tokens",
+     *     operationId="walletTokens",
+     *     summary="Get supported token list",
+     *     description="Returns the list of supported tokens with network availability and decimals info.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token list",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="symbol", type="string", example="USDC"),
+     *                     @OA\Property(property="name", type="string", example="USD Coin"),
+     *                     @OA\Property(property="decimals", type="integer", example=6),
+     *                     @OA\Property(property="networks", type="array", @OA\Items(type="string"), example={"polygon", "base", "arbitrum"}),
+     *                     @OA\Property(property="icon", type="string", example="usdc")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function tokens(): JsonResponse
     {
@@ -73,7 +100,34 @@ class MobileWalletController extends Controller
     /**
      * Get ERC-20 balances across user's smart accounts.
      *
-     * GET /api/v1/wallet/balances
+     * @OA\Get(
+     *     path="/api/v1/wallet/balances",
+     *     operationId="walletBalances",
+     *     summary="Get ERC-20 balances",
+     *     description="Returns ERC-20 token balances across all of the authenticated user's smart accounts.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Balances per token and network",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="token", type="string", example="USDC"),
+     *                     @OA\Property(property="network", type="string", example="polygon"),
+     *                     @OA\Property(property="address", type="string", example="0x1234...abcd"),
+     *                     @OA\Property(property="balance", type="string", example="1000.50"),
+     *                     @OA\Property(property="error", type="string", nullable=true, example=null, description="Present only if balance query failed")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function balances(Request $request): JsonResponse
     {
@@ -126,7 +180,39 @@ class MobileWalletController extends Controller
     /**
      * Get aggregated wallet state (balances + addresses + sync info).
      *
-     * GET /api/v1/wallet/state
+     * @OA\Get(
+     *     path="/api/v1/wallet/state",
+     *     operationId="walletState",
+     *     summary="Get aggregated wallet state",
+     *     description="Returns aggregated wallet state including addresses, supported networks and sync information.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Aggregated wallet state",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="addresses",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="address", type="string", example="0x1234...abcd"),
+     *                         @OA\Property(property="network", type="string", example="polygon"),
+     *                         @OA\Property(property="deployed", type="boolean", example=true)
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="networks", type="array", @OA\Items(type="string"), example={"polygon", "ethereum", "arbitrum"}),
+     *                 @OA\Property(property="synced_at", type="string", format="date-time"),
+     *                 @OA\Property(property="account_count", type="integer", example=2)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function state(Request $request): JsonResponse
     {
@@ -156,7 +242,33 @@ class MobileWalletController extends Controller
     /**
      * List user's addresses per network.
      *
-     * GET /api/v1/wallet/addresses
+     * @OA\Get(
+     *     path="/api/v1/wallet/addresses",
+     *     operationId="walletAddresses",
+     *     summary="List user's addresses per network",
+     *     description="Returns all smart account addresses for the authenticated user across supported networks.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User addresses",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="address", type="string", example="0x1234...abcd"),
+     *                     @OA\Property(property="network", type="string", example="polygon"),
+     *                     @OA\Property(property="deployed", type="boolean", example=true),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", nullable=true)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function addresses(Request $request): JsonResponse
     {
@@ -182,7 +294,37 @@ class MobileWalletController extends Controller
     /**
      * Cursor-based transaction list from activity feed.
      *
-     * GET /api/v1/wallet/transactions
+     * @OA\Get(
+     *     path="/api/v1/wallet/transactions",
+     *     operationId="walletTransactions",
+     *     summary="List transactions with cursor-based pagination",
+     *     description="Returns a paginated list of transactions from the user's activity feed using cursor-based pagination.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="cursor",
+     *         in="query",
+     *         required=false,
+     *         description="Pagination cursor for the next page",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         required=false,
+     *         description="Number of items per page (max 100, default 20)",
+     *         @OA\Schema(type="integer", default=20, maximum=100)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Transaction feed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object", description="Activity feed with items and pagination cursor")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function transactions(Request $request): JsonResponse
     {
@@ -203,7 +345,43 @@ class MobileWalletController extends Controller
     /**
      * Get transaction detail.
      *
-     * GET /api/v1/wallet/transactions/{id}
+     * @OA\Get(
+     *     path="/api/v1/wallet/transactions/{id}",
+     *     operationId="walletTransactionDetail",
+     *     summary="Get transaction detail",
+     *     description="Returns detailed information for a specific transaction by ID.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Transaction identifier",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Transaction detail",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object", description="Transaction detail object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Transaction not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="object",
+     *                 @OA\Property(property="code", type="string", example="TRANSACTION_NOT_FOUND"),
+     *                 @OA\Property(property="message", type="string", example="Transaction not found.")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function transactionDetail(string $id, Request $request): JsonResponse
     {
@@ -229,7 +407,46 @@ class MobileWalletController extends Controller
     /**
      * Create and auto-submit a payment intent (send transaction).
      *
-     * POST /api/v1/wallet/transactions/send
+     * @OA\Post(
+     *     path="/api/v1/wallet/transactions/send",
+     *     operationId="walletSend",
+     *     summary="Send a transaction",
+     *     description="Creates a payment intent and auto-submits it to send tokens to a recipient address.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"to", "token", "amount", "network"},
+     *             @OA\Property(property="to", type="string", example="0x1234...abcd", description="Recipient address"),
+     *             @OA\Property(property="token", type="string", enum={"USDC", "USDT", "WETH", "WBTC"}, example="USDC", description="Token symbol"),
+     *             @OA\Property(property="amount", type="string", example="100.00", description="Amount to send"),
+     *             @OA\Property(property="network", type="string", example="polygon", description="Target network")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Transaction submitted",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object", description="Payment intent result")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Send failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="object",
+     *                 @OA\Property(property="code", type="string", example="SEND_FAILED"),
+     *                 @OA\Property(property="message", type="string", example="Insufficient balance.")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function send(Request $request): JsonResponse
     {

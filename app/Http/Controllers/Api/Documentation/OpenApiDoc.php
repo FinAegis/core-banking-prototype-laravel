@@ -111,6 +111,46 @@ namespace App\Http\Controllers\Api\Documentation;
  *     name="Account Deletion",
  *     description="Account deletion and data removal requests"
  * )
+ * @OA\Tag(
+ *     name="Banking V2",
+ *     description="V2 open banking integration: bank connections, account aggregation, and transfers"
+ * )
+ * @OA\Tag(
+ *     name="Blockchain Wallets",
+ *     description="Blockchain wallet management: create, backup, generate addresses, and view transactions"
+ * )
+ * @OA\Tag(
+ *     name="Compliance V2",
+ *     description="V2 KYC/AML compliance: identity verification, document upload, risk profiling"
+ * )
+ * @OA\Tag(
+ *     name="BaaS Onboarding",
+ *     description="Financial institution onboarding: applications, document submission, and status tracking"
+ * )
+ * @OA\Tag(
+ *     name="TrustCert",
+ *     description="Trust certificates: applications, verification levels, requirements, and transaction limits"
+ * )
+ * @OA\Tag(
+ *     name="Commerce",
+ *     description="Mobile commerce: merchant discovery, QR payments, and payment processing"
+ * )
+ * @OA\Tag(
+ *     name="Relayer",
+ *     description="ERC-4337 gas relayer: user operations, gas estimation, and paymaster support"
+ * )
+ * @OA\Tag(
+ *     name="Mobile Wallet",
+ *     description="Mobile wallet: token balances, transaction history, address management, and transfers"
+ * )
+ * @OA\Tag(
+ *     name="Treasury",
+ *     description="Treasury management: liquidity forecasting, alerts, and workflow orchestration"
+ * )
+ * @OA\Tag(
+ *     name="Lending",
+ *     description="P2P lending: loan applications, payments, early settlement, and loan management"
+ * )
  */
 class OpenApiDoc
 {

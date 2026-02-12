@@ -20,7 +20,33 @@ class MobileCommerceController extends Controller
     /**
      * List available merchants for the user.
      *
-     * GET /api/v1/commerce/merchants
+     * @OA\Get(
+     *     path="/api/v1/commerce/merchants",
+     *     operationId="commerceMerchants",
+     *     summary="List available merchants",
+     *     description="Returns a list of available merchants that accept crypto payments.",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(type="object",
+     *                     @OA\Property(property="id", type="string", example="merchant_demo_001"),
+     *                     @OA\Property(property="display_name", type="string", example="Demo Coffee Shop"),
+     *                     @OA\Property(property="category", type="string", example="food_beverage"),
+     *                     @OA\Property(property="accepted_tokens", type="array", @OA\Items(type="string", example="USDC")),
+     *                     @OA\Property(property="accepted_networks", type="array", @OA\Items(type="string", example="polygon")),
+     *                     @OA\Property(property="icon_url", type="string", nullable=true, example=null),
+     *                     @OA\Property(property="active", type="boolean", example=true)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function merchants(Request $request): JsonResponse
     {
@@ -54,7 +80,47 @@ class MobileCommerceController extends Controller
     /**
      * Parse a merchant QR code.
      *
-     * POST /api/v1/commerce/parse-qr
+     * @OA\Post(
+     *     path="/api/v1/commerce/parse-qr",
+     *     operationId="commerceParseQr",
+     *     summary="Parse a merchant QR code",
+     *     description="Parses a merchant QR code string and extracts payment details such as merchant ID, amount, asset, and network.",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"qr_data"},
+     *             @OA\Property(property="qr_data", type="string", example="finaegis://pay?merchant=merchant_demo_001&amount=25.00&asset=USDC&network=polygon", description="The raw QR code data string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="QR code parsed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="merchant_id", type="string", example="merchant_demo_001"),
+     *                 @OA\Property(property="amount", type="string", example="25.00"),
+     *                 @OA\Property(property="asset", type="string", example="USDC"),
+     *                 @OA\Property(property="network", type="string", example="polygon"),
+     *                 @OA\Property(property="metadata", type="object")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid QR code or validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="error", type="object",
+     *                 @OA\Property(property="code", type="string", example="INVALID_QR"),
+     *                 @OA\Property(property="message", type="string", example="Unable to parse QR code.")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
      */
     public function parseQr(Request $request): JsonResponse
     {
@@ -96,7 +162,43 @@ class MobileCommerceController extends Controller
     /**
      * Create a payment request for a merchant.
      *
-     * POST /api/v1/commerce/payment-requests
+     * @OA\Post(
+     *     path="/api/v1/commerce/payment-requests",
+     *     operationId="commerceCreatePaymentRequest",
+     *     summary="Create a payment request",
+     *     description="Creates a new payment request for a merchant with a specified amount, asset, and network. The request expires after 15 minutes.",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"merchant_id", "amount", "asset", "network"},
+     *             @OA\Property(property="merchant_id", type="string", example="merchant_demo_001", description="The merchant ID to create the payment request for"),
+     *             @OA\Property(property="amount", type="string", example="25.00", description="The payment amount"),
+     *             @OA\Property(property="asset", type="string", enum={"USDC", "USDT", "WETH", "WBTC"}, example="USDC", description="The token asset for payment"),
+     *             @OA\Property(property="network", type="string", example="polygon", description="The blockchain network for the transaction")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Payment request created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="pr_abc123def456"),
+     *                 @OA\Property(property="merchant_id", type="string", example="merchant_demo_001"),
+     *                 @OA\Property(property="amount", type="string", example="25.00"),
+     *                 @OA\Property(property="asset", type="string", example="USDC"),
+     *                 @OA\Property(property="network", type="string", example="polygon"),
+     *                 @OA\Property(property="status", type="string", example="pending"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="expires_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function createPaymentRequest(Request $request): JsonResponse
     {
@@ -127,7 +229,36 @@ class MobileCommerceController extends Controller
     /**
      * Process a commerce payment.
      *
-     * POST /api/v1/commerce/payments
+     * @OA\Post(
+     *     path="/api/v1/commerce/payments",
+     *     operationId="commerceProcessPayment",
+     *     summary="Process a commerce payment",
+     *     description="Processes a payment for an existing payment request. Initiates the blockchain transaction for the commerce payment.",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"payment_request_id"},
+     *             @OA\Property(property="payment_request_id", type="string", example="pr_abc123def456", description="The payment request ID to process")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Payment processing initiated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="pay_abc123def456"),
+     *                 @OA\Property(property="payment_request_id", type="string", example="pr_abc123def456"),
+     *                 @OA\Property(property="status", type="string", example="processing"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function processPayment(Request $request): JsonResponse
     {
@@ -151,7 +282,36 @@ class MobileCommerceController extends Controller
     /**
      * Generate a payment QR code.
      *
-     * POST /api/v1/commerce/generate-qr
+     * @OA\Post(
+     *     path="/api/v1/commerce/generate-qr",
+     *     operationId="commerceGenerateQr",
+     *     summary="Generate a payment QR code",
+     *     description="Generates a QR code data string for receiving a payment. The QR code expires after 30 minutes.",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount", "asset", "network"},
+     *             @OA\Property(property="amount", type="string", example="25.00", description="The payment amount"),
+     *             @OA\Property(property="asset", type="string", enum={"USDC", "USDT", "WETH", "WBTC"}, example="USDC", description="The token asset for payment"),
+     *             @OA\Property(property="network", type="string", example="polygon", description="The blockchain network for the transaction")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="QR code generated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="qr_data", type="string", example="finaegis://pay?to=user_1&amount=25.00&asset=USDC&network=polygon"),
+     *                 @OA\Property(property="expires_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function generateQr(Request $request): JsonResponse
     {
