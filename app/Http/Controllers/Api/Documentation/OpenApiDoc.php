@@ -83,6 +83,34 @@ namespace App\Http\Controllers\Api\Documentation;
  *     name="Partner BaaS",
  *     description="Banking-as-a-Service partner API: billing, SDKs, widgets, marketplace"
  * )
+ * @OA\Tag(
+ *     name="Compliance",
+ *     description="Compliance management: violations, rules, certifications, and policy enforcement"
+ * )
+ * @OA\Tag(
+ *     name="Audit",
+ *     description="Audit trail: logs, events, reports, entity trails, and user activity"
+ * )
+ * @OA\Tag(
+ *     name="Fraud Detection",
+ *     description="Fraud detection: alerts, patterns, cases, and investigation workflows"
+ * )
+ * @OA\Tag(
+ *     name="Risk Management",
+ *     description="Risk analysis: user risk profiles, transaction scoring, device fingerprinting"
+ * )
+ * @OA\Tag(
+ *     name="Module Management",
+ *     description="Platform module management: enable, disable, health checks, and verification"
+ * )
+ * @OA\Tag(
+ *     name="WebAuthn",
+ *     description="WebAuthn/FIDO2 passkey authentication: challenge, authenticate, and register"
+ * )
+ * @OA\Tag(
+ *     name="Account Deletion",
+ *     description="Account deletion and data removal requests"
+ * )
  */
 class OpenApiDoc
 {
