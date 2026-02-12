@@ -5,6 +5,61 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-02-12
+
+### Added
+
+#### API Version Middleware (Phase 1, PR #503)
+- `ApiVersionMiddleware` — lightweight after-middleware that detects API version from URL path and sets response headers
+- `X-API-Version` response header on all API responses
+- RFC 8594 `Deprecation` and `Sunset` headers for deprecated API versions
+- `config/api-versioning.php` — version registry with `supported`, `deprecated`, `deprecated_at`, and `sunset` fields
+- Registered as global middleware for the `api` middleware group
+
+#### Partner Tier-Aware Rate Limiting (Phase 2, PR #504)
+- BaaS partner tier detection in `ApiRateLimitMiddleware` — partners get tier-based per-minute limits (Starter: 60, Growth: 300, Enterprise: 1000 req/min)
+- Type multipliers for different endpoint categories (query: 1.0, transaction: 0.5, auth: 0.1, webhook: 2.0)
+- Monthly API call limit enforcement via `PartnerUsageMeteringService` with `MONTHLY_LIMIT_EXCEEDED` error response
+- `X-Monthly-Limit`, `X-Monthly-Used`, `X-Monthly-Reset-At` response headers for partner requests
+- `partner_tiers` configuration section in `config/rate_limiting.php`
+
+#### SDK Generation Command (Phase 3, PR #505)
+- `php artisan sdk:generate {language}` — generates typed SDK packages from OpenAPI spec
+- `SdkGeneratorService::generateFromSpec()` — parses OpenAPI spec and generates client libraries with endpoint stubs and typed models
+- Supports TypeScript, Python, Java, Go, C#, and PHP output
+- Generated SDKs include typed client class, model definitions, and README with endpoint listing
+
+#### OpenAPI Annotations — High Priority (Phase 4, PRs #506-#508)
+- **EnhancedRegulatoryController**: 14 methods annotated (Compliance tag)
+- **ComplianceController**: 12 methods annotated (Compliance tag)
+- **AuditController**: 10 methods annotated (Audit tag)
+- **FraudDetectionController**: 10 methods annotated (Fraud Detection tag)
+- **RiskAnalysisController**: 8 methods annotated (Risk Management tag)
+- **ModuleController**: 6 methods annotated (Module Management tag)
+- **PasskeyController**: 3 methods annotated (WebAuthn tag)
+- **AccountDeletionController**: 1 method annotated (Account Deletion tag)
+- 7 new OpenAPI tags: Compliance, Audit, Fraud Detection, Risk Management, Module Management, WebAuthn, Account Deletion
+
+#### OpenAPI Annotations — Medium Priority (Phase 5, PR #509)
+- **V2/BankIntegrationController**: 10 methods annotated (Banking V2 tag)
+- **BlockchainWalletController**: 9 methods annotated (Blockchain Wallets tag)
+- **V2/ComplianceController**: 8 methods annotated (Compliance V2 tag)
+- **MobileRelayerController**: 8 methods annotated (Relayer tag)
+- **MobileWalletController**: 7 methods annotated (Mobile Wallet tag)
+- **CertificateApplicationController**: 6 methods annotated (TrustCert tag)
+- **MobileTrustCertController**: 5 methods annotated (TrustCert tag)
+- **MobileCommerceController**: 5 methods annotated (Commerce tag)
+- **V2/FinancialInstitutionController**: 5 methods annotated (BaaS Onboarding tag)
+- **LoanController**: 5 methods annotated (Lending tag)
+- **LiquidityForecastController**: 4 methods annotated (Treasury tag)
+- **LoanApplicationController**: 4 methods annotated (Lending tag)
+- **WalletTransferController**: 3 methods annotated (Mobile Wallet tag)
+- 11 new OpenAPI tags: Banking V2, Blockchain Wallets, Compliance V2, BaaS Onboarding, TrustCert, Commerce, Relayer, Mobile Wallet, Treasury, Lending
+
+### Changed
+- `OpenApiDoc.php` version updated to 3.4.0 with 18 new tags (31 total)
+- OpenAPI spec regenerated with ~143 annotated endpoint methods across 21+ controllers
+
 ## [3.3.4] - 2026-02-12
 
 ### Added

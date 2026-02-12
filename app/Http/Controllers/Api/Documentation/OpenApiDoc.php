@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Documentation;
 /**
  * @OA\Info(
  *     title="FinAegis Core Banking API",
- *     version="3.1.0",
+ *     version="3.4.0",
  *     description="Open Source Core Banking as a Service - A modern, scalable, and secure core banking platform built with Laravel 12, featuring 41 DDD domains, event sourcing, CQRS, cross-chain bridges, DeFi protocol integration, privacy-preserving identity, RegTech compliance, Banking-as-a-Service, and AI-powered analytics.",
  *
  * @OA\Contact(
