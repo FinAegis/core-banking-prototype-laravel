@@ -230,4 +230,29 @@ return [
         'include_debug_info' => env('RATE_LIMIT_DEBUG_HEADERS', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | BaaS Partner Tier Rate Limiting
+    |--------------------------------------------------------------------------
+    |
+    | When a request carries a BaaS partner binding (set by PartnerAuthMiddleware),
+    | per-minute limits are derived from the partner's PartnerTier enum
+    | (60 / 300 / 1000 req/min) multiplied by the type multiplier below.
+    | Monthly limits are enforced via PartnerUsageMeteringService.
+    |
+    */
+
+    'partner_tiers' => [
+        'enabled' => env('PARTNER_TIER_RATE_LIMITING', true),
+        'type_multipliers' => [
+            'query'       => 1.0,
+            'transaction' => 0.5,
+            'auth'        => 0.1,
+            'webhook'     => 2.0,
+            'admin'       => 1.0,
+            'public'      => 1.0,
+        ],
+        'enforce_monthly_limits' => env('PARTNER_ENFORCE_MONTHLY_LIMITS', true),
+    ],
+
 ];

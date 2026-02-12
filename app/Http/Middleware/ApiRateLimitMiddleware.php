@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
+use App\Domain\FinancialInstitution\Models\FinancialInstitutionPartner;
+use App\Domain\FinancialInstitution\Services\PartnerUsageMeteringService;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -63,11 +66,78 @@ class ApiRateLimitMiddleware
             return $next($request);
         }
 
-        // Get rate limit configuration
+        // Check for BaaS partner and apply tier-based limits
+        $partner = $request->attributes->get('partner');
+
+        if ($partner instanceof FinancialInstitutionPartner && config('rate_limiting.partner_tiers.enabled', true)) {
+            return $this->handlePartnerRequest($request, $next, $rateLimitType, $partner);
+        }
+
+        // Default: non-partner rate limiting
         $config = self::RATE_LIMITS[$rateLimitType] ?? self::RATE_LIMITS['query'];
 
-        // Generate unique key for this client/endpoint combination
-        $key = $this->generateRateLimitKey($request, $rateLimitType);
+        return $this->applyRateLimit($request, $next, $rateLimitType, $config);
+    }
+
+    /**
+     * Handle rate limiting for BaaS partner requests with tier-based limits.
+     */
+    private function handlePartnerRequest(
+        Request $request,
+        Closure $next,
+        string $rateLimitType,
+        FinancialInstitutionPartner $partner,
+    ): SymfonyResponse {
+        // Check monthly limit first
+        if (config('rate_limiting.partner_tiers.enforce_monthly_limits', true)) {
+            $meteringService = app(PartnerUsageMeteringService::class);
+            $usageCheck = $meteringService->checkUsageLimit($partner);
+
+            if ($usageCheck['exceeded']) {
+                return $this->monthlyLimitExceededResponse($usageCheck);
+            }
+        }
+
+        // Build per-minute config from partner tier
+        $tierEnum = $partner->getTierEnum();
+        $baseLimit = $tierEnum->rateLimitPerMinute();
+        $multiplier = (float) config("rate_limiting.partner_tiers.type_multipliers.{$rateLimitType}", 1.0);
+        $effectiveLimit = max(1, (int) round($baseLimit * $multiplier));
+
+        $config = [
+            'limit'          => $effectiveLimit,
+            'window'         => 60,
+            'block_duration' => 30,
+        ];
+
+        $response = $this->applyRateLimit($request, $next, $rateLimitType, $config, "partner:{$partner->id}");
+
+        // Record API call for metering (only on successful forward)
+        if ($response->getStatusCode() !== 429) {
+            try {
+                $meteringService = $meteringService ?? app(PartnerUsageMeteringService::class);
+                $meteringService->recordApiCall($partner, $request->path(), true);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to record partner API call', ['partner_id' => $partner->id, 'error' => $e->getMessage()]);
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * Apply rate limiting with the given config.
+     */
+    private function applyRateLimit(
+        Request $request,
+        Closure $next,
+        string $rateLimitType,
+        array $config,
+        ?string $identifierOverride = null,
+    ): SymfonyResponse {
+        $identifier = $identifierOverride ?? $this->getClientIdentifier($request);
+        $endpoint = $this->normalizeEndpoint($request->path());
+        $key = "rate_limit:{$rateLimitType}:{$identifier}:{$endpoint}";
         $blockKey = $key . ':blocked';
 
         // Check if client is currently blocked
@@ -78,26 +148,21 @@ class ApiRateLimitMiddleware
         }
 
         // Get current request count
-        $currentCount = Cache::get($key, 0);
+        $currentCount = (int) Cache::get($key, 0);
 
         // Check if limit exceeded
         if ($currentCount >= $config['limit']) {
-            // Block the client if block duration is set
             if ($config['block_duration'] > 0) {
                 $blockedUntil = now()->addSeconds($config['block_duration']);
                 Cache::put($blockKey, $blockedUntil, $config['block_duration']);
 
-                // Log rate limit violation
-                Log::warning(
-                    'Rate limit exceeded with blocking',
-                    [
-                        'ip'              => $request->ip(),
-                        'user_id'         => $request->user()?->id,
-                        'endpoint'        => $request->path(),
-                        'rate_limit_type' => $rateLimitType,
-                        'blocked_until'   => $blockedUntil,
-                    ]
-                );
+                Log::warning('Rate limit exceeded with blocking', [
+                    'ip'              => $request->ip(),
+                    'user_id'         => $request->user()?->id,
+                    'endpoint'        => $request->path(),
+                    'rate_limit_type' => $rateLimitType,
+                    'blocked_until'   => $blockedUntil,
+                ]);
             }
 
             return $this->rateLimitExceededResponse($request, $config);
@@ -106,7 +171,6 @@ class ApiRateLimitMiddleware
         // Increment request count
         Cache::put($key, $currentCount + 1, $config['window']);
 
-        // Add rate limit headers to response
         $response = $next($request);
 
         return $this->addRateLimitHeaders($response, $config, $currentCount + 1, $key);
@@ -159,10 +223,10 @@ class ApiRateLimitMiddleware
         $retryAfter = $blockedUntil ? $blockedUntil->diffInSeconds(now()) : $config['window'];
 
         $headers = [
-            'X-RateLimit-Limit'     => $config['limit'],
-            'X-RateLimit-Remaining' => 0,
-            'X-RateLimit-Reset'     => now()->addSeconds($config['window'])->timestamp,
-            'Retry-After'           => $retryAfter,
+            'X-RateLimit-Limit'     => (string) $config['limit'],
+            'X-RateLimit-Remaining' => '0',
+            'X-RateLimit-Reset'     => (string) now()->addSeconds($config['window'])->timestamp,
+            'Retry-After'           => (string) $retryAfter,
         ];
 
         if ($blockedUntil) {
@@ -187,6 +251,35 @@ class ApiRateLimitMiddleware
     }
 
     /**
+     * Create monthly limit exceeded response for BaaS partners.
+     *
+     * @param  array{exceeded: bool, current: int, limit: int, percentage: float}  $usageCheck
+     */
+    private function monthlyLimitExceededResponse(array $usageCheck): JsonResponse
+    {
+        $resetsAt = now()->endOfMonth()->toIso8601String();
+
+        return response()->json(
+            [
+                'error' => [
+                    'code'      => 'MONTHLY_LIMIT_EXCEEDED',
+                    'message'   => 'Monthly API call limit exceeded for your partner tier.',
+                    'limit'     => $usageCheck['limit'],
+                    'used'      => $usageCheck['current'],
+                    'resets_at' => $resetsAt,
+                ],
+            ],
+            429,
+            [
+                'X-Monthly-Limit'    => (string) $usageCheck['limit'],
+                'X-Monthly-Used'     => (string) $usageCheck['current'],
+                'X-Monthly-Reset-At' => $resetsAt,
+                'Retry-After'        => (string) now()->diffInSeconds(now()->endOfMonth()),
+            ]
+        );
+    }
+
+    /**
      * Add rate limit headers to successful response.
      */
     private function addRateLimitHeaders(SymfonyResponse $response, array $config, int $currentCount, string $key): SymfonyResponse
@@ -194,10 +287,10 @@ class ApiRateLimitMiddleware
         $remaining = max(0, $config['limit'] - $currentCount);
         $resetTime = now()->addSeconds($config['window'])->timestamp;
 
-        $response->headers->set('X-RateLimit-Limit', $config['limit']);
-        $response->headers->set('X-RateLimit-Remaining', $remaining);
-        $response->headers->set('X-RateLimit-Reset', $resetTime);
-        $response->headers->set('X-RateLimit-Window', $config['window']);
+        $response->headers->set('X-RateLimit-Limit', (string) $config['limit']);
+        $response->headers->set('X-RateLimit-Remaining', (string) $remaining);
+        $response->headers->set('X-RateLimit-Reset', (string) $resetTime);
+        $response->headers->set('X-RateLimit-Window', (string) $config['window']);
 
         return $response;
     }
