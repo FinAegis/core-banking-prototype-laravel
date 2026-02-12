@@ -78,6 +78,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'query.performance' => App\Http\Middleware\QueryPerformanceMiddleware::class,
             // Structured logging middleware (v3.3.0)
             'structured.logging' => App\Http\Middleware\StructuredLoggingMiddleware::class,
+            // API versioning middleware (v3.4.0)
+            'api.version' => App\Http\Middleware\ApiVersionMiddleware::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware
@@ -92,6 +94,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             Illuminate\Routing\Middleware\SubstituteBindings::class,
             App\Http\Middleware\SecurityHeaders::class,
+            App\Http\Middleware\ApiVersionMiddleware::class,
         ]);
 
         // Apply security headers to web routes
