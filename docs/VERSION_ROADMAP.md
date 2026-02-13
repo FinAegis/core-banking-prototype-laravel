@@ -1776,6 +1776,25 @@ After 18 releases (v1.1.0 → v3.0.0), the platform has grown to 41 domains, 266
 
 ---
 
-*Document Version: 5.0.0*
+## v5.0.1 — Platform Hardening + Documentation Refresh ✅ COMPLETED
+
+**Released**: February 13, 2026
+**Theme**: GraphQL CQRS Alignment, OpenAPI Coverage, DX Improvements, Documentation Accuracy
+
+### Delivered
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| GraphQL CQRS Alignment | ✅ | All 21 GraphQL mutations refactored from direct Eloquent to WorkflowStub/Service patterns |
+| OpenAPI 100% Coverage | ✅ | `@OA` annotations added to 52 remaining controllers (143+ total endpoints) |
+| Plugin Marketplace UI | ✅ | Filament admin page with search, filter, enable/disable, security scan |
+| PHP 8.4 CI Upgrade | ✅ | 10 workflow files + composer.json updated from PHP 8.3 to 8.4 |
+| Structural Test Conversion | ✅ | 97 test files converted from class_exists stubs to ReflectionClass assertions |
+| Documentation Refresh | ✅ | 12+ docs files updated, GraphQL count 14→24 across 23 occurrences |
+| Website Updates | ✅ | Sub-products, SDKs, feature pages, prototype disclaimers |
+
+---
+
+*Document Version: 5.0.1*
 *Created: January 11, 2026*
-*Updated: February 13, 2026 (v5.0.0 Streaming Architecture released)*
+*Updated: February 13, 2026 (v5.0.1 Platform Hardening released)*

@@ -5,6 +5,55 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.1] - 2026-02-13
+
+### Added
+
+#### GraphQL Schema Expansion — 10 New Domains (24 total)
+- Privacy, RegTech, Governance, Asset, KeyManagement, Relayer, Banking, Commerce, Custodian, AI domain schemas
+- 16 new query resolvers and 31 new mutation resolvers
+- All 21 GraphQL mutations refactored to use CQRS WorkflowStub/Service patterns instead of direct Eloquent
+
+#### Plugin Marketplace Admin UI
+- Filament admin page with search/filter, enable/disable/scan actions, stats bar, security scan results
+
+#### OpenAPI Annotations — 100% Controller Coverage
+- `@OA` docblocks added to 52 remaining controllers (143+ total annotated endpoints)
+
+### Changed
+
+#### CI/CD — PHP 8.4 Upgrade
+- All 10 GitHub Actions workflow files updated from PHP 8.3 to PHP 8.4
+- `composer.json` minimum PHP requirement bumped to `^8.4`
+
+#### Test Suite Quality
+- 97 structural test files converted from `class_exists()`/`method_exists()` stubs to ReflectionClass-based behavioral assertions
+
+#### Documentation Refresh
+- `docs/01-VISION/ROADMAP.md` rewritten for v5.0.0 (41 domains, current capabilities)
+- `docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md` updated from 29 to 41 domains with categorized registry
+- `docs/02-ARCHITECTURE/ARCHITECTURE.md` updated to v5.0 (24 GraphQL domains, streaming, plugins)
+- `docs/ARCHITECTURAL_ROADMAP.md` GraphQL metrics updated to 24 domains
+- `docs/VERSION_ROADMAP.md` v5.0.0 GraphQL expansion documented
+- `docs/README.md` GraphQL count corrected to 24 domains
+- `docs/IMPLEMENTATION_PLAN.md` marked as historical (v1.x era)
+- `docs/BACKEND_UPGRADE_PLAN_v2.4.md` marked as COMPLETED
+- `docs/MOBILE_APP_SPECIFICATION.md` version context added
+- `docs/06-DEVELOPMENT/CLAUDE.md` updated to v5.0.0 with new domain entries
+- GraphQL domain count corrected from 14 to 24 across 12 files (23 occurrences)
+
+#### Website Updates
+- Stablecoins & Treasury sub-products changed from "COMING SOON" to "Available"
+- SDK version references updated from v3.0.0 to v5.0.0 across all packages
+- Feature pages updated to reflect v5.0.0 implementation reality
+- Prototype disclaimers added to partner and bank integration pages
+- Blade views updated with accurate stats and status badges
+
+### Fixed
+- Serena memory files updated with correct GraphQL domain counts and lists
+
+---
+
 ## [5.0.0] - 2026-02-13
 
 ### Added
