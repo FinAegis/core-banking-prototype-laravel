@@ -27,9 +27,10 @@ class EventStoreService
     public function getDomainTableMap(): array
     {
         $useRouter = $this->eventRouter && config('event-store.partitioning.strategy') === 'domain';
+        $eventRouter = $this->eventRouter;
 
-        $resolveTable = fn (string $domain): string => $useRouter
-            ? $this->eventRouter->resolveTableForDomain($domain)
+        $resolveTable = fn (string $domain): string => $useRouter && $eventRouter !== null
+            ? $eventRouter->resolveTableForDomain($domain)
             : 'stored_events';
 
         return [
@@ -312,11 +313,16 @@ class EventStoreService
      */
     public function resolveEventTable(string $domain): ?string
     {
+        $map = $this->getDomainTableMap();
+
+        // Validate domain exists before resolving
+        if (! isset($map[$domain])) {
+            return null;
+        }
+
         if ($this->eventRouter && config('event-store.partitioning.strategy') === 'domain') {
             return $this->eventRouter->resolveTableForDomain($domain);
         }
-
-        $map = $this->getDomainTableMap();
 
         return $map[$domain]['event_table'] ?? null;
     }

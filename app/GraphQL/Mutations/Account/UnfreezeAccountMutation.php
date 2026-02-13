@@ -39,6 +39,9 @@ class UnfreezeAccountMutation
         $workflow = WorkflowStub::make(UnfreezeAccountWorkflow::class);
         $workflow->start($accountUuid, $reason, $authorizedBy);
 
+        // Update model directly for immediate API response consistency
+        $account->update(['frozen' => false]);
+
         return $account->fresh() ?? $account;
     }
 }

@@ -20,7 +20,7 @@ describe('EventReplayCommand', function () {
         $this->artisan('event:replay --domain=Account --dry-run')
             ->expectsOutput('DRY RUN - No events will be replayed.')
             ->expectsOutput('Domain: Account')
-            ->expectsOutput('Event table: stored_events')
+            ->expectsOutput('Event table: account_events')
             ->expectsOutput('Dry run complete. No events were replayed.')
             ->assertSuccessful();
     });

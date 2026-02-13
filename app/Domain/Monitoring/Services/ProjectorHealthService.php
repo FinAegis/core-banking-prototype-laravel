@@ -92,9 +92,13 @@ class ProjectorHealthService
      */
     private function getLastProcessedAt(string $projectorClass): ?\Illuminate\Support\Carbon
     {
-        $record = DB::table('projector_statuses')
-            ->where('projector_name', $projectorClass)
-            ->first();
+        try {
+            $record = DB::table('projector_statuses')
+                ->where('projector_name', $projectorClass)
+                ->first();
+        } catch (\Illuminate\Database\QueryException) {
+            return null;
+        }
 
         if (! $record) {
             return null;
@@ -108,9 +112,13 @@ class ProjectorHealthService
      */
     private function calculateLag(string $projectorClass): int
     {
-        $lastProcessedId = DB::table('projector_statuses')
-            ->where('projector_name', $projectorClass)
-            ->value('last_processed_event_id');
+        try {
+            $lastProcessedId = DB::table('projector_statuses')
+                ->where('projector_name', $projectorClass)
+                ->value('last_processed_event_id');
+        } catch (\Illuminate\Database\QueryException) {
+            return 0;
+        }
 
         if ($lastProcessedId === null) {
             return 0;
