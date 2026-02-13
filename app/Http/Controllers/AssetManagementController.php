@@ -10,10 +10,26 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Tag(
+ *     name="Asset Management",
+ *     description="Portfolio and asset management dashboard"
+ * )
+ */
 class AssetManagementController extends Controller
 {
     /**
-     * Display asset management dashboard.
+     * @OA\Get(
+     *     path="/assets",
+     *     operationId="assetManagementIndex",
+     *     tags={"Asset Management"},
+     *     summary="Asset management dashboard",
+     *     description="Returns the asset management overview page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index(Request $request)
     {
@@ -52,7 +68,19 @@ class AssetManagementController extends Controller
     }
 
     /**
-     * Show asset details.
+     * @OA\Get(
+     *     path="/assets/{symbol}",
+     *     operationId="assetManagementShow",
+     *     tags={"Asset Management"},
+     *     summary="Show asset details",
+     *     description="Returns detailed view for a specific asset",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="symbol", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(Asset $asset)
     {
@@ -84,7 +112,17 @@ class AssetManagementController extends Controller
     }
 
     /**
-     * Show portfolio analytics.
+     * @OA\Get(
+     *     path="/assets/analytics",
+     *     operationId="assetManagementAnalytics",
+     *     tags={"Asset Management"},
+     *     summary="Asset analytics",
+     *     description="Returns the asset analytics page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function analytics(Request $request)
     {
@@ -117,7 +155,17 @@ class AssetManagementController extends Controller
     }
 
     /**
-     * Export portfolio report.
+     * @OA\Get(
+     *     path="/assets/export",
+     *     operationId="assetManagementExport",
+     *     tags={"Asset Management"},
+     *     summary="Export portfolio data",
+     *     description="Exports portfolio data in CSV or PDF format",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function export(Request $request)
     {

@@ -9,6 +9,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @OA\Tag(
+ *     name="Mobile User Preferences",
+ *     description="Mobile application user preferences management"
+ * )
+ */
 class UserPreferencesController extends Controller
 {
     private const DEFAULTS = [
@@ -32,9 +38,17 @@ class UserPreferencesController extends Controller
     ];
 
     /**
-     * Get the authenticated user's mobile preferences.
+     * @OA\Get(
+     *     path="/api/v1/user/preferences",
+     *     operationId="mobileUserPreferencesShow",
+     *     tags={"Mobile User Preferences"},
+     *     summary="Get user mobile preferences",
+     *     description="Returns the authenticated user mobile preferences",
+     *     security={{"sanctum":{}}},
      *
-     * GET /api/v1/user/preferences
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(Request $request): JsonResponse
     {
@@ -51,9 +65,17 @@ class UserPreferencesController extends Controller
     }
 
     /**
-     * Update the authenticated user's mobile preferences.
+     * @OA\Patch(
+     *     path="/api/v1/user/preferences",
+     *     operationId="mobileUserPreferencesUpdate",
+     *     tags={"Mobile User Preferences"},
+     *     summary="Update user mobile preferences",
+     *     description="Updates the authenticated user mobile preferences",
+     *     security={{"sanctum":{}}},
      *
-     * PATCH /api/v1/user/preferences
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function update(Request $request): JsonResponse
     {

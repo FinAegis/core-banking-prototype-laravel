@@ -5,10 +5,25 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 
+/**
+ * @OA\Tag(
+ *     name="Sitemap",
+ *     description="XML sitemap and robots.txt generation"
+ * )
+ */
 class SitemapController extends Controller
 {
     /**
-     * Generate the sitemap.
+     * @OA\Get(
+     *     path="/sitemap.xml",
+     *     operationId="sitemapIndex",
+     *     tags={"Sitemap"},
+     *     summary="Get XML sitemap",
+     *     description="Returns the XML sitemap for search engines",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index(): Response
     {
@@ -274,7 +289,16 @@ class SitemapController extends Controller
     }
 
     /**
-     * Generate robots.txt file.
+     * @OA\Get(
+     *     path="/robots.txt",
+     *     operationId="sitemapRobots",
+     *     tags={"Sitemap"},
+     *     summary="Get robots.txt",
+     *     description="Returns the robots.txt file",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function robots(): Response
     {

@@ -13,12 +13,26 @@ use Log;
 use Schema;
 use Str;
 
+/**
+ * @OA\Tag(
+ *     name="Transaction Status",
+ *     description="Transaction status tracking and management"
+ * )
+ */
 class TransactionStatusController extends Controller
 {
     /**
-     * Display the transaction status tracking page.
+     * @OA\Get(
+     *     path="/transactions",
+     *     operationId="transactionStatusIndex",
+     *     tags={"Transaction Status"},
+     *     summary="List transactions",
+     *     description="Returns the transaction history page",
+     *     security={{"sanctum":{}}},
      *
-     * @return \Illuminate\Contracts\View\View
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index(Request $request)
     {
@@ -57,9 +71,19 @@ class TransactionStatusController extends Controller
     }
 
     /**
-     * Get details for a specific transaction.
+     * @OA\Get(
+     *     path="/transactions/{id}",
+     *     operationId="transactionStatusShow",
+     *     tags={"Transaction Status"},
+     *     summary="Show transaction details",
+     *     description="Returns details of a specific transaction",
+     *     security={{"sanctum":{}}},
      *
-     * @return \Illuminate\Contracts\View\View
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show($transactionId)
     {
@@ -90,7 +114,19 @@ class TransactionStatusController extends Controller
     }
 
     /**
-     * Get real-time status update for a transaction.
+     * @OA\Get(
+     *     path="/transactions/{id}/status",
+     *     operationId="transactionStatusStatus",
+     *     tags={"Transaction Status"},
+     *     summary="Get transaction status",
+     *     description="Returns the current status of a transaction",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function status($transactionId)
     {
@@ -119,7 +155,19 @@ class TransactionStatusController extends Controller
     }
 
     /**
-     * Cancel a pending transaction.
+     * @OA\Post(
+     *     path="/transactions/{id}/cancel",
+     *     operationId="transactionStatusCancel",
+     *     tags={"Transaction Status"},
+     *     summary="Cancel transaction",
+     *     description="Cancels a pending transaction",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function cancel($transactionId)
     {
@@ -165,7 +213,19 @@ class TransactionStatusController extends Controller
     }
 
     /**
-     * Retry a failed transaction.
+     * @OA\Post(
+     *     path="/transactions/{id}/retry",
+     *     operationId="transactionStatusRetry",
+     *     tags={"Transaction Status"},
+     *     summary="Retry transaction",
+     *     description="Retries a failed transaction",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function retry($transactionId)
     {

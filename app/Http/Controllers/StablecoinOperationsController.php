@@ -16,10 +16,26 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Workflow\WorkflowStub;
 
+/**
+ * @OA\Tag(
+ *     name="Stablecoin Operations",
+ *     description="Stablecoin minting, burning, and operations management"
+ * )
+ */
 class StablecoinOperationsController extends Controller
 {
     /**
-     * Display stablecoin operations dashboard.
+     * @OA\Get(
+     *     path="/stablecoins",
+     *     operationId="stablecoinOperationsIndex",
+     *     tags={"Stablecoin Operations"},
+     *     summary="Stablecoin operations dashboard",
+     *     description="Returns the stablecoin operations dashboard",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index(Request $request)
     {
@@ -59,7 +75,17 @@ class StablecoinOperationsController extends Controller
     }
 
     /**
-     * Show mint form.
+     * @OA\Get(
+     *     path="/stablecoins/mint",
+     *     operationId="stablecoinOperationsMint",
+     *     tags={"Stablecoin Operations"},
+     *     summary="Show mint form",
+     *     description="Shows the stablecoin minting form",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function mint(Request $request)
     {
@@ -90,7 +116,17 @@ class StablecoinOperationsController extends Controller
     }
 
     /**
-     * Process mint request.
+     * @OA\Post(
+     *     path="/stablecoins/mint",
+     *     operationId="stablecoinOperationsProcessMint",
+     *     tags={"Stablecoin Operations"},
+     *     summary="Process mint operation",
+     *     description="Processes a stablecoin minting operation",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function processMint(Request $request)
     {
@@ -190,7 +226,17 @@ class StablecoinOperationsController extends Controller
     }
 
     /**
-     * Show burn form.
+     * @OA\Get(
+     *     path="/stablecoins/burn",
+     *     operationId="stablecoinOperationsBurn",
+     *     tags={"Stablecoin Operations"},
+     *     summary="Show burn form",
+     *     description="Shows the stablecoin burning form",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function burn(Request $request)
     {
@@ -217,7 +263,17 @@ class StablecoinOperationsController extends Controller
     }
 
     /**
-     * Process burn request.
+     * @OA\Post(
+     *     path="/stablecoins/burn",
+     *     operationId="stablecoinOperationsProcessBurn",
+     *     tags={"Stablecoin Operations"},
+     *     summary="Process burn operation",
+     *     description="Processes a stablecoin burning operation",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function processBurn(Request $request)
     {
@@ -320,7 +376,17 @@ class StablecoinOperationsController extends Controller
     }
 
     /**
-     * Show operation history.
+     * @OA\Get(
+     *     path="/stablecoins/history",
+     *     operationId="stablecoinOperationsHistory",
+     *     tags={"Stablecoin Operations"},
+     *     summary="Operation history",
+     *     description="Returns stablecoin operation history",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function history(Request $request)
     {

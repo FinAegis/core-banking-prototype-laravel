@@ -7,10 +7,26 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @OA\Tag(
+ *     name="API Keys",
+ *     description="API key management for developers"
+ * )
+ */
 class ApiKeyController extends Controller
 {
     /**
-     * Display API keys dashboard.
+     * @OA\Get(
+     *     path="/api-keys",
+     *     operationId="aPIKeysIndex",
+     *     tags={"API Keys"},
+     *     summary="List API keys",
+     *     description="Returns the API keys management page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index()
     {
@@ -27,7 +43,17 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * Show the form for creating a new API key.
+     * @OA\Get(
+     *     path="/api-keys/create",
+     *     operationId="aPIKeysCreate",
+     *     tags={"API Keys"},
+     *     summary="Show create API key form",
+     *     description="Shows the form to create a new API key",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function create()
     {
@@ -35,7 +61,17 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * Store a newly created API key.
+     * @OA\Post(
+     *     path="/api-keys",
+     *     operationId="aPIKeysStore",
+     *     tags={"API Keys"},
+     *     summary="Create a new API key",
+     *     description="Creates a new API key",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function store(Request $request)
     {
@@ -83,7 +119,19 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * Display the specified API key.
+     * @OA\Get(
+     *     path="/api-keys/{id}",
+     *     operationId="aPIKeysShow",
+     *     tags={"API Keys"},
+     *     summary="Show API key details",
+     *     description="Returns details of a specific API key",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(ApiKey $apiKey)
     {
@@ -121,7 +169,19 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * Show the form for editing the specified API key.
+     * @OA\Get(
+     *     path="/api-keys/{id}/edit",
+     *     operationId="aPIKeysEdit",
+     *     tags={"API Keys"},
+     *     summary="Show edit API key form",
+     *     description="Shows the form to edit an API key",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function edit(ApiKey $apiKey)
     {
@@ -134,7 +194,19 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * Update the specified API key.
+     * @OA\Put(
+     *     path="/api-keys/{id}",
+     *     operationId="aPIKeysUpdate",
+     *     tags={"API Keys"},
+     *     summary="Update an API key",
+     *     description="Updates an existing API key",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function update(Request $request, ApiKey $apiKey)
     {
@@ -174,7 +246,19 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * Revoke the specified API key.
+     * @OA\Delete(
+     *     path="/api-keys/{id}",
+     *     operationId="aPIKeysDestroy",
+     *     tags={"API Keys"},
+     *     summary="Revoke an API key",
+     *     description="Revokes and deletes an API key",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function destroy(ApiKey $apiKey)
     {
@@ -190,7 +274,19 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * Regenerate the specified API key.
+     * @OA\Post(
+     *     path="/api-keys/{id}/regenerate",
+     *     operationId="aPIKeysRegenerate",
+     *     tags={"API Keys"},
+     *     summary="Regenerate an API key",
+     *     description="Regenerates the secret for an API key",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function regenerate(ApiKey $apiKey)
     {

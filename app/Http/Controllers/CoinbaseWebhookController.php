@@ -7,6 +7,12 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @OA\Tag(
+ *     name="Webhooks",
+ *     description="Payment processor webhook endpoints"
+ * )
+ */
 class CoinbaseWebhookController extends Controller
 {
     protected CoinbaseCommerceService $coinbaseService;
@@ -17,7 +23,16 @@ class CoinbaseWebhookController extends Controller
     }
 
     /**
-     * Handle Coinbase Commerce webhook.
+     * @OA\Post(
+     *     path="/api/webhooks/coinbase-commerce",
+     *     operationId="webhooksHandleWebhook",
+     *     tags={"Webhooks"},
+     *     summary="Handle Coinbase Commerce webhook",
+     *     description="Processes incoming Coinbase Commerce payment webhooks",
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function handleWebhook(Request $request)
     {

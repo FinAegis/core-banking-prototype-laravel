@@ -7,8 +7,26 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Log;
 
+/**
+ * @OA\Tag(
+ *     name="GCU Token",
+ *     description="GCU token composition and information"
+ * )
+ */
 class GCUController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/gcu",
+     *     operationId="gCUTokenIndex",
+     *     tags={"GCU Token"},
+     *     summary="GCU dashboard",
+     *     description="Returns the GCU token information dashboard",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function index()
     {
         // Fetch real-time composition data from API
@@ -17,6 +35,18 @@ class GCUController extends Controller
         return view('gcu.index', compact('compositionData'));
     }
 
+    /**
+     * @OA\Get(
+     *     path="/gcu/composition",
+     *     operationId="gCUTokenFetchCompositionData",
+     *     tags={"GCU Token"},
+     *     summary="Get GCU composition data",
+     *     description="Returns the current GCU token composition data",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     protected function fetchCompositionData()
     {
         // Cache the API response for 60 seconds to avoid excessive API calls

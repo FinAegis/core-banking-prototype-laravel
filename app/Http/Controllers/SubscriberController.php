@@ -6,6 +6,12 @@ use App\Domain\Newsletter\Services\SubscriberEmailService;
 use Exception;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Tag(
+ *     name="Newsletter",
+ *     description="Newsletter subscription management"
+ * )
+ */
 class SubscriberController extends Controller
 {
     public function __construct(
@@ -14,7 +20,16 @@ class SubscriberController extends Controller
     }
 
     /**
-     * Handle unsubscribe request.
+     * @OA\Get(
+     *     path="/newsletter/unsubscribe",
+     *     operationId="newsletterUnsubscribe",
+     *     tags={"Newsletter"},
+     *     summary="Unsubscribe from newsletter",
+     *     description="Unsubscribes an email from the newsletter",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function unsubscribe(Request $request, string $encryptedEmail)
     {
@@ -49,7 +64,16 @@ class SubscriberController extends Controller
     }
 
     /**
-     * Handle subscription from various forms.
+     * @OA\Post(
+     *     path="/newsletter/subscribe",
+     *     operationId="newsletterSubscribe",
+     *     tags={"Newsletter"},
+     *     summary="Subscribe to newsletter",
+     *     description="Subscribes an email to the newsletter",
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function subscribe(Request $request, string $source)
     {

@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @OA\Tag(
+ *     name="CGO Agreements",
+ *     description="CGO investment agreements and certificates"
+ * )
+ */
 class CgoAgreementController extends Controller
 {
     protected InvestmentAgreementService $agreementService;
@@ -22,7 +28,19 @@ class CgoAgreementController extends Controller
     }
 
     /**
-     * Generate investment agreement.
+     * @OA\Post(
+     *     path="/cgo/agreements/{investment}/generate",
+     *     operationId="cGOAgreementsGenerateAgreement",
+     *     tags={"CGO Agreements"},
+     *     summary="Generate investment agreement",
+     *     description="Generates a PDF agreement for an investment",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function generateAgreement(Request $request, $investmentUuid)
     {
@@ -78,7 +96,19 @@ class CgoAgreementController extends Controller
     }
 
     /**
-     * Download investment agreement.
+     * @OA\Get(
+     *     path="/cgo/agreements/{investment}/download",
+     *     operationId="cGOAgreementsDownloadAgreement",
+     *     tags={"CGO Agreements"},
+     *     summary="Download investment agreement",
+     *     description="Downloads the PDF agreement",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function downloadAgreement($investmentUuid)
     {
@@ -102,7 +132,19 @@ class CgoAgreementController extends Controller
     }
 
     /**
-     * Generate investment certificate.
+     * @OA\Post(
+     *     path="/cgo/agreements/certificate/{investment}/generate",
+     *     operationId="cGOAgreementsGenerateCertificate",
+     *     tags={"CGO Agreements"},
+     *     summary="Generate investment certificate",
+     *     description="Generates a PDF certificate",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function generateCertificate(Request $request, $investmentUuid)
     {
@@ -157,7 +199,19 @@ class CgoAgreementController extends Controller
     }
 
     /**
-     * Download investment certificate.
+     * @OA\Get(
+     *     path="/cgo/agreements/certificate/{investment}/download",
+     *     operationId="cGOAgreementsDownloadCertificate",
+     *     tags={"CGO Agreements"},
+     *     summary="Download investment certificate",
+     *     description="Downloads the PDF certificate",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function downloadCertificate($investmentUuid)
     {
@@ -181,7 +235,19 @@ class CgoAgreementController extends Controller
     }
 
     /**
-     * Preview agreement (admin only).
+     * @OA\Get(
+     *     path="/cgo/agreements/{investment}/preview",
+     *     operationId="cGOAgreementsPreviewAgreement",
+     *     tags={"CGO Agreements"},
+     *     summary="Preview agreement",
+     *     description="Returns an HTML preview of the agreement",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function previewAgreement($investmentUuid)
     {
@@ -208,7 +274,19 @@ class CgoAgreementController extends Controller
     }
 
     /**
-     * Mark agreement as signed.
+     * @OA\Post(
+     *     path="/cgo/agreements/{investment}/sign",
+     *     operationId="cGOAgreementsMarkAsSigned",
+     *     tags={"CGO Agreements"},
+     *     summary="Mark agreement as signed",
+     *     description="Records the agreement as digitally signed",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="investment", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function markAsSigned(Request $request, $investmentUuid)
     {

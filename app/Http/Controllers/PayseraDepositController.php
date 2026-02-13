@@ -20,6 +20,12 @@ use Illuminate\Validation\ValidationException;
  * Handles initiation and callback processing for Paysera payment gateway deposits.
  * Supports both production and demo modes via service injection.
  */
+/**
+ * @OA\Tag(
+ *     name="Paysera Deposits",
+ *     description="Paysera payment gateway deposit management"
+ * )
+ */
 class PayseraDepositController extends Controller
 {
     public function __construct(
@@ -28,9 +34,17 @@ class PayseraDepositController extends Controller
     }
 
     /**
-     * Initiate a Paysera deposit.
+     * @OA\Post(
+     *     path="/paysera/deposits/initiate",
+     *     operationId="payseraDepositsInitiate",
+     *     tags={"Paysera Deposits"},
+     *     summary="Initiate Paysera deposit",
+     *     description="Initiates a deposit via Paysera",
+     *     security={{"sanctum":{}}},
      *
-     * @throws ValidationException
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function initiate(Request $request): JsonResponse|RedirectResponse
     {
@@ -102,7 +116,17 @@ class PayseraDepositController extends Controller
     }
 
     /**
-     * Handle Paysera callback after payment.
+     * @OA\Get(
+     *     path="/paysera/deposits/callback",
+     *     operationId="payseraDepositsCallback",
+     *     tags={"Paysera Deposits"},
+     *     summary="Paysera callback",
+     *     description="Handles the Paysera payment callback",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function callback(Request $request): JsonResponse|RedirectResponse
     {
@@ -194,7 +218,19 @@ class PayseraDepositController extends Controller
     }
 
     /**
-     * Get order status.
+     * @OA\Get(
+     *     path="/paysera/deposits/{id}/status",
+     *     operationId="payseraDepositsStatus",
+     *     tags={"Paysera Deposits"},
+     *     summary="Get deposit status",
+     *     description="Returns the status of a Paysera deposit",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function status(Request $request, string $orderId): JsonResponse
     {
@@ -214,7 +250,19 @@ class PayseraDepositController extends Controller
     }
 
     /**
-     * Cancel a pending order.
+     * @OA\Post(
+     *     path="/paysera/deposits/{id}/cancel",
+     *     operationId="payseraDepositsCancel",
+     *     tags={"Paysera Deposits"},
+     *     summary="Cancel deposit",
+     *     description="Cancels a pending Paysera deposit",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function cancel(Request $request, string $orderId): JsonResponse
     {

@@ -11,6 +11,12 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @OA\Tag(
+ *     name="Exchange",
+ *     description="Trading exchange, orders, and market data"
+ * )
+ */
 class ExchangeController extends Controller
 {
     private ExchangeService $exchangeService;
@@ -20,6 +26,19 @@ class ExchangeController extends Controller
         $this->exchangeService = $exchangeService;
     }
 
+    /**
+     * @OA\Get(
+     *     path="/exchange",
+     *     operationId="exchangeIndex",
+     *     tags={"Exchange"},
+     *     summary="Exchange dashboard",
+     *     description="Returns the trading exchange dashboard",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function index(Request $request)
     {
         $baseCurrency = $request->input('base', 'BTC');
@@ -66,6 +85,19 @@ class ExchangeController extends Controller
         );
     }
 
+    /**
+     * @OA\Get(
+     *     path="/exchange/orders",
+     *     operationId="exchangeOrders",
+     *     tags={"Exchange"},
+     *     summary="List orders",
+     *     description="Returns the user order history",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function orders()
     {
         $account = Auth::user()->account;
@@ -87,6 +119,19 @@ class ExchangeController extends Controller
         );
     }
 
+    /**
+     * @OA\Get(
+     *     path="/exchange/trades",
+     *     operationId="exchangeTrades",
+     *     tags={"Exchange"},
+     *     summary="List trades",
+     *     description="Returns the user trade history",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function trades()
     {
         $account = Auth::user()->account;
@@ -121,6 +166,19 @@ class ExchangeController extends Controller
         );
     }
 
+    /**
+     * @OA\Post(
+     *     path="/exchange/orders",
+     *     operationId="exchangePlaceOrder",
+     *     tags={"Exchange"},
+     *     summary="Place an order",
+     *     description="Places a new trading order",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function placeOrder(Request $request)
     {
         $validated = $request->validate(
@@ -169,6 +227,21 @@ class ExchangeController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/exchange/orders/{id}/cancel",
+     *     operationId="exchangeCancelOrder",
+     *     tags={"Exchange"},
+     *     summary="Cancel an order",
+     *     description="Cancels a pending trading order",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function cancelOrder(string $orderId)
     {
         $account = Auth::user()->account;

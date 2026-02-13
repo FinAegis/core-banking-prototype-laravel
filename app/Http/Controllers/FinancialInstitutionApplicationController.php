@@ -5,10 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @OA\Tag(
+ *     name="Financial Institution Applications",
+ *     description="Financial institution partnership applications"
+ * )
+ */
 class FinancialInstitutionApplicationController extends Controller
 {
     /**
-     * Display the application form.
+     * @OA\Get(
+     *     path="/fi-application",
+     *     operationId="financialInstitutionApplicationsShow",
+     *     tags={"Financial Institution Applications"},
+     *     summary="Show application form",
+     *     description="Returns the financial institution application form",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show()
     {
@@ -16,7 +31,16 @@ class FinancialInstitutionApplicationController extends Controller
     }
 
     /**
-     * Handle form submission.
+     * @OA\Post(
+     *     path="/fi-application",
+     *     operationId="financialInstitutionApplicationsSubmit",
+     *     tags={"Financial Institution Applications"},
+     *     summary="Submit application",
+     *     description="Submits a financial institution partnership application",
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function submit(Request $request)
     {

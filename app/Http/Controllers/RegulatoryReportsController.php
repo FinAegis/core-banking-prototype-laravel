@@ -10,6 +10,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @OA\Tag(
+ *     name="Regulatory Reports",
+ *     description="Regulatory report generation and submission"
+ * )
+ */
 class RegulatoryReportsController extends Controller
 {
     protected ReportGenerator $reportGenerator;
@@ -20,7 +26,17 @@ class RegulatoryReportsController extends Controller
     }
 
     /**
-     * Display regulatory reports dashboard.
+     * @OA\Get(
+     *     path="/regulatory-reports",
+     *     operationId="regulatoryReportsIndex",
+     *     tags={"Regulatory Reports"},
+     *     summary="List regulatory reports",
+     *     description="Returns the regulatory reports dashboard",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index()
     {
@@ -47,7 +63,17 @@ class RegulatoryReportsController extends Controller
     }
 
     /**
-     * Show report generation form.
+     * @OA\Get(
+     *     path="/regulatory-reports/create",
+     *     operationId="regulatoryReportsCreate",
+     *     tags={"Regulatory Reports"},
+     *     summary="Show create report form",
+     *     description="Shows the form to create a regulatory report",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function create()
     {
@@ -65,7 +91,17 @@ class RegulatoryReportsController extends Controller
     }
 
     /**
-     * Generate a new regulatory report.
+     * @OA\Post(
+     *     path="/regulatory-reports",
+     *     operationId="regulatoryReportsStore",
+     *     tags={"Regulatory Reports"},
+     *     summary="Create regulatory report",
+     *     description="Creates a new regulatory report",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function store(Request $request)
     {
@@ -111,7 +147,19 @@ class RegulatoryReportsController extends Controller
     }
 
     /**
-     * Display report details.
+     * @OA\Get(
+     *     path="/regulatory-reports/{id}",
+     *     operationId="regulatoryReportsShow",
+     *     tags={"Regulatory Reports"},
+     *     summary="Show report details",
+     *     description="Returns details of a regulatory report",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(RegulatoryReport $report)
     {
@@ -121,7 +169,19 @@ class RegulatoryReportsController extends Controller
     }
 
     /**
-     * Download report.
+     * @OA\Get(
+     *     path="/regulatory-reports/{id}/download",
+     *     operationId="regulatoryReportsDownload",
+     *     tags={"Regulatory Reports"},
+     *     summary="Download report",
+     *     description="Downloads a regulatory report",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function download(RegulatoryReport $report)
     {
@@ -135,7 +195,19 @@ class RegulatoryReportsController extends Controller
     }
 
     /**
-     * Submit report to regulatory authority.
+     * @OA\Post(
+     *     path="/regulatory-reports/{id}/submit",
+     *     operationId="regulatoryReportsSubmit",
+     *     tags={"Regulatory Reports"},
+     *     summary="Submit report to authority",
+     *     description="Submits a regulatory report to the authority",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function submit(RegulatoryReport $report)
     {

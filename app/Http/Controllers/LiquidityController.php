@@ -9,6 +9,12 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * @OA\Tag(
+ *     name="Liquidity",
+ *     description="Liquidity pool participation and rewards"
+ * )
+ */
 class LiquidityController extends Controller
 {
     public function __construct(
@@ -16,6 +22,19 @@ class LiquidityController extends Controller
     ) {
     }
 
+    /**
+     * @OA\Get(
+     *     path="/liquidity",
+     *     operationId="liquidityIndex",
+     *     tags={"Liquidity"},
+     *     summary="Liquidity dashboard",
+     *     description="Returns the liquidity pools dashboard",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function index(): View
     {
         $pools = $this->liquidityService->getActivePools();
@@ -26,6 +45,21 @@ class LiquidityController extends Controller
         return view('liquidity.index', compact('pools', 'userPositions'));
     }
 
+    /**
+     * @OA\Get(
+     *     path="/liquidity/{id}",
+     *     operationId="liquidityPool",
+     *     tags={"Liquidity"},
+     *     summary="Show pool details",
+     *     description="Returns details of a specific liquidity pool",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function pool(string $poolId): View
     {
         $pool = $this->liquidityService->getPool($poolId);
@@ -46,6 +80,21 @@ class LiquidityController extends Controller
         return view('liquidity.pool', compact('pool', 'metrics', 'userPosition'));
     }
 
+    /**
+     * @OA\Post(
+     *     path="/liquidity/{id}/add",
+     *     operationId="liquidityAddLiquidity",
+     *     tags={"Liquidity"},
+     *     summary="Add liquidity",
+     *     description="Adds liquidity to a pool",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function addLiquidity(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate(
@@ -82,6 +131,21 @@ class LiquidityController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/liquidity/{id}/remove",
+     *     operationId="liquidityRemoveLiquidity",
+     *     tags={"Liquidity"},
+     *     summary="Remove liquidity",
+     *     description="Removes liquidity from a pool",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function removeLiquidity(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate(
@@ -125,6 +189,21 @@ class LiquidityController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/liquidity/{id}/claim",
+     *     operationId="liquidityClaimRewards",
+     *     tags={"Liquidity"},
+     *     summary="Claim rewards",
+     *     description="Claims accumulated rewards from a liquidity pool",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function claimRewards(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate(

@@ -13,6 +13,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * @OA\Tag(
+ *     name="Custodian Integration",
+ *     description="Custodian service integration management"
+ * )
+ */
 class CustodianIntegrationController extends Controller
 {
     public function __construct(
@@ -22,7 +28,17 @@ class CustodianIntegrationController extends Controller
     }
 
     /**
-     * Display custodian integration status dashboard.
+     * @OA\Get(
+     *     path="/custodians",
+     *     operationId="custodianIntegrationIndex",
+     *     tags={"Custodian Integration"},
+     *     summary="List custodian integrations",
+     *     description="Returns the custodian integration dashboard",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index(Request $request)
     {
@@ -62,7 +78,19 @@ class CustodianIntegrationController extends Controller
     }
 
     /**
-     * Show detailed status for a specific custodian.
+     * @OA\Get(
+     *     path="/custodians/{id}",
+     *     operationId="custodianIntegrationShow",
+     *     tags={"Custodian Integration"},
+     *     summary="Show custodian details",
+     *     description="Returns details of a specific custodian integration",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(Request $request, string $custodianCode)
     {
@@ -112,7 +140,19 @@ class CustodianIntegrationController extends Controller
     }
 
     /**
-     * Test connection to a custodian.
+     * @OA\Post(
+     *     path="/custodians/{id}/test",
+     *     operationId="custodianIntegrationTestConnection",
+     *     tags={"Custodian Integration"},
+     *     summary="Test custodian connection",
+     *     description="Tests connectivity to a custodian service",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function testConnection(Request $request, string $custodianCode)
     {
@@ -145,7 +185,19 @@ class CustodianIntegrationController extends Controller
     }
 
     /**
-     * Trigger manual synchronization.
+     * @OA\Post(
+     *     path="/custodians/{id}/sync",
+     *     operationId="custodianIntegrationSynchronize",
+     *     tags={"Custodian Integration"},
+     *     summary="Synchronize with custodian",
+     *     description="Triggers synchronization with a custodian service",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function synchronize(Request $request, string $custodianCode)
     {

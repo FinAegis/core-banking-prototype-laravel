@@ -10,6 +10,12 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Tag(
+ *     name="Fraud Detection",
+ *     description="Fraud detection, analysis, and ML model endpoints"
+ * )
+ */
 class FraudDetectionController extends Controller
 {
     private FraudDetectionService $fraudService;
@@ -20,7 +26,19 @@ class FraudDetectionController extends Controller
     }
 
     /**
-     * Analyze transaction for fraud.
+     * @OA\Post(
+     *     path="/api/v2/fraud/detection/analyze/transaction/{transaction}",
+     *     operationId="fraudDetectionAnalyzeTransaction",
+     *     tags={"Fraud Detection"},
+     *     summary="Analyze transaction for fraud",
+     *     description="Performs fraud analysis on a specific transaction",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="transaction", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function analyzeTransaction(Request $request, string $transactionId): JsonResponse
     {
@@ -69,7 +87,19 @@ class FraudDetectionController extends Controller
     }
 
     /**
-     * Analyze user for fraud patterns.
+     * @OA\Post(
+     *     path="/api/v2/fraud/detection/analyze/user/{user}",
+     *     operationId="fraudDetectionAnalyzeUser",
+     *     tags={"Fraud Detection"},
+     *     summary="Analyze user for fraud patterns",
+     *     description="Analyzes a user for fraud patterns and risk",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function analyzeUser(Request $request, string $userId): JsonResponse
     {
@@ -102,7 +132,19 @@ class FraudDetectionController extends Controller
     }
 
     /**
-     * Get fraud score details.
+     * @OA\Get(
+     *     path="/api/v2/fraud/detection/score/{fraudScore}",
+     *     operationId="fraudDetectionGetFraudScore",
+     *     tags={"Fraud Detection"},
+     *     summary="Get fraud score details",
+     *     description="Returns detailed fraud score information",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="fraudScore", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getFraudScore(string $fraudScoreId): JsonResponse
     {
@@ -121,7 +163,19 @@ class FraudDetectionController extends Controller
     }
 
     /**
-     * Update fraud score outcome (for ML training).
+     * @OA\Put(
+     *     path="/api/v2/fraud/detection/score/{fraudScore}/outcome",
+     *     operationId="fraudDetectionUpdateOutcome",
+     *     tags={"Fraud Detection"},
+     *     summary="Update fraud score outcome",
+     *     description="Updates fraud score outcome for ML training",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="fraudScore", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function updateOutcome(Request $request, string $fraudScoreId): JsonResponse
     {
@@ -158,7 +212,17 @@ class FraudDetectionController extends Controller
     }
 
     /**
-     * Get fraud statistics.
+     * @OA\Get(
+     *     path="/api/v2/fraud/detection/statistics",
+     *     operationId="fraudDetectionGetStatistics",
+     *     tags={"Fraud Detection"},
+     *     summary="Get fraud statistics",
+     *     description="Returns fraud detection statistics",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getStatistics(Request $request): JsonResponse
     {
@@ -214,7 +278,17 @@ class FraudDetectionController extends Controller
     }
 
     /**
-     * Get ML model metrics.
+     * @OA\Get(
+     *     path="/api/v2/fraud/detection/model/metrics",
+     *     operationId="fraudDetectionGetModelMetrics",
+     *     tags={"Fraud Detection"},
+     *     summary="Get ML model metrics",
+     *     description="Returns machine learning model performance metrics",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getModelMetrics(): JsonResponse
     {

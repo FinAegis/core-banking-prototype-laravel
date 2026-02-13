@@ -6,8 +6,27 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Tag(
+ *     name="Exchange Rate Providers",
+ *     description="Exchange rate provider management and rate comparison endpoints (stub)"
+ * )
+ */
 class ExchangeRateProviderStubController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/exchange-rate-providers",
+     *     operationId="exchangeRateProvidersIndex",
+     *     tags={"Exchange Rate Providers"},
+     *     summary="List exchange rate providers",
+     *     description="Returns available exchange rate providers with status",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function index(): JsonResponse
     {
         return response()->json(
@@ -35,6 +54,21 @@ class ExchangeRateProviderStubController extends Controller
         );
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/exchange-rate-providers/{provider}/rate",
+     *     operationId="exchangeRateProvidersGetRate",
+     *     tags={"Exchange Rate Providers"},
+     *     summary="Get rate from provider",
+     *     description="Gets exchange rate from a specific provider",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="provider", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function getRate(Request $request, $provider): JsonResponse
     {
         $request->merge(['provider' => $provider]);
@@ -62,6 +96,19 @@ class ExchangeRateProviderStubController extends Controller
         );
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/exchange-rate-providers/compare",
+     *     operationId="exchangeRateProvidersCompareRates",
+     *     tags={"Exchange Rate Providers"},
+     *     summary="Compare rates across providers",
+     *     description="Compares exchange rates across all providers",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function compareRates(Request $request): JsonResponse
     {
         $validated = $request->validate(
@@ -102,6 +149,19 @@ class ExchangeRateProviderStubController extends Controller
         );
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/exchange-rate-providers/aggregated",
+     *     operationId="exchangeRateProvidersGetAggregatedRate",
+     *     tags={"Exchange Rate Providers"},
+     *     summary="Get aggregated rate",
+     *     description="Returns weighted average rate across providers",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function getAggregatedRate(Request $request): JsonResponse
     {
         $validated = $request->validate(
@@ -128,6 +188,19 @@ class ExchangeRateProviderStubController extends Controller
         );
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/exchange-rate-providers/refresh",
+     *     operationId="exchangeRateProvidersRefresh",
+     *     tags={"Exchange Rate Providers"},
+     *     summary="Refresh exchange rates",
+     *     description="Forces refresh of exchange rates from providers",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function refresh(Request $request): JsonResponse
     {
         $validated = $request->validate(
@@ -150,6 +223,19 @@ class ExchangeRateProviderStubController extends Controller
         );
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/exchange-rate-providers/historical",
+     *     operationId="exchangeRateProvidersHistorical",
+     *     tags={"Exchange Rate Providers"},
+     *     summary="Get historical rates",
+     *     description="Returns historical exchange rates for a currency pair",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function historical(Request $request): JsonResponse
     {
         $validated = $request->validate(
@@ -194,6 +280,19 @@ class ExchangeRateProviderStubController extends Controller
         );
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/exchange-rate-providers/validate",
+     *     operationId="exchangeRateProvidersValidateRate",
+     *     tags={"Exchange Rate Providers"},
+     *     summary="Validate an exchange rate",
+     *     description="Validates a rate against market data",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
     public function validateRate(Request $request): JsonResponse
     {
         $validated = $request->validate(

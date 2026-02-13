@@ -10,6 +10,12 @@ use App\Infrastructure\Plugins\PluginManager;
 use App\Infrastructure\Plugins\PluginSecurityScanner;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Tag(
+ *     name="Plugin Marketplace",
+ *     description="Plugin management, security scanning, and marketplace endpoints"
+ * )
+ */
 class PluginMarketplaceController extends Controller
 {
     public function __construct(
@@ -19,7 +25,17 @@ class PluginMarketplaceController extends Controller
     }
 
     /**
-     * List all installed plugins.
+     * @OA\Get(
+     *     path="/api/plugins",
+     *     operationId="pluginMarketplaceIndex",
+     *     tags={"Plugin Marketplace"},
+     *     summary="List all installed plugins",
+     *     description="Returns a list of all installed plugins with status",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index(): JsonResponse
     {
@@ -47,7 +63,19 @@ class PluginMarketplaceController extends Controller
     }
 
     /**
-     * Show a specific plugin.
+     * @OA\Get(
+     *     path="/api/plugins/{id}",
+     *     operationId="pluginMarketplaceShow",
+     *     tags={"Plugin Marketplace"},
+     *     summary="Show a specific plugin",
+     *     description="Returns detailed information about a specific plugin",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(string $id): JsonResponse
     {
@@ -78,7 +106,19 @@ class PluginMarketplaceController extends Controller
     }
 
     /**
-     * Enable a plugin.
+     * @OA\Post(
+     *     path="/api/plugins/{id}/enable",
+     *     operationId="pluginMarketplaceEnable",
+     *     tags={"Plugin Marketplace"},
+     *     summary="Enable a plugin",
+     *     description="Enables a disabled plugin",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function enable(string $id): JsonResponse
     {
@@ -89,7 +129,19 @@ class PluginMarketplaceController extends Controller
     }
 
     /**
-     * Disable a plugin.
+     * @OA\Post(
+     *     path="/api/plugins/{id}/disable",
+     *     operationId="pluginMarketplaceDisable",
+     *     tags={"Plugin Marketplace"},
+     *     summary="Disable a plugin",
+     *     description="Disables an active plugin",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function disable(string $id): JsonResponse
     {
@@ -100,7 +152,19 @@ class PluginMarketplaceController extends Controller
     }
 
     /**
-     * Remove a plugin.
+     * @OA\Delete(
+     *     path="/api/plugins/{id}",
+     *     operationId="pluginMarketplaceDestroy",
+     *     tags={"Plugin Marketplace"},
+     *     summary="Remove a plugin",
+     *     description="Removes a plugin from the system",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function destroy(string $id): JsonResponse
     {
@@ -111,7 +175,19 @@ class PluginMarketplaceController extends Controller
     }
 
     /**
-     * Scan a plugin for security issues.
+     * @OA\Post(
+     *     path="/api/plugins/{id}/scan",
+     *     operationId="pluginMarketplaceScan",
+     *     tags={"Plugin Marketplace"},
+     *     summary="Scan a plugin for security issues",
+     *     description="Runs security scanner on a specific plugin",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function scan(string $id): JsonResponse
     {
@@ -127,7 +203,17 @@ class PluginMarketplaceController extends Controller
     }
 
     /**
-     * Discover new plugins from the filesystem.
+     * @OA\Post(
+     *     path="/api/plugins/discover",
+     *     operationId="pluginMarketplaceDiscover",
+     *     tags={"Plugin Marketplace"},
+     *     summary="Discover new plugins",
+     *     description="Discovers new plugins from the filesystem",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function discover(): JsonResponse
     {

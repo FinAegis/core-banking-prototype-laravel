@@ -14,6 +14,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
 
+/**
+ * @OA\Tag(
+ *     name="GDPR Enhanced",
+ *     description="GDPR Article 30, DPIA, Breach Notification, Consent v2, and Data Retention endpoints"
+ * )
+ */
 class GdprEnhancedController extends Controller
 {
     public function __construct(
@@ -28,7 +34,17 @@ class GdprEnhancedController extends Controller
     // ── Article 30 Register ──────────────────────────────────────────────
 
     /**
-     * Get processing activities register.
+     * @OA\Get(
+     *     path="/api/compliance/gdpr/v2/register",
+     *     operationId="gDPREnhancedGetRegister",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Get processing activities register",
+     *     description="Returns the GDPR Article 30 processing activities register",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getRegister(Request $request): JsonResponse
     {
@@ -49,7 +65,17 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Create a processing activity.
+     * @OA\Post(
+     *     path="/api/compliance/gdpr/v2/register/activities",
+     *     operationId="gDPREnhancedCreateActivity",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Create a processing activity",
+     *     description="Creates a new processing activity in the Article 30 register",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function createActivity(Request $request): JsonResponse
     {
@@ -79,7 +105,17 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Get register completeness check.
+     * @OA\Get(
+     *     path="/api/compliance/gdpr/v2/register/completeness",
+     *     operationId="gDPREnhancedGetRegisterCompleteness",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Get register completeness check",
+     *     description="Checks completeness of the processing register",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getRegisterCompleteness(): JsonResponse
     {
@@ -98,7 +134,17 @@ class GdprEnhancedController extends Controller
     // ── DPIA ─────────────────────────────────────────────────────────────
 
     /**
-     * Get DPIA summary.
+     * @OA\Get(
+     *     path="/api/compliance/gdpr/v2/dpia",
+     *     operationId="gDPREnhancedGetDpiaSummary",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Get DPIA summary",
+     *     description="Returns Data Protection Impact Assessment summary",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getDpiaSummary(): JsonResponse
     {
@@ -119,7 +165,17 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Create a DPIA.
+     * @OA\Post(
+     *     path="/api/compliance/gdpr/v2/dpia",
+     *     operationId="gDPREnhancedCreateDpia",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Create a DPIA",
+     *     description="Creates a new Data Protection Impact Assessment",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function createDpia(Request $request): JsonResponse
     {
@@ -148,7 +204,19 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Approve a DPIA.
+     * @OA\Post(
+     *     path="/api/compliance/gdpr/v2/dpia/{id}/approve",
+     *     operationId="gDPREnhancedApproveDpia",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Approve a DPIA",
+     *     description="Approves a Data Protection Impact Assessment",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function approveDpia(Request $request, string $id): JsonResponse
     {
@@ -174,7 +242,17 @@ class GdprEnhancedController extends Controller
     // ── Breach Notification ──────────────────────────────────────────────
 
     /**
-     * Get breach summary.
+     * @OA\Get(
+     *     path="/api/compliance/gdpr/v2/breaches",
+     *     operationId="gDPREnhancedGetBreachSummary",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Get breach summary",
+     *     description="Returns data breach notification summary",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getBreachSummary(): JsonResponse
     {
@@ -195,7 +273,17 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Report a data breach.
+     * @OA\Post(
+     *     path="/api/compliance/gdpr/v2/breaches",
+     *     operationId="gDPREnhancedReportBreach",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Report a data breach",
+     *     description="Reports a new data breach with 72h notification deadline",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function reportBreach(Request $request): JsonResponse
     {
@@ -224,7 +312,19 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Notify authority about a breach.
+     * @OA\Post(
+     *     path="/api/compliance/gdpr/v2/breaches/{id}/notify-authority",
+     *     operationId="gDPREnhancedNotifyAuthority",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Notify authority about a breach",
+     *     description="Records authority notification for a data breach",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function notifyAuthority(Request $request, string $id): JsonResponse
     {
@@ -244,7 +344,17 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Check breach deadlines.
+     * @OA\Get(
+     *     path="/api/compliance/gdpr/v2/breaches/deadlines",
+     *     operationId="gDPREnhancedCheckDeadlines",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Check breach deadlines",
+     *     description="Checks breach notification deadline status",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function checkDeadlines(): JsonResponse
     {
@@ -263,7 +373,17 @@ class GdprEnhancedController extends Controller
     // ── Consent Management ───────────────────────────────────────────────
 
     /**
-     * Get consent status for authenticated user.
+     * @OA\Get(
+     *     path="/api/compliance/gdpr/v2/consent",
+     *     operationId="gDPREnhancedGetConsentStatus",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Get consent status",
+     *     description="Returns consent status for the authenticated user",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getConsentStatus(Request $request): JsonResponse
     {
@@ -285,7 +405,17 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Record a consent decision.
+     * @OA\Post(
+     *     path="/api/compliance/gdpr/v2/consent",
+     *     operationId="gDPREnhancedRecordConsent",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Record a consent decision",
+     *     description="Records a consent decision for the authenticated user",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function recordConsent(Request $request): JsonResponse
     {
@@ -324,7 +454,17 @@ class GdprEnhancedController extends Controller
     // ── Data Retention ───────────────────────────────────────────────────
 
     /**
-     * Get retention policy summary.
+     * @OA\Get(
+     *     path="/api/compliance/gdpr/v2/retention",
+     *     operationId="gDPREnhancedGetRetentionSummary",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Get retention policy summary",
+     *     description="Returns data retention policy summary",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function getRetentionSummary(): JsonResponse
     {
@@ -345,7 +485,17 @@ class GdprEnhancedController extends Controller
     }
 
     /**
-     * Create a retention policy.
+     * @OA\Post(
+     *     path="/api/compliance/gdpr/v2/retention/policies",
+     *     operationId="gDPREnhancedCreateRetentionPolicy",
+     *     tags={"GDPR Enhanced"},
+     *     summary="Create a retention policy",
+     *     description="Creates a new data retention policy",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function createRetentionPolicy(Request $request): JsonResponse
     {

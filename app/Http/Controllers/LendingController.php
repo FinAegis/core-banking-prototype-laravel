@@ -14,6 +14,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+/**
+ * @OA\Tag(
+ *     name="P2P Lending",
+ *     description="Peer-to-peer lending, loan applications, and repayments"
+ * )
+ */
 class LendingController extends Controller
 {
     public function __construct(
@@ -25,7 +31,17 @@ class LendingController extends Controller
     }
 
     /**
-     * Display lending dashboard.
+     * @OA\Get(
+     *     path="/lending",
+     *     operationId="p2PLendingIndex",
+     *     tags={"P2P Lending"},
+     *     summary="Lending dashboard",
+     *     description="Returns the P2P lending dashboard",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index()
     {
@@ -49,7 +65,17 @@ class LendingController extends Controller
     }
 
     /**
-     * Show loan application form.
+     * @OA\Get(
+     *     path="/lending/apply",
+     *     operationId="p2PLendingApply",
+     *     tags={"P2P Lending"},
+     *     summary="Show loan application form",
+     *     description="Shows the loan application form",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function apply()
     {
@@ -64,7 +90,17 @@ class LendingController extends Controller
     }
 
     /**
-     * Submit loan application.
+     * @OA\Post(
+     *     path="/lending/apply",
+     *     operationId="p2PLendingSubmitApplication",
+     *     tags={"P2P Lending"},
+     *     summary="Submit loan application",
+     *     description="Submits a new loan application",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function submitApplication(Request $request)
     {
@@ -132,7 +168,19 @@ class LendingController extends Controller
     }
 
     /**
-     * Show loan application details.
+     * @OA\Get(
+     *     path="/lending/applications/{id}",
+     *     operationId="p2PLendingShowApplication",
+     *     tags={"P2P Lending"},
+     *     summary="Show loan application",
+     *     description="Returns details of a loan application",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function showApplication($applicationId)
     {
@@ -149,7 +197,19 @@ class LendingController extends Controller
     }
 
     /**
-     * Show loan details.
+     * @OA\Get(
+     *     path="/lending/loans/{id}",
+     *     operationId="p2PLendingShowLoan",
+     *     tags={"P2P Lending"},
+     *     summary="Show loan details",
+     *     description="Returns details of an active loan",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function showLoan($loanId)
     {
@@ -169,7 +229,19 @@ class LendingController extends Controller
     }
 
     /**
-     * Show repayment form.
+     * @OA\Get(
+     *     path="/lending/loans/{id}/repay",
+     *     operationId="p2PLendingRepay",
+     *     tags={"P2P Lending"},
+     *     summary="Show repayment form",
+     *     description="Shows the loan repayment form",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function repay($loanId)
     {
@@ -188,7 +260,19 @@ class LendingController extends Controller
     }
 
     /**
-     * Process loan repayment.
+     * @OA\Post(
+     *     path="/lending/loans/{id}/repay",
+     *     operationId="p2PLendingProcessRepayment",
+     *     tags={"P2P Lending"},
+     *     summary="Process loan repayment",
+     *     description="Processes a loan repayment",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function processRepayment(Request $request, $loanId)
     {

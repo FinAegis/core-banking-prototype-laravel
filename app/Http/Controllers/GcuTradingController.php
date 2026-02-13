@@ -8,10 +8,26 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Tag(
+ *     name="GCU Trading",
+ *     description="GCU token trading interface"
+ * )
+ */
 class GcuTradingController extends Controller
 {
     /**
-     * Display the GCU trading interface.
+     * @OA\Get(
+     *     path="/gcu/trading",
+     *     operationId="gCUTradingIndex",
+     *     tags={"GCU Trading"},
+     *     summary="GCU trading dashboard",
+     *     description="Returns the GCU token trading interface",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index()
     {

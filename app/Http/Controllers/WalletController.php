@@ -8,10 +8,26 @@ use App\Domain\Asset\Models\ExchangeRate;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @OA\Tag(
+ *     name="Wallet",
+ *     description="Multi-asset wallet management"
+ * )
+ */
 class WalletController extends Controller
 {
     /**
-     * Show the wallet dashboard.
+     * @OA\Get(
+     *     path="/wallet",
+     *     operationId="walletIndex",
+     *     tags={"Wallet"},
+     *     summary="Wallet dashboard",
+     *     description="Returns the wallet overview dashboard",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index()
     {
@@ -23,7 +39,17 @@ class WalletController extends Controller
     }
 
     /**
-     * Show the deposit form.
+     * @OA\Get(
+     *     path="/wallet/deposit",
+     *     operationId="walletShowDeposit",
+     *     tags={"Wallet"},
+     *     summary="Show deposit page",
+     *     description="Shows the wallet deposit page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function showDeposit()
     {
@@ -34,7 +60,17 @@ class WalletController extends Controller
     }
 
     /**
-     * Show the withdraw form.
+     * @OA\Get(
+     *     path="/wallet/withdraw",
+     *     operationId="walletShowWithdraw",
+     *     tags={"Wallet"},
+     *     summary="Show withdraw page",
+     *     description="Shows the wallet withdrawal page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function showWithdraw()
     {
@@ -45,7 +81,17 @@ class WalletController extends Controller
     }
 
     /**
-     * Show the transfer form.
+     * @OA\Get(
+     *     path="/wallet/transfer",
+     *     operationId="walletShowTransfer",
+     *     tags={"Wallet"},
+     *     summary="Show transfer page",
+     *     description="Shows the wallet transfer page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function showTransfer()
     {
@@ -56,7 +102,17 @@ class WalletController extends Controller
     }
 
     /**
-     * Show the convert form.
+     * @OA\Get(
+     *     path="/wallet/convert",
+     *     operationId="walletShowConvert",
+     *     tags={"Wallet"},
+     *     summary="Show convert page",
+     *     description="Shows the wallet currency conversion page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function showConvert()
     {
@@ -69,7 +125,17 @@ class WalletController extends Controller
     }
 
     /**
-     * Show the transactions list.
+     * @OA\Get(
+     *     path="/wallet/transactions",
+     *     operationId="walletTransactions",
+     *     tags={"Wallet"},
+     *     summary="Wallet transactions",
+     *     description="Returns wallet transaction history",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function transactions()
     {

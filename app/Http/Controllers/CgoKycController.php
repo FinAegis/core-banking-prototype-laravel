@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @OA\Tag(
+ *     name="CGO KYC",
+ *     description="CGO-specific KYC verification and document management"
+ * )
+ */
 class CgoKycController extends Controller
 {
     protected CgoKycService $cgoKycService;
@@ -26,7 +32,17 @@ class CgoKycController extends Controller
     }
 
     /**
-     * Check KYC requirements for a specific investment amount.
+     * @OA\Get(
+     *     path="/cgo/kyc/requirements",
+     *     operationId="cGOKYCCheckRequirements",
+     *     tags={"CGO KYC"},
+     *     summary="Check KYC requirements",
+     *     description="Checks KYC requirements for CGO investment",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function checkRequirements(Request $request)
     {
@@ -58,7 +74,17 @@ class CgoKycController extends Controller
     }
 
     /**
-     * Get current KYC status for CGO investments.
+     * @OA\Get(
+     *     path="/cgo/kyc/status",
+     *     operationId="cGOKYCStatus",
+     *     tags={"CGO KYC"},
+     *     summary="Get KYC status",
+     *     description="Returns current KYC verification status",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function status()
     {
@@ -94,7 +120,17 @@ class CgoKycController extends Controller
     }
 
     /**
-     * Submit KYC documents for CGO investment.
+     * @OA\Post(
+     *     path="/cgo/kyc/documents",
+     *     operationId="cGOKYCSubmitDocuments",
+     *     tags={"CGO KYC"},
+     *     summary="Submit KYC documents",
+     *     description="Submits KYC verification documents",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function submitDocuments(Request $request)
     {
@@ -173,7 +209,17 @@ class CgoKycController extends Controller
     }
 
     /**
-     * Get KYC documents for current user.
+     * @OA\Get(
+     *     path="/cgo/kyc/documents",
+     *     operationId="cGOKYCDocuments",
+     *     tags={"CGO KYC"},
+     *     summary="List submitted documents",
+     *     description="Returns list of submitted KYC documents",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function documents()
     {

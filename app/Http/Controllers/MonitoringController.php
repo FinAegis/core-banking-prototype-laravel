@@ -9,10 +9,25 @@ use App\Domain\Monitoring\Services\PrometheusExporter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
+/**
+ * @OA\Tag(
+ *     name="System Monitoring",
+ *     description="System health monitoring and metrics"
+ * )
+ */
 class MonitoringController extends Controller
 {
     /**
-     * Prometheus metrics endpoint.
+     * @OA\Get(
+     *     path="/monitoring/metrics",
+     *     operationId="systemMonitoringMetrics",
+     *     tags={"System Monitoring"},
+     *     summary="Get system metrics",
+     *     description="Returns Prometheus-compatible system metrics",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function metrics(PrometheusExporter $exporter): Response
     {
@@ -23,7 +38,16 @@ class MonitoringController extends Controller
     }
 
     /**
-     * Health check endpoint.
+     * @OA\Get(
+     *     path="/monitoring/health",
+     *     operationId="systemMonitoringHealth",
+     *     tags={"System Monitoring"},
+     *     summary="Health check",
+     *     description="Returns system health status",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function health(HealthChecker $checker): JsonResponse
     {
@@ -35,7 +59,16 @@ class MonitoringController extends Controller
     }
 
     /**
-     * Readiness check endpoint.
+     * @OA\Get(
+     *     path="/monitoring/ready",
+     *     operationId="systemMonitoringReady",
+     *     tags={"System Monitoring"},
+     *     summary="Readiness check",
+     *     description="Returns system readiness status",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function ready(HealthChecker $checker): JsonResponse
     {
@@ -47,7 +80,16 @@ class MonitoringController extends Controller
     }
 
     /**
-     * Liveness check endpoint.
+     * @OA\Get(
+     *     path="/monitoring/alive",
+     *     operationId="systemMonitoringAlive",
+     *     tags={"System Monitoring"},
+     *     summary="Liveness check",
+     *     description="Returns system liveness status",
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function alive(): JsonResponse
     {

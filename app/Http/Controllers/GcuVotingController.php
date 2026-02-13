@@ -9,10 +9,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Tag(
+ *     name="GCU Voting",
+ *     description="GCU governance voting and proposals"
+ * )
+ */
 class GcuVotingController extends Controller
 {
     /**
-     * Display voting dashboard.
+     * @OA\Get(
+     *     path="/gcu/voting",
+     *     operationId="gCUVotingIndex",
+     *     tags={"GCU Voting"},
+     *     summary="List governance proposals",
+     *     description="Returns the governance proposals listing page",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index()
     {
@@ -56,7 +72,19 @@ class GcuVotingController extends Controller
     }
 
     /**
-     * Show proposal details.
+     * @OA\Get(
+     *     path="/gcu/voting/{id}",
+     *     operationId="gCUVotingShow",
+     *     tags={"GCU Voting"},
+     *     summary="Show proposal details",
+     *     description="Returns details of a governance proposal",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(GcuVotingProposal $proposal)
     {
@@ -92,7 +120,19 @@ class GcuVotingController extends Controller
     }
 
     /**
-     * Cast a vote.
+     * @OA\Post(
+     *     path="/gcu/voting/{id}/vote",
+     *     operationId="gCUVotingVote",
+     *     tags={"GCU Voting"},
+     *     summary="Cast vote",
+     *     description="Casts a vote on a governance proposal",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function vote(Request $request, GcuVotingProposal $proposal)
     {
@@ -167,7 +207,17 @@ class GcuVotingController extends Controller
     }
 
     /**
-     * Show create proposal form (admin only).
+     * @OA\Get(
+     *     path="/gcu/voting/create",
+     *     operationId="gCUVotingCreate",
+     *     tags={"GCU Voting"},
+     *     summary="Show create proposal form",
+     *     description="Shows the form to create a governance proposal",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function create()
     {
@@ -179,7 +229,17 @@ class GcuVotingController extends Controller
     }
 
     /**
-     * Store new proposal (admin only).
+     * @OA\Post(
+     *     path="/gcu/voting",
+     *     operationId="gCUVotingStore",
+     *     tags={"GCU Voting"},
+     *     summary="Create proposal",
+     *     description="Creates a new governance proposal",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(response=201, description="Successful operation"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function store(Request $request)
     {
