@@ -1,7 +1,7 @@
 # FinAegis Prototype Roadmap
 
 **Last Updated:** 2026-02-13
-**Current Version:** v5.0.0
+**Current Version:** v5.0.1
 **Domains:** 41 bounded contexts
 
 ---
@@ -118,10 +118,23 @@
 - GraphQL API (Lighthouse PHP, 24 domain schemas, subscriptions, DataLoaders)
 - Plugin Marketplace (manager, sandbox, security scanner)
 
-### v5.0.0 -- Event Streaming & Live Dashboard (Current)
+### v4.1.0 -- GraphQL Expansion
+- 6 new GraphQL domains (Treasury, Payment, Lending, Stablecoin, CrossChain, DeFi)
+
+### v4.2.0 -- Real-time Subscriptions + Plugin Hooks
+- GraphQL subscriptions, plugin hook system, webhook/audit plugins
+
+### v4.3.0 -- Developer Experience + Security Hardening
+- 4 new GraphQL domains, CLI commands, GraphQL security hardening
+
+### v5.0.0 -- Event Streaming & Live Dashboard
 - Redis Streams-based event streaming for real-time distribution
 - Live monitoring dashboard with 5 endpoints
 - Notification service, enhanced observability
+
+### v5.0.1 -- Platform Hardening (Current)
+- GraphQL CQRS alignment (21 mutations), OpenAPI 100% coverage
+- Plugin Marketplace UI, PHP 8.4 CI, 97 test conversions, documentation refresh
 
 ---
 

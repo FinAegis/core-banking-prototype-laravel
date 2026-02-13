@@ -96,11 +96,12 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 
 ## Platform Status
 
-- **Version**: 5.0.0 (Streaming Architecture (MAJOR))
+- **Version**: 5.0.1 (Platform Hardening)
 - **Status**: Demonstration Prototype
 - **Last Updated**: February 13, 2026
 
-### Current Release Features (v5.0.0)
+### Current Release Features (v5.0.1)
+- **v5.0.1**: GraphQL CQRS alignment, OpenAPI 100% coverage, Plugin Marketplace UI, PHP 8.4, documentation refresh
 - **Event Streaming**: Redis Streams publisher/consumer for real-time event distribution
 - **Live Dashboard**: 5 metrics endpoints for real-time platform monitoring
 - **Multi-Channel Notification System**: Email, push, in-app, webhook, SMS notification channels

@@ -366,7 +366,7 @@ See [Kubernetes Deployment Guide](docs/06-DEVELOPMENT/KUBERNETES.md) for details
 | **Database** | MySQL 8.0+ / MariaDB 10.3+ / PostgreSQL 13+ |
 | **Cache/Queue/Streaming** | Redis (cache, queues, Streams), Laravel Horizon |
 | **Real-time** | Soketi (Pusher-compatible), Laravel Echo, Redis Streams |
-| **Testing** | Pest PHP (parallel, 775+ test files, 6,300+ tests), PHPStan Level 8 |
+| **Testing** | Pest PHP (parallel, 790+ test files, 6,300+ tests), PHPStan Level 8 |
 | **Admin** | Filament v3 |
 | **Frontend** | Livewire, Tailwind CSS |
 | **Deployment** | Docker, Kubernetes (Helm), Istio |

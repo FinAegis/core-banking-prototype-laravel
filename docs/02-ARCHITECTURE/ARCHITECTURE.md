@@ -1,6 +1,6 @@
 # FinAegis Platform Architecture
 
-**Version:** 5.0.0
+**Version:** 5.0.1
 **Last Updated:** February 2026
 **Status:** Demonstration Prototype
 
@@ -1144,6 +1144,6 @@ return [
 
 ---
 
-**Architecture Version**: 5.0
+**Architecture Version**: 5.0.1
 **Implementation Status**: Core Complete, 41 Bounded Contexts, 24 GraphQL Domains
 **Last Updated**: February 2026

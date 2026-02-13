@@ -17,7 +17,7 @@ Transform FinAegis into the **premier open source core banking platform** that:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     FINAEGIS CORE BANKING PLATFORM (v5.0.0)              │
+│                     FINAEGIS CORE BANKING PLATFORM (v5.0.1)              │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  CORE BANKING                                                            │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
@@ -62,25 +62,25 @@ Transform FinAegis into the **premier open source core banking platform** that:
 
 | Category | Domains | Status |
 |----------|---------|--------|
-| **Core Banking** | Account, Banking, Transaction, Ledger | Production Ready |
-| **Trading** | Exchange, Basket (GCU), Liquidity | Production Ready |
-| **Compliance & RegTech** | Compliance, KYC, Fraud (ML), Regulatory, RegTech (MiFID II/MiCA/Travel Rule) | Production Ready |
+| **Core Banking** | Account, Banking, Asset, Product | Production Ready |
+| **Trading** | Exchange, Basket (GCU) | Production Ready |
+| **Compliance & RegTech** | Compliance, Fraud (ML), Regulatory, RegTech (MiFID II/MiCA/Travel Rule) | Production Ready |
 | **Digital Assets** | Stablecoin, Wallet (HW+Multi-Sig), Governance | Production Ready |
 | **Cross-Chain & DeFi** | CrossChain (Wormhole/LayerZero/Axelar), DeFi (Uniswap/Aave/Curve/Lido) | Production Ready |
 | **Privacy & Identity** | Privacy (ZK-KYC/Merkle), KeyManagement (Shamir/HSM), Commerce (SBT), TrustCert (W3C VC) | Production Ready |
 | **Mobile & Payments** | Mobile, MobilePayment, Relayer (ERC-4337), Payment | Production Ready |
-| **Financial Services** | Treasury, Lending, Custodian | Mature |
-| **Platform & AI** | AI (MCP/NLP/ML), AgentProtocol, Monitoring, Performance | Mature |
+| **Financial Services** | Treasury, Lending, Custodian, CardIssuance | Mature |
+| **Platform & AI** | AI (MCP/NLP/ML), AgentProtocol, Monitoring, Performance, Security | Mature |
 | **BaaS** | FinancialInstitution (Partner APIs, SDKs, Widgets, Billing, Marketplace) | Mature |
-| **Supporting** | User, Contact, Newsletter, Webhook, Activity, Batch, CGO, Shared | Complete |
+| **Supporting** | User, Contact, Newsletter, Webhook, Activity, Batch, Cgo, Shared | Complete |
 
-### Key Metrics (as of v5.0.0)
+### Key Metrics (as of v5.0.1)
 
 | Metric | Value |
 |--------|-------|
 | Bounded Contexts | 41 |
-| Services | 266+ |
-| Controllers | 167 |
+| Services | 330+ |
+| Controllers | 174 |
 | API Routes | 1,150+ |
 | PHPStan Level | **8** |
 | Test Files | 775+ |
@@ -96,8 +96,8 @@ Transform FinAegis into the **premier open source core banking platform** that:
 
 #### 1.1 Documentation Excellence
 - [x] OpenAPI documentation for core endpoints
-- [ ] Create CONTRIBUTING.md with detailed workflow
-- [ ] Write Architecture Decision Records (ADRs) for key decisions
+- [x] Create CONTRIBUTING.md with detailed workflow
+- [x] Write Architecture Decision Records (ADRs) for key decisions
 - [ ] Complete domain onboarding guides for each bounded context
 - [ ] Finish OpenAPI documentation for **all** endpoints (v3.1.0 target: 90%+)
 - [ ] Create video walkthroughs of key features
@@ -273,10 +273,10 @@ The FinAegis platform has evolved from a core banking prototype to a comprehensi
 8. **Banking-as-a-Service** - Partner APIs, SDK generation, embeddable widgets
 9. **AI Framework** - MCP tools, NLP queries, ML anomaly detection
 
-**v5.0.0 Focus**: Streaming Architecture — Redis Streams event distribution, live dashboard metrics, multi-channel notification system, and API gateway middleware.
+**v5.0.1 Focus**: Streaming Architecture — Redis Streams event distribution, live dashboard metrics, multi-channel notification system, and API gateway middleware.
 
 ---
 
-*Document Version: 5.0.0*
+*Document Version: 5.0.1*
 *Last Updated: February 13, 2026*
 *Author: Architecture Review*

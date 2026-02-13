@@ -98,7 +98,7 @@ php artisan tenants:export-data <id> --format=json       # Export data
 
 ```
 app/
-├── Domain/           # DDD bounded contexts (30+ domains)
+├── Domain/           # DDD bounded contexts (41 domains)
 │   ├── Account/      # Account management
 │   ├── Exchange/     # Trading engine
 │   ├── Lending/      # P2P lending
@@ -127,6 +127,8 @@ app/
 - **CQRS**: Command/Query Bus with read/write separation
 - **Sagas**: Laravel Workflow with compensation
 - **Multi-Tenancy**: Team-based isolation with `UsesTenantConnection` trait
+- **GraphQL API**: Lighthouse PHP with schema-first design, 24 domain schemas
+- **Event Streaming**: Redis Streams publisher/consumer with domain routing
 
 ### Key Services (DON'T RECREATE)
 | Need | Existing Service |
@@ -180,6 +182,14 @@ app/
 | DeFi Portfolio | `DeFiPortfolioService` (DeFi) |
 | DeFi Positions | `DeFiPositionTrackerService` (DeFi) |
 | Flash Loans | `FlashLoanService` (DeFi) |
+| Event Stream Publishing | `EventStreamPublisher` (Shared/EventSourcing) |
+| Event Stream Consuming | `EventStreamConsumer` (Shared/EventSourcing) |
+| Live Metrics | `LiveMetricsService` (Monitoring) |
+| Notifications | `NotificationService` (Shared/Notifications) |
+| Plugin Management | `PluginManager` (Infrastructure/Plugins) |
+| Plugin Sandbox | `PluginSandbox` (Infrastructure/Plugins) |
+| Plugin Security | `PluginSecurityScanner` (Infrastructure/Plugins) |
+| Projector Health | `ProjectorHealthService` (Monitoring) |
 
 ---
 

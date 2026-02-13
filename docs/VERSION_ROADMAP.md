@@ -1117,6 +1117,7 @@ main ─────────●─────────●─────
 | **v4.2.0** | Real-time Platform | GraphQL subscriptions (4 new), plugin hook system (17 hooks), example plugins, 8 core domain mutations | ✅ Released 2026-02-13 |
 | **v4.3.0** | Developer Experience | 4 new GraphQL domains, dashboard widget plugin, CLI commands, GraphQL security hardening | ✅ Released 2026-02-13 |
 | **v5.0.0** | Streaming Architecture | Event streaming (Redis Streams), live dashboard, notification system, API gateway, GraphQL schema expansion (24 domains) | ✅ Released 2026-02-13 |
+| **v5.0.1** | Platform Hardening | GraphQL CQRS alignment (21 mutations), OpenAPI 100%, Plugin Marketplace UI, PHP 8.4 CI, 97 test conversions, doc refresh | ✅ Released 2026-02-13 |
 
 ---
 
