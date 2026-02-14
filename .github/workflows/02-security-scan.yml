@@ -54,7 +54,10 @@ jobs:
           cp .env.testing .env
           
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-dev
+        run: |
+          # No database service in this job — skip post-install scripts (package:discover)
+          composer install --prefer-dist --no-progress --no-dev --no-scripts
+          composer dump-autoload --optimize
         
       - name: Run Security Audit (Production Dependencies)
         id: audit-prod

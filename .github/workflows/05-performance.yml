@@ -295,6 +295,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install k6 -y
           
+      - name: Start Application Server
+        run: |
+          php artisan serve --no-reload &
+          sleep 5
+
       - name: Run Load Tests
         run: |
           if [ -f "tests/k6/load-test.js" ]; then
