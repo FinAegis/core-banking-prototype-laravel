@@ -9,7 +9,7 @@ return new class () extends Migration {
     {
         Schema::create('bridge_transactions', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('source_chain');
             $table->string('dest_chain');
             $table->string('token');

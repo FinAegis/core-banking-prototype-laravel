@@ -9,7 +9,7 @@ return new class () extends Migration {
     {
         Schema::create('defi_positions', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('protocol');
             $table->string('type');
             $table->string('status')->default('active');
