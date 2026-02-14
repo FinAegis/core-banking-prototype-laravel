@@ -55,9 +55,9 @@ jobs:
           
       - name: Install Dependencies
         run: |
-          # No database service in this job — skip post-install scripts (package:discover)
+          # No database service in this job — skip all scripts (package:discover boots Laravel).
+          # Security audit only needs composer metadata, not a running app.
           composer install --prefer-dist --no-progress --no-dev --no-scripts
-          composer dump-autoload --optimize
         
       - name: Run Security Audit (Production Dependencies)
         id: audit-prod

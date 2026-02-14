@@ -55,10 +55,9 @@ jobs:
           
       - name: Install Dependencies
         run: |
-          # No database service in this job — skip post-install scripts (package:discover)
-          # that boot Laravel and attempt DB connections. Static analysis only needs vendor files.
+          # No database service in this job — skip all scripts (package:discover boots Laravel
+          # and attempts DB connections). Static analysis only needs vendor files + autoloader.
           composer install --prefer-dist --no-progress --optimize-autoloader --no-scripts
-          composer dump-autoload --optimize
         
       - name: Run PHP Code Sniffer
         run: vendor/bin/phpcs
