@@ -14,8 +14,8 @@ return new class () extends Migration {
             $table->string('tenant_id')->nullable()->index();
             $table->string('title');
             $table->text('description');
-            $table->timestamp('discovery_time');
-            $table->timestamp('notification_deadline');
+            $table->timestamp('discovery_time')->nullable();
+            $table->timestamp('notification_deadline')->nullable();
             $table->string('severity')->index();
             $table->string('status')->default('detected')->index();
             $table->json('affected_data_types')->nullable();

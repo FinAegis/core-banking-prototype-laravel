@@ -18,7 +18,7 @@ return new class () extends Migration {
             $table->string('event_class');
             $table->json('event_properties');
             $table->json('meta_data');
-            $table->timestamp('created_at', 6);
+            $table->timestamp('created_at', 6)->useCurrent();
 
             $table->unique(['aggregate_uuid', 'aggregate_version']);
             $table->index('event_class');

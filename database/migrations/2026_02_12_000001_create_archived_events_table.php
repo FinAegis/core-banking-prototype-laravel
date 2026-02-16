@@ -21,8 +21,8 @@ return new class () extends Migration {
             $table->string('event_class');
             $table->json('event_properties');
             $table->json('meta_data')->nullable();
-            $table->timestamp('original_created_at');
-            $table->timestamp('archived_at');
+            $table->timestamp('original_created_at')->nullable();
+            $table->timestamp('archived_at')->useCurrent();
 
             $table->index('source_table');
             $table->index('aggregate_uuid');

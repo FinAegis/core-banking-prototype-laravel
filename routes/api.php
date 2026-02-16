@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return response()->json([
         'message'       => 'FinAegis Core Banking API',
-        'version'       => 'v2',
+        'version'       => 'v5',
         'documentation' => url('/api/documentation'),
         'status'        => route('status.api'),
         'endpoints'     => [

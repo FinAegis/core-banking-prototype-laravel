@@ -38,7 +38,7 @@ return [
                 /*
                  * Absolute path to file containing the swagger annotations
                  */
-                'docs_url' => '/docs/api-docs.json',
+                'docs_url' => null,
 
                 /*
                  * File name of the generated YAML documentation file

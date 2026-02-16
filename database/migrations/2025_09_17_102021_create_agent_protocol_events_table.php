@@ -18,7 +18,7 @@ return new class () extends Migration {
             $table->string('event_class');
             $table->json('event_properties');
             $table->json('meta_data');
-            $table->timestamp('created_at', 6);
+            $table->timestamp('created_at', 6)->useCurrent();
 
             $table->index('aggregate_uuid');
             $table->index('event_class');
@@ -31,7 +31,7 @@ return new class () extends Migration {
             $table->uuid('aggregate_uuid');
             $table->unsignedInteger('aggregate_version');
             $table->json('state');
-            $table->timestamp('created_at', 6);
+            $table->timestamp('created_at', 6)->useCurrent();
 
             $table->index('aggregate_uuid');
             $table->index(['aggregate_uuid', 'aggregate_version']);
