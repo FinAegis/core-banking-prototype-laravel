@@ -6,6 +6,8 @@ namespace App\Domain\Wallet\Services;
 
 use App\Domain\MobilePayment\Enums\PaymentAsset;
 use App\Domain\MobilePayment\Enums\PaymentNetwork;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class WalletTransferService
 {
@@ -82,6 +84,37 @@ class WalletTransferService
             'fee_currency'           => 'USD',
             'estimated_time_seconds' => $this->estimateTransferTime($paymentNetwork),
             'exchange_rate_usd'      => '1.000000',
+        ];
+    }
+
+    /**
+     * Get a transaction quote with recipient address validation.
+     *
+     * @return array{quote_id: string, to: string, amount: string, asset: string, network: string, fee: string, total: string, expires_at: string}
+     */
+    public function getTransactionQuote(string $to, string $network, string $asset, string $amount): array
+    {
+        $paymentNetwork = PaymentNetwork::from($network);
+        $paymentAsset = PaymentAsset::from($asset);
+
+        // Validate recipient address
+        $validation = $this->validateAddress($to, $network);
+        if (! $validation['valid']) {
+            throw new InvalidArgumentException('Invalid recipient address: ' . ($validation['error'] ?? 'unknown error'));
+        }
+
+        $gasCostUsd = $paymentNetwork->averageGasCostUsd();
+        $total = (float) $amount + $gasCostUsd;
+
+        return [
+            'quote_id'   => 'quote_' . Str::random(20),
+            'to'         => $to,
+            'amount'     => $amount,
+            'asset'      => $paymentAsset->value,
+            'network'    => $paymentNetwork->value,
+            'fee'        => number_format($gasCostUsd, 6),
+            'total'      => number_format($total, 6),
+            'expires_at' => now()->addMinutes(5)->toIso8601String(),
         ];
     }
 

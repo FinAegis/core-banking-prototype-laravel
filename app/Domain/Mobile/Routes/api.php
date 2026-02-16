@@ -6,6 +6,11 @@ use App\Http\Controllers\Api\Mobile\UserPreferencesController;
 use App\Http\Controllers\Api\MobileController;
 use Illuminate\Support\Facades\Route;
 
+// App status endpoint (no auth required, used by mobile for version/maintenance check)
+Route::prefix('v1/app')->name('api.app.')->group(function () {
+    Route::get('/status', [MobileController::class, 'getAppStatus'])->name('status');
+});
+
 Route::prefix('mobile')->name('api.mobile.')->group(function () {
     // Public endpoints (no auth required)
     Route::get('/config', [MobileController::class, 'getConfig'])->name('config');
@@ -26,6 +31,7 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
         Route::prefix('devices')->name('devices.')->group(function () {
             Route::get('/', [MobileController::class, 'listDevices'])->name('index');
             Route::post('/', [MobileController::class, 'registerDevice'])->name('register');
+            Route::delete('/all', [MobileController::class, 'bulkRemoveDevices'])->name('bulk-destroy');
             Route::get('/{id}', [MobileController::class, 'getDevice'])->name('show');
             Route::delete('/{id}', [MobileController::class, 'unregisterDevice'])->name('destroy');
             Route::patch('/{id}/token', [MobileController::class, 'updatePushToken'])->name('token');

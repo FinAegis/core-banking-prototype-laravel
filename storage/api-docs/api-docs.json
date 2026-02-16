@@ -11,7 +11,7 @@
             "name": "Apache 2.0",
             "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
         },
-        "version": "4.0.0"
+        "version": "5.0.0"
     },
     "servers": [
         {
@@ -12397,6 +12397,223 @@
                         "sanctum": []
                     }
                 ]
+            },
+            "post": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Create a new virtual card",
+                "description": "Create a new virtual card.",
+                "operationId": "3bc670783af57f3ca487684d2a1bb207",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "cardholder_name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "example": "USD"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Card created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "card_id": {
+                                                    "type": "string"
+                                                },
+                                                "last4": {
+                                                    "type": "string"
+                                                },
+                                                "network": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Card creation failed"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/{cardId}": {
+            "get": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Get a specific virtual card",
+                "description": "Get a specific card.",
+                "operationId": "1a1dd3c4d8aa3ae5754297bceb41a06b",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Card not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Cancel a virtual card permanently",
+                "description": "Cancel a virtual card.",
+                "operationId": "8a3be95d59931a059c46b3e8b87fbe47",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "User requested cancellation"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Card cancelled"
+                    },
+                    "404": {
+                        "description": "Card not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/{cardId}/transactions": {
+            "get": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Get transactions for a virtual card",
+                "description": "Get transactions for a card.",
+                "operationId": "5f52eca54f1ac1856b885477a9b2301f",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card transactions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/v1/cards/{cardId}/freeze": {
@@ -12451,54 +12668,6 @@
                 "responses": {
                     "200": {
                         "description": "Card unfrozen"
-                    },
-                    "404": {
-                        "description": "Card not found"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/cards/{cardId}": {
-            "delete": {
-                "tags": [
-                    "Card Issuance"
-                ],
-                "summary": "Cancel a virtual card permanently",
-                "description": "Cancel a virtual card.",
-                "operationId": "8a3be95d59931a059c46b3e8b87fbe47",
-                "parameters": [
-                    {
-                        "name": "cardId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "reason": {
-                                        "type": "string",
-                                        "example": "User requested cancellation"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Card cancelled"
                     },
                     "404": {
                         "description": "Card not found"
@@ -13102,6 +13271,195 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/merchants/{merchantId}": {
+            "get": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Get merchant details",
+                "description": "Get merchant detail.",
+                "operationId": "commerceMerchantDetail",
+                "parameters": [
+                    {
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Merchant details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Merchant not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/payment-requests/{paymentId}": {
+            "get": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Get payment request details",
+                "description": "Get payment request detail.",
+                "operationId": "commercePaymentRequestDetail",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment request details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/payment-requests/{paymentId}/cancel": {
+            "post": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Cancel a payment request",
+                "description": "Cancel a payment request.",
+                "operationId": "commerceCancelPaymentRequest",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment request cancelled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "cancelled"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/payments/recent": {
+            "get": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Get recent commerce payments",
+                "description": "Get recent payments.",
+                "operationId": "commerceRecentPayments",
+                "responses": {
+                    "200": {
+                        "description": "Recent payments",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -14290,6 +14648,446 @@
                                 "schema": {}
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/evidence": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get SOC 2 compliance evidence",
+                "description": "Returns SOC 2 compliance evidence with optional period and type filters",
+                "operationId": "complianceCertificationGetEvidence",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/evidence/collect": {
+            "post": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Collect SOC 2 compliance evidence",
+                "description": "Initiates SOC 2 compliance evidence collection for a given period",
+                "operationId": "complianceCertificationCollectEvidence",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/access-review": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get access review report",
+                "description": "Returns the access review report for SOC 2 compliance",
+                "operationId": "complianceCertificationGetAccessReview",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/access-review/privileged-users": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get privileged users list",
+                "description": "Returns a list of privileged users for access review",
+                "operationId": "complianceCertificationGetPrivilegedUsers",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/incidents": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get incidents list",
+                "description": "Returns incidents with optional status and severity filters",
+                "operationId": "complianceCertificationGetIncidents",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Create a new incident",
+                "description": "Creates a new security incident for incident response tracking",
+                "operationId": "complianceCertificationCreateIncident",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/incidents/{id}": {
+            "put": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Update an existing incident",
+                "description": "Updates an existing security incident with new information",
+                "operationId": "complianceCertificationUpdateIncident",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/incidents/{id}/resolve": {
+            "post": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Resolve an incident",
+                "description": "Resolves a security incident with a resolution description",
+                "operationId": "complianceCertificationResolveIncident",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/incidents/{id}/postmortem": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get incident postmortem report",
+                "description": "Returns the postmortem report for a resolved incident",
+                "operationId": "complianceCertificationGetPostmortem",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/pci/classification": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get data classification report",
+                "description": "Returns the PCI DSS data classification report",
+                "operationId": "complianceCertificationGetDataClassification",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/pci/encryption": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Run encryption verification suite",
+                "description": "Returns the PCI DSS encryption verification results",
+                "operationId": "complianceCertificationGetEncryptionVerification",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/pci/key-rotation": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get key rotation status report",
+                "description": "Returns the PCI DSS key rotation status report",
+                "operationId": "complianceCertificationGetKeyRotationStatus",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/pci/key-rotation/rotate": {
+            "post": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Rotate a specific key",
+                "description": "Rotates a specific encryption key (demo-safe with dry_run option)",
+                "operationId": "complianceCertificationRotateKey",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/pci/network-segmentation": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get network segmentation verification report",
+                "description": "Returns the PCI DSS network segmentation verification report",
+                "operationId": "complianceCertificationGetNetworkSegmentation",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/data-residency/status": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get data residency status",
+                "description": "Returns data residency status for current tenant or specified region",
+                "operationId": "complianceCertificationGetResidencyStatus",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/data-residency/transfers": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get cross-region data transfer logs",
+                "description": "Returns cross-region data transfer logs with optional region filters",
+                "operationId": "complianceCertificationGetTransferLogs",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Log a cross-region data transfer",
+                "description": "Records a cross-region data transfer for compliance tracking",
+                "operationId": "complianceCertificationLogTransfer",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/certification/data-residency/routing": {
+            "get": {
+                "tags": [
+                    "Compliance Certification"
+                ],
+                "summary": "Get geo-routing configuration",
+                "description": "Returns geo-routing configuration and available regions",
+                "operationId": "complianceCertificationGetRoutingConfig",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
                     }
                 },
                 "security": [
@@ -20651,6 +21449,177 @@
                 }
             }
         },
+        "/api/exchange-rate-providers": {
+            "get": {
+                "tags": [
+                    "Exchange Rate Providers"
+                ],
+                "summary": "List exchange rate providers",
+                "description": "Returns available exchange rate providers with status",
+                "operationId": "exchangeRateProvidersIndex",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rate-providers/{provider}/rate": {
+            "get": {
+                "tags": [
+                    "Exchange Rate Providers"
+                ],
+                "summary": "Get rate from provider",
+                "description": "Gets exchange rate from a specific provider",
+                "operationId": "exchangeRateProvidersGetRate",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rate-providers/compare": {
+            "get": {
+                "tags": [
+                    "Exchange Rate Providers"
+                ],
+                "summary": "Compare rates across providers",
+                "description": "Compares exchange rates across all providers",
+                "operationId": "exchangeRateProvidersCompareRates",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rate-providers/aggregated": {
+            "get": {
+                "tags": [
+                    "Exchange Rate Providers"
+                ],
+                "summary": "Get aggregated rate",
+                "description": "Returns weighted average rate across providers",
+                "operationId": "exchangeRateProvidersGetAggregatedRate",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rate-providers/refresh": {
+            "post": {
+                "tags": [
+                    "Exchange Rate Providers"
+                ],
+                "summary": "Refresh exchange rates",
+                "description": "Forces refresh of exchange rates from providers",
+                "operationId": "exchangeRateProvidersRefresh",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rate-providers/historical": {
+            "get": {
+                "tags": [
+                    "Exchange Rate Providers"
+                ],
+                "summary": "Get historical rates",
+                "description": "Returns historical exchange rates for a currency pair",
+                "operationId": "exchangeRateProvidersHistorical",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-rate-providers/validate": {
+            "post": {
+                "tags": [
+                    "Exchange Rate Providers"
+                ],
+                "summary": "Validate an exchange rate",
+                "description": "Validates a rate against market data",
+                "operationId": "exchangeRateProvidersValidateRate",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/external-exchange/connectors": {
             "get": {
                 "tags": [
@@ -20806,6 +21775,152 @@
                 "security": [
                     {
                         "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/external-exchanges/connectors": {
+            "get": {
+                "tags": [
+                    "External Exchanges"
+                ],
+                "summary": "List exchange connectors",
+                "description": "Returns available external exchange connectors",
+                "operationId": "externalExchangesConnectors",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/external-exchanges/ticker/{base}/{quote}": {
+            "get": {
+                "tags": [
+                    "External Exchanges"
+                ],
+                "summary": "Get ticker data",
+                "description": "Returns current ticker data for a trading pair",
+                "operationId": "externalExchangesTicker",
+                "parameters": [
+                    {
+                        "name": "base",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "quote",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/external-exchanges/order-book/{base}/{quote}": {
+            "get": {
+                "tags": [
+                    "External Exchanges"
+                ],
+                "summary": "Get order book",
+                "description": "Returns order book for a trading pair",
+                "operationId": "externalExchangesOrderBook",
+                "parameters": [
+                    {
+                        "name": "base",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "quote",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/external-exchanges/arbitrage/{base}/{quote}": {
+            "get": {
+                "tags": [
+                    "External Exchanges"
+                ],
+                "summary": "Get arbitrage opportunities",
+                "description": "Returns arbitrage opportunities for a trading pair",
+                "operationId": "externalExchangesArbitrage",
+                "parameters": [
+                    {
+                        "name": "base",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "quote",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
                     }
                 ]
             }
@@ -21654,6 +22769,342 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/compliance/gdpr/v2/register": {
+            "get": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Get processing activities register",
+                "description": "Returns the GDPR Article 30 processing activities register",
+                "operationId": "gDPREnhancedGetRegister",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/register/activities": {
+            "post": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Create a processing activity",
+                "description": "Creates a new processing activity in the Article 30 register",
+                "operationId": "gDPREnhancedCreateActivity",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/register/completeness": {
+            "get": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Get register completeness check",
+                "description": "Checks completeness of the processing register",
+                "operationId": "gDPREnhancedGetRegisterCompleteness",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/dpia": {
+            "get": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Get DPIA summary",
+                "description": "Returns Data Protection Impact Assessment summary",
+                "operationId": "gDPREnhancedGetDpiaSummary",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Create a DPIA",
+                "description": "Creates a new Data Protection Impact Assessment",
+                "operationId": "gDPREnhancedCreateDpia",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/dpia/{id}/approve": {
+            "post": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Approve a DPIA",
+                "description": "Approves a Data Protection Impact Assessment",
+                "operationId": "gDPREnhancedApproveDpia",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/breaches": {
+            "get": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Get breach summary",
+                "description": "Returns data breach notification summary",
+                "operationId": "gDPREnhancedGetBreachSummary",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Report a data breach",
+                "description": "Reports a new data breach with 72h notification deadline",
+                "operationId": "gDPREnhancedReportBreach",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/breaches/{id}/notify-authority": {
+            "post": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Notify authority about a breach",
+                "description": "Records authority notification for a data breach",
+                "operationId": "gDPREnhancedNotifyAuthority",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/breaches/deadlines": {
+            "get": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Check breach deadlines",
+                "description": "Checks breach notification deadline status",
+                "operationId": "gDPREnhancedCheckDeadlines",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/consent": {
+            "get": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Get consent status",
+                "description": "Returns consent status for the authenticated user",
+                "operationId": "gDPREnhancedGetConsentStatus",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Record a consent decision",
+                "description": "Records a consent decision for the authenticated user",
+                "operationId": "gDPREnhancedRecordConsent",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/retention": {
+            "get": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Get retention policy summary",
+                "description": "Returns data retention policy summary",
+                "operationId": "gDPREnhancedGetRetentionSummary",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/compliance/gdpr/v2/retention/policies": {
+            "post": {
+                "tags": [
+                    "GDPR Enhanced"
+                ],
+                "summary": "Create a retention policy",
+                "description": "Creates a new data retention policy",
+                "operationId": "gDPREnhancedCreateRetentionPolicy",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/hardware-wallet/register": {
@@ -24441,6 +25892,50 @@
                 ]
             }
         },
+        "/api/v1/user/preferences": {
+            "get": {
+                "tags": [
+                    "Mobile User Preferences"
+                ],
+                "summary": "Get user mobile preferences",
+                "description": "Returns the authenticated user mobile preferences",
+                "operationId": "mobileUserPreferencesShow",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Mobile User Preferences"
+                ],
+                "summary": "Update user mobile preferences",
+                "description": "Updates the authenticated user mobile preferences",
+                "operationId": "mobileUserPreferencesUpdate",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/mobile/devices": {
             "get": {
                 "tags": [
@@ -25172,6 +26667,104 @@
                 "responses": {
                     "200": {
                         "description": "Preferences updated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/app/status": {
+            "get": {
+                "tags": [
+                    "Mobile"
+                ],
+                "summary": "Get app version and maintenance status",
+                "description": "Get app status for mobile version/maintenance check.",
+                "operationId": "getAppStatus",
+                "responses": {
+                    "200": {
+                        "description": "App status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "min_version": {
+                                                    "type": "string",
+                                                    "example": "1.0.0"
+                                                },
+                                                "latest_version": {
+                                                    "type": "string",
+                                                    "example": "1.2.0"
+                                                },
+                                                "force_update": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "maintenance": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "maintenance_message": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mobile/devices/all": {
+            "delete": {
+                "tags": [
+                    "Mobile"
+                ],
+                "summary": "Remove all registered devices for the current user",
+                "description": "Bulk remove all devices for the authenticated user.",
+                "operationId": "bulkRemoveDevices",
+                "responses": {
+                    "200": {
+                        "description": "All devices removed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "removed_count": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -30287,6 +31880,215 @@
                 ]
             }
         },
+        "/api/plugins": {
+            "get": {
+                "tags": [
+                    "Plugin Marketplace"
+                ],
+                "summary": "List all installed plugins",
+                "description": "Returns a list of all installed plugins with status",
+                "operationId": "pluginMarketplaceIndex",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plugins/{id}": {
+            "get": {
+                "tags": [
+                    "Plugin Marketplace"
+                ],
+                "summary": "Show a specific plugin",
+                "description": "Returns detailed information about a specific plugin",
+                "operationId": "pluginMarketplaceShow",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Plugin Marketplace"
+                ],
+                "summary": "Remove a plugin",
+                "description": "Removes a plugin from the system",
+                "operationId": "pluginMarketplaceDestroy",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plugins/{id}/enable": {
+            "post": {
+                "tags": [
+                    "Plugin Marketplace"
+                ],
+                "summary": "Enable a plugin",
+                "description": "Enables a disabled plugin",
+                "operationId": "pluginMarketplaceEnable",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plugins/{id}/disable": {
+            "post": {
+                "tags": [
+                    "Plugin Marketplace"
+                ],
+                "summary": "Disable a plugin",
+                "description": "Disables an active plugin",
+                "operationId": "pluginMarketplaceDisable",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plugins/{id}/scan": {
+            "post": {
+                "tags": [
+                    "Plugin Marketplace"
+                ],
+                "summary": "Scan a plugin for security issues",
+                "description": "Runs security scanner on a specific plugin",
+                "operationId": "pluginMarketplaceScan",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plugins/discover": {
+            "post": {
+                "tags": [
+                    "Plugin Marketplace"
+                ],
+                "summary": "Discover new plugins",
+                "description": "Discovers new plugins from the filesystem",
+                "operationId": "pluginMarketplaceDiscover",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/polls": {
             "get": {
                 "tags": [
@@ -31712,6 +33514,670 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/privacy/balances": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get shielded balances per token",
+                "description": "Get shielded balances per token.",
+                "operationId": "getShieldedBalances",
+                "responses": {
+                    "200": {
+                        "description": "Shielded balances",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "token": {
+                                                        "type": "string",
+                                                        "example": "USDC"
+                                                    },
+                                                    "balance": {
+                                                        "type": "string",
+                                                        "example": "0.00"
+                                                    },
+                                                    "network": {
+                                                        "type": "string",
+                                                        "example": "polygon"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/total-balance": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get total shielded balance in USD",
+                "description": "Get total shielded balance aggregated across tokens.",
+                "operationId": "getTotalShieldedBalance",
+                "responses": {
+                    "200": {
+                        "description": "Total shielded balance",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_balance": {
+                                                    "type": "string",
+                                                    "example": "0.00"
+                                                },
+                                                "currency": {
+                                                    "type": "string",
+                                                    "example": "USD"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/transactions": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get privacy transaction history",
+                "description": "Get privacy transactions for the authenticated user.",
+                "operationId": "getPrivacyTransactions",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Privacy transactions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/shield": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Shield tokens into the privacy pool",
+                "description": "Shield tokens (create shielded notes).",
+                "operationId": "shieldTokens",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "token",
+                                    "network"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "example": "100.00"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "example": "polygon"
+                                    },
+                                    "encrypted_inputs": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Shield operation initiated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/unshield": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Unshield tokens from the privacy pool",
+                "description": "Unshield tokens (withdraw from privacy pool).",
+                "operationId": "unshieldTokens",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "token",
+                                    "network",
+                                    "recipient"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "example": "50.00"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "example": "polygon"
+                                    },
+                                    "recipient": {
+                                        "type": "string",
+                                        "example": "0x1234..."
+                                    },
+                                    "encrypted_inputs": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Unshield operation initiated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/transfer": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Transfer tokens privately within the pool",
+                "description": "Private transfer within the privacy pool.",
+                "operationId": "privateTransfer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "token",
+                                    "network"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "example": "25.00"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "example": "polygon"
+                                    },
+                                    "recipient_commitment": {
+                                        "type": "string"
+                                    },
+                                    "encrypted_inputs": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Private transfer initiated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/viewing-key": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get the user's viewing key for decrypting shielded notes",
+                "description": "Get the viewing key for the authenticated user.",
+                "operationId": "getViewingKey",
+                "responses": {
+                    "200": {
+                        "description": "Viewing key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "viewing_key": {
+                                                    "type": "string"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/proof-of-innocence": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Generate a proof that funds are not from sanctioned sources",
+                "description": "Generate a proof of innocence.",
+                "operationId": "generateProofOfInnocence",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "transaction_hashes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "sanctions_list_root": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Proof generated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/proof-of-innocence/{proofId}/verify": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Verify a proof of innocence",
+                "description": "Verify a proof of innocence.",
+                "operationId": "verifyProofOfInnocence",
+                "parameters": [
+                    {
+                        "name": "proofId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "proof_id": {
+                                                    "type": "string"
+                                                },
+                                                "valid": {
+                                                    "type": "boolean"
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/srs-url": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get the SRS download URL for a chain",
+                "description": "Get the SRS download URL for a specific chain.",
+                "operationId": "getSrsUrl",
+                "parameters": [
+                    {
+                        "name": "chain_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SRS URL",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "url": {
+                                                    "type": "string"
+                                                },
+                                                "version": {
+                                                    "type": "string"
+                                                },
+                                                "circuits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/srs-status": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get SRS download status for the current user",
+                "description": "Get the SRS download status for the authenticated user.",
+                "operationId": "getSrsStatus",
+                "responses": {
+                    "200": {
+                        "description": "SRS status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "has_required": {
+                                                    "type": "boolean"
+                                                },
+                                                "version": {
+                                                    "type": "string"
+                                                },
+                                                "required_circuits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/monitoring/projector-health": {
+            "get": {
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get projector health status",
+                "description": "Get projector health status.",
+                "operationId": "748637b095cc158893db1b23c66f10a0",
+                "responses": {
+                    "200": {
+                        "description": "Projector health status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total_projectors": {
+                                            "type": "integer"
+                                        },
+                                        "healthy": {
+                                            "type": "integer"
+                                        },
+                                        "stale": {
+                                            "type": "integer"
+                                        },
+                                        "failed": {
+                                            "type": "integer"
+                                        },
+                                        "checked_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/monitoring/projector-health/stale": {
+            "get": {
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get stale projectors",
+                "description": "Get stale projectors only.",
+                "operationId": "f92c5e924f2cb0f54c91034d94881b9e",
+                "responses": {
+                    "200": {
+                        "description": "List of stale projectors"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/regtech/compliance/summary": {
@@ -35506,6 +37972,62 @@
                 ]
             }
         },
+        "/api/settings": {
+            "get": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get public settings",
+                "description": "Retrieves all public application settings",
+                "operationId": "settingsIndex",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/settings/group/{group}": {
+            "get": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get settings by group",
+                "description": "Retrieves public settings filtered by group name",
+                "operationId": "settingsGroup",
+                "parameters": [
+                    {
+                        "name": "group",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v2/stablecoins": {
             "get": {
                 "tags": [
@@ -37366,6 +39888,388 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/stablecoins/operations/mint": {
+            "post": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Mint stablecoins",
+                "description": "Mints new stablecoins with collateral",
+                "operationId": "stablecoinOperationsStubMint",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/burn": {
+            "post": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Burn stablecoins",
+                "description": "Burns stablecoins and returns collateral",
+                "operationId": "stablecoinOperationsStubBurn",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/collateral/add": {
+            "post": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Add collateral to position",
+                "description": "Adds collateral to an existing position",
+                "operationId": "stablecoinOperationsStubAddCollateral",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/positions/{accountUuid}": {
+            "get": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Get account positions",
+                "description": "Returns stablecoin positions for an account",
+                "operationId": "stablecoinOperationsStubGetAccountPositions",
+                "parameters": [
+                    {
+                        "name": "accountUuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/positions/at-risk": {
+            "get": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Get positions at risk",
+                "description": "Returns positions at risk of liquidation",
+                "operationId": "stablecoinOperationsStubGetPositionsAtRisk",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/positions/{positionUuid}/details": {
+            "get": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Get position details",
+                "description": "Returns details for a specific position",
+                "operationId": "stablecoinOperationsStubGetPositionDetails",
+                "parameters": [
+                    {
+                        "name": "positionUuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/liquidation/opportunities": {
+            "get": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Get liquidation opportunities",
+                "description": "Returns available liquidation opportunities",
+                "operationId": "stablecoinOperationsStubGetLiquidationOpportunities",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/liquidation/auto": {
+            "post": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Execute auto-liquidation",
+                "description": "Executes automatic liquidation of at-risk positions",
+                "operationId": "stablecoinOperationsStubExecuteAutoLiquidation",
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/liquidation/{positionUuid}": {
+            "post": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Liquidate a position",
+                "description": "Liquidates a specific position",
+                "operationId": "stablecoinOperationsStubLiquidatePosition",
+                "parameters": [
+                    {
+                        "name": "positionUuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/liquidation/{positionUuid}/reward": {
+            "get": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Calculate liquidation reward",
+                "description": "Calculates expected reward for liquidating a position",
+                "operationId": "stablecoinOperationsStubCalculateLiquidationReward",
+                "parameters": [
+                    {
+                        "name": "positionUuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stablecoins/operations/liquidation/simulate/{stablecoinCode}": {
+            "post": {
+                "tags": [
+                    "Stablecoin Operations (Stub)"
+                ],
+                "summary": "Simulate mass liquidation",
+                "description": "Simulates mass liquidation scenario with price drop",
+                "operationId": "stablecoinOperationsStubSimulateMassLiquidation",
+                "parameters": [
+                    {
+                        "name": "stablecoinCode",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/sub-products": {
+            "get": {
+                "tags": [
+                    "Sub-Products"
+                ],
+                "summary": "Get all sub-product statuses",
+                "description": "Returns status of all sub-products",
+                "operationId": "subProductsIndex",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/sub-products/{subProduct}": {
+            "get": {
+                "tags": [
+                    "Sub-Products"
+                ],
+                "summary": "Get specific sub-product status",
+                "description": "Returns the status of a specific sub-product",
+                "operationId": "subProductsShow",
+                "parameters": [
+                    {
+                        "name": "subProduct",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/sub-products/enabled": {
+            "get": {
+                "tags": [
+                    "Sub-Products"
+                ],
+                "summary": "Get enabled sub-products",
+                "description": "Returns sub-products enabled for the current user",
+                "operationId": "subProductsEnabled",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/accounts/{uuid}/deposit": {
@@ -40502,6 +43406,72 @@
                 ]
             }
         },
+        "/api/v1/trustcert/{certId}/certificate": {
+            "get": {
+                "tags": [
+                    "TrustCert Certificates"
+                ],
+                "summary": "Get certificate details",
+                "description": "Returns detailed information about a TrustCert certificate",
+                "operationId": "trustCertCertificatesShow",
+                "parameters": [
+                    {
+                        "name": "certId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/trustcert/{certId}/export-pdf": {
+            "post": {
+                "tags": [
+                    "TrustCert Certificates"
+                ],
+                "summary": "Export certificate as PDF",
+                "description": "Exports a TrustCert certificate as a PDF document",
+                "operationId": "trustCertCertificatesExportPdf",
+                "parameters": [
+                    {
+                        "name": "certId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful operation"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/trustcert/current": {
             "get": {
                 "tags": [
@@ -41275,6 +44245,101 @@
                 "responses": {
                     "200": {
                         "description": "Dashboard data"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/monitoring/live-dashboard": {
+            "get": {
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get live platform metrics",
+                "operationId": "getLiveDashboard",
+                "responses": {
+                    "200": {
+                        "description": "Live metrics data"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/monitoring/live-dashboard/domain-health": {
+            "get": {
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get domain health metrics",
+                "operationId": "getDomainHealth",
+                "responses": {
+                    "200": {
+                        "description": "Domain health data"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/monitoring/live-dashboard/event-throughput": {
+            "get": {
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get event throughput metrics",
+                "operationId": "getEventThroughput",
+                "responses": {
+                    "200": {
+                        "description": "Event throughput data"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/monitoring/live-dashboard/stream-status": {
+            "get": {
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get event stream status",
+                "operationId": "getStreamStatus",
+                "responses": {
+                    "200": {
+                        "description": "Stream status data"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/monitoring/live-dashboard/projector-lag": {
+            "get": {
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get projector lag metrics",
+                "operationId": "getProjectorLag",
+                "responses": {
+                    "200": {
+                        "description": "Projector lag data"
                     }
                 },
                 "security": [
@@ -46373,6 +49438,116 @@
                 ]
             }
         },
+        "/api/v1/wallet/transactions/quote": {
+            "post": {
+                "tags": [
+                    "Mobile Wallet"
+                ],
+                "summary": "Get a transaction quote with recipient validation",
+                "description": "Returns a fee quote for a transfer to a specific recipient address, validating the recipient on the specified network.",
+                "operationId": "walletTransactionQuote",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "to",
+                                    "network",
+                                    "asset",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "to": {
+                                        "description": "Recipient address",
+                                        "type": "string",
+                                        "example": "0x1234..."
+                                    },
+                                    "network": {
+                                        "description": "Target network",
+                                        "type": "string",
+                                        "example": "POLYGON"
+                                    },
+                                    "asset": {
+                                        "description": "Asset/token symbol",
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "amount": {
+                                        "description": "Transfer amount",
+                                        "type": "number",
+                                        "example": 100.5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction quote",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "quote_id": {
+                                                    "type": "string"
+                                                },
+                                                "to": {
+                                                    "type": "string"
+                                                },
+                                                "amount": {
+                                                    "type": "string"
+                                                },
+                                                "asset": {
+                                                    "type": "string"
+                                                },
+                                                "network": {
+                                                    "type": "string"
+                                                },
+                                                "fee": {
+                                                    "type": "string"
+                                                },
+                                                "total": {
+                                                    "type": "string"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid recipient or quote failed"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/websocket/config": {
             "get": {
                 "tags": [
@@ -50218,6 +53393,10 @@
             "description": "Card issuer webhook endpoints (internal)"
         },
         {
+            "name": "Compliance Certification",
+            "description": "SOC 2, PCI DSS, data residency, and incident management endpoints"
+        },
+        {
             "name": "Custodians",
             "description": "External custodian bank integration and account management"
         },
@@ -50342,12 +53521,24 @@
             "description": "Currency exchange rate information"
         },
         {
+            "name": "Exchange Rate Providers",
+            "description": "Exchange rate provider management and rate comparison endpoints (stub)"
+        },
+        {
             "name": "External Exchange",
             "description": "External exchange integration endpoints"
         },
         {
+            "name": "External Exchanges",
+            "description": "External exchange connectors, tickers, and arbitrage endpoints (stub)"
+        },
+        {
             "name": "GDPR",
             "description": "General Data Protection Regulation (GDPR) compliance operations"
+        },
+        {
+            "name": "GDPR Enhanced",
+            "description": "GDPR Article 30, DPIA, Breach Notification, Consent v2, and Data Retention endpoints"
         },
         {
             "name": "Hardware Wallets",
@@ -50362,12 +53553,20 @@
             "description": "Liquidity pool management endpoints"
         },
         {
+            "name": "Mobile User Preferences",
+            "description": "Mobile application user preferences management"
+        },
+        {
             "name": "Mobile",
             "description": "Mobile device management and authentication endpoints"
         },
         {
             "name": "Multi-Sig Wallets",
             "description": "Multi-signature wallet management endpoints"
+        },
+        {
+            "name": "Plugin Marketplace",
+            "description": "Plugin management, security scanning, and marketplace endpoints"
         },
         {
             "name": "Governance - Polls",
@@ -50394,6 +53593,10 @@
             "description": "ERC-4337 account abstraction management"
         },
         {
+            "name": "Settings",
+            "description": "Application settings management"
+        },
+        {
             "name": "Stablecoins",
             "description": "Stablecoin management and operations"
         },
@@ -50402,12 +53605,24 @@
             "description": "Stablecoin minting, burning, and collateral management"
         },
         {
+            "name": "Stablecoin Operations (Stub)",
+            "description": "Stablecoin minting, burning, collateral, and liquidation endpoints (stub)"
+        },
+        {
+            "name": "Sub-Products",
+            "description": "Sub-product status and configuration endpoints"
+        },
+        {
             "name": "Transaction Reversal",
             "description": "Critical transaction reversal operations for error recovery"
         },
         {
             "name": "Treasury Portfolio",
             "description": "Treasury portfolio management operations"
+        },
+        {
+            "name": "TrustCert Certificates",
+            "description": "TrustCert certificate viewing and export endpoints"
         },
         {
             "name": "TrustCert Presentation",

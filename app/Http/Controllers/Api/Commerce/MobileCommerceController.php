@@ -50,30 +50,9 @@ class MobileCommerceController extends Controller
      */
     public function merchants(Request $request): JsonResponse
     {
-        $merchants = [
-            [
-                'id'                => 'merchant_demo_001',
-                'display_name'      => 'Demo Coffee Shop',
-                'category'          => 'food_beverage',
-                'accepted_tokens'   => ['USDC', 'USDT'],
-                'accepted_networks' => ['polygon', 'base'],
-                'icon_url'          => null,
-                'active'            => true,
-            ],
-            [
-                'id'                => 'merchant_demo_002',
-                'display_name'      => 'Digital Store',
-                'category'          => 'retail',
-                'accepted_tokens'   => ['USDC', 'USDT', 'WETH'],
-                'accepted_networks' => ['polygon', 'arbitrum', 'base'],
-                'icon_url'          => null,
-                'active'            => true,
-            ],
-        ];
-
         return response()->json([
             'success' => true,
-            'data'    => $merchants,
+            'data'    => $this->getDemoMerchants(),
         ]);
     }
 
@@ -337,5 +316,178 @@ class MobileCommerceController extends Controller
                 'expires_at' => now()->addMinutes(30)->toIso8601String(),
             ],
         ]);
+    }
+
+    /**
+     * Get merchant detail.
+     *
+     * @OA\Get(
+     *     path="/api/v1/commerce/merchants/{merchantId}",
+     *     operationId="commerceMerchantDetail",
+     *     summary="Get merchant details",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="merchantId", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Merchant details",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Merchant not found")
+     * )
+     */
+    public function merchantDetail(Request $request, string $merchantId): JsonResponse
+    {
+        $merchants = $this->getDemoMerchants();
+        $merchant = collect($merchants)->firstWhere('id', $merchantId);
+
+        if (! $merchant) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'MERCHANT_NOT_FOUND',
+                    'message' => 'Merchant not found.',
+                ],
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $merchant,
+        ]);
+    }
+
+    /**
+     * Get payment request detail.
+     *
+     * @OA\Get(
+     *     path="/api/v1/commerce/payment-requests/{paymentId}",
+     *     operationId="commercePaymentRequestDetail",
+     *     summary="Get payment request details",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="paymentId", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment request details",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function paymentRequestDetail(Request $request, string $paymentId): JsonResponse
+    {
+        // Demo implementation — in production, look up from database
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'id'          => $paymentId,
+                'merchant_id' => 'merchant_demo_001',
+                'amount'      => '0.00',
+                'asset'       => 'USDC',
+                'network'     => 'polygon',
+                'status'      => 'pending',
+                'created_at'  => now()->toIso8601String(),
+                'expires_at'  => now()->addMinutes(15)->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
+     * Cancel a payment request.
+     *
+     * @OA\Post(
+     *     path="/api/v1/commerce/payment-requests/{paymentId}/cancel",
+     *     operationId="commerceCancelPaymentRequest",
+     *     summary="Cancel a payment request",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="paymentId", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment request cancelled",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string"),
+     *                 @OA\Property(property="status", type="string", example="cancelled")
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function cancelPaymentRequest(Request $request, string $paymentId): JsonResponse
+    {
+        // Demo implementation — in production, update database
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'id'           => $paymentId,
+                'status'       => 'cancelled',
+                'cancelled_at' => now()->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get recent payments.
+     *
+     * @OA\Get(
+     *     path="/api/v1/commerce/payments/recent",
+     *     operationId="commerceRecentPayments",
+     *     summary="Get recent commerce payments",
+     *     tags={"Commerce"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recent payments",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
+    public function recentPayments(Request $request): JsonResponse
+    {
+        // Demo implementation — return empty list
+        return response()->json([
+            'success' => true,
+            'data'    => [],
+        ]);
+    }
+
+    /**
+     * Get demo merchant list (shared between merchants list and detail).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function getDemoMerchants(): array
+    {
+        return [
+            [
+                'id'                => 'merchant_demo_001',
+                'display_name'      => 'Demo Coffee Shop',
+                'category'          => 'food_beverage',
+                'accepted_tokens'   => ['USDC', 'USDT'],
+                'accepted_networks' => ['polygon', 'base'],
+                'icon_url'          => null,
+                'active'            => true,
+            ],
+            [
+                'id'                => 'merchant_demo_002',
+                'display_name'      => 'Digital Store',
+                'category'          => 'retail',
+                'accepted_tokens'   => ['USDC', 'USDT', 'WETH'],
+                'accepted_networks' => ['polygon', 'arbitrum', 'base'],
+                'icon_url'          => null,
+                'active'            => true,
+            ],
+        ];
     }
 }

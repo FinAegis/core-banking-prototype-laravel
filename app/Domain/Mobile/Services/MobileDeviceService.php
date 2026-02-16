@@ -271,6 +271,23 @@ class MobileDeviceService
     }
 
     /**
+     * Remove all devices for a user.
+     */
+    public function removeAllDevices(User $user): int
+    {
+        $count = MobileDevice::where('user_id', $user->id)->count();
+
+        MobileDevice::where('user_id', $user->id)->delete();
+
+        Log::info('All mobile devices removed for user', [
+            'user_id' => $user->id,
+            'count'   => $count,
+        ]);
+
+        return $count;
+    }
+
+    /**
      * Clean up stale devices (not active for X days).
      */
     public function cleanupStaleDevices(int $daysInactive = 90): int

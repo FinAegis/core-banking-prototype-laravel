@@ -10,6 +10,7 @@ use App\Http\Requests\Wallet\ResolveNameRequest;
 use App\Http\Requests\Wallet\ValidateAddressRequest;
 use App\Http\Requests\Wallet\WalletQuoteRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Throwable;
 
 class WalletTransferController extends Controller
@@ -182,6 +183,80 @@ class WalletTransferController extends Controller
             return response()->json([
                 'success' => true,
                 'data'    => $result,
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'QUOTE_FAILED',
+                    'message' => $e->getMessage(),
+                ],
+            ], 400);
+        }
+    }
+
+    /**
+     * Get a transaction quote including recipient address validation.
+     *
+     * @OA\Post(
+     *     path="/api/v1/wallet/transactions/quote",
+     *     operationId="walletTransactionQuote",
+     *     summary="Get a transaction quote with recipient validation",
+     *     description="Returns a fee quote for a transfer to a specific recipient address, validating the recipient on the specified network.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"to", "network", "asset", "amount"},
+     *             @OA\Property(property="to", type="string", example="0x1234...", description="Recipient address"),
+     *             @OA\Property(property="network", type="string", example="POLYGON", description="Target network"),
+     *             @OA\Property(property="asset", type="string", example="USDC", description="Asset/token symbol"),
+     *             @OA\Property(property="amount", type="number", example=100.50, description="Transfer amount")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Transaction quote",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="quote_id", type="string"),
+     *                 @OA\Property(property="to", type="string"),
+     *                 @OA\Property(property="amount", type="string"),
+     *                 @OA\Property(property="asset", type="string"),
+     *                 @OA\Property(property="network", type="string"),
+     *                 @OA\Property(property="fee", type="string"),
+     *                 @OA\Property(property="total", type="string"),
+     *                 @OA\Property(property="expires_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Invalid recipient or quote failed"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function transactionQuote(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'to'      => 'required|string|max:128',
+            'network' => 'required|string',
+            'asset'   => 'required|string',
+            'amount'  => 'required|numeric|gt:0|max:1000000',
+        ]);
+
+        try {
+            $quote = $this->transferService->getTransactionQuote(
+                $validated['to'],
+                $validated['network'],
+                $validated['asset'],
+                (string) $validated['amount'],
+            );
+
+            return response()->json([
+                'success' => true,
+                'data'    => $quote,
             ]);
         } catch (Throwable $e) {
             return response()->json([

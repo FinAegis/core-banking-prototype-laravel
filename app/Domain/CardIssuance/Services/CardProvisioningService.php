@@ -105,6 +105,14 @@ class CardProvisioningService
     }
 
     /**
+     * Get a card by token.
+     */
+    public function getCard(string $cardToken): ?VirtualCard
+    {
+        return $this->cardIssuer->getCard($cardToken);
+    }
+
+    /**
      * Freeze a card.
      */
     public function freezeCard(string $cardToken): bool
