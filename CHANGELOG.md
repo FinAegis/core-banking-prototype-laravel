@@ -5,6 +5,54 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2026-02-16
+
+### Added
+
+#### Mobile API Completeness — 21 New Endpoints
+- 11 privacy endpoints: shielded balances, total balance, transactions, shield/unshield/transfer, viewing key, proof of innocence (generate + verify), SRS URL/status
+- 4 commerce endpoints: merchant detail, payment request detail/cancel, recent payments
+- 3 card issuance endpoints: create card, card detail, card transactions
+- 2 mobile endpoints: app status (public), bulk device removal
+- 1 wallet endpoint: transaction quote with recipient validation
+- 7 new feature test files with 42 tests covering all new endpoints
+
+#### GraphQL 33-Domain Full Coverage
+- 9 remaining domain schemas and resolvers added (completing 33-domain coverage)
+- 14-domain GraphQL integration test suite
+
+#### Blockchain Address Models
+- `BlockchainAddress` and `BlockchainTransaction` Eloquent models with UUID support
+- `blockchain_addresses` and `blockchain_address_transactions` migration
+- `BlockchainWalletController` for address/transaction management
+
+### Changed
+
+#### Test Quality
+- 97 ReflectionClass-based structural tests converted to behavioral assertions
+- 9 pre-existing test failures resolved across event commands, GraphQL mutations, and projector health
+- Azure Key Vault HSM test hardened with `Http::preventStrayRequests()` and explicit URL schemes
+
+#### CI/CD Hardening
+- k6 load test step made non-blocking in CI pipeline
+- Per-scenario k6 thresholds for CI environment
+- PHPStan Laravel bootstrap restored for CI
+- PHPCS code quality violations resolved across codebase
+- Composer autoload redundancy removed
+
+### Fixed
+- PHPStan generic types for `BlockchainAddress`/`BlockchainTransaction` BelongsTo relationships
+- MariaDB timestamp compatibility in 4 migration files
+- Swagger/OpenAPI documentation regenerated with all new endpoints
+- axios CVE-2025-27152 resolved (upgrade to 1.13.5)
+- Migration foreign key type mismatches and composer.lock sync
+- Documentation accuracy: version references, domain counts, stale metrics
+
+### Security
+- axios upgraded to 1.13.5 to resolve CVE (npm overrides)
+
+---
+
 ## [5.0.1] - 2026-02-13
 
 ### Added

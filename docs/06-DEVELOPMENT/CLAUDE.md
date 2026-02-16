@@ -442,7 +442,7 @@ ActivityStub::make(ValidateLiquidityActivity::class)
 - **Projectors**: Build read models from events (`AccountProjector`, `TurnoverProjector`, `TransactionProjector`, `AssetTransactionProjector`, `AssetTransferProjector`, `ExchangeRateProjector`)
 - **Reactors**: Handle side effects (`SnapshotTransactionsReactor`, `SnapshotTransfersReactor`)
 
-### GraphQL API (v4.0.0-v5.0.1)
+### GraphQL API (v4.0.0-v5.1.0)
 The platform provides a GraphQL API via Lighthouse PHP alongside the REST API:
 - **33 domain schemas**: Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet
 - **Schema files**: `graphql/*.graphql`
@@ -2145,6 +2145,6 @@ $user->assignRole('customer_business');
 
 ---
 
-**Last Updated**: 2026-02-13
-**Version**: 5.0.1
-**Status**: Production Ready - v5.0.1 with Event Streaming, Live Dashboard, GraphQL API, Plugin Marketplace
+**Last Updated**: 2026-02-16
+**Version**: 5.1.0
+**Status**: Production Ready - v5.1.0 with Mobile API Completeness, GraphQL 33-Domain Coverage, Event Streaming, Live Dashboard

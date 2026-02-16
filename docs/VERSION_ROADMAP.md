@@ -1118,6 +1118,7 @@ main ─────────●─────────●─────
 | **v4.3.0** | Developer Experience | 4 new GraphQL domains, dashboard widget plugin, CLI commands, GraphQL security hardening | ✅ Released 2026-02-13 |
 | **v5.0.0** | Streaming Architecture | Event streaming (Redis Streams), live dashboard, notification system, API gateway, GraphQL schema expansion (33 domains) | ✅ Released 2026-02-13 |
 | **v5.0.1** | Platform Hardening | GraphQL CQRS alignment (21 mutations), OpenAPI 100%, Plugin Marketplace UI, PHP 8.4 CI, 97 test conversions, doc refresh | ✅ Released 2026-02-13 |
+| **v5.1.0** | Mobile API Completeness | 21 mobile endpoints, GraphQL 33-domain full coverage, blockchain models, CI hardening, axios CVE fix | ✅ Released 2026-02-16 |
 
 ---
 
@@ -1796,6 +1797,25 @@ After 18 releases (v1.1.0 → v3.0.0), the platform has grown to 41 domains, 266
 
 ---
 
-*Document Version: 5.0.1*
+## v5.1.0 — Mobile API Completeness & GraphQL Full Coverage ✅ COMPLETED
+
+**Released**: February 16, 2026
+**Theme**: Mobile Integration Readiness, GraphQL 33-Domain Coverage, CI/CD Hardening
+
+### Delivered
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Mobile API Endpoints | ✅ | 21 missing endpoints across Privacy (11), Commerce (4), Card Issuance (3), Mobile (2), Wallet (1) |
+| GraphQL Full Coverage | ✅ | 9 remaining domain schemas added, completing 33-domain coverage |
+| GraphQL Integration Tests | ✅ | 14-domain integration test suite |
+| Blockchain Models | ✅ | BlockchainAddress/Transaction Eloquent models with UUID, migration, controller |
+| Test Quality | ✅ | 42 new feature tests, 9 pre-existing failures fixed, behavioral test conversions |
+| CI Hardening | ✅ | k6 non-blocking, per-scenario thresholds, PHPStan bootstrap, PHPCS fixes |
+| Security | ✅ | axios CVE fix, PHPStan generic types, MariaDB timestamp fixes |
+
+---
+
+*Document Version: 5.1.0*
 *Created: January 11, 2026*
-*Updated: February 13, 2026 (v5.0.1 Platform Hardening released)*
+*Updated: February 16, 2026 (v5.1.0 Mobile API Completeness released)*
