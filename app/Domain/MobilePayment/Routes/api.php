@@ -67,4 +67,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'check.token.expiration'])->gro
     Route::post('/wallet/quote', [WalletTransferController::class, 'quote'])
         ->middleware('api.rate_limit:query')
         ->name('mobile.wallet.quote');
+
+    // Transaction quote with recipient address validation
+    Route::post('/wallet/transactions/quote', [WalletTransferController::class, 'transactionQuote'])
+        ->middleware('api.rate_limit:query')
+        ->name('mobile.wallet.transactions.quote');
 });

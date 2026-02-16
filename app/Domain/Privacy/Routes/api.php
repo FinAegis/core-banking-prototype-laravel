@@ -17,6 +17,9 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
     // Public endpoint for SRS manifest (mobile needs this before auth)
     Route::get('/srs-manifest', [PrivacyController::class, 'getSrsManifest'])->name('srs-manifest');
 
+    // Public endpoint for per-chain SRS download URL
+    Route::get('/srs-url', [PrivacyController::class, 'getSrsUrl'])->name('srs-url');
+
     // Public endpoint for privacy pool statistics (v3.3.4)
     Route::get('/pool-stats', [PrivacyController::class, 'getPoolStats'])->name('pool-stats');
 
@@ -42,5 +45,34 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
 
         // SRS download tracking for analytics
         Route::post('/srs-downloaded', [PrivacyController::class, 'trackSrsDownload'])->name('srs-downloaded');
+
+        // Shielded balances and transactions
+        Route::get('/balances', [PrivacyController::class, 'getShieldedBalances'])->name('balances');
+        Route::get('/total-balance', [PrivacyController::class, 'getTotalShieldedBalance'])->name('total-balance');
+        Route::get('/transactions', [PrivacyController::class, 'getPrivacyTransactions'])->name('transactions');
+
+        // Shield/Unshield/Transfer operations
+        Route::post('/shield', [PrivacyController::class, 'shield'])
+            ->middleware('transaction.rate_limit:delegated_proof')
+            ->name('shield');
+        Route::post('/unshield', [PrivacyController::class, 'unshield'])
+            ->middleware('transaction.rate_limit:delegated_proof')
+            ->name('unshield');
+        Route::post('/transfer', [PrivacyController::class, 'privateTransfer'])
+            ->middleware('transaction.rate_limit:delegated_proof')
+            ->name('transfer');
+
+        // Viewing key
+        Route::get('/viewing-key', [PrivacyController::class, 'getViewingKey'])->name('viewing-key');
+
+        // Proof of Innocence
+        Route::post('/proof-of-innocence', [PrivacyController::class, 'generateProofOfInnocence'])
+            ->middleware('transaction.rate_limit:delegated_proof')
+            ->name('proof-of-innocence.generate');
+        Route::get('/proof-of-innocence/{proofId}/verify', [PrivacyController::class, 'verifyProofOfInnocence'])
+            ->name('proof-of-innocence.verify');
+
+        // SRS status
+        Route::get('/srs-status', [PrivacyController::class, 'getSrsStatus'])->name('srs-status');
     });
 });

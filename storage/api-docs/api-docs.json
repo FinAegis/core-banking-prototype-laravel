@@ -12397,6 +12397,223 @@
                         "sanctum": []
                     }
                 ]
+            },
+            "post": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Create a new virtual card",
+                "description": "Create a new virtual card.",
+                "operationId": "3bc670783af57f3ca487684d2a1bb207",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "cardholder_name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "example": "USD"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Card created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "card_id": {
+                                                    "type": "string"
+                                                },
+                                                "last4": {
+                                                    "type": "string"
+                                                },
+                                                "network": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Card creation failed"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/{cardId}": {
+            "get": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Get a specific virtual card",
+                "description": "Get a specific card.",
+                "operationId": "1a1dd3c4d8aa3ae5754297bceb41a06b",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Card not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Cancel a virtual card permanently",
+                "description": "Cancel a virtual card.",
+                "operationId": "8a3be95d59931a059c46b3e8b87fbe47",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "User requested cancellation"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Card cancelled"
+                    },
+                    "404": {
+                        "description": "Card not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/cards/{cardId}/transactions": {
+            "get": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Get transactions for a virtual card",
+                "description": "Get transactions for a card.",
+                "operationId": "5f52eca54f1ac1856b885477a9b2301f",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card transactions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/v1/cards/{cardId}/freeze": {
@@ -12451,54 +12668,6 @@
                 "responses": {
                     "200": {
                         "description": "Card unfrozen"
-                    },
-                    "404": {
-                        "description": "Card not found"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/cards/{cardId}": {
-            "delete": {
-                "tags": [
-                    "Card Issuance"
-                ],
-                "summary": "Cancel a virtual card permanently",
-                "description": "Cancel a virtual card.",
-                "operationId": "8a3be95d59931a059c46b3e8b87fbe47",
-                "parameters": [
-                    {
-                        "name": "cardId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "reason": {
-                                        "type": "string",
-                                        "example": "User requested cancellation"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Card cancelled"
                     },
                     "404": {
                         "description": "Card not found"
@@ -13102,6 +13271,195 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/merchants/{merchantId}": {
+            "get": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Get merchant details",
+                "description": "Get merchant detail.",
+                "operationId": "commerceMerchantDetail",
+                "parameters": [
+                    {
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Merchant details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Merchant not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/payment-requests/{paymentId}": {
+            "get": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Get payment request details",
+                "description": "Get payment request detail.",
+                "operationId": "commercePaymentRequestDetail",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment request details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/payment-requests/{paymentId}/cancel": {
+            "post": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Cancel a payment request",
+                "description": "Cancel a payment request.",
+                "operationId": "commerceCancelPaymentRequest",
+                "parameters": [
+                    {
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment request cancelled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "cancelled"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/commerce/payments/recent": {
+            "get": {
+                "tags": [
+                    "Commerce"
+                ],
+                "summary": "Get recent commerce payments",
+                "description": "Get recent payments.",
+                "operationId": "commerceRecentPayments",
+                "responses": {
+                    "200": {
+                        "description": "Recent payments",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -26318,6 +26676,104 @@
                 ]
             }
         },
+        "/api/v1/app/status": {
+            "get": {
+                "tags": [
+                    "Mobile"
+                ],
+                "summary": "Get app version and maintenance status",
+                "description": "Get app status for mobile version/maintenance check.",
+                "operationId": "getAppStatus",
+                "responses": {
+                    "200": {
+                        "description": "App status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "min_version": {
+                                                    "type": "string",
+                                                    "example": "1.0.0"
+                                                },
+                                                "latest_version": {
+                                                    "type": "string",
+                                                    "example": "1.2.0"
+                                                },
+                                                "force_update": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "maintenance": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "maintenance_message": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/mobile/devices/all": {
+            "delete": {
+                "tags": [
+                    "Mobile"
+                ],
+                "summary": "Remove all registered devices for the current user",
+                "description": "Bulk remove all devices for the authenticated user.",
+                "operationId": "bulkRemoveDevices",
+                "responses": {
+                    "200": {
+                        "description": "All devices removed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "removed_count": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/activity": {
             "get": {
                 "tags": [
@@ -33058,6 +33514,605 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/privacy/balances": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get shielded balances per token",
+                "description": "Get shielded balances per token.",
+                "operationId": "getShieldedBalances",
+                "responses": {
+                    "200": {
+                        "description": "Shielded balances",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "token": {
+                                                        "type": "string",
+                                                        "example": "USDC"
+                                                    },
+                                                    "balance": {
+                                                        "type": "string",
+                                                        "example": "0.00"
+                                                    },
+                                                    "network": {
+                                                        "type": "string",
+                                                        "example": "polygon"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/total-balance": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get total shielded balance in USD",
+                "description": "Get total shielded balance aggregated across tokens.",
+                "operationId": "getTotalShieldedBalance",
+                "responses": {
+                    "200": {
+                        "description": "Total shielded balance",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_balance": {
+                                                    "type": "string",
+                                                    "example": "0.00"
+                                                },
+                                                "currency": {
+                                                    "type": "string",
+                                                    "example": "USD"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/transactions": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get privacy transaction history",
+                "description": "Get privacy transactions for the authenticated user.",
+                "operationId": "getPrivacyTransactions",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Privacy transactions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/shield": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Shield tokens into the privacy pool",
+                "description": "Shield tokens (create shielded notes).",
+                "operationId": "shieldTokens",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "token",
+                                    "network"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "example": "100.00"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "example": "polygon"
+                                    },
+                                    "encrypted_inputs": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Shield operation initiated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/unshield": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Unshield tokens from the privacy pool",
+                "description": "Unshield tokens (withdraw from privacy pool).",
+                "operationId": "unshieldTokens",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "token",
+                                    "network",
+                                    "recipient"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "example": "50.00"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "example": "polygon"
+                                    },
+                                    "recipient": {
+                                        "type": "string",
+                                        "example": "0x1234..."
+                                    },
+                                    "encrypted_inputs": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Unshield operation initiated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/transfer": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Transfer tokens privately within the pool",
+                "description": "Private transfer within the privacy pool.",
+                "operationId": "privateTransfer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "token",
+                                    "network"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "string",
+                                        "example": "25.00"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "network": {
+                                        "type": "string",
+                                        "example": "polygon"
+                                    },
+                                    "recipient_commitment": {
+                                        "type": "string"
+                                    },
+                                    "encrypted_inputs": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Private transfer initiated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/viewing-key": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get the user's viewing key for decrypting shielded notes",
+                "description": "Get the viewing key for the authenticated user.",
+                "operationId": "getViewingKey",
+                "responses": {
+                    "200": {
+                        "description": "Viewing key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "viewing_key": {
+                                                    "type": "string"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/proof-of-innocence": {
+            "post": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Generate a proof that funds are not from sanctioned sources",
+                "description": "Generate a proof of innocence.",
+                "operationId": "generateProofOfInnocence",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "transaction_hashes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "sanctions_list_root": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Proof generated"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/proof-of-innocence/{proofId}/verify": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Verify a proof of innocence",
+                "description": "Verify a proof of innocence.",
+                "operationId": "verifyProofOfInnocence",
+                "parameters": [
+                    {
+                        "name": "proofId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "proof_id": {
+                                                    "type": "string"
+                                                },
+                                                "valid": {
+                                                    "type": "boolean"
+                                                },
+                                                "reason": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/privacy/srs-url": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get the SRS download URL for a chain",
+                "description": "Get the SRS download URL for a specific chain.",
+                "operationId": "getSrsUrl",
+                "parameters": [
+                    {
+                        "name": "chain_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SRS URL",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "url": {
+                                                    "type": "string"
+                                                },
+                                                "version": {
+                                                    "type": "string"
+                                                },
+                                                "circuits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/srs-status": {
+            "get": {
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get SRS download status for the current user",
+                "description": "Get the SRS download status for the authenticated user.",
+                "operationId": "getSrsStatus",
+                "responses": {
+                    "200": {
+                        "description": "SRS status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "has_required": {
+                                                    "type": "boolean"
+                                                },
+                                                "version": {
+                                                    "type": "string"
+                                                },
+                                                "required_circuits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/monitoring/projector-health": {
@@ -48368,6 +49423,116 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/wallet/transactions/quote": {
+            "post": {
+                "tags": [
+                    "Mobile Wallet"
+                ],
+                "summary": "Get a transaction quote with recipient validation",
+                "description": "Returns a fee quote for a transfer to a specific recipient address, validating the recipient on the specified network.",
+                "operationId": "walletTransactionQuote",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "to",
+                                    "network",
+                                    "asset",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "to": {
+                                        "description": "Recipient address",
+                                        "type": "string",
+                                        "example": "0x1234..."
+                                    },
+                                    "network": {
+                                        "description": "Target network",
+                                        "type": "string",
+                                        "example": "POLYGON"
+                                    },
+                                    "asset": {
+                                        "description": "Asset/token symbol",
+                                        "type": "string",
+                                        "example": "USDC"
+                                    },
+                                    "amount": {
+                                        "description": "Transfer amount",
+                                        "type": "number",
+                                        "example": 100.5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction quote",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "quote_id": {
+                                                    "type": "string"
+                                                },
+                                                "to": {
+                                                    "type": "string"
+                                                },
+                                                "amount": {
+                                                    "type": "string"
+                                                },
+                                                "asset": {
+                                                    "type": "string"
+                                                },
+                                                "network": {
+                                                    "type": "string"
+                                                },
+                                                "fee": {
+                                                    "type": "string"
+                                                },
+                                                "total": {
+                                                    "type": "string"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid recipient or quote failed"
                     },
                     "401": {
                         "description": "Unauthorized"

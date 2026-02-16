@@ -23,4 +23,22 @@ Route::prefix('v1/commerce')->name('mobile.commerce.')
         Route::post('/generate-qr', [MobileCommerceController::class, 'generateQr'])
             ->middleware('api.rate_limit:query')
             ->name('generate-qr');
+
+        // Merchant detail
+        Route::get('/merchants/{merchantId}', [MobileCommerceController::class, 'merchantDetail'])
+            ->middleware('api.rate_limit:query')
+            ->name('merchants.detail');
+
+        // Payment request detail & cancel
+        Route::get('/payment-requests/{paymentId}', [MobileCommerceController::class, 'paymentRequestDetail'])
+            ->middleware('api.rate_limit:query')
+            ->name('payment-requests.detail');
+        Route::post('/payment-requests/{paymentId}/cancel', [MobileCommerceController::class, 'cancelPaymentRequest'])
+            ->middleware('transaction.rate_limit:payment_intent')
+            ->name('payment-requests.cancel');
+
+        // Recent payments
+        Route::get('/payments/recent', [MobileCommerceController::class, 'recentPayments'])
+            ->middleware('api.rate_limit:query')
+            ->name('payments.recent');
     });

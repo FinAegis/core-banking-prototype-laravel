@@ -151,6 +151,164 @@ class CardController extends Controller
     }
 
     /**
+     * Create a new virtual card.
+     *
+     * @OA\Post(
+     *     path="/api/v1/cards",
+     *     summary="Create a new virtual card",
+     *     tags={"Card Issuance"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="cardholder_name", type="string", example="John Doe"),
+     *             @OA\Property(property="currency", type="string", example="USD")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Card created",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="card_id", type="string"),
+     *                 @OA\Property(property="last4", type="string"),
+     *                 @OA\Property(property="network", type="string"),
+     *                 @OA\Property(property="status", type="string")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Card creation failed"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'cardholder_name' => 'nullable|string|max:255',
+            'currency'        => 'nullable|string|max:10',
+        ]);
+
+        try {
+            $user = $request->user();
+            if ($user === null) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => [
+                        'code'    => 'ERR_AUTH_001',
+                        'message' => 'Authentication required',
+                    ],
+                ], 401);
+            }
+
+            $cardholderName = $validated['cardholder_name'] ?? $user->name ?? 'FinAegis User';
+
+            $card = $this->provisioningService->createCard(
+                userId: (string) $user->id,
+                cardholderName: $cardholderName,
+            );
+
+            $data = $card->toArray();
+            $data['currency'] = $validated['currency'] ?? 'USD';
+
+            return response()->json([
+                'success' => true,
+                'data'    => $data,
+            ], 201);
+        } catch (Throwable $e) {
+            Log::error('Card creation failed', [
+                'error'   => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'ERR_CARD_005',
+                    'message' => 'Failed to create card: ' . $e->getMessage(),
+                ],
+            ], 400);
+        }
+    }
+
+    /**
+     * Get a specific card.
+     *
+     * @OA\Get(
+     *     path="/api/v1/cards/{cardId}",
+     *     summary="Get a specific virtual card",
+     *     tags={"Card Issuance"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="cardId", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Card details",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Card not found")
+     * )
+     */
+    public function show(Request $request, string $cardId): JsonResponse
+    {
+        try {
+            $card = $this->provisioningService->getCard($cardId);
+
+            if ($card === null) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => [
+                        'code'    => 'ERR_CARD_NOT_FOUND',
+                        'message' => 'Card not found',
+                    ],
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data'    => $card->toArray(),
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'ERR_CARD_006',
+                    'message' => $e->getMessage(),
+                ],
+            ], 400);
+        }
+    }
+
+    /**
+     * Get transactions for a card.
+     *
+     * @OA\Get(
+     *     path="/api/v1/cards/{cardId}/transactions",
+     *     summary="Get transactions for a virtual card",
+     *     tags={"Card Issuance"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="cardId", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Card transactions",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
+    public function transactions(Request $request, string $cardId): JsonResponse
+    {
+        // Demo implementation — return empty list
+        return response()->json([
+            'success' => true,
+            'data'    => [],
+        ]);
+    }
+
+    /**
      * Freeze a virtual card.
      *
      * @OA\Post(

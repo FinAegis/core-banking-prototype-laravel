@@ -6,8 +6,12 @@ namespace App\Http\Controllers\Api\Privacy;
 
 use App\Domain\Privacy\Contracts\MerkleTreeServiceInterface;
 use App\Domain\Privacy\Exceptions\CommitmentNotFoundException;
+use App\Domain\Privacy\Models\DelegatedProofJob;
+use App\Domain\Privacy\Services\DelegatedProofService;
+use App\Domain\Privacy\Services\ProofOfInnocenceService;
 use App\Domain\Privacy\Services\SrsManifestService;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -27,6 +31,8 @@ class PrivacyController extends Controller
     public function __construct(
         private readonly MerkleTreeServiceInterface $merkleService,
         private readonly SrsManifestService $srsManifestService,
+        private readonly DelegatedProofService $delegatedProofService,
+        private readonly ProofOfInnocenceService $proofOfInnocenceService,
     ) {
     }
 
@@ -449,7 +455,7 @@ class PrivacyController extends Controller
             $validCircuits[] = $circuitName;
         }
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $this->srsManifestService->trackDownload(
@@ -517,6 +523,507 @@ class PrivacyController extends Controller
                 'participantCount' => $totalParticipants,
                 'privacyStrength'  => $strength,
                 'lastUpdated'      => now()->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get shielded balances per token.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/balances",
+     *     operationId="getShieldedBalances",
+     *     tags={"Privacy"},
+     *     summary="Get shielded balances per token",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Shielded balances",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object",
+     *                 @OA\Property(property="token", type="string", example="USDC"),
+     *                 @OA\Property(property="balance", type="string", example="0.00"),
+     *                 @OA\Property(property="network", type="string", example="polygon")
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function getShieldedBalances(Request $request): JsonResponse
+    {
+        // Demo implementation — in production, query shielded notes by user commitment
+        $networks = $this->merkleService->getSupportedNetworks();
+        $balances = [];
+
+        foreach ($networks as $network) {
+            foreach (['USDC', 'USDT', 'WETH'] as $token) {
+                $balances[] = [
+                    'token'   => $token,
+                    'balance' => '0.00',
+                    'network' => $network,
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $balances,
+        ]);
+    }
+
+    /**
+     * Get total shielded balance aggregated across tokens.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/total-balance",
+     *     operationId="getTotalShieldedBalance",
+     *     tags={"Privacy"},
+     *     summary="Get total shielded balance in USD",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Total shielded balance",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="total_balance", type="string", example="0.00"),
+     *                 @OA\Property(property="currency", type="string", example="USD")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function getTotalShieldedBalance(Request $request): JsonResponse
+    {
+        // Demo implementation — aggregate would sum shielded note values
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'total_balance' => '0.00',
+                'currency'      => 'USD',
+            ],
+        ]);
+    }
+
+    /**
+     * Get privacy transactions for the authenticated user.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/transactions",
+     *     operationId="getPrivacyTransactions",
+     *     tags={"Privacy"},
+     *     summary="Get privacy transaction history",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer", default=20)),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Privacy transactions",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function getPrivacyTransactions(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $limit = min((int) $request->query('limit', '20'), 100);
+
+        $jobs = DelegatedProofJob::where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $jobs->map(fn (DelegatedProofJob $job) => $job->toApiResponse()),
+        ]);
+    }
+
+    /**
+     * Shield tokens (create shielded notes).
+     *
+     * @OA\Post(
+     *     path="/api/v1/privacy/shield",
+     *     operationId="shieldTokens",
+     *     tags={"Privacy"},
+     *     summary="Shield tokens into the privacy pool",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount", "token", "network"},
+     *             @OA\Property(property="amount", type="string", example="100.00"),
+     *             @OA\Property(property="token", type="string", example="USDC"),
+     *             @OA\Property(property="network", type="string", example="polygon"),
+     *             @OA\Property(property="encrypted_inputs", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Shield operation initiated"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function shield(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount'           => 'required|string',
+            'token'            => 'required|string',
+            'network'          => 'required|string',
+            'encrypted_inputs' => 'nullable|string',
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $job = $this->delegatedProofService->requestProof(
+            $user,
+            'shield_1_1',
+            $validated['network'],
+            ['amount' => $validated['amount'], 'token' => $validated['token']],
+            $validated['encrypted_inputs'] ?? '',
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => $job->toApiResponse(),
+        ], 201);
+    }
+
+    /**
+     * Unshield tokens (withdraw from privacy pool).
+     *
+     * @OA\Post(
+     *     path="/api/v1/privacy/unshield",
+     *     operationId="unshieldTokens",
+     *     tags={"Privacy"},
+     *     summary="Unshield tokens from the privacy pool",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount", "token", "network", "recipient"},
+     *             @OA\Property(property="amount", type="string", example="50.00"),
+     *             @OA\Property(property="token", type="string", example="USDC"),
+     *             @OA\Property(property="network", type="string", example="polygon"),
+     *             @OA\Property(property="recipient", type="string", example="0x1234..."),
+     *             @OA\Property(property="encrypted_inputs", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Unshield operation initiated"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function unshield(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount'           => 'required|string',
+            'token'            => 'required|string',
+            'network'          => 'required|string',
+            'recipient'        => 'required|string',
+            'encrypted_inputs' => 'nullable|string',
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $job = $this->delegatedProofService->requestProof(
+            $user,
+            'unshield_2_1',
+            $validated['network'],
+            [
+                'amount'    => $validated['amount'],
+                'token'     => $validated['token'],
+                'recipient' => $validated['recipient'],
+            ],
+            $validated['encrypted_inputs'] ?? '',
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => $job->toApiResponse(),
+        ], 201);
+    }
+
+    /**
+     * Private transfer within the privacy pool.
+     *
+     * @OA\Post(
+     *     path="/api/v1/privacy/transfer",
+     *     operationId="privateTransfer",
+     *     tags={"Privacy"},
+     *     summary="Transfer tokens privately within the pool",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"amount", "token", "network"},
+     *             @OA\Property(property="amount", type="string", example="25.00"),
+     *             @OA\Property(property="token", type="string", example="USDC"),
+     *             @OA\Property(property="network", type="string", example="polygon"),
+     *             @OA\Property(property="recipient_commitment", type="string"),
+     *             @OA\Property(property="encrypted_inputs", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Private transfer initiated"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function privateTransfer(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount'               => 'required|string',
+            'token'                => 'required|string',
+            'network'              => 'required|string',
+            'recipient_commitment' => 'nullable|string',
+            'encrypted_inputs'     => 'nullable|string',
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $job = $this->delegatedProofService->requestProof(
+            $user,
+            'transfer_2_2',
+            $validated['network'],
+            [
+                'amount'               => $validated['amount'],
+                'token'                => $validated['token'],
+                'recipient_commitment' => $validated['recipient_commitment'] ?? '',
+            ],
+            $validated['encrypted_inputs'] ?? '',
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => $job->toApiResponse(),
+        ], 201);
+    }
+
+    /**
+     * Get the viewing key for the authenticated user.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/viewing-key",
+     *     operationId="getViewingKey",
+     *     tags={"Privacy"},
+     *     summary="Get the user's viewing key for decrypting shielded notes",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Viewing key",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="viewing_key", type="string"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function getViewingKey(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        // Demo: deterministic viewing key derived from user UUID
+        $viewingKey = '0x' . hash('sha256', 'viewing_key_' . $user->id);
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'viewing_key' => $viewingKey,
+                'created_at'  => $user->created_at?->toIso8601String() ?? now()->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
+     * Generate a proof of innocence.
+     *
+     * @OA\Post(
+     *     path="/api/v1/privacy/proof-of-innocence",
+     *     operationId="generateProofOfInnocence",
+     *     tags={"Privacy"},
+     *     summary="Generate a proof that funds are not from sanctioned sources",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="transaction_hashes", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="sanctions_list_root", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Proof generated"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function generateProofOfInnocence(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'transaction_hashes'   => 'nullable|array',
+            'transaction_hashes.*' => 'string',
+            'sanctions_list_root'  => 'nullable|string',
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $proof = $this->proofOfInnocenceService->generateSanctionsClearanceProof(
+            (string) $user->id,
+            $validated['transaction_hashes'] ?? [],
+            $validated['sanctions_list_root'] ?? '0x' . str_repeat('0', 64),
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'proof_id'   => $proof->getProofHash(),
+                'proof_type' => 'sanctions_clearance',
+                'status'     => 'completed',
+                'valid'      => true,
+                'expires_at' => $proof->expiresAt->format('c'),
+                'created_at' => now()->toIso8601String(),
+            ],
+        ], 201);
+    }
+
+    /**
+     * Verify a proof of innocence.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/proof-of-innocence/{proofId}/verify",
+     *     operationId="verifyProofOfInnocence",
+     *     tags={"Privacy"},
+     *     summary="Verify a proof of innocence",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="proofId", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Verification result",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="proof_id", type="string"),
+     *                 @OA\Property(property="valid", type="boolean"),
+     *                 @OA\Property(property="reason", type="string", nullable=true)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function verifyProofOfInnocence(Request $request, string $proofId): JsonResponse
+    {
+        // Demo implementation — in production would look up proof from store
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'proof_id'    => $proofId,
+                'valid'       => true,
+                'reason'      => null,
+                'verified_at' => now()->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get the SRS download URL for a specific chain.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/srs-url",
+     *     operationId="getSrsUrl",
+     *     tags={"Privacy"},
+     *     summary="Get the SRS download URL for a chain",
+     *     @OA\Parameter(name="chain_id", in="query", @OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="SRS URL",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="url", type="string"),
+     *                 @OA\Property(property="version", type="string"),
+     *                 @OA\Property(property="circuits", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function getSrsUrl(Request $request): JsonResponse
+    {
+        $chainId = $request->query('chain_id');
+        $baseUrl = $this->srsManifestService->getCdnBaseUrl();
+        $version = $this->srsManifestService->getVersion();
+
+        $circuits = $this->srsManifestService->getCircuits()->map(fn ($circuit) => [
+            'name'         => $circuit->name,
+            'download_url' => $baseUrl . '/' . $version . '/' . $circuit->name . '.srs',
+            'size'         => $circuit->size,
+            'required'     => $circuit->required,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'url'      => $baseUrl,
+                'version'  => $version,
+                'chain_id' => $chainId,
+                'circuits' => $circuits->toArray(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get the SRS download status for the authenticated user.
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/srs-status",
+     *     operationId="getSrsStatus",
+     *     tags={"Privacy"},
+     *     summary="Get SRS download status for the current user",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="SRS status",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="has_required", type="boolean"),
+     *                 @OA\Property(property="version", type="string"),
+     *                 @OA\Property(property="required_circuits", type="array", @OA\Items(type="string"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function getSrsStatus(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $hasRequired = $this->srsManifestService->hasRequiredSrs($user);
+        $requiredCircuits = $this->srsManifestService->getRequiredCircuits()
+            ->map(fn ($circuit) => $circuit->name)
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'has_required'      => $hasRequired,
+                'version'           => $this->srsManifestService->getVersion(),
+                'required_circuits' => $requiredCircuits,
             ],
         ]);
     }
