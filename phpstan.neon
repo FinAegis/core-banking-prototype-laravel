@@ -128,7 +128,7 @@ parameters:
         - '#Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder<TRelatedModel of Illuminate\\Database\\Eloquent\\Model>::where\(\) expects .* ''user_uuid'' given\.$#'
         
         # Column names in where clauses for relationships
-        - '#Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder<Illuminate\\Database\\Eloquent\\Model>::where\(\) expects .* ''(asset_code|balance|is_primary|id|uuid|account_uuid|type|status|treasury_id)'' given\.$#'
+        - '#Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder<Illuminate\\Database\\Eloquent\\Model>::where\(\) expects .* ''(asset_code|balance|is_primary|id|uuid|account_uuid|type|status|treasury_id|user_uuid)'' given\.$#'
         - '#Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder<Illuminate\\Database\\Eloquent\\Model>::orderBy\(\) expects .* ''(amount|created_at)'' given\.$#'
         - '#Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder<Illuminate\\Database\\Eloquent\\Model>::whereIn\(\) expects .* ''uuid'' given\.$#'
         - '#Parameter \#1 \$column of static method Spatie\\EventSourcing\\StoredEvents\\Models\\EloquentStoredEventQueryBuilder<App\\Domain\\Account\\Models\\Transaction>::where\(\) expects .* ''account_uuid'' given\.$#'

@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $to_address
  * @property string $chain
  * @property string $status
- * @property array|null $metadata
+ * @property array<string, mixed>|null $metadata
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -49,6 +49,9 @@ class BlockchainTransaction extends Model
         'metadata' => 'array',
     ];
 
+    /**
+     * @return BelongsTo<BlockchainAddress, $this>
+     */
     public function address(): BelongsTo
     {
         return $this->belongsTo(BlockchainAddress::class, 'address_uuid', 'uuid');

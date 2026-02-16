@@ -166,8 +166,9 @@ describe('AzureKeyVaultHsmProvider', function (): void {
         it('returns true when vault is accessible', function (): void {
             fakeAzureAuth();
 
+            Http::preventStrayRequests();
             Http::fake([
-                'test-vault.vault.azure.net/keys*' => Http::response([
+                'https://test-vault.vault.azure.net/keys*' => Http::response([
                     'value' => [],
                 ]),
             ]);
@@ -179,8 +180,9 @@ describe('AzureKeyVaultHsmProvider', function (): void {
         it('returns false when vault is not accessible', function (): void {
             fakeAzureAuth();
 
+            Http::preventStrayRequests();
             Http::fake([
-                'test-vault.vault.azure.net/keys*' => Http::response('Forbidden', 403),
+                'https://test-vault.vault.azure.net/keys*' => Http::response('Forbidden', 403),
             ]);
 
             $provider = createAzureProvider();
