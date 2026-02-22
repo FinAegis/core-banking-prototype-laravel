@@ -15,12 +15,12 @@ class CreateX402MonetizedEndpointMutation
     public function __invoke($_, array $args): X402MonetizedEndpoint
     {
         return X402MonetizedEndpoint::create([
-            'route_method' => $args['route_method'],
-            'route_path'   => $args['route_path'],
-            'price_usd'    => $args['price_usd'],
-            'network'      => $args['network'] ?? config('x402.server.default_network'),
-            'description'  => $args['description'] ?? null,
-            'is_active'    => $args['is_active'] ?? true,
+            'method'      => $args['method'],
+            'path'        => $args['path'],
+            'price'       => $args['price'],
+            'network'     => $args['network'] ?? config('x402.server.default_network'),
+            'description' => $args['description'] ?? null,
+            'is_active'   => $args['is_active'] ?? true,
         ]);
     }
 }

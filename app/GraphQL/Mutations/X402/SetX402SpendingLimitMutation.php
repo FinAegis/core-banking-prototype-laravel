@@ -17,10 +17,11 @@ class SetX402SpendingLimitMutation
         return X402SpendingLimit::updateOrCreate(
             ['agent_id' => $args['agent_id']],
             [
+                'agent_type'            => $args['agent_type'] ?? 'default',
                 'daily_limit'           => $args['daily_limit'],
-                'per_transaction_limit' => $args['per_transaction_limit'] ?? config('x402.agent_spending.per_transaction_limit'),
-                'auto_pay_enabled'      => $args['auto_pay_enabled'] ?? true,
-                'allowed_networks'      => $args['allowed_networks'] ?? null,
+                'per_transaction_limit' => $args['per_transaction_limit'] ?? config('x402.agent_spending.default_per_transaction_limit'),
+                'auto_pay_enabled'      => $args['auto_pay_enabled'] ?? false,
+                'limit_resets_at'       => now()->addDay(),
             ]
         );
     }

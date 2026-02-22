@@ -51,6 +51,10 @@ readonly class VerifyResponse
      */
     public static function fromArray(array $data): self
     {
+        if (! array_key_exists('isValid', $data)) {
+            throw \App\Domain\X402\Exceptions\X402InvalidPayloadException::missingField('isValid');
+        }
+
         return new self(
             isValid: $data['isValid'],
             invalidReason: $data['invalidReason'] ?? null,

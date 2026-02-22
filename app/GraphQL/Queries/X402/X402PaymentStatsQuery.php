@@ -16,13 +16,13 @@ class X402PaymentStatsQuery
     public function __invoke($_, array $args): array
     {
         $period = $args['period'] ?? 'day';
+        $period = in_array($period, ['day', 'week', 'month'], true) ? $period : 'day';
+
         $since = match ($period) {
             'week'  => now()->subWeek(),
             'month' => now()->subMonth(),
             default => now()->subDay(),
         };
-
-        $period = in_array($period, ['day', 'week', 'month'], true) ? $period : 'day';
 
         $query = X402Payment::where('created_at', '>=', $since);
 
@@ -35,7 +35,7 @@ class X402PaymentStatsQuery
             'total_failed'        => (clone $query)->where('status', 'failed')->count(),
             'total_volume_atomic' => $totalAtomic,
             'total_volume_usd'    => bcdiv($totalAtomic, '1000000', 6),
-            'unique_payers'       => (clone $query)->whereNotNull('payer_address')->distinct('payer_address')->count(),
+            'unique_payers'       => (clone $query)->whereNotNull('payer_address')->distinct()->count('payer_address'),
         ];
     }
 }

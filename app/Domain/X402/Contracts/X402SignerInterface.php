@@ -22,7 +22,7 @@ interface X402SignerInterface
      * @param int    $maxTimeoutSeconds Maximum validity window for the authorization.
      * @param array<string, mixed> $extra  Protocol-specific extensions.
      *
-     * @return array<string, mixed> Signed payload suitable for inclusion in an X-PAYMENT header.
+     * @return array<string, mixed> Signed payload suitable for inclusion in a PAYMENT-SIGNATURE header.
      */
     public function signTransferAuthorization(
         string $network,

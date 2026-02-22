@@ -65,12 +65,16 @@ class X402SettlementService
 
             return $result;
         } catch (Throwable $e) {
-            $payment->markFailed('settlement_exception', $e->getMessage());
+            $safeMessage = $e instanceof X402SettlementException
+                ? $e->getMessage()
+                : 'An internal error occurred during settlement.';
+
+            $payment->markFailed('settlement_exception', $safeMessage);
 
             Event::dispatch(new X402PaymentFailed(
                 paymentId: $payment->id,
                 errorReason: 'settlement_exception',
-                errorMessage: $e->getMessage(),
+                errorMessage: $safeMessage,
             ));
 
             Log::error('x402: Settlement failed with exception', [
@@ -81,9 +85,9 @@ class X402SettlementService
             throw $e instanceof X402SettlementException
                 ? $e
                 : new X402SettlementException(
-                    message: $e->getMessage(),
+                    message: 'Settlement processing failed.',
                     errorReason: 'settlement_exception',
-                    errorMessage: $e->getMessage(),
+                    errorMessage: 'An internal error occurred during settlement.',
                     previous: $e,
                 );
         }

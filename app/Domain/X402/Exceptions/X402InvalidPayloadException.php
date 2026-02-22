@@ -28,4 +28,12 @@ class X402InvalidPayloadException extends InvalidArgumentException
     {
         return new self("Missing required x402 payload field: {$field}");
     }
+
+    /**
+     * A field has an invalid value.
+     */
+    public static function invalidField(string $field, string $reason): self
+    {
+        return new self("Invalid x402 payload field '{$field}': {$reason}");
+    }
 }

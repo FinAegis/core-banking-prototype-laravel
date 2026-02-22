@@ -43,13 +43,17 @@ class X402PaymentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = X402Payment::query();
+        $query = X402Payment::query()
+            ->where('team_id', $request->user()?->currentTeam?->id);
 
         if ($request->filled('status')) {
             $status = SettlementStatus::tryFrom($request->input('status'));
-            if ($status !== null) {
-                $query->where('status', $status->value);
+            if ($status === null) {
+                return response()->json([
+                    'errors' => ['status' => ['Invalid status. Must be one of: pending, verified, settled, failed, expired.']],
+                ], 422);
             }
+            $query->where('status', $status->value);
         }
 
         if ($request->filled('network')) {
@@ -90,9 +94,10 @@ class X402PaymentController extends Controller
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        $payment = X402Payment::findOrFail($id);
+        $payment = X402Payment::where('team_id', $request->user()?->currentTeam?->id)
+            ->findOrFail($id);
 
         return response()->json([
             'data' => $payment->toApiResponse(),
@@ -128,7 +133,7 @@ class X402PaymentController extends Controller
         $period = $request->input('period', 'day');
         if (! in_array($period, ['day', 'week', 'month'], true)) {
             return response()->json([
-                'errors' => ['period' => ['Must be one of: day, week, month']],
+                'errors' => ['period' => ['Must be one of: day, week, month.']],
             ], 422);
         }
 
@@ -138,18 +143,21 @@ class X402PaymentController extends Controller
             default => now()->subDay(),
         };
 
-        $query = X402Payment::where('created_at', '>=', $since);
+        $query = X402Payment::where('team_id', $request->user()?->currentTeam?->id)
+            ->where('created_at', '>=', $since);
 
         $totalAtomic = (string) ((clone $query)->where('status', 'settled')->sum('amount') ?: 0);
 
         return response()->json([
-            'period'              => $period,
-            'total_payments'      => (clone $query)->count(),
-            'total_settled'       => (clone $query)->where('status', 'settled')->count(),
-            'total_failed'        => (clone $query)->where('status', 'failed')->count(),
-            'total_volume_atomic' => $totalAtomic,
-            'total_volume_usd'    => bcdiv($totalAtomic, '1000000', 6),
-            'unique_payers'       => (clone $query)->whereNotNull('payer_address')->distinct('payer_address')->count(),
+            'data' => [
+                'period'              => $period,
+                'total_payments'      => (clone $query)->count(),
+                'total_settled'       => (clone $query)->where('status', 'settled')->count(),
+                'total_failed'        => (clone $query)->where('status', 'failed')->count(),
+                'total_volume_atomic' => $totalAtomic,
+                'total_volume_usd'    => bcdiv($totalAtomic, '1000000', 6),
+                'unique_payers'       => (clone $query)->whereNotNull('payer_address')->distinct()->count('payer_address'),
+            ],
         ]);
     }
 }

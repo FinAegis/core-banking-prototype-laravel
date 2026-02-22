@@ -49,20 +49,11 @@ enum X402Network: string
     /**
      * Get the USDC contract address for this network.
      *
-     * Reads from config('x402.networks.<network>.usdc_address').
+     * Reads from config('x402.assets.<caip2_id>.USDC').
      */
     public function usdcAddress(): string
     {
-        $configKey = match ($this) {
-            self::BASE_MAINNET     => 'base_mainnet',
-            self::BASE_SEPOLIA     => 'base_sepolia',
-            self::ETHEREUM_MAINNET => 'ethereum_mainnet',
-            self::SEPOLIA          => 'sepolia',
-            self::AVALANCHE        => 'avalanche',
-            self::AVALANCHE_FUJI   => 'avalanche_fuji',
-        };
-
-        return (string) config("x402.networks.{$configKey}.usdc_address", '');
+        return (string) config("x402.assets.{$this->value}.USDC", '');
     }
 
     /**

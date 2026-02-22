@@ -41,11 +41,11 @@ class X402ClientService
         // Select the best payment option
         $selected = $this->selectPaymentOption($paymentRequired->accepts);
         if ($selected === null) {
-            throw new RuntimeException('No supported payment method in x402 requirements');
+            throw new RuntimeException('No compatible payment option found in x402 requirements. Ensure the server offers an EVM network with the "exact" scheme.');
         }
 
         // Enforce spending limits
-        $this->enforceSpendingLimit($agentId, $selected->amount, $selected->network);
+        $this->enforceSpendingLimit($agentId, $selected->amount);
 
         // Create signed payment payload
         $signedPayload = $this->signer->signTransferAuthorization(
@@ -113,8 +113,13 @@ class X402ClientService
      *
      * @throws RuntimeException If spending limit would be exceeded
      */
-    private function enforceSpendingLimit(string $agentId, string $amount, string $network): void
+    private function enforceSpendingLimit(string $agentId, string $amount): void
     {
+        // Reject non-positive amounts to prevent budget manipulation
+        if (bccomp($amount, '0') <= 0) {
+            throw new RuntimeException('Payment amount must be positive.');
+        }
+
         DB::transaction(function () use ($agentId, $amount) {
             $limit = X402SpendingLimit::where('agent_id', $agentId)->lockForUpdate()->first();
 
@@ -123,31 +128,29 @@ class X402ClientService
                 $maxAutoPay = (string) config('x402.client.max_auto_pay_amount', '100000');
                 if (bccomp($amount, $maxAutoPay) > 0) {
                     throw new RuntimeException(
-                        "Payment amount {$amount} exceeds auto-pay limit {$maxAutoPay}. Human approval required."
+                        "Payment of {$amount} atomic USDC exceeds the auto-pay limit of {$maxAutoPay} atomic USDC. Configure a spending limit for this agent or increase X402_CLIENT_MAX_AUTO_PAY."
                     );
                 }
 
                 return;
             }
 
-            $limit->resetIfNeeded();
-
             // Check per-transaction limit
             if ($limit->per_transaction_limit !== null && bccomp($amount, (string) $limit->per_transaction_limit) > 0) {
                 throw new RuntimeException(
-                    "Payment amount {$amount} exceeds per-transaction limit {$limit->per_transaction_limit}."
+                    "Payment of {$amount} atomic USDC exceeds per-transaction limit of {$limit->per_transaction_limit} atomic USDC."
                 );
             }
 
             if (! $limit->canSpend($amount)) {
                 throw new RuntimeException(
-                    "Payment amount {$amount} would exceed agent daily limit. Remaining: {$limit->remainingDailyBudget()}"
+                    "Payment of {$amount} atomic USDC would exceed the daily limit for agent '{$agentId}'. Remaining budget: {$limit->remainingDailyBudget()} atomic USDC."
                 );
             }
 
             if (! $limit->auto_pay_enabled && bccomp($amount, (string) config('x402.agent_spending.require_approval_above', '1000000')) > 0) {
                 throw new RuntimeException(
-                    'Payment amount exceeds auto-pay threshold. Human approval required.'
+                    "Payment of {$amount} atomic USDC exceeds the auto-pay threshold. Manual approval is required before this payment can proceed."
                 );
             }
 

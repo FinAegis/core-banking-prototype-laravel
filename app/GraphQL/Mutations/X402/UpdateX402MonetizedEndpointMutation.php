@@ -16,12 +16,12 @@ class UpdateX402MonetizedEndpointMutation
     {
         $endpoint = X402MonetizedEndpoint::findOrFail($args['id']);
 
-        $updateData = array_filter([
-            'price_usd'   => $args['price_usd'] ?? null,
-            'network'     => $args['network'] ?? null,
-            'description' => $args['description'] ?? null,
-            'is_active'   => $args['is_active'] ?? null,
-        ], fn ($v) => $v !== null);
+        $updateData = [];
+        foreach (['price', 'network', 'description', 'is_active'] as $field) {
+            if (array_key_exists($field, $args)) {
+                $updateData[$field] = $args[$field];
+            }
+        }
 
         $endpoint->update($updateData);
 

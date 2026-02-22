@@ -69,7 +69,7 @@ class HttpFacilitatorClient implements FacilitatorClientInterface
             return new VerifyResponse(
                 isValid: false,
                 invalidReason: 'facilitator_unavailable',
-                invalidMessage: 'Failed to contact facilitator: ' . $e->getMessage(),
+                invalidMessage: 'The payment facilitator is currently unreachable. Please try again shortly.',
             );
         }
     }

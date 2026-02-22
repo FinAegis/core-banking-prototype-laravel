@@ -43,7 +43,9 @@ class X402SpendingLimitController extends Controller
     {
         $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
 
-        $limits = X402SpendingLimit::orderBy('agent_id')->paginate($perPage);
+        $limits = X402SpendingLimit::where('team_id', $request->user()?->currentTeam?->id)
+            ->orderBy('agent_id')
+            ->paginate($perPage);
 
         return response()->json([
             'data' => collect($limits->items())->map(fn ($l) => $l->toApiResponse()),
@@ -95,8 +97,13 @@ class X402SpendingLimitController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $teamId = $request->user()?->currentTeam?->id;
+
         $limit = X402SpendingLimit::updateOrCreate(
-            ['agent_id' => $request->input('agent_id')],
+            [
+                'agent_id' => $request->input('agent_id'),
+                'team_id'  => $teamId,
+            ],
             [
                 'agent_type'            => $request->input('agent_type', 'default'),
                 'daily_limit'           => $request->input('daily_limit'),
@@ -128,9 +135,11 @@ class X402SpendingLimitController extends Controller
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
-    public function show(string $agentId): JsonResponse
+    public function show(Request $request, string $agentId): JsonResponse
     {
-        $limit = X402SpendingLimit::where('agent_id', $agentId)->firstOrFail();
+        $limit = X402SpendingLimit::where('agent_id', $agentId)
+            ->where('team_id', $request->user()?->currentTeam?->id)
+            ->firstOrFail();
 
         return response()->json([
             'data' => $limit->toApiResponse(),
@@ -162,7 +171,9 @@ class X402SpendingLimitController extends Controller
      */
     public function update(Request $request, string $agentId): JsonResponse
     {
-        $limit = X402SpendingLimit::where('agent_id', $agentId)->firstOrFail();
+        $limit = X402SpendingLimit::where('agent_id', $agentId)
+            ->where('team_id', $request->user()?->currentTeam?->id)
+            ->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'daily_limit'           => ['sometimes', 'string', 'regex:/^\d+$/'],
@@ -196,9 +207,11 @@ class X402SpendingLimitController extends Controller
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
-    public function destroy(string $agentId): JsonResponse
+    public function destroy(Request $request, string $agentId): JsonResponse
     {
-        $limit = X402SpendingLimit::where('agent_id', $agentId)->firstOrFail();
+        $limit = X402SpendingLimit::where('agent_id', $agentId)
+            ->where('team_id', $request->user()?->currentTeam?->id)
+            ->firstOrFail();
         $limit->delete();
 
         return response()->json([

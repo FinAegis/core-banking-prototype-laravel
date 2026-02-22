@@ -1,112 +1,179 @@
+"An x402 payment record tracking the full lifecycle of a single micropayment."
 type X402Payment @model(class: "App\\Domain\\X402\\Models\\X402Payment") {
     id: ID!
+    "Blockchain address of the payer."
     payer_address: String
+    "Blockchain address of the payment recipient."
     pay_to_address: String!
+    "Payment amount in atomic USDC units (6 decimals)."
     amount: String!
+    "CAIP-2 network identifier (e.g. eip155:8453)."
     network: String!
+    "Token contract address."
     asset: String!
+    "Payment scheme (exact or upto)."
     scheme: String!
+    "Settlement status: pending, verified, settled, failed, or expired."
     status: String!
+    "On-chain transaction hash once settled."
     transaction_hash: String
+    "HTTP method of the monetized endpoint."
     endpoint_method: String!
+    "Path of the monetized endpoint."
     endpoint_path: String!
+    "Error classification code if the payment failed."
     error_reason: String
+    "Human-readable error description if the payment failed."
     error_message: String
+    "Timestamp when payment was cryptographically verified."
     verified_at: DateTime
+    "Timestamp when payment was settled on-chain."
     settled_at: DateTime
     created_at: DateTime!
     updated_at: DateTime!
 }
 
+"A monetized API endpoint that requires x402 payment for access."
 type X402MonetizedEndpoint @model(class: "App\\Domain\\X402\\Models\\X402MonetizedEndpoint") {
     id: ID!
+    "HTTP method (GET, POST, PUT, PATCH, DELETE)."
     method: String!
+    "API route path."
     path: String!
+    "Price in USD (e.g. 0.01)."
     price: String!
+    "CAIP-2 network identifier."
     network: String!
+    "Token symbol (e.g. USDC)."
     asset: String!
+    "Payment scheme (exact or upto)."
     scheme: String!
+    "Human-readable description of the endpoint."
     description: String
+    "Response MIME type."
     mime_type: String!
+    "Whether the endpoint currently requires payment."
     is_active: Boolean!
     created_at: DateTime!
     updated_at: DateTime!
 }
 
+"Per-agent spending limit for automated x402 payments."
 type X402SpendingLimit @model(class: "App\\Domain\\X402\\Models\\X402SpendingLimit") {
     id: ID!
+    "Unique identifier for the AI agent."
     agent_id: String!
+    "Agent classification (e.g. ai_agent, service)."
     agent_type: String!
+    "Maximum daily spend in atomic USDC units."
     daily_limit: String!
+    "Amount already spent today in atomic USDC units."
     spent_today: String!
+    "Maximum per-transaction spend in atomic USDC units."
     per_transaction_limit: String
+    "Whether the agent can auto-pay without human approval."
     auto_pay_enabled: Boolean!
+    "When the daily spending counter resets."
     limit_resets_at: DateTime!
     created_at: DateTime!
     updated_at: DateTime!
 }
 
+"Current x402 protocol configuration status."
 type X402ProtocolStatus {
+    "Whether x402 payment gating is enabled."
     enabled: Boolean!
+    "Protocol version (currently 2)."
     version: Int!
+    "Protocol identifier."
     protocol: String!
+    "Default CAIP-2 network for new endpoints."
     default_network: String!
+    "Supported payment schemes."
     supported_schemes: [String!]!
+    "Whether x402 client mode (paying external APIs) is enabled."
     client_enabled: Boolean!
 }
 
+"Aggregate payment statistics for a given time period."
 type X402PaymentStats {
+    "Time period: day, week, or month."
     period: String!
+    "Total number of payment attempts."
     total_payments: Int!
+    "Number of successfully settled payments."
     total_settled: Int!
+    "Number of failed payments."
     total_failed: Int!
+    "Total settled volume in atomic USDC units."
     total_volume_atomic: String!
+    "Total settled volume in USD."
     total_volume_usd: String!
+    "Number of distinct payer addresses."
     unique_payers: Int!
 }
 
+"Information about a supported blockchain network."
 type X402NetworkInfo {
+    "CAIP-2 network identifier."
     id: String!
+    "Human-readable network name."
     name: String!
+    "Whether this is a testnet."
     testnet: Boolean!
+    "EVM chain ID."
     chain_id: Int!
+    "USDC contract address on this network."
     usdc_address: String!
+    "USDC token decimals."
     usdc_decimals: Int!
+    "Block explorer base URL."
     explorer_url: String!
 }
 
 extend type Query {
+    "Retrieve a single x402 payment by ID."
     x402Payment(id: ID! @eq): X402Payment
         @find
         @guard(with: ["sanctum"])
 
+    "List x402 payments with optional filters."
     x402Payments(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
-        status: String @where(operator: "=")
+        "Filter by settlement status."
+        status: String @where(operator: "=") @rules(apply: ["in:pending,verified,settled,failed,expired"])
+        "Filter by CAIP-2 network."
         network: String @where(operator: "=")
+        "Filter by payer blockchain address."
         payer_address: String @where(operator: "=")
     ): [X402Payment!]!
         @paginate(defaultCount: 20, model: "App\\Domain\\X402\\Models\\X402Payment")
         @guard(with: ["sanctum"])
 
+    "Retrieve a single monetized endpoint by ID."
     x402MonetizedEndpoint(id: ID! @eq): X402MonetizedEndpoint
         @find
         @guard(with: ["sanctum"])
 
+    "List monetized endpoints with optional filters."
     x402MonetizedEndpoints(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
+        "Filter by active/inactive status."
         is_active: Boolean @where(operator: "=")
+        "Filter by CAIP-2 network."
         network: String @where(operator: "=")
     ): [X402MonetizedEndpoint!]!
         @paginate(defaultCount: 20, model: "App\\Domain\\X402\\Models\\X402MonetizedEndpoint")
         @guard(with: ["sanctum"])
 
+    "Retrieve a spending limit by agent ID."
     x402SpendingLimit(agent_id: String! @where(operator: "=")): X402SpendingLimit
         @first
         @guard(with: ["sanctum"])
 
+    "List all agent spending limits."
     x402SpendingLimits(
         page: Int @rules(apply: ["integer", "min:1"])
         first: Int @rules(apply: ["integer", "min:1", "max:100"])
@@ -114,58 +181,87 @@ extend type Query {
         @paginate(defaultCount: 20, model: "App\\Domain\\X402\\Models\\X402SpendingLimit")
         @guard(with: ["sanctum"])
 
+    "Get the current x402 protocol configuration."
     x402ProtocolStatus: X402ProtocolStatus!
         @field(resolver: "App\\GraphQL\\Queries\\X402\\X402ProtocolStatusQuery")
 
+    "List all blockchain networks supported for x402 payments."
     x402SupportedNetworks: [X402NetworkInfo!]!
         @field(resolver: "App\\GraphQL\\Queries\\X402\\X402SupportedNetworksQuery")
 
-    x402PaymentStats(period: String): X402PaymentStats!
+    "Get aggregate payment statistics for a time period."
+    x402PaymentStats(
+        "Time period: day, week, or month."
+        period: String @rules(apply: ["in:day,week,month"])
+    ): X402PaymentStats!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\X402\\X402PaymentStatsQuery")
 }
 
+"Input for registering a new monetized endpoint."
 input CreateX402MonetizedEndpointInput {
-    method: String!
-    path: String!
-    price: String!
-    network: String
-    description: String
+    "HTTP method (GET, POST, PUT, PATCH, DELETE)."
+    method: String! @rules(apply: ["in:GET,POST,PUT,PATCH,DELETE"])
+    "API route path."
+    path: String! @rules(apply: ["max:500"])
+    "Price in USD (e.g. 0.01)."
+    price: String! @rules(apply: ["regex:/^\\d+(\\.\\d{1,6})?$/"])
+    "CAIP-2 network identifier."
+    network: String @rules(apply: ["regex:/^eip155:\\d+$/"])
+    "Human-readable description."
+    description: String @rules(apply: ["max:1000"])
+    "Whether the endpoint is active."
     is_active: Boolean
 }
 
+"Input for updating a monetized endpoint."
 input UpdateX402MonetizedEndpointInput {
-    price: String
-    network: String
-    description: String
+    "Updated price in USD."
+    price: String @rules(apply: ["regex:/^\\d+(\\.\\d{1,6})?$/"])
+    "Updated CAIP-2 network identifier."
+    network: String @rules(apply: ["regex:/^eip155:\\d+$/"])
+    "Updated description."
+    description: String @rules(apply: ["max:1000"])
+    "Updated active status."
     is_active: Boolean
 }
 
+"Input for setting an agent spending limit."
 input SetX402SpendingLimitInput {
-    agent_id: String!
-    agent_type: String
-    daily_limit: String!
-    per_transaction_limit: String
+    "Unique identifier for the agent."
+    agent_id: String! @rules(apply: ["max:255"])
+    "Agent classification."
+    agent_type: String @rules(apply: ["max:100"])
+    "Maximum daily spend in atomic USDC units."
+    daily_limit: String! @rules(apply: ["regex:/^\\d+$/"])
+    "Maximum per-transaction spend in atomic USDC units."
+    per_transaction_limit: String @rules(apply: ["regex:/^\\d+$/"])
+    "Whether the agent can auto-pay."
     auto_pay_enabled: Boolean
 }
 
 extend type Mutation {
+    "Register an API endpoint for x402 payment."
     createX402MonetizedEndpoint(input: CreateX402MonetizedEndpointInput! @spread): X402MonetizedEndpoint!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\X402\\CreateX402MonetizedEndpointMutation")
 
+    "Update pricing or status of a monetized endpoint."
     updateX402MonetizedEndpoint(id: ID!, input: UpdateX402MonetizedEndpointInput! @spread): X402MonetizedEndpoint!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\X402\\UpdateX402MonetizedEndpointMutation")
 
+    "Remove monetization from an endpoint."
     deleteX402MonetizedEndpoint(id: ID!): Boolean!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\X402\\DeleteX402MonetizedEndpointMutation")
 
+    "Create or update an agent spending limit."
     setX402SpendingLimit(input: SetX402SpendingLimitInput! @spread): X402SpendingLimit!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\X402\\SetX402SpendingLimitMutation")
 
+    "Remove an agent spending limit."
     deleteX402SpendingLimit(agent_id: String!): Boolean!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\X402\\DeleteX402SpendingLimitMutation")

@@ -61,6 +61,10 @@ class X402Payment extends Model
         'settled_at',
     ];
 
+    protected $hidden = [
+        'payment_payload',
+    ];
+
     protected $casts = [
         'status'          => SettlementStatus::class,
         'payment_payload' => 'array',

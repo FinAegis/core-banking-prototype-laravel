@@ -43,12 +43,14 @@ class X402StatusController extends Controller
     public function status(): JsonResponse
     {
         return response()->json([
-            'enabled'           => (bool) config('x402.enabled', false),
-            'version'           => (int) config('x402.version', 2),
-            'protocol'          => 'x402',
-            'default_network'   => config('x402.server.default_network', 'eip155:8453'),
-            'supported_schemes' => ['exact'],
-            'client_enabled'    => (bool) config('x402.client.enabled', false),
+            'data' => [
+                'enabled'           => (bool) config('x402.enabled', false),
+                'version'           => (int) config('x402.version', 2),
+                'protocol'          => 'x402',
+                'default_network'   => config('x402.server.default_network', 'eip155:8453'),
+                'supported_schemes' => ['exact'],
+                'client_enabled'    => (bool) config('x402.client.enabled', false),
+            ],
         ]);
     }
 
@@ -91,13 +93,15 @@ class X402StatusController extends Controller
         ]);
 
         return response()->json([
-            'networks'  => $networks->values(),
-            'contracts' => [
-                'permit2'             => config('x402.contracts.permit2'),
-                'exact_permit2_proxy' => config('x402.contracts.exact_permit2_proxy'),
+            'data' => [
+                'networks'  => $networks->values(),
+                'contracts' => [
+                    'permit2'             => config('x402.contracts.permit2'),
+                    'exact_permit2_proxy' => config('x402.contracts.exact_permit2_proxy'),
+                ],
+                'supported_schemes' => ['exact'],
+                'supported_assets'  => ['USDC'],
             ],
-            'supported_schemes' => ['exact'],
-            'supported_assets'  => ['USDC'],
         ]);
     }
 }

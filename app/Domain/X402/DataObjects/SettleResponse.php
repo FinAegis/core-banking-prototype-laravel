@@ -57,6 +57,10 @@ readonly class SettleResponse
      */
     public static function fromArray(array $data): self
     {
+        if (! array_key_exists('success', $data)) {
+            throw \App\Domain\X402\Exceptions\X402InvalidPayloadException::missingField('success');
+        }
+
         return new self(
             success: $data['success'],
             errorReason: $data['errorReason'] ?? null,

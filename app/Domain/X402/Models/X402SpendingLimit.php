@@ -111,13 +111,16 @@ class X402SpendingLimit extends Model
 
     /**
      * Reset daily counters if the reset window has passed.
+     *
+     * Note: Does not persist automatically — caller is responsible for save().
+     * This prevents redundant database writes when called multiple times
+     * within a single transaction.
      */
     public function resetIfNeeded(): void
     {
         if ($this->limit_resets_at->isPast()) {
             $this->spent_today = '0';
             $this->limit_resets_at = now()->addDay();
-            $this->save();
         }
     }
 
@@ -138,7 +141,7 @@ class X402SpendingLimit extends Model
      */
     public function spentPercentage(): float
     {
-        if ($this->daily_limit === '0') {
+        if (bccomp($this->daily_limit ?? '0', '0') === 0) {
             return 0.0;
         }
 

@@ -65,13 +65,18 @@ readonly class PaymentRequirements
             }
         }
 
+        // Validate amount is a positive numeric string
+        if (bccomp((string) $data['amount'], '0') <= 0) {
+            throw \App\Domain\X402\Exceptions\X402InvalidPayloadException::invalidField('amount', 'Amount must be positive');
+        }
+
         return new self(
             scheme: $data['scheme'],
             network: $data['network'],
             asset: $data['asset'],
             amount: $data['amount'],
             payTo: $data['payTo'],
-            maxTimeoutSeconds: $data['maxTimeoutSeconds'],
+            maxTimeoutSeconds: (int) $data['maxTimeoutSeconds'],
             extra: $data['extra'] ?? [],
         );
     }

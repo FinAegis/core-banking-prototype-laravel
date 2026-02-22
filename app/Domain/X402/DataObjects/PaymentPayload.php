@@ -7,7 +7,7 @@ namespace App\Domain\X402\DataObjects;
 use App\Domain\X402\Exceptions\X402InvalidPayloadException;
 
 /**
- * The payment payload sent by the client in the X-PAYMENT header.
+ * The payment payload sent by the client in the PAYMENT-SIGNATURE header.
  *
  * Contains the protocol version, resource metadata, the accepted payment
  * requirements that the client chose to satisfy, and the signed on-chain
@@ -61,7 +61,7 @@ readonly class PaymentPayload
         }
 
         return new self(
-            x402Version: $data['x402Version'],
+            x402Version: (int) $data['x402Version'],
             resource: ResourceInfo::fromArray($data['resource']),
             accepted: PaymentRequirements::fromArray($data['accepted']),
             payload: $data['payload'],

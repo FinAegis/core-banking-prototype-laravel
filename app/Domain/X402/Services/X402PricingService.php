@@ -62,7 +62,7 @@ class X402PricingService
         );
 
         $resource = new ResourceInfo(
-            url: $request->fullUrl(),
+            url: '/' . ltrim($request->path(), '/'),
             description: $config->description ?: $config->method . ' ' . $config->path,
             mimeType: $config->mimeType,
         );

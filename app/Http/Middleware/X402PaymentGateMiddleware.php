@@ -95,7 +95,7 @@ class X402PaymentGateMiddleware
                 'path'  => $request->path(),
             ]);
 
-            return $this->requirePayment($request, $routeConfig, 'Settlement failed. Please try again.');
+            return $this->requirePayment($request, $routeConfig, 'Settlement failed. The on-chain transfer could not be completed. Retry with a fresh authorization.');
         }
 
         if (! $settleResponse->success) {
@@ -105,7 +105,7 @@ class X402PaymentGateMiddleware
                 'path'    => $request->path(),
             ]);
 
-            return $this->requirePayment($request, $routeConfig, 'Settlement was not successful. Please try again.');
+            return $this->requirePayment($request, $routeConfig, 'Settlement was rejected by the facilitator. Verify your payment authorization is valid and has not expired.');
         }
 
         // Attach payment metadata to request for downstream use
@@ -152,7 +152,7 @@ class X402PaymentGateMiddleware
             ->withHeaders([
                 'PAYMENT-REQUIRED'   => $encodedHeader,
                 'X-Payment-Protocol' => 'x402',
-                'X-Payment-Version'  => (string) config('x402.version', 1),
+                'X-Payment-Version'  => (string) config('x402.version', 2),
             ]);
     }
 }

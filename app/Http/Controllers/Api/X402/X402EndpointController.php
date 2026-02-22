@@ -43,9 +43,10 @@ class X402EndpointController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = X402MonetizedEndpoint::query();
+        $query = X402MonetizedEndpoint::query()
+            ->where('team_id', $request->user()?->currentTeam?->id);
 
-        if ($request->has('active')) {
+        if ($request->filled('active')) {
             $query->where('is_active', $request->boolean('active'));
         }
 
@@ -115,6 +116,7 @@ class X402EndpointController extends Controller
             'network'     => $request->input('network', config('x402.server.default_network')),
             'description' => $request->input('description'),
             'is_active'   => $request->boolean('is_active', true),
+            'team_id'     => $request->user()?->currentTeam?->id,
         ]);
 
         return response()->json([
@@ -137,9 +139,10 @@ class X402EndpointController extends Controller
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        $endpoint = X402MonetizedEndpoint::findOrFail($id);
+        $endpoint = X402MonetizedEndpoint::where('team_id', $request->user()?->currentTeam?->id)
+            ->findOrFail($id);
 
         return response()->json([
             'data' => $endpoint->toApiResponse(),
@@ -172,7 +175,8 @@ class X402EndpointController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $endpoint = X402MonetizedEndpoint::findOrFail($id);
+        $endpoint = X402MonetizedEndpoint::where('team_id', $request->user()?->currentTeam?->id)
+            ->findOrFail($id);
 
         $validator = Validator::make($request->all(), [
             'price'       => ['sometimes', 'string', 'regex:/^\d+(\.\d{1,6})?$/'],
@@ -207,9 +211,10 @@ class X402EndpointController extends Controller
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        $endpoint = X402MonetizedEndpoint::findOrFail($id);
+        $endpoint = X402MonetizedEndpoint::where('team_id', $request->user()?->currentTeam?->id)
+            ->findOrFail($id);
         $endpoint->delete();
 
         return response()->json([
