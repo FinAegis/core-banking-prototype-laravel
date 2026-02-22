@@ -10,11 +10,13 @@ test('x402 status endpoint returns protocol info', function () {
 
     $response->assertOk();
     $response->assertJsonStructure([
-        'enabled',
-        'version',
-        'protocol',
-        'default_network',
-        'supported_schemes',
+        'data' => [
+            'enabled',
+            'version',
+            'protocol',
+            'default_network',
+            'supported_schemes',
+        ],
     ]);
     $response->assertJsonFragment(['protocol' => 'x402']);
 });
@@ -24,12 +26,14 @@ test('x402 supported endpoint returns networks', function () {
 
     $response->assertOk();
     $response->assertJsonStructure([
-        'networks' => [
-            '*' => ['id', 'name', 'testnet', 'chain_id', 'usdc_address', 'usdc_decimals'],
+        'data' => [
+            'networks' => [
+                '*' => ['id', 'name', 'testnet', 'chain_id', 'usdc_address', 'usdc_decimals'],
+            ],
+            'contracts',
+            'supported_schemes',
+            'supported_assets',
         ],
-        'contracts',
-        'supported_schemes',
-        'supported_assets',
     ]);
 });
 
