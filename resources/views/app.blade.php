@@ -698,11 +698,11 @@
                 {{-- Capabilities grid --}}
                 <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
                     <div class="text-center p-4 rounded-xl bg-white/[0.02] border border-white/5">
-                        <div class="text-2xl font-bold text-white">41</div>
+                        <div class="text-2xl font-bold text-white">42</div>
                         <div class="text-[11px] text-slate-500 mt-1">Banking Domains</div>
                     </div>
                     <div class="text-center p-4 rounded-xl bg-white/[0.02] border border-white/5">
-                        <div class="text-2xl font-bold text-white">1,150+</div>
+                        <div class="text-2xl font-bold text-white">1,200+</div>
                         <div class="text-[11px] text-slate-500 mt-1">API Endpoints</div>
                     </div>
                     <div class="text-center p-4 rounded-xl bg-white/[0.02] border border-white/5">
