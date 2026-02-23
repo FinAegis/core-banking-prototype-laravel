@@ -89,7 +89,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile
@@ -102,7 +102,7 @@ jobs:
 
       # Build Horizon image
       - name: Build and push Horizon image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile
@@ -114,7 +114,7 @@ jobs:
 
       # Build Scheduler image
       - name: Build and push Scheduler image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile
