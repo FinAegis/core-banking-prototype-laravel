@@ -15,12 +15,21 @@ class IdentityVerificationService
             'endpoint' => 'https://api.onfido.com/v3/',
             'api_key'  => null,
         ],
+        'smileid' => [
+            'endpoint'      => 'https://api.smileidentity.com/v1/',
+            'api_key'       => null,
+            'partner_id'    => null,
+            'signature_key' => null,
+        ],
     ];
 
     public function __construct()
     {
         $this->providers['jumio']['api_key'] = config('services.jumio.api_key');
         $this->providers['onfido']['api_key'] = config('services.onfido.api_key');
+        $this->providers['smileid']['api_key'] = config('services.smileid.api_key');
+        $this->providers['smileid']['partner_id'] = config('services.smileid.partner_id');
+        $this->providers['smileid']['signature_key'] = config('services.smileid.signature_key');
     }
 
     /**
@@ -76,6 +85,8 @@ class IdentityVerificationService
                 return $this->createJumioSession($userData);
             case 'onfido':
                 return $this->createOnfidoSession($userData);
+            case 'smileid':
+                return $this->createSmileIdSession($userData);
             default:
                 throw new InvalidArgumentException("Unknown provider: {$provider}");
         }
@@ -91,6 +102,8 @@ class IdentityVerificationService
                 return $this->getJumioResult($sessionId);
             case 'onfido':
                 return $this->getOnfidoResult($sessionId);
+            case 'smileid':
+                return $this->getSmileIdResult($sessionId);
             default:
                 throw new InvalidArgumentException("Unknown provider: {$provider}");
         }
@@ -248,6 +261,56 @@ class IdentityVerificationService
                     ],
                 ],
             ],
+        ];
+    }
+
+    /**
+     * Create Smile ID verification session.
+     */
+    protected function createSmileIdSession(array $userData): array
+    {
+        // In production, this would make actual API call to Smile ID
+        // Simulated response
+        $countryCode = $userData['country_code'] ?? 'NG';
+        $idType = $userData['id_type'] ?? 'NATIONAL_ID';
+
+        return [
+            'session_id'   => 'smileid_' . uniqid(),
+            'upload_url'   => 'https://upload.smileidentity.com/v1/' . uniqid(),
+            'country_code' => $countryCode,
+            'id_type'      => $idType,
+            'job_type'     => 5, // Enhanced Document Verification
+            'expires_at'   => now()->addHours(24)->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Get Smile ID verification result.
+     */
+    protected function getSmileIdResult(string $sessionId): array
+    {
+        // In production, this would make actual API call to Smile ID
+        // Simulated response
+        return [
+            'status'     => 'completed',
+            'confidence' => 99.5,
+            'checks'     => [
+                'document_validity'  => true,
+                'face_match'         => true,
+                'liveness_check'     => true,
+                'id_authority_check' => true,
+            ],
+            'extracted_data' => [
+                'first_name'      => 'Adebayo',
+                'last_name'       => 'Ogunlesi',
+                'date_of_birth'   => '1985-03-15',
+                'document_number' => 'A00000000',
+                'document_type'   => 'national_id',
+                'issuing_country' => 'NG',
+                'expiry_date'     => '2030-12-31',
+            ],
+            'smile_job_id' => 'sjid_' . uniqid(),
+            'result_code'  => '1012',
         ];
     }
 }

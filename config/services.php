@@ -174,6 +174,14 @@ return [
     |
     */
 
+    'smileid' => [
+        'partner_id'    => env('SMILEID_PARTNER_ID'),
+        'api_key'       => env('SMILEID_API_KEY'),
+        'signature_key' => env('SMILEID_SIGNATURE_KEY'),
+        'environment'   => env('SMILEID_ENVIRONMENT', 'sandbox'),
+        'callback_url'  => env('SMILEID_CALLBACK_URL'),
+    ],
+
     'firebase' => [
         'server_key'  => env('FIREBASE_SERVER_KEY'),
         'project_id'  => env('FIREBASE_PROJECT_ID'),
