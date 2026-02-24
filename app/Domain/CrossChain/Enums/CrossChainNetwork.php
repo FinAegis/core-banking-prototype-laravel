@@ -100,6 +100,7 @@ enum CrossChainNetwork: string
             BridgeProvider::WORMHOLE,
             BridgeProvider::LAYERZERO,
             BridgeProvider::AXELAR,
+            BridgeProvider::CIRCLE_CCTP,
             BridgeProvider::DEMO,
         ];
     }

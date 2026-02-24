@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Domain\CrossChain\Contracts\AssetMapperInterface;
 use App\Domain\CrossChain\Services\Adapters\AxelarBridgeAdapter;
+use App\Domain\CrossChain\Services\Adapters\CircleCctpBridgeAdapter;
 use App\Domain\CrossChain\Services\Adapters\DemoBridgeAdapter;
 use App\Domain\CrossChain\Services\Adapters\LayerZeroBridgeAdapter;
 use App\Domain\CrossChain\Services\Adapters\WormholeBridgeAdapter;
@@ -59,6 +60,10 @@ class CrossChainServiceProvider extends ServiceProvider
 
             if (config('crosschain.axelar.enabled', false)) {
                 $orchestrator->registerAdapter(new AxelarBridgeAdapter());
+            }
+
+            if (config('crosschain.circle_cctp.enabled', false)) {
+                $orchestrator->registerAdapter(new CircleCctpBridgeAdapter());
             }
 
             return $orchestrator;

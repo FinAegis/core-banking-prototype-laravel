@@ -117,6 +117,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Circle CCTP Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    'circle_cctp' => [
+        'enabled'          => env('CIRCLE_CCTP_ENABLED', false),
+        'api_url'          => env('CIRCLE_CCTP_API_URL', 'https://iris-api.circle.com'),
+        'attestation_url'  => env('CIRCLE_CCTP_ATTESTATION_URL', 'https://iris-api.circle.com/attestations'),
+        'token_messenger'  => [
+            'ethereum' => env('CIRCLE_CCTP_TOKEN_MESSENGER_ETH', '0xBd3fa81B58Ba92a82136038B25aDec7066af3155'),
+            'polygon'  => env('CIRCLE_CCTP_TOKEN_MESSENGER_POLYGON', '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE'),
+            'arbitrum' => env('CIRCLE_CCTP_TOKEN_MESSENGER_ARBITRUM', '0x19330d10D9Cc8751218eaf51E8885D058642E08A'),
+            'base'     => env('CIRCLE_CCTP_TOKEN_MESSENGER_BASE', '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962'),
+        ],
+        'message_transmitter' => [
+            'ethereum' => env('CIRCLE_CCTP_MSG_TRANSMITTER_ETH', '0x0a992d191DEeC32aFe36203Ad87D7d289a738F81'),
+            'polygon'  => env('CIRCLE_CCTP_MSG_TRANSMITTER_POLYGON', '0xF3be9355363857F3e001be68856A2f96b4C39Ba9'),
+            'arbitrum' => env('CIRCLE_CCTP_MSG_TRANSMITTER_ARBITRUM', '0xC30362313FBBA5cf9163F0bb16a0e01f01A896ca'),
+            'base'     => env('CIRCLE_CCTP_MSG_TRANSMITTER_BASE', '0xAD09780d193884d503182aD4F75D113B9B2b2e8d'),
+        ],
+        'domains' => [
+            'ethereum' => 0,
+            'polygon'  => 7,
+            'arbitrum' => 3,
+            'base'     => 6,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Demo Configuration
     |--------------------------------------------------------------------------
     */
