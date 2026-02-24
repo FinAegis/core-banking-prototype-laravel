@@ -68,6 +68,18 @@ return [
             'webhook_secret' => env('DEUTSCHE_BANK_WEBHOOK_SECRET'),
         ],
 
+        'flutterwave' => [
+            'class'          => App\Domain\Custodian\Connectors\FlutterwaveConnector::class,
+            'enabled'        => env('FLUTTERWAVE_ENABLED', false),
+            'name'           => 'Flutterwave',
+            'description'    => 'Flutterwave integration for African fiat on/off-ramp (NGN, GHS, KES, ZAR)',
+            'secret_key'     => env('FLUTTERWAVE_SECRET_KEY'),
+            'public_key'     => env('FLUTTERWAVE_PUBLIC_KEY'),
+            'encryption_key' => env('FLUTTERWAVE_ENCRYPTION_KEY'),
+            'environment'    => env('FLUTTERWAVE_ENVIRONMENT', 'sandbox'),
+            'webhook_secret' => env('FLUTTERWAVE_WEBHOOK_SECRET'),
+        ],
+
     ],
 
     /*
@@ -205,6 +217,11 @@ return [
             'santander' => [
                 'USD' => env('SANTANDER_SETTLEMENT_USD'),
                 'EUR' => env('SANTANDER_SETTLEMENT_EUR'),
+            ],
+            'flutterwave' => [
+                'NGN' => env('FLUTTERWAVE_SETTLEMENT_NGN'),
+                'USD' => env('FLUTTERWAVE_SETTLEMENT_USD'),
+                'KES' => env('FLUTTERWAVE_SETTLEMENT_KES'),
             ],
         ],
     ],

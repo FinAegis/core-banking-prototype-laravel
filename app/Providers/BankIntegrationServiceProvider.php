@@ -8,6 +8,7 @@ use App\Domain\Banking\Services\BankHealthMonitor;
 use App\Domain\Banking\Services\BankIntegrationService;
 use App\Domain\Banking\Services\BankRoutingService;
 use App\Domain\Custodian\Connectors\DeutscheBankConnector;
+use App\Domain\Custodian\Connectors\FlutterwaveConnector;
 use App\Domain\Custodian\Connectors\PayseraConnector;
 use App\Domain\Custodian\Connectors\SantanderConnector;
 use Illuminate\Support\ServiceProvider;
@@ -114,6 +115,24 @@ class BankIntegrationServiceProvider extends ServiceProvider
                 'Santander'
             );
             $service->registerConnector('SANTANDER', $santanderAdapter);
+        }
+
+        // Flutterwave (African fiat on/off-ramp)
+        if (config('services.banks.flutterwave.enabled', false)) {
+            $flutterwaveAdapter = new BankConnectorAdapter(
+                new FlutterwaveConnector(
+                    [
+                        'name'           => 'Flutterwave',
+                        'secret_key'     => config('services.banks.flutterwave.secret_key'),
+                        'public_key'     => config('services.banks.flutterwave.public_key'),
+                        'encryption_key' => config('services.banks.flutterwave.encryption_key'),
+                        'base_url'       => 'https://api.flutterwave.com/v3',
+                    ]
+                ),
+                'FLUTTERWAVE',
+                'Flutterwave'
+            );
+            $service->registerConnector('FLUTTERWAVE', $flutterwaveAdapter);
         }
 
         // Additional banks can be registered here

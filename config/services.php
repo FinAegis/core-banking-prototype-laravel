@@ -143,6 +143,15 @@ return [
             'api_key'  => env('BANK_WISE_API_KEY'),
             'base_url' => env('BANK_WISE_BASE_URL', 'https://api.wise.com/v2'),
         ],
+
+        'flutterwave' => [
+            'enabled'        => env('FLUTTERWAVE_ENABLED', false),
+            'secret_key'     => env('FLUTTERWAVE_SECRET_KEY'),
+            'public_key'     => env('FLUTTERWAVE_PUBLIC_KEY'),
+            'encryption_key' => env('FLUTTERWAVE_ENCRYPTION_KEY'),
+            'environment'    => env('FLUTTERWAVE_ENVIRONMENT', 'sandbox'),
+            'webhook_secret' => env('FLUTTERWAVE_WEBHOOK_SECRET'),
+        ],
     ],
 
     /*
