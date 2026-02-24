@@ -19,10 +19,15 @@ class FlutterwaveConnector extends BaseCustodianConnector
 
     private string $secretKey;
 
+    /** @phpstan-ignore property.onlyWritten (used in production for charge encryption) */
     private string $publicKey;
 
+    /** @phpstan-ignore property.onlyWritten (used in production for payload encryption) */
     private string $encryptionKey;
 
+    /**
+     * @param  array<string, mixed>  $config
+     */
     public function __construct(array $config)
     {
         $config['name'] = $config['name'] ?? 'Flutterwave';
@@ -36,6 +41,9 @@ class FlutterwaveConnector extends BaseCustodianConnector
         parent::__construct($config);
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected function getHeaders(): array
     {
         return [
@@ -57,6 +65,8 @@ class FlutterwaveConnector extends BaseCustodianConnector
 
     /**
      * Make authenticated API request with resilience.
+     *
+     * @param  array<string, mixed>  $data
      */
     private function apiRequest(string $method, string $endpoint, array $data = []): \Illuminate\Http\Client\Response
     {
@@ -195,7 +205,7 @@ class FlutterwaveConnector extends BaseCustodianConnector
                     $request->toAccount,
                     $request->amount,
                     $request->assetCode,
-                    $request->reference,
+                    $request->reference ?? '',
                     $request->description ?? ''
                 );
             }
@@ -256,6 +266,9 @@ class FlutterwaveConnector extends BaseCustodianConnector
         return false;
     }
 
+    /**
+     * @return array<string>
+     */
     public function getSupportedAssets(): array
     {
         return ['NGN', 'GHS', 'KES', 'ZAR', 'XOF', 'XAF', 'TZS', 'UGX', 'USD', 'EUR', 'GBP'];
@@ -284,6 +297,9 @@ class FlutterwaveConnector extends BaseCustodianConnector
         return false;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getTransactionHistory(string $accountId, ?int $limit = 100, ?int $offset = 0): array
     {
         $response = $this->apiRequest('GET', '/transfers', [

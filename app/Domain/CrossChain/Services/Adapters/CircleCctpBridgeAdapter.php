@@ -27,14 +27,6 @@ class CircleCctpBridgeAdapter implements BridgeAdapterInterface
         'ethereum', 'polygon', 'arbitrum', 'base',
     ];
 
-    /** CCTP domain identifiers per chain. */
-    private const CCTP_DOMAINS = [
-        'ethereum' => 0,
-        'polygon'  => 7,
-        'arbitrum' => 3,
-        'base'     => 6,
-    ];
-
     public function getProvider(): BridgeProvider
     {
         return BridgeProvider::CIRCLE_CCTP;
@@ -63,7 +55,11 @@ class CircleCctpBridgeAdapter implements BridgeAdapterInterface
         string $amount,
     ): BridgeQuote {
         $feeData = $this->estimateFee($sourceChain, $destChain, $token, $amount);
-        $outputAmount = bcsub($amount, $feeData['fee'], 8);
+        /** @var numeric-string $numericAmount */
+        $numericAmount = $amount;
+        /** @var numeric-string $fee */
+        $fee = $feeData['fee'];
+        $outputAmount = bcsub($numericAmount, $fee, 8);
 
         $route = new BridgeRoute(
             $sourceChain,

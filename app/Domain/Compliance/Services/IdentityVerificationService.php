@@ -266,6 +266,9 @@ class IdentityVerificationService
 
     /**
      * Create Smile ID verification session.
+     *
+     * @param  array<string, mixed>  $userData
+     * @return array<string, mixed>
      */
     protected function createSmileIdSession(array $userData): array
     {
@@ -286,6 +289,8 @@ class IdentityVerificationService
 
     /**
      * Get Smile ID verification result.
+     *
+     * @return array<string, mixed>
      */
     protected function getSmileIdResult(string $sessionId): array
     {
