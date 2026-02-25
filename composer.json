@@ -67,7 +67,7 @@
         "spatie/laravel-permission": "^7.0",
         "stancl/tenancy": "^3.9",
         "symfony/clock": "^7.0",
-        "symfony/http-client": "^7.3"
+        "symfony/http-client": "^8.0"
     },
     "require-dev": {
         "behat/behat": "^3.22",
