@@ -45,7 +45,9 @@ describe('FlutterwaveConnector', function () {
 
     it('extends BaseCustodianConnector', function () {
         $reflection = new ReflectionClass($this->connector);
-        expect($reflection->getParentClass()->getName())
+        $parent = $reflection->getParentClass();
+        assert($parent !== false);
+        expect($parent->getName())
             ->toBe('App\Domain\Custodian\Connectors\BaseCustodianConnector');
     });
 

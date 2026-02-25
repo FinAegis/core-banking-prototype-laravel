@@ -23,11 +23,14 @@ function createAuthenticatedUser(): User
     return $user;
 }
 
-function teamId(User $user): ?int
+function teamId(User $user): int
 {
     return (int) $user->currentTeam?->id;
 }
 
+/**
+ * @param array<string, mixed> $overrides
+ */
 function createEndpoint(User $user, array $overrides = []): X402MonetizedEndpoint
 {
     return X402MonetizedEndpoint::create(array_merge([
@@ -44,6 +47,9 @@ function createEndpoint(User $user, array $overrides = []): X402MonetizedEndpoin
     ], $overrides));
 }
 
+/**
+ * @param array<string, mixed> $overrides
+ */
 function createPayment(User $user, array $overrides = []): X402Payment
 {
     return X402Payment::create(array_merge([
@@ -60,6 +66,9 @@ function createPayment(User $user, array $overrides = []): X402Payment
     ], $overrides));
 }
 
+/**
+ * @param array<string, mixed> $overrides
+ */
 function createSpendingLimit(User $user, array $overrides = []): X402SpendingLimit
 {
     return X402SpendingLimit::create(array_merge([
@@ -175,6 +184,7 @@ test('GET /api/v1/x402/supported works without authentication', function () {
 // Authentication Enforcement
 // ----------------------------------------------------------------
 
+/** @phpstan-ignore method.notFound */
 test('authenticated endpoints return 401 without auth', function (string $method, string $uri) {
     $response = $this->json($method, $uri);
     $response->assertUnauthorized();

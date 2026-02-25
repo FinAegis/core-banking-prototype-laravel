@@ -32,6 +32,8 @@ uses(RefreshDatabase::class);
 
 /**
  * Recursively assert that all keys in a JSON structure are snake_case.
+ *
+ * @param array<string|int, mixed> $data
  */
 function assertKeysAreSnakeCase(array $data, string $path = ''): void
 {
@@ -60,6 +62,8 @@ function assertKeysAreSnakeCase(array $data, string $path = ''): void
 
 /**
  * Create an authenticated user and return [user, token].
+ *
+ * @return array{0: User, 1: string}
  */
 function createShapeTestUser(): array
 {
