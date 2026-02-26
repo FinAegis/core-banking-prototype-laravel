@@ -38,7 +38,7 @@
         "kreait/laravel-firebase": "^7.0",
         "laravel-workflow/laravel-workflow": "^1.0",
         "laravel-workflow/waterline": "^1.0.14",
-        "laravel/cashier": "^15.4",
+        "laravel/cashier": "^16.3",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.44",
         "laravel/jetstream": "^5.4",
