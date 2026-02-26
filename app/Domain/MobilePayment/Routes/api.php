@@ -14,16 +14,16 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->middleware(['auth:sanctum', 'check.token.expiration'])->group(function () {
     // Payment Intents
     Route::post('/payments/intents', [PaymentIntentController::class, 'create'])
-        ->middleware('transaction.rate_limit:payment_intent')
+        ->middleware(['transaction.rate_limit:payment_intent', 'idempotency'])
         ->name('mobile.payments.intents.create');
     Route::get('/payments/intents/{intentId}', [PaymentIntentController::class, 'show'])
         ->middleware('api.rate_limit:query')
         ->name('mobile.payments.intents.show');
     Route::post('/payments/intents/{intentId}/submit', [PaymentIntentController::class, 'submit'])
-        ->middleware('transaction.rate_limit:payment_submit')
+        ->middleware(['transaction.rate_limit:payment_submit', 'idempotency'])
         ->name('mobile.payments.intents.submit');
     Route::post('/payments/intents/{intentId}/cancel', [PaymentIntentController::class, 'cancel'])
-        ->middleware('transaction.rate_limit:payment_submit')
+        ->middleware(['transaction.rate_limit:payment_submit', 'idempotency'])
         ->name('mobile.payments.intents.cancel');
 
     // Activity Feed

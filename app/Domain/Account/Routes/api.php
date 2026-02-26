@@ -41,9 +41,9 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
 
     // Transaction endpoints
     Route::post('/accounts/{uuid}/deposit', [TransactionController::class, 'deposit'])
-        ->middleware(['transaction.rate_limit:deposit', 'scope:write']);
+        ->middleware(['transaction.rate_limit:deposit', 'idempotency', 'scope:write']);
     Route::post('/accounts/{uuid}/withdraw', [TransactionController::class, 'withdraw'])
-        ->middleware(['transaction.rate_limit:withdraw', 'scope:write']);
+        ->middleware(['transaction.rate_limit:withdraw', 'idempotency', 'scope:write']);
 
     // Transfer endpoints
     Route::post('/transfers', [TransferController::class, 'store'])

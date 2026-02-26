@@ -15,10 +15,10 @@ Route::prefix('v1/commerce')->name('mobile.commerce.')
             ->middleware('api.rate_limit:query')
             ->name('parse-qr');
         Route::post('/payment-requests', [MobileCommerceController::class, 'createPaymentRequest'])
-            ->middleware('transaction.rate_limit:payment_intent')
+            ->middleware(['transaction.rate_limit:payment_intent', 'idempotency'])
             ->name('payment-requests');
         Route::post('/payments', [MobileCommerceController::class, 'processPayment'])
-            ->middleware('transaction.rate_limit:payment_intent')
+            ->middleware(['transaction.rate_limit:payment_intent', 'idempotency'])
             ->name('payments');
         Route::post('/generate-qr', [MobileCommerceController::class, 'generateQr'])
             ->middleware('api.rate_limit:query')

@@ -14,7 +14,7 @@ Route::prefix('lending')->middleware(['auth:sanctum', 'check.token.expiration', 
         Route::get('/applications/{id}', [LoanApplicationController::class, 'show']);
     });
 
-    Route::middleware('transaction.rate_limit:lending')->group(function () {
+    Route::middleware(['transaction.rate_limit:lending', 'idempotency'])->group(function () {
         Route::post('/applications', [LoanApplicationController::class, 'store']);
         Route::post('/applications/{id}/cancel', [LoanApplicationController::class, 'cancel']);
     });
@@ -26,7 +26,7 @@ Route::prefix('lending')->middleware(['auth:sanctum', 'check.token.expiration', 
         Route::get('/loans/{id}/settlement-quote', [LoanController::class, 'settleEarly']);
     });
 
-    Route::middleware('transaction.rate_limit:lending')->group(function () {
+    Route::middleware(['transaction.rate_limit:lending', 'idempotency'])->group(function () {
         Route::post('/loans/{id}/payments', [LoanController::class, 'makePayment']);
         Route::post('/loans/{id}/settle', [LoanController::class, 'confirmSettlement'])->name('api.loans.confirm-settlement');
     });

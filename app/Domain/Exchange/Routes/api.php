@@ -34,7 +34,7 @@ Route::middleware('api.rate_limit:public')->group(function () {
 
         Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
             Route::post('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'placeOrder'])
-                ->middleware('transaction.rate_limit:exchange_order')
+                ->middleware(['transaction.rate_limit:exchange_order', 'idempotency'])
                 ->name('orders.place');
             Route::delete('/orders/{orderId}', [App\Http\Controllers\Api\ExchangeController::class, 'cancelOrder'])->name('orders.cancel');
             Route::get('/orders', [App\Http\Controllers\Api\ExchangeController::class, 'getOrders'])->name('orders.index');
@@ -59,12 +59,12 @@ Route::middleware('api.rate_limit:public')->group(function () {
         Route::get('/pools/{poolId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'show'])->name('pools.show');
 
         Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
-            Route::post('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'create'])->name('pools.create');
-            Route::post('/add', [App\Http\Controllers\Api\LiquidityPoolController::class, 'addLiquidity'])->name('add');
-            Route::post('/remove', [App\Http\Controllers\Api\LiquidityPoolController::class, 'removeLiquidity'])->name('remove');
-            Route::post('/swap', [App\Http\Controllers\Api\LiquidityPoolController::class, 'swap'])->name('swap');
+            Route::post('/pools', [App\Http\Controllers\Api\LiquidityPoolController::class, 'create'])->middleware('idempotency')->name('pools.create');
+            Route::post('/add', [App\Http\Controllers\Api\LiquidityPoolController::class, 'addLiquidity'])->middleware('idempotency')->name('add');
+            Route::post('/remove', [App\Http\Controllers\Api\LiquidityPoolController::class, 'removeLiquidity'])->middleware('idempotency')->name('remove');
+            Route::post('/swap', [App\Http\Controllers\Api\LiquidityPoolController::class, 'swap'])->middleware('idempotency')->name('swap');
             Route::get('/positions', [App\Http\Controllers\Api\LiquidityPoolController::class, 'positions'])->name('positions');
-            Route::post('/claim-rewards', [App\Http\Controllers\Api\LiquidityPoolController::class, 'claimRewards'])->name('claim-rewards');
+            Route::post('/claim-rewards', [App\Http\Controllers\Api\LiquidityPoolController::class, 'claimRewards'])->middleware('idempotency')->name('claim-rewards');
 
             // IL Protection endpoints
             Route::get('/il-protection/{positionId}', [App\Http\Controllers\Api\LiquidityPoolController::class, 'calculateImpermanentLoss'])->name('il-protection.calculate');

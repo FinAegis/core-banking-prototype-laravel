@@ -17,7 +17,7 @@ Route::prefix('blockchain-wallets')->middleware(['auth:sanctum', 'check.token.ex
         Route::get('/{walletId}/transactions', [BlockchainWalletController::class, 'transactions']);
     });
 
-    Route::middleware('transaction.rate_limit:blockchain')->group(function () {
+    Route::middleware(['transaction.rate_limit:blockchain', 'idempotency'])->group(function () {
         Route::post('/', [BlockchainWalletController::class, 'store']);
         Route::put('/{walletId}', [BlockchainWalletController::class, 'update']);
         Route::post('/{walletId}/addresses', [BlockchainWalletController::class, 'generateAddress']);
@@ -132,6 +132,6 @@ Route::prefix('v1/wallet')->name('mobile.wallet.')
             ->middleware('api.rate_limit:query')
             ->name('transactions.detail');
         Route::post('/transactions/send', [MobileWalletController::class, 'send'])
-            ->middleware('transaction.rate_limit:payment_intent')
+            ->middleware(['transaction.rate_limit:payment_intent', 'idempotency'])
             ->name('transactions.send');
     });

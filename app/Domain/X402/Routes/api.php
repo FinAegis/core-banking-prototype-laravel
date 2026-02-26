@@ -18,11 +18,11 @@ Route::prefix('v1/x402')->name('api.x402.')->group(function () {
         // Monetized endpoint management
         Route::get('/endpoints', [X402EndpointController::class, 'index'])->name('endpoints.index');
         Route::post('/endpoints', [X402EndpointController::class, 'store'])
-            ->middleware('transaction.rate_limit:x402')
+            ->middleware(['transaction.rate_limit:x402', 'idempotency'])
             ->name('endpoints.store');
         Route::get('/endpoints/{id}', [X402EndpointController::class, 'show'])->name('endpoints.show');
         Route::put('/endpoints/{id}', [X402EndpointController::class, 'update'])
-            ->middleware('transaction.rate_limit:x402')
+            ->middleware(['transaction.rate_limit:x402', 'idempotency'])
             ->name('endpoints.update');
         Route::delete('/endpoints/{id}', [X402EndpointController::class, 'destroy'])
             ->middleware('transaction.rate_limit:x402')
@@ -36,11 +36,11 @@ Route::prefix('v1/x402')->name('api.x402.')->group(function () {
         // Agent spending limits
         Route::get('/spending-limits', [X402SpendingLimitController::class, 'index'])->name('spending-limits.index');
         Route::post('/spending-limits', [X402SpendingLimitController::class, 'store'])
-            ->middleware('transaction.rate_limit:x402')
+            ->middleware(['transaction.rate_limit:x402', 'idempotency'])
             ->name('spending-limits.store');
         Route::get('/spending-limits/{agentId}', [X402SpendingLimitController::class, 'show'])->name('spending-limits.show');
         Route::put('/spending-limits/{agentId}', [X402SpendingLimitController::class, 'update'])
-            ->middleware('transaction.rate_limit:x402')
+            ->middleware(['transaction.rate_limit:x402', 'idempotency'])
             ->name('spending-limits.update');
         Route::delete('/spending-limits/{agentId}', [X402SpendingLimitController::class, 'destroy'])
             ->middleware('transaction.rate_limit:x402')

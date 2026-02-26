@@ -15,11 +15,11 @@ Route::prefix('treasury')->name('api.treasury.')->group(function () {
         Route::prefix('portfolios')->name('portfolios.')->group(function () {
             Route::get('/', [PortfolioController::class, 'index'])->name('index');
             Route::post('/', [PortfolioController::class, 'store'])
-                ->middleware('transaction.rate_limit:treasury')
+                ->middleware(['transaction.rate_limit:treasury', 'idempotency'])
                 ->name('store');
             Route::get('/{id}', [PortfolioController::class, 'show'])->name('show');
             Route::put('/{id}', [PortfolioController::class, 'update'])
-                ->middleware('transaction.rate_limit:treasury')
+                ->middleware(['transaction.rate_limit:treasury', 'idempotency'])
                 ->name('update');
             Route::delete('/{id}', [PortfolioController::class, 'destroy'])
                 ->middleware('transaction.rate_limit:treasury')
@@ -27,17 +27,17 @@ Route::prefix('treasury')->name('api.treasury.')->group(function () {
 
             // Asset allocation endpoints
             Route::post('/{id}/allocate', [PortfolioController::class, 'allocate'])
-                ->middleware('transaction.rate_limit:treasury')
+                ->middleware(['transaction.rate_limit:treasury', 'idempotency'])
                 ->name('allocate');
             Route::get('/{id}/allocations', [PortfolioController::class, 'getAllocations'])->name('allocations');
 
             // Rebalancing endpoints
             Route::post('/{id}/rebalance', [PortfolioController::class, 'triggerRebalancing'])
-                ->middleware('transaction.rate_limit:treasury')
+                ->middleware(['transaction.rate_limit:treasury', 'idempotency'])
                 ->name('rebalance');
             Route::get('/{id}/rebalancing-plan', [PortfolioController::class, 'getRebalancingPlan'])->name('rebalancing-plan');
             Route::post('/{id}/approve-rebalancing', [PortfolioController::class, 'approveRebalancing'])
-                ->middleware('transaction.rate_limit:treasury')
+                ->middleware(['transaction.rate_limit:treasury', 'idempotency'])
                 ->name('approve-rebalancing');
 
             // Performance and analytics endpoints
