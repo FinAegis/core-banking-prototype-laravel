@@ -52,7 +52,7 @@
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.6.4",
         "meilisearch/meilisearch-php": "^1.9",
-        "nesbot/carbon": "^3.0 <3.11",
+        "nesbot/carbon": "^3.11.1",
         "nuwave/lighthouse": "^6.64",
         "open-telemetry/api": "^1.4",
         "open-telemetry/exporter-otlp": "^1.3",
