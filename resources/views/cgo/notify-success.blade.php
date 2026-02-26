@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Thank You - CGO Early Access')
+@section('title', 'Thank You - CGO Interest Registered')
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -19,7 +19,7 @@
                         You're on the List!
                     </h1>
                     <p class="text-xl text-green-50 max-w-2xl mx-auto">
-                        Welcome to the FinAegis Continuous Growth Offering early access program
+                        Your interest in the FinAegis Continuous Growth Offering has been registered
                     </p>
                 </div>
 
@@ -28,8 +28,8 @@
                     <!-- Confirmation Message -->
                     <div class="text-center mb-10">
                         <p class="text-lg text-gray-700 mb-4">
-                            Thank you for your interest in investing in the future of democratic banking. 
-                            We've successfully added your email to our exclusive early access list.
+                            Thank you for your interest in the FinAegis CGO concept.
+                            We've added your email to our notification list for future updates.
                         </p>
                         <p class="text-gray-600">
                             A confirmation email has been sent to your inbox with more details about the CGO program.
@@ -53,7 +53,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Email Confirmation</h3>
-                                    <p class="text-gray-600">Check your inbox for our welcome email with detailed information about the CGO program and investment tiers.</p>
+                                    <p class="text-gray-600">Check your inbox for our welcome email with more details about the CGO concept and how it works.</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
@@ -63,8 +63,8 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Launch Notification</h3>
-                                    <p class="text-gray-600">You'll receive an exclusive early access notification 24 hours before the public launch.</p>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Progress Updates</h3>
+                                    <p class="text-gray-600">You'll receive notifications as the CGO programme develops and reaches key milestones.</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
@@ -74,8 +74,8 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Investment Opportunities</h3>
-                                    <p class="text-gray-600">Get first access to limited investment tiers with special early investor benefits.</p>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Platform Development</h3>
+                                    <p class="text-gray-600">Follow the open-source development of the FinAegis platform and contribute to the community.</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
@@ -85,40 +85,40 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Ownership Certificate</h3>
-                                    <p class="text-gray-600">Receive your official FinAegis ownership certificate after successful investment.</p>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Future Participation</h3>
+                                    <p class="text-gray-600">Be among the first to know when the CGO programme opens for participation.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Early Access Benefits -->
+                    <!-- What You'll Receive -->
                     <div class="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-8 mb-10">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Early Access Benefits</h2>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">What You'll Receive</h2>
                         <ul class="space-y-3">
                             <li class="flex items-center text-gray-700">
                                 <svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Priority access to limited investment tiers
+                                Updates when the CGO concept progresses
                             </li>
                             <li class="flex items-center text-gray-700">
                                 <svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Exclusive early investor pricing
+                                Platform development news and milestones
                             </li>
                             <li class="flex items-center text-gray-700">
                                 <svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Regular updates on platform development
+                                Open-source community announcements
                             </li>
                             <li class="flex items-center text-gray-700">
                                 <svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Direct communication with the founding team
+                                Opportunities to contribute and provide feedback
                             </li>
                         </ul>
                     </div>
@@ -152,7 +152,7 @@
                     <!-- Additional Info -->
                     <div class="mt-10 pt-10 border-t border-gray-200 text-center">
                         <p class="text-sm text-gray-600">
-                            Questions? Contact our investment team at 
+                            Questions? Contact us at
                             <a href="mailto:info@finaegis.org" class="text-indigo-600 hover:text-indigo-700 font-medium">info@finaegis.org</a>
                         </p>
                     </div>

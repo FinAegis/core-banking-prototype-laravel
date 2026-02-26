@@ -121,7 +121,7 @@
                             <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold mr-3 text-blue-600">$</span>
                             <span>USDC - USD Coin</span>
                         </div>
-                        <div class="text-gray-500 text-sm mt-2">+ More coming soon</div>
+                        <div class="text-gray-500 text-sm mt-2">+ Additional assets supported</div>
                     </div>
                 </div>
 

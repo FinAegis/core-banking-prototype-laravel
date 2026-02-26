@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'FinAegis Treasury - Coming Soon')
+@section('title', 'FinAegis Treasury - Enterprise Cash Management')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'FinAegis Treasury - Coming Soon',
-        'description' => 'FinAegis Treasury - Multi-bank cash management and FX optimization for enterprises. Maximize returns while minimizing risk.',
-        'keywords' => 'FinAegis Treasury, cash management, FX optimization, corporate treasury',
+        'title' => 'FinAegis Treasury - Enterprise Cash Management',
+        'description' => 'FinAegis Treasury - Multi-bank cash management, FX optimization, and yield strategies for enterprises. Maximize returns while minimizing risk.',
+        'keywords' => 'FinAegis Treasury, cash management, FX optimization, corporate treasury, yield optimization',
     ])
 @endsection
 
@@ -25,8 +25,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
-                        <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>Coming Soon</span>
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                        <span>Available in Sandbox</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
                         FinAegis Treasury
@@ -171,16 +171,16 @@
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-gray-900 mb-6">Transform Your Treasury Operations</h2>
                 <p class="text-xl text-gray-600 mb-8">
-                    Be among the first to access FinAegis Treasury when it launches
+                    Explore multi-bank cash management, yield optimization, and FX strategies in the sandbox
                 </p>
-                <div class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold">
+                <a href="{{ route('dashboard') }}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                     </svg>
-                    Coming Soon
-                </div>
+                    Explore Treasury
+                </a>
                 <p class="text-gray-500 mt-4">
-                    In the meantime, explore <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a>
+                    Pair with <a href="{{ route('gcu') }}" class="text-indigo-600 hover:text-indigo-700">Global Currency Unit (GCU)</a> for multi-currency treasury management
                 </p>
             </div>
         </section>

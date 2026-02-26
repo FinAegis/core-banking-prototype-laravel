@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Build with FinAegis - Integration Guide',
-        'description' => 'Multiple ways to integrate FinAegis core banking infrastructure into your applications. REST API, SDKs (coming soon), webhooks, and more.',
+        'description' => 'Multiple ways to integrate FinAegis core banking infrastructure into your applications. REST API, native SDKs, webhooks, and more.',
         'keywords' => 'FinAegis, integration, API, SDK, webhooks, banking infrastructure, fintech, development',
     ])
 @endsection
@@ -295,7 +295,7 @@
 
                     <!-- Native SDKs -->
                     <div class="integration-card rounded-2xl p-8">
-                        <div class="status-indicator status-coming-soon">Coming Soon</div>
+                        <div class="status-indicator status-coming-soon">In Development</div>
                         <div class="flex items-center mb-6">
                             <div class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
                                 <svg class="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

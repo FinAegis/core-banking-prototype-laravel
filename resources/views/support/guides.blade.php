@@ -276,7 +276,7 @@
                                 <li>Understand the multi-currency basket concept</li>
                             </ul>
                             <p class="text-gray-600 mt-4">
-                                <strong>Note:</strong> Actual voting functionality will be implemented in beta phase.
+                                <strong>Note:</strong> Voting functionality is available in sandbox mode. Production governance cycles are planned for a future release.
                             </p>
                         </div>
                     </div>

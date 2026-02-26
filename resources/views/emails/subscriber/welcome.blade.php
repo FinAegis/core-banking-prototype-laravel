@@ -8,7 +8,7 @@ Thank you for subscribing to our updates. We're excited to have you as part of o
 - **Latest Updates**: Be the first to know about new features and announcements
 - **Exclusive Content**: Access to insights and educational materials
 - **Community Events**: Invitations to webinars and special events
-- **Product News**: Early access to new products and features
+- **Product News**: Updates on new products and features
 
 ## Stay Connected
 

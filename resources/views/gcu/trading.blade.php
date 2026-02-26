@@ -16,7 +16,7 @@
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">GCU/USD Price Chart</h3>
                             <div class="bg-gray-100 dark:bg-gray-700 rounded h-64 flex items-center justify-center">
-                                <p class="text-gray-500 dark:text-gray-400">Price chart coming soon</p>
+                                <p class="text-gray-500 dark:text-gray-400">Price chart is not yet available</p>
                             </div>
                             <div class="mt-4 grid grid-cols-4 gap-4 text-sm">
                                 <div>

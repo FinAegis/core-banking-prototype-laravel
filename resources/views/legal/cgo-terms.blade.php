@@ -55,7 +55,7 @@
                         <ul class="list-disc pl-6 mb-4">
                             <li>Digital Certificate of Support acknowledging your contribution to the movement</li>
                             <li>Recognition on our supporters page (optional)</li>
-                            <li>Early access to platform features and updates</li>
+                            <li>Priority notifications about platform features and updates</li>
                         </ul>
 
                         <h3 class="text-xl font-semibold mt-6 mb-3">Silver Tier ($1,000 - $9,999)</h3>

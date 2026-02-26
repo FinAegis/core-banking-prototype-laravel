@@ -184,7 +184,7 @@
                 <div class="p-6 text-center">
                     <h3 class="text-xl font-bold text-white mb-3">Interested in the FinAegis Project?</h3>
                     <p class="text-gray-300 mb-6 max-w-2xl mx-auto">
-                        This is an open-source banking prototype. Explore the code, contribute features, or star the repository to show your support.
+                        This is an open-source core banking platform. Explore the code, contribute features, or star the repository to show your support.
                     </p>
                     <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
                         <a href="https://github.com/FinAegis/core-banking-prototype-laravel"

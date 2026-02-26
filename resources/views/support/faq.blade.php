@@ -98,7 +98,7 @@
                 <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="gcu">
                     GCU
                 </button>
-                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="alpha">
+                <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="platform">
                     Platform Status
                 </button>
                 <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="technical">
@@ -117,7 +117,7 @@
             <div class="space-y-4" id="faq-container">
                 
                 <!-- Platform Status Questions -->
-                <div class="faq-item" data-category="alpha">
+                <div class="faq-item" data-category="platform">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
                             <h3 class="text-lg font-semibold text-gray-900">What is the current status of FinAegis?</h3>
@@ -128,7 +128,7 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            FinAegis is a fully-featured open-source core banking prototype at v5.4.0. The sandbox environment lets you:
+                            FinAegis is a fully-featured open-source core banking platform at v5.4.0. The sandbox environment lets you:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
                             <li>Explore 42 domain modules including DeFi, cross-chain, and privacy</li>
@@ -143,7 +143,7 @@
                     </div>
                 </div>
 
-                <div class="faq-item" data-category="alpha">
+                <div class="faq-item" data-category="platform">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
                             <h3 class="text-lg font-semibold text-gray-900">Can I use real money on the platform now?</h3>
@@ -237,7 +237,7 @@
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
                             <li>Backing by USD, EUR, GBP, CHF, JPY, and XAU (gold)</li>
-                            <li>Democratic governance through community voting (coming soon)</li>
+                            <li>Democratic governance through stake-weighted community voting</li>
                             <li>Reduced volatility compared to single currencies</li>
                             <li>Transparent composition and valuation</li>
                             <li>Real bank backing with government insurance (when launched)</li>

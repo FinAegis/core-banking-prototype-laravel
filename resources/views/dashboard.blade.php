@@ -361,7 +361,7 @@
                             <a href="{{ route('support.contact') }}" class="block text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200">
                                 → Contact Support
                             </a>
-                            <button onclick="alert('Live chat coming soon!')" class="block text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200">
+                            <button onclick="alert('Live chat is not yet available.')" class="block text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200">
                                 → Start Live Chat
                             </button>
                         </div>

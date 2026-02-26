@@ -169,9 +169,9 @@
         <!-- CTA Section -->
         <section class="py-20 bg-gray-50">
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-gray-900 mb-6">Join the Revolution</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">Explore P2P Lending</h2>
                 <p class="text-xl text-gray-600 mb-8">
-                    Be among the first to access FinAegis Lending when it launches
+                    Try the full lending lifecycle in our sandbox — from loan origination to repayment
                 </p>
                 <a href="{{ route('lending.index') }}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -429,7 +429,7 @@
                         </div>
                         <h4 class="text-lg font-semibold text-gray-900 mb-2">Official SDKs</h4>
                         <p class="text-gray-600 text-sm">
-                            Native SDKs for JavaScript, Python, PHP, and more coming soon.
+                            Native SDKs for JavaScript, Python, PHP, and more are in development.
                         </p>
                     </div>
                 </div>

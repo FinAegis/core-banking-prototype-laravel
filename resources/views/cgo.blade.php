@@ -38,7 +38,7 @@
                         <div class="text-left">
                             <h3 class="text-lg font-bold text-white mb-2">Demonstration Only</h3>
                             <p class="text-amber-100 text-sm">
-                                This page demonstrates the CGO concept as part of the FinAegis prototype.
+                                This page demonstrates the CGO concept as part of the FinAegis platform.
                                 <strong>No real money is being collected.</strong> This is purely a conceptual exploration
                                 of alternative funding models for open-source financial platforms.
                             </p>
@@ -252,7 +252,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-gray-900 mb-4">Learn More About FinAegis</h2>
-                <p class="text-xl text-gray-600">Explore the concepts and technology behind the prototype</p>
+                <p class="text-xl text-gray-600">Explore the concepts and technology behind the platform</p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-6">

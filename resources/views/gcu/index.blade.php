@@ -322,7 +322,7 @@
                             </a>
                         @else
                             <div class="bg-white rounded-2xl p-8 shadow-lg">
-                                <h3 class="text-2xl font-bold text-gray-900 mb-4">Democratic Voting Coming Soon</h3>
+                                <h3 class="text-2xl font-bold text-gray-900 mb-4">Democratic Voting — Planned</h3>
                                 <div class="space-y-4 text-left">
                                     <div class="flex items-start">
                                         <svg class="w-5 h-5 text-indigo-600 mt-1 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

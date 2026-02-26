@@ -1,23 +1,23 @@
 <x-mail::message>
-# Welcome to {{ company_name() }} CGO Early Access!
+# Thank You for Your Interest in {{ company_name() }} CGO
 
-Thank you for your interest in the {{ company_name() }} Continuous Growth Offering (CGO). You've been added to our early access list!
+You've been added to our notification list for updates about the {{ company_name() }} Continuous Growth Offering (CGO).
 
 ## What happens next?
 
-- We'll notify you **24 hours before** the CGO launches on July 21st, 2025
-- You'll receive exclusive early investor benefits
-- Get priority access to invest before the general public
+- We'll keep you informed as the **CGO concept develops**
+- You'll receive updates on platform milestones and releases
+- You'll be among the first to know when the CGO programme opens
 
-## Why invest in {{ company_name() }}?
+## Why {{ company_name() }}?
 
 - **Democratic Banking**: Community-driven governance model
 - **Real Assets**: Backed by actual bank accounts and global currencies
-- **Continuous Growth**: Unlike traditional ICOs, our CGO continues indefinitely
-- **Ownership Certificates**: Receive official proof of your stake in {{ company_name() }}
+- **Open Source**: Transparent, auditable codebase you can explore today
+- **Continuous Growth**: A funding model designed for long-term alignment
 
 <x-mail::panel>
-**Important**: Maximum investment is capped at 1% per round to ensure fair distribution among all investors.
+**Note**: The CGO is currently a conceptual model. No investment is being solicited at this time. We'll notify you when there are meaningful updates.
 </x-mail::panel>
 
 ## Stay Connected
@@ -28,7 +28,7 @@ Follow our progress and get the latest updates:
 Visit CGO Page
 </x-mail::button>
 
-If you have any questions, feel free to reach out to our team at {{ support_email() }}.
+If you have any questions, feel free to reach out at {{ support_email() }}.
 
 Best regards,<br>
 {{ team_signature() }}
