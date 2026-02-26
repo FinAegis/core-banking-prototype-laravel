@@ -186,7 +186,7 @@
             </div>
         </section>
 
-        <!-- Alpha Notice -->
+        <!-- Development Notice -->
         <section class="py-16 bg-amber-50 border-y border-amber-200">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <div class="flex items-center justify-center mb-4">

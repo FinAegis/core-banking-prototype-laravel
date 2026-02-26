@@ -1,4 +1,16 @@
-<x-guest-layout>
+<x-guest-layout :title="'Blog — ' . config('app.name', 'FinAegis')">
+    @push('meta')
+        <meta name="description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and the future of open-source core banking from the FinAegis team.">
+        <meta property="og:title" content="Blog — {{ config('app.name', 'FinAegis') }}">
+        <meta property="og:description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and the future of open-source core banking.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url('/blog') }}">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Blog — {{ config('app.name', 'FinAegis') }}">
+        <meta name="twitter:description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and open-source core banking.">
+        <link rel="canonical" href="{{ url('/blog') }}">
+    @endpush
+
     <div class="bg-white">
         <!-- Header -->
         <div class="bg-gradient-to-r from-gray-900 to-gray-800">

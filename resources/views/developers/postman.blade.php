@@ -144,7 +144,7 @@
                                         </svg>
                                         <code class="text-sm font-medium text-blue-600">base_url</code>
                                     </div>
-                                    <span class="text-sm text-gray-600">http://finaegis.local/api/v2</span>
+                                    <span class="text-sm text-gray-600">https://finaegis.org/api/v2</span>
                                 </div>
                             </div>
                             <div class="bg-white rounded-lg p-3 border border-gray-200">
@@ -155,7 +155,7 @@
                                         </svg>
                                         <code class="text-sm font-medium text-blue-600">sandbox_url</code>
                                     </div>
-                                    <span class="text-sm text-gray-600">http://finaegis.local/api/v2</span>
+                                    <span class="text-sm text-gray-600">https://finaegis.org/api/v2</span>
                                 </div>
                             </div>
                             <div class="bg-white rounded-lg p-3 border border-gray-200">

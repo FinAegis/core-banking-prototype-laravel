@@ -29,6 +29,13 @@
     <url><loc>https://finaegis.org/support/contact</loc><lastmod>2026-02-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
     <url><loc>https://finaegis.org/support/faq</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
     <url><loc>https://finaegis.org/support/guides</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://finaegis.org/ai-framework/demo</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://finaegis.org/ai-framework/docs</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://finaegis.org/demo/ai-agent</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://finaegis.org/developers/examples</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://finaegis.org/developers/webhooks</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://finaegis.org/developers/postman</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <url><loc>https://finaegis.org/financial-institutions/apply</loc><lastmod>2026-02-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
     <url><loc>https://finaegis.org/cgo</loc><lastmod>2026-02-26</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
     <url><loc>https://finaegis.org/partners</loc><lastmod>2026-02-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
     <url><loc>https://finaegis.org/blog</loc><lastmod>2026-02-26</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
