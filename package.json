@@ -16,7 +16,7 @@
     "dependencies": {
         "@ledgerhq/hw-app-eth": "^6.35.0",
         "@ledgerhq/hw-transport-webusb": "^6.28.0",
-        "@trezor/connect-web": "^9.2.0"
+        "@trezor/connect-web": "^9.7.2"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.11",
