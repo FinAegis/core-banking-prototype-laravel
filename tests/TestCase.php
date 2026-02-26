@@ -24,6 +24,8 @@ abstract class TestCase extends BaseTestCase
     use CreatesApplication;
     use LazilyRefreshDatabase;
 
+    private static int $testCounter = 0;
+
     protected User $user;
 
     protected User $business_user;
@@ -34,10 +36,13 @@ abstract class TestCase extends BaseTestCase
     {
         parent::tearDown();
 
-        // Close any Mockery mocks
-        // Force garbage collection to free memory
-        gc_collect_cycles();
         Mockery::close();
+
+        // Run GC every 50 tests instead of every test to avoid
+        // accumulating into process-level max_execution_time
+        if (++self::$testCounter % 50 === 0) {
+            gc_collect_cycles();
+        }
     }
 
     protected function setUp(): void

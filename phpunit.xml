@@ -62,8 +62,7 @@
         <env name="LIGHTHOUSE_SCHEMA_CACHE_ENABLE" value="false"/>
         <!-- Parallel testing configuration -->
         <env name="PEST_PARALLEL" value="false"/>
-        <!-- Test timeout configuration -->
-        <ini name="max_execution_time" value="300"/>
+        <!-- Memory limit for test process -->
         <ini name="memory_limit" value="1G"/>
     </php>
 </phpunit>

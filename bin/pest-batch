@@ -82,7 +82,7 @@ fi
 
 # Run tests with error handling
 set +e
-php -d memory_limit=$MEMORY_LIMIT ./vendor/bin/pest "${VALID_PATHS[@]}" \
+php -d memory_limit=$MEMORY_LIMIT -d max_execution_time=0 ./vendor/bin/pest "${VALID_PATHS[@]}" \
     --configuration=$CONFIG_FILE \
     --no-coverage \
     --stop-on-failure \
