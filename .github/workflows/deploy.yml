@@ -188,7 +188,7 @@ jobs:
             . || [[ $? -eq 1 ]]
             
       - name: Upload Deployment Package
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: deployment-package-${{ needs.pre-deployment-checks.outputs.deploy-version }}
           path: deploy-*.tar.gz
