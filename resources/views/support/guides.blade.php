@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Support Guides - FinAegis Alpha')
+@section('title', 'Support Guides - FinAegis')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Support Guides - FinAegis Alpha',
-        'description' => 'FinAegis Alpha Platform Guides - Learn how to use and contribute to our open source banking platform.',
-        'keywords' => 'FinAegis guides, alpha testing, documentation, tutorials, open source banking',
+        'title' => 'Support Guides - FinAegis',
+        'description' => 'FinAegis platform guides and documentation. Learn how to use, deploy, and contribute to our open-source core banking platform with 42 domain modules.',
+        'keywords' => 'FinAegis guides, documentation, tutorials, open source banking, core banking platform',
     ])
 @endsection
 
@@ -31,10 +31,10 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
-                        Alpha Platform Guides
+                        Platform Guides
                     </h1>
                     <p class="text-xl md:text-2xl mb-8 text-green-100 max-w-4xl mx-auto">
-                        Learn how to explore the FinAegis alpha platform and contribute to our open source project.
+                        Learn how to explore the FinAegis platform and contribute to our open-source project.
                     </p>
                     <div class="max-w-2xl mx-auto">
                         <div class="relative">
@@ -54,7 +54,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl font-bold text-gray-900">Popular Guides</h2>
-                    <p class="mt-4 text-xl text-gray-600">Start with these essential guides for alpha testing</p>
+                    <p class="mt-4 text-xl text-gray-600">Start with these essential guides to get up and running</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -65,7 +65,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-gray-900 mb-2">Getting Started</h3>
-                        <p class="text-gray-600 text-sm">Alpha platform overview</p>
+                        <p class="text-gray-600 text-sm">Platform overview</p>
                     </a>
 
                     <a href="#development" class="guide-card bg-white rounded-lg shadow-md border border-gray-200 p-6">
@@ -107,44 +107,44 @@
                 <!-- Getting Started -->
                 <section id="getting-started" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900">Getting Started with Alpha Testing</h2>
-                        <p class="mt-2 text-gray-600">Understanding the FinAegis alpha platform and its current state</p>
+                        <h2 class="text-2xl font-bold text-gray-900">Getting Started</h2>
+                        <p class="mt-2 text-gray-600">Understanding the FinAegis platform and how to explore it</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">What is Alpha Testing?</h3>
-                            <p class="text-gray-600 mb-4">The FinAegis platform is currently in alpha testing phase, which means:</p>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">About the Sandbox</h3>
+                            <p class="text-gray-600 mb-4">The public FinAegis instance runs in sandbox mode, which means:</p>
                             <ul class="list-disc list-inside text-gray-600 space-y-2">
-                                <li>All transactions and balances are simulated (no real money)</li>
-                                <li>Features are being actively developed and may change</li>
-                                <li>Some functionality may be incomplete or unstable</li>
+                                <li>All transactions and balances use test data (no real money)</li>
+                                <li>Every feature is available for you to explore</li>
+                                <li>New features are added regularly as the platform evolves</li>
                                 <li>Your feedback helps shape the platform</li>
                             </ul>
-                            <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                                <p class="text-amber-800 text-sm">
-                                    <strong>Important:</strong> Do not attempt to use real financial information or expect real transactions during alpha testing.
+                            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p class="text-blue-800 text-sm">
+                                    <strong>Note:</strong> The sandbox uses test data only. No real financial transactions are processed in this environment.
                                 </p>
                             </div>
                         </div>
 
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
                             <h3 class="text-lg font-semibold text-gray-900 mb-3">Creating Your Test Account</h3>
-                            <p class="text-gray-600 mb-4">Follow these steps to create an alpha testing account:</p>
+                            <p class="text-gray-600 mb-4">Follow these steps to create your account:</p>
                             <ol class="list-decimal list-inside text-gray-600 space-y-2">
                                 <li>Click "Register" on the homepage</li>
                                 <li>Use a test email address (can be your real email)</li>
                                 <li>Create a password (this is for testing only)</li>
-                                <li>Explore the demo dashboard with simulated data</li>
+                                <li>Explore the dashboard with sandbox data</li>
                             </ol>
                             <p class="text-gray-600 mt-4">
-                                <strong>Note:</strong> No real identity verification is required during alpha testing.
+                                <strong>Note:</strong> No real identity verification is required for the sandbox.
                             </p>
                         </div>
 
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Available Features in Alpha</h3>
-                            <p class="text-gray-600 mb-4">Currently available for testing:</p>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Available Features</h3>
+                            <p class="text-gray-600 mb-4">Available to explore in the sandbox:</p>
                             <ul class="list-disc list-inside text-gray-600 space-y-2">
                                 <li>User registration and authentication</li>
                                 <li>Dashboard with simulated account data</li>

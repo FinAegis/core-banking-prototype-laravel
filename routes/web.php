@@ -77,6 +77,12 @@ if (! app()->environment('production')) {
     })->name('sub-products');
 
     Route::get('/sub-products/{product}', function ($product) {
+        $validProducts = ['index'];
+
+        if (! in_array($product, $validProducts)) {
+            abort(404);
+        }
+
         return view('sub-products.' . $product);
     })->name('sub-products.show');
 
@@ -129,6 +135,12 @@ if (! app()->environment('production')) {
     })->name('developers');
 
     Route::get('/developers/{section}', function ($section) {
+        $validSections = ['api-docs', 'sdks', 'examples', 'webhooks', 'postman'];
+
+        if (! in_array($section, $validSections)) {
+            abort(404);
+        }
+
         return view('developers.' . $section);
     })->name('developers.show');
 

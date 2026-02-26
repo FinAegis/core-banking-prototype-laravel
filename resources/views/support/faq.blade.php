@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'FAQ - Frequently Asked Questions | FinAegis',
-        'description' => 'Frequently asked questions about FinAegis alpha platform, Global Currency Unit (GCU), and upcoming features.',
+        'description' => 'Frequently asked questions about FinAegis core banking platform, Global Currency Unit (GCU), architecture, and getting started.',
     ])
     
     {{-- Schema.org FAQ Markup --}}
@@ -13,15 +13,15 @@
     $faqData = [
         [
             'question' => 'What is the current status of FinAegis?',
-            'answer' => 'FinAegis is currently in alpha testing phase. This means no real money transactions are processed yet, no actual bank integrations are active, and the platform is for demonstration and testing purposes only. We expect to launch beta testing in Q2 2025 with limited real transactions.'
+            'answer' => 'FinAegis v5.4.0 is a fully-featured open-source core banking platform with 42 domain modules. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
         ],
         [
-            'question' => 'Can I use real money on the platform now?',
-            'answer' => 'No, the platform currently does not support real money transactions. During the alpha phase, all balances and transactions are simulated, no real bank accounts are connected, and no actual currency conversions occur. This allows us to test and refine features safely before handling real funds.'
+            'question' => 'Can I use real money on the platform?',
+            'answer' => 'The public sandbox environment uses test data only. All balances and transactions are sandboxed, no real bank accounts are connected, and no actual currency conversions occur. This allows you to explore every feature safely. For production deployments, you can self-host or contact us about enterprise options.'
         ],
         [
-            'question' => 'How do I participate in alpha testing?',
-            'answer' => 'To participate in alpha testing, simply register for a free account on our platform. You can explore all features, test the interface, and provide feedback through our support channels.'
+            'question' => 'How do I get started?',
+            'answer' => 'Register for a free account to explore the sandbox, or clone the repository from GitHub to self-host. You can explore all 42 domain modules, test the APIs, and provide feedback through our support channels.'
         ],
         [
             'question' => 'What is the Global Currency Unit (GCU)?',
@@ -68,7 +68,7 @@
             <div class="text-center">
                 <h1 class="text-5xl font-bold mb-6">Frequently Asked Questions</h1>
                 <p class="text-xl text-purple-100 max-w-3xl mx-auto">
-                    Find answers to common questions about FinAegis alpha platform and the Global Currency Unit concept.
+                    Find answers to common questions about the FinAegis platform and the Global Currency Unit concept.
                 </p>
                 
                 <!-- Search Bar -->
@@ -99,7 +99,7 @@
                     GCU
                 </button>
                 <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="alpha">
-                    Alpha Testing
+                    Platform Status
                 </button>
                 <button class="category-filter px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition" data-category="technical">
                     Technical
@@ -116,7 +116,7 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="space-y-4" id="faq-container">
                 
-                <!-- Alpha Testing Questions -->
+                <!-- Platform Status Questions -->
                 <div class="faq-item" data-category="alpha">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
@@ -128,17 +128,17 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            FinAegis is currently in alpha testing phase. This means:
+                            FinAegis is a fully-featured open-source core banking prototype at v5.4.0. The sandbox environment lets you:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>No real money transactions are processed yet</li>
-                            <li>No actual bank integrations are active</li>
-                            <li>The platform is for demonstration and testing purposes only</li>
-                            <li>Features are being actively developed and may change</li>
-                            <li>We're gathering feedback to improve the platform</li>
+                            <li>Explore 42 domain modules including DeFi, cross-chain, and privacy</li>
+                            <li>Test 143+ REST API endpoints and a 34-domain GraphQL API</li>
+                            <li>Try KYC/AML compliance flows, card issuing, and mobile payments</li>
+                            <li>All transactions use test data &mdash; no real funds are involved</li>
+                            <li>Community feedback drives the roadmap forward</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
-                            We expect to launch beta testing in Q2 2025 with limited real transactions.
+                            Follow our GitHub repository for release notes and upcoming milestones.
                         </p>
                     </div>
                 </div>
@@ -154,16 +154,16 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            No, the platform currently does not support real money transactions. During the alpha phase:
+                            No. The sandbox environment is designed for evaluation and testing only:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>All balances and transactions are simulated</li>
-                            <li>No real bank accounts are connected</li>
-                            <li>No actual currency conversions occur</li>
-                            <li>Payment integrations are disabled</li>
+                            <li>All balances and transactions use test data</li>
+                            <li>Bank and card integrations connect to provider sandboxes</li>
+                            <li>Currency conversions use reference rates, not live markets</li>
+                            <li>Payment flows are fully functional but process no real funds</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
-                            This allows us to test and refine features safely before handling real funds.
+                            This lets you explore every feature safely while we refine the platform.
                         </p>
                     </div>
                 </div>
@@ -172,7 +172,7 @@
                 <div class="faq-item" data-category="getting-started">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-gray-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">How do I participate in alpha testing?</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">How do I get started with FinAegis?</h3>
                             <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -180,11 +180,11 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            To participate in alpha testing:
+                            Getting started takes just a few minutes:
                         </p>
                         <ol class="list-decimal list-inside mt-2 text-gray-600 space-y-1">
                             <li>Register for a free account on the platform</li>
-                            <li>Explore the demo features and simulated transactions</li>
+                            <li>Explore the sandbox features and test transactions</li>
                             <li>Report bugs and issues on our GitHub repository</li>
                             <li>Provide feedback via email at info@finaegis.org</li>
                             <li>Join discussions on our GitHub community forum</li>
@@ -243,7 +243,7 @@
                             <li>Real bank backing with government insurance (when launched)</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
-                            <strong>Note:</strong> GCU is currently a demonstration concept. Real implementation will begin in beta phase.
+                            <strong>Note:</strong> GCU is currently available in sandbox mode. Production launch with live currency backing is planned for a future release.
                         </p>
                     </div>
                 </div>
@@ -269,7 +269,7 @@
                             <li>Automatic rebalancing based on vote outcomes</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
-                            <strong>Status:</strong> Voting functionality is planned for Q3 2025 after beta launch.
+                            <strong>Status:</strong> Voting functionality is on the roadmap for a future release.
                         </p>
                     </div>
                 </div>
@@ -319,7 +319,7 @@
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
                             <li>Authentication endpoints (login, register, logout)</li>
                             <li>Account management endpoints</li>
-                            <li>Transaction endpoints (simulated)</li>
+                            <li>Transaction endpoints (sandbox)</li>
                             <li>Currency conversion endpoints</li>
                             <li>User profile endpoints</li>
                         </ul>
@@ -344,11 +344,11 @@
                             We have an exciting roadmap ahead:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li><strong>Q2 2025:</strong> Beta launch with limited real transactions</li>
-                            <li><strong>Q3 2025:</strong> GCU voting system implementation</li>
-                            <li><strong>Q4 2025:</strong> API key management and SDKs</li>
-                            <li><strong>2026:</strong> Exchange module, lending module, stablecoins</li>
-                            <li><strong>Future:</strong> Mobile apps, advanced trading features</li>
+                            <li><strong>Delivered:</strong> 42 domain modules, 143+ API endpoints, GraphQL, event sourcing</li>
+                            <li><strong>Delivered:</strong> Mobile app backend, passkey auth, card issuing, KYC/AML</li>
+                            <li><strong>Delivered:</strong> Cross-chain bridges, DeFi connectors, X402 micropayments</li>
+                            <li><strong>Upcoming:</strong> GCU voting system, production bank integrations</li>
+                            <li><strong>Upcoming:</strong> Live transaction processing, expanded mobile features</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
                             Follow our GitHub repository for detailed progress updates.
@@ -367,17 +367,17 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-gray-600">
-                            Yes, mobile apps are on our roadmap:
+                            Yes! A cross-platform mobile app (Expo/React Native) is already available:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                            <li>iOS and Android native apps planned</li>
-                            <li>Expected release after platform stabilization</li>
-                            <li>Will include all core platform features</li>
-                            <li>Biometric authentication support</li>
-                            <li>Push notifications for transactions</li>
+                            <li>iOS and Android via a single Expo codebase</li>
+                            <li>Passkey and biometric authentication</li>
+                            <li>Push notifications via Firebase Cloud Messaging</li>
+                            <li>Payment intents, activity feed, and receipt management</li>
+                            <li>Privacy relayer and ERC-4337 smart account integration</li>
                         </ul>
                         <p class="text-gray-600 mt-3">
-                            In the meantime, our web platform is fully responsive and works well on mobile browsers.
+                            The web platform is also fully responsive and works well on mobile browsers.
                         </p>
                     </div>
                 </div>
@@ -386,7 +386,7 @@
                 <div class="mt-12 bg-indigo-50 rounded-xl p-8 text-center">
                     <h3 class="text-xl font-semibold text-gray-900 mb-4">Can't find what you're looking for?</h3>
                     <p class="text-gray-600 mb-6">
-                        Our team is here to help during the alpha testing phase.
+                        Our team is here to help. Reach out any time.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <a href="{{ route('support.contact') }}" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">

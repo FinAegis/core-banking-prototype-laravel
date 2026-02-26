@@ -1,22 +1,21 @@
-<!-- Alpha Testing Banner -->
-<div class="relative z-50 bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg">
+<!-- Sandbox Environment Banner -->
+<div class="relative z-50 bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="py-4">
+        <div class="py-3">
             <div class="flex items-center justify-center space-x-3">
-                <div class="flex items-center space-x-2 animate-pulse">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="font-bold text-lg tracking-wide">ALPHA TESTING</span>
+                    <span class="font-bold text-sm tracking-wide uppercase">Sandbox Environment</span>
                 </div>
                 <div class="hidden sm:flex items-center space-x-2 text-sm font-medium">
-                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">No Real Transactions</span>
-                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">Demo Only</span>
-                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">Prototype Mode</span>
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">Test Data Only</span>
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">No Real Funds</span>
                 </div>
             </div>
-            <div class="sm:hidden mt-2 text-center text-sm font-medium">
-                <span class="block">⚠️ Demo Environment - No Real Transactions</span>
+            <div class="sm:hidden mt-1 text-center text-xs font-medium">
+                <span class="block">Sandbox &mdash; All transactions use test data</span>
             </div>
         </div>
     </div>

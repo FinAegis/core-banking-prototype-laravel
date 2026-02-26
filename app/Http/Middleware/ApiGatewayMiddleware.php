@@ -54,7 +54,7 @@ class ApiGatewayMiddleware
             $response->headers->set(self::REQUEST_ID_HEADER, $requestId);
             $response->headers->set(self::API_VERSION_HEADER, config('app.version', '5.0.0'));
             $response->headers->set(self::TIMING_HEADER, "{$elapsed}ms");
-            $response->headers->set('X-Powered-By', 'FinAegis');
+            $response->headers->remove('X-Powered-By');
         }
 
         // Log response

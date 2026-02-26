@@ -81,7 +81,7 @@
                     </p>
                     <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mt-6">
                         <p class="text-blue-800">
-                            <strong>Demo environment:</strong> Transactions are simulated. Explore every feature freely without risk.
+                            <strong>Sandbox environment:</strong> All transactions use test data. Explore every feature freely.
                         </p>
                     </div>
                     <div class="mt-8">
@@ -325,7 +325,7 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50">
-                    Try the Demo
+                    See It in Action
                 </a>
                 <a href="{{ route('features') }}" class="inline-flex items-center justify-center px-8 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-indigo-700">
                     See Features

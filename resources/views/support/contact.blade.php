@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Contact Us - FinAegis Support',
-        'description' => 'Contact FinAegis support team. Get help with alpha testing feedback and report issues for our open source banking platform.',
+        'description' => 'Contact the FinAegis team for technical support, partnership inquiries, or to report issues. Community support for our open-source core banking platform with 42 domain modules.',
     ])
 @endsection
 
@@ -25,7 +25,7 @@
             <div class="text-center">
                 <h1 class="text-5xl font-bold mb-6">Contact Us</h1>
                 <p class="text-xl text-purple-100 max-w-3xl mx-auto">
-                    We're here to help during our alpha testing phase. Share your feedback, report issues, or ask questions about FinAegis.
+                    Share your feedback, report issues, or ask questions about FinAegis. Our community and team are here to help.
                 </p>
             </div>
         </div>

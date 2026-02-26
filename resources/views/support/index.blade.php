@@ -106,7 +106,7 @@
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-3">Contact Support</h3>
                         <p class="text-gray-600 mb-4">
-                            Get in touch with our support team for alpha testing feedback
+                            Get in touch with our support team for feedback or questions
                         </p>
                         <span class="text-green-600 font-semibold">Contact Us →</span>
                     </a>
@@ -121,7 +121,7 @@
                     <div>
                         <h2 class="text-3xl font-bold text-gray-900 mb-6">Community Support</h2>
                         <p class="text-lg text-gray-600 mb-8">
-                            Join our open source community for help, discussions, and contributions. As an alpha platform, community feedback is invaluable.
+                            Join our open source community for help, discussions, and contributions. Community feedback drives the platform forward.
                         </p>
                         
                         <div class="space-y-4">
@@ -193,10 +193,10 @@
                     <svg class="w-8 h-8 text-amber-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <h3 class="text-2xl font-bold text-amber-900">Alpha Testing Phase</h3>
+                    <h3 class="text-2xl font-bold text-amber-900">Active Development</h3>
                 </div>
                 <p class="text-lg text-amber-800 max-w-3xl mx-auto">
-                    FinAegis is currently in alpha testing. Features are being actively developed and may change. Your feedback helps us build a better platform.
+                    FinAegis is under active development. Features are continuously improving and expanding. Your feedback helps us build a better platform.
                 </p>
             </div>
         </section>
@@ -250,7 +250,7 @@
             <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
                 <h2 class="text-4xl font-bold mb-6">Still Need Help?</h2>
                 <p class="text-xl mb-8 text-purple-100">
-                    Our team is here to support you during the alpha testing phase
+                    Our team and community are here to help you get the most out of FinAegis
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('support.contact') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition inline-block">

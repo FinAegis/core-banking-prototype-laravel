@@ -71,8 +71,8 @@
             
             <!-- Mobile menu button -->
             <div class="md:hidden flex items-center">
-                <button id="mobile-menu-button" class="text-gray-700 hover:text-indigo-600">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="mobile-menu-button" class="text-gray-700 hover:text-indigo-600" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
@@ -125,7 +125,10 @@
 <script>
     // Mobile menu toggle
     document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const button = this;
         const menu = document.getElementById('mobile-menu');
+        const isOpen = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', !isOpen);
         menu.classList.toggle('hidden');
     });
 </script>

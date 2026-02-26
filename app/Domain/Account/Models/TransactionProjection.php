@@ -56,7 +56,27 @@ class TransactionProjection extends Model
 
     protected $table = 'transaction_projections';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'uuid',
+        'account_uuid',
+        'asset_code',
+        'amount',
+        'type',
+        'subtype',
+        'description',
+        'reference',
+        'external_reference',
+        'hash',
+        'metadata',
+        'status',
+        'related_account_uuid',
+        'transaction_group_uuid',
+        'parent_transaction_id',
+        'cancelled_at',
+        'cancelled_by',
+        'retried_at',
+        'retry_transaction_id',
+    ];
 
     protected $casts = [
         'amount'     => 'integer',

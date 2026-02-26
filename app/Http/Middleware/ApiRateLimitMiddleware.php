@@ -48,7 +48,7 @@ class ApiRateLimitMiddleware
         'webhook' => [
             'limit'          => 1000,   // 1000 requests
             'window'         => 60,    // per minute
-            'block_duration' => 0, // No lockout for webhooks
+            'block_duration' => 300, // 5 minutes lockout after exceeding
         ],
     ];
 
