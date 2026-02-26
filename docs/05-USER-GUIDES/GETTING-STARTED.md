@@ -1,6 +1,6 @@
 # Getting Started with FinAegis
 
-This guide walks you through the FinAegis demo environment. Since this is a prototype, all transactions are simulated - perfect for exploring without risk.
+This guide walks you through the FinAegis demo environment. In the sandbox, all transactions are simulated — perfect for exploring without risk.
 
 ## Quick Start
 

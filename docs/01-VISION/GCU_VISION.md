@@ -119,4 +119,4 @@ Key GCU components:
 
 ---
 
-*GCU is a conceptual demonstration. This prototype shows how such a system could be built, but is not production software.*
+*GCU is a conceptual demonstration. This platform shows how such a system could be built using modern banking architecture patterns.*

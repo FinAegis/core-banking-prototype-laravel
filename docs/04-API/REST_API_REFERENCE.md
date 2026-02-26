@@ -2,7 +2,7 @@
 
 **Version:** 2.6.0
 **Last Updated:** February 5, 2026
-**Status:** Demonstration Prototype
+**Status:** Production-Grade Platform
 
 This document consolidates all REST API endpoints for the FinAegis Core Banking Platform, including v2.6.0 privacy and relayer features.
 

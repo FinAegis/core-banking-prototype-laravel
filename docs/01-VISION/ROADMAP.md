@@ -1,4 +1,4 @@
-# FinAegis Prototype Roadmap
+# FinAegis Platform Roadmap
 
 **Last Updated:** 2026-02-21
 **Current Version:** v5.1.5
@@ -8,7 +8,7 @@
 
 ## Vision
 
-**FinAegis** is a comprehensive banking prototype demonstrating advanced financial architecture patterns. Built with Domain-Driven Design, Event Sourcing, and CQRS, it serves as an educational resource and foundation for modern banking system design.
+**FinAegis** is a comprehensive banking platform demonstrating advanced financial architecture patterns. Built with Domain-Driven Design, Event Sourcing, and CQRS, it serves as an educational resource and foundation for modern banking system design.
 
 ---
 
@@ -198,4 +198,4 @@
 
 ---
 
-**This roadmap reflects the technical patterns and architecture implemented in the FinAegis prototype, serving as an educational resource and foundation for understanding modern banking system design.**
+**This roadmap reflects the technical patterns and architecture implemented in the FinAegis platform, serving as an educational resource and foundation for understanding modern banking system design.**

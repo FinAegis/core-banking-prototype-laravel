@@ -214,8 +214,35 @@ Key deliverables:
 - PasskeyAuthenticationServiceTest fix (v5.1.4 token pair alignment)
 - Roadmap updated with v5.1.0–v5.1.4 entries
 
+v5.2.0 — X402 Protocol: HTTP-Native Micropayments (COMPLETED)
+Status: Released
+Key deliverables:
+- HTTP 402 payment protocol for USDC on Base
+- Payment gate middleware, facilitator integration
+- AI agent payments, spending limits
+- GraphQL/REST APIs, MCP tool
+
+v5.4.0 — Ondato KYC, Sanctions Screening & Card Issuing (COMPLETED)
+Status: Released
+Key deliverables:
+- Ondato identity verification with TrustCert linkage
+- Chainalysis sanctions adapter
+- Marqeta card issuing adapter
+- Firebase FCM v1 migration
+- X402/mobile test hardening, CVE patches
+
+Platform Hardening (Post-v5.4.0, COMPLETED)
+Status: All 6 phases merged (#641, #654, #655, #656, #657, TBD)
+Key deliverables:
+- Dependabot: 4 safe PRs merged, 5 breaking PRs closed with ignore rules
+- CI: Removed process-level max_execution_time=300, optimized GC to every 50 tests
+- IdempotencyMiddleware: Applied to ~24 financial mutation routes across 11 domain route files
+- E2E Tests: 6 banking flow tests (deposit-transfer, exchange, lending, overdraft, withdrawal, frozen)
+- Multi-Tenancy: 5 isolation tests (auto-skip on SQLite, MySQL-only)
+- Documentation: "prototype" references updated to "platform" across 11 doc files
+
 Future roadmap:
-- v5.2.0 — OpenAPI Attribute Migration (10,385 @OA\ docblocks → PHP 8 #[OA\] attributes, drop doctrine/annotations), Laravel 13 upgrade when available, PHP 8.5 features
+- OpenAPI Attribute Migration (10,385 @OA\ docblocks → PHP 8 #[OA\] attributes, drop doctrine/annotations), Laravel 13 upgrade when available, PHP 8.5 features
 
 ---
 

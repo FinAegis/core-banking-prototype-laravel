@@ -1,8 +1,8 @@
-# FinAegis Core Banking Prototype - Developer Guide
+# FinAegis Core Banking Platform - Developer Guide
 
 ## Overview
 
-FinAegis is an open-source banking prototype built with Laravel 12, demonstrating event sourcing, domain-driven design, and workflow orchestration patterns. This prototype serves as an educational resource and foundation for understanding modern banking architecture.
+FinAegis is an open-source core banking platform built with Laravel 12, implementing event sourcing, domain-driven design, and workflow orchestration patterns. The platform serves as both a production-grade foundation and educational resource for modern banking architecture.
 
 **🤖 AI-Friendly Development**: This project actively welcomes contributions from AI coding assistants including Claude Code, GitHub Copilot, Cursor, and other vibe coding tools. The well-structured architecture, comprehensive documentation, and clear patterns make it easy for AI agents to understand the codebase and contribute meaningfully.
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the webhook signature validation implementation that protects all webhook endpoints in the FinAegis Core Banking Prototype. This security enhancement addresses the critical vulnerability where webhook endpoints were broadly exempted from CSRF protection without proper signature validation.
+This document describes the webhook signature validation implementation that protects all webhook endpoints in the FinAegis Core Banking Platform. This security enhancement addresses the critical vulnerability where webhook endpoints were broadly exempted from CSRF protection without proper signature validation.
 
 ## Security Architecture
 
