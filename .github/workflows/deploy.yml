@@ -217,7 +217,7 @@ jobs:
 
       - name: Download Deployment Package
         if: steps.check-config.outputs.configured == 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: deployment-package-${{ needs.pre-deployment-checks.outputs.deploy-version }}
 
@@ -332,7 +332,7 @@ jobs:
 
       - name: Download Deployment Package
         if: steps.check-config.outputs.configured == 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: deployment-package-${{ needs.pre-deployment-checks.outputs.deploy-version }}
 
