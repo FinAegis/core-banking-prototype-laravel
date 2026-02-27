@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Relayer;
 
 use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Domain\Relayer\Exceptions\RpcException;
+use App\Domain\Relayer\Services\EthRpcClient;
 use App\Domain\Relayer\Services\GasStationService;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Http\Controllers\Controller;
@@ -16,6 +18,7 @@ class MobileRelayerController extends Controller
     public function __construct(
         private readonly GasStationService $gasStation,
         private readonly SmartAccountService $smartAccountService,
+        private readonly ?EthRpcClient $rpcClient = null,
     ) {
     }
 
@@ -590,7 +593,7 @@ class MobileRelayerController extends Controller
                     'gwei'        => (float) $supported->getCurrentGasPrice(),
                     'usdEstimate' => $supported->getAverageGasCostUsd(),
                 ],
-                'blockNumber' => random_int(50_000_000, 60_000_000),
+                'blockNumber' => $this->getBlockNumber($supported),
                 'relayer'     => [
                     'status'            => 'active',
                     'queueDepth'        => 0,
@@ -599,5 +602,23 @@ class MobileRelayerController extends Controller
                 'updatedAt' => now()->toIso8601String(),
             ],
         ]);
+    }
+
+    /**
+     * Get the current block number for a network.
+     *
+     * Queries the RPC node when available, falls back to random_int for demo mode.
+     */
+    private function getBlockNumber(SupportedNetwork $network): int
+    {
+        if ($this->rpcClient !== null) {
+            try {
+                return $this->rpcClient->getBlockNumber($network);
+            } catch (RpcException) {
+                // Fall through to demo value
+            }
+        }
+
+        return random_int(50_000_000, 60_000_000);
     }
 }

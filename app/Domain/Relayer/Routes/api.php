@@ -19,6 +19,7 @@ Route::prefix('v1/relayer')->name('api.relayer.')->group(function () {
         Route::post('/estimate', [RelayerController::class, 'estimate'])->name('estimate');
 
         // Smart Account Management (v2.6.0)
+        Route::get('/account', [SmartAccountController::class, 'getAccount'])->name('account.show');
         Route::post('/account', [SmartAccountController::class, 'createAccount'])
             ->middleware('transaction.rate_limit:relayer')
             ->name('account.create');

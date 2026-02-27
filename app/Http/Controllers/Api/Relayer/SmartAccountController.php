@@ -31,6 +31,74 @@ class SmartAccountController extends Controller
     }
 
     /**
+     * Get the user's primary smart account.
+     *
+     * Returns the first smart account created for the authenticated user,
+     * optionally filtered by network. Useful for mobile apps that need
+     * a single account reference.
+     *
+     * @OA\Get(
+     *     path="/api/v1/relayer/account",
+     *     summary="Get user's primary smart account",
+     *     tags={"Smart Accounts"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="network",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"polygon", "base", "arbitrum"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Primary smart account",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid"),
+     *                 @OA\Property(property="owner_address", type="string"),
+     *                 @OA\Property(property="account_address", type="string"),
+     *                 @OA\Property(property="network", type="string"),
+     *                 @OA\Property(property="deployed", type="boolean"),
+     *                 @OA\Property(property="nonce", type="integer"),
+     *                 @OA\Property(property="pending_ops", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=404, description="No smart account found")
+     * )
+     */
+    public function getAccount(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $network = $request->query('network');
+
+        $query = $this->smartAccountService->getUserAccounts($user);
+
+        if ($network !== null && $network !== '') {
+            $query = $query->where('network', $network);
+        }
+
+        $account = $query->sortBy('created_at')->first();
+
+        if ($account === null) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => SmartAccountException::CODE_ACCOUNT_NOT_FOUND,
+                    'message' => 'No smart account found for this user',
+                ],
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $account->toApiResponse(),
+        ]);
+    }
+
+    /**
      * Create or retrieve a smart account.
      *
      * Returns the counterfactual smart account address for the given owner.
