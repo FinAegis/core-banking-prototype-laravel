@@ -31,7 +31,7 @@ class RailgunBridgeClient
     /**
      * Create a RAILGUN wallet via the bridge.
      *
-     * @return array{wallet_id: string, railgun_address: string}
+     * @return array<string, mixed>
      */
     public function createWallet(string $walletId, string $mnemonic, string $encryptionKey): array
     {
@@ -45,7 +45,7 @@ class RailgunBridgeClient
     /**
      * Get shielded token balances for a wallet on a network.
      *
-     * @return array{wallet_id: string, network: string, balances: array<string, string>}
+     * @return array<string, mixed>
      */
     public function getBalances(string $walletId, string $network): array
     {
@@ -57,7 +57,7 @@ class RailgunBridgeClient
     /**
      * Trigger a wallet balance rescan.
      *
-     * @return array{wallet_id: string, network: string, status: string}
+     * @return array<string, mixed>
      */
     public function scanWallet(string $walletId, ?string $network = null): array
     {
@@ -70,7 +70,7 @@ class RailgunBridgeClient
     /**
      * Build a shield (deposit) transaction.
      *
-     * @return array{transaction: array, gas_estimate: string|null, nullifiers: array, network: string}
+     * @return array<string, mixed>
      */
     public function shield(string $walletId, string $tokenAddress, string $amount, string $network): array
     {
@@ -85,7 +85,7 @@ class RailgunBridgeClient
     /**
      * Build an unshield (withdraw) transaction.
      *
-     * @return array{transaction: array, nullifiers: array, network: string}
+     * @return array<string, mixed>
      */
     public function unshield(
         string $walletId,
@@ -108,7 +108,7 @@ class RailgunBridgeClient
     /**
      * Build a private transfer between two 0zk addresses.
      *
-     * @return array{transaction: array, nullifiers: array, network: string}
+     * @return array<string, mixed>
      */
     public function privateTransfer(
         string $walletId,
@@ -131,7 +131,7 @@ class RailgunBridgeClient
     /**
      * Get the current Merkle root for a network.
      *
-     * @return array{root: string, network: string, leaf_count: int, tree_depth: int, synced_at: string}
+     * @return array<string, mixed>
      */
     public function getMerkleRoot(string $network): array
     {
@@ -141,7 +141,7 @@ class RailgunBridgeClient
     /**
      * Get a Merkle proof for a commitment.
      *
-     * @return array{commitment: string, root: string, network: string, tree_depth: int, verified: bool}
+     * @return array<string, mixed>
      */
     public function getMerkleProof(string $commitment, string $network): array
     {
@@ -153,7 +153,7 @@ class RailgunBridgeClient
     /**
      * Check bridge health status.
      *
-     * @return array{status: string, engine_ready: bool, supported_networks: array, loaded_networks: array}
+     * @return array<string, mixed>
      */
     public function health(): array
     {

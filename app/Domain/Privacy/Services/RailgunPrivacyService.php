@@ -72,13 +72,13 @@ class RailgunPrivacyService
     /**
      * Get shielded balances for a user, optionally filtered by network.
      *
-     * @return array<int, array{token: string, balance: string, network: string, last_synced_at: string|null}>
+     * @return list<array<string, mixed>>
      */
     public function getShieldedBalances(User $user, ?string $network = null): array
     {
         $wallets = RailgunWallet::query()
             ->forUser($user->id)
-            ->when($network, fn ($q) => $q->forNetwork($network))
+            ->when($network !== null, fn ($q) => $q->forNetwork((string) $network))
             ->where('status', RailgunWallet::STATUS_ACTIVE)
             ->get();
 
@@ -176,6 +176,7 @@ class RailgunPrivacyService
                 'USDC', 'USDT' => $balance->balance,
                 default => '0.00', // Non-stablecoin tokens need price feed
             };
+            /** @var numeric-string $usdValue */
             $total = bcadd($total, $usdValue, 2);
         }
 
@@ -420,6 +421,7 @@ class RailgunPrivacyService
             default => 18,
         };
 
+        /** @var numeric-string $amount */
         return bcmul($amount, bcpow('10', (string) $decimals, 0), 0);
     }
 

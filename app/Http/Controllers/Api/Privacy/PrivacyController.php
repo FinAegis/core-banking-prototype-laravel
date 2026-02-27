@@ -44,6 +44,13 @@ class PrivacyController extends Controller
             && config('privacy.zk.provider') === 'railgun';
     }
 
+    private function railgun(): RailgunPrivacyService
+    {
+        assert($this->railgunService !== null);
+
+        return $this->railgunService;
+    }
+
     /**
      * Get the current Merkle root for a network.
      *
@@ -566,7 +573,7 @@ class PrivacyController extends Controller
 
         if ($this->isRailgunMode()) {
             $network = $request->query('network');
-            $balances = $this->railgunService->getShieldedBalances(
+            $balances = $this->railgun()->getShieldedBalances(
                 $user,
                 is_string($network) ? $network : null,
             );
@@ -625,7 +632,7 @@ class PrivacyController extends Controller
         if ($this->isRailgunMode()) {
             /** @var User $user */
             $user = $request->user();
-            $data = $this->railgunService->getTotalShieldedBalance($user);
+            $data = $this->railgun()->getTotalShieldedBalance($user);
 
             return response()->json([
                 'success' => true,
@@ -718,7 +725,7 @@ class PrivacyController extends Controller
         $user = $request->user();
 
         if ($this->isRailgunMode()) {
-            $result = $this->railgunService->shield(
+            $result = $this->railgun()->shield(
                 $user,
                 $validated['token'],
                 $validated['amount'],
@@ -785,7 +792,7 @@ class PrivacyController extends Controller
         $user = $request->user();
 
         if ($this->isRailgunMode()) {
-            $result = $this->railgunService->unshield(
+            $result = $this->railgun()->unshield(
                 $user,
                 $validated['recipient'],
                 $validated['token'],
@@ -857,7 +864,7 @@ class PrivacyController extends Controller
         $user = $request->user();
 
         if ($this->isRailgunMode()) {
-            $result = $this->railgunService->privateTransfer(
+            $result = $this->railgun()->privateTransfer(
                 $user,
                 $validated['recipient_commitment'] ?? '',
                 $validated['token'],
@@ -919,7 +926,7 @@ class PrivacyController extends Controller
         $user = $request->user();
 
         $viewingKey = $this->isRailgunMode()
-            ? $this->railgunService->getViewingKey($user)
+            ? $this->railgun()->getViewingKey($user)
             : '0x' . hash('sha256', 'viewing_key_' . $user->id);
 
         return response()->json([
