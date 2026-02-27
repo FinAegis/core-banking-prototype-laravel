@@ -96,12 +96,12 @@ class RailgunWallet extends Model
     public function toApiResponse(): array
     {
         return [
-            'id'               => $this->id,
-            'railgun_address'  => $this->railgun_address,
-            'network'          => $this->network,
-            'last_scan_block'  => $this->last_scan_block,
-            'status'           => $this->status,
-            'created_at'       => $this->created_at->toIso8601String(),
+            'id'              => $this->id,
+            'railgun_address' => $this->railgun_address,
+            'network'         => $this->network,
+            'last_scan_block' => $this->last_scan_block,
+            'status'          => $this->status,
+            'created_at'      => $this->created_at->toIso8601String(),
         ];
     }
 }

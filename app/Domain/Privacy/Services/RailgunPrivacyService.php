@@ -52,18 +52,18 @@ class RailgunPrivacyService
         $bridgeData = $this->bridge->createWallet($walletId, $mnemonic, $encryptionKey);
 
         $wallet = RailgunWallet::create([
-            'user_id'             => $user->id,
-            'railgun_address'     => $bridgeData['railgun_address'],
-            'encrypted_mnemonic'  => $mnemonic,
-            'network'             => $network,
-            'last_scan_block'     => 0,
-            'status'              => RailgunWallet::STATUS_ACTIVE,
+            'user_id'            => $user->id,
+            'railgun_address'    => $bridgeData['railgun_address'],
+            'encrypted_mnemonic' => $mnemonic,
+            'network'            => $network,
+            'last_scan_block'    => 0,
+            'status'             => RailgunWallet::STATUS_ACTIVE,
         ]);
 
         Log::info('RAILGUN wallet created for user', [
-            'user_id'          => $user->id,
-            'network'          => $network,
-            'railgun_address'  => $bridgeData['railgun_address'],
+            'user_id'         => $user->id,
+            'network'         => $network,
+            'railgun_address' => $bridgeData['railgun_address'],
         ]);
 
         return $wallet;
@@ -210,14 +210,14 @@ class RailgunPrivacyService
         ]);
 
         return [
-            'operation'        => 'shield',
-            'status'           => 'transaction_ready',
-            'transaction'      => $result['transaction'] ?? null,
-            'gas_estimate'     => $result['gas_estimate'] ?? null,
-            'token'            => $token,
-            'amount'           => $amount,
-            'network'          => $network,
-            'railgun_address'  => $wallet->railgun_address,
+            'operation'       => 'shield',
+            'status'          => 'transaction_ready',
+            'transaction'     => $result['transaction'] ?? null,
+            'gas_estimate'    => $result['gas_estimate'] ?? null,
+            'token'           => $token,
+            'amount'          => $amount,
+            'network'         => $network,
+            'railgun_address' => $wallet->railgun_address,
         ];
     }
 
@@ -416,8 +416,8 @@ class RailgunPrivacyService
     {
         $decimals = match ($token) {
             'USDC', 'USDT' => 6,
-            'WETH'         => 18,
-            default        => 18,
+            'WETH'  => 18,
+            default => 18,
         };
 
         return bcmul($amount, bcpow('10', (string) $decimals, 0), 0);
@@ -430,8 +430,8 @@ class RailgunPrivacyService
     {
         $decimals = match ($token) {
             'USDC', 'USDT' => 6,
-            'WETH'         => 18,
-            default        => 18,
+            'WETH'  => 18,
+            default => 18,
         };
 
         if ($rawBalance === '0' || $rawBalance === '') {

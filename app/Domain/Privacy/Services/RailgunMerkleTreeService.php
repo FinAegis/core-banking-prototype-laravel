@@ -134,7 +134,7 @@ class RailgunMerkleTreeService implements MerkleTreeServiceInterface
 
     private function assertNetworkSupported(string $network): void
     {
-        if (!$this->supportsNetwork($network)) {
+        if (! $this->supportsNetwork($network)) {
             throw new RuntimeException(
                 "Network '{$network}' is not supported by RAILGUN. Supported: " . implode(', ', $this->supportedNetworks),
             );

@@ -9,6 +9,7 @@ use App\Domain\Privacy\Enums\ProofType;
 use App\Domain\Privacy\ValueObjects\ZkProof;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 use RuntimeException;
 
 /**
@@ -79,10 +80,10 @@ class RailgunZkProverService implements ZkProverInterface
             createdAt: $createdAt,
             expiresAt: $expiresAt,
             metadata: [
-                'provider'  => $this->getProviderName(),
-                'endpoint'  => $bridgeEndpoint,
-                'network'   => $publicInputs['network'] ?? 'polygon',
-                'has_tx'    => isset($data['transaction']),
+                'provider' => $this->getProviderName(),
+                'endpoint' => $bridgeEndpoint,
+                'network'  => $publicInputs['network'] ?? 'polygon',
+                'has_tx'   => isset($data['transaction']),
             ],
         );
     }
@@ -111,7 +112,7 @@ class RailgunZkProverService implements ZkProverInterface
             $data = json_decode($decoded, true, 512, JSON_THROW_ON_ERROR);
 
             return isset($data['transaction']);
-        } catch (\JsonException) {
+        } catch (JsonException) {
             return false;
         }
     }
@@ -145,10 +146,10 @@ class RailgunZkProverService implements ZkProverInterface
         // RAILGUN circuits: shield_1_1, unshield_2_1, transfer_2_2
         // We map the generic ProofType to the RAILGUN-specific operation
         return match ($type) {
-            ProofType::SANCTIONS_CLEAR    => 'shield',
-            ProofType::KYC_TIER           => 'unshield',
-            ProofType::AGE_VERIFICATION   => 'transfer',
-            default => throw new RuntimeException(
+            ProofType::SANCTIONS_CLEAR  => 'shield',
+            ProofType::KYC_TIER         => 'unshield',
+            ProofType::AGE_VERIFICATION => 'transfer',
+            default                     => throw new RuntimeException(
                 "ProofType '{$type->value}' cannot be mapped to a RAILGUN circuit. " .
                 'Supported: sanctions_clear (shield), kyc_tier (unshield), age_verification (transfer).',
             ),

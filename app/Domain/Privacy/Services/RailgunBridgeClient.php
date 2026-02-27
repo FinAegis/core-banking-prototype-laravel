@@ -9,6 +9,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 /**
  * HTTP client for the Node.js RAILGUN Bridge Service.
@@ -118,12 +119,12 @@ class RailgunBridgeClient
         string $network,
     ): array {
         return $this->post('/transfer', [
-            'walletId'                  => $walletId,
-            'encryptionKey'             => $encryptionKey,
-            'recipientRailgunAddress'   => $recipientRailgunAddress,
-            'tokenAddress'              => $tokenAddress,
-            'amount'                    => $amount,
-            'network'                   => $network,
+            'walletId'                => $walletId,
+            'encryptionKey'           => $encryptionKey,
+            'recipientRailgunAddress' => $recipientRailgunAddress,
+            'tokenAddress'            => $tokenAddress,
+            'amount'                  => $amount,
+            'network'                 => $network,
         ]);
     }
 
@@ -168,7 +169,7 @@ class RailgunBridgeClient
             $health = $this->health();
 
             return ($health['engine_ready'] ?? false) === true;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
@@ -195,7 +196,7 @@ class RailgunBridgeClient
 
             $data = $response->json();
 
-            if (!isset($data['success']) || $data['success'] !== true) {
+            if (! isset($data['success']) || $data['success'] !== true) {
                 $errorMsg = $data['error']['message'] ?? 'Unknown bridge error';
 
                 throw new RuntimeException("RAILGUN bridge error: {$errorMsg}");
@@ -237,7 +238,7 @@ class RailgunBridgeClient
 
             $responseData = $response->json();
 
-            if (!isset($responseData['success']) || $responseData['success'] !== true) {
+            if (! isset($responseData['success']) || $responseData['success'] !== true) {
                 $errorMsg = $responseData['error']['message'] ?? 'Unknown bridge error';
 
                 throw new RuntimeException("RAILGUN bridge error: {$errorMsg}");
