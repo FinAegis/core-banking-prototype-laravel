@@ -183,13 +183,14 @@ return [
         'max_tree_depth' => (int) env('MERKLE_TREE_DEPTH', 32),
 
         // Supported networks for privacy pools
-        'networks' => ['polygon', 'base', 'arbitrum'],
+        'networks' => ['ethereum', 'polygon', 'arbitrum', 'bsc'],
 
         // Contract addresses per network
         'pool_addresses' => [
+            'ethereum' => env('MERKLE_POOL_ETHEREUM'),
             'polygon'  => env('MERKLE_POOL_POLYGON'),
-            'base'     => env('MERKLE_POOL_BASE'),
             'arbitrum' => env('MERKLE_POOL_ARBITRUM'),
+            'bsc'      => env('MERKLE_POOL_BSC'),
         ],
     ],
 
@@ -254,5 +255,23 @@ return [
                 'checksum' => null,
             ],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | RAILGUN Privacy Protocol Integration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the RAILGUN SDK bridge service.
+    | The bridge is a Node.js process wrapping @railgun-community/wallet.
+    | Supported chains: Ethereum, Polygon, Arbitrum, BSC (NOT Base).
+    |
+    */
+
+    'railgun' => [
+        'bridge_url'     => env('RAILGUN_BRIDGE_URL', 'http://127.0.0.1:3100'),
+        'bridge_secret'  => env('RAILGUN_BRIDGE_SECRET'),
+        'bridge_timeout' => (int) env('RAILGUN_BRIDGE_TIMEOUT', 30),
+        'networks'       => ['ethereum', 'polygon', 'arbitrum', 'bsc'],
     ],
 ];
