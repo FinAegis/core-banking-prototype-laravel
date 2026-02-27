@@ -178,7 +178,6 @@ class EthRpcClientTest extends TestCase
 
         $blockNumber = $this->client->getBlockNumber(SupportedNetwork::POLYGON);
 
-        $this->assertIsInt($blockNumber);
         $this->assertEquals(0x3456789, $blockNumber);
     }
 

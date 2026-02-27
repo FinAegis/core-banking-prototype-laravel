@@ -161,9 +161,10 @@ class PimlicoPaymasterServiceTest extends TestCase
 
     public function test_gets_paymaster_address_for_network(): void
     {
+        config(['relayer.networks.polygon.paymaster_address' => '0xPaymaster123']);
+
         $address = $this->service->getAddress(SupportedNetwork::POLYGON);
 
-        // Returns whatever is configured (may be empty in test env)
-        $this->assertIsString($address);
+        $this->assertEquals('0xPaymaster123', $address);
     }
 }
