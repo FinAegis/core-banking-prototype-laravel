@@ -70,9 +70,6 @@ class JitFundingWebhookController extends Controller
     {
         $startTime = microtime(true);
 
-        // Validate webhook signature (in production, verify issuer signature)
-        // $this->verifyWebhookSignature($request);
-
         $validated = $request->validate([
             'authorization_id'  => 'required|string',
             'card_token'        => 'required|string',

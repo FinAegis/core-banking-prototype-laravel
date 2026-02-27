@@ -25,6 +25,7 @@ class ValidateWebhookSignature
             'paysera'     => $this->validatePayseraSignature($request),
             'santander'   => $this->validateSantanderSignature($request),
             'openbanking' => $this->validateOpenBankingSignature($request),
+            'marqeta'     => $this->validateMarqetaWebhook($request),
             default       => false,
         };
 
@@ -171,5 +172,42 @@ class ValidateWebhookSignature
         session()->forget('openbanking_state');
 
         return hash_equals($expectedState, $state);
+    }
+
+    /**
+     * Validate Marqeta card issuer webhook via Basic Auth + optional HMAC signature.
+     *
+     * Marqeta sends webhooks with HTTP Basic Auth credentials configured in the
+     * Marqeta dashboard. Optionally, it also includes an HMAC signature header.
+     */
+    private function validateMarqetaWebhook(Request $request): bool
+    {
+        $expectedUsername = config('cardissuance.issuers.marqeta.webhook_username');
+        $expectedPassword = config('cardissuance.issuers.marqeta.webhook_password');
+
+        // Basic Auth is required when credentials are configured
+        if ($expectedUsername !== null && $expectedUsername !== '') {
+            $providedUsername = $request->getUser() ?? '';
+            $providedPassword = $request->getPassword() ?? '';
+
+            if (! hash_equals((string) $expectedUsername, $providedUsername)
+                || ! hash_equals((string) $expectedPassword, $providedPassword)) {
+                return false;
+            }
+        }
+
+        // HMAC signature check (optional but recommended for additional security)
+        $secret = config('cardissuance.issuers.marqeta.webhook_secret');
+        $signature = $request->header('X-Marqeta-Webhook-Signature');
+
+        if ($secret !== null && $secret !== '' && $signature !== null) {
+            $expectedSignature = hash_hmac('sha256', $request->getContent(), (string) $secret);
+
+            if (! hash_equals($expectedSignature, $signature)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

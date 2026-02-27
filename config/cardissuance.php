@@ -42,6 +42,8 @@ return [
             'application_token'  => env('MARQETA_APPLICATION_TOKEN'),
             'admin_access_token' => env('MARQETA_ADMIN_ACCESS_TOKEN'),
             'webhook_secret'     => env('MARQETA_WEBHOOK_SECRET'),
+            'webhook_username'   => env('MARQETA_WEBHOOK_USERNAME'),
+            'webhook_password'   => env('MARQETA_WEBHOOK_PASSWORD'),
         ],
 
         'lithic' => [

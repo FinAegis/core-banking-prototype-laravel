@@ -26,7 +26,7 @@ Route::prefix('v1/cards')->name('api.cards.')->group(function () {
 
 // Card issuer webhook endpoints (CRITICAL: <2000ms latency budget)
 Route::prefix('webhooks/card-issuer')->name('api.webhooks.card.')
-    ->middleware(['api.rate_limit:webhook'])
+    ->middleware(['api.rate_limit:webhook', 'webhook.signature:marqeta'])
     ->group(function () {
         Route::post('/authorization', [JitFundingWebhookController::class, 'handleAuthorization'])->name('authorization');
         Route::post('/settlement', [JitFundingWebhookController::class, 'settlement'])->name('settlement');
