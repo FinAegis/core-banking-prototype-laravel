@@ -190,8 +190,10 @@ class ValidateWebhookSignature
             $providedUsername = $request->getUser() ?? '';
             $providedPassword = $request->getPassword() ?? '';
 
-            if (! hash_equals((string) $expectedUsername, $providedUsername)
-                || ! hash_equals((string) $expectedPassword, $providedPassword)) {
+            if (
+                ! hash_equals((string) $expectedUsername, $providedUsername)
+                || ! hash_equals((string) $expectedPassword, $providedPassword)
+            ) {
                 return false;
             }
         }
