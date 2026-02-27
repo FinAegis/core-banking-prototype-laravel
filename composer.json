@@ -59,7 +59,7 @@
         "open-telemetry/sdk": "^1.7",
         "predis/predis": "^2.2",
         "promphp/prometheus_client_php": "^2.14",
-        "resend/resend-php": "^0.18.1",
+        "resend/resend-php": "^0.23.0",
         "scrivo/highlight.php": "^9.18",
         "simplito/elliptic-php": "^1.0",
         "spatie/laravel-data": "^4.0",

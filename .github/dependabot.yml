@@ -18,6 +18,10 @@ updates:
         versions: [">=8.0.0"]
       - dependency-name: "squizlabs/php_codesniffer"
         versions: [">=4.0.0"]
+      - dependency-name: "predis/predis"
+        versions: [">=3.0.0"]
+      - dependency-name: "laravel/cashier"
+        versions: [">=16.0.0"]
 
   - package-ecosystem: "npm"
     directory: "/"
