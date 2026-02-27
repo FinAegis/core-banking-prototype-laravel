@@ -16,7 +16,11 @@ use App\Domain\Relayer\Services\DemoBundlerService;
 use App\Domain\Relayer\Services\DemoPaymasterService;
 use App\Domain\Relayer\Services\DemoSmartAccountFactory;
 use App\Domain\Relayer\Services\DemoWalletBalanceService;
+use App\Domain\Relayer\Services\EthRpcClient;
 use App\Domain\Relayer\Services\GasStationService;
+use App\Domain\Relayer\Services\PimlicoBundlerService;
+use App\Domain\Relayer\Services\PimlicoPaymasterService;
+use App\Domain\Relayer\Services\ProductionSmartAccountFactory;
 use App\Domain\Relayer\Services\UserOperationSigningService;
 use App\Domain\Relayer\Services\WalletBalanceService;
 use Illuminate\Support\ServiceProvider;
@@ -35,6 +39,9 @@ class RelayerServiceProvider extends ServiceProvider
         // Bind BiometricJWTService for mobile authentication
         $this->app->bind(BiometricJWTServiceInterface::class, BiometricJWTService::class);
 
+        // Shared RPC client singleton (used by production bundler, paymaster, factory)
+        $this->app->singleton(EthRpcClient::class);
+
         // Bind the wallet balance provider based on configuration
         $this->app->bind(WalletBalanceProviderInterface::class, function ($app) {
             $provider = config('relayer.balance_checking.provider', 'demo');
@@ -45,31 +52,47 @@ class RelayerServiceProvider extends ServiceProvider
             };
         });
 
-        // Bind GasStationService with balance provider
+        // Bind the bundler interface based on config driver
+        $this->app->bind(BundlerInterface::class, function ($app) {
+            $driver = config('relayer.bundler.driver', 'demo');
+
+            return match ($driver) {
+                'pimlico' => new PimlicoBundlerService($app->make(EthRpcClient::class)),
+                default   => new DemoBundlerService(),
+            };
+        });
+
+        // Bind the paymaster interface based on config driver
+        $this->app->bind(PaymasterInterface::class, function ($app) {
+            $driver = config('relayer.bundler.driver', 'demo');
+
+            return match ($driver) {
+                'pimlico' => new PimlicoPaymasterService($app->make(EthRpcClient::class)),
+                default   => new DemoPaymasterService(),
+            };
+        });
+
+        // Bind the smart account factory interface based on config driver
+        $this->app->bind(SmartAccountFactoryInterface::class, function ($app) {
+            $driver = config('relayer.bundler.driver', 'demo');
+
+            return match ($driver) {
+                'demo'  => new DemoSmartAccountFactory(),
+                default => new ProductionSmartAccountFactory($app->make(EthRpcClient::class)),
+            };
+        });
+
+        // Bind GasStationService with balance provider and optional RPC client
         $this->app->bind(GasStationService::class, function ($app) {
+            $driver = config('relayer.bundler.driver', 'demo');
+            $rpcClient = $driver !== 'demo' ? $app->make(EthRpcClient::class) : null;
+
             return new GasStationService(
                 $app->make(PaymasterInterface::class),
                 $app->make(BundlerInterface::class),
-                $app->make(WalletBalanceProviderInterface::class)
+                $app->make(WalletBalanceProviderInterface::class),
+                $rpcClient
             );
-        });
-
-        // Bind the bundler interface to the demo implementation
-        // For production, create AlchemyBundlerService, PimlicoBundlerService, etc.
-        $this->app->bind(BundlerInterface::class, function ($app) {
-            return new DemoBundlerService();
-        });
-
-        // Bind the paymaster interface to the demo implementation
-        // For production, integrate with your actual paymaster contract
-        $this->app->bind(PaymasterInterface::class, function ($app) {
-            return new DemoPaymasterService();
-        });
-
-        // Bind the smart account factory interface (v2.6.0)
-        // For production, implement with actual factory contract calls
-        $this->app->bind(SmartAccountFactoryInterface::class, function ($app) {
-            return new DemoSmartAccountFactory();
         });
 
         // Bind the UserOperation signer interface for auth shard signing
