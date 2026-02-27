@@ -20,13 +20,23 @@ class RpcException extends RuntimeException
         parent::__construct($message, $rpcErrorCode);
     }
 
+    /**
+     * @param  array<string, mixed>  $error
+     */
     public static function fromRpcError(string $method, array $error): self
     {
+        $errorData = null;
+        if (isset($error['data'])) {
+            $errorData = is_string($error['data'])
+                ? $error['data']
+                : (string) json_encode($error['data']);
+        }
+
         return new self(
-            message: $error['message'] ?? 'Unknown RPC error',
+            message: (string) ($error['message'] ?? 'Unknown RPC error'),
             rpcMethod: $method,
             rpcErrorCode: (int) ($error['code'] ?? 0),
-            rpcErrorData: isset($error['data']) ? (is_string($error['data']) ? $error['data'] : json_encode($error['data'])) : null,
+            rpcErrorData: $errorData,
         );
     }
 

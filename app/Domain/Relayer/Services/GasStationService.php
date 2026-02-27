@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Throwable;
 
 /**
  * Gas Station Service for sponsoring meta-transactions.
@@ -317,13 +318,13 @@ class GasStationService
                 'user_op_hash' => $userOpHash,
                 'created_at'   => now(),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Log but don't fail the transaction — the on-chain fee is the source of truth
             Log::error('Failed to record fee in ledger', [
-                'user'    => $userAddress,
-                'token'   => $token,
-                'amount'  => $amount,
-                'error'   => $e->getMessage(),
+                'user'   => $userAddress,
+                'token'  => $token,
+                'amount' => $amount,
+                'error'  => $e->getMessage(),
             ]);
         }
 

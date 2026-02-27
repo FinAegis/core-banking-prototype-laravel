@@ -24,7 +24,7 @@ class ProductionSmartAccountFactory implements SmartAccountFactoryInterface
 {
     /**
      * createAccount(address,uint256) function selector.
-     * keccak256("createAccount(address,uint256)")[0:4]
+     * keccak256("createAccount(address,uint256)")[0:4].
      */
     private const CREATE_ACCOUNT_SELECTOR = '5fbfb9cf';
 

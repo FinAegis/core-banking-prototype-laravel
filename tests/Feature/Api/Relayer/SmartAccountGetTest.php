@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\Relayer;
 
-use App\Domain\Relayer\Models\SmartAccount;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;

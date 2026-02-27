@@ -82,8 +82,8 @@ class PimlicoBundlerService implements BundlerInterface
                         'status'  => $success ? 'confirmed' : 'failed',
                         'tx_hash' => $receiptArray['receipt']['transactionHash'] ?? null,
                         'receipt' => [
-                            'success'     => $success,
-                            'gasUsed'     => isset($receiptArray['actualGasUsed'])
+                            'success' => $success,
+                            'gasUsed' => isset($receiptArray['actualGasUsed'])
                                 ? (int) hexdec((string) $receiptArray['actualGasUsed'])
                                 : 0,
                             'blockNumber' => isset($receiptArray['receipt']['blockNumber'])
@@ -124,7 +124,7 @@ class PimlicoBundlerService implements BundlerInterface
         );
 
         return [
-            'preVerificationGas'   => isset($estimate['preVerificationGas'])
+            'preVerificationGas' => isset($estimate['preVerificationGas'])
                 ? (int) hexdec($estimate['preVerificationGas'])
                 : 50000,
             'verificationGasLimit' => isset($estimate['verificationGasLimit'])

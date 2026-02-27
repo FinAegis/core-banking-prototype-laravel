@@ -139,7 +139,7 @@ class PimlicoPaymasterService implements PaymasterInterface
             SupportedNetwork::ETHEREUM => 2500.0,
             SupportedNetwork::ARBITRUM,
             SupportedNetwork::OPTIMISM,
-            SupportedNetwork::BASE     => 2500.0,
+            SupportedNetwork::BASE => 2500.0,
         };
     }
 }

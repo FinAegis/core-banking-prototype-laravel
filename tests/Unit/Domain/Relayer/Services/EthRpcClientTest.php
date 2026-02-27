@@ -20,10 +20,10 @@ class EthRpcClientTest extends TestCase
 
         config([
             'relayer.networks.polygon.rpc_url' => 'https://polygon-rpc.example.com',
-            'relayer.pimlico.api_key'           => 'test-api-key',
-            'relayer.pimlico.bundler_url'       => 'https://api.pimlico.io/v2/137/rpc',
-            'relayer.pimlico.timeout'           => 5,
-            'relayer.pimlico.retry_count'       => 3,
+            'relayer.pimlico.api_key'          => 'test-api-key',
+            'relayer.pimlico.bundler_url'      => 'https://api.pimlico.io/v2/137/rpc',
+            'relayer.pimlico.timeout'          => 5,
+            'relayer.pimlico.retry_count'      => 3,
         ]);
 
         $this->client = new EthRpcClient();
