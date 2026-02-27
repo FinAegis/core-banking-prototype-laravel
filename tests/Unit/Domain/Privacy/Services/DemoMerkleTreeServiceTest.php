@@ -29,16 +29,18 @@ class DemoMerkleTreeServiceTest extends TestCase
 
         $this->assertIsArray($networks);
         $this->assertContains('polygon', $networks);
-        $this->assertContains('base', $networks);
+        $this->assertContains('ethereum', $networks);
         $this->assertContains('arbitrum', $networks);
+        $this->assertContains('bsc', $networks);
     }
 
     public function test_supports_network(): void
     {
         $this->assertTrue($this->service->supportsNetwork('polygon'));
-        $this->assertTrue($this->service->supportsNetwork('base'));
+        $this->assertTrue($this->service->supportsNetwork('ethereum'));
         $this->assertTrue($this->service->supportsNetwork('arbitrum'));
-        $this->assertFalse($this->service->supportsNetwork('ethereum'));
+        $this->assertTrue($this->service->supportsNetwork('bsc'));
+        $this->assertFalse($this->service->supportsNetwork('base'));
         $this->assertFalse($this->service->supportsNetwork('invalid'));
     }
 

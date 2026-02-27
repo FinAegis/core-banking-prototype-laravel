@@ -24,7 +24,9 @@ class RailgunMerkleTreeServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->bridge = Mockery::mock(RailgunBridgeClient::class);
+        /** @var RailgunBridgeClient&MockInterface $bridge */
+        $bridge = Mockery::mock(RailgunBridgeClient::class);
+        $this->bridge = $bridge;
         $this->service = new RailgunMerkleTreeService($this->bridge);
     }
 

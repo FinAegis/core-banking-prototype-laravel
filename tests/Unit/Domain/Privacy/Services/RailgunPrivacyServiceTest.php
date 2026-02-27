@@ -31,8 +31,12 @@ class RailgunPrivacyServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->bridge = Mockery::mock(RailgunBridgeClient::class);
-        $this->merkleService = Mockery::mock(MerkleTreeServiceInterface::class);
+        /** @var RailgunBridgeClient&MockInterface $bridge */
+        $bridge = Mockery::mock(RailgunBridgeClient::class);
+        $this->bridge = $bridge;
+        /** @var MerkleTreeServiceInterface&MockInterface $merkleService */
+        $merkleService = Mockery::mock(MerkleTreeServiceInterface::class);
+        $this->merkleService = $merkleService;
         $this->service = new RailgunPrivacyService($this->bridge, $this->merkleService);
     }
 
