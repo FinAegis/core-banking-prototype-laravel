@@ -35,14 +35,14 @@ class MerkleTreeWebSocketTest extends TestCase
         $service = new DemoMerkleTreeService();
 
         $service->syncTree('polygon');
-        $service->syncTree('base');
+        $service->syncTree('ethereum');
         $service->syncTree('arbitrum');
 
         Event::assertDispatched(MerkleRootUpdated::class, 3);
 
         // Verify different networks
         Event::assertDispatched(MerkleRootUpdated::class, fn ($e) => $e->network === 'polygon');
-        Event::assertDispatched(MerkleRootUpdated::class, fn ($e) => $e->network === 'base');
+        Event::assertDispatched(MerkleRootUpdated::class, fn ($e) => $e->network === 'ethereum');
         Event::assertDispatched(MerkleRootUpdated::class, fn ($e) => $e->network === 'arbitrum');
     }
 
@@ -77,7 +77,7 @@ class MerkleTreeWebSocketTest extends TestCase
         // Test the channel authorization logic directly
         $supportedNetworks = config('privacy.merkle.networks', ['polygon', 'base', 'arbitrum']);
 
-        $unsupportedNetworks = ['ethereum', 'solana', 'invalid_network'];
+        $unsupportedNetworks = ['base', 'solana', 'invalid_network'];
 
         foreach ($unsupportedNetworks as $network) {
             // The authorization callback returns false if network is not supported

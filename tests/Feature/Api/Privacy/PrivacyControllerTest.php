@@ -38,8 +38,9 @@ class PrivacyControllerTest extends TestCase
 
         $data = $response->json('data');
         $this->assertContains('polygon', $data['networks']);
-        $this->assertContains('base', $data['networks']);
+        $this->assertContains('ethereum', $data['networks']);
         $this->assertContains('arbitrum', $data['networks']);
+        $this->assertContains('bsc', $data['networks']);
         $this->assertEquals(32, $data['tree_depth']);
         $this->assertEquals('demo', $data['provider']);
     }
