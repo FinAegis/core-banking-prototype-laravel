@@ -164,6 +164,9 @@ return [
     'pimlico' => [
         'api_key'     => env('PIMLICO_API_KEY'),
         'bundler_url' => env('PIMLICO_BUNDLER_URL'),
+        'chain_id'    => (int) env('PIMLICO_CHAIN_ID', 137),
+        'timeout'     => (int) env('PIMLICO_TIMEOUT', 15),
+        'retry_count' => (int) env('PIMLICO_RETRY_COUNT', 3),
     ],
 
     /*
