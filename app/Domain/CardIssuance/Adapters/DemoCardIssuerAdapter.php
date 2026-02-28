@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Domain\CardIssuance\Enums\CardNetwork;
 use App\Domain\CardIssuance\Enums\CardStatus;
 use App\Domain\CardIssuance\Enums\WalletType;
+use App\Domain\CardIssuance\ValueObjects\CardTransaction;
 use App\Domain\CardIssuance\ValueObjects\ProvisioningData;
 use App\Domain\CardIssuance\ValueObjects\VirtualCard;
 use DateTimeImmutable;
@@ -173,5 +174,54 @@ class DemoCardIssuerAdapter implements CardIssuerInterface
         }
 
         return $cards;
+    }
+
+    /**
+     * Get demo transaction history for a card.
+     *
+     * Generates 5 deterministic demo transactions seeded by card token.
+     *
+     * @return array{transactions: array<CardTransaction>, next_cursor: string|null}
+     */
+    public function getTransactions(string $cardToken, int $limit = 20, ?string $cursor = null): array
+    {
+        $demoMerchants = [
+            ['name' => 'Starbucks',  'mcc' => '5814', 'amount' => 475,  'currency' => 'USD'],
+            ['name' => 'Amazon',     'mcc' => '5942', 'amount' => 2999, 'currency' => 'USD'],
+            ['name' => 'Uber Eats',  'mcc' => '5812', 'amount' => 1850, 'currency' => 'USD'],
+            ['name' => 'Netflix',    'mcc' => '4899', 'amount' => 1599, 'currency' => 'USD'],
+            ['name' => 'Shell',      'mcc' => '5541', 'amount' => 4520, 'currency' => 'USD'],
+        ];
+
+        $startIndex = $cursor !== null ? (int) $cursor : 0;
+        $statuses = ['settled', 'settled', 'pending', 'settled', 'settled'];
+
+        $transactions = [];
+        $baseTime = new DateTimeImmutable('2026-03-01T12:00:00Z');
+
+        for ($i = $startIndex; $i < min($startIndex + $limit, count($demoMerchants)); $i++) {
+            $merchant = $demoMerchants[$i];
+            // Deterministic transaction ID seeded from card token
+            $seed = hash('sha256', $cardToken . ':' . $i);
+
+            $transactions[] = new CardTransaction(
+                transactionId: 'txn_demo_' . substr($seed, 0, 16),
+                cardToken: $cardToken,
+                merchantName: $merchant['name'],
+                merchantCategory: $merchant['mcc'],
+                amountCents: $merchant['amount'],
+                currency: $merchant['currency'],
+                status: $statuses[$i],
+                timestamp: $baseTime->modify("-{$i} hours"),
+            );
+        }
+
+        $hasMore = ($startIndex + $limit) < count($demoMerchants);
+        $nextCursor = $hasMore ? (string) ($startIndex + $limit) : null;
+
+        return [
+            'transactions' => $transactions,
+            'next_cursor'  => $nextCursor,
+        ];
     }
 }

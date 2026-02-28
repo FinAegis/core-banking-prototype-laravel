@@ -74,5 +74,9 @@ Route::prefix('v1/privacy')->name('api.privacy.')->group(function () {
 
         // SRS status
         Route::get('/srs-status', [PrivacyController::class, 'getSrsStatus'])->name('srs-status');
+
+        // Transaction calldata (stub — deferred to v5.9.0)
+        Route::get('/transaction-calldata/{txHash}', [PrivacyController::class, 'getTransactionCalldata'])
+            ->name('transaction-calldata');
     });
 });

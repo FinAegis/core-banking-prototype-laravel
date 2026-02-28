@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Privacy;
 
 use App\Domain\Privacy\Contracts\MerkleTreeServiceInterface;
+use App\Domain\Privacy\Events\Broadcast\PrivacyOperationCompleted;
 use App\Domain\Privacy\Exceptions\CommitmentNotFoundException;
 use App\Domain\Privacy\Models\DelegatedProofJob;
 use App\Domain\Privacy\Services\DelegatedProofService;
@@ -732,6 +733,15 @@ class PrivacyController extends Controller
                 $validated['network'],
             );
 
+            PrivacyOperationCompleted::dispatch(
+                userId: $user->id,
+                operation: 'shield',
+                token: $validated['token'],
+                amount: $validated['amount'],
+                network: $validated['network'],
+                status: 'completed',
+            );
+
             return response()->json([
                 'success' => true,
                 'data'    => $result,
@@ -745,6 +755,15 @@ class PrivacyController extends Controller
             $validated['network'],
             ['amount' => $validated['amount'], 'token' => $validated['token']],
             $validated['encrypted_inputs'] ?? '',
+        );
+
+        PrivacyOperationCompleted::dispatch(
+            userId: $user->id,
+            operation: 'shield',
+            token: $validated['token'],
+            amount: $validated['amount'],
+            network: $validated['network'],
+            status: 'pending',
         );
 
         return response()->json([
@@ -800,6 +819,15 @@ class PrivacyController extends Controller
                 $validated['network'],
             );
 
+            PrivacyOperationCompleted::dispatch(
+                userId: $user->id,
+                operation: 'unshield',
+                token: $validated['token'],
+                amount: $validated['amount'],
+                network: $validated['network'],
+                status: 'completed',
+            );
+
             return response()->json([
                 'success' => true,
                 'data'    => $result,
@@ -817,6 +845,15 @@ class PrivacyController extends Controller
                 'recipient' => $validated['recipient'],
             ],
             $validated['encrypted_inputs'] ?? '',
+        );
+
+        PrivacyOperationCompleted::dispatch(
+            userId: $user->id,
+            operation: 'unshield',
+            token: $validated['token'],
+            amount: $validated['amount'],
+            network: $validated['network'],
+            status: 'pending',
         );
 
         return response()->json([
@@ -872,6 +909,15 @@ class PrivacyController extends Controller
                 $validated['network'],
             );
 
+            PrivacyOperationCompleted::dispatch(
+                userId: $user->id,
+                operation: 'transfer',
+                token: $validated['token'],
+                amount: $validated['amount'],
+                network: $validated['network'],
+                status: 'completed',
+            );
+
             return response()->json([
                 'success' => true,
                 'data'    => $result,
@@ -889,6 +935,15 @@ class PrivacyController extends Controller
                 'recipient_commitment' => $validated['recipient_commitment'] ?? '',
             ],
             $validated['encrypted_inputs'] ?? '',
+        );
+
+        PrivacyOperationCompleted::dispatch(
+            userId: $user->id,
+            operation: 'transfer',
+            token: $validated['token'],
+            amount: $validated['amount'],
+            network: $validated['network'],
+            status: 'pending',
         );
 
         return response()->json([
@@ -1116,5 +1171,28 @@ class PrivacyController extends Controller
                 'required_circuits' => $requiredCircuits,
             ],
         ]);
+    }
+
+    /**
+     * Get transaction calldata (stub — deferred to v5.9.0).
+     *
+     * @OA\Get(
+     *     path="/api/v1/privacy/transaction-calldata/{txHash}",
+     *     operationId="getTransactionCalldata",
+     *     tags={"Privacy"},
+     *     summary="Get transaction calldata for a privacy transaction (not yet implemented)",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="txHash", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(response=501, description="Not implemented"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function getTransactionCalldata(string $txHash): JsonResponse
+    {
+        return response()->json([
+            'success'         => false,
+            'error'           => 'Transaction calldata retrieval is not yet implemented.',
+            'planned_version' => 'v5.9.0',
+        ], 501);
     }
 }

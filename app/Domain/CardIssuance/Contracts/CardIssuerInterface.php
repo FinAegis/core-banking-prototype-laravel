@@ -6,6 +6,7 @@ namespace App\Domain\CardIssuance\Contracts;
 
 use App\Domain\CardIssuance\Enums\CardNetwork;
 use App\Domain\CardIssuance\Enums\WalletType;
+use App\Domain\CardIssuance\ValueObjects\CardTransaction;
 use App\Domain\CardIssuance\ValueObjects\ProvisioningData;
 use App\Domain\CardIssuance\ValueObjects\VirtualCard;
 
@@ -66,6 +67,13 @@ interface CardIssuerInterface
      * @return array<VirtualCard>
      */
     public function listUserCards(string $userId): array;
+
+    /**
+     * Get transaction history for a card.
+     *
+     * @return array{transactions: array<CardTransaction>, next_cursor: string|null}
+     */
+    public function getTransactions(string $cardToken, int $limit = 20, ?string $cursor = null): array;
 
     /**
      * Get the issuer name for identification.

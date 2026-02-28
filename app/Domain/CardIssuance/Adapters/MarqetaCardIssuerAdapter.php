@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Contracts\CardIssuerInterface;
 use App\Domain\CardIssuance\Enums\CardNetwork;
 use App\Domain\CardIssuance\Enums\CardStatus;
 use App\Domain\CardIssuance\Enums\WalletType;
+use App\Domain\CardIssuance\ValueObjects\CardTransaction;
 use App\Domain\CardIssuance\ValueObjects\ProvisioningData;
 use App\Domain\CardIssuance\ValueObjects\VirtualCard;
 use DateTimeImmutable;
@@ -411,6 +412,79 @@ class MarqetaCardIssuerAdapter implements CardIssuerInterface
 
         throw new RuntimeException(
             "Marqeta API error ({$errorCode}): {$errorMessage} — {$context}"
+        );
+    }
+
+    /**
+     * Get transaction history for a card from Marqeta.
+     *
+     * @return array{transactions: array<CardTransaction>, next_cursor: string|null}
+     */
+    public function getTransactions(string $cardToken, int $limit = 20, ?string $cursor = null): array
+    {
+        $query = [
+            'card_token' => $cardToken,
+            'count'      => min($limit, 100),
+            'sort_by'    => '-created_time',
+        ];
+
+        if ($cursor !== null) {
+            $query['start_index'] = (int) $cursor;
+        }
+
+        $response = $this->request()->get('/transactions', $query);
+
+        $this->assertSuccessful($response, 'getTransactions');
+
+        $data = $response->json();
+
+        $transactions = array_map(
+            fn (array $tx) => $this->mapTransactionResponse($tx, $cardToken),
+            (array) ($data['data'] ?? []),
+        );
+
+        $endIndex = $data['end_index'] ?? null;
+        $isMore = $data['is_more'] ?? false;
+        $nextCursor = ($isMore && $endIndex !== null) ? (string) ((int) $endIndex + 1) : null;
+
+        return [
+            'transactions' => $transactions,
+            'next_cursor'  => $nextCursor,
+        ];
+    }
+
+    /**
+     * Map a Marqeta transaction response to a CardTransaction value object.
+     *
+     * @param array<string, mixed> $tx
+     */
+    private function mapTransactionResponse(array $tx, string $cardToken): CardTransaction
+    {
+        $acceptor = (array) ($tx['card_acceptor'] ?? []);
+
+        // Map Marqeta state to our status
+        $state = (string) ($tx['state'] ?? 'PENDING');
+        $statusMap = [
+            'PENDING'    => 'pending',
+            'COMPLETION' => 'settled',
+            'CLEARED'    => 'settled',
+            'DECLINED'   => 'declined',
+        ];
+        $status = $statusMap[$state] ?? 'pending';
+
+        // Convert amount: Marqeta returns float, we store cents
+        $amount = (float) ($tx['amount'] ?? 0);
+        $amountCents = (int) round($amount * 100);
+
+        return new CardTransaction(
+            transactionId: (string) ($tx['token'] ?? ''),
+            cardToken: $cardToken,
+            merchantName: (string) ($acceptor['name'] ?? 'Unknown'),
+            merchantCategory: (string) ($acceptor['mcc'] ?? ''),
+            amountCents: $amountCents,
+            currency: (string) ($tx['currency_code'] ?? 'USD'),
+            status: $status,
+            timestamp: new DateTimeImmutable((string) ($tx['created_time'] ?? 'now')),
         );
     }
 }

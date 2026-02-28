@@ -6,6 +6,7 @@ namespace App\Domain\Commerce\Services;
 
 use App\Domain\Commerce\Contracts\AttestationServiceInterface;
 use App\Domain\Commerce\Enums\AttestationType;
+use App\Domain\Commerce\Events\Broadcast\CommercePaymentConfirmed;
 use App\Domain\Commerce\Events\PaymentAttested;
 use App\Domain\Commerce\ValueObjects\PaymentAttestation;
 use DateTimeImmutable;
@@ -82,6 +83,16 @@ class PaymentAttestationService implements AttestationServiceInterface
             attestationHash: $attestation->getAttestationHash(),
             attestedAt: $issuedAt,
         ));
+
+        // Broadcast to merchant channel for real-time mobile updates
+        $merchantId = $claims['merchant_id'] ?? $subjectId;
+        CommercePaymentConfirmed::dispatch(
+            merchantId: (string) $merchantId,
+            attestationId: $attestationId,
+            attestationType: $type->value,
+            attestationHash: $attestation->getAttestationHash(),
+            attestedAt: $issuedAt->format('c'),
+        );
 
         return $attestation;
     }

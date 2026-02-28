@@ -148,4 +148,14 @@ class CardProvisioningService
     {
         return $this->cardIssuer->listUserCards($userId);
     }
+
+    /**
+     * Get transaction history for a card.
+     *
+     * @return array{transactions: array<\App\Domain\CardIssuance\ValueObjects\CardTransaction>, next_cursor: string|null}
+     */
+    public function getTransactions(string $cardToken, int $limit = 20, ?string $cursor = null): array
+    {
+        return $this->cardIssuer->getTransactions($cardToken, $limit, $cursor);
+    }
 }

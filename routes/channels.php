@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Broadcasting\TenantChannelAuthorizer;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Cache;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,5 +103,46 @@ Broadcast::channel('privacy.merkle.{network}', function ($user, string $network)
 
 // Payment status updates - user-specific
 Broadcast::channel('payments.{userId}', function ($user, int $userId) {
+    return $user->id === $userId;
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mobile-Expected Channels (v5.8.0)
+|--------------------------------------------------------------------------
+|
+| Channels that the mobile app subscribes to for real-time updates across
+| privacy operations, commerce payments, and TrustCert status changes.
+|
+*/
+
+// User-level general notifications (mobile)
+Broadcast::channel('user.{userId}', function ($user, int $userId) {
+    return $user->id === $userId;
+});
+
+// Privacy operation status updates - user-specific
+Broadcast::channel('privacy.{userId}', function ($user, int $userId) {
+    return $user->id === $userId;
+});
+
+// Privacy proof completion updates (gap fix - events broadcast but channel was never registered)
+Broadcast::channel('privacy.proof.{userId}', function ($user, int $userId) {
+    return $user->id === $userId;
+});
+
+// Commerce payment confirmations - merchant-specific
+Broadcast::channel('commerce.{merchantId}', function ($user, string $merchantId) {
+    // In test/local environments, allow all authenticated users
+    if (app()->environment('local', 'testing')) {
+        return true;
+    }
+
+    // In production, verify merchant association via cache
+    return (bool) Cache::get("merchant:{$merchantId}:user:{$user->id}");
+});
+
+// TrustCert certificate status changes - user-specific
+Broadcast::channel('trustcert.{userId}', function ($user, int $userId) {
     return $user->id === $userId;
 });

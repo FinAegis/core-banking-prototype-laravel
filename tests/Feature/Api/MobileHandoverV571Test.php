@@ -134,9 +134,9 @@ class MobileHandoverV571Test extends TestCase
         $this->assertNull($data[0]['name']);
     }
 
-    // --- #7: Card Transactions Returns Empty (not fake data) ---
+    // --- #7: Card Transactions Returns Demo Data (v5.8.0) ---
 
-    public function test_card_transactions_returns_empty_array(): void
+    public function test_card_transactions_returns_demo_data(): void
     {
         $response = $this->withToken($this->token)
             ->getJson('/api/v1/cards/test-card-123/transactions');
@@ -145,8 +145,9 @@ class MobileHandoverV571Test extends TestCase
         $data = $response->json();
 
         $this->assertTrue($data['success']);
-        $this->assertEmpty($data['data']);
-        $this->assertEquals(0, $data['pagination']['total']);
-        $this->assertFalse($data['pagination']['has_more']);
+        $this->assertNotEmpty($data['data']);
+        $this->assertArrayHasKey('id', $data['data'][0]);
+        $this->assertArrayHasKey('amount', $data['data'][0]);
+        $this->assertArrayHasKey('merchant', $data['data'][0]);
     }
 }

@@ -347,14 +347,27 @@ class CardController extends Controller
      */
     public function transactions(Request $request, string $cardId): JsonResponse
     {
-        // TODO: Replace with real Marqeta transaction history when integration matures
+        $limit = min((int) $request->query('limit', '20'), 100);
+        $cursor = $request->query('cursor');
+
+        $result = $this->provisioningService->getTransactions(
+            $cardId,
+            $limit,
+            is_string($cursor) ? $cursor : null,
+        );
+
+        $transactions = array_map(
+            fn ($tx) => $tx->toArray(),
+            $result['transactions'],
+        );
+
         return response()->json([
             'success'    => true,
-            'data'       => [],
+            'data'       => $transactions,
             'pagination' => [
-                'next_cursor' => null,
-                'has_more'    => false,
-                'total'       => 0,
+                'next_cursor' => $result['next_cursor'],
+                'has_more'    => $result['next_cursor'] !== null,
+                'total'       => count($transactions),
             ],
         ]);
     }
