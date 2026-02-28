@@ -19,6 +19,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | WebAuthn / Passkey Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Settings for WebAuthn/FIDO2 passkey authentication.
+    | RP ID should be the domain name of the app (without scheme or port).
+    |
+    */
+
+    'webauthn' => [
+        'rp_id'   => env('WEBAUTHN_RP_ID', 'finaegis.com'),
+        'rp_name' => env('WEBAUTHN_RP_NAME', 'FinAegis'),
+        'origin'  => env('WEBAUTHN_ORIGIN', 'https://finaegis.com'),
+        'timeout' => (int) env('WEBAUTHN_TIMEOUT', 60000),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Device Limits
     |--------------------------------------------------------------------------
     |

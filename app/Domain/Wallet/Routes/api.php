@@ -134,4 +134,14 @@ Route::prefix('v1/wallet')->name('mobile.wallet.')
         Route::post('/transactions/send', [MobileWalletController::class, 'send'])
             ->middleware(['transaction.rate_limit:payment_intent', 'idempotency'])
             ->name('transactions.send');
+
+        // Recent recipients (v5.6.0)
+        Route::get('/recent-recipients', [MobileWalletController::class, 'recentRecipients'])
+            ->middleware('api.rate_limit:query')
+            ->name('recent-recipients');
+
+        // Alias: mobile expects POST /api/v1/wallet/create-account
+        Route::post('/create-account', [App\Http\Controllers\Api\Relayer\SmartAccountController::class, 'createAccount'])
+            ->middleware('transaction.rate_limit:relayer')
+            ->name('create-account');
     });

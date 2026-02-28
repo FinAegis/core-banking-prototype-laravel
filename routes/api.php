@@ -220,6 +220,16 @@ Route::prefix('v1/auth/passkey')
         Route::post('/authenticate', [PasskeyController::class, 'authenticate'])->name('authenticate');
     });
 
+// Passkey registration (requires auth) - v1 path
+Route::prefix('v1/auth/passkey')
+    ->middleware(['auth:sanctum', 'check.token.expiration', 'throttle:5,1'])
+    ->name('mobile.auth.passkey.authed.')
+    ->group(function () {
+        // Registration challenge (type=registration) and register endpoint
+        Route::post('/challenge', [PasskeyController::class, 'challenge'])->name('challenge');
+        Route::post('/register', [PasskeyController::class, 'register'])->name('register');
+    });
+
 /*
 |--------------------------------------------------------------------------
 | External Route Includes

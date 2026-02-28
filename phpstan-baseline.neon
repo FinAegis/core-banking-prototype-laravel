@@ -3181,6 +3181,12 @@ parameters:
 			path: app/Domain/Lending/Workflows/LoanApplicationWorkflow.php
 
 		-
+			message: '#^Method App\\Domain\\Mobile\\Services\\PasskeyAuthenticationService\:\:generateRegistrationChallenge\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 5
+			path: app/Domain/Mobile/Services/PasskeyAuthenticationService.php
+
+		-
 			message: '#^Method App\\Domain\\Monitoring\\Services\\EventMigrationService\:\:executeBatchMigration\(\) has parameter \$aliases with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

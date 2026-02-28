@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Wallet;
 
+use App\Domain\MobilePayment\Models\PaymentIntent;
 use App\Domain\MobilePayment\Services\ActivityFeedService;
 use App\Domain\MobilePayment\Services\PaymentIntentService;
 use App\Domain\MobilePayment\Services\TransactionDetailService;
@@ -507,5 +508,67 @@ class MobileWalletController extends Controller
                 ],
             ], 422);
         }
+    }
+
+    /**
+     * Get recent recipient addresses from send history.
+     *
+     * @OA\Get(
+     *     path="/api/v1/wallet/recent-recipients",
+     *     operationId="walletRecentRecipients",
+     *     summary="Get recent send recipients",
+     *     description="Returns unique recipient addresses from recent send transactions, ordered by most recent.",
+     *     tags={"Mobile Wallet"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         required=false,
+     *         description="Number of recipients to return (max 50, default 10)",
+     *         @OA\Schema(type="integer", default=10, maximum=50)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Recent recipients list",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object",
+     *                 @OA\Property(property="address", type="string", example="0x1234...abcd"),
+     *                 @OA\Property(property="network", type="string", example="polygon"),
+     *                 @OA\Property(property="token", type="string", example="USDC"),
+     *                 @OA\Property(property="last_sent_at", type="string", format="date-time")
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function recentRecipients(Request $request): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $limit = min((int) $request->query('limit', '10'), 50);
+
+        $recipients = PaymentIntent::where('user_id', $user->id)
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->whereNotNull('metadata->recipient_address')
+            ->orderByDesc('created_at')
+            ->limit(200)
+            ->get()
+            ->map(fn (PaymentIntent $intent) => [
+                'address'      => $intent->metadata['recipient_address'] ?? '',
+                'network'      => $intent->network,
+                'token'        => $intent->asset,
+                'last_sent_at' => $intent->created_at->toIso8601String(),
+            ])
+            ->filter(fn (array $r) => $r['address'] !== '')
+            ->unique('address')
+            ->take($limit)
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $recipients,
+        ]);
     }
 }

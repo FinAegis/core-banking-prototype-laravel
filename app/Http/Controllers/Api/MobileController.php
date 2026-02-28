@@ -568,6 +568,35 @@ class MobileController extends Controller
     }
 
     /**
+     * Get unread notification count.
+     *
+     * @OA\Get(
+     *     path="/api/v1/notifications/unread-count",
+     *     operationId="getNotificationUnreadCount",
+     *     tags={"Mobile"},
+     *     summary="Get unread notification count",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Unread count", @OA\JsonContent(
+     *         @OA\Property(property="success", type="boolean", example=true),
+     *         @OA\Property(property="data", type="object",
+     *             @OA\Property(property="unread_count", type="integer", example=5)
+     *         )
+     *     ))
+     * )
+     */
+    public function getUnreadNotificationCount(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser($request);
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'unread_count' => $this->pushService->getUnreadCount($user),
+            ],
+        ]);
+    }
+
+    /**
      * Get mobile app configuration.
      *
      * @OA\Get(

@@ -38,6 +38,10 @@ Route::prefix('v1/relayer')->name('mobile.relayer.')
         Route::post('/estimate-gas', [MobileRelayerController::class, 'estimateGas'])
             ->middleware('api.rate_limit:query')
             ->name('estimate-gas');
+        // Alias: mobile expects GET /api/v1/relayer/estimate-fee
+        Route::get('/estimate-fee', [MobileRelayerController::class, 'estimateGas'])
+            ->middleware('api.rate_limit:query')
+            ->name('estimate-fee');
         Route::post('/build-userop', [MobileRelayerController::class, 'buildUserOp'])
             ->middleware('api.rate_limit:query')
             ->name('build-userop');
