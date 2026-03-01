@@ -2009,6 +2009,36 @@ The `/app` landing page rendered correctly locally but broke in production becau
 
 ---
 
-*Document Version: 5.9.0*
+## Version 5.10.0 - Performance Wiring & API Maturity ✅ RELEASED
+
+**Release Date**: March 2, 2026
+**Theme**: Performance Wiring & API Maturity
+
+### Summary
+
+Wire existing observability infrastructure to production routes and improve API maturity with standardized error responses and RFC 8594 deprecation headers.
+
+### Delivered Features
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| Observability Middleware Wiring | ✅ | 5 middleware applied to API group: StructuredLogging, Metrics, QueryPerformance, CachePerformance, Tracing |
+| Middleware Aliases | ✅ | Register `metrics`, `cache.performance`, `tracing` aliases |
+| Standardized Error Responses | ✅ | All API errors include `error` code + `request_id` fields |
+| Error Code Mapping | ✅ | `VALIDATION_ERROR`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`, `SERVER_ERROR` |
+| RFC 8594 Deprecation Headers | ✅ | `Deprecation`, `Sunset`, `Link` headers on legacy endpoints |
+| Legacy Route Tagging | ✅ | `/api/profile` and `/api/kyc/documents` sunset 2026-09-01 |
+| Integration Tests | ✅ | 11 middleware integration tests + 5 error response tests + 8 deprecation tests |
+
+### Key Details
+- PRs #691-#694 (4 PRs)
+- Phase 1: Wire 5 existing observability middleware to API route group
+- Phase 2: Add comprehensive integration tests for middleware stack
+- Phase 3: Standardize API error responses with semantic error codes and request_id
+- Phase 4: RFC 8594 deprecation headers for legacy API endpoints
+
+---
+
+*Document Version: 5.10.0*
 *Created: January 11, 2026*
-*Updated: March 1, 2026 (v5.9.0 OpenAPI Migration & Security Hardening released)*
+*Updated: March 2, 2026 (v5.10.0 Performance Wiring & API Maturity released)*

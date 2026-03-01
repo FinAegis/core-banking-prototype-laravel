@@ -20,6 +20,7 @@ git status && git branch --show-current
 ### Version Status
 | Version | Status | Key Changes |
 |---------|--------|-------------|
+| v5.10.0 | ✅ Released | Performance Wiring & API Maturity: Wire 5 observability middleware to API group (StructuredLogging, Metrics, QueryPerformance, CachePerformance, Tracing), standardized API error responses (error codes + request_id), RFC 8594 deprecation headers for legacy endpoints, 11 integration tests + 13 new tests, 4 PRs (#691-#694) |
 | v5.9.0 | ✅ Released | OpenAPI Migration & Security Hardening: Full PHP 8 attributes migration (173 files, doctrine/annotations removed), global token expiration enforcement, scope-based authorization (EnforceMethodScope), OpenBanking 501→503 cleanup, WebAuthn COSE hardening, SSL pinning endpoint, GDPR async export, notification WebSocket broadcast, 5 PRs (#679-#683) |
 | v5.8.0 | ✅ Released | Mobile Go-Live: Rewards GraphQL (35th domain) + Filament admin, Pimlico bundler production submission, Marqeta card transactions, DB merchants, Chainalysis sanctions, recovery shard backup CRUD, WebSocket mobile channels (privacy/commerce/trustcert/user), privacy calldata persistence with encrypted storage, OpenAPI PHP 8 attributes migration, 7 PRs (#670-#676) |
 | v5.7.0 | ✅ Released | Mobile Rewards & Security Hardening: Rewards/gamification domain (quests, XP/levels, points shop, streaks with race-safe locking), WebAuthn FIDO2 hardening (rpIdHash, UV/UP flags, COSE validation, origin check), recent recipients, notification unread count, route aliases, 44 feature tests |
