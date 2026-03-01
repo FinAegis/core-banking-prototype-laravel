@@ -290,7 +290,7 @@ class ComprehensiveSecurityTest extends TestCase
         ];
 
         foreach ($weakPasswords as $password) {
-            $response = $this->postJson('/api/register', [
+            $response = $this->postJson('/api/auth/register', [
                 'name'                  => 'Test User',
                 'email'                 => Str::random() . '@example.com',
                 'password'              => $password,
@@ -302,7 +302,7 @@ class ComprehensiveSecurityTest extends TestCase
         }
 
         // Test strong password
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson('/api/auth/register', [
             'name'                  => 'Test User',
             'email'                 => Str::random() . '@example.com',
             'password'              => 'TestP@ssw0rd2024$Complex!UniqueString',

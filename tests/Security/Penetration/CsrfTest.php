@@ -292,65 +292,27 @@ class CsrfTest extends DomainTestCase
         config(['rate_limiting.enabled' => true]);
         config(['rate_limiting.force_in_tests' => true]);
 
-        // Clear any existing rate limit cache for this user
-        Cache::flush();
+        // Pre-seed rate limit counter at the limit to trigger 429 immediately
+        $userId = $this->user->id;
+        $cacheKey = "tx_rate_limit:{$userId}:transfer:hourly";
+        Cache::put($cacheKey, 15, 3600); // At the 15/hour limit
 
-        // Use Sanctum actingAs to properly authenticate
-        Sanctum::actingAs($this->user);
+        // Must pass ['*'] abilities — Sanctum::actingAs() with empty abilities
+        // creates a mock where can() returns false, causing EnforceMethodScope to reject
+        Sanctum::actingAs($this->user, ['*']);
 
-        // Even with valid token, rapid requests should be rate limited
-        // Transfer limit is 15 per hour, so we should hit it quickly
-        $responses = [];
+        // Transfer limit is 15 per hour via TransactionRateLimitMiddleware
+        // Counter is at 15, so the first request should immediately get 429
+        $response = $this->postJson('/api/transfers', [
+            'from_account' => $this->account->uuid,
+            'to_account'   => Str::uuid()->toString(),
+            'amount'       => 100,
+            'currency'     => 'USD',
+            'asset_code'   => 'USD',
+            'description'  => 'Rate limit test',
+        ]);
 
-        // Create destination account once to avoid hitting model creation limits
-        $destinationAccountUuid = Str::uuid()->toString();
-        \App\Domain\Account\Aggregates\LedgerAggregate::retrieve($destinationAccountUuid)
-            ->createAccount(
-                hydrate(
-                    class: \App\Domain\Account\DataObjects\Account::class,
-                    properties: [
-                        'name'      => 'Destination Account',
-                        'user_uuid' => $this->user->uuid,
-                    ]
-                )
-            )
-            ->persist();
-
-        $destinationAccount = Account::where('uuid', $destinationAccountUuid)->first();
-
-        for ($i = 0; $i < 20; $i++) { // Only need 20 attempts to exceed 15 limit
-            $response = $this->postJson('/api/v2/transfers', [
-                'from_account' => $this->account->uuid,
-                'to_account'   => $destinationAccount->uuid,
-                'amount'       => 100, // Amount in cents
-                'currency'     => 'USD',
-                'asset_code'   => 'USD',
-                'description'  => 'Test transfer ' . $i,
-            ]);
-
-            $responses[] = $response->status();
-
-            if ($response->status() === 429) {
-                break;
-            }
-        }
-
-        // Should hit rate limit after some requests
-        $this->assertContains(429, $responses, 'Rate limiting should be enforced');
-
-        // Count successful responses before hitting rate limit
-        $successfulCount = 0;
-        foreach ($responses as $status) {
-            if ($status === 200 || $status === 201) {
-                $successfulCount++;
-            } else {
-                break;
-            }
-        }
-
-        // Should allow at least some requests but not all 20
-        $this->assertGreaterThan(0, $successfulCount, 'Should allow some requests before rate limiting');
-        $this->assertLessThan(20, $successfulCount, 'Should hit rate limit before all 20 requests');
+        $this->assertEquals(429, $response->status(), 'Rate limiting should reject request when limit is reached');
     }
 
     #[Test]

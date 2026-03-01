@@ -126,6 +126,7 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
     // Passkey aliases (public — authentication endpoints)
     Route::prefix('passkey')->middleware('throttle:5,1')->group(function () {
         Route::post('/challenge', [PasskeyController::class, 'challenge'])->name('api.auth.passkey.challenge');
+        Route::get('/challenge', [PasskeyController::class, 'challenge'])->name('api.auth.passkey.challenge.get');
         Route::post('/verify', [PasskeyController::class, 'authenticate'])->name('api.auth.passkey.verify');
         Route::post('/authenticate', [PasskeyController::class, 'authenticate']);
     });
