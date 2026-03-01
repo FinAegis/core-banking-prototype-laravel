@@ -20,6 +20,7 @@ git status && git branch --show-current
 ### Version Status
 | Version | Status | Key Changes |
 |---------|--------|-------------|
+| v5.8.0 | ✅ Released | Mobile Go-Live: Rewards GraphQL (35th domain) + Filament admin, Pimlico bundler production submission, Marqeta card transactions, DB merchants, Chainalysis sanctions, recovery shard backup CRUD, WebSocket mobile channels (privacy/commerce/trustcert/user), privacy calldata persistence with encrypted storage, OpenAPI PHP 8 attributes migration, 7 PRs (#670-#676) |
 | v5.7.0 | ✅ Released | Mobile Rewards & Security Hardening: Rewards/gamification domain (quests, XP/levels, points shop, streaks with race-safe locking), WebAuthn FIDO2 hardening (rpIdHash, UV/UP flags, COSE validation, origin check), recent recipients, notification unread count, route aliases, 44 feature tests |
 | v5.6.0 | ✅ Released | RAILGUN Privacy Protocol: Node.js bridge service (@railgun-community/wallet SDK), RailgunBridgeClient HTTP client, RailgunMerkleTreeService/ZkProverService, RailgunPrivacyService orchestrator (shield/unshield/transfer), RailgunWallet/ShieldedBalance models, PrivacyController integration, 57 tests, chains: Ethereum/Polygon/Arbitrum/BSC |
 | v5.5.0 | ✅ Released | Production Relayer & Card Webhooks: ERC-4337 Pimlico v2 integration (bundler, paymaster, smart account factory), Marqeta webhook Basic Auth + HMAC verification, .env.zelta.example sync, platform hardening (IdempotencyMiddleware, E2E tests, Dependabot triage) |
