@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Privacy\Services;
 
 use App\Domain\Privacy\Contracts\MerkleTreeServiceInterface;
+use App\Domain\Privacy\Models\PrivacyTransaction;
 use App\Domain\Privacy\Models\RailgunWallet;
 use App\Domain\Privacy\Models\ShieldedBalance;
 use App\Models\User;
@@ -203,16 +204,28 @@ class RailgunPrivacyService
             $network,
         );
 
+        $transaction = $this->persistTransaction(
+            $user,
+            'shield',
+            $token,
+            $amount,
+            $network,
+            $result['transaction'] ?? null,
+            $result['gas_estimate'] ?? null,
+        );
+
         Log::info('Shield operation initiated', [
-            'user_id' => $user->id,
-            'token'   => $token,
-            'amount'  => $amount,
-            'network' => $network,
+            'user_id'        => $user->id,
+            'transaction_id' => $transaction->id,
+            'token'          => $token,
+            'amount'         => $amount,
+            'network'        => $network,
         ]);
 
         return [
             'operation'       => 'shield',
             'status'          => 'transaction_ready',
+            'transaction_id'  => $transaction->id,
             'transaction'     => $result['transaction'] ?? null,
             'gas_estimate'    => $result['gas_estimate'] ?? null,
             'token'           => $token,
@@ -242,22 +255,35 @@ class RailgunPrivacyService
             $network,
         );
 
+        $transaction = $this->persistTransaction(
+            $user,
+            'unshield',
+            $token,
+            $amount,
+            $network,
+            $result['transaction'] ?? null,
+            null,
+            $recipient,
+        );
+
         Log::info('Unshield operation initiated', [
-            'user_id'   => $user->id,
-            'recipient' => $recipient,
-            'token'     => $token,
-            'amount'    => $amount,
-            'network'   => $network,
+            'user_id'        => $user->id,
+            'transaction_id' => $transaction->id,
+            'recipient'      => $recipient,
+            'token'          => $token,
+            'amount'         => $amount,
+            'network'        => $network,
         ]);
 
         return [
-            'operation'   => 'unshield',
-            'status'      => 'transaction_ready',
-            'transaction' => $result['transaction'] ?? null,
-            'token'       => $token,
-            'amount'      => $amount,
-            'recipient'   => $recipient,
-            'network'     => $network,
+            'operation'      => 'unshield',
+            'status'         => 'transaction_ready',
+            'transaction_id' => $transaction->id,
+            'transaction'    => $result['transaction'] ?? null,
+            'token'          => $token,
+            'amount'         => $amount,
+            'recipient'      => $recipient,
+            'network'        => $network,
         ];
     }
 
@@ -281,21 +307,34 @@ class RailgunPrivacyService
             $network,
         );
 
+        $transaction = $this->persistTransaction(
+            $user,
+            'transfer',
+            $token,
+            $amount,
+            $network,
+            $result['transaction'] ?? null,
+            null,
+            $toAddress,
+        );
+
         Log::info('Private transfer initiated', [
-            'user_id' => $user->id,
-            'to'      => substr($toAddress, 0, 16) . '...',
-            'token'   => $token,
-            'amount'  => $amount,
-            'network' => $network,
+            'user_id'        => $user->id,
+            'transaction_id' => $transaction->id,
+            'to'             => substr($toAddress, 0, 16) . '...',
+            'token'          => $token,
+            'amount'         => $amount,
+            'network'        => $network,
         ]);
 
         return [
-            'operation'   => 'transfer',
-            'status'      => 'transaction_ready',
-            'transaction' => $result['transaction'] ?? null,
-            'token'       => $token,
-            'amount'      => $amount,
-            'network'     => $network,
+            'operation'      => 'transfer',
+            'status'         => 'transaction_ready',
+            'transaction_id' => $transaction->id,
+            'transaction'    => $result['transaction'] ?? null,
+            'token'          => $token,
+            'amount'         => $amount,
+            'network'        => $network,
         ];
     }
 
@@ -316,6 +355,85 @@ class RailgunPrivacyService
 
         // Fallback: deterministic viewing key from user ID
         return '0x' . hash('sha256', 'viewing_key_' . $user->id);
+    }
+
+    /**
+     * Get a persisted privacy transaction by tx hash or UUID.
+     */
+    public function getTransactionCalldata(User $user, string $txHash): ?PrivacyTransaction
+    {
+        // Try by tx_hash first (post-submission lookup)
+        $tx = PrivacyTransaction::query()
+            ->forUser($user->id)
+            ->forTxHash($txHash)
+            ->first();
+
+        if ($tx instanceof PrivacyTransaction) {
+            return $tx;
+        }
+
+        // Fall back to lookup by UUID (pre-submission lookup)
+        return PrivacyTransaction::query()
+            ->forUser($user->id)
+            ->where('id', $txHash)
+            ->first();
+    }
+
+    /**
+     * Update the on-chain tx hash after mobile submits the transaction.
+     */
+    public function updateTransactionHash(User $user, string $transactionId, string $txHash): bool
+    {
+        $tx = PrivacyTransaction::query()
+            ->forUser($user->id)
+            ->where('id', $transactionId)
+            ->first();
+
+        if (! $tx instanceof PrivacyTransaction) {
+            return false;
+        }
+
+        $tx->update([
+            'tx_hash' => $txHash,
+            'status'  => PrivacyTransaction::STATUS_SUBMITTED,
+        ]);
+
+        Log::info('Privacy transaction hash updated', [
+            'transaction_id' => $transactionId,
+            'tx_hash'        => $txHash,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Persist transaction calldata from a bridge operation.
+     *
+     * @param array<string, mixed>|null $transaction
+     */
+    private function persistTransaction(
+        User $user,
+        string $operation,
+        string $token,
+        string $amount,
+        string $network,
+        ?array $transaction,
+        ?string $gasEstimate = null,
+        ?string $recipient = null,
+    ): PrivacyTransaction {
+        return PrivacyTransaction::create([
+            'user_id'      => $user->id,
+            'operation'    => $operation,
+            'token'        => $token,
+            'amount'       => $amount,
+            'network'      => $network,
+            'to_address'   => $transaction['to'] ?? '',
+            'calldata'     => $transaction['data'] ?? '',
+            'value'        => $transaction['value'] ?? null,
+            'gas_estimate' => $gasEstimate,
+            'status'       => PrivacyTransaction::STATUS_PENDING,
+            'recipient'    => $recipient,
+        ]);
     }
 
     /**

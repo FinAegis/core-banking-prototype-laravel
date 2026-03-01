@@ -1174,25 +1174,118 @@ class PrivacyController extends Controller
     }
 
     /**
-     * Get transaction calldata (stub — deferred to v5.9.0).
+     * Get transaction calldata for a privacy transaction.
      *
      * @OA\Get(
      *     path="/api/v1/privacy/transaction-calldata/{txHash}",
      *     operationId="getTransactionCalldata",
      *     tags={"Privacy"},
-     *     summary="Get transaction calldata for a privacy transaction (not yet implemented)",
+     *     summary="Get persisted calldata for a privacy transaction",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="txHash", in="path", required=true, @OA\Schema(type="string")),
-     *     @OA\Response(response=501, description="Not implemented"),
+     *     @OA\Response(response=200, description="Transaction calldata retrieved"),
+     *     @OA\Response(response=404, description="Transaction not found"),
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
-    public function getTransactionCalldata(string $txHash): JsonResponse
+    public function getTransactionCalldata(Request $request, string $txHash): JsonResponse
     {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($this->isRailgunMode()) {
+            $tx = $this->railgun()->getTransactionCalldata($user, $txHash);
+
+            if ($tx === null) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'Transaction not found.',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data'    => $tx->toApiResponse(),
+            ]);
+        }
+
+        // Demo mode: return a synthetic response
         return response()->json([
-            'success'         => false,
-            'error'           => 'Transaction calldata retrieval is not yet implemented.',
-            'planned_version' => 'v5.9.0',
-        ], 501);
+            'success' => true,
+            'data'    => [
+                'id'           => $txHash,
+                'tx_hash'      => $txHash,
+                'operation'    => 'shield',
+                'token'        => 'USDC',
+                'amount'       => '100.00',
+                'network'      => 'polygon',
+                'to_address'   => '0x' . str_repeat('ab', 20),
+                'calldata'     => '0x' . bin2hex(random_bytes(64)),
+                'value'        => '0',
+                'gas_estimate' => '150000',
+                'status'       => 'pending',
+                'recipient'    => null,
+                'created_at'   => now()->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
+     * Update the on-chain tx hash for a privacy transaction.
+     *
+     * @OA\Put(
+     *     path="/api/v1/privacy/transactions/{transactionId}/tx-hash",
+     *     operationId="updateTransactionHash",
+     *     tags={"Privacy"},
+     *     summary="Record the on-chain tx hash after mobile submits the transaction",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="transactionId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"tx_hash"},
+     *             @OA\Property(property="tx_hash", type="string", example="0x1234...")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Transaction hash updated"),
+     *     @OA\Response(response=404, description="Transaction not found"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function updateTransactionHash(Request $request, string $transactionId): JsonResponse
+    {
+        $validated = $request->validate([
+            'tx_hash' => 'required|string|max:66',
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($this->isRailgunMode()) {
+            $updated = $this->railgun()->updateTransactionHash(
+                $user,
+                $transactionId,
+                $validated['tx_hash'],
+            );
+
+            if (! $updated) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'Transaction not found.',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction hash updated.',
+            ]);
+        }
+
+        // Demo mode: always succeed
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction hash updated.',
+        ]);
     }
 }
