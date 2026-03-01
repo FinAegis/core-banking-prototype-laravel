@@ -375,6 +375,9 @@ class CsrfTest extends DomainTestCase
         // Test that forms (if any) have proper action URLs
         $response = $this->get('/');
 
+        // Page should load (200 or redirect)
+        $this->assertContains($response->status(), [200, 301, 302]);
+
         if ($response->status() === 200) {
             $content = $response->content();
 
