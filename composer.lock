@@ -128,16 +128,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.371.2",
+            "version": "3.371.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "32090a8ac3ec8859cb83bdde800b8f0ecf92d8ec"
+                "reference": "d300ec1c861e52dc8f17ca3d75dc754da949f065"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/32090a8ac3ec8859cb83bdde800b8f0ecf92d8ec",
-                "reference": "32090a8ac3ec8859cb83bdde800b8f0ecf92d8ec",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/d300ec1c861e52dc8f17ca3d75dc754da949f065",
+                "reference": "d300ec1c861e52dc8f17ca3d75dc754da949f065",
                 "shasum": ""
             },
             "require": {
@@ -201,11 +201,11 @@
             "authors": [
                 {
                     "name": "Amazon Web Services",
-                    "homepage": "http://aws.amazon.com"
+                    "homepage": "https://aws.amazon.com"
                 }
             ],
             "description": "AWS SDK for PHP - Use Amazon Web Services in your PHP project",
-            "homepage": "http://aws.amazon.com/sdkforphp",
+            "homepage": "https://aws.amazon.com/sdk-for-php",
             "keywords": [
                 "amazon",
                 "aws",
@@ -219,9 +219,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.371.2"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.371.3"
             },
-            "time": "2026-02-26T19:06:10+00:00"
+            "time": "2026-02-27T19:05:40+00:00"
         },
         {
             "name": "bacon/bacon-qr-code",
@@ -4400,16 +4400,16 @@
         },
         {
             "name": "laravel-workflow/laravel-workflow",
-            "version": "1.0.68",
+            "version": "1.0.69",
             "source": {
                 "type": "git",
                 "url": "https://github.com/durable-workflow/workflow.git",
-                "reference": "89ae847b828890bf3c5d67a7f2ec672ca68cb971"
+                "reference": "794173d81fe68c9b8bba515dd6d845daa0f48267"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/durable-workflow/workflow/zipball/89ae847b828890bf3c5d67a7f2ec672ca68cb971",
-                "reference": "89ae847b828890bf3c5d67a7f2ec672ca68cb971",
+                "url": "https://api.github.com/repos/durable-workflow/workflow/zipball/794173d81fe68c9b8bba515dd6d845daa0f48267",
+                "reference": "794173d81fe68c9b8bba515dd6d845daa0f48267",
                 "shasum": ""
             },
             "require": {
@@ -4451,9 +4451,9 @@
             "description": "Durable workflow engine that allows users to write long running persistent distributed workflows (orchestrations) in PHP powered by Laravel queues.",
             "support": {
                 "issues": "https://github.com/durable-workflow/workflow/issues",
-                "source": "https://github.com/durable-workflow/workflow/tree/1.0.68"
+                "source": "https://github.com/durable-workflow/workflow/tree/1.0.69"
             },
-            "time": "2026-02-25T21:43:28+00:00"
+            "time": "2026-02-27T14:21:42+00:00"
         },
         {
             "name": "laravel-workflow/waterline",
@@ -6821,36 +6821,36 @@
         },
         {
             "name": "livewire/livewire",
-            "version": "v3.7.10",
+            "version": "v3.7.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "0dc679eb4c8b4470cb12522b5927ef08ca2358bb"
+                "reference": "addd6e8e9234df75f29e6a327ee2a745a7d67bb6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/0dc679eb4c8b4470cb12522b5927ef08ca2358bb",
-                "reference": "0dc679eb4c8b4470cb12522b5927ef08ca2358bb",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/addd6e8e9234df75f29e6a327ee2a745a7d67bb6",
+                "reference": "addd6e8e9234df75f29e6a327ee2a745a7d67bb6",
                 "shasum": ""
             },
             "require": {
-                "illuminate/database": "^10.0|^11.0|^12.0",
-                "illuminate/routing": "^10.0|^11.0|^12.0",
-                "illuminate/support": "^10.0|^11.0|^12.0",
-                "illuminate/validation": "^10.0|^11.0|^12.0",
+                "illuminate/database": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/routing": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/validation": "^10.0|^11.0|^12.0|^13.0",
                 "laravel/prompts": "^0.1.24|^0.2|^0.3",
                 "league/mime-type-detection": "^1.9",
                 "php": "^8.1",
-                "symfony/console": "^6.0|^7.0",
-                "symfony/http-kernel": "^6.2|^7.0"
+                "symfony/console": "^6.0|^7.0|^8.0",
+                "symfony/http-kernel": "^6.2|^7.0|^8.0"
             },
             "require-dev": {
                 "calebporzio/sushi": "^2.1",
-                "laravel/framework": "^10.15.0|^11.0|^12.0",
+                "laravel/framework": "^10.15.0|^11.0|^12.0|^13.0",
                 "mockery/mockery": "^1.3.1",
-                "orchestra/testbench": "^8.21.0|^9.0|^10.0",
-                "orchestra/testbench-dusk": "^8.24|^9.1|^10.0",
-                "phpunit/phpunit": "^10.4|^11.5",
+                "orchestra/testbench": "^8.21.0|^9.0|^10.0|^11.0",
+                "orchestra/testbench-dusk": "^8.24|^9.1|^10.0|^11.0",
+                "phpunit/phpunit": "^10.4|^11.5|^12.5",
                 "psy/psysh": "^0.11.22|^0.12"
             },
             "type": "library",
@@ -6885,7 +6885,7 @@
             "description": "A front-end framework for Laravel.",
             "support": {
                 "issues": "https://github.com/livewire/livewire/issues",
-                "source": "https://github.com/livewire/livewire/tree/v3.7.10"
+                "source": "https://github.com/livewire/livewire/tree/v3.7.11"
             },
             "funding": [
                 {
@@ -6893,7 +6893,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-09T22:49:33+00:00"
+            "time": "2026-02-26T00:58:19+00:00"
         },
         {
             "name": "masterminds/html5",
@@ -17748,40 +17748,40 @@
         },
         {
             "name": "larastan/larastan",
-            "version": "v3.9.2",
+            "version": "v3.9.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/larastan/larastan.git",
-                "reference": "2e9ed291bdc1969e7f270fb33c9cdf3c912daeb2"
+                "reference": "64a52bcc5347c89fdf131cb59f96ebfbc8d1ad65"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/larastan/larastan/zipball/2e9ed291bdc1969e7f270fb33c9cdf3c912daeb2",
-                "reference": "2e9ed291bdc1969e7f270fb33c9cdf3c912daeb2",
+                "url": "https://api.github.com/repos/larastan/larastan/zipball/64a52bcc5347c89fdf131cb59f96ebfbc8d1ad65",
+                "reference": "64a52bcc5347c89fdf131cb59f96ebfbc8d1ad65",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "iamcal/sql-parser": "^0.7.0",
-                "illuminate/console": "^11.44.2 || ^12.4.1",
-                "illuminate/container": "^11.44.2 || ^12.4.1",
-                "illuminate/contracts": "^11.44.2 || ^12.4.1",
-                "illuminate/database": "^11.44.2 || ^12.4.1",
-                "illuminate/http": "^11.44.2 || ^12.4.1",
-                "illuminate/pipeline": "^11.44.2 || ^12.4.1",
-                "illuminate/support": "^11.44.2 || ^12.4.1",
+                "illuminate/console": "^11.44.2 || ^12.4.1 || ^13",
+                "illuminate/container": "^11.44.2 || ^12.4.1 || ^13",
+                "illuminate/contracts": "^11.44.2 || ^12.4.1 || ^13",
+                "illuminate/database": "^11.44.2 || ^12.4.1 || ^13",
+                "illuminate/http": "^11.44.2 || ^12.4.1 || ^13",
+                "illuminate/pipeline": "^11.44.2 || ^12.4.1 || ^13",
+                "illuminate/support": "^11.44.2 || ^12.4.1 || ^13",
                 "php": "^8.2",
                 "phpstan/phpstan": "^2.1.32"
             },
             "require-dev": {
                 "doctrine/coding-standard": "^13",
-                "laravel/framework": "^11.44.2 || ^12.7.2",
+                "laravel/framework": "^11.44.2 || ^12.7.2 || ^13",
                 "mockery/mockery": "^1.6.12",
                 "nikic/php-parser": "^5.4",
-                "orchestra/canvas": "^v9.2.2 || ^10.0.1",
-                "orchestra/testbench-core": "^9.12.0 || ^10.1",
+                "orchestra/canvas": "^v9.2.2 || ^10.0.1 || ^11",
+                "orchestra/testbench-core": "^9.12.0 || ^10.1 || ^11",
                 "phpstan/phpstan-deprecation-rules": "^2.0.1",
-                "phpunit/phpunit": "^10.5.35 || ^11.5.15"
+                "phpunit/phpunit": "^10.5.35 || ^11.5.15 || ^12.5.8"
             },
             "suggest": {
                 "orchestra/testbench": "Using Larastan for analysing a package needs Testbench",
@@ -17826,7 +17826,7 @@
             ],
             "support": {
                 "issues": "https://github.com/larastan/larastan/issues",
-                "source": "https://github.com/larastan/larastan/tree/v3.9.2"
+                "source": "https://github.com/larastan/larastan/tree/v3.9.3"
             },
             "funding": [
                 {
@@ -17834,7 +17834,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-30T15:16:32+00:00"
+            "time": "2026-02-20T12:07:12+00:00"
         },
         {
             "name": "laravel/dusk",
@@ -21863,6 +21863,6 @@
         "ext-mbstring": "*",
         "ext-pdo": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }
