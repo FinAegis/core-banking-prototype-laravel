@@ -17,7 +17,7 @@ Transform FinAegis into the **premier open source core banking platform** that:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     FINAEGIS CORE BANKING PLATFORM (v5.7.0)              │
+│                     FINAEGIS CORE BANKING PLATFORM (v5.8.0)              │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  CORE BANKING                                                            │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐        │
@@ -273,10 +273,10 @@ The FinAegis platform has evolved from a core banking prototype to a comprehensi
 8. **Banking-as-a-Service** - Partner APIs, SDK generation, embeddable widgets
 9. **AI Framework** - MCP tools, NLP queries, ML anomaly detection
 
-**v5.4.1 Focus**: Platform hardening — Dependabot triage, CI reliability, IdempotencyMiddleware, E2E tests, multi-tenancy isolation tests.
+**v5.8.0 Focus**: Mobile go-live — all 13 handover items resolved, privacy calldata persistence, WebSocket mobile channels, Pimlico bundler production, Marqeta card transactions, Chainalysis sanctions screening.
 
 ---
 
-*Document Version: 5.4.1*
-*Last Updated: February 27, 2026*
+*Document Version: 5.8.0*
+*Last Updated: March 1, 2026*
 *Author: Architecture Review*

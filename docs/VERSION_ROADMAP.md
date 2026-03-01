@@ -1951,6 +1951,37 @@ The `/app` landing page rendered correctly locally but broke in production becau
 
 ---
 
-*Document Version: 5.7.0*
+---
+
+## v5.8.0 — Mobile Go-Live ✅ COMPLETED
+
+**Released**: March 1, 2026
+
+### Delivered
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Rewards GraphQL | ✅ | 35th GraphQL domain schema |
+| Rewards Admin | ✅ | Filament admin resources for quests, XP, shop, streaks |
+| OpenAPI Attributes | ✅ | Documentation schemas + RewardsController migrated to PHP 8 attributes |
+| Mobile v5.7.1 hotfix | ✅ | Handover items #2, #4, #7 resolved |
+| Pimlico Bundler | ✅ | Real ERC-4337 submission, receipt query, config-driven tokens |
+| Marqeta Cards | ✅ | Card listing + transactions via Marqeta adapter |
+| DB Merchants | ✅ | Commerce merchants backed by database with search/pagination |
+| Chainalysis Sanctions | ✅ | Sanctions screening endpoint via Chainalysis adapter |
+| Recovery Shard Backup | ✅ | Cloud backup CRUD endpoints for Shamir key recovery |
+| WebSocket Channels | ✅ | 4 mobile-aligned channels (privacy, commerce, trustcert, user) |
+| Privacy Calldata | ✅ | Encrypted calldata persistence, dual-lookup retrieval, tx-hash update |
+
+### Key Details
+- PRs #670-#677 (7 feature PRs + 1 release doc PR)
+- All 13 mobile go-live items resolved (11 code + SSL deferred + env ops)
+- `privacy_transactions` table with AES-256 encrypted calldata
+- `PrivacyTransaction` model with UUID PK, user scopes, dual-lookup (tx_hash/UUID)
+- 21+ new tests for privacy calldata
+
+---
+
+*Document Version: 5.8.0*
 *Created: January 11, 2026*
-*Updated: February 28, 2026 (v5.7.0 Mobile Rewards & Security Hardening released)*
+*Updated: March 1, 2026 (v5.8.0 Mobile Go-Live released)*
