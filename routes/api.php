@@ -149,10 +149,10 @@ Route::get('/profile', function (Request $request) {
             'updated_at' => $user->updated_at,
         ],
     ]);
-})->middleware(['auth:sanctum']);
+})->middleware(['auth:sanctum', 'deprecated:2026-09-01']);
 
 // Legacy KYC documents endpoint for backward compatibility
-Route::middleware(['auth:sanctum'])->post('/kyc/documents', [KycController::class, 'upload']);
+Route::middleware(['auth:sanctum', 'deprecated:2026-09-01'])->post('/kyc/documents', [KycController::class, 'upload']);
 
 // Custodian webhook endpoints (signature verification + webhook rate limiting)
 Route::prefix('webhooks/custodian')->middleware(['api.rate_limit:webhook'])->group(function () {

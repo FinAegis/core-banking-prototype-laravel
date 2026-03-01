@@ -85,6 +85,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'tracing' => App\Http\Middleware\TracingMiddleware::class,
             // API versioning middleware (v3.4.0)
             'api.version' => App\Http\Middleware\ApiVersionMiddleware::class,
+            // API deprecation headers middleware (v5.10.0)
+            'deprecated' => App\Http\Middleware\ApiDeprecationMiddleware::class,
             // X402 Payment Protocol middleware (v5.2.0)
             'x402.payment' => App\Http\Middleware\X402PaymentGateMiddleware::class,
         ]);
