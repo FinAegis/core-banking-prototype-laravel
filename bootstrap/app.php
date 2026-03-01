@@ -77,8 +77,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => App\Http\Middleware\InitializeTenancyByTeam::class,
             // Performance monitoring middleware
             'query.performance' => App\Http\Middleware\QueryPerformanceMiddleware::class,
+            'metrics'           => App\Http\Middleware\MetricsMiddleware::class,
+            'cache.performance' => App\Http\Middleware\CachePerformance::class,
             // Structured logging middleware (v3.3.0)
             'structured.logging' => App\Http\Middleware\StructuredLoggingMiddleware::class,
+            // Distributed tracing middleware (v3.3.0)
+            'tracing' => App\Http\Middleware\TracingMiddleware::class,
             // API versioning middleware (v3.4.0)
             'api.version' => App\Http\Middleware\ApiVersionMiddleware::class,
             // X402 Payment Protocol middleware (v5.2.0)
@@ -100,6 +104,12 @@ return Application::configure(basePath: dirname(__DIR__))
             App\Http\Middleware\ApiVersionMiddleware::class,
             App\Http\Middleware\CheckTokenExpiration::class,
             App\Http\Middleware\EnforceMethodScope::class,
+            // Observability middleware stack (v5.10.0)
+            App\Http\Middleware\StructuredLoggingMiddleware::class,
+            App\Http\Middleware\MetricsMiddleware::class,
+            App\Http\Middleware\QueryPerformanceMiddleware::class,
+            App\Http\Middleware\CachePerformance::class,
+            App\Http\Middleware\TracingMiddleware::class,
         ]);
 
         // Apply security headers to web routes
