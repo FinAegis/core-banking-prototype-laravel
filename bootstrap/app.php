@@ -144,6 +144,45 @@ return Application::configure(basePath: dirname(__DIR__))
             return $request->expectsJson();
         });
 
+        // Standardize API error responses (v5.10.0)
+        $exceptions->respond(function (Symfony\Component\HttpFoundation\Response $response, Throwable $e, Illuminate\Http\Request $request) {
+            if (! $response instanceof Illuminate\Http\JsonResponse) {
+                return $response;
+            }
+
+            $isApi = $request->is('api/*') || str_starts_with($request->getHost(), 'api.') || $request->expectsJson();
+            if (! $isApi) {
+                return $response;
+            }
+
+            $data = $response->getData(true);
+
+            // Map exception types to error codes
+            $errorCode = match (true) {
+                $e instanceof Illuminate\Validation\ValidationException => 'VALIDATION_ERROR',
+                $e instanceof Illuminate\Auth\AuthenticationException => 'UNAUTHENTICATED',
+                $e instanceof Illuminate\Auth\Access\AuthorizationException => 'FORBIDDEN',
+                $e instanceof Illuminate\Database\Eloquent\ModelNotFoundException => 'NOT_FOUND',
+                $e instanceof Symfony\Component\HttpKernel\Exception\NotFoundHttpException => 'NOT_FOUND',
+                $e instanceof Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException => 'METHOD_NOT_ALLOWED',
+                $e instanceof Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException => 'RATE_LIMITED',
+                $e instanceof Symfony\Component\HttpKernel\Exception\HttpException => 'HTTP_ERROR',
+                default => 'SERVER_ERROR',
+            };
+
+            // Add standardized fields without overwriting existing ones
+            if (! isset($data['error'])) {
+                $data['error'] = $errorCode;
+            }
+            if (! isset($data['request_id'])) {
+                $data['request_id'] = $request->header('X-Request-ID');
+            }
+
+            $response->setData($data);
+
+            return $response;
+        });
+
         // Don't report certain exceptions in demo environment
         $exceptions->dontReport([
             Illuminate\Auth\AuthenticationException::class,
