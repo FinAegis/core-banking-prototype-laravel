@@ -423,7 +423,7 @@
                     <p class="text-gray-600 mb-4">
                         Extensible plugin system with sandbox execution, static security scanning, hook-based integration, and a plugin manager UI.
                     </p>
-                    <a href="{{ route('features') }}" class="text-violet-600 font-medium hover:text-violet-700">
+                    <a href="{{ route('features.show', 'plugin-marketplace') }}" class="text-violet-600 font-medium hover:text-violet-700">
                         Explore plugins &rarr;
                     </a>
                 </div>

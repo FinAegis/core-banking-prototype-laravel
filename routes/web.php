@@ -92,7 +92,7 @@ if (! app()->environment('production')) {
     })->name('features');
 
     Route::get('/features/{feature}', function ($feature) {
-        $validFeatures = ['gcu', 'multi-asset', 'settlements', 'governance', 'bank-integration', 'api', 'crosschain-defi', 'privacy-identity', 'mobile-payments', 'regtech-compliance', 'baas-platform', 'ai-framework', 'multi-tenancy', 'x402-protocol'];
+        $validFeatures = ['gcu', 'multi-asset', 'settlements', 'governance', 'bank-integration', 'api', 'crosschain-defi', 'privacy-identity', 'mobile-payments', 'regtech-compliance', 'baas-platform', 'ai-framework', 'multi-tenancy', 'x402-protocol', 'plugin-marketplace'];
 
         if (! in_array($feature, $validFeatures)) {
             abort(404);

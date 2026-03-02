@@ -509,7 +509,7 @@
                         </div>
                         <h3 class="text-xl font-bold mb-2">Plugin Marketplace</h3>
                         <p class="text-violet-100 text-sm mb-4">Sandbox execution, security scanner, and extensible hook system</p>
-                        <a href="{{ route('features') }}" class="text-white font-semibold hover:underline">Learn more &rarr;</a>
+                        <a href="{{ route('features.show', 'plugin-marketplace') }}" class="text-white font-semibold hover:underline">Learn more &rarr;</a>
                     </div>
                 </div>
             </div>
