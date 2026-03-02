@@ -48,7 +48,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    ->withBroadcasting(base_path('routes/channels.php'))
+    ->withBroadcasting(base_path('routes/channels.php'), [
+        'middleware' => ['api', 'auth:sanctum'],
+    ])
     ->withMiddleware(function (Middleware $middleware) {
         // Register rate limiting middleware
         $middleware->alias([
