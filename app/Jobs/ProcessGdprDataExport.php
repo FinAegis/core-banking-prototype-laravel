@@ -14,6 +14,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Process a GDPR data export request asynchronously.
@@ -61,10 +63,23 @@ class ProcessGdprDataExport implements ShouldQueue
 
             $data = $gdprService->exportUserData($user);
 
+            // Write encrypted export to disk for download
+            $filePath = "gdpr-exports/{$this->exportId}.json.enc";
+            $jsonData = json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+            Storage::disk('local')->put($filePath, encrypt($jsonData));
+
+            $downloadUrl = URL::signedRoute(
+                'api.user.data-export.download',
+                ['exportId' => $this->exportId],
+                now()->addHour(),
+            );
+
             Cache::put($this->cacheKey(), [
                 'status'       => 'completed',
                 'sections'     => array_keys($data),
                 'completed_at' => now()->toIso8601String(),
+                'file_path'    => $filePath,
+                'download_url' => $downloadUrl,
             ], now()->addHours(24));
 
             Log::info('GDPR data export completed', [

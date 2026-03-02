@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -208,10 +209,73 @@ class GdprController extends Controller
             ], 404);
         }
 
-        return response()->json(array_merge(
+        $response = array_merge(
             ['export_id' => $exportId],
             (array) $status,
-        ));
+        );
+
+        // Regenerate a fresh signed download URL if export is completed
+        if (($response['status'] ?? '') === 'completed' && ! empty($response['file_path'])) {
+            $response['download_url'] = \Illuminate\Support\Facades\URL::signedRoute(
+                'api.user.data-export.download',
+                ['exportId' => $exportId],
+                now()->addHour(),
+            );
+            unset($response['file_path']);
+        }
+
+        return response()->json($response);
+    }
+
+    #[OA\Get(
+        path: '/api/v1/user/data-export/{exportId}/download',
+        operationId: 'downloadGdprExport',
+        tags: ['GDPR'],
+        summary: 'Download completed GDPR data export',
+        description: 'Download the exported data as a JSON file. Requires a valid signed URL.',
+        security: [['sanctum' => []]],
+        parameters: [
+        new OA\Parameter(name: 'exportId', in: 'path', required: true, description: 'Export request ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'JSON file download',
+        content: new OA\JsonContent(type: 'object')
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Invalid or expired signature'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Export file not found'
+    )]
+    public function downloadExport(Request $request, string $exportId): JsonResponse|\Symfony\Component\HttpFoundation\Response
+    {
+        if (! $request->hasValidSignature()) {
+            return response()->json(['error' => 'Invalid or expired download link.'], 403);
+        }
+
+        $cacheKey = "gdpr_export:{$exportId}";
+        $status = \Illuminate\Support\Facades\Cache::get($cacheKey);
+
+        if ($status === null || ($status['status'] ?? '') !== 'completed') {
+            return response()->json(['error' => 'Export not found or not yet completed.'], 404);
+        }
+
+        $filePath = $status['file_path'] ?? "gdpr-exports/{$exportId}.json.enc";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            return response()->json(['error' => 'Export file not found or expired.'], 404);
+        }
+
+        $decrypted = decrypt((string) Storage::disk('local')->get($filePath));
+
+        return response($decrypted, 200, [
+            'Content-Type'        => 'application/json',
+            'Content-Disposition' => "attachment; filename=\"gdpr-export-{$exportId}.json\"",
+        ]);
     }
 
         #[OA\Post(

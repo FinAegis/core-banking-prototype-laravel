@@ -95,4 +95,12 @@ Route::prefix('v1/user')->name('api.user.')
         Route::post('/data-export', [App\Http\Controllers\Api\GdprController::class, 'requestDataExport'])
             ->middleware('api.rate_limit:mutation')
             ->name('data-export');
+
+        // Data export status polling (mobile expects GET /api/v1/user/data-export/{exportId})
+        Route::get('/data-export/{exportId}', [App\Http\Controllers\Api\GdprController::class, 'getExportStatus'])
+            ->name('data-export.status');
+
+        // Data export download (signed URL)
+        Route::get('/data-export/{exportId}/download', [App\Http\Controllers\Api\GdprController::class, 'downloadExport'])
+            ->name('data-export.download');
     });

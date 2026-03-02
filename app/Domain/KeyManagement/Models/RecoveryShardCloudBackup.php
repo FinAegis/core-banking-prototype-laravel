@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $backup_provider
  * @property string $encrypted_shard_hash
  * @property string $shard_version
+ * @property string|null $encrypted_shard
  * @property array<string, mixed>|null $metadata
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
@@ -41,11 +42,17 @@ class RecoveryShardCloudBackup extends Model
         'backup_provider',
         'encrypted_shard_hash',
         'shard_version',
+        'encrypted_shard',
         'metadata',
     ];
 
+    protected $hidden = [
+        'encrypted_shard',
+    ];
+
     protected $casts = [
-        'metadata' => 'array',
+        'metadata'        => 'array',
+        'encrypted_shard' => 'encrypted',
     ];
 
     /**

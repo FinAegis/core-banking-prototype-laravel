@@ -151,6 +151,8 @@ Route::prefix('v1/wallet')->name('mobile.wallet.')
             ->name('recovery-shard-backup.store');
         Route::get('/recovery-shard-backup', [RecoveryShardController::class, 'show'])
             ->name('recovery-shard-backup.show');
+        Route::get('/recovery-shard-backup/retrieve', [RecoveryShardController::class, 'retrieve'])
+            ->name('recovery-shard-backup.retrieve');
         Route::delete('/recovery-shard-backup', [RecoveryShardController::class, 'destroy'])
             ->name('recovery-shard-backup.destroy');
     });
