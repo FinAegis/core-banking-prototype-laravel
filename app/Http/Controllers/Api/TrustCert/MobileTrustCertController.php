@@ -293,6 +293,7 @@ class MobileTrustCertController extends Controller
         new OA\Property(property: 'amount', type: 'number', example: 1500),
         new OA\Property(property: 'type', type: 'string', example: 'single'),
         new OA\Property(property: 'remaining', type: 'number', example: 500),
+        new OA\Property(property: 'upgrade_required', type: 'string', nullable: true, example: 'high', description: 'Next trust level needed to increase limits, null if already at max'),
         ]),
         ])
     )]
@@ -327,15 +328,22 @@ class MobileTrustCertController extends Controller
         $amount = (float) $request->input('amount');
         $limit = $limits[$type] ?? 0;
 
+        $levelOrder = [TrustLevel::UNKNOWN, TrustLevel::BASIC, TrustLevel::VERIFIED, TrustLevel::HIGH, TrustLevel::ULTIMATE];
+        $currentIndex = array_search($trustLevel, $levelOrder, true);
+        $upgradeRequired = ($currentIndex !== false && $currentIndex < count($levelOrder) - 1)
+            ? $levelOrder[$currentIndex + 1]->value
+            : null;
+
         return response()->json([
             'success' => true,
             'data'    => [
-                'allowed'     => $amount <= $limit,
-                'trust_level' => $trustLevel->value,
-                'limit'       => $limit,
-                'amount'      => $amount,
-                'type'        => $type,
-                'remaining'   => max(0, $limit - $amount),
+                'allowed'          => $amount <= $limit,
+                'trust_level'      => $trustLevel->value,
+                'limit'            => $limit,
+                'amount'           => $amount,
+                'type'             => $type,
+                'remaining'        => max(0, $limit - $amount),
+                'upgrade_required' => $upgradeRequired,
             ],
         ]);
     }

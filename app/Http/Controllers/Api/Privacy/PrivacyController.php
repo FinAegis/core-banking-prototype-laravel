@@ -549,7 +549,14 @@ class PrivacyController extends Controller
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object', properties: [
-        new OA\Property(property: 'token', type: 'string', example: 'USDC'),
+        new OA\Property(property: 'token', type: 'object', properties: [
+        new OA\Property(property: 'symbol', type: 'string', example: 'USDC'),
+        new OA\Property(property: 'name', type: 'string', example: 'USD Coin'),
+        new OA\Property(property: 'address', type: 'string', example: '0x...'),
+        new OA\Property(property: 'decimals', type: 'integer', example: 6),
+        new OA\Property(property: 'chain_id', type: 'integer', example: 137),
+        new OA\Property(property: 'is_stablecoin', type: 'boolean', example: true),
+        ]),
         new OA\Property(property: 'balance', type: 'string', example: '0.00'),
         new OA\Property(property: 'network', type: 'string', example: 'polygon'),
         ])),
@@ -581,10 +588,32 @@ class PrivacyController extends Controller
         $networks = $this->merkleService->getSupportedNetworks();
         $balances = [];
 
+        $tokenMeta = [
+            'USDC' => ['name' => 'USD Coin', 'decimals' => 6, 'is_stablecoin' => true],
+            'USDT' => ['name' => 'Tether USD', 'decimals' => 6, 'is_stablecoin' => true],
+            'WETH' => ['name' => 'Wrapped Ether', 'decimals' => 18, 'is_stablecoin' => false],
+        ];
+
+        $chainIds = [
+            'ethereum' => 1,
+            'polygon'  => 137,
+            'arbitrum' => 42161,
+            'bsc'      => 56,
+        ];
+
         foreach ($networks as $network) {
-            foreach (['USDC', 'USDT', 'WETH'] as $token) {
+            $chainId = $chainIds[$network] ?? 0;
+            foreach (['USDC', 'USDT', 'WETH'] as $symbol) {
+                $meta = $tokenMeta[$symbol];
                 $balances[] = [
-                    'token'   => $token,
+                    'token' => [
+                        'symbol'        => $symbol,
+                        'name'          => $meta['name'],
+                        'address'       => '0x0000000000000000000000000000000000000000',
+                        'decimals'      => $meta['decimals'],
+                        'chain_id'      => $chainId,
+                        'is_stablecoin' => $meta['is_stablecoin'],
+                    ],
                     'balance' => '0.00',
                     'network' => $network,
                 ];

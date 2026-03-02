@@ -159,6 +159,7 @@ class RewardsService
                 'xp_earned'     => $quest->xp_reward,
                 'points_earned' => $quest->points_reward,
                 'new_xp'        => $profile->xp,
+                'new_total_xp'  => $profile->xp,
                 'new_level'     => $profile->level,
                 'new_points'    => $profile->points_balance,
                 'level_up'      => $profile->wasChanged('level'),
@@ -195,6 +196,9 @@ class RewardsService
      *
      * All checks (balance, stock, availability) happen inside a serialized
      * transaction with pessimistic locking to prevent double-spend.
+     *
+     * The shop uses **points** (not XP). Points are earned from quests and
+     * spent in the shop. XP is separate and determines the user's level.
      *
      * @return array<string, mixed>
      */
@@ -251,6 +255,7 @@ class RewardsService
                 'item_title'     => $item->title,
                 'points_spent'   => $item->points_cost,
                 'points_balance' => $profile->points_balance,
+                'new_total_xp'   => $profile->xp,
                 'status'         => 'completed',
                 'redeemed_at'    => $redemption->created_at?->toIso8601String(),
             ];

@@ -91,7 +91,7 @@ class MobileRelayerController extends Controller
         path: '/api/v1/relayer/estimate-gas',
         operationId: 'relayerEstimateGas',
         summary: 'Estimate gas for a transaction',
-        description: 'Estimates gas cost for a transaction on the specified network.',
+        description: 'Estimates gas cost for a transaction on the specified network. Returns ERC-4337 compatible gas fields.',
         tags: ['Relayer'],
         security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['network', 'to'], properties: [
@@ -111,8 +111,16 @@ class MobileRelayerController extends Controller
         new OA\Property(property: 'gas_price', type: 'string', example: '30'),
         new OA\Property(property: 'gas_limit', type: 'string', example: '200000'),
         new OA\Property(property: 'total_cost', type: 'string', example: '0.05'),
+        new OA\Property(property: 'total_fee_usd', type: 'number', format: 'float', example: 0.05),
         new OA\Property(property: 'currency', type: 'string', example: 'MATIC'),
         new OA\Property(property: 'sponsored', type: 'boolean', example: true),
+        new OA\Property(property: 'call_gas_limit', type: 'string', example: '200000'),
+        new OA\Property(property: 'verification_gas_limit', type: 'string', example: '100000'),
+        new OA\Property(property: 'pre_verification_gas', type: 'string', example: '21000'),
+        new OA\Property(property: 'max_fee_per_gas', type: 'string', example: '30'),
+        new OA\Property(property: 'max_priority_fee_per_gas', type: 'string', example: '2'),
+        new OA\Property(property: 'paymaster_fee', type: 'string', example: '0'),
+        new OA\Property(property: 'paymaster_fee_usd', type: 'number', format: 'float', example: 0.0),
         ]),
         ])
     )]
@@ -154,15 +162,27 @@ class MobileRelayerController extends Controller
         $callData = $request->input('data', '0x');
         $estimate = $this->gasStation->estimateFee($callData, $network);
 
+        $gasPrice = $network->getCurrentGasPrice();
+        $gasLimit = (string) ($estimate['estimated_gas'] ?? 200000);
+        $totalCost = $estimate['fee_usdc'] ?? '0';
+
         return response()->json([
             'success' => true,
             'data'    => [
-                'network'    => $network->value,
-                'gas_price'  => $network->getCurrentGasPrice(),
-                'gas_limit'  => (string) ($estimate['estimated_gas'] ?? 200000),
-                'total_cost' => $estimate['fee_usdc'] ?? '0',
-                'currency'   => $network->getNativeCurrency(),
-                'sponsored'  => true,
+                'network'                  => $network->value,
+                'gas_price'                => $gasPrice,
+                'gas_limit'                => $gasLimit,
+                'total_cost'               => $totalCost,
+                'total_fee_usd'            => (float) $totalCost,
+                'currency'                 => $network->getNativeCurrency(),
+                'sponsored'                => true,
+                'call_gas_limit'           => $gasLimit,
+                'verification_gas_limit'   => '100000',
+                'pre_verification_gas'     => '21000',
+                'max_fee_per_gas'          => $gasPrice,
+                'max_priority_fee_per_gas' => '2',
+                'paymaster_fee'            => '0',
+                'paymaster_fee_usd'        => 0.0,
             ],
         ]);
     }

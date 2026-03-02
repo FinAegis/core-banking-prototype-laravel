@@ -117,6 +117,7 @@ class MobileWalletController extends Controller
         new OA\Property(property: 'network', type: 'string', example: 'polygon'),
         new OA\Property(property: 'address', type: 'string', example: '0x1234...abcd'),
         new OA\Property(property: 'balance', type: 'string', example: '1000.50'),
+        new OA\Property(property: 'usd_value', type: 'number', format: 'float', example: 1000.50, description: 'USD equivalent of the balance'),
         new OA\Property(property: 'error', type: 'string', nullable: true, example: null, description: 'Present only if balance query failed'),
         ])),
         ])
@@ -132,6 +133,7 @@ class MobileWalletController extends Controller
 
         $balances = [];
         $supportedTokens = ['USDC', 'USDT', 'WETH', 'WBTC'];
+        $stablecoins = ['USDC', 'USDT'];
 
         foreach ($accounts as $account) {
             $networkStr = $account->network ?? 'polygon';
@@ -149,19 +151,24 @@ class MobileWalletController extends Controller
                         $token,
                         $network,
                     );
+                    $usdValue = in_array($token, $stablecoins, true)
+                        ? (float) $balance
+                        : 0.0;
                     $balances[] = [
-                        'token'   => $token,
-                        'network' => $networkStr,
-                        'address' => $account->account_address,
-                        'balance' => $balance,
+                        'token'     => $token,
+                        'network'   => $networkStr,
+                        'address'   => $account->account_address,
+                        'balance'   => $balance,
+                        'usd_value' => $usdValue,
                     ];
                 } catch (Throwable) {
                     $balances[] = [
-                        'token'   => $token,
-                        'network' => $networkStr,
-                        'address' => $account->account_address,
-                        'balance' => '0',
-                        'error'   => 'Balance query failed',
+                        'token'     => $token,
+                        'network'   => $networkStr,
+                        'address'   => $account->account_address,
+                        'balance'   => '0',
+                        'usd_value' => 0.0,
+                        'error'     => 'Balance query failed',
                     ];
                 }
             }
@@ -180,7 +187,7 @@ class MobileWalletController extends Controller
         path: '/api/v1/wallet/state',
         operationId: 'walletState',
         summary: 'Get aggregated wallet state',
-        description: 'Returns aggregated wallet state including addresses, supported networks and sync information.',
+        description: 'Returns aggregated wallet state including addresses, balances, supported networks and sync information.',
         tags: ['Mobile Wallet'],
         security: [['sanctum' => []]]
     )]
@@ -195,6 +202,14 @@ class MobileWalletController extends Controller
         new OA\Property(property: 'network', type: 'string', example: 'polygon'),
         new OA\Property(property: 'deployed', type: 'boolean', example: true),
         ])),
+        new OA\Property(property: 'balances', type: 'array', items: new OA\Items(type: 'object', properties: [
+        new OA\Property(property: 'token', type: 'string', example: 'USDC'),
+        new OA\Property(property: 'network', type: 'string', example: 'polygon'),
+        new OA\Property(property: 'balance', type: 'string', example: '1000.50'),
+        new OA\Property(property: 'usd_value', type: 'number', format: 'float', example: 1000.50),
+        ])),
+        new OA\Property(property: 'total_usd_value', type: 'number', format: 'float', example: 2500.75),
+        new OA\Property(property: 'shielded_balance', type: 'number', format: 'float', example: 0.0),
         new OA\Property(property: 'networks', type: 'array', example: ['polygon', 'ethereum', 'arbitrum'], items: new OA\Items(type: 'string')),
         new OA\Property(property: 'synced_at', type: 'string', format: 'date-time'),
         new OA\Property(property: 'account_count', type: 'integer', example: 2),
@@ -211,21 +226,65 @@ class MobileWalletController extends Controller
         $accounts = $this->smartAccountService->getUserAccounts($user);
 
         $addresses = [];
+        $balances = [];
+        $totalUsdValue = 0.0;
+        $supportedTokens = ['USDC', 'USDT', 'WETH', 'WBTC'];
+        $stablecoins = ['USDC', 'USDT'];
+
         foreach ($accounts as $account) {
+            $networkStr = $account->network ?? 'polygon';
             $addresses[] = [
                 'address'  => $account->account_address,
-                'network'  => $account->network ?? 'polygon',
+                'network'  => $networkStr,
                 'deployed' => $account->is_deployed ?? false,
             ];
+
+            $network = SupportedNetwork::tryFrom($networkStr);
+            if (! $network) {
+                continue;
+            }
+
+            foreach ($supportedTokens as $token) {
+                if (! $this->balanceService->isTokenSupported($token, $network)) {
+                    continue;
+                }
+                try {
+                    $balance = $this->balanceService->getBalance(
+                        $account->account_address,
+                        $token,
+                        $network,
+                    );
+                    $usdValue = in_array($token, $stablecoins, true)
+                        ? (float) $balance
+                        : 0.0;
+                    $totalUsdValue += $usdValue;
+                    $balances[] = [
+                        'token'     => $token,
+                        'network'   => $networkStr,
+                        'balance'   => $balance,
+                        'usd_value' => $usdValue,
+                    ];
+                } catch (Throwable) {
+                    $balances[] = [
+                        'token'     => $token,
+                        'network'   => $networkStr,
+                        'balance'   => '0',
+                        'usd_value' => 0.0,
+                    ];
+                }
+            }
         }
 
         return response()->json([
             'success' => true,
             'data'    => [
-                'addresses'     => $addresses,
-                'networks'      => $this->smartAccountService->getSupportedNetworks(),
-                'synced_at'     => now()->toIso8601String(),
-                'account_count' => count($accounts),
+                'addresses'        => $addresses,
+                'balances'         => $balances,
+                'total_usd_value'  => $totalUsdValue,
+                'shielded_balance' => 0.0,
+                'networks'         => $this->smartAccountService->getSupportedNetworks(),
+                'synced_at'        => now()->toIso8601String(),
+                'account_count'    => count($accounts),
             ],
         ]);
     }

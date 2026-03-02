@@ -187,6 +187,13 @@ class MobileCommerceController extends Controller
         new OA\Property(property: 'data', type: 'object', properties: [
         new OA\Property(property: 'id', type: 'string', example: 'pr_abc123def456'),
         new OA\Property(property: 'merchant_id', type: 'string', example: 'merchant_demo_001'),
+        new OA\Property(property: 'merchant', type: 'object', properties: [
+        new OA\Property(property: 'id', type: 'string'),
+        new OA\Property(property: 'name', type: 'string'),
+        new OA\Property(property: 'display_name', type: 'string'),
+        new OA\Property(property: 'category', type: 'string', nullable: true),
+        new OA\Property(property: 'accepted_tokens', type: 'array', items: new OA\Items(type: 'string')),
+        ]),
         new OA\Property(property: 'amount', type: 'string', example: '25.00'),
         new OA\Property(property: 'asset', type: 'string', example: 'USDC'),
         new OA\Property(property: 'network', type: 'string', example: 'polygon'),
@@ -213,9 +220,28 @@ class MobileCommerceController extends Controller
             'network'     => ['required', 'string'],
         ]);
 
+        $merchantId = $request->input('merchant_id');
+        /** @var Merchant|null $merchant */
+        $merchant = Merchant::find($merchantId);
+
+        $merchantData = $merchant ? [
+            'id'              => $merchant->id,
+            'name'            => $merchant->public_id ?? $merchant->id,
+            'display_name'    => $merchant->display_name,
+            'category'        => $merchant->terminal_id,
+            'accepted_tokens' => $merchant->accepted_assets ?? [],
+        ] : [
+            'id'              => $merchantId,
+            'name'            => $merchantId,
+            'display_name'    => $merchantId,
+            'category'        => null,
+            'accepted_tokens' => ['USDC', 'USDT', 'WETH', 'WBTC'],
+        ];
+
         $paymentRequest = [
             'id'          => 'pr_' . Str::random(20),
-            'merchant_id' => $request->input('merchant_id'),
+            'merchant_id' => $merchantId,
+            'merchant'    => $merchantData,
             'amount'      => $request->input('amount'),
             'asset'       => $request->input('asset'),
             'network'     => $request->input('network'),
