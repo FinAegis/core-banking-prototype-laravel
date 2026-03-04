@@ -237,6 +237,16 @@ Route::prefix('v1/banners')->name('api.v1.banners.')
         Route::post('/{id}/dismiss', [App\Http\Controllers\Api\V1\BannerController::class, 'dismiss'])->name('dismiss');
     });
 
+// v5.13.0 — Referral System
+Route::prefix('v1/referrals')->name('api.v1.referrals.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/my-code', [App\Http\Controllers\Api\V1\ReferralController::class, 'myCode'])->name('my-code');
+        Route::post('/apply', [App\Http\Controllers\Api\V1\ReferralController::class, 'apply'])->name('apply');
+        Route::get('/stats', [App\Http\Controllers\Api\V1\ReferralController::class, 'stats'])->name('stats');
+        Route::get('/', [App\Http\Controllers\Api\V1\ReferralController::class, 'index'])->name('index');
+    });
+
 // v5.13.0 — Gas Sponsorship status
 Route::prefix('v1/sponsorship')->name('api.v1.sponsorship.')
     ->middleware(['auth:sanctum'])

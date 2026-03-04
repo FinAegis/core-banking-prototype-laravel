@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Domain\Account\Events\MoneyTransferred;
 use App\Domain\Account\Listeners\CreateAccountForNewUser;
+use App\Domain\Compliance\Events\KycVerificationCompleted;
 use App\Domain\Mobile\Listeners\LogMobileAuditEventListener;
 use App\Domain\Mobile\Listeners\SendSecurityAlertListener;
 use App\Domain\Mobile\Listeners\SendTransactionPushNotificationListener;
+use App\Domain\Referral\Listeners\CompleteReferralOnKycApproval;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -23,6 +25,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         MoneyTransferred::class => [
             SendTransactionPushNotificationListener::class,
+        ],
+        KycVerificationCompleted::class => [
+            CompleteReferralOnKycApproval::class,
         ],
     ];
 
