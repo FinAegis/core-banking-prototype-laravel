@@ -75,13 +75,21 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
     });
 });
 
-// Notification endpoints (v5.6.0)
-Route::prefix('v1/notifications')->name('api.notifications.')
+// Notification endpoints — v1 (v5.13.0)
+Route::prefix('v1/notifications')->name('api.v1.notifications.')
     ->middleware(['auth:sanctum'])
     ->group(function () {
-        Route::get('/unread-count', [MobileController::class, 'getUnreadNotificationCount'])
+        Route::get('/', [App\Http\Controllers\Api\V1\NotificationController::class, 'index'])
+            ->name('index');
+        Route::get('/unread-count', [App\Http\Controllers\Api\V1\NotificationController::class, 'unreadCount'])
             ->middleware('api.rate_limit:query')
             ->name('unread-count');
+        Route::get('/{id}', [App\Http\Controllers\Api\V1\NotificationController::class, 'show'])
+            ->name('show');
+        Route::post('/read-all', [App\Http\Controllers\Api\V1\NotificationController::class, 'markAllRead'])
+            ->name('read-all');
+        Route::post('/{id}/read', [App\Http\Controllers\Api\V1\NotificationController::class, 'markRead'])
+            ->name('read');
     });
 
 // User preferences (v3.3.4) + data export alias (v5.6.0)
