@@ -139,9 +139,9 @@ return [
     'smart_accounts' => [
         // Factory contract addresses per network (SimpleAccountFactory or custom)
         'factory_addresses' => [
-            'polygon'  => env('POLYGON_FACTORY_ADDRESS'),
-            'base'     => env('BASE_FACTORY_ADDRESS'),
-            'arbitrum' => env('ARBITRUM_FACTORY_ADDRESS'),
+            'polygon'  => env('POLYGON_FACTORY_ADDRESS', '0x9406Cc6185a346906296840746125a0E44976454'),
+            'base'     => env('BASE_FACTORY_ADDRESS', '0x9406Cc6185a346906296840746125a0E44976454'),
+            'arbitrum' => env('ARBITRUM_FACTORY_ADDRESS', '0x9406Cc6185a346906296840746125a0E44976454'),
         ],
 
         // Paymaster contract addresses per network
