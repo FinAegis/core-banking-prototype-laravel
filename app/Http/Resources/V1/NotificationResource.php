@@ -33,13 +33,36 @@ class NotificationResource extends JsonResource
     ];
 
     /**
+     * Subtype extraction from raw notification_type (part after the dot).
+     */
+    private const SUBTYPE_ICONS = [
+        'received'         => 'arrow_down',
+        'sent'             => 'arrow_up',
+        'failed'           => 'alert_circle',
+        'low'              => 'trending_down',
+        'login'            => 'shield',
+        'device_added'     => 'smartphone',
+        'password_changed' => 'lock',
+        'status_changed'   => 'badge_check',
+        'maintenance'      => 'wrench',
+        'update'           => 'refresh',
+        'alert'            => 'bell',
+    ];
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
+        $rawType = $this->notification_type;
+        $category = $this->mapType($rawType);
+        $subtype = str_contains($rawType, '.') ? substr($rawType, strrpos($rawType, '.') + 1) : null;
+
         return [
             'id'         => $this->id,
-            'type'       => $this->mapType($this->notification_type),
+            'type'       => $category,
+            'subtype'    => $subtype,
+            'icon'       => self::SUBTYPE_ICONS[$subtype] ?? 'bell',
             'title'      => $this->title,
             'body'       => $this->body,
             'data'       => $this->data,

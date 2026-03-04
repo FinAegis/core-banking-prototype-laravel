@@ -12,6 +12,12 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class BannerResource extends JsonResource
 {
+    private const CTA_LABELS = [
+        'url'      => 'Learn More',
+        'screen'   => 'View',
+        'deeplink' => 'Open',
+    ];
+
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
@@ -22,9 +28,8 @@ class BannerResource extends JsonResource
             'image_url'   => $this->image_url,
             'action_url'  => $this->action_url,
             'action_type' => $this->action_type,
+            'cta_label'   => self::CTA_LABELS[$this->action_type] ?? 'View',
             'position'    => $this->position,
-            'starts_at'   => $this->starts_at?->toIso8601String(),
-            'ends_at'     => $this->ends_at?->toIso8601String(),
         ];
     }
 }

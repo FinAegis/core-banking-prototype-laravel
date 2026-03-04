@@ -45,6 +45,7 @@ class RampController extends Controller
                     new OA\Property(property: 'fee', type: 'number', example: 1.5),
                     new OA\Property(property: 'fee_currency', type: 'string', example: 'USD'),
                     new OA\Property(property: 'provider', type: 'string', example: 'mock'),
+                    new OA\Property(property: 'valid_until', type: 'string', format: 'date-time'),
                 ]),
             ]
         )

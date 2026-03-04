@@ -6,6 +6,7 @@ namespace App\Domain\Referral\Listeners;
 
 use App\Domain\Compliance\Events\KycVerificationCompleted;
 use App\Domain\Referral\Services\ReferralService;
+use App\Models\Referral;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -24,6 +25,19 @@ class CompleteReferralOnKycApproval
 
             if (! $user) {
                 Log::warning('CompleteReferralOnKycApproval: User not found', [
+                    'user_uuid' => $event->userUuid,
+                ]);
+
+                return;
+            }
+
+            // Idempotency: skip if already rewarded (guards against duplicate events)
+            $alreadyRewarded = Referral::where('referee_id', $user->id)
+                ->where('status', Referral::STATUS_REWARDED)
+                ->exists();
+
+            if ($alreadyRewarded) {
+                Log::info('CompleteReferralOnKycApproval: Already rewarded, skipping', [
                     'user_uuid' => $event->userUuid,
                 ]);
 

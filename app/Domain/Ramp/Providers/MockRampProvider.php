@@ -6,6 +6,7 @@ namespace App\Domain\Ramp\Providers;
 
 use App\Domain\Ramp\Contracts\RampProviderInterface;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class MockRampProvider implements RampProviderInterface
 {
@@ -76,7 +77,11 @@ class MockRampProvider implements RampProviderInterface
 
     public function getWebhookValidator(): callable
     {
-        return fn (string $payload, string $signature): bool => true;
+        if (app()->environment('production')) {
+            throw new RuntimeException('Mock ramp provider must not be used in production.');
+        }
+
+        return fn (string $payload, string $signature): bool => $signature !== '';
     }
 
     public function getName(): string

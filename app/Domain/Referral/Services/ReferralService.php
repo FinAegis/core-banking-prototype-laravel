@@ -138,33 +138,41 @@ class ReferralService
     }
 
     /**
-     * Get referral stats for a user.
+     * Get referral stats for a user (single aggregated query).
      *
-     * @return array{total_referred: int, completed: int, pending: int, rewards_earned: int}
+     * @return array{total_referred: int, completed: int, pending: int, rewards_earned: int, reward_per_referral: int}
      */
     public function getUserStats(User $user): array
     {
-        $referrals = Referral::where('referrer_id', $user->id);
+        $stats = Referral::where('referrer_id', $user->id)
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed', [Referral::STATUS_REWARDED])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending', [Referral::STATUS_PENDING])
+            ->first();
+
+        $rewardPerReferral = (int) config('relayer.sponsorship.default_free_tx', 5);
 
         return [
-            'total_referred' => (clone $referrals)->count(),
-            'completed'      => (clone $referrals)->where('status', Referral::STATUS_REWARDED)->count(),
-            'pending'        => (clone $referrals)->where('status', Referral::STATUS_PENDING)->count(),
-            'rewards_earned' => (clone $referrals)->where('status', Referral::STATUS_REWARDED)->count()
-                * (int) config('relayer.sponsorship.default_free_tx', 5),
+            'total_referred'      => (int) $stats->total,
+            'completed'           => (int) $stats->completed,
+            'pending'             => (int) $stats->pending,
+            'rewards_earned'      => (int) $stats->completed * $rewardPerReferral,
+            'reward_per_referral' => $rewardPerReferral,
         ];
     }
 
     /**
-     * Get referrals list for a user (people they referred).
+     * Get referrals list for a user (people they referred), paginated.
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, Referral>
      */
-    public function getUserReferrals(User $user): \Illuminate\Database\Eloquent\Collection
+    public function getUserReferrals(User $user, int $limit = 20, int $offset = 0): \Illuminate\Database\Eloquent\Collection
     {
         return Referral::where('referrer_id', $user->id)
-            ->with('referee:id,name,email')
+            ->with('referee:id,name')
             ->orderBy('created_at', 'desc')
+            ->skip($offset)
+            ->take($limit)
             ->get();
     }
 

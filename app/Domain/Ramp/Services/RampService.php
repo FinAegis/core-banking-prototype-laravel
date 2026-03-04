@@ -28,6 +28,7 @@ class RampService
 
         $quote = $this->provider->getQuote($type, $fiatCurrency, $fiatAmount, $cryptoCurrency);
         $quote['provider'] = $this->provider->getName();
+        $quote['valid_until'] = now()->addSeconds(60)->toIso8601String();
 
         return $quote;
     }
