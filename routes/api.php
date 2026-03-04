@@ -237,6 +237,21 @@ Route::prefix('v1/banners')->name('api.v1.banners.')
         Route::post('/{id}/dismiss', [App\Http\Controllers\Api\V1\BannerController::class, 'dismiss'])->name('dismiss');
     });
 
+// v5.13.0 — On/Off Ramp
+Route::prefix('v1/ramp')->name('api.v1.ramp.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/quote', [App\Http\Controllers\Api\V1\RampController::class, 'quote'])->name('quote');
+        Route::post('/session', [App\Http\Controllers\Api\V1\RampController::class, 'createSession'])->name('session.create');
+        Route::get('/session/{id}', [App\Http\Controllers\Api\V1\RampController::class, 'getSession'])->name('session.show');
+        Route::get('/sessions', [App\Http\Controllers\Api\V1\RampController::class, 'listSessions'])->name('sessions');
+    });
+
+// v5.13.0 — Ramp Webhooks (no auth, HMAC verified)
+Route::post('v1/ramp/webhook/{provider}', [App\Http\Controllers\Api\V1\RampWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.v1.ramp.webhook');
+
 // v5.13.0 — Referral System
 Route::prefix('v1/referrals')->name('api.v1.referrals.')
     ->middleware(['auth:sanctum'])
