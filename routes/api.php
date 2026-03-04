@@ -229,6 +229,14 @@ Route::prefix('v1/auth/passkey')
         Route::post('/register', [PasskeyController::class, 'register'])->name('register');
     });
 
+// v5.13.0 — Banners (promotional carousel)
+Route::prefix('v1/banners')->name('api.v1.banners.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\V1\BannerController::class, 'index'])->name('index');
+        Route::post('/{id}/dismiss', [App\Http\Controllers\Api\V1\BannerController::class, 'dismiss'])->name('dismiss');
+    });
+
 /*
 |--------------------------------------------------------------------------
 | External Route Includes
