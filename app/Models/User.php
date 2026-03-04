@@ -77,6 +77,9 @@ class User extends Authenticatable implements FilamentUser
         'onboarding_completed_at',
         'country_code', // Added for testing KYC/AML
         'mobile_preferences',
+        'free_tx_until',
+        'sponsored_tx_used',
+        'sponsored_tx_limit',
     ];
 
     /**
@@ -122,6 +125,9 @@ class User extends Authenticatable implements FilamentUser
             'has_completed_onboarding'   => 'boolean',
             'onboarding_completed_at'    => 'datetime',
             'mobile_preferences'         => 'array',
+            'free_tx_until'              => 'datetime',
+            'sponsored_tx_used'          => 'integer',
+            'sponsored_tx_limit'         => 'integer',
         ];
     }
 

@@ -237,6 +237,13 @@ Route::prefix('v1/banners')->name('api.v1.banners.')
         Route::post('/{id}/dismiss', [App\Http\Controllers\Api\V1\BannerController::class, 'dismiss'])->name('dismiss');
     });
 
+// v5.13.0 — Gas Sponsorship status
+Route::prefix('v1/sponsorship')->name('api.v1.sponsorship.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/status', [App\Http\Controllers\Api\V1\SponsorshipController::class, 'status'])->name('status');
+    });
+
 /*
 |--------------------------------------------------------------------------
 | External Route Includes

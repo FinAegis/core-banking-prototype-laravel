@@ -221,4 +221,23 @@ return [
             // Example: '0x123...' => ['USDC' => '1000.000000', 'USDT' => '500.000000']
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gas Sponsorship Configuration (v5.13.0)
+    |--------------------------------------------------------------------------
+    |
+    | Free transaction sponsorship for new and referred users.
+    |
+    */
+
+    'sponsorship' => [
+        'enabled' => (bool) env('RELAYER_SPONSORSHIP_ENABLED', false),
+
+        // Default number of free transactions for new users
+        'default_free_tx' => (int) env('RELAYER_SPONSORSHIP_DEFAULT_FREE_TX', 5),
+
+        // Default free period in days
+        'default_free_period_days' => (int) env('RELAYER_SPONSORSHIP_PERIOD_DAYS', 30),
+    ],
 ];

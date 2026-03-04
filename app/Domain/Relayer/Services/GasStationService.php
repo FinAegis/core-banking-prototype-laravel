@@ -11,6 +11,7 @@ use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Events\TransactionSponsored;
 use App\Domain\Relayer\Exceptions\RpcException;
 use App\Domain\Relayer\ValueObjects\UserOperation;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -37,6 +38,7 @@ class GasStationService
         private readonly BundlerInterface $bundler,
         private readonly ?WalletBalanceProviderInterface $balanceProvider = null,
         private readonly ?EthRpcClient $rpcClient = null,
+        private readonly ?SponsorshipService $sponsorshipService = null,
     ) {
     }
 
@@ -89,8 +91,29 @@ class GasStationService
         $feeEstimate = $this->paymaster->estimateFee($callData, $network);
         $feeAmount = $feeToken === 'USDC' ? $feeEstimate['fee_usdc'] : $feeEstimate['fee_usdt'];
 
-        // 5. Check if user has sufficient balance
-        if (! $this->hasSufficientBalance($userAddress, $feeToken, $feeAmount, $network)) {
+        // 5. Check sponsorship eligibility, then fall back to balance check
+        $isSponsored = false;
+        $sponsoredUser = null;
+        if ($this->sponsorshipService !== null) {
+            $sponsoredUser = User::whereRaw('LOWER(JSON_UNQUOTE(JSON_EXTRACT(mobile_preferences, "$.wallet_address"))) = ?', [strtolower($userAddress)])->first()
+                ?? User::where('email', 'like', '%' . substr($userAddress, 2, 8) . '%')->first();
+
+            // Try via optional user_id parameter passed in callData metadata
+            if ($sponsoredUser === null) {
+                $sponsoredUser = null; // Explicit: address-based lookup is best-effort
+            }
+
+            if ($sponsoredUser !== null && $this->sponsorshipService->isEligible($sponsoredUser)) {
+                $isSponsored = true;
+                Log::info('Transaction eligible for sponsorship', [
+                    'user_id'      => $sponsoredUser->id,
+                    'user_address' => $userAddress,
+                    'remaining'    => $this->sponsorshipService->getRemainingFreeTx($sponsoredUser),
+                ]);
+            }
+        }
+
+        if (! $isSponsored && ! $this->hasSufficientBalance($userAddress, $feeToken, $feeAmount, $network)) {
             throw new RuntimeException("Insufficient {$feeToken} balance for gas fee");
         }
 
@@ -109,11 +132,16 @@ class GasStationService
         );
 
         // 8. Submit to bundler and deduct fee atomically
-        return DB::transaction(function () use ($finalUserOp, $network, $userAddress, $feeToken, $feeAmount, $gasEstimate, $isDeployment): array {
+        return DB::transaction(function () use ($finalUserOp, $network, $userAddress, $feeToken, $feeAmount, $gasEstimate, $isDeployment, $isSponsored, $sponsoredUser): array {
             $userOpHash = $this->bundler->submitUserOperation($finalUserOp, $network);
 
-            // 9. Deduct fee from user's stablecoin balance
-            $this->deductFee($userAddress, $feeToken, $feeAmount, $network, $userOpHash);
+            // 9. For sponsored transactions, consume sponsorship instead of deducting fee
+            if ($isSponsored && $sponsoredUser !== null && $this->sponsorshipService !== null) {
+                $this->sponsorshipService->consumeSponsoredTx($sponsoredUser);
+                $this->recordSponsoredFee($userAddress, $feeToken, $feeAmount, $network, $userOpHash);
+            } else {
+                $this->deductFee($userAddress, $feeToken, $feeAmount, $network, $userOpHash);
+            }
 
             Log::info('Transaction sponsored successfully', [
                 'user_op_hash' => $userOpHash,
@@ -337,6 +365,44 @@ class GasStationService
 
         // Invalidate cached balance after deduction
         $this->invalidateBalanceCache($userAddress, $token, $network);
+    }
+
+    /**
+     * Record a sponsored transaction in the fee ledger (no user balance deduction).
+     */
+    private function recordSponsoredFee(
+        string $userAddress,
+        string $token,
+        float $amount,
+        SupportedNetwork $network,
+        ?string $userOpHash = null,
+    ): void {
+        try {
+            DB::table('relayer_fee_ledger')->insert([
+                'id'           => Str::uuid()->toString(),
+                'user_address' => strtolower($userAddress),
+                'token'        => $token,
+                'amount'       => $amount,
+                'network'      => $network->value,
+                'type'         => 'sponsored',
+                'user_op_hash' => $userOpHash,
+                'created_at'   => now(),
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to record sponsored fee in ledger', [
+                'user'   => $userAddress,
+                'token'  => $token,
+                'amount' => $amount,
+                'error'  => $e->getMessage(),
+            ]);
+        }
+
+        Log::info('Sponsored fee recorded (no user deduction)', [
+            'user'    => $userAddress,
+            'token'   => $token,
+            'amount'  => $amount,
+            'network' => $network->value,
+        ]);
     }
 
     /**
