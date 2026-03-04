@@ -61,6 +61,7 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="BROADCAST_CONNECTION" value="log"/>
         <env name="LIGHTHOUSE_SCHEMA_CACHE_ENABLE" value="false"/>
+        <env name="LIGHTHOUSE_SUBSCRIPTION_STORAGE" value="array"/>
         <!-- Parallel testing configuration -->
         <env name="PEST_PARALLEL" value="false"/>
         <!-- Memory limit for test process -->

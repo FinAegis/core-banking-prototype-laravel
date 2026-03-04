@@ -53,7 +53,7 @@ class PortfolioController extends Controller
         description: 'List of treasury portfolios',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/TreasuryPortfolio')),
+        new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object')),
         new OA\Property(property: 'meta', type: 'object', properties: [
         new OA\Property(property: 'total', type: 'integer'),
         new OA\Property(property: 'count', type: 'integer'),
@@ -129,14 +129,14 @@ class PortfolioController extends Controller
             summary: 'Create a new treasury portfolio',
             description: 'Creates a new portfolio for treasury management with investment strategy',
             security: [['sanctum' => ['treasury']]],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(ref: '#/components/schemas/CreateTreasuryPortfolioRequest'))
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
         response: 201,
         description: 'Portfolio created successfully',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/TreasuryPortfolio'),
+        new OA\Property(property: 'data', type: 'object'),
         new OA\Property(property: 'message', type: 'string', example: 'Portfolio created successfully'),
         ])
     )]
@@ -219,7 +219,7 @@ class PortfolioController extends Controller
         description: 'Portfolio details',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/TreasuryPortfolioDetailed'),
+        new OA\Property(property: 'data', type: 'object'),
         ])
     )]
     #[OA\Response(
@@ -286,14 +286,14 @@ class PortfolioController extends Controller
             parameters: [
         new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
         ],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(ref: '#/components/schemas/UpdateTreasuryPortfolioRequest'))
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
         response: 200,
         description: 'Portfolio updated successfully',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/TreasuryPortfolio'),
+        new OA\Property(property: 'data', type: 'object'),
         new OA\Property(property: 'message', type: 'string', example: 'Portfolio strategy updated successfully'),
         ])
     )]
@@ -437,14 +437,14 @@ class PortfolioController extends Controller
             parameters: [
         new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
         ],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(ref: '#/components/schemas/AllocateAssetsRequest'))
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
         response: 200,
         description: 'Assets allocated successfully',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/TreasuryPortfolio'),
+        new OA\Property(property: 'data', type: 'object'),
         new OA\Property(property: 'message', type: 'string', example: 'Assets allocated successfully'),
         ])
     )]
@@ -503,7 +503,7 @@ class PortfolioController extends Controller
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'data', type: 'object', properties: [
-        new OA\Property(property: 'allocations', type: 'array', items: new OA\Items(ref: '#/components/schemas/AssetAllocation')),
+        new OA\Property(property: 'allocations', type: 'array', items: new OA\Items(type: 'object')),
         new OA\Property(property: 'total_value', type: 'number', format: 'float'),
         new OA\Property(property: 'last_updated', type: 'string', format: 'date-time'),
         ]),
@@ -548,7 +548,7 @@ class PortfolioController extends Controller
             parameters: [
         new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
         ],
-            requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(ref: '#/components/schemas/TriggerRebalancingRequest'))
+            requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
         response: 200,
@@ -621,7 +621,7 @@ class PortfolioController extends Controller
         description: 'Rebalancing plan details',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/RebalancingPlan'),
+        new OA\Property(property: 'data', type: 'object'),
         ])
     )]
     public function getRebalancingPlan(string $id): JsonResponse
@@ -658,7 +658,7 @@ class PortfolioController extends Controller
             parameters: [
         new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
         ],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(ref: '#/components/schemas/ApproveRebalancingRequest'))
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
         response: 200,
@@ -722,7 +722,7 @@ class PortfolioController extends Controller
         description: 'Portfolio performance metrics',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/PortfolioPerformance'),
+        new OA\Property(property: 'data', type: 'object'),
         ])
     )]
     public function getPerformance(Request $request, string $id): JsonResponse
@@ -775,7 +775,7 @@ class PortfolioController extends Controller
         description: 'Portfolio valuation details',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/PortfolioValuation'),
+        new OA\Property(property: 'data', type: 'object'),
         ])
     )]
     public function getValuation(string $id): JsonResponse
@@ -823,7 +823,7 @@ class PortfolioController extends Controller
         description: 'Portfolio historical data',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', ref: '#/components/schemas/PortfolioHistory'),
+        new OA\Property(property: 'data', type: 'object'),
         ])
     )]
     public function getHistory(Request $request, string $id): JsonResponse
@@ -874,7 +874,7 @@ class PortfolioController extends Controller
             parameters: [
         new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
         ],
-            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(ref: '#/components/schemas/CreateReportRequest'))
+            requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
         response: 202,
@@ -949,7 +949,7 @@ class PortfolioController extends Controller
         description: 'List of portfolio reports',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/PortfolioReport')),
+        new OA\Property(property: 'data', type: 'array', items: new OA\Items(type: 'object')),
         ])
     )]
     public function listReports(string $id): JsonResponse

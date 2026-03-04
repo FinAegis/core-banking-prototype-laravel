@@ -57,21 +57,6 @@ class RiskAnalysisController extends Controller
         new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
         ]
         )]
-    #[OA\Response(
-        response: 200,
-        description: 'Success',
-        content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'data', type: 'object', properties: [
-        new OA\Property(property: 'transaction_id', type: 'string'),
-        new OA\Property(property: 'risk_score', type: 'integer'),
-        new OA\Property(property: 'risk_factors', type: 'array', items: new OA\Items(type: 'object')),
-        ]),
-        ])
-    )]
-    #[OA\Response(
-        response: 401,
-        description: 'Unauthorized'
-    )]
     #[OA\Post(
         path: '/api/risk/transactions/{transactionId}/analyze',
         operationId: 'riskAnalyzeTransactionPost',
