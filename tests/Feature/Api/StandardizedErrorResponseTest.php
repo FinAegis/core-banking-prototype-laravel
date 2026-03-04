@@ -41,7 +41,7 @@ describe('Standardized API Error Responses', function () {
         $user = User::factory()->create();
         Laravel\Sanctum\Sanctum::actingAs($user, ['delete']);
 
-        $account = \App\Domain\Account\Models\Account::factory()->forUser($user)->create([
+        $account = App\Domain\Account\Models\Account::factory()->forUser($user)->create([
             'frozen' => true,
         ]);
 

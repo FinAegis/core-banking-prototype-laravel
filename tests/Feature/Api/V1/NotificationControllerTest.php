@@ -88,7 +88,7 @@ class NotificationControllerTest extends TestCase
         $this->createNotification(['notification_type' => 'transaction.received']);
         $this->createNotification(['notification_type' => 'security.login']);
         $this->createNotification(['notification_type' => 'general']);
-        $this->createNotification(['notification_type' => 'price.alert']);
+        $this->createNotification(['notification_type' => 'promo.seasonal']);
 
         $response = $this->getJson('/api/v1/notifications')
             ->assertOk();

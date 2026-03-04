@@ -61,7 +61,7 @@ class ReferralService
         // Check if user was already referred
         $existingReferral = Referral::where('referee_id', $referee->id)->first();
         if ($existingReferral) {
-            throw new RuntimeException('User has already been referred.');
+            throw new RuntimeException('You have already used a referral code.');
         }
 
         $referralCode = ReferralCode::where('code', $code)->first();
@@ -71,7 +71,7 @@ class ReferralService
         }
 
         if (! $referralCode->canBeUsed()) {
-            throw new RuntimeException('Referral code is no longer valid.');
+            throw new RuntimeException('This referral code has expired or reached its usage limit.');
         }
 
         // Can't refer yourself

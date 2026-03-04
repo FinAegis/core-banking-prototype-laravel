@@ -87,12 +87,14 @@ class BannerResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->limit(40),
-                Tables\Columns\BadgeColumn::make('action_type')
-                    ->colors([
-                        'primary' => 'url',
-                        'success' => 'screen',
-                        'warning' => 'deeplink',
-                    ]),
+                Tables\Columns\TextColumn::make('action_type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'url'      => 'primary',
+                        'screen'   => 'success',
+                        'deeplink' => 'warning',
+                        default    => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('position')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('active')

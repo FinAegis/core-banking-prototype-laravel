@@ -157,23 +157,23 @@ class RampService
     private function validateRampParams(string $type, string $fiatCurrency, float $fiatAmount, string $cryptoCurrency): void
     {
         if (! in_array($type, ['on', 'off'], true)) {
-            throw new RuntimeException('Invalid ramp type. Must be "on" or "off".');
+            throw new RuntimeException('Invalid transaction type. Use "on" for buying crypto or "off" for selling.');
         }
 
         $supportedFiat = config('ramp.supported_fiat', []);
         if (! in_array($fiatCurrency, $supportedFiat, true)) {
-            throw new RuntimeException("Unsupported fiat currency: {$fiatCurrency}");
+            throw new RuntimeException("{$fiatCurrency} is not a supported currency. Please try USD, EUR, or GBP.");
         }
 
         $supportedCrypto = config('ramp.supported_crypto', []);
         if (! in_array($cryptoCurrency, $supportedCrypto, true)) {
-            throw new RuntimeException("Unsupported crypto currency: {$cryptoCurrency}");
+            throw new RuntimeException("{$cryptoCurrency} is not available for trading at this time.");
         }
 
         $min = (float) config('ramp.limits.min_fiat_amount', 10);
         $max = (float) config('ramp.limits.max_fiat_amount', 10000);
         if ($fiatAmount < $min || $fiatAmount > $max) {
-            throw new RuntimeException("Amount must be between {$min} and {$max}");
+            throw new RuntimeException("Amount must be between \${$min} and \${$max}.");
         }
     }
 }

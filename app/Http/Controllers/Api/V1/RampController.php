@@ -33,7 +33,22 @@ class RampController extends Controller
             new OA\Parameter(name: 'crypto', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'USDC')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Ramp quote')]
+    #[OA\Response(
+        response: 200,
+        description: 'Ramp quote',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'object', properties: [
+                    new OA\Property(property: 'fiat_amount', type: 'number', example: 100),
+                    new OA\Property(property: 'crypto_amount', type: 'number', example: 98.5),
+                    new OA\Property(property: 'exchange_rate', type: 'number', example: 1.0),
+                    new OA\Property(property: 'fee', type: 'number', example: 1.5),
+                    new OA\Property(property: 'fee_currency', type: 'string', example: 'USD'),
+                    new OA\Property(property: 'provider', type: 'string', example: 'mock'),
+                ]),
+            ]
+        )
+    )]
     #[OA\Response(response: 422, description: 'Validation error')]
     public function quote(Request $request): JsonResponse
     {

@@ -43,7 +43,30 @@ class NotificationController extends Controller
             new OA\Parameter(name: 'type', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['transaction', 'security', 'system', 'promo'])),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Paginated notification list')]
+    #[OA\Response(
+        response: 200,
+        description: 'Paginated notification list',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string'),
+                        new OA\Property(property: 'type', type: 'string', enum: ['transaction', 'security', 'system', 'promo']),
+                        new OA\Property(property: 'title', type: 'string'),
+                        new OA\Property(property: 'body', type: 'string'),
+                        new OA\Property(property: 'read', type: 'boolean'),
+                        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+                    ]
+                )),
+                new OA\Property(property: 'meta', type: 'object', properties: [
+                    new OA\Property(property: 'total', type: 'integer'),
+                    new OA\Property(property: 'offset', type: 'integer'),
+                    new OA\Property(property: 'limit', type: 'integer'),
+                    new OA\Property(property: 'unread_count', type: 'integer'),
+                ]),
+            ]
+        )
+    )]
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();

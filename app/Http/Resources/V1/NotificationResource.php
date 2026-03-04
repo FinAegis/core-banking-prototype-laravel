@@ -28,7 +28,7 @@ class NotificationResource extends JsonResource
         'kyc.status_changed'        => 'system',
         'system.maintenance'        => 'system',
         'system.update'             => 'system',
-        'price.alert'               => 'promo',
+        'price.alert'               => 'transaction',
         'general'                   => 'system',
     ];
 

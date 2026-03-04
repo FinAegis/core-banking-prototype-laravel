@@ -49,6 +49,7 @@ class ReferralControllerTest extends TestCase
             'user_id'  => $this->user->id,
             'code'     => 'TEST1234',
             'max_uses' => 50,
+            'active'   => true,
         ]);
 
         $this->getJson('/api/v1/referrals/my-code')
@@ -128,7 +129,7 @@ class ReferralControllerTest extends TestCase
 
         $this->postJson('/api/v1/referrals/apply', ['code' => 'SECND123'])
             ->assertStatus(422)
-            ->assertJsonPath('error.message', 'User has already been referred.');
+            ->assertJsonPath('error.message', 'You have already used a referral code.');
     }
 
     public function test_list_referrals(): void

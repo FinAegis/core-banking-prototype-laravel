@@ -20,7 +20,25 @@ class BannerController extends Controller
         summary: 'List active banners for current user',
         security: [['sanctum' => []]]
     )]
-    #[OA\Response(response: 200, description: 'Active banners')]
+    #[OA\Response(
+        response: 200,
+        description: 'Active banners',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer'),
+                        new OA\Property(property: 'title', type: 'string'),
+                        new OA\Property(property: 'subtitle', type: 'string', nullable: true),
+                        new OA\Property(property: 'image_url', type: 'string', nullable: true),
+                        new OA\Property(property: 'action_url', type: 'string', nullable: true),
+                        new OA\Property(property: 'action_type', type: 'string', enum: ['url', 'screen', 'deeplink']),
+                        new OA\Property(property: 'position', type: 'integer'),
+                    ]
+                )),
+            ]
+        )
+    )]
     public function index(Request $request): JsonResponse
     {
         $userId = $request->user()->id;

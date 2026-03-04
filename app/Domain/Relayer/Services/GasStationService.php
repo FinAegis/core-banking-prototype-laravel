@@ -10,6 +10,7 @@ use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Events\TransactionSponsored;
 use App\Domain\Relayer\Exceptions\RpcException;
+use App\Domain\Relayer\Models\SmartAccount;
 use App\Domain\Relayer\ValueObjects\UserOperation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -95,13 +96,8 @@ class GasStationService
         $isSponsored = false;
         $sponsoredUser = null;
         if ($this->sponsorshipService !== null) {
-            $sponsoredUser = User::whereRaw('LOWER(JSON_UNQUOTE(JSON_EXTRACT(mobile_preferences, "$.wallet_address"))) = ?', [strtolower($userAddress)])->first()
-                ?? User::where('email', 'like', '%' . substr($userAddress, 2, 8) . '%')->first();
-
-            // Try via optional user_id parameter passed in callData metadata
-            if ($sponsoredUser === null) {
-                $sponsoredUser = null; // Explicit: address-based lookup is best-effort
-            }
+            $smartAccount = SmartAccount::where('account_address', strtolower($userAddress))->first();
+            $sponsoredUser = $smartAccount ? User::find($smartAccount->user_id) : null;
 
             if ($sponsoredUser !== null && $this->sponsorshipService->isEligible($sponsoredUser)) {
                 $isSponsored = true;

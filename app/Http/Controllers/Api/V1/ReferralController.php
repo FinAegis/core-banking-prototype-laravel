@@ -26,7 +26,21 @@ class ReferralController extends Controller
         summary: 'Get or generate user referral code',
         security: [['sanctum' => []]]
     )]
-    #[OA\Response(response: 200, description: 'Referral code')]
+    #[OA\Response(
+        response: 200,
+        description: 'Referral code',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'object', properties: [
+                    new OA\Property(property: 'code', type: 'string', example: 'ABC12345'),
+                    new OA\Property(property: 'uses_count', type: 'integer', example: 3),
+                    new OA\Property(property: 'max_uses', type: 'integer', example: 50),
+                    new OA\Property(property: 'active', type: 'boolean', example: true),
+                    new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', nullable: true),
+                ]),
+            ]
+        )
+    )]
     public function myCode(Request $request): JsonResponse
     {
         $referralCode = $this->referralService->generateCode($request->user());
@@ -110,7 +124,20 @@ class ReferralController extends Controller
         summary: 'Get referral stats',
         security: [['sanctum' => []]]
     )]
-    #[OA\Response(response: 200, description: 'Referral stats')]
+    #[OA\Response(
+        response: 200,
+        description: 'Referral stats',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'object', properties: [
+                    new OA\Property(property: 'total_referred', type: 'integer', example: 5),
+                    new OA\Property(property: 'completed', type: 'integer', example: 3),
+                    new OA\Property(property: 'pending', type: 'integer', example: 2),
+                    new OA\Property(property: 'rewards_earned', type: 'integer', example: 15),
+                ]),
+            ]
+        )
+    )]
     public function stats(Request $request): JsonResponse
     {
         return response()->json([

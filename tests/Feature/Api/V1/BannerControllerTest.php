@@ -56,9 +56,9 @@ class BannerControllerTest extends TestCase
             'position'  => 1,
         ]);
         Banner::create([
-            'title'   => 'Expired Banner',
-            'active'  => true,
-            'ends_at' => now()->subDay(),
+            'title'    => 'Expired Banner',
+            'active'   => true,
+            'ends_at'  => now()->subDay(),
             'position' => 2,
         ]);
         Banner::create([
