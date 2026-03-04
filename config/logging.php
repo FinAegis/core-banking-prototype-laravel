@@ -129,13 +129,12 @@ return [
 
         // Structured JSON logging (v3.3.0)
         'structured' => [
-            'driver'  => 'monolog',
-            'handler' => StreamHandler::class,
-            'with'    => [
-                'stream' => storage_path('logs/structured.log'),
-            ],
-            'formatter' => App\Infrastructure\Logging\StructuredJsonFormatter::class,
-            'level'     => env('LOG_LEVEL', 'debug'),
+            'driver'               => 'daily',
+            'path'                 => storage_path('logs/structured.log'),
+            'level'                => env('LOG_LEVEL', 'debug'),
+            'days'                 => env('LOG_DAILY_DAYS', 14),
+            'formatter'            => App\Infrastructure\Logging\StructuredJsonFormatter::class,
+            'replace_placeholders' => true,
         ],
 
         // Audit log channel for financial operations and compliance
