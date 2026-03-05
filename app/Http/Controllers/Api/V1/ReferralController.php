@@ -54,7 +54,7 @@ class ReferralController extends Controller
             'data' => [
                 'code'       => $code,
                 'share_link' => url("/invite/{$code}"),
-                'share_text' => "Join FinAegis with my referral code {$code} and get free transactions!",
+                'share_text' => str_replace('{code}', $code, (string) config('ramp.referral_share_text')),
                 'uses_count' => $referralCode->uses_count,
                 'max_uses'   => $referralCode->max_uses,
                 'active'     => $referralCode->active,
@@ -125,11 +125,15 @@ class ReferralController extends Controller
         $offset = max(0, (int) $request->input('offset', 0));
         $limit = min(max(1, (int) $request->input('limit', 20)), 50);
 
-        $referrals = $this->referralService->getUserReferrals($request->user(), $limit, $offset);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $referrals = $this->referralService->getUserReferrals($user, $limit, $offset);
+        $total = \App\Models\Referral::where('referrer_id', $user->id)->count();
 
         return response()->json([
             'data' => ReferralResource::collection($referrals),
             'meta' => [
+                'total'  => $total,
                 'offset' => $offset,
                 'limit'  => $limit,
             ],

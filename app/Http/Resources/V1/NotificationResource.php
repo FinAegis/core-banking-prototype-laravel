@@ -63,6 +63,7 @@ class NotificationResource extends JsonResource
             'type'       => $category,
             'subtype'    => $subtype,
             'icon'       => self::SUBTYPE_ICONS[$subtype] ?? 'bell',
+            'icon_set'   => 'material',
             'title'      => $this->title,
             'body'       => $this->body,
             'data'       => $this->data,

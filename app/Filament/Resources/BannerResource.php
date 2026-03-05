@@ -57,6 +57,10 @@ class BannerResource extends Resource
                         Forms\Components\TextInput::make('action_url')
                             ->label('Action URL / Screen')
                             ->maxLength(2048),
+                        Forms\Components\TextInput::make('cta_label')
+                            ->label('CTA Button Label')
+                            ->placeholder('Auto: Learn More / View / Open')
+                            ->maxLength(50),
                     ])
                     ->columns(2),
 

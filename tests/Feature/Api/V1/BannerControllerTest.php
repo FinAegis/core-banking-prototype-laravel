@@ -37,7 +37,7 @@ class BannerControllerTest extends TestCase
             ->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'title', 'subtitle', 'image_url', 'action_url', 'action_type', 'position'],
+                    '*' => ['id', 'title', 'subtitle', 'image_url', 'action_url', 'action_type', 'cta_label', 'position'],
                 ],
             ]);
 
@@ -119,5 +119,33 @@ class BannerControllerTest extends TestCase
 
         $this->postJson('/api/v1/banners/99999/dismiss')
             ->assertStatus(404);
+    }
+
+    public function test_cta_label_uses_custom_value_from_db(): void
+    {
+        Sanctum::actingAs($this->user, ['read']);
+
+        Banner::create([
+            'title'       => 'Custom CTA',
+            'active'      => true,
+            'action_type' => 'url',
+            'cta_label'   => 'Shop Now',
+            'position'    => 1,
+        ]);
+        Banner::create([
+            'title'       => 'Default CTA',
+            'active'      => true,
+            'action_type' => 'screen',
+            'position'    => 2,
+        ]);
+
+        $response = $this->getJson('/api/v1/banners')->assertOk();
+
+        $data = $response->json('data');
+        $custom = collect($data)->firstWhere('title', 'Custom CTA');
+        $default = collect($data)->firstWhere('title', 'Default CTA');
+
+        $this->assertEquals('Shop Now', $custom['cta_label']);
+        $this->assertEquals('View', $default['cta_label']);
     }
 }

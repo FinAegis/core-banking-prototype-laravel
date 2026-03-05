@@ -34,11 +34,12 @@ class ReferralControllerTest extends TestCase
 
         $response = $this->getJson('/api/v1/referrals/my-code')
             ->assertOk()
-            ->assertJsonStructure(['data' => ['code', 'uses_count', 'max_uses', 'active']]);
+            ->assertJsonStructure(['data' => ['code', 'share_link', 'share_text', 'uses_count', 'max_uses', 'active', 'created_at']]);
 
         $code = $response->json('data.code');
         $this->assertEquals(8, strlen($code));
         $this->assertTrue($response->json('data.active'));
+        $this->assertStringContainsString($code, $response->json('data.share_text'));
     }
 
     public function test_get_my_code_returns_existing(): void
@@ -151,7 +152,9 @@ class ReferralControllerTest extends TestCase
 
         $this->getJson('/api/v1/referrals')
             ->assertOk()
-            ->assertJsonCount(1, 'data');
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonStructure(['data' => ['*' => ['id', 'status', 'reward_amount', 'created_at']]]);
     }
 
     public function test_get_stats(): void

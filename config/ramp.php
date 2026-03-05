@@ -62,4 +62,15 @@ return [
         'max_fiat_amount' => (float) env('RAMP_MAX_AMOUNT', 10000.00),
         'daily_limit'     => (float) env('RAMP_DAILY_LIMIT', 50000.00),
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Referral Share Copy
+    |--------------------------------------------------------------------------
+    | Customizable by marketing. Use {code} placeholder for referral code.
+    */
+
+    'referral_share_text' => env(
+        'REFERRAL_SHARE_TEXT',
+        'Join FinAegis with my code {code} and earn free transactions!'
+    ),
 ];

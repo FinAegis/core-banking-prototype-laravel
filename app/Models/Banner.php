@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $image_url
  * @property string|null $action_url
  * @property string $action_type
+ * @property string|null $cta_label
  * @property int $position
  * @property bool $active
  * @property \Carbon\Carbon|null $starts_at
@@ -38,6 +39,7 @@ class Banner extends Model
         'image_url',
         'action_url',
         'action_type',
+        'cta_label',
         'position',
         'active',
         'starts_at',

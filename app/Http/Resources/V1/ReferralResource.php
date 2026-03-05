@@ -21,9 +21,10 @@ class ReferralResource extends JsonResource
                 'id'   => $this->referee->id,
                 'name' => $this->referee->name,
             ]),
-            'status'       => $this->status,
-            'completed_at' => $this->completed_at?->toIso8601String(),
-            'created_at'   => $this->created_at->toIso8601String(),
+            'status'        => $this->status,
+            'reward_amount' => (int) config('relayer.sponsorship.default_free_tx', 5),
+            'completed_at'  => $this->completed_at?->toIso8601String(),
+            'created_at'    => $this->created_at->toIso8601String(),
         ];
     }
 }

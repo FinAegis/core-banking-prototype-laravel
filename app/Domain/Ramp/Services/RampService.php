@@ -128,6 +128,16 @@ class RampService
             return;
         }
 
+        // Idempotency: don't overwrite terminal states
+        if (in_array($session->status, [RampSession::STATUS_COMPLETED, RampSession::STATUS_FAILED], true)) {
+            Log::info('Ramp webhook skipped — session already terminal', [
+                'session_id' => $session->id,
+                'status'     => $session->status,
+            ]);
+
+            return;
+        }
+
         $status = $payload['status'] ?? 'processing';
         $session->update([
             'status'        => $status,

@@ -28,7 +28,7 @@ class BannerResource extends JsonResource
             'image_url'   => $this->image_url,
             'action_url'  => $this->action_url,
             'action_type' => $this->action_type,
-            'cta_label'   => self::CTA_LABELS[$this->action_type] ?? 'View',
+            'cta_label'   => $this->cta_label ?? self::CTA_LABELS[$this->action_type] ?? 'View',
             'position'    => $this->position,
         ];
     }
