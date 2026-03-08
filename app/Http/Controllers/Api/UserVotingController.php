@@ -130,11 +130,11 @@ class UserVotingController extends Controller
             tags: ['User Voting'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['allocations'], properties: [
-        new OA\Property(property: 'allocations', type: 'object', description: 'Currency allocations (must sum to 100)', example: ['USD' => 40, 'EUR' => 30, 'GBP' => 15, 'CHF' => 10, 'JPY' => 3, 'XAU' => 2]),
-        ]))
+            new OA\Property(property: 'allocations', type: 'object', description: 'Currency allocations (must sum to 100)', example: ['USD' => 40, 'EUR' => 30, 'GBP' => 15, 'CHF' => 10, 'JPY' => 3, 'XAU' => 2]),
+            ]))
         )]
     #[OA\Response(
         response: 201,

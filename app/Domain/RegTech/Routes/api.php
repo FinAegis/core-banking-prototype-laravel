@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\RegTech\RegTechController;
 use Illuminate\Support\Facades\Route;
 
 // RegTech endpoints (regulatory compliance, MiFID II, MiCA, Travel Rule)
-Route::middleware('auth:sanctum', 'throttle:60,1')->prefix('regtech')->name('api.regtech.')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('regtech')->name('api.regtech.')->group(function () {
     Route::get('/compliance/summary', [RegTechController::class, 'complianceSummary'])->name('compliance.summary');
     Route::get('/adapters', [RegTechController::class, 'adapters'])->name('adapters');
     Route::get('/regulations/applicable', [RegTechController::class, 'applicableRegulations'])->name('regulations.applicable');

@@ -84,11 +84,11 @@ class GdprController extends Controller
             description: 'Update consent preferences for various data processing activities',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'privacy_policy', type: 'boolean', example: true),
-        new OA\Property(property: 'terms', type: 'boolean', example: true),
-        new OA\Property(property: 'marketing', type: 'boolean', example: false),
-        new OA\Property(property: 'data_retention', type: 'boolean', example: true),
-        ]))
+            new OA\Property(property: 'privacy_policy', type: 'boolean', example: true),
+            new OA\Property(property: 'terms', type: 'boolean', example: true),
+            new OA\Property(property: 'marketing', type: 'boolean', example: false),
+            new OA\Property(property: 'data_retention', type: 'boolean', example: true),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -286,9 +286,9 @@ class GdprController extends Controller
             description: 'Request complete deletion of account and personal data (right to be forgotten)',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['confirm'], properties: [
-        new OA\Property(property: 'confirm', type: 'boolean', example: true, description: 'Confirmation of deletion request'),
-        new OA\Property(property: 'reason', type: 'string', maxLength: 500, example: 'No longer using the service'),
-        ]))
+            new OA\Property(property: 'confirm', type: 'boolean', example: true, description: 'Confirmation of deletion request'),
+            new OA\Property(property: 'reason', type: 'string', maxLength: 500, example: 'No longer using the service'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

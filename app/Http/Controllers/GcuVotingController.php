@@ -81,8 +81,8 @@ class GcuVotingController extends Controller
             description: 'Returns details of a governance proposal',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -133,8 +133,8 @@ class GcuVotingController extends Controller
             description: 'Casts a vote on a governance proposal',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,

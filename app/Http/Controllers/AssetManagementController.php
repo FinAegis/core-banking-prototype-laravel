@@ -77,8 +77,8 @@ class AssetManagementController extends Controller
             description: 'Returns detailed view for a specific asset',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'symbol', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'symbol', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

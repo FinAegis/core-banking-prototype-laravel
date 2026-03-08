@@ -225,8 +225,8 @@ class GdprEnhancedController extends Controller
             description: 'Approves a Data Protection Impact Assessment',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -343,8 +343,8 @@ class GdprEnhancedController extends Controller
             description: 'Records authority notification for a data breach',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,

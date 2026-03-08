@@ -24,7 +24,8 @@ export const TEST_USER = {
  * @param {string} token - The Bearer token
  * @returns {object} Headers object with Authorization
  */
-export function authHeaders(token) {
+export function authHeaders(token)
+{
     return Object.assign({}, HEADERS, {
         Authorization: `Bearer ${token}`,
     });

@@ -295,8 +295,8 @@ class ExternalExchangeController extends Controller
             description: 'Disconnects from an external exchange',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,

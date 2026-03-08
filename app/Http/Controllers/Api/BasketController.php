@@ -30,9 +30,9 @@ class BasketController extends Controller
             tags: ['Baskets'],
             summary: 'List all basket assets',
             parameters: [
-        new OA\Parameter(name: 'type', in: 'query', description: 'Filter by basket type', required: false, schema: new OA\Schema(type: 'string', enum: ['fixed', 'dynamic'])),
-        new OA\Parameter(name: 'active', in: 'query', description: 'Filter by active status', required: false, schema: new OA\Schema(type: 'boolean')),
-        ]
+            new OA\Parameter(name: 'type', in: 'query', description: 'Filter by basket type', required: false, schema: new OA\Schema(type: 'string', enum: ['fixed', 'dynamic'])),
+            new OA\Parameter(name: 'active', in: 'query', description: 'Filter by active status', required: false, schema: new OA\Schema(type: 'boolean')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -93,8 +93,8 @@ class BasketController extends Controller
             tags: ['Baskets'],
             summary: 'Get basket details',
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -154,18 +154,18 @@ class BasketController extends Controller
             summary: 'Create a new basket',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['code', 'name', 'components'], properties: [
-        new OA\Property(property: 'code', type: 'string', example: 'STABLE_BASKET'),
-        new OA\Property(property: 'name', type: 'string', example: 'Stable Currency Basket'),
-        new OA\Property(property: 'description', type: 'string'),
-        new OA\Property(property: 'type', type: 'string', enum: ['fixed', 'dynamic'], default: 'fixed'),
-        new OA\Property(property: 'rebalance_frequency', type: 'string', enum: ['daily', 'weekly', 'monthly', 'quarterly', 'never'], default: 'never'),
-        new OA\Property(property: 'components', type: 'array', items: new OA\Items(type: 'object', required: ['asset_code', 'weight'], properties: [
-        new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
-        new OA\Property(property: 'weight', type: 'number', format: 'float', example: 40.0),
-        new OA\Property(property: 'min_weight', type: 'number', format: 'float', example: 35.0),
-        new OA\Property(property: 'max_weight', type: 'number', format: 'float', example: 45.0),
-        ])),
-        ]))
+            new OA\Property(property: 'code', type: 'string', example: 'STABLE_BASKET'),
+            new OA\Property(property: 'name', type: 'string', example: 'Stable Currency Basket'),
+            new OA\Property(property: 'description', type: 'string'),
+            new OA\Property(property: 'type', type: 'string', enum: ['fixed', 'dynamic'], default: 'fixed'),
+            new OA\Property(property: 'rebalance_frequency', type: 'string', enum: ['daily', 'weekly', 'monthly', 'quarterly', 'never'], default: 'never'),
+            new OA\Property(property: 'components', type: 'array', items: new OA\Items(type: 'object', required: ['asset_code', 'weight'], properties: [
+            new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
+            new OA\Property(property: 'weight', type: 'number', format: 'float', example: 40.0),
+            new OA\Property(property: 'min_weight', type: 'number', format: 'float', example: 35.0),
+            new OA\Property(property: 'max_weight', type: 'number', format: 'float', example: 45.0),
+            ])),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -265,8 +265,8 @@ class BasketController extends Controller
             tags: ['Baskets'],
             summary: 'Get current basket value',
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -300,9 +300,9 @@ class BasketController extends Controller
             summary: 'Trigger basket rebalancing',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'simulate', in: 'query', description: 'Simulate rebalancing without executing', required: false, schema: new OA\Schema(type: 'boolean', default: false)),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'simulate', in: 'query', description: 'Simulate rebalancing without executing', required: false, schema: new OA\Schema(type: 'boolean', default: false)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -343,9 +343,9 @@ class BasketController extends Controller
             tags: ['Baskets'],
             summary: 'Get basket value history',
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'days', in: 'query', description: 'Number of days of history', required: false, schema: new OA\Schema(type: 'integer', default: 30)),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'days', in: 'query', description: 'Number of days of history', required: false, schema: new OA\Schema(type: 'integer', default: 30)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -380,9 +380,9 @@ class BasketController extends Controller
             tags: ['Baskets'],
             summary: 'Get basket performance metrics',
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'period', in: 'query', description: 'Performance period', required: false, schema: new OA\Schema(type: 'string', enum: ['1d', '7d', '30d', '90d', '1y'], default: '30d')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'Basket code', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'period', in: 'query', description: 'Performance period', required: false, schema: new OA\Schema(type: 'string', enum: ['1d', '7d', '30d', '90d', '1y'], default: '30d')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -402,11 +402,11 @@ class BasketController extends Controller
             default => 30,
         };
 
-        $performance = $this->valueCalculationService->calculatePerformance(
-            $basket,
-            now()->subDays($days),
-            now()
-        );
+            $performance = $this->valueCalculationService->calculatePerformance(
+                $basket,
+                now()->subDays($days),
+                now()
+            );
 
         return response()->json(
             [

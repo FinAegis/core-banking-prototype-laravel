@@ -17,9 +17,9 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'page', in: 'query', required: false, description: 'Page number', schema: new OA\Schema(type: 'integer')),
-        new OA\Parameter(name: 'per_page', in: 'query', required: false, description: 'Items per page', schema: new OA\Schema(type: 'integer')),
-        ]
+            new OA\Parameter(name: 'page', in: 'query', required: false, description: 'Page number', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, description: 'Items per page', schema: new OA\Schema(type: 'integer')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -53,10 +53,10 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'format', in: 'query', required: false, description: 'Export format (e.g. csv, json)', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'from', in: 'query', required: false, description: 'Start date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
-        new OA\Parameter(name: 'to', in: 'query', required: false, description: 'End date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
-        ]
+            new OA\Parameter(name: 'format', in: 'query', required: false, description: 'Export format (e.g. csv, json)', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'from', in: 'query', required: false, description: 'Start date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
+            new OA\Parameter(name: 'to', in: 'query', required: false, description: 'End date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -120,8 +120,8 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Audit event ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Audit event ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -189,11 +189,11 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'type', type: 'string', description: 'Report type'),
-        new OA\Property(property: 'from', type: 'string', format: 'date-time', description: 'Start date'),
-        new OA\Property(property: 'to', type: 'string', format: 'date-time', description: 'End date'),
-        new OA\Property(property: 'filters', type: 'object', description: 'Additional filters'),
-        ]))
+            new OA\Property(property: 'type', type: 'string', description: 'Report type'),
+            new OA\Property(property: 'from', type: 'string', format: 'date-time', description: 'Start date'),
+            new OA\Property(property: 'to', type: 'string', format: 'date-time', description: 'End date'),
+            new OA\Property(property: 'filters', type: 'object', description: 'Additional filters'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -228,9 +228,9 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'entityType', in: 'path', required: true, description: 'Entity type (e.g. user, account, transaction)', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'entityId', in: 'path', required: true, description: 'Entity ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'entityType', in: 'path', required: true, description: 'Entity type (e.g. user, account, transaction)', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'entityId', in: 'path', required: true, description: 'Entity ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -272,8 +272,8 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -311,11 +311,11 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'query', in: 'query', required: false, description: 'Search query string', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'from', in: 'query', required: false, description: 'Start date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
-        new OA\Parameter(name: 'to', in: 'query', required: false, description: 'End date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
-        new OA\Parameter(name: 'action', in: 'query', required: false, description: 'Filter by action type', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'query', in: 'query', required: false, description: 'Search query string', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'from', in: 'query', required: false, description: 'Start date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
+            new OA\Parameter(name: 'to', in: 'query', required: false, description: 'End date filter', schema: new OA\Schema(type: 'string', format: 'date-time')),
+            new OA\Parameter(name: 'action', in: 'query', required: false, description: 'Filter by action type', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -349,9 +349,9 @@ class AuditController extends Controller
             tags: ['Audit'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'before', type: 'string', format: 'date-time', description: 'Archive logs before this date'),
-        new OA\Property(property: 'retention_days', type: 'integer', description: 'Number of days to retain'),
-        ]))
+            new OA\Property(property: 'before', type: 'string', format: 'date-time', description: 'Archive logs before this date'),
+            new OA\Property(property: 'retention_days', type: 'integer', description: 'Number of days to retain'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

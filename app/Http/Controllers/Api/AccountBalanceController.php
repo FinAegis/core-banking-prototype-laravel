@@ -27,10 +27,10 @@ class AccountBalanceController extends Controller
             description: 'Retrieve all asset balances for a specific account',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, description: 'The account UUID', schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
-        new OA\Parameter(name: 'asset', in: 'query', required: false, description: 'Filter by specific asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
-        new OA\Parameter(name: 'positive', in: 'query', required: false, description: 'Only show positive balances', schema: new OA\Schema(type: 'boolean', example: true)),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, description: 'The account UUID', schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
+            new OA\Parameter(name: 'asset', in: 'query', required: false, description: 'Filter by specific asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
+            new OA\Parameter(name: 'positive', in: 'query', required: false, description: 'Only show positive balances', schema: new OA\Schema(type: 'boolean', example: true)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -136,11 +136,11 @@ class AccountBalanceController extends Controller
             description: 'Get balances across all accounts with filtering and aggregation options',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'asset', in: 'query', required: false, description: 'Filter by specific asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
-        new OA\Parameter(name: 'min_balance', in: 'query', required: false, description: 'Minimum balance filter (in smallest unit)', schema: new OA\Schema(type: 'integer', example: 1000)),
-        new OA\Parameter(name: 'user_uuid', in: 'query', required: false, description: 'Filter by account owner', schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
-        new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of results per page (max 100)', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, example: 20)),
-        ]
+            new OA\Parameter(name: 'asset', in: 'query', required: false, description: 'Filter by specific asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
+            new OA\Parameter(name: 'min_balance', in: 'query', required: false, description: 'Minimum balance filter (in smallest unit)', schema: new OA\Schema(type: 'integer', example: 1000)),
+            new OA\Parameter(name: 'user_uuid', in: 'query', required: false, description: 'Filter by account owner', schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
+            new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of results per page (max 100)', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, example: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,

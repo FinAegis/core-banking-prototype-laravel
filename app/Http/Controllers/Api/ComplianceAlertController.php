@@ -28,12 +28,12 @@ class ComplianceAlertController extends Controller
             description: 'Retrieve compliance alerts with filtering options',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', required: false, schema: new OA\Schema(type: 'string', enum: ['new', 'assigned', 'investigating', 'escalated', 'resolved', 'closed'])),
-        new OA\Parameter(name: 'severity', in: 'query', description: 'Filter by severity', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
-        new OA\Parameter(name: 'type', in: 'query', description: 'Filter by alert type', required: false, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'assigned_to', in: 'query', description: 'Filter by assigned user ID', required: false, schema: new OA\Schema(type: 'integer')),
-        new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
-        ]
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', required: false, schema: new OA\Schema(type: 'string', enum: ['new', 'assigned', 'investigating', 'escalated', 'resolved', 'closed'])),
+            new OA\Parameter(name: 'severity', in: 'query', description: 'Filter by severity', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
+            new OA\Parameter(name: 'type', in: 'query', description: 'Filter by alert type', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'assigned_to', in: 'query', description: 'Filter by assigned user ID', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -90,8 +90,8 @@ class ComplianceAlertController extends Controller
             description: 'Retrieve detailed information about a specific compliance alert',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -120,13 +120,13 @@ class ComplianceAlertController extends Controller
             description: 'Create a new compliance alert',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['type', 'severity', 'description'], properties: [
-        new OA\Property(property: 'type', type: 'string'),
-        new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
-        new OA\Property(property: 'description', type: 'string'),
-        new OA\Property(property: 'entity_type', type: 'string'),
-        new OA\Property(property: 'entity_id', type: 'string'),
-        new OA\Property(property: 'details', type: 'object'),
-        ]))
+            new OA\Property(property: 'type', type: 'string'),
+            new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            new OA\Property(property: 'description', type: 'string'),
+            new OA\Property(property: 'entity_type', type: 'string'),
+            new OA\Property(property: 'entity_id', type: 'string'),
+            new OA\Property(property: 'details', type: 'object'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -160,13 +160,13 @@ class ComplianceAlertController extends Controller
             description: 'Update the status of a compliance alert',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['status'], properties: [
-        new OA\Property(property: 'status', type: 'string', enum: ['new', 'assigned', 'investigating', 'escalated', 'resolved', 'closed']),
-        new OA\Property(property: 'notes', type: 'string'),
-        new OA\Property(property: 'resolution', type: 'string'),
-        ]))
+            new OA\Property(property: 'status', type: 'string', enum: ['new', 'assigned', 'investigating', 'escalated', 'resolved', 'closed']),
+            new OA\Property(property: 'notes', type: 'string'),
+            new OA\Property(property: 'resolution', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -203,12 +203,12 @@ class ComplianceAlertController extends Controller
             description: 'Assign a compliance alert to a user',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['user_id'], properties: [
-        new OA\Property(property: 'user_id', type: 'integer'),
-        new OA\Property(property: 'notes', type: 'string'),
-        ]))
+            new OA\Property(property: 'user_id', type: 'integer'),
+            new OA\Property(property: 'notes', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -249,12 +249,12 @@ class ComplianceAlertController extends Controller
             description: 'Add an investigation note to a compliance alert',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['note'], properties: [
-        new OA\Property(property: 'note', type: 'string'),
-        new OA\Property(property: 'findings', type: 'object'),
-        ]))
+            new OA\Property(property: 'note', type: 'string'),
+            new OA\Property(property: 'findings', type: 'object'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -288,10 +288,10 @@ class ComplianceAlertController extends Controller
             description: 'Link multiple related compliance alerts',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['alert_ids', 'relationship_type'], properties: [
-        new OA\Property(property: 'alert_ids', type: 'array', items: new OA\Items(type: 'string')),
-        new OA\Property(property: 'relationship_type', type: 'string'),
-        new OA\Property(property: 'notes', type: 'string'),
-        ]))
+            new OA\Property(property: 'alert_ids', type: 'array', items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'relationship_type', type: 'string'),
+            new OA\Property(property: 'notes', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -334,11 +334,11 @@ class ComplianceAlertController extends Controller
             description: 'Create a compliance case from multiple alerts',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['alert_ids', 'title'], properties: [
-        new OA\Property(property: 'alert_ids', type: 'array', items: new OA\Items(type: 'string')),
-        new OA\Property(property: 'title', type: 'string'),
-        new OA\Property(property: 'description', type: 'string'),
-        new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
-        ]))
+            new OA\Property(property: 'alert_ids', type: 'array', items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'title', type: 'string'),
+            new OA\Property(property: 'description', type: 'string'),
+            new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -405,8 +405,8 @@ class ComplianceAlertController extends Controller
             description: 'Get statistics and metrics for compliance alerts',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'period', in: 'query', description: 'Time period for statistics', required: false, schema: new OA\Schema(type: 'string', enum: ['today', 'week', 'month', 'quarter', 'year'])),
-        ]
+            new OA\Parameter(name: 'period', in: 'query', description: 'Time period for statistics', required: false, schema: new OA\Schema(type: 'string', enum: ['today', 'week', 'month', 'quarter', 'year'])),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -449,8 +449,8 @@ class ComplianceAlertController extends Controller
             description: 'Get trend analysis for compliance alerts',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'days', in: 'query', description: 'Number of days for trend analysis', required: false, schema: new OA\Schema(type: 'integer', default: 30)),
-        ]
+            new OA\Parameter(name: 'days', in: 'query', description: 'Number of days for trend analysis', required: false, schema: new OA\Schema(type: 'integer', default: 30)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -470,48 +470,48 @@ class ComplianceAlertController extends Controller
         };
 
         // Get trends by calling getStatistics with date filters
-        $trends = [];
-        $now = now();
-        $totalAlerts = 0;
-        $totalRiskScore = 0;
+            $trends = [];
+            $now = now();
+            $totalAlerts = 0;
+            $totalRiskScore = 0;
 
-        for ($i = 0; $i < $days; $i++) {
-            $date = $now->copy()->subDays($i);
-            $dayStats = $this->alertService->getStatistics([
+            for ($i = 0; $i < $days; $i++) {
+                $date = $now->copy()->subDays($i);
+                $dayStats = $this->alertService->getStatistics([
                 'start_date' => $date->startOfDay()->toDateTimeString(),
                 'end_date'   => $date->endOfDay()->toDateTimeString(),
-            ]);
+                ]);
 
-            $count = $dayStats['total'] ?? 0;
-            $totalAlerts += $count;
-            $avgRisk = 0;
+                $count = $dayStats['total'] ?? 0;
+                $totalAlerts += $count;
+                $avgRisk = 0;
 
-            // Calculate average risk score for the day
-            if ($count > 0) {
-                $dayAlerts = ComplianceAlert::whereBetween(
-                    'created_at',
-                    [$date->startOfDay(), $date->endOfDay()]
-                )->get();
-                $avgRisk = round($dayAlerts->avg('risk_score') ?? 0, 2);
-                $totalRiskScore += $dayAlerts->sum('risk_score');
-            }
+                // Calculate average risk score for the day
+                if ($count > 0) {
+                    $dayAlerts = ComplianceAlert::whereBetween(
+                        'created_at',
+                        [$date->startOfDay(), $date->endOfDay()]
+                    )->get();
+                    $avgRisk = round($dayAlerts->avg('risk_score') ?? 0, 2);
+                    $totalRiskScore += $dayAlerts->sum('risk_score');
+                }
 
-            $trends[] = [
+                $trends[] = [
                 'date'               => $date->format('Y-m-d'),
                 'count'              => $count,
                 'severity_breakdown' => $dayStats['by_severity'] ?? [],
                 'average_risk_score' => $avgRisk,
-            ];
-        }
-        $trends = array_reverse($trends);
+                ];
+            }
+            $trends = array_reverse($trends);
 
         // Calculate comparison with previous period
-        $previousPeriodStart = $now->copy()->subDays($days * 2);
-        $previousPeriodEnd = $now->copy()->subDays($days);
-        $previousStats = $this->alertService->getStatistics([
+            $previousPeriodStart = $now->copy()->subDays($days * 2);
+            $previousPeriodEnd = $now->copy()->subDays($days);
+            $previousStats = $this->alertService->getStatistics([
             'start_date' => $previousPeriodStart->toDateTimeString(),
             'end_date'   => $previousPeriodEnd->toDateTimeString(),
-        ]);
+            ]);
         $previousTotal = $previousStats['total'] ?? 0;
 
         $changePercent = 0;
@@ -541,13 +541,13 @@ class ComplianceAlertController extends Controller
             description: 'Search compliance alerts with advanced filters',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'query', type: 'string'),
-        new OA\Property(property: 'entity_type', type: 'string'),
-        new OA\Property(property: 'date_from', type: 'string', format: 'date'),
-        new OA\Property(property: 'date_to', type: 'string', format: 'date'),
-        new OA\Property(property: 'min_severity', type: 'string'),
-        new OA\Property(property: 'include_resolved', type: 'boolean'),
-        ]))
+            new OA\Property(property: 'query', type: 'string'),
+            new OA\Property(property: 'entity_type', type: 'string'),
+            new OA\Property(property: 'date_from', type: 'string', format: 'date'),
+            new OA\Property(property: 'date_to', type: 'string', format: 'date'),
+            new OA\Property(property: 'min_severity', type: 'string'),
+            new OA\Property(property: 'include_resolved', type: 'boolean'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

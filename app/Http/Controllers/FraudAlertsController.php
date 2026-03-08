@@ -141,8 +141,8 @@ class FraudAlertsController extends Controller
             description: 'Returns details of a specific fraud alert',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -178,8 +178,8 @@ class FraudAlertsController extends Controller
             description: 'Updates the status of a fraud alert',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -312,7 +312,7 @@ class FraudAlertsController extends Controller
             fclose($file);
         };
 
-        return response()->stream($callback, 200, $headers);
+            return response()->stream($callback, 200, $headers);
     }
 
     /**

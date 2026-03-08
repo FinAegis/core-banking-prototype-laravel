@@ -35,12 +35,12 @@ class AgentIdentityController extends Controller
             summary: 'Register a new agent in the system',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['name', 'type'], properties: [
-        new OA\Property(property: 'name', type: 'string', example: 'Trading Agent Alpha'),
-        new OA\Property(property: 'type', type: 'string', enum: ['service', 'user', 'system'], example: 'service'),
-        new OA\Property(property: 'description', type: 'string', example: 'Automated trading agent'),
-        new OA\Property(property: 'capabilities', type: 'array', example: ['payment', 'trading'], items: new OA\Items(type: 'string')),
-        new OA\Property(property: 'metadata', type: 'object', example: ['version' => '1.0', 'provider' => 'FinAegis']),
-        ]))
+            new OA\Property(property: 'name', type: 'string', example: 'Trading Agent Alpha'),
+            new OA\Property(property: 'type', type: 'string', enum: ['service', 'user', 'system'], example: 'service'),
+            new OA\Property(property: 'description', type: 'string', example: 'Automated trading agent'),
+            new OA\Property(property: 'capabilities', type: 'array', example: ['payment', 'trading'], items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'metadata', type: 'object', example: ['version' => '1.0', 'provider' => 'FinAegis']),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -161,11 +161,11 @@ class AgentIdentityController extends Controller
             tags: ['Agent Protocol - Identity'],
             summary: 'Discover agents by capabilities or type',
             parameters: [
-        new OA\Parameter(name: 'capability', in: 'query', description: 'Filter by capability', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'type', in: 'query', description: 'Filter by agent type', schema: new OA\Schema(type: 'string', enum: ['service', 'user', 'system'])),
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'suspended'])),
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results', schema: new OA\Schema(type: 'integer', default: 20)),
-        ]
+            new OA\Parameter(name: 'capability', in: 'query', description: 'Filter by capability', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'type', in: 'query', description: 'Filter by agent type', schema: new OA\Schema(type: 'string', enum: ['service', 'user', 'system'])),
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'suspended'])),
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results', schema: new OA\Schema(type: 'integer', default: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -216,8 +216,8 @@ class AgentIdentityController extends Controller
             tags: ['Agent Protocol - Identity'],
             summary: 'Get agent details by DID',
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -281,15 +281,15 @@ class AgentIdentityController extends Controller
             summary: 'Update agent capabilities',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['capabilities'], properties: [
-        new OA\Property(property: 'capabilities', type: 'array', items: new OA\Items(type: 'object', properties: [
-        new OA\Property(property: 'name', type: 'string'),
-        new OA\Property(property: 'version', type: 'string'),
-        new OA\Property(property: 'metadata', type: 'object'),
-        ])),
-        ]))
+            new OA\Property(property: 'capabilities', type: 'array', items: new OA\Items(type: 'object', properties: [
+            new OA\Property(property: 'name', type: 'string'),
+            new OA\Property(property: 'version', type: 'string'),
+            new OA\Property(property: 'metadata', type: 'object'),
+            ])),
+            ]))
         )]
     #[OA\Response(
         response: 200,

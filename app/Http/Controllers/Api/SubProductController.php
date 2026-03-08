@@ -51,8 +51,8 @@ class SubProductController extends Controller
             description: 'Returns the status of a specific sub-product',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'subProduct', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'subProduct', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

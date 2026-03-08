@@ -152,6 +152,8 @@ describe('MobileWalletController state', function (): void {
         ];
         $this->smartAccountService->shouldReceive('getUserAccounts')->andReturn(new Collection([$account]));
         $this->smartAccountService->shouldReceive('getSupportedNetworks')->andReturn(['polygon', 'base']);
+        $this->balanceService->shouldReceive('isTokenSupported')->andReturn(true);
+        $this->balanceService->shouldReceive('getBalance')->andReturn('100.50');
 
         $controller = makeWalletController($this);
 

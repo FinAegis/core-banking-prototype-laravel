@@ -112,9 +112,9 @@ class BankAllocationController extends Controller
             description: 'Update user\'s bank allocation preferences',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['allocations'], properties: [
-        new OA\Property(property: 'allocations', type: 'object', example: ['PAYSERA' => 40, 'DEUTSCHE_BANK' => 30, 'SANTANDER' => 30]),
-        new OA\Property(property: 'primary_bank', type: 'string', example: 'PAYSERA'),
-        ]))
+            new OA\Property(property: 'allocations', type: 'object', example: ['PAYSERA' => 40, 'DEUTSCHE_BANK' => 30, 'SANTANDER' => 30]),
+            new OA\Property(property: 'primary_bank', type: 'string', example: 'PAYSERA'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -194,9 +194,9 @@ class BankAllocationController extends Controller
             description: 'Add a new bank to user\'s allocation preferences',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['bank_code', 'percentage'], properties: [
-        new OA\Property(property: 'bank_code', type: 'string', example: 'REVOLUT'),
-        new OA\Property(property: 'percentage', type: 'number', minimum: 0.01, maximum: 100, example: 15.0),
-        ]))
+            new OA\Property(property: 'bank_code', type: 'string', example: 'REVOLUT'),
+            new OA\Property(property: 'percentage', type: 'number', minimum: 0.01, maximum: 100, example: 15.0),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -261,8 +261,8 @@ class BankAllocationController extends Controller
             description: 'Remove a bank from user\'s allocation preferences',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'bankCode', in: 'path', required: true, description: 'Bank code to remove', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'bankCode', in: 'path', required: true, description: 'Bank code to remove', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -313,8 +313,8 @@ class BankAllocationController extends Controller
             description: 'Set a bank as the primary bank for the user',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'bankCode', in: 'path', required: true, description: 'Bank code to set as primary', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'bankCode', in: 'path', required: true, description: 'Bank code to set as primary', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -412,9 +412,9 @@ class BankAllocationController extends Controller
             description: 'Preview how funds would be distributed across banks for a given amount',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'asset_code'], properties: [
-        new OA\Property(property: 'amount', type: 'number', minimum: 0.01, example: 1000.00),
-        new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
-        ]))
+            new OA\Property(property: 'amount', type: 'number', minimum: 0.01, example: 1000.00),
+            new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

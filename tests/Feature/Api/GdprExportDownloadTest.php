@@ -113,7 +113,7 @@ class GdprExportDownloadTest extends TestCase
             ->assertHeader('Content-Type', 'application/json')
             ->assertHeader('Content-Disposition', "attachment; filename=\"gdpr-export-{$exportId}.json\"");
 
-        $this->assertEquals($exportData, json_decode($response->getContent(), true));
+        $this->assertEquals($exportData, json_decode((string) $response->getContent(), true));
     }
 
     public function test_download_with_invalid_signature_returns_403(): void
@@ -172,7 +172,7 @@ class GdprExportDownloadTest extends TestCase
         $encrypted = encrypt(json_encode($exportData));
         Storage::disk('local')->put($filePath, $encrypted);
 
-        $rawContent = Storage::disk('local')->get($filePath);
+        $rawContent = (string) Storage::disk('local')->get($filePath);
 
         // Raw file should not contain the plaintext
         $this->assertStringNotContainsString('Sensitive User', $rawContent);

@@ -57,8 +57,8 @@ class LiquidityPoolController extends Controller
             tags: ['Liquidity Pool'],
             summary: 'Get pool details',
             parameters: [
-        new OA\Parameter(name: 'poolId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'poolId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -87,10 +87,10 @@ class LiquidityPoolController extends Controller
             summary: 'Create a new liquidity pool',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['base_currency', 'quote_currency'], properties: [
-        new OA\Property(property: 'base_currency', type: 'string', example: 'BTC'),
-        new OA\Property(property: 'quote_currency', type: 'string', example: 'EUR'),
-        new OA\Property(property: 'fee_rate', type: 'string', example: '0.003'),
-        ]))
+            new OA\Property(property: 'base_currency', type: 'string', example: 'BTC'),
+            new OA\Property(property: 'quote_currency', type: 'string', example: 'EUR'),
+            new OA\Property(property: 'fee_rate', type: 'string', example: '0.003'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -136,11 +136,11 @@ class LiquidityPoolController extends Controller
             summary: 'Add liquidity to a pool',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id', 'base_amount', 'quote_amount'], properties: [
-        new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'base_amount', type: 'string', example: '0.1'),
-        new OA\Property(property: 'quote_amount', type: 'string', example: '4800'),
-        new OA\Property(property: 'min_shares', type: 'string', example: '0'),
-        ]))
+            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
+            new OA\Property(property: 'base_amount', type: 'string', example: '0.1'),
+            new OA\Property(property: 'quote_amount', type: 'string', example: '4800'),
+            new OA\Property(property: 'min_shares', type: 'string', example: '0'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -189,11 +189,11 @@ class LiquidityPoolController extends Controller
             summary: 'Remove liquidity from a pool',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id', 'shares'], properties: [
-        new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'shares', type: 'string', example: '100'),
-        new OA\Property(property: 'min_base_amount', type: 'string', example: '0'),
-        new OA\Property(property: 'min_quote_amount', type: 'string', example: '0'),
-        ]))
+            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
+            new OA\Property(property: 'shares', type: 'string', example: '100'),
+            new OA\Property(property: 'min_base_amount', type: 'string', example: '0'),
+            new OA\Property(property: 'min_quote_amount', type: 'string', example: '0'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -235,11 +235,11 @@ class LiquidityPoolController extends Controller
             summary: 'Execute a swap through liquidity pool',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id', 'input_currency', 'input_amount'], properties: [
-        new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'input_currency', type: 'string', example: 'BTC'),
-        new OA\Property(property: 'input_amount', type: 'string', example: '0.1'),
-        new OA\Property(property: 'min_output_amount', type: 'string', example: '4700'),
-        ]))
+            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
+            new OA\Property(property: 'input_currency', type: 'string', example: 'BTC'),
+            new OA\Property(property: 'input_amount', type: 'string', example: '0.1'),
+            new OA\Property(property: 'min_output_amount', type: 'string', example: '4700'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -317,8 +317,8 @@ class LiquidityPoolController extends Controller
             summary: 'Claim pending rewards',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id'], properties: [
-        new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-        ]))
+            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -357,8 +357,8 @@ class LiquidityPoolController extends Controller
             summary: 'Calculate impermanent loss for a position',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'positionId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
-        ]
+            new OA\Parameter(name: 'positionId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -391,12 +391,12 @@ class LiquidityPoolController extends Controller
             summary: 'Enable IL protection for a pool',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id'], properties: [
-        new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-        new OA\Property(property: 'protection_threshold', type: 'string', example: '0.02'),
-        new OA\Property(property: 'max_coverage', type: 'string', example: '0.80'),
-        new OA\Property(property: 'min_holding_hours', type: 'integer', example: 168),
-        new OA\Property(property: 'fund_size', type: 'string', example: '100000'),
-        ]))
+            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
+            new OA\Property(property: 'protection_threshold', type: 'string', example: '0.02'),
+            new OA\Property(property: 'max_coverage', type: 'string', example: '0.80'),
+            new OA\Property(property: 'min_holding_hours', type: 'integer', example: 168),
+            new OA\Property(property: 'fund_size', type: 'string', example: '100000'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -438,8 +438,8 @@ class LiquidityPoolController extends Controller
             summary: 'Process IL protection claims for a pool',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['pool_id'], properties: [
-        new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
-        ]))
+            new OA\Property(property: 'pool_id', type: 'string', format: 'uuid'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -480,8 +480,8 @@ class LiquidityPoolController extends Controller
             summary: 'Get IL protection fund requirements',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'poolId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'poolId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -510,8 +510,8 @@ class LiquidityPoolController extends Controller
             tags: ['Liquidity Pool'],
             summary: 'Get pool analytics and performance metrics',
             parameters: [
-        new OA\Parameter(name: 'poolId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'poolId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,

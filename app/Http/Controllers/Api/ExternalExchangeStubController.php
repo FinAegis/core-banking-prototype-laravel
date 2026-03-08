@@ -60,9 +60,9 @@ class ExternalExchangeStubController extends Controller
             description: 'Returns current ticker data for a trading pair',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -107,9 +107,9 @@ class ExternalExchangeStubController extends Controller
             description: 'Returns order book for a trading pair',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -157,9 +157,9 @@ class ExternalExchangeStubController extends Controller
             description: 'Returns arbitrage opportunities for a trading pair',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

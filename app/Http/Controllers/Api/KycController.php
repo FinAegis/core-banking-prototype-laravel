@@ -94,8 +94,8 @@ class KycController extends Controller
             summary: 'Get KYC requirements for a level',
             description: 'Retrieve the document requirements for a specific KYC verification level',
             parameters: [
-        new OA\Parameter(name: 'level', in: 'query', description: 'KYC verification level', required: true, schema: new OA\Schema(type: 'string', enum: ['basic', 'enhanced', 'full'])),
-        ]
+            new OA\Parameter(name: 'level', in: 'query', description: 'KYC verification level', required: true, schema: new OA\Schema(type: 'string', enum: ['basic', 'enhanced', 'full'])),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -141,17 +141,17 @@ class KycController extends Controller
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(mediaType: 'multipart/form-data', schema: new OA\Schema(
                 properties: [
-        new OA\Property(
-            property: 'documents',
-            type: 'array',
-            items: new OA\Items(
-                properties: [
-        new OA\Property(property: 'type', type: 'string', enum: ['passport', 'national_id', 'drivers_license', 'residence_permit', 'utility_bill', 'bank_statement', 'selfie', 'proof_of_income', 'other']),
-        new OA\Property(property: 'file', type: 'string', format: 'binary', description: 'Document file (jpg, jpeg, png, pdf - max 10MB)'),
-        ]
-            )
-        ),
-        ]
+                new OA\Property(
+                    property: 'documents',
+                    type: 'array',
+                    items: new OA\Items(
+                        properties: [
+                        new OA\Property(property: 'type', type: 'string', enum: ['passport', 'national_id', 'drivers_license', 'residence_permit', 'utility_bill', 'bank_statement', 'selfie', 'proof_of_income', 'other']),
+                        new OA\Property(property: 'file', type: 'string', format: 'binary', description: 'Document file (jpg, jpeg, png, pdf - max 10MB)'),
+                        ]
+                    )
+                ),
+                ]
             )))
         )]
     #[OA\Response(
@@ -240,8 +240,8 @@ class KycController extends Controller
             description: 'Download a previously uploaded KYC document. Users can only download their own documents.',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'documentId', in: 'path', description: 'The document ID', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'documentId', in: 'path', description: 'The document ID', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

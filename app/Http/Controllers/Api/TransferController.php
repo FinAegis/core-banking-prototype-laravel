@@ -28,11 +28,11 @@ class TransferController extends Controller
             description: 'Transfers money from one account to another',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['from_account_uuid', 'to_account_uuid', 'amount'], properties: [
-        new OA\Property(property: 'from_account_uuid', type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'),
-        new OA\Property(property: 'to_account_uuid', type: 'string', format: 'uuid', example: '660e8400-e29b-41d4-a716-446655440000'),
-        new OA\Property(property: 'amount', type: 'integer', example: 5000, minimum: 1, description: 'Amount in cents'),
-        new OA\Property(property: 'description', type: 'string', example: 'Payment for services', maxLength: 255),
-        ]))
+            new OA\Property(property: 'from_account_uuid', type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'),
+            new OA\Property(property: 'to_account_uuid', type: 'string', format: 'uuid', example: '660e8400-e29b-41d4-a716-446655440000'),
+            new OA\Property(property: 'amount', type: 'integer', example: 5000, minimum: 1, description: 'Amount in cents'),
+            new OA\Property(property: 'description', type: 'string', example: 'Payment for services', maxLength: 255),
+            ]))
         )]
     #[OA\Response(
         response: 201,

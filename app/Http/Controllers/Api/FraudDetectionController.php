@@ -75,8 +75,8 @@ class FraudDetectionController extends Controller
             tags: ['Fraud Detection'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Alert ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Alert ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -105,8 +105,8 @@ class FraudDetectionController extends Controller
             tags: ['Fraud Detection'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Alert ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Alert ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
@@ -138,8 +138,8 @@ class FraudDetectionController extends Controller
             tags: ['Fraud Detection'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Alert ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Alert ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
@@ -256,8 +256,8 @@ class FraudDetectionController extends Controller
             tags: ['Fraud Detection'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Case ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Case ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -286,12 +286,12 @@ class FraudDetectionController extends Controller
             tags: ['Fraud Detection'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Case ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Case ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', properties: [
-        new OA\Property(property: 'status', type: 'string'),
-        new OA\Property(property: 'notes', type: 'string'),
-        ]))
+            new OA\Property(property: 'status', type: 'string'),
+            new OA\Property(property: 'notes', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

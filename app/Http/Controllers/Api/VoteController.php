@@ -25,9 +25,9 @@ class VoteController extends Controller
             tags: ['Governance - Votes'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'poll_id', in: 'query', description: 'Filter by specific poll ID', required: false, schema: new OA\Schema(type: 'integer')),
-        new OA\Parameter(name: 'per_page', in: 'query', description: 'Number of votes per page', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 15)),
-        ]
+            new OA\Parameter(name: 'poll_id', in: 'query', description: 'Filter by specific poll ID', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'per_page', in: 'query', description: 'Number of votes per page', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 15)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -67,8 +67,8 @@ class VoteController extends Controller
             tags: ['Governance - Votes'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -122,8 +122,8 @@ class VoteController extends Controller
             tags: ['Governance - Votes'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            ]
         )]
     #[OA\Response(
         response: 200,

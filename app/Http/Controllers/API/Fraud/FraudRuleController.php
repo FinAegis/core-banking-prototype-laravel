@@ -87,8 +87,8 @@ class FraudRuleController extends Controller
             description: 'Returns detailed information about a fraud rule',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -173,8 +173,8 @@ class FraudRuleController extends Controller
             description: 'Updates an existing fraud detection rule',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -231,8 +231,8 @@ class FraudRuleController extends Controller
             description: 'Deletes a fraud detection rule',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -269,8 +269,8 @@ class FraudRuleController extends Controller
             description: 'Toggles the active status of a fraud rule',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -308,8 +308,8 @@ class FraudRuleController extends Controller
             description: 'Tests a fraud rule against provided context',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'rule', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,

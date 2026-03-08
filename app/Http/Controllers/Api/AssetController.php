@@ -24,10 +24,10 @@ class AssetController extends Controller
             description: 'Get a list of all assets supported by the platform, including fiat currencies, cryptocurrencies, and commodities',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'include_inactive', in: 'query', required: false, description: 'Include inactive assets in the response (default: false)', schema: new OA\Schema(type: 'boolean')),
-        new OA\Parameter(name: 'type', in: 'query', required: false, description: 'Filter by asset type', schema: new OA\Schema(type: 'string', enum: ['fiat', 'crypto', 'commodity'])),
-        new OA\Parameter(name: 'search', in: 'query', required: false, description: 'Search by code or name', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'include_inactive', in: 'query', required: false, description: 'Include inactive assets in the response (default: false)', schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'type', in: 'query', required: false, description: 'Filter by asset type', schema: new OA\Schema(type: 'string', enum: ['fiat', 'crypto', 'commodity'])),
+            new OA\Parameter(name: 'search', in: 'query', required: false, description: 'Search by code or name', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

@@ -31,9 +31,9 @@ class BasketPerformanceController extends Controller
             summary: 'Get performance metrics for a basket',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', enum: ['hour', 'day', 'week', 'month', 'quarter', 'year', 'all_time'], default: 'month')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', enum: ['hour', 'day', 'week', 'month', 'quarter', 'year', 'all_time'], default: 'month')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -113,10 +113,10 @@ class BasketPerformanceController extends Controller
             summary: 'Get historical performance data for a basket',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        new OA\Parameter(name: 'period_type', in: 'query', required: false, description: 'Filter by period type', schema: new OA\Schema(type: 'string', enum: ['hour', 'day', 'week', 'month', 'quarter', 'year'])),
-        new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of records to return', schema: new OA\Schema(type: 'integer', default: 30)),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            new OA\Parameter(name: 'period_type', in: 'query', required: false, description: 'Filter by period type', schema: new OA\Schema(type: 'string', enum: ['hour', 'day', 'week', 'month', 'quarter', 'year'])),
+            new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of records to return', schema: new OA\Schema(type: 'integer', default: 30)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -159,8 +159,8 @@ class BasketPerformanceController extends Controller
             summary: 'Get performance summary across multiple periods',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -198,9 +198,9 @@ class BasketPerformanceController extends Controller
             summary: 'Get component-level performance breakdown',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', enum: ['hour', 'day', 'week', 'month', 'quarter', 'year'], default: 'month')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', enum: ['hour', 'day', 'week', 'month', 'quarter', 'year'], default: 'month')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -243,10 +243,10 @@ class BasketPerformanceController extends Controller
             summary: 'Get top performing components',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', default: 'month')),
-        new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of components to return', schema: new OA\Schema(type: 'integer', default: 5)),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', default: 'month')),
+            new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of components to return', schema: new OA\Schema(type: 'integer', default: 5)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -278,10 +278,10 @@ class BasketPerformanceController extends Controller
             summary: 'Get worst performing components',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', default: 'month')),
-        new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of components to return', schema: new OA\Schema(type: 'integer', default: 5)),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', default: 'month')),
+            new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of components to return', schema: new OA\Schema(type: 'integer', default: 5)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -313,11 +313,11 @@ class BasketPerformanceController extends Controller
             summary: 'Trigger performance calculation for a basket',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        ],
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            ],
             requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'period', type: 'string', enum: ['all', 'hour', 'day', 'week', 'month', 'quarter', 'year']),
-        ]))
+            new OA\Property(property: 'period', type: 'string', enum: ['all', 'hour', 'day', 'week', 'month', 'quarter', 'year']),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -377,9 +377,9 @@ class BasketPerformanceController extends Controller
             summary: 'Compare basket performance against benchmarks',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
-        new OA\Parameter(name: 'benchmarks', in: 'query', required: true, description: 'Comma-separated list of benchmark basket codes', schema: new OA\Schema(type: 'string', example: 'USD_STABLE,EUR_STABLE')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'Basket asset code', schema: new OA\Schema(type: 'string', example: 'GCU')),
+            new OA\Parameter(name: 'benchmarks', in: 'query', required: true, description: 'Comma-separated list of benchmark basket codes', schema: new OA\Schema(type: 'string', example: 'USD_STABLE,EUR_STABLE')),
+            ]
         )]
     #[OA\Response(
         response: 200,

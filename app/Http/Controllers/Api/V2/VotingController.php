@@ -17,8 +17,8 @@ class VotingController extends Controller
             summary: 'Get voting proposals',
             tags: ['GCU Voting'],
             parameters: [
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status (active, upcoming, past)', required: false, schema: new OA\Schema(type: 'string', enum: ['active', 'upcoming', 'past'])),
-        ]
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status (active, upcoming, past)', required: false, schema: new OA\Schema(type: 'string', enum: ['active', 'upcoming', 'past'])),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -90,8 +90,8 @@ class VotingController extends Controller
             summary: 'Get proposal details',
             tags: ['GCU Voting'],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Proposal ID', required: true, schema: new OA\Schema(type: 'integer')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', description: 'Proposal ID', required: true, schema: new OA\Schema(type: 'integer')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -139,11 +139,11 @@ class VotingController extends Controller
             tags: ['GCU Voting'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Proposal ID', required: true, schema: new OA\Schema(type: 'integer')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Proposal ID', required: true, schema: new OA\Schema(type: 'integer')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'vote', type: 'string', enum: ['for', 'against', 'abstain']),
-        ]))
+            new OA\Property(property: 'vote', type: 'string', enum: ['for', 'against', 'abstain']),
+            ]))
         )]
     #[OA\Response(
         response: 200,

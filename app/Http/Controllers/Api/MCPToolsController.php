@@ -134,11 +134,11 @@ class MCPToolsController extends Controller
             description: 'Execute a specific MCP tool with the provided parameters',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'tool', in: 'path', required: true, description: 'The name of the tool to execute', schema: new OA\Schema(type: 'string', example: 'get_account_balance')),
-        ],
+            new OA\Parameter(name: 'tool', in: 'path', required: true, description: 'The name of the tool to execute', schema: new OA\Schema(type: 'string', example: 'get_account_balance')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'parameters', type: 'object', example: ['account_id' => 'acct_123', 'include_pending' => true]),
-        ]))
+            new OA\Property(property: 'parameters', type: 'object', example: ['account_id' => 'acct_123', 'include_pending' => true]),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -178,17 +178,17 @@ class MCPToolsController extends Controller
             default                     => null
         };
 
-        if ($result === null) {
-            return response()->json([
+            if ($result === null) {
+                return response()->json([
                 'success' => false,
                 'error'   => 'Tool not found',
                 'tool'    => $tool,
-            ], 404);
-        }
+                ], 404);
+            }
 
-        $executionTime = (microtime(true) - $startTime) * 1000;
+            $executionTime = (microtime(true) - $startTime) * 1000;
 
-        return response()->json([
+            return response()->json([
             'success'           => true,
             'tool'              => $tool,
             'result'            => $result,
@@ -197,7 +197,7 @@ class MCPToolsController extends Controller
                 'user_id'   => Auth::id(),
                 'timestamp' => now()->toIso8601String(),
             ],
-        ]);
+            ]);
     }
 
         #[OA\Get(
@@ -208,8 +208,8 @@ class MCPToolsController extends Controller
             description: 'Get detailed information about a specific MCP tool',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'tool', in: 'path', required: true, description: 'The name of the tool', schema: new OA\Schema(type: 'string', example: 'get_account_balance')),
-        ]
+            new OA\Parameter(name: 'tool', in: 'path', required: true, description: 'The name of the tool', schema: new OA\Schema(type: 'string', example: 'get_account_balance')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -285,14 +285,14 @@ class MCPToolsController extends Controller
             description: 'Register a custom MCP tool for use by AI agents',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['name', 'description', 'endpoint', 'parameters'], properties: [
-        new OA\Property(property: 'name', type: 'string', example: 'custom_tool'),
-        new OA\Property(property: 'description', type: 'string', example: 'A custom tool for specific operations'),
-        new OA\Property(property: 'endpoint', type: 'string', format: 'url', example: 'https://api.example.com/tool'),
-        new OA\Property(property: 'parameters', type: 'object'),
-        new OA\Property(property: 'category', type: 'string', example: 'custom'),
-        new OA\Property(property: 'requires_auth', type: 'boolean', example: true),
-        new OA\Property(property: 'rate_limit', type: 'integer', example: 50),
-        ]))
+            new OA\Property(property: 'name', type: 'string', example: 'custom_tool'),
+            new OA\Property(property: 'description', type: 'string', example: 'A custom tool for specific operations'),
+            new OA\Property(property: 'endpoint', type: 'string', format: 'url', example: 'https://api.example.com/tool'),
+            new OA\Property(property: 'parameters', type: 'object'),
+            new OA\Property(property: 'category', type: 'string', example: 'custom'),
+            new OA\Property(property: 'requires_auth', type: 'boolean', example: true),
+            new OA\Property(property: 'rate_limit', type: 'integer', example: 50),
+            ]))
         )]
     #[OA\Response(
         response: 201,

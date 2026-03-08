@@ -34,8 +34,8 @@ class CgoAgreementController extends Controller
             description: 'Generates a PDF agreement for an investment',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -106,8 +106,8 @@ class CgoAgreementController extends Controller
             description: 'Downloads the PDF agreement',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -146,8 +146,8 @@ class CgoAgreementController extends Controller
             description: 'Generates a PDF certificate',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -217,8 +217,8 @@ class CgoAgreementController extends Controller
             description: 'Downloads the PDF certificate',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -257,8 +257,8 @@ class CgoAgreementController extends Controller
             description: 'Returns an HTML preview of the agreement',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -300,8 +300,8 @@ class CgoAgreementController extends Controller
             description: 'Records the agreement as digitally signed',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'investment', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,

@@ -16,8 +16,8 @@ class RiskAnalysisController extends Controller
             tags: ['Risk Management'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -54,8 +54,8 @@ class RiskAnalysisController extends Controller
             tags: ['Risk Management'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Post(
         path: '/api/risk/transactions/{transactionId}/analyze',
@@ -103,9 +103,9 @@ class RiskAnalysisController extends Controller
             tags: ['Risk Management'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', properties: [
-        new OA\Property(property: 'user_id', type: 'string'),
-        new OA\Property(property: 'transaction_data', type: 'object'),
-        ]))
+            new OA\Property(property: 'user_id', type: 'string'),
+            new OA\Property(property: 'transaction_data', type: 'object'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -194,8 +194,8 @@ class RiskAnalysisController extends Controller
             tags: ['Risk Management'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -228,11 +228,11 @@ class RiskAnalysisController extends Controller
             tags: ['Risk Management'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', properties: [
-        new OA\Property(property: 'device_id', type: 'string'),
-        new OA\Property(property: 'fingerprint', type: 'string'),
-        new OA\Property(property: 'user_agent', type: 'string'),
-        new OA\Property(property: 'ip_address', type: 'string'),
-        ]))
+            new OA\Property(property: 'device_id', type: 'string'),
+            new OA\Property(property: 'fingerprint', type: 'string'),
+            new OA\Property(property: 'user_agent', type: 'string'),
+            new OA\Property(property: 'ip_address', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -263,8 +263,8 @@ class RiskAnalysisController extends Controller
             tags: ['Risk Management'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'userId', in: 'path', required: true, description: 'User ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

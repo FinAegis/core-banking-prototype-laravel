@@ -33,8 +33,8 @@ class AgentReputationController extends Controller
             tags: ['Agent Protocol - Reputation'],
             summary: 'Get agent reputation score and details',
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -134,16 +134,16 @@ class AgentReputationController extends Controller
             summary: 'Submit feedback about an agent transaction',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID to review', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID to review', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reviewer_did', 'transaction_id', 'outcome'], properties: [
-        new OA\Property(property: 'reviewer_did', type: 'string', example: 'did:finaegis:agent:reviewer123'),
-        new OA\Property(property: 'transaction_id', type: 'string', example: 'txn-uuid-here'),
-        new OA\Property(property: 'outcome', type: 'string', enum: ['success', 'failed', 'cancelled', 'timeout'], example: 'success'),
-        new OA\Property(property: 'rating', type: 'integer', minimum: 1, maximum: 5, example: 5),
-        new OA\Property(property: 'comment', type: 'string', example: 'Fast and reliable service'),
-        new OA\Property(property: 'transaction_value', type: 'number', example: 1000.00),
-        ]))
+            new OA\Property(property: 'reviewer_did', type: 'string', example: 'did:finaegis:agent:reviewer123'),
+            new OA\Property(property: 'transaction_id', type: 'string', example: 'txn-uuid-here'),
+            new OA\Property(property: 'outcome', type: 'string', enum: ['success', 'failed', 'cancelled', 'timeout'], example: 'success'),
+            new OA\Property(property: 'rating', type: 'integer', minimum: 1, maximum: 5, example: 5),
+            new OA\Property(property: 'comment', type: 'string', example: 'Fast and reliable service'),
+            new OA\Property(property: 'transaction_value', type: 'number', example: 1000.00),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -285,9 +285,9 @@ class AgentReputationController extends Controller
             summary: 'Get agent reputation history',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of history entries', schema: new OA\Schema(type: 'integer', default: 20)),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of history entries', schema: new OA\Schema(type: 'integer', default: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -354,9 +354,9 @@ class AgentReputationController extends Controller
             tags: ['Agent Protocol - Reputation'],
             summary: 'Get top-rated agents',
             parameters: [
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of agents', schema: new OA\Schema(type: 'integer', default: 10)),
-        new OA\Parameter(name: 'capability', in: 'query', description: 'Filter by capability', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of agents', schema: new OA\Schema(type: 'integer', default: 10)),
+            new OA\Parameter(name: 'capability', in: 'query', description: 'Filter by capability', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -406,9 +406,9 @@ class AgentReputationController extends Controller
             summary: 'Evaluate trust relationship between two agents',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'agentA', in: 'path', required: true, description: 'First agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'agentB', in: 'path', required: true, description: 'Second agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'agentA', in: 'path', required: true, description: 'First agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'agentB', in: 'path', required: true, description: 'Second agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

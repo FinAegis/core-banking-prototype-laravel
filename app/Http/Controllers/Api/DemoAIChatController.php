@@ -28,8 +28,8 @@ class DemoAIChatController extends Controller
             summary: 'Send a message to the demo AI agent',
             description: 'Public endpoint for demo AI chat. No authentication required. Rate limited to 60 requests/minute.',
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['message'], properties: [
-        new OA\Property(property: 'message', type: 'string', maxLength: 500, example: 'What is my account balance?'),
-        ]))
+            new OA\Property(property: 'message', type: 'string', maxLength: 500, example: 'What is my account balance?'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

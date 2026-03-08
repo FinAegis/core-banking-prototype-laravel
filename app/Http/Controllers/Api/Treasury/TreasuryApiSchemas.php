@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Treasury;
 
+use OpenApi\Attributes as OA;
+
 /**
  * Treasury API Documentation Schemas.
  */

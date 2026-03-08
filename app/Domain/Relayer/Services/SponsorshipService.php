@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Relayer\Services;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -32,7 +33,9 @@ class SponsorshipService
             return false;
         }
 
-        if ($user->free_tx_until !== null && $user->free_tx_until->isPast()) {
+        /** @var Carbon|null $freeUntil */
+        $freeUntil = $user->free_tx_until;
+        if ($freeUntil !== null && $freeUntil->isPast()) {
             return false;
         }
 
@@ -71,7 +74,9 @@ class SponsorshipService
             return 0;
         }
 
-        if ($user->free_tx_until !== null && $user->free_tx_until->isPast()) {
+        /** @var Carbon|null $freeUntil */
+        $freeUntil = $user->free_tx_until;
+        if ($freeUntil !== null && $freeUntil->isPast()) {
             return 0;
         }
 
@@ -95,7 +100,7 @@ class SponsorshipService
             'tx_count'      => $txCount,
             'period_days'   => $periodDays,
             'new_limit'     => $user->sponsored_tx_limit,
-            'free_tx_until' => $user->free_tx_until?->toIso8601String(),
+            'free_tx_until' => $user->free_tx_until instanceof Carbon ? $user->free_tx_until->toIso8601String() : $user->free_tx_until,
         ]);
     }
 }

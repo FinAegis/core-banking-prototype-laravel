@@ -144,6 +144,7 @@ class ReferralService
      */
     public function getUserStats(User $user): array
     {
+        /** @var object{total: int|string|null, completed: int|string|null, pending: int|string|null}|null $stats */
         $stats = Referral::where('referrer_id', $user->id)
             ->selectRaw('COUNT(*) as total')
             ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed', [Referral::STATUS_REWARDED])
@@ -152,11 +153,15 @@ class ReferralService
 
         $rewardPerReferral = (int) config('relayer.sponsorship.default_free_tx', 5);
 
+        $total = $stats !== null ? (int) $stats->total : 0;
+        $completed = $stats !== null ? (int) $stats->completed : 0;
+        $pending = $stats !== null ? (int) $stats->pending : 0;
+
         return [
-            'total_referred'      => (int) $stats->total,
-            'completed'           => (int) $stats->completed,
-            'pending'             => (int) $stats->pending,
-            'rewards_earned'      => (int) $stats->completed * $rewardPerReferral,
+            'total_referred'      => $total,
+            'completed'           => $completed,
+            'pending'             => $pending,
+            'rewards_earned'      => $completed * $rewardPerReferral,
             'reward_per_referral' => $rewardPerReferral,
         ];
     }

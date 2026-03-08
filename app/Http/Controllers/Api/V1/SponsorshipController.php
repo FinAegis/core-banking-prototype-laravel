@@ -43,6 +43,7 @@ class SponsorshipController extends Controller
     )]
     public function status(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
         $eligible = $this->sponsorshipService->isEligible($user);
         $remaining = $this->sponsorshipService->getRemainingFreeTx($user);

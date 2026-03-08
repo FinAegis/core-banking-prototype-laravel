@@ -28,8 +28,8 @@ class CertificateController extends Controller
             description: 'Returns detailed information about a TrustCert certificate',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'certId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'certId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -67,8 +67,8 @@ class CertificateController extends Controller
             description: 'Exports a TrustCert certificate as a PDF document',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'certId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'certId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,

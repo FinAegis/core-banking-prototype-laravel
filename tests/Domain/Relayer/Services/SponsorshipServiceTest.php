@@ -15,6 +15,8 @@ class SponsorshipServiceTest extends TestCase
 
     private SponsorshipService $service;
 
+    protected User $user;
+
     protected function setUp(): void
     {
         parent::setUp();

@@ -32,11 +32,11 @@ class StablecoinController extends Controller
             summary: 'List all stablecoins',
             description: 'Retrieve a list of all configured stablecoins with optional filtering',
             parameters: [
-        new OA\Parameter(name: 'active_only', in: 'query', description: 'Filter to show only active stablecoins', required: false, schema: new OA\Schema(type: 'boolean')),
-        new OA\Parameter(name: 'minting_enabled', in: 'query', description: 'Filter to show only stablecoins with minting enabled', required: false, schema: new OA\Schema(type: 'boolean')),
-        new OA\Parameter(name: 'burning_enabled', in: 'query', description: 'Filter to show only stablecoins with burning enabled', required: false, schema: new OA\Schema(type: 'boolean')),
-        new OA\Parameter(name: 'stability_mechanism', in: 'query', description: 'Filter by stability mechanism type', required: false, schema: new OA\Schema(type: 'string', enum: ['collateralized', 'algorithmic', 'hybrid'])),
-        ]
+            new OA\Parameter(name: 'active_only', in: 'query', description: 'Filter to show only active stablecoins', required: false, schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'minting_enabled', in: 'query', description: 'Filter to show only stablecoins with minting enabled', required: false, schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'burning_enabled', in: 'query', description: 'Filter to show only stablecoins with burning enabled', required: false, schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'stability_mechanism', in: 'query', description: 'Filter by stability mechanism type', required: false, schema: new OA\Schema(type: 'string', enum: ['collateralized', 'algorithmic', 'hybrid'])),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -81,8 +81,8 @@ class StablecoinController extends Controller
             summary: 'Get stablecoin details',
             description: 'Retrieve detailed information about a specific stablecoin including collateralization metrics',
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -185,21 +185,21 @@ class StablecoinController extends Controller
             description: 'Update an existing stablecoin\'s configuration parameters',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'name', type: 'string', example: 'FinAegis USD Updated'),
-        new OA\Property(property: 'collateral_ratio', type: 'number', example: 1.6),
-        new OA\Property(property: 'min_collateral_ratio', type: 'number', example: 1.3),
-        new OA\Property(property: 'liquidation_penalty', type: 'number', example: 0.1),
-        new OA\Property(property: 'max_supply', type: 'integer', example: 10000000),
-        new OA\Property(property: 'mint_fee', type: 'number', example: 0.004),
-        new OA\Property(property: 'burn_fee', type: 'number', example: 0.003),
-        new OA\Property(property: 'is_active', type: 'boolean', example: true),
-        new OA\Property(property: 'minting_enabled', type: 'boolean', example: true),
-        new OA\Property(property: 'burning_enabled', type: 'boolean', example: true),
-        new OA\Property(property: 'metadata', type: 'object'),
-        ]))
+            new OA\Property(property: 'name', type: 'string', example: 'FinAegis USD Updated'),
+            new OA\Property(property: 'collateral_ratio', type: 'number', example: 1.6),
+            new OA\Property(property: 'min_collateral_ratio', type: 'number', example: 1.3),
+            new OA\Property(property: 'liquidation_penalty', type: 'number', example: 0.1),
+            new OA\Property(property: 'max_supply', type: 'integer', example: 10000000),
+            new OA\Property(property: 'mint_fee', type: 'number', example: 0.004),
+            new OA\Property(property: 'burn_fee', type: 'number', example: 0.003),
+            new OA\Property(property: 'is_active', type: 'boolean', example: true),
+            new OA\Property(property: 'minting_enabled', type: 'boolean', example: true),
+            new OA\Property(property: 'burning_enabled', type: 'boolean', example: true),
+            new OA\Property(property: 'metadata', type: 'object'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -266,8 +266,8 @@ class StablecoinController extends Controller
             summary: 'Get stablecoin metrics and statistics',
             description: 'Retrieve detailed metrics and statistics for a specific stablecoin',
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -353,8 +353,8 @@ class StablecoinController extends Controller
             description: 'Trigger stability mechanism execution for a specific stablecoin',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -421,8 +421,8 @@ class StablecoinController extends Controller
             summary: 'Get collateral distribution for a stablecoin',
             description: 'Retrieve the distribution of collateral assets backing a stablecoin',
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -461,8 +461,8 @@ class StablecoinController extends Controller
             description: 'Deactivate a stablecoin, disabling minting and burning',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -504,8 +504,8 @@ class StablecoinController extends Controller
             description: 'Reactivate a previously deactivated stablecoin',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'code', in: 'path', description: 'The stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

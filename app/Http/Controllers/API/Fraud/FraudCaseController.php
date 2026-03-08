@@ -70,8 +70,8 @@ class FraudCaseController extends Controller
             description: 'Returns detailed information about a fraud case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -122,8 +122,8 @@ class FraudCaseController extends Controller
             description: 'Updates a fraud case with new information',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -174,8 +174,8 @@ class FraudCaseController extends Controller
             description: 'Resolves a fraud case with outcome',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -227,8 +227,8 @@ class FraudCaseController extends Controller
             description: 'Escalates a fraud case with reason',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -299,8 +299,8 @@ class FraudCaseController extends Controller
             description: 'Assigns a fraud case to an investigator',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -347,8 +347,8 @@ class FraudCaseController extends Controller
             description: 'Adds evidence to a fraud case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -409,8 +409,8 @@ class FraudCaseController extends Controller
             description: 'Returns the investigation timeline for a fraud case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'caseId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

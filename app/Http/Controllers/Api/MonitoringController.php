@@ -174,8 +174,8 @@ class MonitoringController extends Controller
             description: 'Returns list of distributed traces',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of traces to return', required: false, schema: new OA\Schema(type: 'integer', default: 100)),
-        ]
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of traces to return', required: false, schema: new OA\Schema(type: 'integer', default: 100)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -211,8 +211,8 @@ class MonitoringController extends Controller
             description: 'Returns detailed information about a specific trace',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'traceId', in: 'path', description: 'Trace ID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'traceId', in: 'path', description: 'Trace ID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -258,8 +258,8 @@ class MonitoringController extends Controller
             description: 'Returns list of active monitoring alerts',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'severity', in: 'query', description: 'Filter by severity', required: false, schema: new OA\Schema(type: 'string', enum: ['critical', 'error', 'warning', 'info'])),
-        ]
+            new OA\Parameter(name: 'severity', in: 'query', description: 'Filter by severity', required: false, schema: new OA\Schema(type: 'string', enum: ['critical', 'error', 'warning', 'info'])),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -293,8 +293,8 @@ class MonitoringController extends Controller
             description: 'Marks an alert as acknowledged',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'alertId', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'integer')),
-        ]
+            new OA\Parameter(name: 'alertId', in: 'path', description: 'Alert ID', required: true, schema: new OA\Schema(type: 'integer')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -337,9 +337,9 @@ class MonitoringController extends Controller
             description: 'Starts the automated monitoring workflow',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'interval', type: 'integer', default: 60),
-        new OA\Property(property: 'max_iterations', type: 'integer', nullable: true),
-        ]))
+            new OA\Property(property: 'interval', type: 'integer', default: 60),
+            new OA\Property(property: 'max_iterations', type: 'integer', nullable: true),
+            ]))
         )]
     #[OA\Response(
         response: 200,

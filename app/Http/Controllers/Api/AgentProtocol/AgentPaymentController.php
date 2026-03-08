@@ -35,16 +35,16 @@ class AgentPaymentController extends Controller
             summary: 'Initiate a payment from an agent',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Sender agent DID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Sender agent DID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['to_agent_did', 'amount', 'currency'], properties: [
-        new OA\Property(property: 'to_agent_did', type: 'string', example: 'did:finaegis:agent:abc123'),
-        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.50),
-        new OA\Property(property: 'currency', type: 'string', example: 'USD'),
-        new OA\Property(property: 'description', type: 'string', example: 'Payment for service'),
-        new OA\Property(property: 'escrow_required', type: 'boolean', example: false),
-        new OA\Property(property: 'metadata', type: 'object'),
-        ]))
+            new OA\Property(property: 'to_agent_did', type: 'string', example: 'did:finaegis:agent:abc123'),
+            new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.50),
+            new OA\Property(property: 'currency', type: 'string', example: 'USD'),
+            new OA\Property(property: 'description', type: 'string', example: 'Payment for service'),
+            new OA\Property(property: 'escrow_required', type: 'boolean', example: false),
+            new OA\Property(property: 'metadata', type: 'object'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -194,9 +194,9 @@ class AgentPaymentController extends Controller
             summary: 'Get payment status',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -281,9 +281,9 @@ class AgentPaymentController extends Controller
             summary: 'Confirm a pending payment',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -378,12 +378,12 @@ class AgentPaymentController extends Controller
             summary: 'Cancel a pending payment',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'transactionId', in: 'path', required: true, description: 'Transaction ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'reason', type: 'string', example: 'User requested cancellation'),
-        ]))
+            new OA\Property(property: 'reason', type: 'string', example: 'User requested cancellation'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -487,11 +487,11 @@ class AgentPaymentController extends Controller
             summary: 'List payments for an agent',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'type', in: 'query', description: 'Filter by type (sent/received)', schema: new OA\Schema(type: 'string', enum: ['sent', 'received', 'all'])),
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results', schema: new OA\Schema(type: 'integer', default: 20)),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'type', in: 'query', description: 'Filter by type (sent/received)', schema: new OA\Schema(type: 'string', enum: ['sent', 'received', 'all'])),
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results', schema: new OA\Schema(type: 'integer', default: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,

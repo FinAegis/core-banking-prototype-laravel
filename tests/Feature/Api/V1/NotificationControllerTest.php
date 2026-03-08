@@ -14,12 +14,15 @@ class NotificationControllerTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = User::factory()->create();
     }
 
+    /** @param array<string, mixed> $overrides */
     private function createNotification(array $overrides = []): MobilePushNotification
     {
         return MobilePushNotification::create(array_merge([

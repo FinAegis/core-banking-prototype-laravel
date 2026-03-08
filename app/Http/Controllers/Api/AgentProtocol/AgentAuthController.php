@@ -32,8 +32,8 @@ class AgentAuthController extends Controller
             tags: ['Agent Protocol - Authentication'],
             summary: 'Get authentication challenge for DID signature verification',
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['did'], properties: [
-        new OA\Property(property: 'did', type: 'string', example: 'did:finaegis:agent:abc123def456'),
-        ]))
+            new OA\Property(property: 'did', type: 'string', example: 'did:finaegis:agent:abc123def456'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -91,11 +91,11 @@ class AgentAuthController extends Controller
             tags: ['Agent Protocol - Authentication'],
             summary: 'Authenticate agent using DID signature',
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['did', 'signature', 'challenge'], properties: [
-        new OA\Property(property: 'did', type: 'string', example: 'did:finaegis:agent:abc123def456'),
-        new OA\Property(property: 'signature', type: 'string', example: 'base64_encoded_signature'),
-        new OA\Property(property: 'challenge', type: 'string', example: 'base64_encoded_challenge'),
-        new OA\Property(property: 'nonce', type: 'string', example: 'random_nonce_string'),
-        ]))
+            new OA\Property(property: 'did', type: 'string', example: 'did:finaegis:agent:abc123def456'),
+            new OA\Property(property: 'signature', type: 'string', example: 'base64_encoded_signature'),
+            new OA\Property(property: 'challenge', type: 'string', example: 'base64_encoded_challenge'),
+            new OA\Property(property: 'nonce', type: 'string', example: 'random_nonce_string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -175,8 +175,8 @@ class AgentAuthController extends Controller
             tags: ['Agent Protocol - Authentication'],
             summary: 'Authenticate agent using API key',
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['api_key'], properties: [
-        new OA\Property(property: 'api_key', type: 'string', example: 'your_64_char_api_key'),
-        ]))
+            new OA\Property(property: 'api_key', type: 'string', example: 'your_64_char_api_key'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -245,8 +245,8 @@ class AgentAuthController extends Controller
             tags: ['Agent Protocol - Authentication'],
             summary: 'Validate an existing session token',
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['session_token'], properties: [
-        new OA\Property(property: 'session_token', type: 'string'),
-        ]))
+            new OA\Property(property: 'session_token', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -294,8 +294,8 @@ class AgentAuthController extends Controller
             summary: 'Revoke a session token',
             security: [['agentAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['session_token'], properties: [
-        new OA\Property(property: 'session_token', type: 'string'),
-        ]))
+            new OA\Property(property: 'session_token', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -326,13 +326,13 @@ class AgentAuthController extends Controller
             summary: 'Generate a new API key for an agent',
             security: [['sanctum' => [], 'agentAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['name'], properties: [
-        new OA\Property(property: 'name', type: 'string', example: 'Production API Key'),
-        new OA\Property(property: 'scopes', type: 'array', example: ['payments:read', 'wallet:read'], items: new OA\Items(type: 'string')),
-        new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', nullable: true),
-        ]))
+            new OA\Property(property: 'name', type: 'string', example: 'Production API Key'),
+            new OA\Property(property: 'scopes', type: 'array', example: ['payments:read', 'wallet:read'], items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', nullable: true),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -417,8 +417,8 @@ class AgentAuthController extends Controller
             summary: 'List all API keys for an agent',
             security: [['sanctum' => [], 'agentAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -484,9 +484,9 @@ class AgentAuthController extends Controller
             summary: 'Revoke an API key',
             security: [['sanctum' => [], 'agentAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'keyId', in: 'path', required: true, description: 'API key ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'keyId', in: 'path', required: true, description: 'API key ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -553,8 +553,8 @@ class AgentAuthController extends Controller
             summary: 'List active sessions for an agent',
             security: [['sanctum' => [], 'agentAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -612,8 +612,8 @@ class AgentAuthController extends Controller
             summary: 'Revoke all sessions for an agent',
             security: [['sanctum' => [], 'agentAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

@@ -12,9 +12,10 @@ import { BASE_URL, HEADERS, TEST_USER } from '../helpers/config.js';
 /**
  * Load test: mix of public browsing and authentication attempts.
  */
-export function load() {
+export function load()
+{
     // GET API root - simulates landing page discovery
-    const rootRes = http.get(`${BASE_URL}/`, { headers: HEADERS });
+    const rootRes = http.get(`${BASE_URL} / `, { headers: HEADERS });
     check(rootRes, {
         'load api root: status is 200': (r) => r.status === 200,
     });
@@ -22,7 +23,7 @@ export function load() {
     sleep(1);
 
     // GET health check - simulates monitoring probe
-    const healthRes = http.get(`${BASE_URL}/monitoring/health`, { headers: HEADERS });
+    const healthRes = http.get(`${BASE_URL} / monitoring / health`, { headers: HEADERS });
     check(healthRes, {
         'load health: status is 200': (r) => r.status === 200,
     });
@@ -34,7 +35,7 @@ export function load() {
         email: TEST_USER.email,
         password: TEST_USER.password,
     });
-    const loginRes = http.post(`${BASE_URL}/auth/login`, loginPayload, { headers: HEADERS });
+    const loginRes = http.post(`${BASE_URL} / auth / login`, loginPayload, { headers: HEADERS });
     check(loginRes, {
         'load login: status is 200 or 401 or 422': (r) =>
             r.status === 200 || r.status === 401 || r.status === 422,
@@ -53,7 +54,7 @@ export function load() {
 
                 sleep(1);
 
-                const modulesRes = http.get(`${BASE_URL}/v2/modules`, { headers: authHeaderSet });
+                const modulesRes = http.get(`${BASE_URL} / v2 / modules`, { headers: authHeaderSet });
                 check(modulesRes, {
                     'load modules: status is 200': (r) => r.status === 200,
                 });
@@ -66,7 +67,7 @@ export function load() {
     sleep(1);
 
     // GET readiness check
-    const readyRes = http.get(`${BASE_URL}/monitoring/ready`, { headers: HEADERS });
+    const readyRes = http.get(`${BASE_URL} / monitoring / ready`, { headers: HEADERS });
     check(readyRes, {
         'load ready: status is 200': (r) => r.status === 200,
     });

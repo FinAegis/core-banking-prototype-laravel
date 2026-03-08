@@ -213,10 +213,10 @@ class ComplianceController extends Controller
         requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(mediaType: 'multipart/form-data', schema: new OA\Schema(
             required: ['document_type', 'document'],
             properties: [
-        new OA\Property(property: 'document_type', type: 'string', description: 'Type of document being uploaded', example: 'passport'),
-        new OA\Property(property: 'document', type: 'string', format: 'binary', description: 'Document file (jpg, jpeg, png, pdf, max 10MB)'),
-        new OA\Property(property: 'document_side', type: 'string', enum: ['front', 'back'], nullable: true, description: 'Which side of the document'),
-        ]
+            new OA\Property(property: 'document_type', type: 'string', description: 'Type of document being uploaded', example: 'passport'),
+            new OA\Property(property: 'document', type: 'string', format: 'binary', description: 'Document file (jpg, jpeg, png, pdf, max 10MB)'),
+            new OA\Property(property: 'document_side', type: 'string', enum: ['front', 'back'], nullable: true, description: 'Which side of the document'),
+            ]
         )))
     )]
     #[OA\Response(
@@ -330,8 +330,8 @@ class ComplianceController extends Controller
         requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(mediaType: 'multipart/form-data', schema: new OA\Schema(
             required: ['selfie'],
             properties: [
-        new OA\Property(property: 'selfie', type: 'string', format: 'binary', description: 'Selfie image file (jpg, jpeg, png, max 5MB)'),
-        ]
+            new OA\Property(property: 'selfie', type: 'string', format: 'binary', description: 'Selfie image file (jpg, jpeg, png, max 5MB)'),
+            ]
         )))
     )]
     #[OA\Response(

@@ -29,8 +29,8 @@ class BalanceController extends Controller
             description: 'Retrieves the current balance and turnover information for an account',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -87,8 +87,8 @@ class BalanceController extends Controller
             description: 'Retrieves detailed balance statistics including 12-month turnover data',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,

@@ -91,8 +91,8 @@ class ComplianceController extends Controller
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Violation ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Violation ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -128,8 +128,8 @@ class ComplianceController extends Controller
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Violation ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Violation ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -195,8 +195,8 @@ class ComplianceController extends Controller
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'jurisdiction', in: 'path', required: true, description: 'Jurisdiction code (e.g., US, EU, UK)', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'jurisdiction', in: 'path', required: true, description: 'Jurisdiction code (e.g., US, EU, UK)', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -262,10 +262,10 @@ class ComplianceController extends Controller
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'check_type', type: 'string', description: 'Type of compliance check to run', example: 'full_audit'),
-        new OA\Property(property: 'scope', type: 'string', description: 'Scope of the check', example: 'all_accounts'),
-        new OA\Property(property: 'parameters', type: 'object', description: 'Additional check parameters'),
-        ]))
+            new OA\Property(property: 'check_type', type: 'string', description: 'Type of compliance check to run', example: 'full_audit'),
+            new OA\Property(property: 'scope', type: 'string', description: 'Scope of the check', example: 'all_accounts'),
+            new OA\Property(property: 'parameters', type: 'object', description: 'Additional check parameters'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -331,10 +331,10 @@ class ComplianceController extends Controller
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'certification_id', type: 'string', description: 'ID of the certification to renew'),
-        new OA\Property(property: 'renewal_type', type: 'string', description: 'Type of renewal', example: 'standard'),
-        new OA\Property(property: 'notes', type: 'string', description: 'Additional notes for the renewal'),
-        ]))
+            new OA\Property(property: 'certification_id', type: 'string', description: 'ID of the certification to renew'),
+            new OA\Property(property: 'renewal_type', type: 'string', description: 'Type of renewal', example: 'standard'),
+            new OA\Property(property: 'notes', type: 'string', description: 'Additional notes for the renewal'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -400,14 +400,14 @@ class ComplianceController extends Controller
             tags: ['Compliance'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Policy ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Policy ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'name', type: 'string', description: 'Policy name'),
-        new OA\Property(property: 'description', type: 'string', description: 'Policy description'),
-        new OA\Property(property: 'rules', type: 'array', description: 'Policy rules', items: new OA\Items(type: 'object')),
-        new OA\Property(property: 'status', type: 'string', description: 'Policy status', example: 'active'),
-        ]))
+            new OA\Property(property: 'name', type: 'string', description: 'Policy name'),
+            new OA\Property(property: 'description', type: 'string', description: 'Policy description'),
+            new OA\Property(property: 'rules', type: 'array', description: 'Policy rules', items: new OA\Items(type: 'object')),
+            new OA\Property(property: 'status', type: 'string', description: 'Policy status', example: 'active'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

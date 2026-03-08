@@ -83,10 +83,10 @@ class AccountController extends Controller
             description: 'Creates a new bank account for a user with an optional initial balance',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['user_uuid', 'name'], properties: [
-        new OA\Property(property: 'user_uuid', type: 'string', format: 'uuid', example: '660e8400-e29b-41d4-a716-446655440000'),
-        new OA\Property(property: 'name', type: 'string', example: 'Savings Account', maxLength: 255),
-        new OA\Property(property: 'initial_balance', type: 'integer', example: 10000, minimum: 0, description: 'Initial balance in cents'),
-        ]))
+            new OA\Property(property: 'user_uuid', type: 'string', format: 'uuid', example: '660e8400-e29b-41d4-a716-446655440000'),
+            new OA\Property(property: 'name', type: 'string', example: 'Savings Account', maxLength: 255),
+            new OA\Property(property: 'initial_balance', type: 'integer', example: 10000, minimum: 0, description: 'Initial balance in cents'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -181,8 +181,8 @@ class AccountController extends Controller
             description: 'Retrieves detailed information about a specific account',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -233,8 +233,8 @@ class AccountController extends Controller
             description: 'Deletes an account. Account must have zero balance and not be frozen.',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -307,12 +307,12 @@ class AccountController extends Controller
             description: 'Freezes an account to prevent any transactions',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reason'], properties: [
-        new OA\Property(property: 'reason', type: 'string', example: 'Suspicious activity detected', maxLength: 255),
-        new OA\Property(property: 'authorized_by', type: 'string', example: 'admin@example.com', maxLength: 255),
-        ]))
+            new OA\Property(property: 'reason', type: 'string', example: 'Suspicious activity detected', maxLength: 255),
+            new OA\Property(property: 'authorized_by', type: 'string', example: 'admin@example.com', maxLength: 255),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -378,12 +378,12 @@ class AccountController extends Controller
             description: 'Unfreezes a previously frozen account',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reason'], properties: [
-        new OA\Property(property: 'reason', type: 'string', example: 'Investigation completed', maxLength: 255),
-        new OA\Property(property: 'authorized_by', type: 'string', example: 'admin@example.com', maxLength: 255),
-        ]))
+            new OA\Property(property: 'reason', type: 'string', example: 'Investigation completed', maxLength: 255),
+            new OA\Property(property: 'authorized_by', type: 'string', example: 'admin@example.com', maxLength: 255),
+            ]))
         )]
     #[OA\Response(
         response: 200,

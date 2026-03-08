@@ -45,8 +45,8 @@ class PortfolioController extends Controller
             description: 'Retrieves a list of portfolios for the authenticated treasury account',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'treasury_id', in: 'query', required: false, description: 'Treasury ID to filter portfolios', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'treasury_id', in: 'query', required: false, description: 'Treasury ID to filter portfolios', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -211,8 +211,8 @@ class PortfolioController extends Controller
             description: 'Retrieves detailed information about a specific treasury portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -284,8 +284,8 @@ class PortfolioController extends Controller
             description: 'Updates the investment strategy for a treasury portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
@@ -362,8 +362,8 @@ class PortfolioController extends Controller
             description: 'Soft deletes a treasury portfolio (sets status to inactive)',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -435,8 +435,8 @@ class PortfolioController extends Controller
             description: 'Allocates assets to a treasury portfolio with specified weights',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
@@ -494,8 +494,8 @@ class PortfolioController extends Controller
             description: 'Retrieves current asset allocation details for a portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -546,8 +546,8 @@ class PortfolioController extends Controller
             description: 'Initiates rebalancing workflow for a treasury portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
@@ -613,8 +613,8 @@ class PortfolioController extends Controller
             description: 'Calculates and returns the rebalancing plan for a portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -656,8 +656,8 @@ class PortfolioController extends Controller
             description: 'Approves and executes a portfolio rebalancing plan',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
@@ -713,9 +713,9 @@ class PortfolioController extends Controller
             description: 'Retrieves performance metrics and analytics for a portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', enum: ['1d', '7d', '30d', '90d', '1y', 'ytd', 'all'], default: '30d')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Performance period', schema: new OA\Schema(type: 'string', enum: ['1d', '7d', '30d', '90d', '1y', 'ytd', 'all'], default: '30d')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -767,8 +767,8 @@ class PortfolioController extends Controller
             description: 'Retrieves real-time valuation of portfolio assets',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -814,9 +814,9 @@ class PortfolioController extends Controller
             description: 'Retrieves historical performance and rebalancing data',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        new OA\Parameter(name: 'type', in: 'query', required: false, description: 'Type of historical data', schema: new OA\Schema(type: 'string', enum: ['rebalancing', 'performance', 'all'], default: 'all')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'type', in: 'query', required: false, description: 'Type of historical data', schema: new OA\Schema(type: 'string', enum: ['rebalancing', 'performance', 'all'], default: 'all')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -872,8 +872,8 @@ class PortfolioController extends Controller
             description: 'Generates a comprehensive report for a treasury portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))
         )]
     #[OA\Response(
@@ -941,8 +941,8 @@ class PortfolioController extends Controller
             description: 'Retrieves a list of generated reports for a portfolio',
             security: [['sanctum' => ['treasury']]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Portfolio ID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,

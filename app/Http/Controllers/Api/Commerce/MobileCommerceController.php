@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 class MobileCommerceController extends Controller
 {
@@ -221,8 +222,14 @@ class MobileCommerceController extends Controller
         ]);
 
         $merchantId = $request->input('merchant_id');
-        /** @var Merchant|null $merchant */
-        $merchant = Merchant::find($merchantId);
+        $merchant = null;
+        try {
+            /** @var Merchant|null $found */
+            $found = Merchant::find($merchantId);
+            $merchant = $found;
+        } catch (Throwable) {
+            // Graceful fallback if merchants table doesn't exist
+        }
 
         $merchantData = $merchant ? [
             'id'              => $merchant->id,

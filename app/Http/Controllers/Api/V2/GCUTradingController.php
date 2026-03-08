@@ -41,10 +41,10 @@ class GCUTradingController extends Controller
             description: 'Purchase GCU tokens using fiat currency',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'currency'], properties: [
-        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.00, minimum: 100, description: 'Amount to spend in source currency'),
-        new OA\Property(property: 'currency', type: 'string', example: 'EUR', description: 'Source currency code (EUR, USD, GBP, CHF)'),
-        new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', description: 'Account UUID (optional, defaults to user\'s primary account)'),
-        ]))
+            new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.00, minimum: 100, description: 'Amount to spend in source currency'),
+            new OA\Property(property: 'currency', type: 'string', example: 'EUR', description: 'Source currency code (EUR, USD, GBP, CHF)'),
+            new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', description: 'Account UUID (optional, defaults to user\'s primary account)'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -215,10 +215,10 @@ class GCUTradingController extends Controller
             description: 'Sell GCU tokens for fiat currency',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'currency'], properties: [
-        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.00, minimum: 10, description: 'Amount of GCU to sell'),
-        new OA\Property(property: 'currency', type: 'string', example: 'EUR', description: 'Target currency code (EUR, USD, GBP, CHF)'),
-        new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', description: 'Account UUID (optional, defaults to user\'s primary account)'),
-        ]))
+            new OA\Property(property: 'amount', type: 'number', format: 'float', example: 100.00, minimum: 10, description: 'Amount of GCU to sell'),
+            new OA\Property(property: 'currency', type: 'string', example: 'EUR', description: 'Target currency code (EUR, USD, GBP, CHF)'),
+            new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', description: 'Account UUID (optional, defaults to user\'s primary account)'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -387,10 +387,10 @@ class GCUTradingController extends Controller
             description: 'Get a quote for buying or selling GCU',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'operation', in: 'query', required: true, description: 'Operation type', schema: new OA\Schema(type: 'string', enum: ['buy', 'sell'])),
-        new OA\Parameter(name: 'amount', in: 'query', required: true, description: 'Amount (in source currency for buy, in GCU for sell)', schema: new OA\Schema(type: 'number', format: 'float', minimum: 0.01)),
-        new OA\Parameter(name: 'currency', in: 'query', required: true, description: 'Fiat currency code', schema: new OA\Schema(type: 'string', enum: ['EUR', 'USD', 'GBP', 'CHF'])),
-        ]
+            new OA\Parameter(name: 'operation', in: 'query', required: true, description: 'Operation type', schema: new OA\Schema(type: 'string', enum: ['buy', 'sell'])),
+            new OA\Parameter(name: 'amount', in: 'query', required: true, description: 'Amount (in source currency for buy, in GCU for sell)', schema: new OA\Schema(type: 'number', format: 'float', minimum: 0.01)),
+            new OA\Parameter(name: 'currency', in: 'query', required: true, description: 'Fiat currency code', schema: new OA\Schema(type: 'string', enum: ['EUR', 'USD', 'GBP', 'CHF'])),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -555,13 +555,13 @@ class GCUTradingController extends Controller
         };
 
         // Calculate used amounts (placeholder - implement actual calculation)
-        $dailyBuyUsed = 0;
-        $dailySellUsed = 0;
-        $monthlyBuyUsed = 0;
-        $monthlySellUsed = 0;
+            $dailyBuyUsed = 0;
+            $dailySellUsed = 0;
+            $monthlyBuyUsed = 0;
+            $monthlySellUsed = 0;
 
-        return response()->json(
-            [
+            return response()->json(
+                [
                 'data' => [
                     'daily_buy_limit'     => $limits['daily_buy'],
                     'daily_sell_limit'    => $limits['daily_sell'],
@@ -576,8 +576,8 @@ class GCUTradingController extends Controller
                     'kyc_level'           => $kycLevel,
                     'limits_currency'     => 'EUR',
                 ],
-            ]
-        );
+                ]
+            );
     }
 
     /**

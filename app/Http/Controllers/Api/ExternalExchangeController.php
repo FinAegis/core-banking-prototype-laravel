@@ -63,9 +63,9 @@ class ExternalExchangeController extends Controller
             tags: ['External Exchange'],
             summary: 'Get aggregated ticker data from external exchanges',
             parameters: [
-        new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'BTC')),
-        new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'EUR')),
-        ]
+            new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'BTC')),
+            new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'EUR')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -104,10 +104,10 @@ class ExternalExchangeController extends Controller
             tags: ['External Exchange'],
             summary: 'Get aggregated order book from external exchanges',
             parameters: [
-        new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'BTC')),
-        new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'EUR')),
-        new OA\Parameter(name: 'depth', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 20)),
-        ]
+            new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'BTC')),
+            new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'EUR')),
+            new OA\Parameter(name: 'depth', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -133,9 +133,9 @@ class ExternalExchangeController extends Controller
             summary: 'Check arbitrage opportunities',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'BTC')),
-        new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'EUR')),
-        ]
+            new OA\Parameter(name: 'base', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'BTC')),
+            new OA\Parameter(name: 'quote', in: 'path', required: true, schema: new OA\Schema(type: 'string', example: 'EUR')),
+            ]
         )]
     #[OA\Response(
         response: 200,

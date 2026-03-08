@@ -30,14 +30,14 @@ class ExchangeController extends Controller
             summary: 'Place a new order',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['type', 'order_type', 'base_currency', 'quote_currency', 'amount'], properties: [
-        new OA\Property(property: 'type', type: 'string', enum: ['buy', 'sell']),
-        new OA\Property(property: 'order_type', type: 'string', enum: ['market', 'limit']),
-        new OA\Property(property: 'base_currency', type: 'string', example: 'BTC'),
-        new OA\Property(property: 'quote_currency', type: 'string', example: 'EUR'),
-        new OA\Property(property: 'amount', type: 'string', example: '0.01'),
-        new OA\Property(property: 'price', type: 'string', example: '50000', description: 'Required for limit orders'),
-        new OA\Property(property: 'stop_price', type: 'string', example: '49000', description: 'For stop orders'),
-        ]))
+            new OA\Property(property: 'type', type: 'string', enum: ['buy', 'sell']),
+            new OA\Property(property: 'order_type', type: 'string', enum: ['market', 'limit']),
+            new OA\Property(property: 'base_currency', type: 'string', example: 'BTC'),
+            new OA\Property(property: 'quote_currency', type: 'string', example: 'EUR'),
+            new OA\Property(property: 'amount', type: 'string', example: '0.01'),
+            new OA\Property(property: 'price', type: 'string', example: '50000', description: 'Required for limit orders'),
+            new OA\Property(property: 'stop_price', type: 'string', example: '49000', description: 'For stop orders'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -113,8 +113,8 @@ class ExchangeController extends Controller
             summary: 'Cancel an order',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'orderId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'orderId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -175,10 +175,10 @@ class ExchangeController extends Controller
             summary: 'Get user\'s orders',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['open', 'filled', 'cancelled', 'all'])),
-        new OA\Parameter(name: 'base_currency', in: 'query', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'quote_currency', in: 'query', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['open', 'filled', 'cancelled', 'all'])),
+            new OA\Parameter(name: 'base_currency', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'quote_currency', in: 'query', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -224,9 +224,9 @@ class ExchangeController extends Controller
             summary: 'Get user\'s trade history',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'base_currency', in: 'query', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'quote_currency', in: 'query', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'base_currency', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'quote_currency', in: 'query', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -263,10 +263,10 @@ class ExchangeController extends Controller
             tags: ['Exchange'],
             summary: 'Get order book for a trading pair',
             parameters: [
-        new OA\Parameter(name: 'baseCurrency', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'quoteCurrency', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'depth', in: 'query', schema: new OA\Schema(type: 'integer', default: 20)),
-        ]
+            new OA\Parameter(name: 'baseCurrency', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'quoteCurrency', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'depth', in: 'query', schema: new OA\Schema(type: 'integer', default: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,

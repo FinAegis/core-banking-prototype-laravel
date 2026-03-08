@@ -41,7 +41,9 @@ class BannerController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $userId = $user->id;
 
         $banners = Banner::currentlyVisible()
             ->notDismissedBy($userId)
@@ -79,7 +81,9 @@ class BannerController extends Controller
             ], 404);
         }
 
-        $banner->dismiss($request->user()->id);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $banner->dismiss($user->id);
 
         return response()->json([
             'message' => 'Banner dismissed',

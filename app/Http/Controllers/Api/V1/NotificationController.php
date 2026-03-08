@@ -69,6 +69,7 @@ class NotificationController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
         $offset = max(0, (int) $request->input('offset', 0));
         $limit = min(max(1, (int) $request->input('limit', 20)), 100);
@@ -118,8 +119,10 @@ class NotificationController extends Controller
     #[OA\Response(response: 404, description: 'Not found')]
     public function show(Request $request, string $id): JsonResponse
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
         $notification = MobilePushNotification::where('id', $id)
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $user->id)
             ->first();
 
         if (! $notification) {
@@ -150,8 +153,10 @@ class NotificationController extends Controller
     #[OA\Response(response: 404, description: 'Not found')]
     public function markRead(Request $request, string $id): JsonResponse
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
         $notification = MobilePushNotification::where('id', $id)
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $user->id)
             ->first();
 
         if (! $notification) {
@@ -182,6 +187,7 @@ class NotificationController extends Controller
     #[OA\Response(response: 200, description: 'All marked as read')]
     public function markAllRead(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
         $count = $this->pushService->markAllAsRead($user);
 
@@ -203,9 +209,12 @@ class NotificationController extends Controller
     #[OA\Response(response: 200, description: 'Unread count')]
     public function unreadCount(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
         return response()->json([
             'data' => [
-                'unread_count' => $this->pushService->getUnreadCount($request->user()),
+                'unread_count' => $this->pushService->getUnreadCount($user),
             ],
         ]);
     }

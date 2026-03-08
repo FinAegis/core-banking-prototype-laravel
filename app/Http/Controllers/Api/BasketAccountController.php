@@ -28,12 +28,12 @@ class BasketAccountController extends Controller
             summary: 'Decompose basket holdings into component assets',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['basket_code', 'amount'], properties: [
-        new OA\Property(property: 'basket_code', type: 'string', example: 'STABLE_BASKET'),
-        new OA\Property(property: 'amount', type: 'integer', example: 10000, description: 'Amount in smallest unit'),
-        ]))
+            new OA\Property(property: 'basket_code', type: 'string', example: 'STABLE_BASKET'),
+            new OA\Property(property: 'amount', type: 'integer', example: 10000, description: 'Amount in smallest unit'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -90,12 +90,12 @@ class BasketAccountController extends Controller
             summary: 'Compose component assets into a basket',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['basket_code', 'amount'], properties: [
-        new OA\Property(property: 'basket_code', type: 'string', example: 'STABLE_BASKET'),
-        new OA\Property(property: 'amount', type: 'integer', example: 10000, description: 'Amount of basket to create'),
-        ]))
+            new OA\Property(property: 'basket_code', type: 'string', example: 'STABLE_BASKET'),
+            new OA\Property(property: 'amount', type: 'integer', example: 10000, description: 'Amount of basket to create'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -152,8 +152,8 @@ class BasketAccountController extends Controller
             summary: 'Get basket holdings for an account',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,

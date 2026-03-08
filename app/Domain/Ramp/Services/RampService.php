@@ -89,8 +89,10 @@ class RampService
      */
     public function getSessionStatus(RampSession $session): RampSession
     {
-        if (in_array($session->status, [RampSession::STATUS_PENDING, RampSession::STATUS_PROCESSING], true)
-            && $session->provider_session_id) {
+        if (
+            in_array($session->status, [RampSession::STATUS_PENDING, RampSession::STATUS_PROCESSING], true)
+            && $session->provider_session_id
+        ) {
             $providerStatus = $this->provider->getSessionStatus($session->provider_session_id);
 
             $session->update([

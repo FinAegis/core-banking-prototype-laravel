@@ -31,16 +31,16 @@ class TransactionReversalController extends Controller
             description: 'Reverse a completed transaction with audit trail for error recovery',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, description: 'Account UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, description: 'Account UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount', 'asset_code', 'transaction_type', 'reversal_reason'], properties: [
-        new OA\Property(property: 'amount', type: 'number', format: 'float', minimum: 0.01, example: 100.50),
-        new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
-        new OA\Property(property: 'transaction_type', type: 'string', enum: ['debit', 'credit'], example: 'debit'),
-        new OA\Property(property: 'reversal_reason', type: 'string', example: 'Unauthorized transaction'),
-        new OA\Property(property: 'original_transaction_id', type: 'string', example: 'txn_123456789'),
-        new OA\Property(property: 'authorized_by', type: 'string', example: 'manager@example.com'),
-        ]))
+            new OA\Property(property: 'amount', type: 'number', format: 'float', minimum: 0.01, example: 100.50),
+            new OA\Property(property: 'asset_code', type: 'string', example: 'USD'),
+            new OA\Property(property: 'transaction_type', type: 'string', enum: ['debit', 'credit'], example: 'debit'),
+            new OA\Property(property: 'reversal_reason', type: 'string', example: 'Unauthorized transaction'),
+            new OA\Property(property: 'original_transaction_id', type: 'string', example: 'txn_123456789'),
+            new OA\Property(property: 'authorized_by', type: 'string', example: 'manager@example.com'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -157,10 +157,10 @@ class TransactionReversalController extends Controller
             description: 'Get list of transaction reversals for an account',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, description: 'Account UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results to return', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20)),
-        new OA\Parameter(name: 'offset', in: 'query', description: 'Number of results to skip', schema: new OA\Schema(type: 'integer', minimum: 0, default: 0)),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, description: 'Account UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results to return', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20)),
+            new OA\Parameter(name: 'offset', in: 'query', description: 'Number of results to skip', schema: new OA\Schema(type: 'integer', minimum: 0, default: 0)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -254,8 +254,8 @@ class TransactionReversalController extends Controller
             description: 'Check the status of a specific transaction reversal',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'reversalId', in: 'path', required: true, description: 'Reversal ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'reversalId', in: 'path', required: true, description: 'Reversal ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -318,18 +318,18 @@ class TransactionReversalController extends Controller
         };
 
         // Build steps completed based on status
-        $stepsCompleted = ['validation'];
-        if (in_array($transaction->status, ['processing', 'completed'])) {
-            $stepsCompleted[] = 'authorization_check';
-            $stepsCompleted[] = 'balance_verification';
-        }
-        if ($transaction->status === 'completed') {
-            $stepsCompleted[] = 'reversal_execution';
-            $stepsCompleted[] = 'audit_logging';
-        }
+            $stepsCompleted = ['validation'];
+            if (in_array($transaction->status, ['processing', 'completed'])) {
+                $stepsCompleted[] = 'authorization_check';
+                $stepsCompleted[] = 'balance_verification';
+            }
+            if ($transaction->status === 'completed') {
+                $stepsCompleted[] = 'reversal_execution';
+                $stepsCompleted[] = 'audit_logging';
+            }
 
-        return response()->json(
-            [
+            return response()->json(
+                [
                 'data' => [
                     'reversal_id'     => $reversalId,
                     'status'          => $transaction->status,
@@ -339,7 +339,7 @@ class TransactionReversalController extends Controller
                     'created_at'      => $transaction->created_at?->toISOString(),
                     'updated_at'      => $transaction->updated_at?->toISOString(),
                 ],
-            ]
-        );
+                ]
+            );
     }
 }

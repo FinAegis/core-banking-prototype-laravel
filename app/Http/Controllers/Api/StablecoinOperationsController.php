@@ -37,12 +37,12 @@ class StablecoinOperationsController extends Controller
             description: 'Create a new collateral position and mint stablecoins against it',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['account_uuid', 'stablecoin_code', 'collateral_asset_code', 'collateral_amount', 'mint_amount'], properties: [
-        new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000', description: 'Account UUID to mint for'),
-        new OA\Property(property: 'stablecoin_code', type: 'string', example: 'FUSD', description: 'Stablecoin to mint'),
-        new OA\Property(property: 'collateral_asset_code', type: 'string', example: 'USD', description: 'Asset to use as collateral'),
-        new OA\Property(property: 'collateral_amount', type: 'integer', example: 150000, description: 'Amount of collateral to lock (in smallest unit)'),
-        new OA\Property(property: 'mint_amount', type: 'integer', example: 100000, description: 'Amount of stablecoin to mint (in smallest unit)'),
-        ]))
+            new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000', description: 'Account UUID to mint for'),
+            new OA\Property(property: 'stablecoin_code', type: 'string', example: 'FUSD', description: 'Stablecoin to mint'),
+            new OA\Property(property: 'collateral_asset_code', type: 'string', example: 'USD', description: 'Asset to use as collateral'),
+            new OA\Property(property: 'collateral_amount', type: 'integer', example: 150000, description: 'Amount of collateral to lock (in smallest unit)'),
+            new OA\Property(property: 'mint_amount', type: 'integer', example: 100000, description: 'Amount of stablecoin to mint (in smallest unit)'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -118,11 +118,11 @@ class StablecoinOperationsController extends Controller
             description: 'Burn stablecoins to reduce debt and optionally release collateral',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['account_uuid', 'stablecoin_code', 'burn_amount'], properties: [
-        new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000', description: 'Account UUID to burn from'),
-        new OA\Property(property: 'stablecoin_code', type: 'string', example: 'FUSD', description: 'Stablecoin to burn'),
-        new OA\Property(property: 'burn_amount', type: 'integer', example: 50000, description: 'Amount of stablecoin to burn (in smallest unit)'),
-        new OA\Property(property: 'collateral_release_amount', type: 'integer', example: 75000, description: 'Specific amount of collateral to release. If not provided, proportional amount will be released'),
-        ]))
+            new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000', description: 'Account UUID to burn from'),
+            new OA\Property(property: 'stablecoin_code', type: 'string', example: 'FUSD', description: 'Stablecoin to burn'),
+            new OA\Property(property: 'burn_amount', type: 'integer', example: 50000, description: 'Amount of stablecoin to burn (in smallest unit)'),
+            new OA\Property(property: 'collateral_release_amount', type: 'integer', example: 75000, description: 'Specific amount of collateral to release. If not provided, proportional amount will be released'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -195,11 +195,11 @@ class StablecoinOperationsController extends Controller
             description: 'Increase collateral to improve position health and collateral ratio',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['account_uuid', 'stablecoin_code', 'collateral_asset_code', 'collateral_amount'], properties: [
-        new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000', description: 'Account UUID'),
-        new OA\Property(property: 'stablecoin_code', type: 'string', example: 'FUSD', description: 'Stablecoin code'),
-        new OA\Property(property: 'collateral_asset_code', type: 'string', example: 'USD', description: 'Collateral asset code'),
-        new OA\Property(property: 'collateral_amount', type: 'integer', example: 50000, description: 'Amount of collateral to add (in smallest unit)'),
-        ]))
+            new OA\Property(property: 'account_uuid', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000', description: 'Account UUID'),
+            new OA\Property(property: 'stablecoin_code', type: 'string', example: 'FUSD', description: 'Stablecoin code'),
+            new OA\Property(property: 'collateral_asset_code', type: 'string', example: 'USD', description: 'Collateral asset code'),
+            new OA\Property(property: 'collateral_amount', type: 'integer', example: 50000, description: 'Amount of collateral to add (in smallest unit)'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -269,8 +269,8 @@ class StablecoinOperationsController extends Controller
             summary: 'Get account\'s stablecoin positions',
             description: 'Retrieve all collateral positions for a specific account',
             parameters: [
-        new OA\Parameter(name: 'accountUuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'accountUuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -333,8 +333,8 @@ class StablecoinOperationsController extends Controller
             summary: 'Get position details with recommendations',
             description: 'Retrieve detailed information about a specific collateral position including health metrics and recommendations',
             parameters: [
-        new OA\Parameter(name: 'positionUuid', in: 'path', description: 'Position UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'positionUuid', in: 'path', description: 'Position UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -398,9 +398,9 @@ class StablecoinOperationsController extends Controller
             summary: 'Get liquidation opportunities',
             description: 'Retrieve positions eligible for liquidation with potential rewards',
             parameters: [
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of opportunities to return (default: 50)', required: false, schema: new OA\Schema(type: 'integer', default: 50)),
-        new OA\Parameter(name: 'stablecoin_code', in: 'query', description: 'Filter by stablecoin code', required: false, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of opportunities to return (default: 50)', required: false, schema: new OA\Schema(type: 'integer', default: 50)),
+            new OA\Parameter(name: 'stablecoin_code', in: 'query', description: 'Filter by stablecoin code', required: false, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -449,8 +449,8 @@ class StablecoinOperationsController extends Controller
             description: 'Execute liquidation on an eligible collateral position',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'positionUuid', in: 'path', description: 'Position UUID to liquidate', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'positionUuid', in: 'path', description: 'Position UUID to liquidate', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -511,8 +511,8 @@ class StablecoinOperationsController extends Controller
             summary: 'Calculate potential liquidation reward for a position',
             description: 'Calculate the potential reward for liquidating a specific position',
             parameters: [
-        new OA\Parameter(name: 'positionUuid', in: 'path', description: 'Position UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'positionUuid', in: 'path', description: 'Position UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -559,11 +559,11 @@ class StablecoinOperationsController extends Controller
             description: 'Simulate the impact of a price drop on collateral positions',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'stablecoinCode', in: 'path', description: 'Stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'stablecoinCode', in: 'path', description: 'Stablecoin code', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['price_drop_percentage'], properties: [
-        new OA\Property(property: 'price_drop_percentage', type: 'number', minimum: 0, maximum: 1, example: 0.2, description: 'Price drop percentage (0-1)'),
-        ]))
+            new OA\Property(property: 'price_drop_percentage', type: 'number', minimum: 0, maximum: 1, example: 0.2, description: 'Price drop percentage (0-1)'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -664,9 +664,9 @@ class StablecoinOperationsController extends Controller
             summary: 'Get positions at risk of liquidation',
             description: 'Retrieve positions that are close to liquidation threshold',
             parameters: [
-        new OA\Parameter(name: 'buffer_ratio', in: 'query', description: 'Risk buffer ratio (default: 0.05)', required: false, schema: new OA\Schema(type: 'number', default: 0.05)),
-        new OA\Parameter(name: 'stablecoin_code', in: 'query', description: 'Filter by stablecoin code', required: false, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'buffer_ratio', in: 'query', description: 'Risk buffer ratio (default: 0.05)', required: false, schema: new OA\Schema(type: 'number', default: 0.05)),
+            new OA\Parameter(name: 'stablecoin_code', in: 'query', description: 'Filter by stablecoin code', required: false, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

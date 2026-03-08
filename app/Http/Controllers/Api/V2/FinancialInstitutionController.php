@@ -391,9 +391,9 @@ class FinancialInstitutionController extends Controller
         requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(mediaType: 'multipart/form-data', schema: new OA\Schema(
             required: ['document_type', 'document'],
             properties: [
-        new OA\Property(property: 'document_type', type: 'string', example: 'certificate_of_incorporation'),
-        new OA\Property(property: 'document', type: 'string', format: 'binary', description: 'Document file (PDF, JPG, JPEG, PNG; max 10MB)'),
-        ]
+            new OA\Property(property: 'document_type', type: 'string', example: 'certificate_of_incorporation'),
+            new OA\Property(property: 'document', type: 'string', format: 'binary', description: 'Document file (PDF, JPG, JPEG, PNG; max 10MB)'),
+            ]
         )))
     )]
     #[OA\Response(

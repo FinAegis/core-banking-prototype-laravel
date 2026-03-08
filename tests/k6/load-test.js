@@ -63,15 +63,18 @@ export const options = {
 };
 
 // Scenario executor functions
-export function smokeTest() {
+export function smokeTest()
+{
     smoke();
 }
 
-export function loadTest() {
+export function loadTest()
+{
     load();
 }
 
-export function stressTest() {
+export function stressTest()
+{
     stress();
 }
 

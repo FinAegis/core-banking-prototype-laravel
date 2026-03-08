@@ -167,8 +167,8 @@ class BlockchainWalletController extends Controller
             description: 'Returns details for a specific blockchain address',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'address', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'address', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -335,8 +335,8 @@ class BlockchainWalletController extends Controller
             description: 'Returns details for a specific blockchain transaction',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'txHash', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'txHash', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

@@ -61,8 +61,8 @@ class AgentProtocolNegotiationController extends Controller
             tags: ['Agent Protocol - Negotiation'],
             summary: 'Get capabilities for a specific protocol version',
             parameters: [
-        new OA\Parameter(name: 'version', in: 'path', required: true, description: 'Protocol version', schema: new OA\Schema(type: 'string', example: '1.1')),
-        ]
+            new OA\Parameter(name: 'version', in: 'path', required: true, description: 'Protocol version', schema: new OA\Schema(type: 'string', example: '1.1')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -110,12 +110,12 @@ class AgentProtocolNegotiationController extends Controller
             summary: 'Initiate protocol negotiation with another agent',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Initiator agent DID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Initiator agent DID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['target_did'], properties: [
-        new OA\Property(property: 'target_did', type: 'string', description: 'Target agent DID'),
-        new OA\Property(property: 'preferred_capabilities', type: 'array', description: 'Preferred capabilities for the negotiation', example: ['messaging', 'payments'], items: new OA\Items(type: 'string')),
-        ]))
+            new OA\Property(property: 'target_did', type: 'string', description: 'Target agent DID'),
+            new OA\Property(property: 'preferred_capabilities', type: 'array', description: 'Preferred capabilities for the negotiation', example: ['messaging', 'payments'], items: new OA\Items(type: 'string')),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -193,9 +193,9 @@ class AgentProtocolNegotiationController extends Controller
             summary: 'Get protocol agreement between two agents',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -250,9 +250,9 @@ class AgentProtocolNegotiationController extends Controller
             summary: 'Revoke protocol agreement between two agents',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -298,9 +298,9 @@ class AgentProtocolNegotiationController extends Controller
             summary: 'Refresh/extend protocol agreement between two agents',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -367,9 +367,9 @@ class AgentProtocolNegotiationController extends Controller
             summary: 'Check if a valid protocol agreement exists',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'otherDid', in: 'path', required: true, description: 'Other agent DID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

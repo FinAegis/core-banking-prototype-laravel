@@ -22,11 +22,11 @@ class ComplianceCaseController extends Controller
             description: 'Retrieve compliance cases with filtering options',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', required: false, schema: new OA\Schema(type: 'string', enum: ['open', 'investigating', 'pending_review', 'resolved', 'closed'])),
-        new OA\Parameter(name: 'priority', in: 'query', description: 'Filter by priority', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
-        new OA\Parameter(name: 'assigned_to', in: 'query', description: 'Filter by assigned user ID', required: false, schema: new OA\Schema(type: 'integer')),
-        new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
-        ]
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', required: false, schema: new OA\Schema(type: 'string', enum: ['open', 'investigating', 'pending_review', 'resolved', 'closed'])),
+            new OA\Parameter(name: 'priority', in: 'query', description: 'Filter by priority', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
+            new OA\Parameter(name: 'assigned_to', in: 'query', description: 'Filter by assigned user ID', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -78,8 +78,8 @@ class ComplianceCaseController extends Controller
             description: 'Retrieve detailed information about a specific compliance case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -111,12 +111,12 @@ class ComplianceCaseController extends Controller
             description: 'Create a new compliance case',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['title', 'priority'], properties: [
-        new OA\Property(property: 'title', type: 'string'),
-        new OA\Property(property: 'description', type: 'string'),
-        new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
-        new OA\Property(property: 'entities', type: 'array', items: new OA\Items(type: 'object')),
-        new OA\Property(property: 'evidence', type: 'array', items: new OA\Items(type: 'object')),
-        ]))
+            new OA\Property(property: 'title', type: 'string'),
+            new OA\Property(property: 'description', type: 'string'),
+            new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            new OA\Property(property: 'entities', type: 'array', items: new OA\Items(type: 'object')),
+            new OA\Property(property: 'evidence', type: 'array', items: new OA\Items(type: 'object')),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -177,14 +177,14 @@ class ComplianceCaseController extends Controller
             description: 'Update a compliance case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'title', type: 'string'),
-        new OA\Property(property: 'description', type: 'string'),
-        new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
-        new OA\Property(property: 'status', type: 'string', enum: ['open', 'investigating', 'pending_review', 'resolved', 'closed']),
-        ]))
+            new OA\Property(property: 'title', type: 'string'),
+            new OA\Property(property: 'description', type: 'string'),
+            new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            new OA\Property(property: 'status', type: 'string', enum: ['open', 'investigating', 'pending_review', 'resolved', 'closed']),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -241,12 +241,12 @@ class ComplianceCaseController extends Controller
             description: 'Assign a compliance case to a user',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['user_id'], properties: [
-        new OA\Property(property: 'user_id', type: 'integer'),
-        new OA\Property(property: 'notes', type: 'string'),
-        ]))
+            new OA\Property(property: 'user_id', type: 'integer'),
+            new OA\Property(property: 'notes', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -281,14 +281,14 @@ class ComplianceCaseController extends Controller
             description: 'Add evidence to a compliance case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['type', 'description'], properties: [
-        new OA\Property(property: 'type', type: 'string'),
-        new OA\Property(property: 'description', type: 'string'),
-        new OA\Property(property: 'data', type: 'object'),
-        new OA\Property(property: 'source', type: 'string'),
-        ]))
+            new OA\Property(property: 'type', type: 'string'),
+            new OA\Property(property: 'description', type: 'string'),
+            new OA\Property(property: 'data', type: 'object'),
+            new OA\Property(property: 'source', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -328,12 +328,12 @@ class ComplianceCaseController extends Controller
             description: 'Add a note to a compliance case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['note'], properties: [
-        new OA\Property(property: 'note', type: 'string'),
-        new OA\Property(property: 'type', type: 'string', enum: ['general', 'investigation', 'review', 'decision']),
-        ]))
+            new OA\Property(property: 'note', type: 'string'),
+            new OA\Property(property: 'type', type: 'string', enum: ['general', 'investigation', 'review', 'decision']),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -373,12 +373,12 @@ class ComplianceCaseController extends Controller
             description: 'Escalate a compliance case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reason'], properties: [
-        new OA\Property(property: 'reason', type: 'string'),
-        new OA\Property(property: 'escalate_to', type: 'integer'),
-        ]))
+            new OA\Property(property: 'reason', type: 'string'),
+            new OA\Property(property: 'escalate_to', type: 'integer'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -435,8 +435,8 @@ class ComplianceCaseController extends Controller
             description: 'Get the timeline of events for a compliance case',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -496,8 +496,8 @@ class ComplianceCaseController extends Controller
             description: 'Delete a compliance case (soft delete)',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', description: 'Case ID', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

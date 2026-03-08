@@ -32,8 +32,8 @@ class FraudDetectionController extends Controller
             description: 'Performs fraud analysis on a specific transaction',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'transaction', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'transaction', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -97,8 +97,8 @@ class FraudDetectionController extends Controller
             description: 'Analyzes a user for fraud patterns and risk',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'user', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'user', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -146,8 +146,8 @@ class FraudDetectionController extends Controller
             description: 'Returns detailed fraud score information',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'fraudScore', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'fraudScore', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -181,8 +181,8 @@ class FraudDetectionController extends Controller
             description: 'Updates fraud score outcome for ML training',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'fraudScore', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'fraudScore', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

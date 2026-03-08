@@ -23,12 +23,12 @@ class RecoveryShardController extends Controller
             tags: ['Recovery Shard Backup'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['device_id', 'backup_provider', 'encrypted_shard_hash', 'shard_version'], properties: [
-        new OA\Property(property: 'device_id', type: 'string', example: 'device_abc123'),
-        new OA\Property(property: 'backup_provider', type: 'string', enum: ['icloud', 'google_drive', 'manual'], example: 'icloud'),
-        new OA\Property(property: 'encrypted_shard_hash', type: 'string', example: 'sha256hash...'),
-        new OA\Property(property: 'shard_version', type: 'string', example: 'v1'),
-        new OA\Property(property: 'metadata', type: 'object', nullable: true),
-        ]))
+            new OA\Property(property: 'device_id', type: 'string', example: 'device_abc123'),
+            new OA\Property(property: 'backup_provider', type: 'string', enum: ['icloud', 'google_drive', 'manual'], example: 'icloud'),
+            new OA\Property(property: 'encrypted_shard_hash', type: 'string', example: 'sha256hash...'),
+            new OA\Property(property: 'shard_version', type: 'string', example: 'v1'),
+            new OA\Property(property: 'metadata', type: 'object', nullable: true),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -97,9 +97,9 @@ class RecoveryShardController extends Controller
             tags: ['Recovery Shard Backup'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'device_id', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'backup_provider', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['icloud', 'google_drive', 'manual'])),
-        ]
+            new OA\Parameter(name: 'device_id', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'backup_provider', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['icloud', 'google_drive', 'manual'])),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -148,9 +148,9 @@ class RecoveryShardController extends Controller
             tags: ['Recovery Shard Backup'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['device_id', 'backup_provider'], properties: [
-        new OA\Property(property: 'device_id', type: 'string', example: 'device_abc123'),
-        new OA\Property(property: 'backup_provider', type: 'string', enum: ['icloud', 'google_drive', 'manual'], example: 'icloud'),
-        ]))
+            new OA\Property(property: 'device_id', type: 'string', example: 'device_abc123'),
+            new OA\Property(property: 'backup_provider', type: 'string', enum: ['icloud', 'google_drive', 'manual'], example: 'icloud'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -202,9 +202,9 @@ class RecoveryShardController extends Controller
             tags: ['Recovery Shard Backup'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'device_id', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'backup_provider', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['icloud', 'google_drive', 'manual'])),
-        ]
+            new OA\Parameter(name: 'device_id', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'backup_provider', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['icloud', 'google_drive', 'manual'])),
+            ]
         )]
     #[OA\Response(
         response: 200,

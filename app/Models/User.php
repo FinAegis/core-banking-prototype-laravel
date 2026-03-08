@@ -25,6 +25,11 @@ use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property \Illuminate\Support\Carbon|null $free_tx_until
+ * @property int $sponsored_tx_used
+ * @property int $sponsored_tx_limit
+ */
 class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens;

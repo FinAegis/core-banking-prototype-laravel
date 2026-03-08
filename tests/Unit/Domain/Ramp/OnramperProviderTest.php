@@ -138,6 +138,7 @@ class OnramperProviderTest extends TestCase
             'fiat_amount'     => 100.0,
             'crypto_currency' => 'USDC',
             'wallet_address'  => '0x1234',
+            'quote_id'        => null,
         ]);
     }
 

@@ -143,8 +143,8 @@ class StablecoinOperationsStubController extends Controller
             description: 'Returns stablecoin positions for an account',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'accountUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'accountUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -198,8 +198,8 @@ class StablecoinOperationsStubController extends Controller
             description: 'Returns details for a specific position',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'positionUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'positionUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -284,8 +284,8 @@ class StablecoinOperationsStubController extends Controller
             description: 'Liquidates a specific position',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'positionUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'positionUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,
@@ -320,8 +320,8 @@ class StablecoinOperationsStubController extends Controller
             description: 'Calculates expected reward for liquidating a position',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'positionUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'positionUuid', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -357,8 +357,8 @@ class StablecoinOperationsStubController extends Controller
             description: 'Simulates mass liquidation scenario with price drop',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'stablecoinCode', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'stablecoinCode', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 201,

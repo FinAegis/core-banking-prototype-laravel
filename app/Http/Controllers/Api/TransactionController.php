@@ -31,12 +31,12 @@ class TransactionController extends Controller
             description: 'Deposits money into a specified account',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount'], properties: [
-        new OA\Property(property: 'amount', type: 'integer', example: 10000, minimum: 1, description: 'Amount in cents'),
-        new OA\Property(property: 'description', type: 'string', example: 'Monthly salary', maxLength: 255),
-        ]))
+            new OA\Property(property: 'amount', type: 'integer', example: 10000, minimum: 1, description: 'Amount in cents'),
+            new OA\Property(property: 'description', type: 'string', example: 'Monthly salary', maxLength: 255),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -126,12 +126,12 @@ class TransactionController extends Controller
             description: 'Withdraws money from a specified account',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['amount'], properties: [
-        new OA\Property(property: 'amount', type: 'integer', example: 5000, minimum: 1, description: 'Amount in cents'),
-        new OA\Property(property: 'description', type: 'string', example: 'ATM withdrawal', maxLength: 255),
-        ]))
+            new OA\Property(property: 'amount', type: 'integer', example: 5000, minimum: 1, description: 'Amount in cents'),
+            new OA\Property(property: 'description', type: 'string', example: 'ATM withdrawal', maxLength: 255),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -246,11 +246,11 @@ class TransactionController extends Controller
             description: 'Retrieves paginated transaction history from event store',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        new OA\Parameter(name: 'type', in: 'query', description: 'Filter by transaction type', required: false, schema: new OA\Schema(type: 'string', enum: ['credit', 'debit'])),
-        new OA\Parameter(name: 'asset_code', in: 'query', description: 'Filter by asset code', required: false, schema: new OA\Schema(type: 'string', example: 'USD')),
-        new OA\Parameter(name: 'per_page', in: 'query', description: 'Items per page', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 50)),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', description: 'Account UUID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'type', in: 'query', description: 'Filter by transaction type', required: false, schema: new OA\Schema(type: 'string', enum: ['credit', 'debit'])),
+            new OA\Parameter(name: 'asset_code', in: 'query', description: 'Filter by asset code', required: false, schema: new OA\Schema(type: 'string', example: 'USD')),
+            new OA\Parameter(name: 'per_page', in: 'query', description: 'Items per page', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 50)),
+            ]
         )]
     #[OA\Response(
         response: 200,

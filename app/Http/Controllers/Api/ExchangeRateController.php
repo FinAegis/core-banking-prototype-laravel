@@ -32,9 +32,9 @@ class ExchangeRateController extends Controller
             description: 'Retrieve the current exchange rate between two assets',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'from', in: 'path', required: true, description: 'The source asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
-        new OA\Parameter(name: 'to', in: 'path', required: true, description: 'The target asset code', schema: new OA\Schema(type: 'string', example: 'EUR')),
-        ]
+            new OA\Parameter(name: 'from', in: 'path', required: true, description: 'The source asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
+            new OA\Parameter(name: 'to', in: 'path', required: true, description: 'The target asset code', schema: new OA\Schema(type: 'string', example: 'EUR')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -105,10 +105,10 @@ class ExchangeRateController extends Controller
             description: 'Convert an amount from one asset to another using current exchange rates',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'from', in: 'path', required: true, description: 'The source asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
-        new OA\Parameter(name: 'to', in: 'path', required: true, description: 'The target asset code', schema: new OA\Schema(type: 'string', example: 'EUR')),
-        new OA\Parameter(name: 'amount', in: 'query', required: true, description: 'The amount to convert (in smallest unit)', schema: new OA\Schema(type: 'integer', example: 10000)),
-        ]
+            new OA\Parameter(name: 'from', in: 'path', required: true, description: 'The source asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
+            new OA\Parameter(name: 'to', in: 'path', required: true, description: 'The target asset code', schema: new OA\Schema(type: 'string', example: 'EUR')),
+            new OA\Parameter(name: 'amount', in: 'query', required: true, description: 'The amount to convert (in smallest unit)', schema: new OA\Schema(type: 'integer', example: 10000)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -192,13 +192,13 @@ class ExchangeRateController extends Controller
             description: 'Get a list of available exchange rates with filtering options',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'from', in: 'query', required: false, description: 'Filter by source asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
-        new OA\Parameter(name: 'to', in: 'query', required: false, description: 'Filter by target asset code', schema: new OA\Schema(type: 'string', example: 'EUR')),
-        new OA\Parameter(name: 'source', in: 'query', required: false, description: 'Filter by rate source', schema: new OA\Schema(type: 'string', enum: ['manual', 'api', 'oracle', 'market'])),
-        new OA\Parameter(name: 'active', in: 'query', required: false, description: 'Filter by active status', schema: new OA\Schema(type: 'boolean')),
-        new OA\Parameter(name: 'valid', in: 'query', required: false, description: 'Filter by validity (not expired)', schema: new OA\Schema(type: 'boolean')),
-        new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of results per page (max 100)', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100)),
-        ]
+            new OA\Parameter(name: 'from', in: 'query', required: false, description: 'Filter by source asset code', schema: new OA\Schema(type: 'string', example: 'USD')),
+            new OA\Parameter(name: 'to', in: 'query', required: false, description: 'Filter by target asset code', schema: new OA\Schema(type: 'string', example: 'EUR')),
+            new OA\Parameter(name: 'source', in: 'query', required: false, description: 'Filter by rate source', schema: new OA\Schema(type: 'string', enum: ['manual', 'api', 'oracle', 'market'])),
+            new OA\Parameter(name: 'active', in: 'query', required: false, description: 'Filter by active status', schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'valid', in: 'query', required: false, description: 'Filter by validity (not expired)', schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Number of results per page (max 100)', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100)),
+            ]
         )]
     #[OA\Response(
         response: 200,

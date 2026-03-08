@@ -36,10 +36,10 @@ class TransactionMonitoringController extends Controller
             description: 'Retrieve transactions that are being monitored for compliance',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', required: false, schema: new OA\Schema(type: 'string', enum: ['pending', 'reviewing', 'cleared', 'flagged'])),
-        new OA\Parameter(name: 'risk_level', in: 'query', description: 'Filter by risk level', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
-        new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
-        ]
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', required: false, schema: new OA\Schema(type: 'string', enum: ['pending', 'reviewing', 'cleared', 'flagged'])),
+            new OA\Parameter(name: 'risk_level', in: 'query', description: 'Filter by risk level', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
+            new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -89,8 +89,8 @@ class TransactionMonitoringController extends Controller
             description: 'Retrieve detailed monitoring information for a specific transaction',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Transaction ID', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', description: 'Transaction ID', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -134,13 +134,13 @@ class TransactionMonitoringController extends Controller
             description: 'Flag a transaction for compliance review',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Transaction ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Transaction ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'reason', type: 'string', description: 'Reason for flagging'),
-        new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
-        new OA\Property(property: 'notes', type: 'string', description: 'Additional notes'),
-        ]))
+            new OA\Property(property: 'reason', type: 'string', description: 'Reason for flagging'),
+            new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            new OA\Property(property: 'notes', type: 'string', description: 'Additional notes'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -208,13 +208,13 @@ class TransactionMonitoringController extends Controller
             description: 'Clear a transaction from compliance monitoring',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Transaction ID', required: true, schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Transaction ID', required: true, schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'reason', type: 'string', description: 'Reason for clearing'),
-        new OA\Property(property: 'reviewer', type: 'string', description: 'Reviewer ID'),
-        new OA\Property(property: 'notes', type: 'string', description: 'Additional notes'),
-        ]))
+            new OA\Property(property: 'reason', type: 'string', description: 'Reason for clearing'),
+            new OA\Property(property: 'reviewer', type: 'string', description: 'Reviewer ID'),
+            new OA\Property(property: 'notes', type: 'string', description: 'Additional notes'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -288,12 +288,12 @@ class TransactionMonitoringController extends Controller
             description: 'Create a new transaction monitoring rule',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['name', 'type', 'conditions', 'severity'], properties: [
-        new OA\Property(property: 'name', type: 'string'),
-        new OA\Property(property: 'type', type: 'string'),
-        new OA\Property(property: 'conditions', type: 'object'),
-        new OA\Property(property: 'threshold', type: 'number'),
-        new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
-        ]))
+            new OA\Property(property: 'name', type: 'string'),
+            new OA\Property(property: 'type', type: 'string'),
+            new OA\Property(property: 'conditions', type: 'object'),
+            new OA\Property(property: 'threshold', type: 'number'),
+            new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -340,8 +340,8 @@ class TransactionMonitoringController extends Controller
             description: 'Update an existing transaction monitoring rule',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Rule ID', required: true, schema: new OA\Schema(type: 'integer')),
-        ],
+            new OA\Parameter(name: 'id', in: 'path', description: 'Rule ID', required: true, schema: new OA\Schema(type: 'integer')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent())
         )]
     #[OA\Response(
@@ -383,8 +383,8 @@ class TransactionMonitoringController extends Controller
             description: 'Delete a transaction monitoring rule',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'id', in: 'path', description: 'Rule ID', required: true, schema: new OA\Schema(type: 'integer')),
-        ]
+            new OA\Parameter(name: 'id', in: 'path', description: 'Rule ID', required: true, schema: new OA\Schema(type: 'integer')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -412,8 +412,8 @@ class TransactionMonitoringController extends Controller
             description: 'Retrieve patterns detected in transaction monitoring',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'type', in: 'query', description: 'Pattern type filter', required: false, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'type', in: 'query', description: 'Pattern type filter', required: false, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -556,8 +556,8 @@ class TransactionMonitoringController extends Controller
             description: 'Perform real-time analysis of a transaction',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['transaction_id'], properties: [
-        new OA\Property(property: 'transaction_id', type: 'string'),
-        ]))
+            new OA\Property(property: 'transaction_id', type: 'string'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -602,8 +602,8 @@ class TransactionMonitoringController extends Controller
             description: 'Perform batch analysis of multiple transactions',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['transaction_ids'], properties: [
-        new OA\Property(property: 'transaction_ids', type: 'array', items: new OA\Items(type: 'string')),
-        ]))
+            new OA\Property(property: 'transaction_ids', type: 'array', items: new OA\Items(type: 'string')),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -660,8 +660,8 @@ class TransactionMonitoringController extends Controller
             description: 'Get the status of a batch analysis',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'analysisId', in: 'path', description: 'Analysis ID', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'analysisId', in: 'path', description: 'Analysis ID', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

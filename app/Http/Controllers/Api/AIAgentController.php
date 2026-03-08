@@ -34,13 +34,13 @@ class AIAgentController extends Controller
             description: 'Send a message to the AI agent and receive a response',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['message'], properties: [
-        new OA\Property(property: 'message', type: 'string', example: 'What is my account balance?'),
-        new OA\Property(property: 'conversation_id', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000'),
-        new OA\Property(property: 'context', type: 'object', example: ['account_id' => '123']),
-        new OA\Property(property: 'model', type: 'string', enum: ['gpt-4', 'gpt-3.5-turbo', 'claude-3'], example: 'gpt-4'),
-        new OA\Property(property: 'temperature', type: 'number', minimum: 0, maximum: 2, example: 0.7),
-        new OA\Property(property: 'stream', type: 'boolean', example: false),
-        ]))
+            new OA\Property(property: 'message', type: 'string', example: 'What is my account balance?'),
+            new OA\Property(property: 'conversation_id', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000'),
+            new OA\Property(property: 'context', type: 'object', example: ['account_id' => '123']),
+            new OA\Property(property: 'model', type: 'string', enum: ['gpt-4', 'gpt-3.5-turbo', 'claude-3'], example: 'gpt-4'),
+            new OA\Property(property: 'temperature', type: 'number', minimum: 0, maximum: 2, example: 0.7),
+            new OA\Property(property: 'stream', type: 'boolean', example: false),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -114,8 +114,8 @@ class AIAgentController extends Controller
             description: 'Get a list of all conversations for the authenticated user',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of conversations to return', required: false, schema: new OA\Schema(type: 'integer', default: 10, minimum: 1, maximum: 100)),
-        ]
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of conversations to return', required: false, schema: new OA\Schema(type: 'integer', default: 10, minimum: 1, maximum: 100)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -145,8 +145,8 @@ class AIAgentController extends Controller
             description: 'Retrieve the full message history for a conversation',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'conversationId', in: 'path', description: 'Conversation ID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'conversationId', in: 'path', description: 'Conversation ID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -185,8 +185,8 @@ class AIAgentController extends Controller
             description: 'Delete a conversation and all its messages',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'conversationId', in: 'path', description: 'Conversation ID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'conversationId', in: 'path', description: 'Conversation ID', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 204,
@@ -215,10 +215,10 @@ class AIAgentController extends Controller
             description: 'Submit user feedback about an AI agent response',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['message_id', 'rating'], properties: [
-        new OA\Property(property: 'message_id', type: 'string'),
-        new OA\Property(property: 'rating', type: 'integer', minimum: 1, maximum: 5),
-        new OA\Property(property: 'feedback', type: 'string', maxLength: 1000),
-        ]))
+            new OA\Property(property: 'message_id', type: 'string'),
+            new OA\Property(property: 'rating', type: 'integer', minimum: 1, maximum: 5),
+            new OA\Property(property: 'feedback', type: 'string', maxLength: 1000),
+            ]))
         )]
     #[OA\Response(
         response: 200,

@@ -372,6 +372,9 @@ class CsrfTest extends DomainTestCase
     #[Test]
     public function test_form_action_hijacking_protection()
     {
+        // Prevent Vite manifest errors in CI where assets aren't built
+        $this->withoutVite();
+
         // Test that forms (if any) have proper action URLs
         $response = $this->get('/');
 

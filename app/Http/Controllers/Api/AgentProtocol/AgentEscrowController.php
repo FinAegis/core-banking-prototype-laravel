@@ -36,16 +36,16 @@ class AgentEscrowController extends Controller
             summary: 'Create a new escrow',
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['buyer_did', 'seller_did', 'amount', 'currency'], properties: [
-        new OA\Property(property: 'buyer_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
-        new OA\Property(property: 'seller_did', type: 'string', example: 'did:finaegis:agent:seller456'),
-        new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.00),
-        new OA\Property(property: 'currency', type: 'string', example: 'USD'),
-        new OA\Property(property: 'conditions', type: 'array', example: ['delivery_confirmed', 'quality_verified'], items: new OA\Items(type: 'string')),
-        new OA\Property(property: 'release_conditions', type: 'array', example: ['delivery_confirmed'], items: new OA\Items(type: 'string')),
-        new OA\Property(property: 'timeout_seconds', type: 'integer', example: 86400),
-        new OA\Property(property: 'dispute_resolution_did', type: 'string', nullable: true),
-        new OA\Property(property: 'metadata', type: 'object'),
-        ]))
+            new OA\Property(property: 'buyer_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
+            new OA\Property(property: 'seller_did', type: 'string', example: 'did:finaegis:agent:seller456'),
+            new OA\Property(property: 'amount', type: 'number', format: 'float', example: 1000.00),
+            new OA\Property(property: 'currency', type: 'string', example: 'USD'),
+            new OA\Property(property: 'conditions', type: 'array', example: ['delivery_confirmed', 'quality_verified'], items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'release_conditions', type: 'array', example: ['delivery_confirmed'], items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'timeout_seconds', type: 'integer', example: 86400),
+            new OA\Property(property: 'dispute_resolution_did', type: 'string', nullable: true),
+            new OA\Property(property: 'metadata', type: 'object'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -198,8 +198,8 @@ class AgentEscrowController extends Controller
             summary: 'Get escrow details',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -270,11 +270,11 @@ class AgentEscrowController extends Controller
             summary: 'Fund an escrow (deposit funds)',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['funder_did'], properties: [
-        new OA\Property(property: 'funder_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
-        ]))
+            new OA\Property(property: 'funder_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -358,12 +358,12 @@ class AgentEscrowController extends Controller
             summary: 'Release escrow funds to seller',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'releaser_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
-        new OA\Property(property: 'conditions_met', type: 'array', items: new OA\Items(type: 'string')),
-        ]))
+            new OA\Property(property: 'releaser_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
+            new OA\Property(property: 'conditions_met', type: 'array', items: new OA\Items(type: 'string')),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -449,13 +449,13 @@ class AgentEscrowController extends Controller
             summary: 'Raise a dispute on an escrow',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['disputer_did', 'reason'], properties: [
-        new OA\Property(property: 'disputer_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
-        new OA\Property(property: 'reason', type: 'string', example: 'Service not delivered as agreed'),
-        new OA\Property(property: 'evidence', type: 'array', items: new OA\Items(type: 'string')),
-        ]))
+            new OA\Property(property: 'disputer_did', type: 'string', example: 'did:finaegis:agent:buyer123'),
+            new OA\Property(property: 'reason', type: 'string', example: 'Service not delivered as agreed'),
+            new OA\Property(property: 'evidence', type: 'array', items: new OA\Items(type: 'string')),
+            ]))
         )]
     #[OA\Response(
         response: 200,
@@ -551,14 +551,14 @@ class AgentEscrowController extends Controller
             summary: 'Resolve an escrow dispute',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'escrowId', in: 'path', required: true, description: 'Escrow ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['resolver_did', 'resolution_type'], properties: [
-        new OA\Property(property: 'resolver_did', type: 'string', example: 'did:finaegis:agent:arbiter789'),
-        new OA\Property(property: 'resolution_type', type: 'string', enum: ['release_to_receiver', 'return_to_sender', 'split'], example: 'release_to_receiver'),
-        new OA\Property(property: 'split_percentage', type: 'number', example: 50, description: 'Required if resolution_type is split'),
-        new OA\Property(property: 'reason', type: 'string', example: 'Evidence supports seller\'s claim'),
-        ]))
+            new OA\Property(property: 'resolver_did', type: 'string', example: 'did:finaegis:agent:arbiter789'),
+            new OA\Property(property: 'resolution_type', type: 'string', enum: ['release_to_receiver', 'return_to_sender', 'split'], example: 'release_to_receiver'),
+            new OA\Property(property: 'split_percentage', type: 'number', example: 50, description: 'Required if resolution_type is split'),
+            new OA\Property(property: 'reason', type: 'string', example: 'Evidence supports seller\'s claim'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

@@ -27,15 +27,15 @@ class BatchProcessingController extends Controller
             description: 'Execute end-of-day batch processing operations with compensation support',
             security: [['bearerAuth' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['operations'], properties: [
-        new OA\Property(property: 'operations', type: 'array', items: new OA\Items(type: 'object', properties: [
-        new OA\Property(property: 'type', type: 'string', enum: ['account_interest', 'fee_collection', 'balance_reconciliation', 'report_generation'], example: 'account_interest'),
-        new OA\Property(property: 'parameters', type: 'object', example: ['rate' => 0.05, 'date' => '2023-12-31']),
-        new OA\Property(property: 'priority', type: 'integer', minimum: 1, maximum: 10, example: 5),
-        ])),
-        new OA\Property(property: 'batch_name', type: 'string', example: 'EOD_2023_12_31'),
-        new OA\Property(property: 'schedule_time', type: 'string', format: 'date-time', nullable: true),
-        new OA\Property(property: 'retry_attempts', type: 'integer', minimum: 0, maximum: 5, default: 3),
-        ]))
+            new OA\Property(property: 'operations', type: 'array', items: new OA\Items(type: 'object', properties: [
+            new OA\Property(property: 'type', type: 'string', enum: ['account_interest', 'fee_collection', 'balance_reconciliation', 'report_generation'], example: 'account_interest'),
+            new OA\Property(property: 'parameters', type: 'object', example: ['rate' => 0.05, 'date' => '2023-12-31']),
+            new OA\Property(property: 'priority', type: 'integer', minimum: 1, maximum: 10, example: 5),
+            ])),
+            new OA\Property(property: 'batch_name', type: 'string', example: 'EOD_2023_12_31'),
+            new OA\Property(property: 'schedule_time', type: 'string', format: 'date-time', nullable: true),
+            new OA\Property(property: 'retry_attempts', type: 'integer', minimum: 0, maximum: 5, default: 3),
+            ]))
         )]
     #[OA\Response(
         response: 202,
@@ -185,8 +185,8 @@ class BatchProcessingController extends Controller
             description: 'Get the current status and progress of a batch operation',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'batchId', in: 'path', required: true, description: 'Batch ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'batchId', in: 'path', required: true, description: 'Batch ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -275,11 +275,11 @@ class BatchProcessingController extends Controller
             description: 'Get list of recent batch operations with filtering options',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string', enum: ['initiated', 'running', 'completed', 'failed', 'scheduled'])),
-        new OA\Parameter(name: 'date_from', in: 'query', description: 'Filter from date', schema: new OA\Schema(type: 'string', format: 'date')),
-        new OA\Parameter(name: 'date_to', in: 'query', description: 'Filter to date', schema: new OA\Schema(type: 'string', format: 'date')),
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results to return', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20)),
-        ]
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string', enum: ['initiated', 'running', 'completed', 'failed', 'scheduled'])),
+            new OA\Parameter(name: 'date_from', in: 'query', description: 'Filter from date', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'date_to', in: 'query', description: 'Filter to date', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results to return', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -378,12 +378,12 @@ class BatchProcessingController extends Controller
             description: 'Cancel a running or scheduled batch operation with compensation',
             security: [['bearerAuth' => []]],
             parameters: [
-        new OA\Parameter(name: 'batchId', in: 'path', required: true, description: 'Batch ID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'batchId', in: 'path', required: true, description: 'Batch ID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reason'], properties: [
-        new OA\Property(property: 'reason', type: 'string', example: 'Emergency maintenance required'),
-        new OA\Property(property: 'compensate', type: 'boolean', default: true, description: 'Whether to run compensation for completed operations'),
-        ]))
+            new OA\Property(property: 'reason', type: 'string', example: 'Emergency maintenance required'),
+            new OA\Property(property: 'compensate', type: 'boolean', default: true, description: 'Whether to run compensation for completed operations'),
+            ]))
         )]
     #[OA\Response(
         response: 200,

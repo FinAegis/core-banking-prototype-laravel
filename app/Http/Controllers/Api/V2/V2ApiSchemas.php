@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api\V2;
 
+use OpenApi\Attributes as OA;
+
 /**
  * V2 API Documentation Schemas.
  */
 #[OA\Server(
-    url: L5_SWAGGER_CONST_HOST,
+    url: L5_SWAGGER_CONST_HOST, // @phpstan-ignore constant.notFound
     description: 'API Server'
 )]
 #[OA\SecurityScheme(

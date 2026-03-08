@@ -35,18 +35,18 @@ class AgentMessageController extends Controller
             summary: 'Send a message to another agent',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Sender agent DID', schema: new OA\Schema(type: 'string')),
-        ],
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Sender agent DID', schema: new OA\Schema(type: 'string')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['to_agent_did', 'message_type', 'payload'], properties: [
-        new OA\Property(property: 'to_agent_did', type: 'string', example: 'did:finaegis:agent:receiver456'),
-        new OA\Property(property: 'message_type', type: 'string', enum: ['direct', 'broadcast', 'protocol', 'transaction', 'notification'], example: 'direct'),
-        new OA\Property(property: 'payload', type: 'object', example: ['action' => 'quote_request', 'data' => []]),
-        new OA\Property(property: 'priority', type: 'string', enum: ['low', 'normal', 'high', 'critical'], example: 'normal'),
-        new OA\Property(property: 'requires_acknowledgment', type: 'boolean', example: true),
-        new OA\Property(property: 'correlation_id', type: 'string', nullable: true),
-        new OA\Property(property: 'reply_to', type: 'string', nullable: true),
-        new OA\Property(property: 'headers', type: 'object'),
-        ]))
+            new OA\Property(property: 'to_agent_did', type: 'string', example: 'did:finaegis:agent:receiver456'),
+            new OA\Property(property: 'message_type', type: 'string', enum: ['direct', 'broadcast', 'protocol', 'transaction', 'notification'], example: 'direct'),
+            new OA\Property(property: 'payload', type: 'object', example: ['action' => 'quote_request', 'data' => []]),
+            new OA\Property(property: 'priority', type: 'string', enum: ['low', 'normal', 'high', 'critical'], example: 'normal'),
+            new OA\Property(property: 'requires_acknowledgment', type: 'boolean', example: true),
+            new OA\Property(property: 'correlation_id', type: 'string', nullable: true),
+            new OA\Property(property: 'reply_to', type: 'string', nullable: true),
+            new OA\Property(property: 'headers', type: 'object'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -196,12 +196,12 @@ class AgentMessageController extends Controller
             summary: 'Get messages for an agent',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'type', in: 'query', description: 'Filter by inbox/outbox', schema: new OA\Schema(type: 'string', enum: ['inbox', 'outbox', 'all'])),
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'unacknowledged_only', in: 'query', description: 'Only show unacknowledged messages', schema: new OA\Schema(type: 'boolean')),
-        new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results', schema: new OA\Schema(type: 'integer', default: 20)),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'type', in: 'query', description: 'Filter by inbox/outbox', schema: new OA\Schema(type: 'string', enum: ['inbox', 'outbox', 'all'])),
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by status', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'unacknowledged_only', in: 'query', description: 'Only show unacknowledged messages', schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'limit', in: 'query', description: 'Number of results', schema: new OA\Schema(type: 'integer', default: 20)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -267,9 +267,9 @@ class AgentMessageController extends Controller
             summary: 'Acknowledge receipt of a message',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Receiver agent DID', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'messageId', in: 'path', required: true, description: 'Message ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Receiver agent DID', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'messageId', in: 'path', required: true, description: 'Message ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -384,9 +384,9 @@ class AgentMessageController extends Controller
             summary: 'Get message details',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID (must be sender or receiver)', schema: new OA\Schema(type: 'string')),
-        new OA\Parameter(name: 'messageId', in: 'path', required: true, description: 'Message ID', schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'did', in: 'path', required: true, description: 'Agent DID (must be sender or receiver)', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'messageId', in: 'path', required: true, description: 'Message ID', schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

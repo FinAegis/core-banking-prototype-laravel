@@ -64,8 +64,8 @@ class ExchangeRateProviderStubController extends Controller
             description: 'Gets exchange rate from a specific provider',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'provider', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'provider', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

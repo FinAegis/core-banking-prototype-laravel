@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 // Treasury Management endpoints
 Route::prefix('treasury')->name('api.treasury.')->group(function () {
     // Authenticated treasury routes
-    Route::middleware('auth:sanctum', 'scope:treasury')->group(function () {
+    Route::middleware(['auth:sanctum', 'scope:treasury'])->group(function () {
         // Portfolio Management endpoints
         Route::prefix('portfolios')->name('portfolios.')->group(function () {
             Route::get('/', [PortfolioController::class, 'index'])->name('index');

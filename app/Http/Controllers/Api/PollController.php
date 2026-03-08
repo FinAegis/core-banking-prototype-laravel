@@ -36,10 +36,10 @@ class PollController extends Controller
             description: 'Retrieve a paginated list of polls with optional filtering',
             tags: ['Governance - Polls'],
             parameters: [
-        new OA\Parameter(name: 'status', in: 'query', description: 'Filter by poll status', required: false, schema: new OA\Schema(type: 'string', enum: ['draft', 'active', 'completed', 'cancelled'])),
-        new OA\Parameter(name: 'type', in: 'query', description: 'Filter by poll type', required: false, schema: new OA\Schema(type: 'string', enum: ['single_choice', 'multiple_choice', 'weighted_choice', 'yes_no', 'ranked_choice'])),
-        new OA\Parameter(name: 'per_page', in: 'query', description: 'Number of polls per page', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 15)),
-        ]
+            new OA\Parameter(name: 'status', in: 'query', description: 'Filter by poll status', required: false, schema: new OA\Schema(type: 'string', enum: ['draft', 'active', 'completed', 'cancelled'])),
+            new OA\Parameter(name: 'type', in: 'query', description: 'Filter by poll type', required: false, schema: new OA\Schema(type: 'string', enum: ['single_choice', 'multiple_choice', 'weighted_choice', 'yes_no', 'ranked_choice'])),
+            new OA\Parameter(name: 'per_page', in: 'query', description: 'Number of polls per page', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 15)),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -108,20 +108,20 @@ class PollController extends Controller
             tags: ['Governance - Polls'],
             security: [['sanctum' => []]],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['title', 'type', 'options', 'start_date', 'end_date'], properties: [
-        new OA\Property(property: 'title', type: 'string', example: 'Should we add support for Japanese Yen?'),
-        new OA\Property(property: 'description', type: 'string', example: 'Proposal to add JPY as supported currency'),
-        new OA\Property(property: 'type', type: 'string', enum: ['single_choice', 'multiple_choice', 'weighted_choice', 'yes_no', 'ranked_choice']),
-        new OA\Property(property: 'options', type: 'array', items: new OA\Items(properties: [
-        new OA\Property(property: 'id', type: 'string'),
-        new OA\Property(property: 'label', type: 'string'),
-        new OA\Property(property: 'description', type: 'string'),
-        ])),
-        new OA\Property(property: 'start_date', type: 'string', format: 'date-time'),
-        new OA\Property(property: 'end_date', type: 'string', format: 'date-time'),
-        new OA\Property(property: 'required_participation', type: 'integer', example: 30),
-        new OA\Property(property: 'voting_power_strategy', type: 'string', enum: ['one_user_one_vote', 'asset_weighted_vote']),
-        new OA\Property(property: 'execution_workflow', type: 'string', example: 'AddAssetWorkflow'),
-        ]))
+            new OA\Property(property: 'title', type: 'string', example: 'Should we add support for Japanese Yen?'),
+            new OA\Property(property: 'description', type: 'string', example: 'Proposal to add JPY as supported currency'),
+            new OA\Property(property: 'type', type: 'string', enum: ['single_choice', 'multiple_choice', 'weighted_choice', 'yes_no', 'ranked_choice']),
+            new OA\Property(property: 'options', type: 'array', items: new OA\Items(properties: [
+            new OA\Property(property: 'id', type: 'string'),
+            new OA\Property(property: 'label', type: 'string'),
+            new OA\Property(property: 'description', type: 'string'),
+            ])),
+            new OA\Property(property: 'start_date', type: 'string', format: 'date-time'),
+            new OA\Property(property: 'end_date', type: 'string', format: 'date-time'),
+            new OA\Property(property: 'required_participation', type: 'integer', example: 30),
+            new OA\Property(property: 'voting_power_strategy', type: 'string', enum: ['one_user_one_vote', 'asset_weighted_vote']),
+            new OA\Property(property: 'execution_workflow', type: 'string', example: 'AddAssetWorkflow'),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -177,8 +177,8 @@ class PollController extends Controller
             description: 'Retrieve detailed information about a specific poll',
             tags: ['Governance - Polls'],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -218,8 +218,8 @@ class PollController extends Controller
             tags: ['Governance - Polls'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -278,11 +278,11 @@ class PollController extends Controller
             tags: ['Governance - Polls'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ],
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ],
             requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['selected_options'], properties: [
-        new OA\Property(property: 'selected_options', type: 'array', items: new OA\Items(type: 'string')),
-        ]))
+            new OA\Property(property: 'selected_options', type: 'array', items: new OA\Items(type: 'string')),
+            ]))
         )]
     #[OA\Response(
         response: 201,
@@ -388,8 +388,8 @@ class PollController extends Controller
             description: 'Retrieve current results for a poll',
             tags: ['Governance - Polls'],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,
@@ -431,8 +431,8 @@ class PollController extends Controller
             tags: ['Governance - Polls'],
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
-        ]
+            new OA\Parameter(name: 'uuid', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            ]
         )]
     #[OA\Response(
         response: 200,

@@ -62,8 +62,8 @@ class BlogController extends Controller
             summary: 'Show blog post',
             description: 'Returns a specific blog post by slug',
             parameters: [
-        new OA\Parameter(name: 'slug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'slug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,

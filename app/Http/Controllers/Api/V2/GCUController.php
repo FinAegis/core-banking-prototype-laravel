@@ -106,9 +106,9 @@ class GCUController extends Controller
             summary: 'Get GCU value history',
             description: 'Get historical value data for the Global Currency Unit',
             parameters: [
-        new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Time period for history', schema: new OA\Schema(type: 'string', enum: ['24h', '7d', '30d', '90d', '1y', 'all'], default: '30d')),
-        new OA\Parameter(name: 'interval', in: 'query', required: false, description: 'Data interval', schema: new OA\Schema(type: 'string', enum: ['hourly', 'daily', 'weekly', 'monthly'], default: 'daily')),
-        ]
+            new OA\Parameter(name: 'period', in: 'query', required: false, description: 'Time period for history', schema: new OA\Schema(type: 'string', enum: ['24h', '7d', '30d', '90d', '1y', 'all'], default: '30d')),
+            new OA\Parameter(name: 'interval', in: 'query', required: false, description: 'Data interval', schema: new OA\Schema(type: 'string', enum: ['hourly', 'daily', 'weekly', 'monthly'], default: 'daily')),
+            ]
         )]
     #[OA\Response(
         response: 200,

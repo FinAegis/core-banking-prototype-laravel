@@ -50,8 +50,8 @@ class SettingsController extends Controller
             description: 'Retrieves public settings filtered by group name',
             security: [['sanctum' => []]],
             parameters: [
-        new OA\Parameter(name: 'group', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-        ]
+            new OA\Parameter(name: 'group', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            ]
         )]
     #[OA\Response(
         response: 200,
