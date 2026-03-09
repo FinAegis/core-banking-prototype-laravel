@@ -319,6 +319,9 @@ class BasketValueCalculationServiceTest extends ServiceTestCase
     #[Test]
     public function it_can_calculate_performance()
     {
+        // Clear any basket values created by prior tests in this class
+        BasketValue::where('basket_asset_code', $this->basket->code)->delete();
+
         // Create historical values
         BasketValue::create([
             'basket_asset_code' => $this->basket->code,
