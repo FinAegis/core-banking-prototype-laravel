@@ -203,7 +203,7 @@ class ExchangeControllerTest extends ControllerTestCase
     {
         // Create user without account
         $userWithoutAccount = User::factory()->create();
-        Sanctum::actingAs($userWithoutAccount);
+        Sanctum::actingAs($userWithoutAccount, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/exchange/orders', [
             'type'           => 'buy',

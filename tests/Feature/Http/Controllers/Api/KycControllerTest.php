@@ -167,7 +167,7 @@ class KycControllerTest extends ControllerTestCase
             'kyc_status' => 'approved',
         ]);
 
-        Sanctum::actingAs($approvedUser);
+        Sanctum::actingAs($approvedUser, ['read', 'write', 'delete']);
 
         $file = UploadedFile::fake()->image('passport.jpg');
 

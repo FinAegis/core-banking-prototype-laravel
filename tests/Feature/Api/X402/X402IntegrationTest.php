@@ -18,7 +18,7 @@ uses(RefreshDatabase::class);
 function createAuthenticatedUser(): User
 {
     $user = User::factory()->withPersonalTeam()->create();
-    Sanctum::actingAs($user);
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
 
     return $user;
 }

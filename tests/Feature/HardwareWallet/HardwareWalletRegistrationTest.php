@@ -118,7 +118,7 @@ class HardwareWalletRegistrationTest extends TestCase
     public function it_requires_authentication(): void
     {
         // Clear authentication
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs(User::factory()->create(), ['read', 'write', 'delete']);
 
         // Now test without auth by making a raw request
         $this->app['auth']->forgetGuards();

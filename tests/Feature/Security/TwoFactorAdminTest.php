@@ -16,7 +16,7 @@ class TwoFactorAdminTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole(UserRoles::ADMIN->value);
 
-        Sanctum::actingAs($admin);
+        Sanctum::actingAs($admin, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/admin/dashboard');
 
@@ -36,7 +36,7 @@ class TwoFactorAdminTest extends TestCase
         ]);
         $admin->assignRole(UserRoles::ADMIN->value);
 
-        Sanctum::actingAs($admin);
+        Sanctum::actingAs($admin, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/admin/dashboard');
 
@@ -56,7 +56,7 @@ class TwoFactorAdminTest extends TestCase
         ]);
         $admin->assignRole(UserRoles::ADMIN->value);
 
-        Sanctum::actingAs($admin);
+        Sanctum::actingAs($admin, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/admin/dashboard');
 
@@ -79,7 +79,7 @@ class TwoFactorAdminTest extends TestCase
         // Set session verification
         $this->withSession(['two_factor_verified_' . $admin->id => true]);
 
-        Sanctum::actingAs($admin);
+        Sanctum::actingAs($admin, ['read', 'write', 'delete']);
 
         // Create a mock admin route for testing
         $response = $this->getJson('/api/admin/dashboard');
@@ -108,7 +108,7 @@ class TwoFactorAdminTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole(UserRoles::ADMIN->value);
 
-        Sanctum::actingAs($admin);
+        Sanctum::actingAs($admin, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/auth/2fa/enable');
 
@@ -134,7 +134,7 @@ class TwoFactorAdminTest extends TestCase
         ]);
         $admin->assignRole(UserRoles::ADMIN->value);
 
-        Sanctum::actingAs($admin);
+        Sanctum::actingAs($admin, ['read', 'write', 'delete']);
 
         // Mock the TwoFactorAuthenticationProvider
         $this->mock(\Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider::class)
@@ -165,7 +165,7 @@ class TwoFactorAdminTest extends TestCase
         ]);
         $admin->assignRole(UserRoles::ADMIN->value);
 
-        Sanctum::actingAs($admin);
+        Sanctum::actingAs($admin, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/auth/2fa/disable', [
             'password' => 'wrong-password',

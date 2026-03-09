@@ -79,7 +79,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_trigger_health_check_performs_system_wide_check(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('performHealthCheck');
@@ -144,7 +144,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_trigger_health_check_handles_errors(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('performHealthCheck');
@@ -162,7 +162,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_health_status_returns_current_status(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockHealthMonitor->shouldReceive('getAllCustodiansHealth');
@@ -208,7 +208,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_custodian_health_returns_specific_health(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $health = [
             'status'               => 'healthy',
@@ -241,7 +241,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_custodian_health_returns_404_for_unknown_custodian(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockHealthMonitor->shouldReceive('getCustodianHealth');
@@ -259,7 +259,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_alert_history_with_default_days(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $history = [
             ['alert_id' => '1', 'severity' => 'warning', 'timestamp' => now()->subDays(1)->toISOString()],
@@ -293,7 +293,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_alert_history_with_custom_days(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         /** @var Mockery\Expectation $expectation */
         $expectation = $this->mockAlertingService->shouldReceive('getAlertHistory');
@@ -314,7 +314,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_alert_history_validates_days_parameter(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/bank-health/alerts/paysera/history?days=100');
 
@@ -325,7 +325,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_alerting_statistics_with_default_period(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/bank-health/alerts/stats');
 
@@ -352,7 +352,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_alerting_statistics_with_custom_period(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/bank-health/alerts/stats?period=week');
 
@@ -363,7 +363,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_configure_alerts_updates_configuration(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->putJson('/api/bank-health/alerts/config', [
             'cooldown_minutes'    => 45,
@@ -394,7 +394,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_configure_alerts_validates_input(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->putJson('/api/bank-health/alerts/config', [
             'cooldown_minutes'      => 1500, // Too high
@@ -408,7 +408,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_alert_configuration_returns_current_config(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/bank-health/alerts/config');
 
@@ -430,7 +430,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_test_alert_sends_test_notification(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bank-health/alerts/test', [
             'severity'  => 'warning',
@@ -453,7 +453,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_test_alert_requires_severity(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bank-health/alerts/test', []);
 
@@ -464,7 +464,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_test_alert_validates_severity_values(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bank-health/alerts/test', [
             'severity' => 'extreme', // Invalid
@@ -477,7 +477,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_acknowledge_alert_marks_as_resolved(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bank-health/alerts/alert-123/acknowledge', [
             'resolution_notes' => 'False positive - normal maintenance window',
@@ -503,7 +503,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_acknowledge_alert_without_notes(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bank-health/alerts/alert-456/acknowledge');
 
@@ -520,7 +520,7 @@ class BankAlertingControllerTest extends ControllerTestCase
     #[Test]
     public function test_acknowledge_alert_validates_notes_length(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->adminUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bank-health/alerts/alert-789/acknowledge', [
             'resolution_notes' => str_repeat('a', 1001), // Too long
