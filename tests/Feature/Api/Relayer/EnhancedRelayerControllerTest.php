@@ -17,7 +17,7 @@ class EnhancedRelayerControllerTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->create();
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
     }
 
     // ========================================================================

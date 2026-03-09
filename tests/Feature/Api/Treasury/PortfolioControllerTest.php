@@ -36,7 +36,7 @@ class PortfolioControllerTest extends TestCase
 
         $this->treasuryId = $this->testUser->uuid;
 
-        Sanctum::actingAs($this->testUser, ['treasury']);
+        Sanctum::actingAs($this->testUser, ['read', 'write', 'delete', 'treasury']);
 
         // Verify the scope is set correctly in tests
         $this->assertTrue($this->testUser->tokenCan('treasury'), 'User should have treasury scope');

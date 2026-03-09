@@ -25,7 +25,7 @@ class GdprExportDownloadTest extends TestCase
         Storage::fake('local');
 
         $this->user = User::factory()->create();
-        $this->token = $this->user->createToken('test-token', ['read', 'write'])->plainTextToken;
+        $this->token = $this->user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
     }
 
     // --- GET /api/v1/user/data-export/{exportId} status polling ---

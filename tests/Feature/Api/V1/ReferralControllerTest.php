@@ -67,7 +67,7 @@ class ReferralControllerTest extends TestCase
             'max_uses' => 50,
         ]);
 
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $this->postJson('/api/v1/referrals/apply', ['code' => 'REF12345'])
             ->assertOk()
@@ -91,7 +91,7 @@ class ReferralControllerTest extends TestCase
             'max_uses' => 50,
         ]);
 
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $this->postJson('/api/v1/referrals/apply', ['code' => 'MYOWN123'])
             ->assertStatus(422)
@@ -100,7 +100,7 @@ class ReferralControllerTest extends TestCase
 
     public function test_apply_invalid_code_fails(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $this->postJson('/api/v1/referrals/apply', ['code' => 'INVALID1'])
             ->assertStatus(422)
@@ -123,7 +123,7 @@ class ReferralControllerTest extends TestCase
             'max_uses' => 50,
         ]);
 
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $this->postJson('/api/v1/referrals/apply', ['code' => 'FIRST123'])
             ->assertOk();

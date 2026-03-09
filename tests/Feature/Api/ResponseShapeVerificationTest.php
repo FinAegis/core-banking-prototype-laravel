@@ -68,7 +68,7 @@ function assertKeysAreSnakeCase(array $data, string $path = ''): void
 function createShapeTestUser(): array
 {
     $user = User::factory()->create();
-    $token = $user->createToken('test-token', ['read', 'write'])->plainTextToken;
+    $token = $user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
 
     return [$user, $token];
 }

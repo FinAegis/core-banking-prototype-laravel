@@ -30,7 +30,7 @@ class MobileHandoverV571Test extends TestCase
         Cache::flush();
 
         $this->user = User::factory()->create(['name' => 'Test User']);
-        $this->token = $this->user->createToken('test-token', ['read', 'write'])->plainTextToken;
+        $this->token = $this->user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
         $this->merchant = Merchant::create([
             'public_id'         => 'merch_test_' . bin2hex(random_bytes(4)),
             'display_name'      => 'Test Merchant',

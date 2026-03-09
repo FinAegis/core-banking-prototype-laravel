@@ -57,7 +57,7 @@ class RampControllerTest extends TestCase
 
     public function test_create_session(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $wallet = '0x1234567890abcdef1234567890abcdef12345678';
 
@@ -258,7 +258,7 @@ class RampControllerTest extends TestCase
 
     public function test_create_session_validates_amount_limits(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $this->postJson('/api/v1/ramp/session', [
             'type'            => 'on',

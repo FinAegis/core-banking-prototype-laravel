@@ -44,7 +44,7 @@ class LoadTest extends DomainTestCase
     {
         $user = User::factory()->create();
         // Create token with write scope for account creation
-        $token = $user->createToken('test-token', ['read', 'write'])->plainTextToken;
+        $token = $user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
 
         $startTime = microtime(true);
         $iterations = 100;
@@ -214,7 +214,7 @@ class LoadTest extends DomainTestCase
     {
         $user = User::factory()->create();
         // Create token with write scope for webhook creation
-        $token = $user->createToken('test-token', ['read', 'write'])->plainTextToken;
+        $token = $user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
 
         // Create a webhook
         $response = $this->withToken($token)->postJson('/api/v2/webhooks', [

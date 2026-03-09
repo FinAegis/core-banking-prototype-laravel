@@ -21,7 +21,7 @@ class SmartAccountControllerTest extends TestCase
         Cache::flush();
 
         $this->user = User::factory()->create();
-        $this->token = $this->user->createToken('test-token', ['read', 'write'])->plainTextToken;
+        $this->token = $this->user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
     }
 
     public function test_create_account_requires_authentication(): void
@@ -306,7 +306,7 @@ class SmartAccountControllerTest extends TestCase
         // Create second user and switch auth context using Sanctum::actingAs
         // (withToken doesn't properly switch auth context mid-test)
         $otherUser = User::factory()->create();
-        Sanctum::actingAs($otherUser, ['read', 'write']);
+        Sanctum::actingAs($otherUser, ['read', 'write', 'delete']);
 
         // List accounts as other user (should be empty)
         $response = $this->getJson('/api/v1/relayer/accounts');

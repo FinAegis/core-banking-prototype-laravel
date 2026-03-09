@@ -17,7 +17,7 @@ class RewardsControllerTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->create();
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
     }
 
     public function test_get_profile_creates_default_profile(): void

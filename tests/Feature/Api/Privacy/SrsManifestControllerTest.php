@@ -131,7 +131,7 @@ class SrsManifestControllerTest extends TestCase
 
     public function test_track_srs_download_with_valid_circuit(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/privacy/srs-downloaded', [
             'circuits' => ['shield_1_1'],
@@ -145,7 +145,7 @@ class SrsManifestControllerTest extends TestCase
 
     public function test_track_srs_download_with_multiple_circuits(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/privacy/srs-downloaded', [
             'circuits'    => ['shield_1_1', 'unshield_2_1'],
@@ -159,7 +159,7 @@ class SrsManifestControllerTest extends TestCase
 
     public function test_track_srs_download_with_device_info(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/privacy/srs-downloaded', [
             'circuits'    => ['shield_1_1'],
@@ -172,7 +172,7 @@ class SrsManifestControllerTest extends TestCase
 
     public function test_track_srs_download_fails_with_unknown_circuit(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/privacy/srs-downloaded', [
             'circuits' => ['nonexistent_circuit'],
@@ -191,7 +191,7 @@ class SrsManifestControllerTest extends TestCase
 
     public function test_track_srs_download_fails_with_empty_circuits(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/privacy/srs-downloaded', [
             'circuits' => [],
@@ -202,7 +202,7 @@ class SrsManifestControllerTest extends TestCase
 
     public function test_track_srs_download_fails_without_circuits(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/privacy/srs-downloaded', []);
 
@@ -212,7 +212,7 @@ class SrsManifestControllerTest extends TestCase
 
     public function test_track_srs_download_with_all_available_circuits(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         // First get the manifest to know available circuits
         $manifestResponse = $this->getJson('/api/v1/privacy/srs-manifest');

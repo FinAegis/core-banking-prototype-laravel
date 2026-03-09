@@ -97,7 +97,7 @@ class BannerControllerTest extends TestCase
 
     public function test_dismiss_banner(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $banner = Banner::create(['title' => 'Dismissable', 'active' => true, 'position' => 1]);
 
@@ -115,7 +115,7 @@ class BannerControllerTest extends TestCase
 
     public function test_dismiss_nonexistent_banner_returns_404(): void
     {
-        Sanctum::actingAs($this->user, ['read', 'write']);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $this->postJson('/api/v1/banners/99999/dismiss')
             ->assertStatus(404);

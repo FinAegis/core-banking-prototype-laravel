@@ -23,7 +23,7 @@ beforeEach(function () {
     });
 
     $this->user = User::factory()->create();
-    Sanctum::actingAs($this->user, ['read', 'write']);
+    Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 });
 
 it('returns cached response with X-Idempotency-Replayed header on duplicate POST', function () {

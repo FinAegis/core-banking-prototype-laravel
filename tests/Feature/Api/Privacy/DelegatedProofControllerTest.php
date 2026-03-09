@@ -206,7 +206,7 @@ class DelegatedProofControllerTest extends TestCase
 
         // Try to access as other user
         $otherUser = User::factory()->create();
-        Sanctum::actingAs($otherUser, ['read', 'write']);
+        Sanctum::actingAs($otherUser, ['read', 'write', 'delete']);
 
         $response = $this->getJson("/api/v1/privacy/delegated-proof/{$jobId}");
 

@@ -36,7 +36,7 @@ class MobileV11CompatibilityTest extends TestCase
         $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
 
         $this->testUser = User::factory()->create();
-        $this->token = $this->testUser->createToken('test', ['read', 'write'])->plainTextToken;
+        $this->token = $this->testUser->createToken('test', ['read', 'write', 'delete'])->plainTextToken;
 
         // Merchant is required as a foreign key for payment_intents
         $this->merchant = Merchant::create([
@@ -59,7 +59,7 @@ class MobileV11CompatibilityTest extends TestCase
 
     public function test_registration_challenge_returns_creation_options(): void
     {
-        Sanctum::actingAs($this->testUser, ['read', 'write']);
+        Sanctum::actingAs($this->testUser, ['read', 'write', 'delete']);
         $device = $this->createDeviceForUser($this->testUser);
 
         $response = $this->postJson('/api/v1/auth/passkey/register-challenge', [
@@ -111,7 +111,7 @@ class MobileV11CompatibilityTest extends TestCase
 
     public function test_registration_challenge_requires_device_id(): void
     {
-        Sanctum::actingAs($this->testUser, ['read', 'write']);
+        Sanctum::actingAs($this->testUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/auth/passkey/register-challenge', [
             'type' => 'registration',
@@ -123,7 +123,7 @@ class MobileV11CompatibilityTest extends TestCase
 
     public function test_registration_challenge_returns_404_for_unknown_device(): void
     {
-        Sanctum::actingAs($this->testUser, ['read', 'write']);
+        Sanctum::actingAs($this->testUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v1/auth/passkey/register-challenge', [
             'type'      => 'registration',
@@ -137,7 +137,7 @@ class MobileV11CompatibilityTest extends TestCase
 
     public function test_registration_challenge_returns_403_for_other_users_device(): void
     {
-        Sanctum::actingAs($this->testUser, ['read', 'write']);
+        Sanctum::actingAs($this->testUser, ['read', 'write', 'delete']);
 
         $otherUser = User::factory()->create();
         $device = $this->createDeviceForUser($otherUser);

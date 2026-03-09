@@ -20,7 +20,7 @@ class PrivacyControllerTest extends TestCase
         Cache::flush();
 
         $this->user = User::factory()->create();
-        $this->token = $this->user->createToken('test-token', ['read', 'write'])->plainTextToken;
+        $this->token = $this->user->createToken('test-token', ['read', 'write', 'delete'])->plainTextToken;
     }
 
     public function test_get_networks_returns_supported_networks(): void

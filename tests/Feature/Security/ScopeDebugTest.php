@@ -35,7 +35,7 @@ class ScopeDebugTest extends TestCase
         $this->assertNotNull($token, 'Current access token should exist');
 
         // Test with explicit abilities
-        Sanctum::actingAs($user, ['read', 'write']);
+        Sanctum::actingAs($user, ['read', 'write', 'delete']);
 
         echo "\n=== Test 2: Sanctum::actingAs with ['read', 'write'] ===\n";
         $canRead = $user->tokenCan('read');

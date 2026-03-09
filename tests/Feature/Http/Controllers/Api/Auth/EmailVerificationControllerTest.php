@@ -176,7 +176,7 @@ class EmailVerificationControllerTest extends ControllerTestCase
     #[Test]
     public function test_resend_verification_email_for_unverified_user(): void
     {
-        Sanctum::actingAs($this->unverifiedUser, ['read', 'write']);
+        Sanctum::actingAs($this->unverifiedUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/auth/resend-verification');
 
@@ -189,7 +189,7 @@ class EmailVerificationControllerTest extends ControllerTestCase
     #[Test]
     public function test_resend_verification_email_for_verified_user(): void
     {
-        Sanctum::actingAs($this->verifiedUser, ['read', 'write']);
+        Sanctum::actingAs($this->verifiedUser, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/auth/resend-verification');
 
@@ -263,7 +263,7 @@ class EmailVerificationControllerTest extends ControllerTestCase
     #[Test]
     public function test_resend_verification_triggers_notification(): void
     {
-        Sanctum::actingAs($this->unverifiedUser, ['read', 'write']);
+        Sanctum::actingAs($this->unverifiedUser, ['read', 'write', 'delete']);
 
         $mock = Mockery::mock($this->unverifiedUser)->makePartial();
         $mock->shouldReceive('sendEmailVerificationNotification')->once();
