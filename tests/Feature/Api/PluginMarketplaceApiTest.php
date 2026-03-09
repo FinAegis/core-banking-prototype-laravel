@@ -44,7 +44,7 @@ class PluginMarketplaceApiTest extends TestCase
     #[Test]
     public function test_authenticated_list_returns_plugins(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         Plugin::create([
             'vendor'       => 'finaegis',
@@ -86,7 +86,7 @@ class PluginMarketplaceApiTest extends TestCase
     #[Test]
     public function test_show_specific_plugin_by_id(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $plugin = Plugin::create([
             'vendor'       => 'finaegis',

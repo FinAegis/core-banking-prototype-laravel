@@ -49,7 +49,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
     #[Test]
     public function test_submit_application_successfully(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $applicationData = $this->getValidApplicationData();
 
@@ -76,7 +76,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
     #[Test]
     public function test_submit_application_validates_required_fields(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/v2/financial-institutions/apply', []);
 
@@ -91,7 +91,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
     #[Test]
     public function test_get_application_status(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $application = FinancialInstitutionApplication::factory()->create([
             'status' => 'pending',
@@ -134,7 +134,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
     #[Test]
     public function test_upload_document_successfully(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $application = FinancialInstitutionApplication::factory()->create([
             'status' => 'pending',
@@ -169,7 +169,7 @@ class FinancialInstitutionControllerTest extends ControllerTestCase
     #[Test]
     public function test_upload_document_validates_file_type(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $application = FinancialInstitutionApplication::factory()->create([
             'status' => 'pending',

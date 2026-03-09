@@ -36,7 +36,7 @@ class HardwareWalletSigningTest extends TestCase
 
         Cache::flush();
         Feature::define('sub_product.blockchain', true);
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $this->associationPublicKey = '04' . str_repeat('ab', 64);
 

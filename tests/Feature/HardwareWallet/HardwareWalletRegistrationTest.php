@@ -26,7 +26,7 @@ class HardwareWalletRegistrationTest extends TestCase
 
         Cache::flush();
         Feature::define('sub_product.blockchain', true);
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
     }
 
     #[Test]

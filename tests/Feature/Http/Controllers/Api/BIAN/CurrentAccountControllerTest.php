@@ -23,7 +23,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_creates_new_account(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/current-account/initiate', [
             'customerReference' => $this->user->uuid,
@@ -77,7 +77,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_without_initial_deposit(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/current-account/initiate', [
             'customerReference' => $this->user->uuid,
@@ -111,7 +111,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/current-account/initiate', [
             'customerReference' => 'invalid-uuid',
@@ -128,7 +128,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_returns_account_details(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -184,7 +184,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_returns_404_for_non_existent_account(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/bian/current-account/non-existent-uuid/retrieve');
 
@@ -204,7 +204,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_update_modifies_account_name(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -237,7 +237,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_update_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create();
 
@@ -253,7 +253,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_control_freezes_account(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -283,7 +283,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_control_unfreezes_account(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -301,7 +301,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_control_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create();
 
@@ -317,7 +317,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_payment_with_sufficient_funds(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -364,7 +364,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_payment_with_insufficient_funds(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -398,7 +398,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_payment_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create();
 
@@ -415,7 +415,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_deposit(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -455,7 +455,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_deposit_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create();
 
@@ -471,7 +471,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_account_balance(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -511,7 +511,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_transaction_report(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -544,7 +544,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_transaction_report_with_filters(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create([
             'user_uuid' => $this->user->uuid,
@@ -564,7 +564,7 @@ class CurrentAccountControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_transaction_report_validates_dates(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $account = Account::factory()->create();
 

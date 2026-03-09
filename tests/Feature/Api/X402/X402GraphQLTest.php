@@ -25,7 +25,7 @@ class X402GraphQLTest extends TestCase
         /** @var \App\Models\Team $team */
         $team = $this->user->currentTeam;
         $this->teamId = (int) $team->id;
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
     }
 
     // ----------------------------------------------------------------

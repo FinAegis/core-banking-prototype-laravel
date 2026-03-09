@@ -54,7 +54,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_payment_with_sufficient_funds(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/payment-initiation/initiate', [
             'payerReference'  => $this->payerAccount->uuid,
@@ -110,7 +110,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_instant_payment(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/payment-initiation/initiate', [
             'payerReference' => $this->payerAccount->uuid,
@@ -127,7 +127,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_scheduled_payment(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $futureDate = now()->addDays(7)->format('Y-m-d');
 
@@ -147,7 +147,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_payment_with_insufficient_funds(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/payment-initiation/initiate', [
             'payerReference' => $this->payerAccount->uuid,
@@ -183,7 +183,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/payment-initiation/initiate', [
             'payerReference'  => 'invalid-uuid',
@@ -208,7 +208,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_prevents_self_transfer(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/payment-initiation/initiate', [
             'payerReference' => $this->payerAccount->uuid,
@@ -224,7 +224,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_update_payment_status(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $crReferenceId = fake()->uuid();
 
@@ -252,7 +252,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_update_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $crReferenceId = fake()->uuid();
 
@@ -268,7 +268,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_payment_not_found(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $nonExistentId = fake()->uuid();
 
@@ -280,7 +280,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_payment(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $crReferenceId = fake()->uuid();
 
@@ -306,7 +306,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_payment_with_retry(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $crReferenceId = fake()->uuid();
 
@@ -322,7 +322,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_execute_validates_input(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $crReferenceId = fake()->uuid();
 
@@ -337,7 +337,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_request_payment_status(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $crReferenceId = fake()->uuid();
 
@@ -365,7 +365,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_payment_history_empty(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->getJson("/api/bian/payment-initiation/{$this->payerAccount->uuid}/payment-history/retrieve");
 
@@ -395,7 +395,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_payment_history_with_filters(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->getJson("/api/bian/payment-initiation/{$this->payerAccount->uuid}/payment-history/retrieve?" . http_build_query([
             'fromDate'         => '2024-01-01',
@@ -411,7 +411,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_payment_history_validates_dates(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->getJson("/api/bian/payment-initiation/{$this->payerAccount->uuid}/payment-history/retrieve?" . http_build_query([
             'fromDate'         => '2024-12-31',
@@ -426,7 +426,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_retrieve_payment_history_for_non_existent_account(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $nonExistentId = fake()->uuid();
 
@@ -458,7 +458,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_payment_with_minimum_required_fields(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/payment-initiation/initiate', [
             'payerReference' => $this->payerAccount->uuid,
@@ -476,7 +476,7 @@ class PaymentInitiationControllerTest extends ControllerTestCase
     #[Test]
     public function test_initiate_external_payment(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         $response = $this->postJson('/api/bian/payment-initiation/initiate', [
             'payerReference' => $this->payerAccount->uuid,

@@ -36,7 +36,7 @@ class PluginGraphQLTest extends TestCase
     #[Test]
     public function test_authenticated_plugins_query_returns_data(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         Plugin::create([
             'vendor'       => 'finaegis',
@@ -64,7 +64,7 @@ class PluginGraphQLTest extends TestCase
     #[Test]
     public function test_marketplace_stats_returns_hook_point_count(): void
     {
-        Sanctum::actingAs($this->user);
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
 
         Plugin::create([
             'vendor'       => 'finaegis',
