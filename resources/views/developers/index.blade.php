@@ -137,7 +137,7 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>v5.11 Documentation — 43 Domains, 1,250+ Routes, GraphQL + REST + x402</span>
+                        <span>v5.12 Documentation — 43 Domains, 1,250+ Routes, GraphQL + REST + x402</span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
                         Built for Developers
@@ -177,8 +177,8 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="font-medium">v5.11 Released:</span>
-                    <span class="ml-2">43 DDD domains, 1,250+ API routes, GraphQL (35 domains), x402 Protocol, Rewards Gamification, RAILGUN Privacy, Ondato KYC, Chainalysis, Marqeta, Event Streaming, Plugin Marketplace, and more.</span>
+                    <span class="font-medium">v5.12 Released:</span>
+                    <span class="ml-2">Design System v2, Onramper Fiat Ramp, Foodo Insights, Referral System, Gas Sponsorship, Banners API, V1 Notifications — plus 43 DDD domains, 1,250+ API routes, GraphQL (35 domains), x402 Protocol, and more.</span>
                 </div>
             </div>
         </section>

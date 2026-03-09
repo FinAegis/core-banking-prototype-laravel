@@ -1,8 +1,8 @@
 # FinAegis Platform Roadmap
 
-**Last Updated:** 2026-02-27
-**Current Version:** v5.4.1
-**Domains:** 42 bounded contexts
+**Last Updated:** 2026-03-09
+**Current Version:** v5.12.0
+**Domains:** 43 bounded contexts
 
 ---
 

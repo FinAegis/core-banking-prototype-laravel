@@ -183,7 +183,7 @@
                     <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                            <span>REST API v5.11</span>
+                            <span>REST API v5.12</span>
                         </span>
                         <span class="inline-flex items-center px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
@@ -636,8 +636,8 @@ curl -X POST https://api.finaegis.org/api/v1/partner/sdk/generate \
         "language": "go",
         "version": "5.0.0",
         "package_name": "github.com/finaegis/sdk-go",
-        "download_url": "https://sdk.finaegis.org/packages/go/finaegis-sdk-go-5.11.0.tar.gz",
-        "install_command": "go get github.com/finaegis/sdk-go@v5.11.0"
+        "download_url": "https://sdk.finaegis.org/packages/go/finaegis-sdk-go-5.12.0.tar.gz",
+        "install_command": "go get github.com/finaegis/sdk-go@v5.12.0"
       },
       {
         "language": "php",
@@ -675,7 +675,7 @@ curl -X POST https://api.finaegis.org/api/v1/partner/sdk/generate \
                         <div>
                             <p class="text-sm font-medium text-slate-600 mb-2">Go</p>
                             <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm">
-                                <code>go get github.com/finaegis/sdk-go@v5.11.0</code>
+                                <code>go get github.com/finaegis/sdk-go@v5.12.0</code>
                             </div>
                         </div>
                         <div>

@@ -5,6 +5,38 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.12.0] - 2026-03-09
+
+### Added
+- **Onramper Integration** — Provider-agnostic fiat on/off-ramp aggregator with session management (PRs #722–#723)
+- **Foodo Insights** — Restaurant analytics dashboard with frontend review and mobile polish (PRs #720–#721)
+- **Referral System** — Code generation and sponsorship rewards with referral tracking (PR #715)
+- **Gas Sponsorship** — Free user transactions via gas sponsorship service (PR #714)
+- **Banners API** — Admin panel for promotional carousel with CRUD endpoints (PR #713)
+- **V1 Notifications API** — Paginated list with type filtering and unread count (PR #712)
+- **On/Off Ramp API** — Provider-agnostic session management for fiat ramp operations (PR #716)
+- **Website Launch** — Env-driven `SHOW_PROMO_PAGES` flag, homepage content refresh (PRs #702–#706)
+
+### Changed
+- **Design System v2** — Complete frontend overhaul across all pages (PRs #726–#734):
+  - Dark hero sections with gradient backgrounds on all feature pages
+  - Consistent typography, breadcrumbs, and scroll animations
+  - Inner page migration: content pages, CGO, secondary pages
+  - Button sizing (`btn-lg`), table scroll, accessibility (`aria-hidden`)
+  - CGO cards, hero subtitle color fixes
+- **Mobile UX Polish** — Configurable copy, CTA labels, idempotency, response enrichment (PRs #717–#719)
+- **Ramp Security** — Status constants, null safety, modes, API-first Onramper integration (PRs #724–#725)
+
+### Fixed
+- **CI Pipeline Green** — Comprehensive test suite fixes (PR #735):
+  - Added Sanctum abilities (`['read', 'write', 'delete']`) to 50+ test files
+  - Relaxed N+1 query thresholds for CI middleware overhead
+  - Fixed basket performance test timing edge case (`subMonth()` vs `subDays()`)
+  - Fixed MobileV11CompatibilityTest assertions to match API response shape
+- Daily log rotation for all log channels (PR #711)
+- Swagger generation errors and GraphQL test failures (PR #710)
+- Default ERC-4337 SimpleAccountFactory addresses in relayer config (PR #709)
+
 ## [5.7.0] - 2026-02-28
 
 ### Added

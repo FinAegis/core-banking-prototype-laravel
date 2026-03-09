@@ -13,7 +13,7 @@
     $faqData = [
         [
             'question' => 'What is the current status of FinAegis?',
-            'answer' => 'FinAegis v5.11.0 is a fully-featured open-source core banking platform with 43 domain modules. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
+            'answer' => 'FinAegis v5.12.0 is a fully-featured open-source core banking platform with 43 domain modules. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
         ],
         [
             'question' => 'Can I use real money on the platform?',
@@ -127,7 +127,7 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            FinAegis is a fully-featured open-source core banking platform at v5.11.0. The sandbox environment lets you:
+                            FinAegis is a fully-featured open-source core banking platform at v5.12.0. The sandbox environment lets you:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
                             <li>Explore 43 domain modules including DeFi, cross-chain, privacy, and rewards</li>

@@ -1,7 +1,7 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-5.9.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-5.12.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
@@ -20,7 +20,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 
 | Challenge | FinAegis Solution |
 |-----------|-------------------|
-| Building financial systems from scratch | 42 production-ready domain modules |
+| Building financial systems from scratch | 43 production-ready domain modules |
 | Audit trail requirements | Event sourcing with domain-specific event tables |
 | Complex multi-step transactions | Saga pattern with automatic compensation |
 | Regulatory compliance | Built-in KYC/AML, SOC 2, PCI DSS, GDPR (v3.5.0) |
@@ -30,15 +30,17 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Privacy-preserving transactions | ZK-KYC, Merkle trees, ERC-4337 gas abstraction (v2.4.0-v2.6.0) |
 | Multi-jurisdiction RegTech | MiFID II, MiCA, FATF Travel Rule, 4-jurisdiction adapters (v2.8.0) |
 | Cross-chain & DeFi | Bridge protocols, DEX aggregation, yield optimization (v3.0.0) |
-| Modular plugin architecture | 42 domains with manifests, enable/disable, dependency resolution (v3.2.0) |
+| Modular plugin architecture | 43 domains with manifests, enable/disable, dependency resolution (v3.2.0) |
 | Compliance certification | SOC 2 Type II, PCI DSS readiness, multi-region deployment (v3.5.0) |
-| GraphQL API | Schema-first Lighthouse PHP, 34 domains, subscriptions (v4.0.0+) |
-| Event Store v2 | Domain routing (34 domains), upcasting, migration tooling (v4.0.0) |
+| GraphQL API | Schema-first Lighthouse PHP, 35 domains, subscriptions (v4.0.0+) |
+| Event Store v2 | Domain routing (35 domains), upcasting, migration tooling (v4.0.0) |
 | Plugin Marketplace | Manager, loader, sandbox, security scanner (v4.0.0) |
 | Event streaming | Redis Streams publisher/consumer, live dashboard (v5.0.0) |
 | API monetization | x402 protocol: HTTP-native micropayments with USDC on Base (v5.2.0) |
 | Privacy protocol | RAILGUN SDK integration: shield/unshield/transfer with Merkle proofs (v5.6.0) |
 | Mobile gamification | Rewards system: quests, XP/levels, points shop, streaks (v5.7.0) |
+| Fiat on/off ramp | Onramper aggregator with provider-agnostic session management (v5.12.0) |
+| Design system v2 | Complete frontend overhaul with consistent typography, dark heroes (v5.12.0) |
 | Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
 
 ---
