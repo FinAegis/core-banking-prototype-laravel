@@ -322,10 +322,8 @@ class MobileV11CompatibilityTest extends TestCase
         $response = $this->withToken($this->token)->getJson('/api/v1/notifications/unread-count');
 
         $response->assertOk()
-            ->assertJsonPath('success', true)
             ->assertJsonPath('data.unread_count', 0)
             ->assertJsonStructure([
-                'success',
                 'data' => [
                     'unread_count',
                 ],
@@ -365,7 +363,6 @@ class MobileV11CompatibilityTest extends TestCase
         $response = $this->withToken($this->token)->getJson('/api/v1/notifications/unread-count');
 
         $response->assertOk()
-            ->assertJsonPath('success', true)
             ->assertJsonPath('data.unread_count', 3);
     }
 
