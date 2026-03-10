@@ -290,7 +290,15 @@ class PasskeyController extends Controller
     )]
     public function authenticate(PasskeyAuthenticateRequest $request): JsonResponse
     {
-        $device = $this->deviceService->findByDeviceId($request->device_id);
+        // Standard WebAuthn: look up device by credential_id (no device_id needed).
+        // Legacy flow: look up by device_id directly.
+        if ($request->device_id) {
+            $device = $this->deviceService->findByDeviceId($request->device_id);
+        } else {
+            $device = MobileDevice::where('passkey_credential_id', $request->credential_id)
+                ->where('passkey_enabled', true)
+                ->first();
+        }
 
         if (! $device) {
             return response()->json([
