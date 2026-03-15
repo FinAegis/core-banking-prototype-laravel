@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
 
 <!-- Microsoft Tiles -->
-<meta name="msapplication-TileColor" content="#6366F1">
+<meta name="msapplication-TileColor" content="#0a0a0a">
 <meta name="msapplication-TileImage" content="/mstile-144x144.png">
 <meta name="msapplication-config" content="/browserconfig.xml">
 
@@ -24,7 +24,7 @@
 <link rel="manifest" href="/manifest.json">
 
 <!-- Theme Color -->
-<meta name="theme-color" content="#6366F1">
+<meta name="theme-color" content="#0a0a0a">
 
 <!-- Safari Pinned Tab -->
-<link rel="mask-icon" href="/favicon.svg" color="#6366F1">
+<link rel="mask-icon" href="/favicon.svg" color="#0a0a0a">

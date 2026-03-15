@@ -9,33 +9,31 @@ class SchemaHelper
      */
     public static function organization(): string
     {
+        $brand = config('brand.name', 'Zelta');
         $schema = [
-            '@context'      => 'https://schema.org',
-            '@type'         => 'Organization',
-            'name'          => 'FinAegis',
-            'alternateName' => 'FinAegis Core Banking Platform',
-            'url'           => config('app.url'),
-            'logo'          => config('app.url') . '/images/logo.png',
-            'sameAs'        => [
-                'https://github.com/FinAegis',
-                'https://twitter.com/FinAegis',
-                'https://linkedin.com/company/finaegis',
+            '@context' => 'https://schema.org',
+            '@type'    => 'Organization',
+            'name'     => $brand,
+            'url'      => config('app.url'),
+            'logo'     => config('app.url') . '/images/logo.png',
+            'sameAs'   => [
+                config('brand.github_url', 'https://github.com/FinAegis'),
             ],
             'contactPoint' => [
                 '@type'       => 'ContactPoint',
                 'contactType' => 'customer support',
-                'email'       => 'info@finaegis.org',
+                'email'       => config('brand.support_email', 'info@finaegis.org'),
                 'url'         => config('app.url') . '/support/contact',
             ],
-            'description'  => 'FinAegis is an enterprise financial platform powering the future of banking with democratic governance and real bank integration.',
+            'description'  => $brand . ' — Agentic payments with stablecoin-powered virtual cards. Non-custodial security and privacy built in.',
             'foundingDate' => '2024',
-            'slogan'       => 'Powering the Future of Banking',
+            'slogan'       => config('brand.tagline', 'Agentic Payments. Spend Anywhere.'),
             'knowsAbout'   => [
-                'Core Banking',
+                'Agentic Payments',
+                'Stablecoin Cards',
+                'Non-Custodial Wallets',
+                'Privacy Payments',
                 'Financial Technology',
-                'Global Currency Unit (GCU)',
-                'Democratic Banking',
-                'Open Banking API',
             ],
         ];
 
@@ -50,7 +48,7 @@ class SchemaHelper
         $schema = [
             '@context'        => 'https://schema.org',
             '@type'           => 'WebSite',
-            'name'            => 'FinAegis',
+            'name'            => config('brand.name', 'Zelta'),
             'url'             => config('app.url'),
             'potentialAction' => [
                 '@type'  => 'SearchAction',
@@ -70,31 +68,24 @@ class SchemaHelper
      */
     public static function softwareApplication(): string
     {
+        $brand = config('brand.name', 'Zelta');
         $schema = [
             '@context'            => 'https://schema.org',
-            '@type'               => 'SoftwareApplication',
-            'name'                => 'FinAegis Core Banking Platform',
-            'operatingSystem'     => 'Linux, macOS, Windows',
+            '@type'               => 'MobileApplication',
+            'name'                => $brand,
+            'operatingSystem'     => 'iOS, Android',
             'applicationCategory' => 'FinanceApplication',
             'offers'              => [
                 [
                     '@type'         => 'Offer',
                     'price'         => '0',
                     'priceCurrency' => 'USD',
-                    'name'          => 'Community Edition',
-                ],
-                [
-                    '@type' => 'Offer',
-                    'price' => 'Contact for pricing',
-                    'name'  => 'Enterprise Edition',
                 ],
             ],
-            'softwareVersion'      => '1.0',
-            'softwareRequirements' => 'PHP 8.2+, MySQL 8.0+, Redis',
-            'permissions'          => 'MIT License',
-            'developer'            => [
+            'description' => 'Agentic payments — get your personal card or your AI agent a card to spend anywhere. Stablecoin-powered, non-custodial.',
+            'developer'   => [
                 '@type' => 'Organization',
-                'name'  => 'FinAegis',
+                'name'  => $brand,
             ],
         ];
 
@@ -113,7 +104,7 @@ class SchemaHelper
             'description' => 'The world\'s first democratically governed basket currency with real bank backing and government insurance.',
             'brand'       => [
                 '@type' => 'Brand',
-                'name'  => 'FinAegis',
+                'name'  => config('brand.name', 'Zelta'),
             ],
             'category'    => 'Digital Currency',
             'isRelatedTo' => [
@@ -201,7 +192,7 @@ class SchemaHelper
             'description' => $description,
             'provider'    => [
                 '@type' => 'Organization',
-                'name'  => 'FinAegis',
+                'name'  => config('brand.name', 'Zelta'),
             ],
             'serviceType'     => $category,
             'areaServed'      => 'Global',
@@ -226,11 +217,11 @@ class SchemaHelper
             'description' => $data['description'],
             'author'      => [
                 '@type' => 'Organization',
-                'name'  => 'FinAegis',
+                'name'  => config('brand.name', 'Zelta'),
             ],
             'publisher' => [
                 '@type' => 'Organization',
-                'name'  => 'FinAegis',
+                'name'  => config('brand.name', 'Zelta'),
                 'logo'  => [
                     '@type' => 'ImageObject',
                     'url'   => config('app.url') . '/images/logo.png',

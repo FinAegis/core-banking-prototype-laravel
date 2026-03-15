@@ -17,7 +17,7 @@ return [
 
     'name' => env('APP_BRAND', env('APP_NAME', 'FinAegis')),
 
-    'tagline' => env('BRAND_TAGLINE', 'Pay with Stablecoins. Stay Private.'),
+    'tagline' => env('BRAND_TAGLINE', 'Agentic Payments. Spend Anywhere.'),
 
     'support_email' => env('BRAND_SUPPORT_EMAIL', 'info@finaegis.org'),
 

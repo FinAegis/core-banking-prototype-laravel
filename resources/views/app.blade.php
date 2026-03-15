@@ -7,14 +7,14 @@
 
     @php $brand = config('brand.name'); @endphp
 
-    <title>{{ $brand }} App — Pay with Stablecoins. Stay Private.</title>
+    <title>{{ $brand }} — Agentic Payments | Get Your Card to Spend Anywhere</title>
 
     @include('partials.favicon')
 
     @include('partials.seo', [
-        'title' => $brand . ' App — Pay with Stablecoins in Shops',
-        'description' => 'Pay at any shop with your stablecoin card. Your transactions stay private. Your identity stays yours. Get early access to the ' . $brand . ' mobile wallet.',
-        'keywords' => $brand . ', stablecoin wallet, USDC payments, privacy wallet, tap to pay crypto, shielded transactions, Super KYC',
+        'title' => $brand . ' — Agentic Payments',
+        'description' => 'Get your personal card to spend anywhere. Get your agent a card to spend anywhere. Stablecoin-powered virtual cards with non-custodial security and privacy built in.',
+        'keywords' => $brand . ', agentic payments, AI agent card, stablecoin card, virtual card, crypto payments, non-custodial wallet, tap to pay crypto, privacy payments',
     ])
 
     {{-- Fonts: Space Grotesk, JetBrains Mono, DM Sans --}}
@@ -139,6 +139,10 @@
             html { scroll-behavior: auto; }
         }
     </style>
+
+    {{-- JSON-LD Structured Data --}}
+    <x-schema type="organization" />
+    <x-schema type="software" />
 </head>
 <body class="antialiased">
 
@@ -665,6 +669,9 @@
                 </div>
                 @endforeach
             </div>
+
+            {{-- FAQ JSON-LD Schema --}}
+            <x-schema type="faq" :data="array_map(fn($f) => ['question' => $f['q'], 'answer' => $f['a']], $faqs)" />
         </div>
     </section>
 

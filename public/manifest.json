@@ -1,10 +1,10 @@
 {
-    "name": "FinAegis Core Banking",
-    "short_name": "FinAegis",
-    "description": "Modern Core Banking Platform",
+    "name": "Zelta — Agentic Payments",
+    "short_name": "Zelta",
+    "description": "Get your personal card to spend anywhere. Get your agent a card to spend anywhere. Stablecoin-powered, non-custodial.",
     "start_url": "/",
     "display": "standalone",
-    "theme_color": "#6366F1",
+    "theme_color": "#0a0a0a",
     "background_color": "#ffffff",
     "icons": [
         {

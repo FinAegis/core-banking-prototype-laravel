@@ -14,8 +14,8 @@
     @else
         @include('partials.seo', [
             'title' => config('brand.name', 'FinAegis'),
-            'description' => config('brand.name', 'FinAegis') . ' - The Enterprise Financial Platform Powering the Future of Banking.',
-            'keywords' => config('brand.name', 'FinAegis') . ', banking platform, fintech, core banking system',
+            'description' => config('brand.name', 'Zelta') . ' — Agentic payments with stablecoin-powered virtual cards. Non-custodial security and privacy built in.',
+            'keywords' => config('brand.name', 'Zelta') . ', agentic payments, stablecoin card, virtual card, crypto payments, non-custodial wallet',
         ])
     @endif
 

@@ -47,17 +47,17 @@ class SchemaHelperTest extends TestCase
         $json = $this->extractJsonFromScript($result);
         $schema = json_decode($json, true);
 
+        $brand = config('brand.name', 'Zelta');
         $this->assertEquals('https://schema.org', $schema['@context']);
         $this->assertEquals('Organization', $schema['@type']);
-        $this->assertEquals('FinAegis', $schema['name']);
-        $this->assertEquals('FinAegis Core Banking Platform', $schema['alternateName']);
+        $this->assertEquals($brand, $schema['name']);
         $this->assertArrayHasKey('logo', $schema);
         $this->assertArrayHasKey('sameAs', $schema);
         $this->assertIsArray($schema['sameAs']);
         $this->assertArrayHasKey('contactPoint', $schema);
         $this->assertEquals('ContactPoint', $schema['contactPoint']['@type']);
         $this->assertArrayHasKey('knowsAbout', $schema);
-        $this->assertContains('Core Banking', $schema['knowsAbout']);
+        $this->assertContains('Agentic Payments', $schema['knowsAbout']);
     }
 
     #[Test]
@@ -70,7 +70,7 @@ class SchemaHelperTest extends TestCase
 
         $this->assertEquals('https://schema.org', $schema['@context']);
         $this->assertEquals('WebSite', $schema['@type']);
-        $this->assertEquals('FinAegis', $schema['name']);
+        $this->assertEquals(config('brand.name', 'Zelta'), $schema['name']);
         $this->assertArrayHasKey('potentialAction', $schema);
         $this->assertEquals('SearchAction', $schema['potentialAction']['@type']);
         $this->assertArrayHasKey('target', $schema['potentialAction']);
@@ -85,15 +85,15 @@ class SchemaHelperTest extends TestCase
         $json = $this->extractJsonFromScript($result);
         $schema = json_decode($json, true);
 
+        $brand = config('brand.name', 'Zelta');
         $this->assertEquals('https://schema.org', $schema['@context']);
-        $this->assertEquals('SoftwareApplication', $schema['@type']);
-        $this->assertEquals('FinAegis Core Banking Platform', $schema['name']);
-        $this->assertEquals('Linux, macOS, Windows', $schema['operatingSystem']);
+        $this->assertEquals('MobileApplication', $schema['@type']);
+        $this->assertEquals($brand, $schema['name']);
+        $this->assertEquals('iOS, Android', $schema['operatingSystem']);
         $this->assertEquals('FinanceApplication', $schema['applicationCategory']);
         $this->assertArrayHasKey('offers', $schema);
         $this->assertIsArray($schema['offers']);
-        $this->assertCount(2, $schema['offers']);
-        $this->assertEquals('Community Edition', $schema['offers'][0]['name']);
+        $this->assertCount(1, $schema['offers']);
         $this->assertEquals('0', $schema['offers'][0]['price']);
     }
 
@@ -109,7 +109,7 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals('Product', $schema['@type']);
         $this->assertEquals('Global Currency Unit (GCU)', $schema['name']);
         $this->assertArrayHasKey('brand', $schema);
-        $this->assertEquals('FinAegis', $schema['brand']['name']);
+        $this->assertEquals(config('brand.name', 'Zelta'), $schema['brand']['name']);
         $this->assertEquals('Digital Currency', $schema['category']);
         $this->assertArrayHasKey('offers', $schema);
         $this->assertEquals('1.00', $schema['offers']['price']);
@@ -185,7 +185,7 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals($category, $schema['serviceType']);
         $this->assertEquals('Global', $schema['areaServed']);
         $this->assertArrayHasKey('provider', $schema);
-        $this->assertEquals('FinAegis', $schema['provider']['name']);
+        $this->assertEquals(config('brand.name', 'Zelta'), $schema['provider']['name']);
     }
 
     #[Test]
@@ -214,7 +214,7 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals($data['image'], $schema['image']);
         $this->assertArrayHasKey('author', $schema);
         $this->assertArrayHasKey('publisher', $schema);
-        $this->assertEquals('FinAegis', $schema['author']['name']);
+        $this->assertEquals(config('brand.name', 'Zelta'), $schema['author']['name']);
     }
 
     #[Test]
