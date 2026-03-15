@@ -2095,6 +2095,35 @@ Wire existing observability infrastructure to production routes and improve API 
 
 ---
 
+## v5.14.0 — RPC Optimization & WebSocket Balance Events ✅ COMPLETED
+
+**Released**: March 15, 2026
+**Theme**: Eliminate polling, reduce Alchemy RPC costs by 90%+
+
+### Problem
+Mobile app polling `wallet/balances` + `wallet/state` every 60s generated ~98K Alchemy RPC calls/day from a single device. `eth_blockNumber` and `eth_gasPrice` had zero caching. `MobileWalletController` type-hinted the concrete `WalletBalanceService` instead of the interface, bypassing the demo/production service swap entirely.
+
+### Delivered
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| RPC Call Caching | ✅ | Cache `getBlockNumber`, `getGasPrice`, `getMaxPriorityFeePerGas` with 15s TTL |
+| Balance Cache TTL | ✅ | Increased from 30s → 120s (configurable via `BALANCE_CACHE_TTL`) |
+| Interface Fix | ✅ | `MobileWalletController` now uses `WalletBalanceProviderInterface` — demo/prod swap works |
+| `wallet.balance_updated` Event | ✅ | Broadcast on `private-wallet.{userId}` when token transfer detected |
+| `wallet.state_changed` Event | ✅ | Broadcast when smart account created/deployed |
+| `privacy.balance_updated` Event | ✅ | Broadcast when shield/unshield/transfer completes |
+| Alchemy Webhook Controller | ✅ | `POST /api/webhooks/alchemy/address-activity` with HMAC-SHA256 verification |
+| Channel Authorization | ✅ | `private-wallet.{userId}` registered in channels.php |
+
+### Key Details
+- PRs #752-#753
+- Expected impact: ~90% reduction in Alchemy RPC calls (98K → ~10K/day)
+- Mobile PR #260 (client side) fully compatible
+- New env vars: `RPC_CACHE_TTL`, `BALANCE_CACHE_TTL`, `ALCHEMY_WEBHOOK_SIGNING_KEY`
+
+---
+
 ## v6.0.0 — Platform Completeness & Developer Ecosystem (PLANNED)
 
 **Target**: Q2 2026
@@ -2163,6 +2192,6 @@ Wire existing observability infrastructure to production routes and improve API 
 
 ---
 
-*Document Version: 6.0.0-planned*
+*Document Version: 5.14.0*
 *Created: January 11, 2026*
-*Updated: March 15, 2026 (v5.13.0 Zelta Rebrand released, v6.0.0 roadmap planned)*
+*Updated: March 15, 2026 (v5.14.0 RPC Optimization & WebSocket Events released)*
