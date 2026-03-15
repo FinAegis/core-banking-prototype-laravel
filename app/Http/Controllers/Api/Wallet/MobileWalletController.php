@@ -10,9 +10,9 @@ use App\Domain\MobilePayment\Models\PaymentIntent;
 use App\Domain\MobilePayment\Services\ActivityFeedService;
 use App\Domain\MobilePayment\Services\PaymentIntentService;
 use App\Domain\MobilePayment\Services\TransactionDetailService;
+use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Services\SmartAccountService;
-use App\Domain\Relayer\Services\WalletBalanceService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,7 +22,7 @@ use Throwable;
 class MobileWalletController extends Controller
 {
     public function __construct(
-        private readonly WalletBalanceService $balanceService,
+        private readonly WalletBalanceProviderInterface $balanceService,
         private readonly SmartAccountService $smartAccountService,
         private readonly ActivityFeedService $activityFeedService,
         private readonly TransactionDetailService $transactionDetailService,
