@@ -30,7 +30,7 @@ class CgoInvestmentReceived extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'CGO Investment Confirmation - FinAegis',
+            subject: 'CGO Investment Confirmation - ' . config('brand.name'),
         );
     }
 

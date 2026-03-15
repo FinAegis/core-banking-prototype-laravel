@@ -26,7 +26,7 @@ class CgoCryptoPaymentInstructions extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'CGO Crypto Payment Instructions - FinAegis',
+            subject: 'CGO Crypto Payment Instructions - ' . config('brand.name'),
         );
     }
 

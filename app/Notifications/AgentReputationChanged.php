@@ -79,7 +79,7 @@ class AgentReputationChanged extends Notification implements ShouldQueue
             ->line('- Change: ' . ($reputation['change'] ?? 0) . ' points')
             ->line('')
             ->action('View Agent Dashboard', url('/admin/agent-protocol'))
-            ->line('Thank you for using FinAegis!');
+            ->line('Thank you for using ' . config('brand.name') . '!');
     }
 
     /**

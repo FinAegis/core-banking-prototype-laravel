@@ -30,13 +30,13 @@ class SubscriberWelcome extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         $sourceText = match ($this->subscriber->source) {
-            Subscriber::SOURCE_BLOG       => 'FinAegis Blog',
+            Subscriber::SOURCE_BLOG       => config('brand.name') . ' Blog',
             Subscriber::SOURCE_CGO        => 'CGO Early Access',
             Subscriber::SOURCE_INVESTMENT => 'Investment Platform',
             Subscriber::SOURCE_FOOTER     => 'Newsletter',
             Subscriber::SOURCE_CONTACT    => 'Contact Form',
             Subscriber::SOURCE_PARTNER    => 'Partner Program',
-            default                       => 'FinAegis Platform',
+            default                       => config('brand.name'),
         };
 
         return new Envelope(

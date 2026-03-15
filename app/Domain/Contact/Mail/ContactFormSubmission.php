@@ -28,7 +28,7 @@ class ContactFormSubmission extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[FinAegis Contact] ' . ucfirst($this->submission->priority) . ' - ' . $this->submission->subject_label,
+            subject: '[' . config('brand.name') . ' Contact] ' . ucfirst($this->submission->priority) . ' - ' . $this->submission->subject_label,
             replyTo: $this->submission->email,
         );
     }

@@ -29,7 +29,7 @@ class CgoNotificationReceived extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'FinAegis CGO - Early Access Confirmed',
+            subject: config('brand.name') . ' CGO - Early Access Confirmed',
         );
     }
 

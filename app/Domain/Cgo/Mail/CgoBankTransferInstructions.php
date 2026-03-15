@@ -26,7 +26,7 @@ class CgoBankTransferInstructions extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'CGO Bank Transfer Instructions - FinAegis',
+            subject: 'CGO Bank Transfer Instructions - ' . config('brand.name'),
         );
     }
 
