@@ -253,6 +253,11 @@ Route::post('v1/ramp/webhook/{provider}', [App\Http\Controllers\Api\V1\RampWebho
     ->middleware('api.rate_limit:webhook')
     ->name('api.v1.ramp.webhook');
 
+// v5.14.0 — Alchemy Address Activity Webhook (no auth, HMAC verified)
+Route::post('webhooks/alchemy/address-activity', [App\Http\Controllers\Api\Webhook\AlchemyWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.alchemy.address-activity');
+
 // v5.13.0 — Referral System
 Route::prefix('v1/referrals')->name('api.v1.referrals.')
     ->middleware(['auth:sanctum'])

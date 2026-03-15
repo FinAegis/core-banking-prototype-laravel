@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Privacy;
 
 use App\Domain\Privacy\Contracts\MerkleTreeServiceInterface;
+use App\Domain\Privacy\Events\Broadcast\PrivacyBalanceUpdated;
 use App\Domain\Privacy\Events\Broadcast\PrivacyOperationCompleted;
 use App\Domain\Privacy\Exceptions\CommitmentNotFoundException;
 use App\Domain\Privacy\Models\DelegatedProofJob;
@@ -772,6 +773,7 @@ class PrivacyController extends Controller
                 network: $validated['network'],
                 status: 'completed',
             );
+            PrivacyBalanceUpdated::dispatch($user->id, $validated['network']);
 
             return response()->json([
                 'success' => true,
@@ -862,6 +864,7 @@ class PrivacyController extends Controller
                 network: $validated['network'],
                 status: 'completed',
             );
+            PrivacyBalanceUpdated::dispatch($user->id, $validated['network']);
 
             return response()->json([
                 'success' => true,
@@ -956,6 +959,7 @@ class PrivacyController extends Controller
                 network: $validated['network'],
                 status: 'completed',
             );
+            PrivacyBalanceUpdated::dispatch($user->id, $validated['network']);
 
             return response()->json([
                 'success' => true,

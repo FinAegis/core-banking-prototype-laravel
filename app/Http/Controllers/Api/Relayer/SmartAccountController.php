@@ -170,6 +170,9 @@ class SmartAccountController extends Controller
                 $validated['network']
             );
 
+            // Notify mobile that wallet state changed (new account created/deployed)
+            \App\Domain\Wallet\Events\Broadcast\WalletStateChanged::dispatch($user->id);
+
             return response()->json([
                 'success' => true,
                 'data'    => $account->toApiResponse(),

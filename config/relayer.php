@@ -224,6 +224,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Alchemy Webhook Configuration (v5.14.0)
+    |--------------------------------------------------------------------------
+    |
+    | Signing key for verifying Alchemy Address Activity Webhooks.
+    | Set via Alchemy Dashboard → Notify → Signing Key.
+    |
+    */
+
+    'alchemy_webhook_signing_key' => env('ALCHEMY_WEBHOOK_SIGNING_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Gas Sponsorship Configuration (v5.13.0)
     |--------------------------------------------------------------------------
     |

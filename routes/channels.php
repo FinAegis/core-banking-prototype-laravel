@@ -146,3 +146,19 @@ Broadcast::channel('commerce.{merchantId}', function ($user, string $merchantId)
 Broadcast::channel('trustcert.{userId}', function ($user, int $userId) {
     return $user->id === $userId;
 });
+
+/*
+|--------------------------------------------------------------------------
+| Wallet Balance & State Channels (v5.14.0)
+|--------------------------------------------------------------------------
+|
+| Real-time wallet balance and state updates. Replaces 60-second polling
+| with event-driven WebSocket pushes triggered by Alchemy Address Activity
+| Webhooks and internal wallet state changes.
+|
+*/
+
+// Wallet balance/state updates - user-specific
+Broadcast::channel('wallet.{userId}', function ($user, int $userId) {
+    return $user->id === $userId;
+});
