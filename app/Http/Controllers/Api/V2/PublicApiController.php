@@ -28,7 +28,7 @@ class PublicApiController extends Controller
         response: 200,
         description: 'API information',
         content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'name', type: 'string', example: 'FinAegis Public API'),
+        new OA\Property(property: 'name', type: 'string', example: 'Zelta Public API'),
         new OA\Property(property: 'version', type: 'string', example: '2.0.0'),
         new OA\Property(property: 'description', type: 'string'),
         new OA\Property(property: 'status', type: 'string', example: 'operational'),
@@ -39,17 +39,17 @@ class PublicApiController extends Controller
         new OA\Property(property: 'baskets', type: 'string', example: '/v2/baskets'),
         new OA\Property(property: 'webhooks', type: 'string', example: '/v2/webhooks'),
         ]),
-        new OA\Property(property: 'documentation', type: 'string', example: 'https://docs.finaegis.org'),
-        new OA\Property(property: 'support', type: 'string', example: 'api@finaegis.org'),
+        new OA\Property(property: 'documentation', type: 'string', example: 'https://docs.zelta.app'),
+        new OA\Property(property: 'support', type: 'string', example: 'api@zelta.app'),
         ])
     )]
     public function index(): JsonResponse
     {
         return response()->json(
             [
-                'name'        => 'FinAegis Public API',
+                'name'        => config('brand.name', 'Zelta') . ' Public API',
                 'version'     => '2.0.0',
-                'description' => 'Public API for the FinAegis GCU Platform',
+                'description' => 'Public API for ' . config('brand.name', 'Zelta') . ' — agentic payments platform',
                 'status'      => 'operational',
                 'endpoints'   => [
                     'accounts'       => '/v2/accounts',
@@ -74,9 +74,9 @@ class PublicApiController extends Controller
                     'requests_per_hour'   => 1000,
                     'burst_limit'         => 100,
                 ],
-                'documentation' => 'https://docs.finaegis.org',
-                'support'       => 'api@finaegis.org',
-                'sandbox'       => 'https://sandbox.api.finaegis.org',
+                'documentation' => config('app.url') . '/api/documentation',
+                'support'       => config('brand.support_email', 'info@finaegis.org'),
+                'sandbox'       => config('app.url') . '/api/v2',
             ]
         );
     }

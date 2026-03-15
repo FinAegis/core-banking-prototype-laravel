@@ -15,17 +15,17 @@ return [
     |
     */
 
-    'name' => env('APP_BRAND', env('APP_NAME', 'FinAegis')),
+    'name' => env('APP_BRAND', env('APP_NAME', 'Zelta')),
 
     'tagline' => env('BRAND_TAGLINE', 'Agentic Payments. Spend Anywhere.'),
 
-    'support_email' => env('BRAND_SUPPORT_EMAIL', 'info@finaegis.org'),
+    'support_email' => env('BRAND_SUPPORT_EMAIL', 'support@zelta.app'),
 
-    'legal_email' => env('BRAND_LEGAL_EMAIL', 'legal@finaegis.org'),
+    'legal_email' => env('BRAND_LEGAL_EMAIL', 'legal@zelta.app'),
 
-    'privacy_email' => env('BRAND_PRIVACY_EMAIL', 'privacy@finaegis.org'),
+    'privacy_email' => env('BRAND_PRIVACY_EMAIL', 'privacy@zelta.app'),
 
-    'legal_entity' => env('BRAND_LEGAL_ENTITY', 'FinAegis'),
+    'legal_entity' => env('BRAND_LEGAL_ENTITY', 'Zelta'),
 
     'legal_jurisdiction' => env('BRAND_LEGAL_JURISDICTION', 'Vilnius, Lithuania'),
 

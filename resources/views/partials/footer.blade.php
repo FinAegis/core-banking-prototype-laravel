@@ -5,9 +5,8 @@
         <div class="grid grid-cols-2 md:grid-cols-12 gap-8 lg:gap-12">
             <!-- Brand Column -->
             <div class="col-span-2 md:col-span-4 lg:col-span-5">
-                <a href="/" class="flex items-center gap-0.5 mb-5">
-                    <span class="text-xl font-display font-bold text-white tracking-tight">Fin</span>
-                    <span class="text-xl font-display font-bold text-gradient tracking-tight">Aegis</span>
+                <a href="/" class="flex items-center gap-2 mb-5">
+                    <span class="text-xl font-display font-bold text-white tracking-tight">{{ config('brand.name', 'Zelta') }}</span>
                 </a>
                 <p class="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
                     Open-source core banking infrastructure for the next generation of financial services. MIT licensed.
@@ -68,7 +67,7 @@
     <div class="border-t border-white/[0.04]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <p class="text-xs text-slate-600">&copy; 2026 FinAegis. All rights reserved.</p>
+                <p class="text-xs text-slate-600">&copy; {{ date('Y') }} {{ config('brand.legal_entity', config('brand.name', 'Zelta')) }}. All rights reserved.</p>
                 <div class="flex items-center gap-6">
                     <a href="{{ route('legal.terms') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Terms</a>
                     <a href="{{ route('legal.privacy') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Privacy</a>

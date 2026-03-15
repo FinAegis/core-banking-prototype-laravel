@@ -1,129 +1,73 @@
 <?php
 
-// Output directory
-$publicPath = __DIR__.'/../public/images';
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2024-2026 FinAegis Contributors
 
-// Create images directory if it doesn't exist
+// Generate OG images for social sharing.
+// Uses ImageMagick CLI (convert) for high-quality rendering.
+//
+// Usage: php scripts/generate-og-image.php
+// Requires: ImageMagick (apt install imagemagick)
+
+$publicPath = __DIR__ . '/../public/images';
+
 if (! file_exists($publicPath)) {
     mkdir($publicPath, 0755, true);
 }
 
-// Create Open Graph image (1200x630)
-$width = 1200;
-$height = 630;
+$brand = 'Zelta';
+$headline = 'Agentic Payments';
+$sub1 = 'Get your personal card to spend anywhere.';
+$sub2 = 'Get your agent a card to spend anywhere.';
+$pill = 'Stablecoin-Powered';
+$url = 'zelta.app';
 
-// Create image
-$image = imagecreatetruecolor($width, $height);
+// OG Default (1200x630)
+$cmd = <<<'CMD'
+convert -size 1200x630 xc:none \
+  \( -size 1200x630 xc:'#a8f0c4' -size 1200x630 xc:'#c8a8f0' +append -resize 1200x630! -blur 0x80 \) -composite \
+  \( -size 1040x470 xc:white -stroke '#0a0a0a' -strokewidth 3 -fill white -draw "roundrectangle 0,0 1039,469 16,16" \) -gravity center -composite \
+  \( -size 56x56 xc:'#a8f0c4' -stroke '#0a0a0a' -strokewidth 3 -fill '#a8f0c4' -draw "roundrectangle 0,0 55,55 10,10" -font Helvetica-Bold -pointsize 32 -fill '#0a0a0a' -gravity center -annotate +0+0 "Z" \) -gravity NorthWest -geometry +110+102 -composite \
+  -font Helvetica-Bold -pointsize 30 -fill '#0a0a0a' -gravity NorthWest -annotate +180+116 "%BRAND%" \
+  -font Helvetica-Bold -pointsize 60 -fill '#0a0a0a' -annotate +110+210 "%HEADLINE%" \
+  -font DejaVu-Sans -pointsize 26 -fill '#444444' -annotate +110+300 "%SUB1%" -annotate +110+340 "%SUB2%" \
+  \( -size 260x44 xc:'#ccff00' -stroke '#0a0a0a' -strokewidth 3 -fill '#ccff00' -draw "roundrectangle 0,0 259,43 22,22" -font Helvetica-Bold -pointsize 17 -fill '#0a0a0a' -gravity center -annotate +0+0 "%PILL%" \) -gravity NorthWest -geometry +110+385 -composite \
+  \( -size 230x150 xc:'#c8a8f0' -stroke '#0a0a0a' -strokewidth 3 -fill '#c8a8f0' -draw "roundrectangle 0,0 229,149 14,14" \( -size 38x28 xc:'#f59e0b' -stroke '#0a0a0a' -strokewidth 2 -fill '#f59e0b' -draw "roundrectangle 0,0 37,27 5,5" \) -gravity NorthWest -geometry +24+36 -composite -font DejaVu-Sans -pointsize 16 -fill '#0a0a0a' -gravity SouthWest -annotate +24+24 "**** **** **** 4242" \) -gravity NorthWest -geometry +840+170 -composite \
+  \( -size 200x130 xc:'#a8c8f0' -stroke '#0a0a0a' -strokewidth 3 -fill '#a8c8f0' -draw "roundrectangle 0,0 199,129 12,12" -font Helvetica-Bold -pointsize 12 -fill '#0a0a0a' -gravity NorthWest -annotate +20+20 "AI AGENT" \( -size 30x22 xc:'#10b981' -stroke '#0a0a0a' -strokewidth 2 -fill '#10b981' -draw "roundrectangle 0,0 29,21 4,4" \) -gravity NorthWest -geometry +20+42 -composite -font DejaVu-Sans -pointsize 14 -fill '#0a0a0a' -gravity SouthWest -annotate +20+20 "**** **** 7890" \) -gravity NorthWest -geometry +870+350 -composite \
+  -font DejaVu-Sans -pointsize 15 -fill '#888888' -gravity NorthWest -annotate +110+475 "%URL%" \
+  %OUTPUT%
+CMD;
 
-// Define colors
-$bgGradient1 = imagecolorallocate($image, 99, 102, 241); // #6366F1
-$bgGradient2 = imagecolorallocate($image, 147, 51, 234); // #9333EA
-$white = imagecolorallocate($image, 255, 255, 255);
-$darkGray = imagecolorallocate($image, 31, 41, 55); // #1F2937
+$ogCmd = str_replace(
+    ['%BRAND%', '%HEADLINE%', '%SUB1%', '%SUB2%', '%PILL%', '%URL%', '%OUTPUT%'],
+    [$brand, $headline, $sub1, $sub2, $pill, $url, escapeshellarg($publicPath . '/og-default.png')],
+    $cmd
+);
 
-// Create gradient background
-for ($i = 0; $i < $height; $i++) {
-    $ratio = $i / $height;
-    $r = (int) (99 + $ratio * (147 - 99));
-    $g = (int) (102 + $ratio * (51 - 102));
-    $b = (int) (241 + $ratio * (234 - 241));
-    $lineColor = imagecolorallocate($image, $r, $g, $b);
-    imageline($image, 0, $i, $width, $i, $lineColor);
-}
+exec($ogCmd, $output, $exitCode);
+echo $exitCode === 0 ? "Created: og-default.png\n" : "Failed: og-default.png\n";
 
-// Add semi-transparent overlay for better text contrast
-$overlay = imagecreatetruecolor($width, $height);
-$black = imagecolorallocate($overlay, 0, 0, 0);
-imagefilledrectangle($overlay, 0, 0, $width, $height, $black);
-imagecopymerge($image, $overlay, 0, 0, 0, 0, $width, $height, 20);
-imagedestroy($overlay);
+// Twitter (1024x512) — simplified version
+$twitterCmd = <<<'CMD'
+convert -size 1024x512 xc:none \
+  \( -size 1024x512 xc:'#a8f0c4' -size 1024x512 xc:'#c8a8f0' +append -resize 1024x512! -blur 0x60 \) -composite \
+  \( -size 920x400 xc:white -stroke '#0a0a0a' -strokewidth 3 -fill white -draw "roundrectangle 0,0 919,399 14,14" \) -gravity center -composite \
+  \( -size 48x48 xc:'#a8f0c4' -stroke '#0a0a0a' -strokewidth 3 -fill '#a8f0c4' -draw "roundrectangle 0,0 47,47 9,9" -font Helvetica-Bold -pointsize 28 -fill '#0a0a0a' -gravity center -annotate +0+0 "Z" \) -gravity NorthWest -geometry +76+74 -composite \
+  -font Helvetica-Bold -pointsize 26 -fill '#0a0a0a' -gravity NorthWest -annotate +138+86 "%BRAND%" \
+  -font Helvetica-Bold -pointsize 50 -fill '#0a0a0a' -annotate +76+170 "%HEADLINE%" \
+  -font DejaVu-Sans -pointsize 22 -fill '#444444' -annotate +76+250 "%SUB1%" -annotate +76+282 "%SUB2%" \
+  \( -size 230x38 xc:'#ccff00' -stroke '#0a0a0a' -strokewidth 3 -fill '#ccff00' -draw "roundrectangle 0,0 229,37 19,19" -font Helvetica-Bold -pointsize 15 -fill '#0a0a0a' -gravity center -annotate +0+0 "%PILL%" \) -gravity NorthWest -geometry +76+320 -composite \
+  -font DejaVu-Sans -pointsize 13 -fill '#888888' -gravity NorthWest -annotate +76+396 "%URL%" \
+  %OUTPUT%
+CMD;
 
-// Add logo/brand text
-$fontSize = 72;
-$font = 5; // Built-in font
-$text = 'FinAegis';
+$twitterCmd = str_replace(
+    ['%BRAND%', '%HEADLINE%', '%SUB1%', '%SUB2%', '%PILL%', '%URL%', '%OUTPUT%'],
+    [$brand, $headline, $sub1, $sub2, $pill, $url, escapeshellarg($publicPath . '/og-twitter.png')],
+    $twitterCmd
+);
 
-// Calculate text position for centering
-$textWidth = imagefontwidth($font) * strlen($text) * 8;
-$x = ($width - $textWidth) / 2;
-$y = 200;
+exec($twitterCmd, $output2, $exitCode2);
+echo $exitCode2 === 0 ? "Created: og-twitter.png\n" : "Failed: og-twitter.png\n";
 
-// Draw main brand text with larger size (simulated)
-for ($i = 0; $i < 8; $i++) {
-    for ($j = 0; $j < 8; $j++) {
-        imagestring($image, 5, $x + $i, $y + $j, $text, $white);
-    }
-}
-
-// Add tagline
-$tagline = 'The Enterprise Financial Platform';
-$taglineSize = 3;
-$taglineWidth = imagefontwidth($taglineSize) * strlen($tagline);
-$taglineX = ($width - $taglineWidth) / 2;
-$taglineY = 320;
-
-imagestring($image, $taglineSize, $taglineX, $taglineY, $tagline, $white);
-
-// Add feature text
-$feature1 = 'Powering the Future of Banking';
-$feature2 = 'Democratic Governance | Real Bank Integration';
-$featureSize = 2;
-
-$feature1Width = imagefontwidth($featureSize) * strlen($feature1);
-$feature1X = ($width - $feature1Width) / 2;
-imagestring($image, $featureSize, $feature1X, 420, $feature1, $white);
-
-$feature2Width = imagefontwidth($featureSize) * strlen($feature2);
-$feature2X = ($width - $feature2Width) / 2;
-imagestring($image, $featureSize, $feature2X, 450, $feature2, $white);
-
-// Save the image
-imagepng($image, $publicPath.'/og-default.png');
-imagedestroy($image);
-
-echo "Created: og-default.png\n";
-
-// Create a smaller version for Twitter (1024x512)
-$twitterWidth = 1024;
-$twitterHeight = 512;
-
-$twitterImage = imagecreatetruecolor($twitterWidth, $twitterHeight);
-
-// Create gradient background for Twitter
-for ($i = 0; $i < $twitterHeight; $i++) {
-    $ratio = $i / $twitterHeight;
-    $r = (int) (99 + $ratio * (147 - 99));
-    $g = (int) (102 + $ratio * (51 - 102));
-    $b = (int) (241 + $ratio * (234 - 241));
-    $lineColor = imagecolorallocate($twitterImage, $r, $g, $b);
-    imageline($twitterImage, 0, $i, $twitterWidth, $i, $lineColor);
-}
-
-// Add overlay
-$twitterOverlay = imagecreatetruecolor($twitterWidth, $twitterHeight);
-$black = imagecolorallocate($twitterOverlay, 0, 0, 0);
-imagefilledrectangle($twitterOverlay, 0, 0, $twitterWidth, $twitterHeight, $black);
-imagecopymerge($twitterImage, $twitterOverlay, 0, 0, 0, 0, $twitterWidth, $twitterHeight, 20);
-imagedestroy($twitterOverlay);
-
-// Add text to Twitter image
-$twitterTextX = ($twitterWidth - $textWidth) / 2;
-for ($i = 0; $i < 8; $i++) {
-    for ($j = 0; $j < 8; $j++) {
-        imagestring($twitterImage, 5, $twitterTextX + $i, 150 + $j, $text, $white);
-    }
-}
-
-$twitterTaglineX = ($twitterWidth - $taglineWidth) / 2;
-imagestring($twitterImage, $taglineSize, $twitterTaglineX, 260, $tagline, $white);
-
-$twitterFeature1X = ($twitterWidth - $feature1Width) / 2;
-imagestring($twitterImage, $featureSize, $twitterFeature1X, 350, $feature1, $white);
-
-// Save Twitter image
-imagepng($twitterImage, $publicPath.'/og-twitter.png');
-imagedestroy($twitterImage);
-
-echo "Created: og-twitter.png\n";
-
-echo "\nOpen Graph images generated successfully!\n";
+echo "\nOG images generated successfully!\n";

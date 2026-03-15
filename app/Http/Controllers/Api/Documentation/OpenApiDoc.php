@@ -6,9 +6,9 @@ use OpenApi\Attributes as OA;
 
 #[OA\Info(
     version: '5.1.5',
-    title: 'FinAegis Core Banking API',
-    description: 'Open Source Core Banking as a Service - A modern, scalable, and secure core banking platform built with Laravel 12, featuring 41 DDD domains, event sourcing, CQRS, cross-chain bridges, DeFi protocol integration, privacy-preserving identity, RegTech compliance, Banking-as-a-Service, and AI-powered analytics.',
-    contact: new OA\Contact(email: 'support@finaegis.org', name: 'FinAegis Support'),
+    title: 'Zelta API',
+    description: 'Agentic payments API — stablecoin-powered virtual cards, non-custodial wallet, and AI agent card issuance. Built with Laravel 12, featuring 43 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.',
+    contact: new OA\Contact(email: 'support@finaegis.org', name: 'Zelta Support'),
     license: new OA\License(name: 'Apache 2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0.html'),
 )]
 #[OA\Server(url: L5_SWAGGER_CONST_HOST, description: 'API Server')] // @phpstan-ignore constant.notFound

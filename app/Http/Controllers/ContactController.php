@@ -63,7 +63,7 @@ class ContactController extends Controller
         );
 
         // Send email notification to admin
-        Mail::to('info@finaegis.org')->send(new ContactFormSubmission($submission));
+        Mail::to(config('brand.support_email', 'info@finaegis.org'))->send(new ContactFormSubmission($submission));
 
         return redirect()->back()->with('success', 'Thank you for contacting us. We will respond to your inquiry as soon as possible.');
     }
