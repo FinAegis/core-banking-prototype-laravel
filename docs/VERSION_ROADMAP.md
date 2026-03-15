@@ -2039,6 +2039,130 @@ Wire existing observability infrastructure to production routes and improve API 
 
 ---
 
-*Document Version: 5.10.0*
+## v5.11.0 — Mobile API Maturity & Website Launch ✅ COMPLETED
+
+**Released**: March 5, 2026
+
+### Delivered
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| GDPR Export Download | ✅ | Secure download endpoint + recovery shard blob storage |
+| Mobile API Fixes | ✅ | 7 items from handoff audit resolved |
+| Website Production Launch | ✅ | `SHOW_PROMO_PAGES` env flag for production visibility |
+| Homepage Content Refresh | ✅ | Updated for v5.11.0 |
+| App Landing Refresh | ✅ | Developer hub, feature pages content refresh |
+
+---
+
+## v5.12.0 — Design System v2, Onramper, CI Pipeline Green ✅ COMPLETED
+
+**Released**: March 10, 2026
+
+### Delivered
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Notifications API | ✅ | Paginated list with type filtering |
+| Banners API | ✅ | Admin panel for promotional carousel |
+| Gas Sponsorship | ✅ | Free user transaction gas sponsorship service |
+| Referral System | ✅ | Code generation, sponsorship rewards, KYC-triggered |
+| On/Off Ramp API | ✅ | Provider-agnostic Onramper integration with session management |
+| Foodo Insights | ✅ | Restaurant analytics dashboard |
+| Frontend Design Overhaul | ✅ | Comprehensive design system v2, feature hero dark design |
+| Investor Feedback Polish | ✅ | 3 refactor PRs: mobile UX, security, configurable copy |
+
+---
+
+## v5.13.0 — Zelta Rebrand & Landing Page ✅ COMPLETED
+
+**Released**: March 15, 2026
+
+### Delivered
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Zelta Landing Page | ✅ | Neo-brutalist design: mint/lavender gradients, Space Grotesk fonts, 3px borders |
+| Landing Page Refactor | ✅ | DRY brutalist utilities, ARIA accessibility, vanilla JS |
+| CSP Fix | ✅ | Compiled Tailwind CSS (14KB) replacing CDN, GA CSP fix |
+| SEO Metadata | ✅ | "Agentic Payments" title/description/keywords, JSON-LD schemas |
+| OG Images | ✅ | New 1200x630 and 1024x512 images with card visuals |
+| Email Branding | ✅ | 7 mail classes: `config('brand.name')` instead of hardcoded |
+| Favicon Rebrand | ✅ | 14 icon files: Z in mint neo-brutalist style |
+| Brand Config | ✅ | Defaults updated to Zelta, `@zelta.app` emails |
+| SchemaHelper | ✅ | Dynamic `config('brand.name')` in all schemas |
+| Footer/API/Docs | ✅ | Dynamic brand in footer copyright, OpenAPI, PublicAPI |
+
+---
+
+## v6.0.0 — Platform Completeness & Developer Ecosystem (PLANNED)
+
+**Target**: Q2 2026
+**Theme**: Complete all domains, launch plugin ecosystem, extend developer portal
+
+### Domain Completion Audit (March 15, 2026)
+
+**43 domains total — 38 production-ready, 5 need attention:**
+
+| Domain | Current | Target | Gap |
+|--------|---------|--------|-----|
+| Activity | ~30% | 80% | Expand beyond basic audit log — add event timeline, user activity feeds |
+| Contact | ~30% | 70% | Add auto-responders, ticket assignment, status tracking |
+| Newsletter | ~40% | 80% | Add campaign management, segmentation, templates, analytics |
+| Performance | ~50% | 80% | Real optimization services, query analysis, caching recommendations |
+| Webhook | ~70% | 95% | Add HMAC signature verification, event filtering, retry policies |
+
+### Phase 1 — Developer Portal Extension
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Plugin Development Guide | HIGH | Tutorial for building plugins: hooks API, permissions, sandbox, manifest format, security scan rules |
+| GraphQL Documentation | HIGH | Developer-facing docs for 35 GraphQL schemas with query examples |
+| Agent/MCP Development Guide | MEDIUM | How to build MCP tools, register agents, use AI orchestration |
+| Event Streaming Docs | MEDIUM | Redis Streams publisher/consumer usage, event subscription patterns |
+| Plugin SDK Package | LOW | Composer package with base classes, interfaces, and testing helpers |
+
+### Phase 2 — Plugin Marketplace UI
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Public Marketplace Page | HIGH | Customer-facing browse, search, filter, install plugins |
+| Plugin Detail Page | HIGH | Description, screenshots, reviews, ratings, install button |
+| Plugin Review System | MEDIUM | User reviews and ratings (PluginReview model exists) |
+| Example Plugins | MEDIUM | 3-5 sample plugins demonstrating hooks, permissions, sandbox |
+| Plugin Versioning UI | LOW | Update notifications, changelog, rollback |
+
+### Phase 3 — Domain Completeness
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Webhook HMAC Signing | HIGH | Signature verification for webhook deliveries (security gap) |
+| Newsletter Campaigns | MEDIUM | Campaign builder, segmentation, scheduling, analytics |
+| Activity Timeline | MEDIUM | User activity feeds, event-driven activity tracking |
+| Performance Optimization | LOW | Real query analysis, N+1 detection, caching recommendations |
+| Contact Ticketing | LOW | Auto-responders, assignment, status tracking |
+
+### Phase 4 — Sub-Product Detail Pages
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Exchange Detail Page | MEDIUM | Individual product page with features, pricing, API docs |
+| Lending Detail Page | MEDIUM | Loan products, rates, application flow |
+| Stablecoins Detail Page | MEDIUM | Supported stablecoins, reserve transparency, minting |
+| Treasury Detail Page | MEDIUM | Portfolio tools, rebalancing strategies, reporting |
+
+### Success Criteria
+
+- [ ] All 5 incomplete domains at 80%+ completion
+- [ ] Plugin development guide published in developer portal
+- [ ] GraphQL documentation page live
+- [ ] Public plugin marketplace UI functional
+- [ ] 3+ example plugins in repository
+- [ ] Webhook HMAC signature verification implemented
+- [ ] All developer portal content rebranded to Zelta
+
+---
+
+*Document Version: 6.0.0-planned*
 *Created: January 11, 2026*
-*Updated: March 2, 2026 (v5.10.0 Performance Wiring & API Maturity released)*
+*Updated: March 15, 2026 (v5.13.0 Zelta Rebrand released, v6.0.0 roadmap planned)*
