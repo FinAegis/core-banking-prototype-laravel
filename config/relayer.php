@@ -21,6 +21,10 @@ return [
 
     'default_network' => env('RELAYER_DEFAULT_NETWORK', 'polygon'),
 
+    // Cache TTL for read-only RPC calls (blockNumber, gasPrice) in seconds.
+    // Reduces Alchemy/Infura usage by serving cached results for repeated queries.
+    'rpc_cache_ttl_seconds' => (int) env('RPC_CACHE_TTL', 15),
+
     /*
     |--------------------------------------------------------------------------
     | Fee Configuration
@@ -182,8 +186,8 @@ return [
         // Provider: 'demo', 'alchemy', 'infura', 'custom'
         'provider' => env('BALANCE_PROVIDER', 'demo'),
 
-        // Cache TTL in seconds
-        'cache_ttl_seconds' => (int) env('BALANCE_CACHE_TTL', 30),
+        // Cache TTL in seconds (balances don't change fast — 120s is safe)
+        'cache_ttl_seconds' => (int) env('BALANCE_CACHE_TTL', 120),
 
         // Alchemy configuration
         'alchemy_api_key' => env('ALCHEMY_API_KEY'),

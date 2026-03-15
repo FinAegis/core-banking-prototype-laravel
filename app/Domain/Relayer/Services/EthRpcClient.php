@@ -6,6 +6,7 @@ namespace App\Domain\Relayer\Services;
 
 use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Exceptions\RpcException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -15,6 +16,7 @@ use Throwable;
  *
  * Supports both standard Ethereum RPC and bundler-specific endpoints (Pimlico v2).
  * Includes retry logic with configurable attempts and delay.
+ * Read-only RPC calls (blockNumber, gasPrice) are cached to reduce provider usage.
  */
 class EthRpcClient
 {
@@ -24,11 +26,14 @@ class EthRpcClient
 
     private int $retryDelayMs;
 
+    private int $rpcCacheTtl;
+
     public function __construct()
     {
         $this->timeout = (int) config('relayer.pimlico.timeout', 15);
         $this->retryCount = (int) config('relayer.pimlico.retry_count', 3);
         $this->retryDelayMs = 200;
+        $this->rpcCacheTtl = (int) config('relayer.rpc_cache_ttl_seconds', 15);
     }
 
     /**
@@ -72,15 +77,19 @@ class EthRpcClient
     }
 
     /**
-     * Get the current block number for a network.
+     * Get the current block number for a network (cached).
      *
      * @throws RpcException
      */
     public function getBlockNumber(SupportedNetwork $network): int
     {
-        $result = $this->call($network, 'eth_blockNumber');
+        $cacheKey = "rpc:block_number:{$network->value}";
 
-        return (int) hexdec((string) $result);
+        return (int) Cache::remember($cacheKey, $this->rpcCacheTtl, function () use ($network): int {
+            $result = $this->call($network, 'eth_blockNumber');
+
+            return (int) hexdec((string) $result);
+        });
     }
 
     /**
@@ -94,23 +103,31 @@ class EthRpcClient
     }
 
     /**
-     * Get the current gas price in wei (hex).
+     * Get the current gas price in wei (hex, cached).
      *
      * @throws RpcException
      */
     public function getGasPrice(SupportedNetwork $network): string
     {
-        return (string) $this->call($network, 'eth_gasPrice');
+        $cacheKey = "rpc:gas_price:{$network->value}";
+
+        return (string) Cache::remember($cacheKey, $this->rpcCacheTtl, function () use ($network): string {
+            return (string) $this->call($network, 'eth_gasPrice');
+        });
     }
 
     /**
-     * Get the max priority fee per gas (EIP-1559).
+     * Get the max priority fee per gas (EIP-1559, cached).
      *
      * @throws RpcException
      */
     public function getMaxPriorityFeePerGas(SupportedNetwork $network): string
     {
-        return (string) $this->call($network, 'eth_maxPriorityFeePerGas');
+        $cacheKey = "rpc:max_priority_fee:{$network->value}";
+
+        return (string) Cache::remember($cacheKey, $this->rpcCacheTtl, function () use ($network): string {
+            return (string) $this->call($network, 'eth_maxPriorityFeePerGas');
+        });
     }
 
     /**
