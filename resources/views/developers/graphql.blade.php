@@ -27,7 +27,7 @@
 
 <!-- Hero -->
 <section class="gql-gradient text-white relative overflow-hidden">
-    <div class="absolute inset-0">
+    <div class="absolute inset-0" aria-hidden="true">
         <div class="absolute top-20 left-10 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div class="absolute top-40 right-10 w-72 h-72 bg-violet-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 1s;"></div>
     </div>
@@ -119,7 +119,7 @@
 
             <div class="code-container">
                 <div class="code-header"><span>cURL example</span></div>
-                <pre class="code-block p-4 text-green-400">curl -X POST {{ config('app.url') }}/graphql \
+                <pre class="code-block p-4 text-green-400">curl -X POST https://api.zelta.app/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"query": "{ accounts(first: 5) { data { id name balance } } }"}'</pre>

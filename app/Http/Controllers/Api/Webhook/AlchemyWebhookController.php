@@ -127,8 +127,9 @@ class AlchemyWebhookController extends Controller
         $blockchainAddress = BlockchainAddress::where('address', $address)->first();
         $userId = $blockchainAddress?->user?->id;
 
-        // Cache for 1 hour; null results cached as 0
-        Cache::put($cacheKey, $userId ?? 0, 3600);
+        // Positive cache: 1 hour. Negative cache: 5 min (new users get detected faster).
+        $ttl = $userId !== null ? 3600 : 300;
+        Cache::put($cacheKey, $userId ?? 0, $ttl);
 
         return $userId;
     }
@@ -147,8 +148,10 @@ class AlchemyWebhookController extends Controller
             return;
         }
 
-        foreach (['USDC', 'USDT'] as $token) {
-            $this->balanceProvider->invalidateCache($address, $token, $supportedNetwork);
+        /** @var array<string, mixed> $tokenConfig */
+        $tokenConfig = config('relayer.balance_checking.tokens', ['USDC' => [], 'USDT' => []]);
+        foreach (array_keys($tokenConfig) as $token) {
+            $this->balanceProvider->invalidateCache($address, (string) $token, $supportedNetwork);
         }
     }
 
@@ -159,8 +162,11 @@ class AlchemyWebhookController extends Controller
     {
         $signingKey = config('relayer.alchemy_webhook_signing_key');
 
+        // Reject all requests if signing key is not configured (secure by default)
         if (empty($signingKey)) {
-            return true;
+            Log::critical('Alchemy webhook rejected: ALCHEMY_WEBHOOK_SIGNING_KEY not configured');
+
+            return app()->environment('local', 'testing');
         }
 
         $signature = $request->header('X-Alchemy-Signature');

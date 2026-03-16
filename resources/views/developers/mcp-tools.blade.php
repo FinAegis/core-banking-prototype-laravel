@@ -27,7 +27,7 @@
 
 <!-- Hero -->
 <section class="mcp-gradient text-white relative overflow-hidden">
-    <div class="absolute inset-0">
+    <div class="absolute inset-0" aria-hidden="true">
         <div class="absolute top-20 left-10 w-72 h-72 bg-emerald-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div class="absolute top-40 right-10 w-72 h-72 bg-cyan-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 1s;"></div>
     </div>

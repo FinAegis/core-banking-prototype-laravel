@@ -27,7 +27,7 @@
 
 <!-- Hero -->
 <section class="stream-gradient text-white relative overflow-hidden">
-    <div class="absolute inset-0">
+    <div class="absolute inset-0" aria-hidden="true">
         <div class="absolute top-20 left-10 w-72 h-72 bg-red-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div class="absolute top-40 right-10 w-72 h-72 bg-orange-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 1s;"></div>
     </div>
@@ -120,7 +120,7 @@
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Available Streams</h2>
-        <p class="text-slate-600 mb-8">Each domain publishes to an isolated Redis Stream. Stream keys are prefixed with <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">EVENT_STREAMING_PREFIX</code> (default: <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">finaegis:events</code>).</p>
+        <p class="text-slate-600 mb-8">Each domain publishes to an isolated Redis Stream. Stream keys are prefixed with <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">EVENT_STREAMING_PREFIX</code> (default: <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded">{{ config('event-streaming.prefix', 'events') }}</code>).</p>
 
         @php
         $streams = [
@@ -189,9 +189,9 @@
                     $configs = [
                         ['EVENT_STREAMING_ENABLED', 'false', 'Enable/disable streaming'],
                         ['EVENT_STREAMING_REDIS_CONNECTION', 'default', 'Redis connection name'],
-                        ['EVENT_STREAMING_PREFIX', 'finaegis:events', 'Stream key prefix'],
+                        ['EVENT_STREAMING_PREFIX', '{{ config('event-streaming.prefix', 'events') }}', 'Stream key prefix'],
                         ['EVENT_STREAMING_MAX_LENGTH', '100000', 'Max entries per stream'],
-                        ['EVENT_STREAMING_CONSUMER_GROUP', 'finaegis-consumers', 'Consumer group name'],
+                        ['EVENT_STREAMING_CONSUMER_GROUP', '{{ config('event-streaming.consumer_group', 'consumers') }}', 'Consumer group name'],
                         ['EVENT_STREAMING_BLOCK_TIMEOUT', '5000', 'Read block timeout (ms)'],
                         ['EVENT_STREAMING_BATCH_SIZE', '100', 'Messages per read'],
                         ['EVENT_STREAMING_IDLE_TIMEOUT', '30000', 'Idle message reclaim (ms)'],
