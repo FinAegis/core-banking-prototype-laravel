@@ -77,6 +77,7 @@ class Webhook extends Model
     protected $casts = [
         'events'               => 'array',
         'headers'              => 'array',
+        'secret'               => 'encrypted',
         'is_active'            => 'boolean',
         'retry_attempts'       => 'integer',
         'timeout_seconds'      => 'integer',

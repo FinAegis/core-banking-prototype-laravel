@@ -51,7 +51,7 @@ class ProcessWebhookDelivery implements ShouldQueue
             // Prepare headers
             $headers = $webhook->headers ?? [];
             $headers['Content-Type'] = 'application/json';
-            $headers['User-Agent'] = 'FinAegis-Webhook/1.0';
+            $headers['User-Agent'] = config('brand.name', 'Zelta') . '-Webhook/1.0';
             $headers['X-Webhook-ID'] = $webhook->uuid;
             $headers['X-Webhook-Event'] = $this->delivery->event_type;
             $headers['X-Webhook-Delivery'] = $this->delivery->uuid;
