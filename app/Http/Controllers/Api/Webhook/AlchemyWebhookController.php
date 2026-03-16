@@ -5,28 +5,42 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Webhook;
 
 use App\Domain\Account\Models\BlockchainAddress;
+use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
+use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Wallet\Events\Broadcast\WalletBalanceUpdated;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Handle Alchemy Address Activity Webhooks.
+ * Handle Alchemy Token Contract Activity Webhooks (Option A).
  *
- * When a tracked wallet address receives or sends tokens, Alchemy pushes
- * an event here. We identify the user by address and broadcast a
- * WalletBalanceUpdated event so the mobile app invalidates its cache.
+ * Instead of registering per-user address webhooks (doesn't scale to thousands
+ * of users), we monitor a fixed set of token contracts (USDC, USDT per chain).
+ * Alchemy fires this webhook for every ERC-20 transfer on the monitored contract.
+ * We check if the from/to address belongs to a user and broadcast a balance update.
  *
- * This eliminates per-user polling and gives near-instant balance updates.
+ * Setup: In Alchemy Dashboard → Notify → Address Activity:
+ *   - Create one webhook per chain (Polygon, Arbitrum, Ethereum)
+ *   - Add the USDC + USDT contract addresses for that chain
+ *   - Point to: https://zelta.app/api/webhooks/alchemy/address-activity
+ *
+ * This gives ~6 fixed contract addresses total (not per-user), handling
+ * unlimited users with near-instant balance notifications.
  *
  * @see https://docs.alchemy.com/reference/address-activity-webhook
  */
 class AlchemyWebhookController extends Controller
 {
+    public function __construct(
+        private readonly WalletBalanceProviderInterface $balanceProvider,
+    ) {
+    }
+
     public function handle(Request $request): JsonResponse
     {
-        // Verify webhook signature
         if (! $this->verifySignature($request)) {
             Log::warning('Alchemy webhook signature verification failed', [
                 'ip' => $request->ip(),
@@ -48,6 +62,12 @@ class AlchemyWebhookController extends Controller
         $notifiedUsers = [];
 
         foreach ($activities as $activity) {
+            // Only process ERC-20 token transfers (not native ETH/MATIC)
+            $category = $activity['category'] ?? '';
+            if (! in_array($category, ['token', 'erc20'], true)) {
+                continue;
+            }
+
             $addresses = array_filter([
                 $activity['fromAddress'] ?? null,
                 $activity['toAddress'] ?? null,
@@ -56,27 +76,28 @@ class AlchemyWebhookController extends Controller
             foreach ($addresses as $address) {
                 $address = strtolower($address);
 
-                // Find the user who owns this address
-                $blockchainAddress = BlockchainAddress::where('address', $address)->first();
-                if ($blockchainAddress === null || $blockchainAddress->user === null) {
+                // Fast lookup: check cached address→userId map first
+                $userId = $this->resolveUserId($address);
+                if ($userId === null) {
                     continue;
                 }
 
-                $userId = $blockchainAddress->user->id;
-
-                // Deduplicate: only notify each user once per webhook batch
+                // Deduplicate within this webhook batch
                 if (isset($notifiedUsers[$userId])) {
                     continue;
                 }
                 $notifiedUsers[$userId] = true;
 
+                // Invalidate the cached balance so next fetch gets fresh data
+                $this->invalidateBalanceCache($address, $network);
+
                 broadcast(new WalletBalanceUpdated($userId, $network));
 
                 Log::info('Alchemy webhook: balance update broadcast', [
-                    'user_id'  => $userId,
-                    'address'  => $address,
-                    'network'  => $network,
-                    'category' => $activity['category'] ?? 'unknown',
+                    'user_id' => $userId,
+                    'address' => $address,
+                    'network' => $network,
+                    'asset'   => $activity['asset'] ?? 'unknown',
                 ]);
             }
         }
@@ -88,13 +109,56 @@ class AlchemyWebhookController extends Controller
     }
 
     /**
+     * Resolve wallet address to user ID with caching.
+     *
+     * Caches the address→userId mapping for 1 hour to avoid DB lookups
+     * on every webhook call (token contracts fire for ALL transfers, not just ours).
+     */
+    private function resolveUserId(string $address): ?int
+    {
+        $cacheKey = "webhook:addr_to_user:{$address}";
+
+        // Cache null results too (as 0) to avoid repeated DB misses
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached === 0 ? null : (int) $cached;
+        }
+
+        $blockchainAddress = BlockchainAddress::where('address', $address)->first();
+        $userId = $blockchainAddress?->user?->id;
+
+        // Cache for 1 hour; null results cached as 0
+        Cache::put($cacheKey, $userId ?? 0, 3600);
+
+        return $userId;
+    }
+
+    /**
+     * Invalidate the WalletBalanceService cache for this address.
+     */
+    private function invalidateBalanceCache(string $address, ?string $network): void
+    {
+        if ($network === null) {
+            return;
+        }
+
+        $supportedNetwork = SupportedNetwork::tryFrom($network);
+        if ($supportedNetwork === null) {
+            return;
+        }
+
+        foreach (['USDC', 'USDT'] as $token) {
+            $this->balanceProvider->invalidateCache($address, $token, $supportedNetwork);
+        }
+    }
+
+    /**
      * Verify the Alchemy webhook signature using HMAC-SHA256.
      */
     private function verifySignature(Request $request): bool
     {
         $signingKey = config('relayer.alchemy_webhook_signing_key');
 
-        // Skip verification if no signing key configured (dev/testing)
         if (empty($signingKey)) {
             return true;
         }
