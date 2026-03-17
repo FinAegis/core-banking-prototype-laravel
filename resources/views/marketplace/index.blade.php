@@ -63,16 +63,18 @@
         <form method="GET" action="{{ route('marketplace.index') }}" class="flex flex-col sm:flex-row gap-3">
             <!-- Search -->
             <div class="flex-1 relative">
-                <input type="text" name="search" value="{{ request('search') }}"
+                <label for="search-plugins" class="sr-only">Search plugins</label>
+                <input type="text" id="search-plugins" name="search" value="{{ request('search') }}"
                        placeholder="Search plugins..."
                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-sm">
-                <svg class="absolute left-3 top-3 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="absolute left-3 top-3 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
 
             <!-- Vendor filter -->
-            <select name="vendor" class="px-4 py-2.5 rounded-lg border border-slate-300 text-sm bg-white">
+            <label for="filter-vendor" class="sr-only">Filter by vendor</label>
+            <select id="filter-vendor" name="vendor" class="px-4 py-2.5 rounded-lg border border-slate-300 text-sm bg-white">
                 <option value="">All Vendors</option>
                 @foreach($vendors as $v)
                 <option value="{{ $v }}" {{ request('vendor') === $v ? 'selected' : '' }}>{{ $v }}</option>
@@ -80,7 +82,8 @@
             </select>
 
             <!-- Status filter -->
-            <select name="status" class="px-4 py-2.5 rounded-lg border border-slate-300 text-sm bg-white">
+            <label for="filter-status" class="sr-only">Filter by status</label>
+            <select id="filter-status" name="status" class="px-4 py-2.5 rounded-lg border border-slate-300 text-sm bg-white">
                 <option value="">All Status</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>

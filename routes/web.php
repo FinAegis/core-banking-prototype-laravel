@@ -128,7 +128,9 @@ if (config('brand.show_promo_pages')) {
 
     // Plugin Marketplace (public browsing)
     Route::get('/marketplace', [App\Http\Controllers\PluginMarketplaceWebController::class, 'index'])->name('marketplace.index');
-    Route::get('/marketplace/{vendor}/{name}', [App\Http\Controllers\PluginMarketplaceWebController::class, 'show'])->name('marketplace.show');
+    Route::get('/marketplace/{vendor}/{name}', [App\Http\Controllers\PluginMarketplaceWebController::class, 'show'])
+        ->where(['vendor' => '[a-zA-Z0-9_-]+', 'name' => '[a-zA-Z0-9_-]+'])
+        ->name('marketplace.show');
 
     Route::get('/developers', function () {
         return view('developers.index');
@@ -223,6 +225,8 @@ if (config('brand.show_promo_pages')) {
     Route::post('/blog/subscribe', $redirectHome)->name('blog.subscribe');
     Route::post('/support/contact', $redirectHome)->name('support.contact.submit');
     Route::post('/financial-institutions/submit', $redirectHome)->name('financial-institutions.submit');
+    Route::get('/marketplace', $redirectHome)->name('marketplace.index');
+    Route::get('/marketplace/{vendor}/{name}', $redirectHome)->where(['vendor' => '[a-zA-Z0-9_-]+', 'name' => '[a-zA-Z0-9_-]+'])->name('marketplace.show');
 }
 
 Route::get('/legal/terms', function () {

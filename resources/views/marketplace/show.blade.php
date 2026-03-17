@@ -27,9 +27,9 @@
 <!-- Breadcrumb -->
 <section class="bg-white border-b border-slate-200">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <nav class="flex items-center gap-2 text-sm text-slate-500">
+        <nav class="flex items-center gap-2 text-sm text-slate-500" aria-label="Breadcrumb">
             <a href="{{ route('marketplace.index') }}" class="hover:text-slate-700">Marketplace</a>
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             <span class="text-slate-700">{{ $plugin->display_name ?? $plugin->name }}</span>
         </nav>
     </div>
@@ -96,10 +96,10 @@
                         <dd class="font-medium">{{ $plugin->author }}</dd>
                     </div>
                     @endif
-                    @if($plugin->homepage)
+                    @if($plugin->homepage && str_starts_with($plugin->homepage, 'https://'))
                     <div>
                         <dt class="text-slate-500">Homepage</dt>
-                        <dd><a href="{{ $plugin->homepage }}" class="text-purple-600 hover:underline text-xs" target="_blank" rel="noopener">{{ $plugin->homepage }}</a></dd>
+                        <dd><a href="{{ $plugin->homepage }}" class="text-purple-600 hover:underline text-xs" target="_blank" rel="noopener noreferrer">{{ $plugin->homepage }}</a></dd>
                     </div>
                     @endif
                     <div>

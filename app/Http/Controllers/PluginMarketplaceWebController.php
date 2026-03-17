@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Shared\Models\Plugin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
@@ -21,11 +22,17 @@ class PluginMarketplaceWebController extends Controller
      */
     public function index(Request $request): View
     {
+        $validated = $request->validate([
+            'search' => 'nullable|string|max:100',
+            'status' => 'nullable|string|in:active,inactive,failed',
+            'vendor' => 'nullable|string|max:100',
+        ]);
+
         $query = Plugin::query()->orderBy('vendor')->orderBy('name');
 
-        // Search by name, vendor, or description
-        if ($search = $request->input('search')) {
-            $search = (string) $search;
+        if (! empty($validated['search'])) {
+            // Escape LIKE wildcards to prevent pattern injection
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $validated['search']);
             $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('vendor', 'like', "%{$search}%")
@@ -34,30 +41,27 @@ class PluginMarketplaceWebController extends Controller
             });
         }
 
-        // Filter by status
-        if ($status = $request->input('status')) {
-            $query->where('status', (string) $status);
+        if (! empty($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
 
-        // Filter by vendor
-        if ($vendor = $request->input('vendor')) {
-            $query->byVendor((string) $vendor);
+        if (! empty($validated['vendor'])) {
+            $query->byVendor($validated['vendor']);
         }
 
         $plugins = $query->paginate(12)->withQueryString();
 
-        // Get stats for the header
-        $stats = [
+        // Cache stats for 5 minutes to avoid 3 COUNT queries per request
+        $stats = Cache::remember('marketplace:stats', 300, fn (): array => [
             'total'   => Plugin::count(),
             'active'  => Plugin::active()->count(),
             'vendors' => Plugin::distinct()->count('vendor'),
-        ];
+        ]);
 
-        // Get unique vendors for filter dropdown
-        $vendors = Plugin::select('vendor')
+        $vendors = Cache::remember('marketplace:vendors', 300, fn () => Plugin::select('vendor')
             ->distinct()
             ->orderBy('vendor')
-            ->pluck('vendor');
+            ->pluck('vendor'));
 
         return view('marketplace.index', compact('plugins', 'stats', 'vendors'));
     }
