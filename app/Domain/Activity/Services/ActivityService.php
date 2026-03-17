@@ -43,7 +43,7 @@ class ActivityService
     /**
      * Get activity feed for a specific model (subject).
      *
-     * @return LengthAwarePaginator<Activity>
+     * @return LengthAwarePaginator
      */
     public function getActivityForSubject(Model $subject, int $perPage = 20): LengthAwarePaginator
     {
@@ -56,7 +56,7 @@ class ActivityService
     /**
      * Get activity timeline for a user (as causer).
      *
-     * @return LengthAwarePaginator<Activity>
+     * @return LengthAwarePaginator
      */
     public function getActivityForUser(Model $user, int $perPage = 20): LengthAwarePaginator
     {
@@ -69,7 +69,7 @@ class ActivityService
     /**
      * Get recent activity across the entire system.
      *
-     * @return LengthAwarePaginator<Activity>
+     * @return LengthAwarePaginator
      */
     public function getRecentActivity(
         ?string $logName = null,

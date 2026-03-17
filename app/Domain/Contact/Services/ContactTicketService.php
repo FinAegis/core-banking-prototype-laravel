@@ -105,7 +105,7 @@ class ContactTicketService
     /**
      * List tickets with filtering.
      *
-     * @return LengthAwarePaginator<ContactSubmission>
+     * @return LengthAwarePaginator
      */
     public function list(
         ?string $status = null,

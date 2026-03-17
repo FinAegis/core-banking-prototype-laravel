@@ -128,7 +128,7 @@ class CampaignService
     /**
      * List campaigns with pagination.
      *
-     * @return LengthAwarePaginator<Campaign>
+     * @return LengthAwarePaginator
      */
     public function list(?string $status = null, int $perPage = 15): LengthAwarePaginator
     {
