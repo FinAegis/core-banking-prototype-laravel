@@ -1,0 +1,24 @@
+{
+    "vendor": "zelta",
+    "name": "compliance-notifier",
+    "version": "1.0.0",
+    "display_name": "Compliance Notifier",
+    "description": "Sends Slack/webhook notifications when compliance alerts or KYC status changes occur. Demonstrates api:external permission and multi-hook registration.",
+    "author": "Zelta Team",
+    "license": "MIT",
+    "homepage": "https://zelta.app/marketplace/zelta/compliance-notifier",
+    "entry_point": "ServiceProvider",
+    "permissions": [
+        "events:listen",
+        "api:external",
+        "config:read"
+    ],
+    "dependencies": {},
+    "extra": {
+        "category": "Compliance",
+        "tags": ["compliance", "notifications", "slack", "kyc", "aml"],
+        "config": {
+            "COMPLIANCE_NOTIFIER_WEBHOOK_URL": "Slack/Discord webhook URL for notifications"
+        }
+    }
+}

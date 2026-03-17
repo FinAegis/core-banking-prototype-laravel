@@ -1,0 +1,22 @@
+{
+    "vendor": "zelta",
+    "name": "payment-analytics",
+    "version": "1.0.0",
+    "display_name": "Payment Analytics",
+    "description": "Real-time payment analytics dashboard. Tracks payment volumes, success rates, and average transaction values via hook listeners.",
+    "author": "Zelta Team",
+    "license": "MIT",
+    "homepage": "https://zelta.app/marketplace/zelta/payment-analytics",
+    "entry_point": "ServiceProvider",
+    "permissions": [
+        "database:read",
+        "events:listen",
+        "cache:read",
+        "cache:write"
+    ],
+    "dependencies": {},
+    "extra": {
+        "category": "Analytics",
+        "tags": ["payments", "analytics", "dashboard", "reporting"]
+    }
+}

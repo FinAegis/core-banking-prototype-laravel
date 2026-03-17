@@ -117,7 +117,13 @@
 
             <!-- Install -->
             <div class="bg-white rounded-xl border border-slate-200 p-6">
-                <h2 class="font-semibold text-lg mb-4">Installation</h2>
+                <h2 class="font-semibold text-lg mb-4">Version & Install</h2>
+                <div class="mb-4 text-sm space-y-2">
+                    <div class="flex justify-between"><span class="text-slate-500">Current</span><span class="font-mono font-medium">v{{ $plugin->version }}</span></div>
+                    @if($plugin->last_updated_at)
+                    <div class="flex justify-between"><span class="text-slate-500">Updated</span><span>{{ $plugin->last_updated_at->diffForHumans() }}</span></div>
+                    @endif
+                </div>
                 <div class="bg-slate-900 rounded-lg p-4 text-xs text-green-400 overflow-x-auto code-font">
                     <div class="text-slate-500"># Install</div>
                     <div>php artisan plugin:install \</div>
@@ -150,6 +156,38 @@
                 <div class="flex items-center gap-3 text-sm">
                     <code class="code-font bg-slate-100 px-2 py-0.5 rounded">{{ $dep }}</code>
                     <span class="text-slate-500">{{ $constraint }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+        <!-- Security Reviews -->
+        @if($plugin->reviews && $plugin->reviews->count() > 0)
+        <div class="bg-white rounded-xl border border-slate-200 p-6 mt-6">
+            <h2 class="font-semibold text-lg mb-4">Security Reviews</h2>
+            <div class="space-y-4">
+                @foreach($plugin->reviews()->latest('reviewed_at')->take(5)->get() as $review)
+                <div class="flex items-start gap-4 border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+                    <div class="flex-shrink-0">
+                        @if($review->isApproved())
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>
+                        @elseif($review->isRejected())
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>
+                        @else
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+                        @endif
+                    </div>
+                    <div class="flex-1">
+                        @if($review->security_score)
+                        <div class="text-sm text-slate-600 mb-1">Security Score: <span class="font-semibold">{{ $review->security_score }}/100</span></div>
+                        @endif
+                        @if($review->notes)
+                        <p class="text-sm text-slate-600">{{ $review->notes }}</p>
+                        @endif
+                        @if($review->reviewed_at)
+                        <p class="text-xs text-slate-400 mt-1">{{ $review->reviewed_at->format('M j, Y') }}</p>
+                        @endif
+                    </div>
                 </div>
                 @endforeach
             </div>

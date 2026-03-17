@@ -83,4 +83,22 @@ class Plugin extends Model
     {
         return $query->where('vendor', $vendor);
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<PluginReview, $this>
+     */
+    public function reviews(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PluginReview::class);
+    }
+
+    /**
+     * Get the latest review.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<PluginReview, $this>
+     */
+    public function latestReview(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(PluginReview::class)->latestOfMany('reviewed_at');
+    }
 }
