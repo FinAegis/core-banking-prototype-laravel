@@ -1423,12 +1423,6 @@ parameters:
 			path: app/Domain/Contact/Services/ContactTicketService.php
 
 		-
-			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\:\:pluck\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Contact\\Models\\ContactSubmission, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Domain/Contact/Services/ContactTicketService.php
-
-		-
 			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Contact\\Models\\ContactSubmission, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Contact\\Models\\ContactSubmission\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Contact\\Models\\ContactSubmission, ''assigned_to'' given\.$#'
 			identifier: argument.type
 			count: 1
@@ -3265,6 +3259,18 @@ parameters:
 			path: app/Domain/Newsletter/Models/Campaign.php
 
 		-
+			message: '#^Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Newsletter\\Models\\Subscriber\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Newsletter\\Models\\Subscriber, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Newsletter\\Models\\Subscriber\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Newsletter\\Models\\Subscriber\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Newsletter\\Models\\Subscriber\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Newsletter\\Models\\Subscriber, ''is_active'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Domain/Newsletter/Models/Campaign.php
+
+		-
+			message: '#^Anonymous function should return App\\Domain\\Newsletter\\Models\\Campaign but returns App\\Domain\\Newsletter\\Models\\Campaign\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/Newsletter/Services/CampaignService.php
+
+		-
 			message: '#^Method App\\Domain\\Newsletter\\Services\\CampaignService\:\:cancel\(\) should return App\\Domain\\Newsletter\\Models\\Campaign but returns App\\Domain\\Newsletter\\Models\\Campaign\|null\.$#'
 			identifier: return.type
 			count: 1
@@ -3278,12 +3284,6 @@ parameters:
 
 		-
 			message: '#^Method App\\Domain\\Newsletter\\Services\\CampaignService\:\:schedule\(\) should return App\\Domain\\Newsletter\\Models\\Campaign but returns App\\Domain\\Newsletter\\Models\\Campaign\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Domain/Newsletter/Services/CampaignService.php
-
-		-
-			message: '#^Method App\\Domain\\Newsletter\\Services\\CampaignService\:\:sendNow\(\) should return App\\Domain\\Newsletter\\Models\\Campaign but returns App\\Domain\\Newsletter\\Models\\Campaign\|null\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Domain/Newsletter/Services/CampaignService.php
@@ -3427,15 +3427,9 @@ parameters:
 			path: app/Domain/Performance/Services/PerformanceReportService.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 2
-			path: app/Domain/Performance/Services/PerformanceReportService.php
-
-		-
-			message: '#^Parameter \#1 \$column of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Performance\\Models\\PerformanceMetric\>\:\:where\(\) expects array\<int\|model property of App\\Domain\\Performance\\Models\\PerformanceMetric, mixed\>\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Performance\\Models\\PerformanceMetric\>\)\: Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Performance\\Models\\PerformanceMetric\>\)\|\(Closure\(Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Performance\\Models\\PerformanceMetric\>\)\: void\)\|Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Performance\\Models\\PerformanceMetric, ''metric_type'' given\.$#'
+			message: '#^Parameter \#1 \$column of method Illuminate\\Database\\Eloquent\\Builder\<App\\Domain\\Performance\\Models\\PerformanceMetric\>\:\:pluck\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|model property of App\\Domain\\Performance\\Models\\PerformanceMetric, string given\.$#'
 			identifier: argument.type
-			count: 5
+			count: 1
 			path: app/Domain/Performance/Services/PerformanceReportService.php
 
 		-

@@ -7,7 +7,6 @@ namespace App\Domain\Newsletter\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -50,7 +49,6 @@ class Campaign extends Model
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
-        'uuid',
         'name',
         'subject',
         'content',
@@ -91,11 +89,17 @@ class Campaign extends Model
     }
 
     /**
-     * @return HasMany<Subscriber, $this>
+     * Get the target subscriber count for this campaign's segment.
      */
-    public function recipients(): HasMany
+    public function getTargetSubscriberCount(): int
     {
-        return $this->hasMany(Subscriber::class, 'source', 'segment');
+        $query = Subscriber::where('is_active', true);
+
+        if ($this->segment !== null) {
+            $query->where('source', $this->segment);
+        }
+
+        return $query->count();
     }
 
     /**

@@ -58,6 +58,7 @@ class ContactSubmission extends Model
         'ip_address',
         'user_agent',
         'status',
+        'assigned_to',
         'responded_at',
         'response_notes',
     ];
