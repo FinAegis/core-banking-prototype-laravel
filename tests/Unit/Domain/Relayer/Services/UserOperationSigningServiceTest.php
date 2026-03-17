@@ -21,10 +21,10 @@ class UserOperationSigningServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->user ??= User::factory()->create();
+        // Create a fresh user per test to avoid parallel CI rate limiter collisions
+        $this->user = User::factory()->create();
 
-        // Only clear the specific rate limiter key — avoid Cache::flush() which
-        // wipes shared Redis in CI parallel testing and causes flaky failures
+        // Clear rate limiter for this specific user
         RateLimiter::clear('userop_signing:' . $this->user->id);
 
         // Create service with HSM integration
