@@ -2182,16 +2182,58 @@ Mobile app polling `wallet/balances` + `wallet/state` every 60s generated ~98K A
 
 ### Success Criteria
 
-- [ ] All 5 incomplete domains at 80%+ completion
-- [ ] Plugin development guide published in developer portal
-- [ ] GraphQL documentation page live
-- [ ] Public plugin marketplace UI functional
-- [ ] 3+ example plugins in repository
-- [ ] Webhook HMAC signature verification implemented
-- [ ] All developer portal content rebranded to Zelta
+- [x] Plugin development guide published in developer portal (PR #755)
+- [x] GraphQL documentation page live (PR #756)
+- [x] Event Streaming & MCP/Agent docs live (PR #757)
+- [x] Public plugin marketplace UI functional (PR #770)
+- [x] Webhook HMAC signature verification implemented (was already done, encrypted secrets PR #760)
+- [x] All developer portal content rebranded to Zelta (PRs #748-#750, #759)
+- [x] Security review + hardening pass (PRs #759, #760, #770 refactor)
+- [x] Token contract Alchemy webhook — scalable to unlimited users (PR #758)
+- [ ] ~~3+ example plugins~~ — deferred to v6.1.0 (no production value pre-launch)
+- [ ] ~~5 incomplete domains at 80%~~ — deferred to v6.1.0 (Newsletter, Activity, Performance, Contact are pre-launch polish)
+- [ ] ~~Sub-product detail pages~~ — deferred to v6.1.0 (hidden in production mode)
+
+### Delivered (March 17, 2026)
+
+**Phase 1 — Developer Portal (COMPLETE):**
+- Plugin Development Guide: 17 hooks, 12 permissions, lifecycle, manifest reference
+- GraphQL API Docs: 35 domain schemas, subscriptions, rate limits
+- Event Streaming Docs: 15 Redis Streams, publisher/consumer API
+- MCP/AI Agent Docs: 16 banking tools, custom tool tutorial
+
+**Phase 2 — Plugin Marketplace UI (COMPLETE):**
+- Public browse/search page with pagination, vendor + status filters
+- Plugin detail page with info, permissions, dependencies, install commands
+- Security hardened: LIKE injection, route constraints, URL validation, production fallbacks
+
+**Phase 3 — Domain Completeness (PARTIAL):**
+- Webhook: encrypted secrets, branded User-Agent (was already feature-complete)
+- Remaining items (Newsletter, Activity, Performance, Contact) deferred — no production value yet
+
+**Phase 4 — Sub-Product Pages (DEFERRED):**
+- Hidden behind `show_promo_pages=false` in production, no user impact
 
 ---
 
-*Document Version: 5.14.0*
+## v6.1.0 — Pre-Launch Polish (PLANNED)
+
+**Target**: When approaching production launch
+**Theme**: Complete remaining domain polish and content
+
+### Planned Items (Deferred from v6.0.0)
+
+| Task | Priority | Trigger |
+|------|----------|---------|
+| Newsletter Campaigns | MEDIUM | When email marketing starts |
+| Activity Timeline | LOW | When admin dashboard needed |
+| Example Plugins | LOW | When third-party developers onboard |
+| Sub-Product Detail Pages | LOW | When promo pages re-enabled |
+| Contact Ticketing | LOW | When support volume grows |
+| Performance Optimization Services | LOW | When scaling diagnostics needed |
+
+---
+
+*Document Version: 6.0.0*
 *Created: January 11, 2026*
-*Updated: March 15, 2026 (v5.14.0 RPC Optimization & WebSocket Events released)*
+*Updated: March 17, 2026 (v6.0.0 Developer Ecosystem & Plugin Marketplace released)*
