@@ -136,7 +136,7 @@
                                         <ul class="list-disc pl-5 mt-1 space-y-1">
                                             <li>Share your account information securely</li>
                                             <li>Authorize a one-time payment from your bank</li>
-                                            <li>Allow FinAegis to confirm the payment status</li>
+                                            <li>Allow {{ config('brand.name', 'Zelta') }} to confirm the payment status</li>
                                         </ul>
                                     </div>
                                 </div>

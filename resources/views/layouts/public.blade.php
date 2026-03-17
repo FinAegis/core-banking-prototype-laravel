@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('brand.name', 'FinAegis'))</title>
+    <title>@yield('title', config('brand.name', config('brand.name', 'Zelta') . ''))</title>
 
     @include('partials.favicon')
 
@@ -13,7 +13,7 @@
         @yield('seo')
     @else
         @include('partials.seo', [
-            'title' => config('brand.name', 'FinAegis'),
+            'title' => config('brand.name', config('brand.name', 'Zelta') . ''),
             'description' => config('brand.name', 'Zelta') . ' — Agentic payments with stablecoin-powered virtual cards. Non-custodial security and privacy built in.',
             'keywords' => config('brand.name', 'Zelta') . ', agentic payments, stablecoin card, virtual card, crypto payments, non-custodial wallet',
         ])

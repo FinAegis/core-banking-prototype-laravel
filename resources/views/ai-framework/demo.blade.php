@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('title', 'AI Framework Demo - FinAegis')
+@section('title', 'AI Framework Demo - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'AI Framework Demo - Interactive AI Agent Playground',
-        'description' => 'Try the FinAegis AI Agent Framework in action. Explore MCP tools, transaction queries, x402 agent payments, and autonomous financial workflows.',
+        'description' => 'Try the ' . config('brand.name', 'Zelta') . ' AI Agent Framework in action. Explore MCP tools, transaction queries, x402 agent payments, and autonomous financial workflows.',
         'keywords' => 'AI demo, MCP tools, AI agent payments, transaction query, x402, financial AI, agent framework demo',
     ])
 @endsection
@@ -33,7 +33,7 @@
             </div>
             <h1 class="text-5xl font-bold mb-6">AI Framework Demo</h1>
             <p class="text-xl text-slate-400 max-w-3xl mx-auto mb-8">
-                Explore how AI agents interact with the FinAegis banking platform. Run natural language queries, trigger MCP tools, and see autonomous agent workflows in action.
+                Explore how AI agents interact with the {{ config('brand.name', 'Zelta') }} banking platform. Run natural language queries, trigger MCP tools, and see autonomous agent workflows in action.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
@@ -136,7 +136,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Full API Access</h3>
                     <p class="text-slate-500 mb-4">
-                        Agents have access to the complete FinAegis API surface: 1,250+ REST endpoints and 35 GraphQL domain schemas with real-time subscriptions.
+                        Agents have access to the complete {{ config('brand.name', 'Zelta') }} API surface: 1,250+ REST endpoints and 35 GraphQL domain schemas with real-time subscriptions.
                     </p>
                     <code class="text-sm text-cyan-600 bg-cyan-50 px-3 py-1 rounded">REST + GraphQL</code>
                 </div>

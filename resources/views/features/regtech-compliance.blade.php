@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'RegTech & Compliance - FinAegis')
+@section('title', 'RegTech & Compliance - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'RegTech & Compliance',
         'description' => 'Enterprise-grade regulatory technology with MiFID II reporting, MiCA compliance, Travel Rule enforcement, and multi-jurisdiction adapter support.',
-        'keywords' => 'RegTech, compliance, MiFID II, MiCA, Travel Rule, FATF, regulatory reporting, jurisdiction adapters, KYC, AML, FinAegis',
+        'keywords' => 'RegTech, compliance, MiFID II, MiCA, Travel Rule, FATF, regulatory reporting, jurisdiction adapters, KYC, AML, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -155,7 +155,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
                     <p class="text-lg text-slate-500 mb-6">
-                        The FinAegis RegTech engine uses a pluggable adapter architecture to support jurisdiction-specific compliance rules. Each adapter encapsulates the unique regulatory requirements of its target market, enabling seamless operation across borders.
+                        The {{ config('brand.name', 'Zelta') }} RegTech engine uses a pluggable adapter architecture to support jurisdiction-specific compliance rules. Each adapter encapsulates the unique regulatory requirements of its target market, enabling seamless operation across borders.
                     </p>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gray-50 rounded-lg p-4 text-center">

@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Privacy & Identity - FinAegis')
+@section('title', 'Privacy & Identity - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Privacy & Identity',
         'description' => 'Privacy-preserving identity verification with zero-knowledge proofs, verifiable credentials, Merkle trees, and ERC-4337 gas abstraction. Protect user data while meeting compliance requirements.',
-        'keywords' => 'privacy identity, zero knowledge proofs, ZK-KYC, verifiable credentials, Merkle trees, soulbound tokens, ERC-4337, gas abstraction, key management, FinAegis',
+        'keywords' => 'privacy identity, zero knowledge proofs, ZK-KYC, verifiable credentials, Merkle trees, soulbound tokens, ERC-4337, gas abstraction, key management, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}

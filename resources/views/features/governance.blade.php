@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Democratic Governance - FinAegis')
+@section('title', 'Democratic Governance - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Democratic Governance',
         'description' => 'Participate in platform decisions through weighted voting. Your voice matters in shaping the future of finance.',
-        'keywords' => 'democratic governance, voting, community decisions, decentralized finance, FinAegis',
+        'keywords' => 'democratic governance, voting, community decisions, decentralized finance, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -42,7 +42,7 @@
                 <div>
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-6">Power to the People</h2>
                     <p class="text-lg text-slate-500 mb-4">
-                        FinAegis is the first banking platform where users have real decision-making power. Through our democratic governance system, you directly influence how the platform operates.
+                        {{ config('brand.name', 'Zelta') }} is the first banking platform where users have real decision-making power. Through our democratic governance system, you directly influence how the platform operates.
                     </p>
                     <p class="text-lg text-slate-500 mb-4">
                         Every GCU holder can participate in votes that shape monetary policy, platform features, and strategic direction. Your voting power is proportional to your GCU holdings, ensuring those with the most at stake have a meaningful voice.
@@ -263,7 +263,7 @@
                 <div class="bg-gray-50 rounded-xl p-6">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h4 class="font-bold text-lg">Launch FinAegis Lending Platform</h4>
+                            <h4 class="font-bold text-lg">Launch {{ config('brand.name', 'Zelta') }} Lending Platform</h4>
                             <p class="text-slate-500">New P2P lending feature development</p>
                         </div>
                         <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">Voting</span>

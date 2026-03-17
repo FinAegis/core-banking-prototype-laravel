@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'API Documentation - FinAegis')
+@section('title', 'API Documentation - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'API Documentation - FinAegis',
-        'description' => 'Complete reference documentation for the FinAegis REST API with interactive examples and code samples.',
-        'keywords' => 'FinAegis API, REST API, API documentation, developer reference',
+        'title' => 'API Documentation - ' . config('brand.name', 'Zelta') . '',
+        'description' => 'Complete reference documentation for the ' . config('brand.name', 'Zelta') . ' REST API with interactive examples and code samples.',
+        'keywords' => config('brand.name', 'Zelta') . ' API, REST API, API documentation, developer reference',
     ])
 @endsection
 
@@ -20,7 +20,7 @@
                         API Documentation
                     </h1>
                     <p class="mt-6 text-xl text-gray-300 max-w-3xl mx-auto">
-                        Complete reference documentation for the FinAegis REST API with interactive examples and code samples.
+                        Complete reference documentation for the {{ config('brand.name', 'Zelta') }} REST API with interactive examples and code samples.
                     </p>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Getting Started</h2>
                         
                         <div class="prose prose-lg max-w-none">
-                            <p>The FinAegis API provides programmatic access to our multi-asset banking platform spanning 43 DDD domains with over 1,250 routes. Our API is organized around REST principles with predictable, resource-oriented URLs. Domains include core banking, CrossChain bridging, DeFi protocols, RegTech compliance, Mobile Payment, Partner BaaS, and AI-powered queries.</p>
+                            <p>The {{ config('brand.name', 'Zelta') }} API provides programmatic access to our multi-asset banking platform spanning 43 DDD domains with over 1,250 routes. Our API is organized around REST principles with predictable, resource-oriented URLs. Domains include core banking, CrossChain bridging, DeFi protocols, RegTech compliance, Mobile Payment, Partner BaaS, and AI-powered queries.</p>
                             
                             <h3>Base URL</h3>
                             <x-code-block language="plaintext">
@@ -86,11 +86,11 @@ https://api.finaegis.org/v2
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Authentication</h2>
                         
                         <div class="prose prose-lg max-w-none">
-                            <p>The FinAegis API uses API keys to authenticate requests. You can generate and manage your API keys in your dashboard.</p>
+                            <p>The {{ config('brand.name', 'Zelta') }} API uses API keys to authenticate requests. You can generate and manage your API keys in your dashboard.</p>
                             
                             <h3>Creating API Keys</h3>
                             <ol>
-                                <li>Log in to your FinAegis account</li>
+                                <li>Log in to your {{ config('brand.name', 'Zelta') }} account</li>
                                 <li>Navigate to <a href="{{ route('api-keys.index') }}" class="text-blue-600 hover:text-blue-800">API Keys</a> in your dashboard</li>
                                 <li>Click "Create New Key" and configure permissions</li>
                                 <li>Copy the generated key immediately (it won't be shown again)</li>
@@ -635,7 +635,7 @@ curl -X POST \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Webhooks</h2>
                         
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>Webhooks allow you to receive real-time notifications when events occur in your FinAegis account.</p>
+                            <p>Webhooks allow you to receive real-time notifications when events occur in your {{ config('brand.name', 'Zelta') }} account.</p>
                         </div>
                         
                         <div class="space-y-8">
@@ -998,7 +998,7 @@ curl -H "Authorization: Bearer your_api_key" \
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Mobile Payment API</h2>
 
                         <div class="prose prose-lg max-w-none mb-8">
-                            <p>The Mobile Payment API powers the FinAegis mobile wallet experience with payment intents, digital receipts, activity feeds, receive addresses, P2P transfers, passkey authentication, and biometric JWT sessions.</p>
+                            <p>The Mobile Payment API powers the {{ config('brand.name', 'Zelta') }} mobile wallet experience with payment intents, digital receipts, activity feeds, receive addresses, P2P transfers, passkey authentication, and biometric JWT sessions.</p>
                             <p class="text-sm text-gray-500">25+ routes &middot; <a href="/api/documentation#/MobilePayment" target="_blank" class="text-violet-600 hover:text-violet-800">View in Swagger UI</a></p>
                         </div>
 

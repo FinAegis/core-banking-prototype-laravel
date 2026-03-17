@@ -74,7 +74,7 @@
                                     {{ __('Instant Transfer') }}
                                 </h3>
                                 <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                                    <p>{{ __('Transfers between FinAegis accounts are instant and free.') }}</p>
+                                    <p>{{ __('Transfers between ' . config('brand.name', 'Zelta') . ' accounts are instant and free.') }}</p>
                                 </div>
                             </div>
                         </div>

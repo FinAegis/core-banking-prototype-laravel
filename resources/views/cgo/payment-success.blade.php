@@ -19,7 +19,7 @@
                             {{ $message }}
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400">
-                            Thank you for investing in FinAegis Continuous Growth Offering
+                            Thank you for investing in {{ config('brand.name', 'Zelta') }} Continuous Growth Offering
                         </p>
                     </div>
                     

@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'FinAegis Stablecoins - EUR-Pegged Digital Currency')
+@section('title', config('brand.name', 'Zelta') . ' Stablecoins - EUR-Pegged Digital Currency')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'FinAegis Stablecoins - EUR-Pegged Digital Currency',
-        'description' => 'FinAegis Stablecoins - Issue and manage stable digital currencies with transparent reserves and regulatory compliance.',
-        'keywords' => 'FinAegis Stablecoins, EUR stablecoin, digital currency, asset-backed tokens',
+        'title' => config('brand.name', 'Zelta') . ' Stablecoins - EUR-Pegged Digital Currency',
+        'description' => config('brand.name', 'Zelta') . ' Stablecoins - Issue and manage stable digital currencies with transparent reserves and regulatory compliance.',
+        'keywords' => config('brand.name', 'Zelta') . ' Stablecoins, EUR stablecoin, digital currency, asset-backed tokens',
     ])
 @endsection
 
@@ -22,7 +22,7 @@
                         <span>Now Live</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
-                        FinAegis Stablecoins
+                        {{ config('brand.name', 'Zelta') }} Stablecoins
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
                         Issue and manage stable digital currencies with real asset backing

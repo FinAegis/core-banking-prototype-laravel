@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'FinAegis Treasury - Enterprise Cash Management')
+@section('title', config('brand.name', 'Zelta') . ' Treasury - Enterprise Cash Management')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'FinAegis Treasury - Enterprise Cash Management',
-        'description' => 'FinAegis Treasury - Multi-bank cash management, FX optimization, and yield strategies for enterprises. Maximize returns while minimizing risk.',
-        'keywords' => 'FinAegis Treasury, cash management, FX optimization, corporate treasury, yield optimization',
+        'title' => config('brand.name', 'Zelta') . ' Treasury - Enterprise Cash Management',
+        'description' => config('brand.name', 'Zelta') . ' Treasury - Multi-bank cash management, FX optimization, and yield strategies for enterprises. Maximize returns while minimizing risk.',
+        'keywords' => config('brand.name', 'Zelta') . ' Treasury, cash management, FX optimization, corporate treasury, yield optimization',
     ])
 @endsection
 
@@ -22,7 +22,7 @@
                         <span>Available in Sandbox</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
-                        FinAegis Treasury
+                        {{ config('brand.name', 'Zelta') }} Treasury
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
                         Enterprise-grade treasury management across multiple banks and currencies

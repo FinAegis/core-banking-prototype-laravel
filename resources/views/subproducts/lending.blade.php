@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'FinAegis Lending - P2P Lending Platform')
+@section('title', config('brand.name', 'Zelta') . ' Lending - P2P Lending Platform')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'FinAegis Lending - P2P Lending Platform',
-        'description' => 'FinAegis Lending - P2P lending marketplace connecting capital with opportunity. Automated credit scoring and smart contract collateral.',
-        'keywords' => 'FinAegis Lending, P2P lending, business loans, investment platform',
+        'title' => config('brand.name', 'Zelta') . ' Lending - P2P Lending Platform',
+        'description' => config('brand.name', 'Zelta') . ' Lending - P2P lending marketplace connecting capital with opportunity. Automated credit scoring and smart contract collateral.',
+        'keywords' => config('brand.name', 'Zelta') . ' Lending, P2P lending, business loans, investment platform',
     ])
 @endsection
 
@@ -22,7 +22,7 @@
                         <span>Now Live</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
-                        FinAegis Lending
+                        {{ config('brand.name', 'Zelta') }} Lending
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
                         Connect capital with opportunity through our P2P lending marketplace

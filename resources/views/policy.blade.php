@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Privacy Policy - FinAegis')
+@section('title', 'Privacy Policy - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Privacy Policy - FinAegis',
-        'description' => 'FinAegis privacy policy. Learn how we collect, use, and protect your personal data.',
-        'keywords' => 'FinAegis privacy policy, data protection, GDPR, personal data',
+        'title' => 'Privacy Policy - ' . config('brand.name', 'Zelta') . '',
+        'description' => config('brand.name', 'Zelta') . ' privacy policy. Learn how we collect, use, and protect your personal data.',
+        'keywords' => config('brand.name', 'Zelta') . ' privacy policy, data protection, GDPR, personal data',
     ])
 
     <x-schema type="breadcrumb" :data="[

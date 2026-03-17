@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'AI Framework - FinAegis')
+@section('title', 'AI Framework - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'AI Framework',
         'description' => 'Intelligent banking powered by AI. Natural language transaction queries, spending analysis, ML anomaly detection, and Model Context Protocol tools for agent-driven operations.',
-        'keywords' => 'AI framework, machine learning, anomaly detection, natural language queries, spending analysis, MCP tools, AI agent, banking AI, FinAegis',
+        'keywords' => 'AI framework, machine learning, anomaly detection, natural language queries, spending analysis, MCP tools, AI agent, banking AI, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -80,7 +80,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
                     <p class="text-lg text-slate-500 mb-6">
-                        The FinAegis AI Framework integrates large language models and machine learning pipelines directly into the banking infrastructure. From conversational interfaces to autonomous agents, AI augments every aspect of financial operations.
+                        The {{ config('brand.name', 'Zelta') }} AI Framework integrates large language models and machine learning pipelines directly into the banking infrastructure. From conversational interfaces to autonomous agents, AI augments every aspect of financial operations.
                     </p>
                     <div class="space-y-4">
                         <div class="flex items-start">

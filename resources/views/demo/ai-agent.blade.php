@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'AI Agent Demo - FinAegis')
+@section('title', 'AI Agent Demo - ' . config('brand.name', 'Zelta') . '')
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -77,7 +77,7 @@
                     <!-- Chat Header -->
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
                         <h2 class="text-xl font-semibold">AI Financial Assistant</h2>
-                        <p class="text-sm opacity-90">Multi-agent orchestration powered by FinAegis AI Framework</p>
+                        <p class="text-sm opacity-90">Multi-agent orchestration powered by {{ config('brand.name', 'Zelta') }} AI Framework</p>
                     </div>
 
                     <!-- Chat Messages -->

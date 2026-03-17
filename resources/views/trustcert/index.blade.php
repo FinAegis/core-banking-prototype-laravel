@@ -248,7 +248,7 @@
                                     </div>
                                     <div class="ml-3">
                                         <p class="text-sm text-gray-700 dark:text-gray-300">
-                                            FinAegis certificates follow the <span class="font-medium text-gray-900 dark:text-white">W3C Verifiable Credentials</span> standard, ensuring interoperability across platforms and services.
+                                            {{ config('brand.name', 'Zelta') }} certificates follow the <span class="font-medium text-gray-900 dark:text-white">W3C Verifiable Credentials</span> standard, ensuring interoperability across platforms and services.
                                         </p>
                                     </div>
                                 </div>

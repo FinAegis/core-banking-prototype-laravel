@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Terms of Service - FinAegis')
+@section('title', 'Terms of Service - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Terms of Service - FinAegis',
-        'description' => 'FinAegis terms of service. Review the terms governing your use of our platform.',
-        'keywords' => 'FinAegis terms of service, terms and conditions, user agreement',
+        'title' => 'Terms of Service - ' . config('brand.name', 'Zelta') . '',
+        'description' => config('brand.name', 'Zelta') . ' terms of service. Review the terms governing your use of our platform.',
+        'keywords' => config('brand.name', 'Zelta') . ' terms of service, terms and conditions, user agreement',
     ])
 
     <x-schema type="breadcrumb" :data="[
@@ -24,7 +24,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'Terms of Service', 'url' => url('/terms-of-service')]]])
                 <h1 class="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">Terms of <span class="text-gradient">Service</span></h1>
                 <p class="text-slate-400 max-w-xl mx-auto">
-                    The terms governing your use of the FinAegis platform.
+                    The terms governing your use of the {{ config('brand.name', 'Zelta') }} platform.
                 </p>
             </div>
         </div>

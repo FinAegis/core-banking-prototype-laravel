@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Multi-Tenancy - FinAegis')
+@section('title', 'Multi-Tenancy - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Multi-Tenancy',
         'description' => 'Enterprise-grade multi-tenancy with team-based isolation, per-tenant configuration, data migration, and the UsesTenantConnection trait powered by stancl/tenancy v3.9.',
-        'keywords' => 'multi-tenancy, tenant isolation, database scoping, enterprise, data migration, tenant configuration, stancl tenancy, FinAegis',
+        'keywords' => 'multi-tenancy, tenant isolation, database scoping, enterprise, data migration, tenant configuration, stancl tenancy, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -81,7 +81,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
                     <p class="text-lg text-slate-500 mb-6">
-                        Built on stancl/tenancy v3.9, the FinAegis multi-tenancy system provides robust team-based isolation at the database level. The UsesTenantConnection trait automatically scopes all Eloquent queries, events, and jobs to the current tenant context.
+                        Built on stancl/tenancy v3.9, the {{ config('brand.name', 'Zelta') }} multi-tenancy system provides robust team-based isolation at the database level. The UsesTenantConnection trait automatically scopes all Eloquent queries, events, and jobs to the current tenant context.
                     </p>
                     <div class="space-y-4">
                         <div class="flex items-start">
@@ -313,7 +313,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Scale With Confidence</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Whether you serve ten organizations or ten thousand, FinAegis multi-tenancy ensures every tenant gets enterprise-grade isolation, performance, and control.
+                Whether you serve ten organizations or ten thousand, {{ config('brand.name', 'Zelta') }} multi-tenancy ensures every tenant gets enterprise-grade isolation, performance, and control.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

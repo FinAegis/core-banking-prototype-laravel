@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Global Currency Unit (GCU) - FinAegis')
+@section('title', 'Global Currency Unit (GCU) - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Global Currency Unit (GCU)',
-        'description' => 'Learn about the Global Currency Unit (GCU) - FinAegis\'s innovative basket currency with democratic governance and stable value.',
-        'keywords' => 'GCU, global currency unit, basket currency, democratic governance, stable value, FinAegis',
+        'description' => 'Learn about the Global Currency Unit (GCU) - ' . config('brand.name', 'Zelta') . '\'s innovative basket currency with democratic governance and stable value.',
+        'keywords' => 'GCU, global currency unit, basket currency, democratic governance, stable value, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -53,7 +53,7 @@
                 <div>
                     <h2 class="font-display text-4xl font-bold text-slate-900 mb-6">What is the GCU?</h2>
                     <p class="text-lg text-slate-500 mb-4">
-                        The Global Currency Unit is FinAegis's flagship innovation - a basket currency that combines the stability of multiple fiat currencies with the transparency of blockchain technology.
+                        The Global Currency Unit is {{ config('brand.name', 'Zelta') }}'s flagship innovation - a basket currency that combines the stability of multiple fiat currencies with the transparency of blockchain technology.
                     </p>
                     <p class="text-lg text-slate-500 mb-4">
                         Unlike traditional currencies controlled by single nations or institutions, the GCU is governed democratically by its holders, ensuring that monetary policy serves the community rather than special interests.

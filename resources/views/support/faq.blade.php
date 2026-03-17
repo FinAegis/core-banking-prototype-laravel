@@ -1,19 +1,19 @@
 @extends('layouts.public')
 
-@section('title', 'FAQ - Frequently Asked Questions | FinAegis')
+@section('title', 'FAQ - Frequently Asked Questions | ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'FAQ - Frequently Asked Questions | FinAegis',
-        'description' => 'Frequently asked questions about FinAegis core banking platform, Global Currency Unit (GCU), architecture, and getting started.',
+        'title' => 'FAQ - Frequently Asked Questions | ' . config('brand.name', 'Zelta') . '',
+        'description' => 'Frequently asked questions about ' . config('brand.name', 'Zelta') . ' core banking platform, Global Currency Unit (GCU), architecture, and getting started.',
     ])
     
     {{-- Schema.org FAQ Markup --}}
     @php
     $faqData = [
         [
-            'question' => 'What is the current status of FinAegis?',
-            'answer' => 'FinAegis v5.12.0 is a fully-featured open-source core banking platform with 43 domain modules. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
+            'question' => 'What is the current status of ' . config('brand.name', 'Zelta') . '?',
+            'answer' => config('brand.name', 'Zelta') . ' v5.12.0 is a fully-featured open-source core banking platform with 43 domain modules. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
         ],
         [
             'question' => 'Can I use real money on the platform?',
@@ -66,7 +66,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Frequently Asked Questions</h1>
                 <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                    Find answers to common questions about the FinAegis platform and the Global Currency Unit concept.
+                    Find answers to common questions about the {{ config('brand.name', 'Zelta') }} platform and the Global Currency Unit concept.
                 </p>
 
                 <!-- Search Bar -->
@@ -119,7 +119,7 @@
                 <div class="faq-item" data-category="platform">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">What is the current status of FinAegis?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">What is the current status of {{ config('brand.name', 'Zelta') }}?</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -127,7 +127,7 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            FinAegis is a fully-featured open-source core banking platform at v5.12.0. The sandbox environment lets you:
+                            {{ config('brand.name', 'Zelta') }} is a fully-featured open-source core banking platform at v5.12.0. The sandbox environment lets you:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
                             <li>Explore 43 domain modules including DeFi, cross-chain, privacy, and rewards</li>
@@ -171,7 +171,7 @@
                 <div class="faq-item" data-category="getting-started">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">How do I get started with FinAegis?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">How do I get started with {{ config('brand.name', 'Zelta') }}?</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -197,7 +197,7 @@
                 <div class="faq-item" data-category="getting-started">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">Is FinAegis open source?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">Is {{ config('brand.name', 'Zelta') }} open source?</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -205,7 +205,7 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            Yes! FinAegis is fully open source under the MIT license. This means:
+                            Yes! {{ config('brand.name', 'Zelta') }} is fully open source under the MIT license. This means:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
                             <li>You can view all source code on GitHub</li>
@@ -215,7 +215,7 @@
                             <li>The community helps drive development</li>
                         </ul>
                         <p class="text-slate-500 mt-3">
-                            Visit our GitHub repository at: github.com/FinAegis/core-banking-prototype-laravel
+                            Visit our GitHub repository at: {{ config('brand.github_url') }}
                         </p>
                     </div>
                 </div>
@@ -277,7 +277,7 @@
                 <div class="faq-item" data-category="technical">
                     <button class="faq-question w-full text-left px-6 py-4 bg-white rounded-lg hover:bg-slate-50 transition shadow-sm">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-slate-900">What technology stack does FinAegis use?</h3>
+                            <h3 class="text-lg font-semibold text-slate-900">What technology stack does {{ config('brand.name', 'Zelta') }} use?</h3>
                             <svg class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -285,7 +285,7 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            FinAegis is built with modern, scalable technologies:
+                            {{ config('brand.name', 'Zelta') }} is built with modern, scalable technologies:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
                             <li><strong>Backend:</strong> Laravel (PHP framework)</li>
@@ -391,7 +391,7 @@
                         <a href="{{ route('support.contact') }}" class="btn-primary">
                             Contact Support
                         </a>
-                        <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" class="btn-outline-dark">
+                        <a href="{{ config('brand.github_url') }}/discussions" class="btn-outline-dark">
                             Community Forum
                         </a>
                     </div>
@@ -442,7 +442,7 @@
                 </div>
             </div>
             <div class="mt-8 pt-8 border-t border-gray-800 text-center">
-                <p>&copy; {{ date('Y') }} FinAegis. All rights reserved. Open Source Project.</p>
+                <p>&copy; {{ date('Y') }} {{ config('brand.name', 'Zelta') }}. All rights reserved. Open Source Project.</p>
             </div>
         </div>
     </footer>

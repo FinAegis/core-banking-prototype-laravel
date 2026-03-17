@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Webhooks - FinAegis Developer Documentation')
+@section('title', 'Webhooks - ' . config('brand.name', 'Zelta') . ' Developer Documentation')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Webhooks - FinAegis Developer Documentation',
-        'description' => 'FinAegis Webhooks - Real-time event notifications for your application. Get instant updates on transactions, accounts, and workflows.',
-        'keywords' => 'FinAegis, webhooks, real-time, notifications, API, events',
+        'title' => 'Webhooks - ' . config('brand.name', 'Zelta') . ' Developer Documentation',
+        'description' => config('brand.name', 'Zelta') . ' Webhooks - Real-time event notifications for your application. Get instant updates on transactions, accounts, and workflows.',
+        'keywords' => config('brand.name', 'Zelta') . ', webhooks, real-time, notifications, API, events',
     ])
 @endsection
 
@@ -78,7 +78,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">How Webhooks Work</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Never miss an important event. Get instant HTTP POST notifications when things happen in your FinAegis account.
+                        Never miss an important event. Get instant HTTP POST notifications when things happen in your {{ config('brand.name', 'Zelta') }} account.
                     </p>
                 </div>
 

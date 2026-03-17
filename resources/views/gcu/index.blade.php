@@ -4,14 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
-        <title>Global Currency Unit (GCU) - FinAegis</title>
+        <title>Global Currency Unit (GCU) - {{ config('brand.name', 'Zelta') }}</title>
 
         @include('partials.favicon')
         
         @include('partials.seo', [
             'title' => 'Global Currency Unit (GCU)',
             'description' => 'Global Currency Unit (GCU) - The world\'s first democratically governed basket currency. Real bank backing, government insurance, community control.',
-            'keywords' => 'GCU, global currency unit, democratic banking, basket currency, FinAegis, stable currency, digital currency, community governance',
+            'keywords' => 'GCU, global currency unit, democratic banking, basket currency, ' . config('brand.name', 'Zelta') . ', stable currency, digital currency, community governance',
         ])
         
         {{-- Schema.org Markup --}}

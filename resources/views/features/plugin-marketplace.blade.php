@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Plugin Marketplace - FinAegis')
+@section('title', 'Plugin Marketplace - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Plugin Marketplace',
-        'description' => 'Extend FinAegis with a secure plugin ecosystem. Sandbox execution, static security scanning, hook-based integration, and a full management UI.',
-        'keywords' => 'plugin marketplace, extensibility, sandbox execution, security scanner, plugin hooks, FinAegis',
+        'description' => 'Extend ' . config('brand.name', 'Zelta') . ' with a secure plugin ecosystem. Sandbox execution, static security scanning, hook-based integration, and a full management UI.',
+        'keywords' => 'plugin marketplace, extensibility, sandbox execution, security scanner, plugin hooks, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -35,7 +35,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Plugin Marketplace</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto">
-                    Extend FinAegis with a secure, sandboxed plugin system. Discover, install, and manage plugins with built-in security scanning and permission enforcement.
+                    Extend {{ config('brand.name', 'Zelta') }} with a secure, sandboxed plugin system. Discover, install, and manage plugins with built-in security scanning and permission enforcement.
                 </p>
             </div>
         </div>
@@ -211,7 +211,7 @@
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-center mb-4">Built-in Plugins</h2>
-            <p class="text-slate-500 text-center mb-12 max-w-2xl mx-auto">FinAegis ships with reference plugins that demonstrate the hook system and serve as templates for custom development.</p>
+            <p class="text-slate-500 text-center mb-12 max-w-2xl mx-auto">{{ config('brand.name', 'Zelta') }} ships with reference plugins that demonstrate the hook system and serve as templates for custom development.</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <div class="plugin-card border border-gray-200 rounded-xl p-8">
                     <div class="flex items-center gap-3 mb-4">

@@ -3,10 +3,10 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Apply to become a FinAegis partner financial institution. Join us in building the future of democratic banking.">
-        <meta name="keywords" content="FinAegis, partner bank, financial institution, banking partnership, GCU">
+        <meta name="description" content="Apply to become a {{ config('brand.name', 'Zelta') }} partner financial institution. Join us in building the future of democratic banking.">
+        <meta name="keywords" content="{{ config('brand.name', 'Zelta') }}, partner bank, financial institution, banking partnership, GCU">
         
-        <title>Partner Institution Application - FinAegis</title>
+        <title>Partner Institution Application - {{ config('brand.name', 'Zelta') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -28,7 +28,7 @@
                         Partner Institution Application
                     </h1>
                     <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                        Join the FinAegis network and help us build the future of democratic banking
+                        Join the {{ config('brand.name', 'Zelta') }} network and help us build the future of democratic banking
                     </p>
                 </div>
             </div>
@@ -306,7 +306,7 @@
                                     Partnership Vision
                                 </label>
                                 <textarea id="partnership_vision" name="partnership_vision" rows="4"
-                                          placeholder="Share your vision for partnering with FinAegis and how you see this collaboration benefiting both parties"
+                                          placeholder="Share your vision for partnering with {{ config('brand.name', 'Zelta') }} and how you see this collaboration benefiting both parties"
                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
                             </div>
                         </div>
@@ -317,7 +317,7 @@
                                 <input type="checkbox" id="terms" name="terms" required
                                        class="mt-1 mr-3 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                                 <label for="terms" class="text-sm text-slate-600">
-                                    I confirm that the information provided is accurate and that I am authorized to submit this application on behalf of the institution. I understand that FinAegis will conduct due diligence and that meeting the requirements does not guarantee acceptance as a partner institution.
+                                    I confirm that the information provided is accurate and that I am authorized to submit this application on behalf of the institution. I understand that {{ config('brand.name', 'Zelta') }} will conduct due diligence and that meeting the requirements does not guarantee acceptance as a partner institution.
                                 </label>
                             </div>
                         </div>

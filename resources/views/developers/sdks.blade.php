@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Build with FinAegis - Integration Guide')
+@section('title', 'Build with ' . config('brand.name', 'Zelta') . ' - Integration Guide')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Build with FinAegis - Integration Guide',
-        'description' => 'Multiple ways to integrate FinAegis core banking infrastructure into your applications. REST API, native SDKs, webhooks, and more.',
-        'keywords' => 'FinAegis, integration, API, SDK, webhooks, banking infrastructure, fintech, development',
+        'title' => 'Build with ' . config('brand.name', 'Zelta') . ' - Integration Guide',
+        'description' => 'Multiple ways to integrate ' . config('brand.name', 'Zelta') . ' core banking infrastructure into your applications. REST API, native SDKs, webhooks, and more.',
+        'keywords' => config('brand.name', 'Zelta') . ', integration, API, SDK, webhooks, banking infrastructure, fintech, development',
     ])
 @endsection
 
@@ -203,7 +203,7 @@
                         </span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6">
-                        Build with FinAegis
+                        Build with {{ config('brand.name', 'Zelta') }}
                     </h1>
                     <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
                         Multiple ways to integrate our core banking infrastructure into your applications. Choose the approach that fits your needs.
@@ -375,7 +375,7 @@
                                 <span>JavaScript Example</span>
                                 <button class="copy-button" onclick="copyCode(this)">Copy</button>
                             </div>
-                            <pre class="code-block p-4"><code class="language-javascript"><span style="color: #c792ea;">const</span> <span style="color: #82aaff;">agent</span> = <span style="color: #c792ea;">new</span> <span style="color: #ffcb6b;">FinAegisAI</span>({
+                            <pre class="code-block p-4"><code class="language-javascript"><span style="color: #c792ea;">const</span> <span style="color: #82aaff;">agent</span> = <span style="color: #c792ea;">new</span> <span style="color: #ffcb6b;">{{ config('brand.name', 'Zelta') }}AI</span>({
   <span style="color: #f07178;">apiKey</span>: <span style="color: #c3e88d;">'your-api-key'</span>
 });
 
@@ -695,7 +695,7 @@ curl -X POST https://api.finaegis.org/api/v1/partner/sdk/generate \
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Partner SDK Integration Guide</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Step-by-step guide to integrating the FinAegis BaaS SDK into your partner application,
+                        Step-by-step guide to integrating the {{ config('brand.name', 'Zelta') }} BaaS SDK into your partner application,
                         covering authentication, module access, and advanced features like Cross-Chain and DeFi.
                     </p>
                 </div>
@@ -717,9 +717,9 @@ curl -X POST https://api.finaegis.org/api/v1/partner/sdk/generate \
                                 <div>
                                     <p class="text-sm font-medium text-slate-600 mb-2">TypeScript</p>
                                     <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
-<pre>import { FinAegis } from '@finaegis/sdk';
+<pre>import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
 
-const client = new FinAegis({
+const client = new {{ config('brand.name', 'Zelta') }}({
   apiKey: process.env.FINAEGIS_PARTNER_KEY,
   partnerId: 'partner_acme_abc123',
   environment: 'production', // or 'sandbox'
@@ -731,9 +731,9 @@ const client = new FinAegis({
                                 <div>
                                     <p class="text-sm font-medium text-slate-600 mb-2">Python</p>
                                     <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto">
-<pre>from finaegis import FinAegis
+<pre>from finaegis import {{ config('brand.name', 'Zelta') }}
 
-client = FinAegis(
+client = {{ config('brand.name', 'Zelta') }}(
     api_key=os.environ['FINAEGIS_PARTNER_KEY'],
     partner_id='partner_acme_abc123',
     environment='production',
@@ -945,7 +945,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Built for Your Use Case</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Whether you're building a fintech app, marketplace, or enterprise platform, FinAegis provides the banking infrastructure you need
+                        Whether you're building a fintech app, marketplace, or enterprise platform, {{ config('brand.name', 'Zelta') }} provides the banking infrastructure you need
                     </p>
                 </div>
                 
@@ -1156,7 +1156,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Get Started in Minutes</h2>
-                    <p class="text-xl text-slate-500">Three simple steps to integrate FinAegis into your application</p>
+                    <p class="text-xl text-slate-500">Three simple steps to integrate {{ config('brand.name', 'Zelta') }} into your application</p>
                 </div>
                 
                 <div class="max-w-4xl mx-auto">
@@ -1226,7 +1226,7 @@ console.log('Total volume:', insights.data.analytics.total_volume);</pre>
             <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
                 <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Ready to integrate?</h2>
                 <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                    Choose your preferred language and start building with FinAegis today
+                    Choose your preferred language and start building with {{ config('brand.name', 'Zelta') }} today
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

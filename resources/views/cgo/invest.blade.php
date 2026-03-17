@@ -182,12 +182,12 @@
             <!-- Interested in the Project? -->
             <div class="mt-8 bg-gradient-to-r from-gray-800 to-gray-900 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 text-center">
-                    <h3 class="text-xl font-bold text-white mb-3">Interested in the FinAegis Project?</h3>
+                    <h3 class="text-xl font-bold text-white mb-3">Interested in the {{ config('brand.name', 'Zelta') }} Project?</h3>
                     <p class="text-gray-300 mb-6 max-w-2xl mx-auto">
                         This is an open-source core banking platform. Explore the code, contribute features, or star the repository to show your support.
                     </p>
                     <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
-                        <a href="https://github.com/FinAegis/core-banking-prototype-laravel"
+                        <a href="{{ config('brand.github_url') }}"
                            target="_blank"
                            class="inline-flex items-center px-6 py-3 bg-white text-gray-900 font-semibold rounded-lg hover:bg-gray-100 transition">
                             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">

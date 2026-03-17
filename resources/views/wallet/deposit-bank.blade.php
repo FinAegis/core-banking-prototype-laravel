@@ -25,7 +25,7 @@
                     <div class="mb-8">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Select Bank Deposit Method</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                            Choose your preferred bank to deposit funds into your FinAegis account.
+                            Choose your preferred bank to deposit funds into your {{ config('brand.name', 'Zelta') }} account.
                         </p>
 
                         <div class="space-y-4">

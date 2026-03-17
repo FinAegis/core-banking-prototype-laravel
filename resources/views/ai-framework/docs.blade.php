@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('title', 'AI Framework Documentation - FinAegis')
+@section('title', 'AI Framework Documentation - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'AI Framework Documentation - Architecture & Integration Guide',
-        'description' => 'Technical documentation for the FinAegis AI Agent Framework. Learn about MCP tools, A2A protocol, x402 agent payments, spending controls, and integration patterns.',
+        'description' => 'Technical documentation for the ' . config('brand.name', 'Zelta') . ' AI Agent Framework. Learn about MCP tools, A2A protocol, x402 agent payments, spending controls, and integration patterns.',
         'keywords' => 'AI framework docs, MCP integration, A2A protocol, agent payments, x402, financial AI documentation, LLM integration',
     ])
 @endsection
@@ -30,7 +30,7 @@
             </div>
             <h1 class="text-4xl font-bold mb-4">AI Framework Documentation</h1>
             <p class="text-xl text-gray-300 max-w-3xl">
-                Architecture guide, integration patterns, and API reference for the FinAegis AI Agent Framework.
+                Architecture guide, integration patterns, and API reference for the {{ config('brand.name', 'Zelta') }} AI Agent Framework.
             </p>
         </div>
     </section>
@@ -61,7 +61,7 @@
                     <section id="overview" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">Overview</h2>
                         <p>
-                            The FinAegis AI Framework enables autonomous agents to interact with the full banking platform. It provides Model Context Protocol (MCP) tools for LLM integration, Google A2A protocol for agent-to-agent communication, and x402-based micropayments for pay-per-request API access.
+                            The {{ config('brand.name', 'Zelta') }} AI Framework enables autonomous agents to interact with the full banking platform. It provides Model Context Protocol (MCP) tools for LLM integration, Google A2A protocol for agent-to-agent communication, and x402-based micropayments for pay-per-request API access.
                         </p>
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 not-prose mt-6">
                             <h4 class="font-semibold text-blue-900 mb-2">Key Capabilities</h4>
@@ -112,7 +112,7 @@
                     <section id="mcp-tools" class="doc-section mb-16">
                         <h2 class="font-display text-3xl font-bold text-slate-900 mb-6">MCP Tools</h2>
                         <p>
-                            FinAegis implements Model Context Protocol tools that LLMs like Claude can use to interact with the banking platform. Tools are registered as MCP-compatible endpoints.
+                            {{ config('brand.name', 'Zelta') }} implements Model Context Protocol tools that LLMs like Claude can use to interact with the banking platform. Tools are registered as MCP-compatible endpoints.
                         </p>
                         <h3>TransactionQueryTool</h3>
                         <p>
@@ -197,7 +197,7 @@
                     <!-- CTA -->
                     <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-8 not-prose text-center">
                         <h3 class="text-2xl font-bold text-indigo-900 mb-3">Start Building</h3>
-                        <p class="text-indigo-700 mb-6">Ready to integrate AI agents with FinAegis? Start with the sandbox.</p>
+                        <p class="text-indigo-700 mb-6">Ready to integrate AI agents with {{ config('brand.name', 'Zelta') }}? Start with the sandbox.</p>
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
                             <a href="{{ route('ai-framework.demo') }}" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
                                 Try the Demo

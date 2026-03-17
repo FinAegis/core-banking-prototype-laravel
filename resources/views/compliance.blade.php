@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Compliance - FinAegis')
+@section('title', 'Compliance - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Compliance-Ready Architecture - FinAegis',
-        'description' => 'FinAegis compliance-ready architecture. Built to meet EU regulatory standards with PSD2, EMD2, MiCA, KYC/AML, GDPR, and Travel Rule adapters.',
-        'keywords' => 'FinAegis, compliance, regulation, PSD2, EMD2, MiCA, KYC, AML, GDPR, security, Travel Rule, MiFID II',
+        'title' => 'Compliance-Ready Architecture - ' . config('brand.name', 'Zelta') . '',
+        'description' => config('brand.name', 'Zelta') . ' compliance-ready architecture. Built to meet EU regulatory standards with PSD2, EMD2, MiCA, KYC/AML, GDPR, and Travel Rule adapters.',
+        'keywords' => config('brand.name', 'Zelta') . ', compliance, regulation, PSD2, EMD2, MiCA, KYC, AML, GDPR, security, Travel Rule, MiFID II',
     ])
 
     <x-schema type="breadcrumb" :data="[

@@ -15,7 +15,7 @@
                             {{ config('app.gcu_basket_description', 'Democratic global currency backed by real banks') }}
                         </p>
                         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            Powered by FinAegis Platform
+                            Powered by {{ config('brand.name', 'Zelta') }} Platform
                         </p>
                     </div>
                 </div>
@@ -37,10 +37,10 @@
             </div>
         </div>
     @else
-        {{-- FinAegis Platform Dashboard --}}
+        {{-- {{ config('brand.name', 'Zelta') }} Platform Dashboard --}}
         <div class="space-y-4">
             <div class="text-2xl font-bold tracking-tight">
-                Welcome to FinAegis Dashboard
+                Welcome to {{ config('brand.name', 'Zelta') }} Dashboard
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400">
                 Enterprise-grade core banking platform

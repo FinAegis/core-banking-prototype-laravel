@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Instant Settlements - FinAegis')
+@section('title', 'Instant Settlements - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Instant Settlements',
         'description' => 'Experience sub-second transaction processing with our advanced settlement engine. No more waiting days for transfers.',
-        'keywords' => 'instant settlements, real-time transactions, fast transfers, payment processing, FinAegis',
+        'keywords' => 'instant settlements, real-time transactions, fast transfers, payment processing, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -72,7 +72,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <h3 class="text-2xl font-bold mb-6">Traditional Banking vs FinAegis</h3>
+                    <h3 class="text-2xl font-bold mb-6">Traditional Banking vs {{ config('brand.name', 'Zelta') }}</h3>
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between mb-2">

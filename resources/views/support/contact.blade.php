@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('title', 'Contact Us - FinAegis Support')
+@section('title', 'Contact Us - ' . config('brand.name', 'Zelta') . ' Support')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Contact Us - FinAegis Support',
-        'description' => 'Contact the FinAegis team for technical support, partnership inquiries, or to report issues. Community support for our open-source core banking platform with 43 domain modules.',
+        'title' => 'Contact Us - ' . config('brand.name', 'Zelta') . ' Support',
+        'description' => 'Contact the ' . config('brand.name', 'Zelta') . ' team for technical support, partnership inquiries, or to report issues. Community support for our open-source core banking platform with 43 domain modules.',
     ])
 @endsection
 
@@ -18,7 +18,7 @@
             <div class="text-center">
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Contact Us</h1>
                 <p class="text-xl text-slate-400 max-w-3xl mx-auto">
-                    Share your feedback, report issues, or ask questions about FinAegis. Our community and team are here to help.
+                    Share your feedback, report issues, or ask questions about {{ config('brand.name', 'Zelta') }}. Our community and team are here to help.
                 </p>
             </div>
         </div>
@@ -50,7 +50,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">GitHub Issues</h3>
                     <p class="text-slate-500 mb-2">Report bugs & features</p>
-                    <a href="https://github.com/FinAegis/core-banking-prototype-laravel/issues" class="text-purple-600 hover:text-purple-700 font-medium">Create Issue</a>
+                    <a href="{{ config('brand.github_url') }}/issues" class="text-purple-600 hover:text-purple-700 font-medium">Create Issue</a>
                 </div>
                 
                 <!-- Community Forum -->
@@ -62,7 +62,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Community Forum</h3>
                     <p class="text-slate-500 mb-2">Join discussions</p>
-                    <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" target="_blank" class="text-green-600 hover:text-green-700 font-medium">Visit Forum</a>
+                    <a href="{{ config('brand.github_url') }}/discussions" target="_blank" class="text-green-600 hover:text-green-700 font-medium">Visit Forum</a>
                 </div>
             </div>
 
@@ -197,7 +197,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="font-display text-3xl font-bold text-slate-900 mb-4">Open Source Project</h2>
-                <p class="text-xl text-slate-500">FinAegis is open source and community-driven</p>
+                <p class="text-xl text-slate-500">{{ config('brand.name', 'Zelta') }} is open source and community-driven</p>
             </div>
             
             <div class="max-w-3xl mx-auto card-feature">
@@ -207,7 +207,7 @@
                         <p class="text-slate-500 mb-4">
                             Help us build the future of democratic banking. Review our code, submit pull requests, and improve the platform.
                         </p>
-                        <a href="https://github.com/FinAegis/core-banking-prototype-laravel" class="text-indigo-600 font-medium hover:text-indigo-700">
+                        <a href="{{ config('brand.github_url') }}" class="text-indigo-600 font-medium hover:text-indigo-700">
                             View Repository →
                         </a>
                     </div>
@@ -217,7 +217,7 @@
                         <p class="text-slate-500 mb-4">
                             Found a bug or have a feature request? Let us know on GitHub so we can improve the platform.
                         </p>
-                        <a href="https://github.com/FinAegis/core-banking-prototype-laravel/issues/new" class="text-indigo-600 font-medium hover:text-indigo-700">
+                        <a href="{{ config('brand.github_url') }}/issues/new" class="text-indigo-600 font-medium hover:text-indigo-700">
                             Create Issue →
                         </a>
                     </div>
@@ -274,7 +274,7 @@
                 </div>
             </div>
             <div class="mt-8 pt-8 border-t border-gray-800 text-center">
-                <p>&copy; {{ date('Y') }} FinAegis. All rights reserved. Open Source Project.</p>
+                <p>&copy; {{ date('Y') }} {{ config('brand.name', 'Zelta') }}. All rights reserved. Open Source Project.</p>
             </div>
         </div>
     </footer>

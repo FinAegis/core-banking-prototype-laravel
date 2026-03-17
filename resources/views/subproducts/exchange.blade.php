@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'FinAegis Exchange - Multi-Asset Trading Platform')
+@section('title', config('brand.name', 'Zelta') . ' Exchange - Multi-Asset Trading Platform')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'FinAegis Exchange - Multi-Asset Trading Platform',
-        'description' => 'FinAegis Exchange - Professional trading platform for digital and traditional assets with institutional-grade infrastructure.',
-        'keywords' => 'FinAegis Exchange, crypto trading, forex, asset exchange, trading platform',
+        'title' => config('brand.name', 'Zelta') . ' Exchange - Multi-Asset Trading Platform',
+        'description' => config('brand.name', 'Zelta') . ' Exchange - Professional trading platform for digital and traditional assets with institutional-grade infrastructure.',
+        'keywords' => config('brand.name', 'Zelta') . ' Exchange, crypto trading, forex, asset exchange, trading platform',
     ])
 @endsection
 
@@ -22,7 +22,7 @@
                         <span>Now Live</span>
                     </div>
                     <h1 class="text-5xl md:text-6xl font-bold mb-6">
-                        FinAegis Exchange
+                        {{ config('brand.name', 'Zelta') }} Exchange
                     </h1>
                     <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-8">
                         Professional trading platform for digital and traditional assets with institutional-grade infrastructure

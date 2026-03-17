@@ -3,16 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="FinAegis Sub-Products - Optional financial services including Exchange, Lending, Stablecoins, and Treasury. Enable only what you need.">
-        <meta name="keywords" content="FinAegis sub-products, crypto exchange, P2P lending, stablecoins, treasury management, optional services">
+        <meta name="description" content="{{ config('brand.name', 'Zelta') }} Sub-Products - Optional financial services including Exchange, Lending, Stablecoins, and Treasury. Enable only what you need.">
+        <meta name="keywords" content="{{ config('brand.name', 'Zelta') }} sub-products, crypto exchange, P2P lending, stablecoins, treasury management, optional services">
         
         <!-- Open Graph -->
-        <meta property="og:title" content="FinAegis Sub-Products - Modular Financial Services">
+        <meta property="og:title" content="{{ config('brand.name', 'Zelta') }} Sub-Products - Modular Financial Services">
         <meta property="og:description" content="Extend your GCU account with professional trading, lending, stablecoins, and treasury management. Enable only what you need.">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url('/sub-products') }}">
 
-        <title>Sub-Products - Optional Services | FinAegis</title>
+        <title>Sub-Products - Optional Services | {{ config('brand.name', 'Zelta') }}</title>
 
         @include('partials.favicon')
 
@@ -121,7 +121,7 @@
                             <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">Available</span>
                         </div>
                         
-                        <h3 class="text-2xl font-bold text-slate-900 mb-4">FinAegis Exchange</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Exchange</h3>
                         <p class="text-slate-500 mb-6">
                             Professional trading platform for crypto and fiat currencies. Institutional-grade security with advanced trading features.
                         </p>
@@ -172,7 +172,7 @@
                             <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">Available</span>
                         </div>
                         
-                        <h3 class="text-2xl font-bold text-slate-900 mb-4">FinAegis Lending</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Lending</h3>
                         <p class="text-slate-500 mb-6">
                             P2P lending marketplace connecting capital with opportunity. Earn yield or access working capital.
                         </p>
@@ -223,7 +223,7 @@
                             <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">Available</span>
                         </div>
 
-                        <h3 class="text-2xl font-bold text-slate-900 mb-4">FinAegis Stablecoins</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Stablecoins</h3>
                         <p class="text-slate-500 mb-6">
                             Issue and manage stable tokens backed by real assets. Multi-chain support with cross-chain bridges and instant redemption.
                         </p>
@@ -274,7 +274,7 @@
                             <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">Available</span>
                         </div>
 
-                        <h3 class="text-2xl font-bold text-slate-900 mb-4">FinAegis Treasury</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} Treasury</h3>
                         <p class="text-slate-500 mb-6">
                             Advanced cash management across multiple banks. Optimize yields and minimize risk with automated portfolio rebalancing.
                         </p>
@@ -612,7 +612,7 @@
                     </div>
                 </div>
                 <div class="mt-8 pt-8 border-t border-gray-800 text-center">
-                    <p>&copy; {{ date('Y') }} FinAegis. All rights reserved.</p>
+                    <p>&copy; {{ date('Y') }} {{ config('brand.name', 'Zelta') }}. All rights reserved.</p>
                 </div>
             </div>
         </footer>

@@ -13,7 +13,7 @@
                     <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
                         {{ $baseCurrency }}/{{ $quoteCurrency }}
                     </h1>
-                    <p class="text-gray-600 dark:text-gray-400 mt-1">FinAegis Exchange</p>
+                    <p class="text-gray-600 dark:text-gray-400 mt-1">{{ config('brand.name', 'Zelta') }} Exchange</p>
                 </div>
                 
                 <div class="flex items-center gap-8">
@@ -252,7 +252,7 @@
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                         <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Start Trading</h2>
                         <p class="text-gray-600 dark:text-gray-400 mb-4">
-                            Sign in to place orders and start trading on FinAegis Exchange.
+                            Sign in to place orders and start trading on {{ config('brand.name', 'Zelta') }} Exchange.
                         </p>
                         <a href="{{ route('login') }}" class="block w-full text-center py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">
                             Sign In to Trade

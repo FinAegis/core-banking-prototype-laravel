@@ -23,7 +23,7 @@
                                     <li>Your private keys are encrypted and stored securely</li>
                                     <li>Never share your password or backup phrase with anyone</li>
                                     <li>Make sure to backup your wallet after generating new addresses</li>
-                                    <li>FinAegis cannot recover lost passwords or private keys</li>
+                                    <li>{{ config('brand.name', 'Zelta') }} cannot recover lost passwords or private keys</li>
                                 </ul>
                             </div>
                         </div>

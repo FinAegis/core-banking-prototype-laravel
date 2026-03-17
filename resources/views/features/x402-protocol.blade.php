@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'x402 Protocol - HTTP-Native Micropayments | FinAegis')
+@section('title', 'x402 Protocol - HTTP-Native Micropayments | ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [

@@ -1,18 +1,18 @@
 @extends('layouts.public')
 
-@section('title', 'Security - Bank-Grade Protection | FinAegis')
+@section('title', 'Security - Bank-Grade Protection | ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Security - Bank-Grade Protection | FinAegis',
-        'description' => 'FinAegis security overview - Bank-grade security meets blockchain immutability. Learn about our security measures and best practices.',
-        'keywords' => 'FinAegis security, bank-grade security, blockchain security, secure banking, cybersecurity, data protection',
+        'title' => 'Security - Bank-Grade Protection | ' . config('brand.name', 'Zelta') . '',
+        'description' => config('brand.name', 'Zelta') . ' security overview - Bank-grade security meets blockchain immutability. Learn about our security measures and best practices.',
+        'keywords' => config('brand.name', 'Zelta') . ' security, bank-grade security, blockchain security, secure banking, cybersecurity, data protection',
     ])
 
     {{-- Schema.org Markup --}}
     <x-schema type="service" :data="[
-        'name' => 'FinAegis Security',
-        'description' => 'Bank-grade security for the FinAegis platform',
+        'name' => config('brand.name', 'Zelta') . ' Security',
+        'description' => 'Bank-grade security for the ' . config('brand.name', 'Zelta') . ' platform',
         'category' => 'Financial Security'
     ]" />
     <x-schema type="breadcrumb" :data="[

@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Banking Partners - Multi-Bank Architecture | FinAegis')
+@section('title', 'Banking Partners - Multi-Bank Architecture | ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Banking Partners - Multi-Bank Architecture | FinAegis',
-        'description' => 'FinAegis multi-bank architecture with pluggable connectors for institutional partners. Distributed fund security across licensed European banks.',
-        'keywords' => 'FinAegis partners, banking partners, multi-bank, deposit protection, EU banking, fund distribution',
+        'title' => 'Banking Partners - Multi-Bank Architecture | ' . config('brand.name', 'Zelta') . '',
+        'description' => config('brand.name', 'Zelta') . ' multi-bank architecture with pluggable connectors for institutional partners. Distributed fund security across licensed European banks.',
+        'keywords' => config('brand.name', 'Zelta') . ' partners, banking partners, multi-bank, deposit protection, EU banking, fund distribution',
     ])
 
     <x-schema type="breadcrumb" :data="[
@@ -45,7 +45,7 @@
                 <div>
                     <h3 class="font-display text-sm font-semibold text-slate-900">Multi-Bank Architecture</h3>
                     <p class="text-sm text-slate-600 mt-0.5">
-                        FinAegis supports <strong>multi-bank architecture</strong> with pluggable connectors for institutional partners.
+                        {{ config('brand.name', 'Zelta') }} supports <strong>multi-bank architecture</strong> with pluggable connectors for institutional partners.
                         The bank integrations shown are reference implementations demonstrating production integration patterns.
                         Live bank partnerships require separate commercial agreements.
                     </p>
@@ -176,7 +176,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Experience Multi-Bank Security</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Join FinAegis and benefit from distributed fund protection across our trusted network of banking partners.
+                Join {{ config('brand.name', 'Zelta') }} and benefit from distributed fund protection across our trusted network of banking partners.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

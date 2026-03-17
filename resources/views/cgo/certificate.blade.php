@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>FinAegis CGO Investment Certificate</title>
+    <title>{{ config('brand.name', 'Zelta') }} CGO Investment Certificate</title>
     <style>
         @page { size: A4; margin: 0; }
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
@@ -102,7 +102,7 @@
     <div class="certificate">
         <div class="watermark">FINAEGIS</div>
         <div class="certificate-content">
-            <div class="logo">FinAegis</div>
+            <div class="logo">{{ config('brand.name', 'Zelta') }}</div>
             
             <h1>Certificate of Investment</h1>
             <p class="subtitle">Continuous Growth Offering (CGO)</p>
@@ -142,10 +142,10 @@
             </div>
             
             <div class="signature-section">
-                <p><strong>FinAegis Ltd.</strong></p>
+                <p><strong>{{ config('brand.name', 'Zelta') }} Ltd.</strong></p>
                 <p class="signature">Digitally signed and verified</p>
                 <p style="font-size: 12px; color: #999; margin-top: 20px;">
-                    This certificate confirms your contribution to the development of the FinAegis platform.
+                    This certificate confirms your contribution to the development of the {{ config('brand.name', 'Zelta') }} platform.
                 </p>
             </div>
         </div>

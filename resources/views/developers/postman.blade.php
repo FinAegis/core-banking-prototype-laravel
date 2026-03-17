@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Postman Collection - FinAegis')
+@section('title', 'Postman Collection - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Postman Collection - FinAegis',
-        'description' => 'Ready-to-use Postman collection with all FinAegis API endpoints pre-configured for testing.',
-        'keywords' => 'FinAegis API, Postman collection, API testing, developer tools',
+        'title' => 'Postman Collection - ' . config('brand.name', 'Zelta') . '',
+        'description' => 'Ready-to-use Postman collection with all ' . config('brand.name', 'Zelta') . ' API endpoints pre-configured for testing.',
+        'keywords' => config('brand.name', 'Zelta') . ' API, Postman collection, API testing, developer tools',
     ])
 @endsection
 
@@ -20,7 +20,7 @@
                         Postman Collection
                     </h1>
                     <p class="mt-6 text-xl text-orange-100 max-w-3xl mx-auto">
-                        Ready-to-use Postman collection with all FinAegis API endpoints pre-configured for testing.
+                        Ready-to-use Postman collection with all {{ config('brand.name', 'Zelta') }} API endpoints pre-configured for testing.
                     </p>
                 </div>
             </div>
@@ -43,13 +43,13 @@
                     <p class="text-lg text-gray-600 mb-8">Get started immediately with our comprehensive API collection including examples and test scripts.</p>
                     
                     <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                        <a href="/docs/postman/FinAegis-API.postman_collection.json" 
-                           download="FinAegis-API.postman_collection.json"
+                        <a href="/docs/postman/{{ config('brand.name', 'Zelta') }}-API.postman_collection.json" 
+                           download="{{ config('brand.name', 'Zelta') }}-API.postman_collection.json"
                            class="bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-700 transition duration-200">
                             Download Collection
                         </a>
-                        <a href="/docs/postman/FinAegis-Environment.postman_environment.json" 
-                           download="FinAegis-Environment.postman_environment.json"
+                        <a href="/docs/postman/{{ config('brand.name', 'Zelta') }}-Environment.postman_environment.json" 
+                           download="{{ config('brand.name', 'Zelta') }}-Environment.postman_environment.json"
                            class="bg-white text-orange-600 border-2 border-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition duration-200">
                             Download Environment
                         </a>
@@ -81,7 +81,7 @@
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                     </svg>
-                                    <span class="bg-blue-50 px-3 py-1 rounded border border-blue-200 font-medium text-blue-700">FinAegis-API.postman_collection.json</span>
+                                    <span class="bg-blue-50 px-3 py-1 rounded border border-blue-200 font-medium text-blue-700">{{ config('brand.name', 'Zelta') }}-API.postman_collection.json</span>
                                 </div>
                             </div>
                         </div>
@@ -104,7 +104,7 @@
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                     </svg>
-                                    <span class="bg-blue-50 px-3 py-1 rounded border border-blue-200 font-medium text-blue-700">FinAegis-Environment.postman_environment.json</span>
+                                    <span class="bg-blue-50 px-3 py-1 rounded border border-blue-200 font-medium text-blue-700">{{ config('brand.name', 'Zelta') }}-Environment.postman_environment.json</span>
                                 </div>
                             </div>
                         </div>

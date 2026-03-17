@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Banking-as-a-Service - FinAegis')
+@section('title', 'Banking-as-a-Service - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Banking-as-a-Service',
-        'description' => 'Launch your own financial products with FinAegis BaaS. Partner APIs, multi-language SDK generation, embeddable widgets, and white-label branding.',
-        'keywords' => 'Banking-as-a-Service, BaaS, partner APIs, SDK generation, embeddable widgets, white-label, billing, marketplace, FinAegis',
+        'description' => 'Launch your own financial products with ' . config('brand.name', 'Zelta') . ' BaaS. Partner APIs, multi-language SDK generation, embeddable widgets, and white-label branding.',
+        'keywords' => 'Banking-as-a-Service, BaaS, partner APIs, SDK generation, embeddable widgets, white-label, billing, marketplace, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}
@@ -321,7 +321,7 @@
         <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 py-20">
             <h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-4">Launch Your Financial Product</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                Skip years of infrastructure development. Build on FinAegis BaaS and go to market faster with enterprise-grade financial services under your own brand.
+                Skip years of infrastructure development. Build on {{ config('brand.name', 'Zelta') }} BaaS and go to market faster with enterprise-grade financial services under your own brand.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-lg">

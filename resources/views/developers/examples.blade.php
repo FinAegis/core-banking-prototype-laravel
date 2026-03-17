@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Code Examples - FinAegis')
+@section('title', 'Code Examples - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Code Examples - FinAegis',
-        'description' => 'Working examples and integration patterns for common use cases with the FinAegis API.',
-        'keywords' => 'FinAegis API examples, code samples, integration patterns, developer examples',
+        'title' => 'Code Examples - ' . config('brand.name', 'Zelta') . '',
+        'description' => 'Working examples and integration patterns for common use cases with the ' . config('brand.name', 'Zelta') . ' API.',
+        'keywords' => config('brand.name', 'Zelta') . ' API examples, code samples, integration patterns, developer examples',
     ])
 @endsection
 
@@ -86,7 +86,7 @@
                     Code Examples
                 </h1>
                 <p class="text-xl md:text-2xl text-green-100 max-w-3xl mx-auto">
-                    Working examples and integration patterns for common use cases with the FinAegis API.
+                    Working examples and integration patterns for common use cases with the {{ config('brand.name', 'Zelta') }} API.
                 </p>
             </div>
         </div>
@@ -240,9 +240,9 @@
                             <!-- JavaScript -->
                             <div id="create-js" class="tab-content active animate-fade-in">
                                 <x-code-block language="javascript">
-import { FinAegis } from '@finaegis/sdk';
+import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
 
-const client = new FinAegis({
+const client = new {{ config('brand.name', 'Zelta') }}({
   apiKey: process.env.FINAEGIS_API_KEY,
   baseURL: 'https://api.finaegis.org/v2'
 });
@@ -283,10 +283,10 @@ createAccountAndCheckBalance();
                             <!-- Python -->
                             <div id="create-py" class="tab-content animate-fade-in">
                                 <x-code-block language="python">
-from finaegis import FinAegis
+from finaegis import {{ config('brand.name', 'Zelta') }}
 import os
 
-client = FinAegis(
+client = {{ config('brand.name', 'Zelta') }}(
     api_key=os.environ['FINAEGIS_API_KEY'],
     base_url='https://api.finaegis.org/v2'
 )
@@ -326,7 +326,7 @@ create_account_and_check_balance()
                                 <x-code-block language="php">
 require_once 'vendor/autoload.php';
 
-use FinAegis\Client;
+use {{ config('brand.name', 'Zelta') }}\Client;
 
 $client = new Client([
     'apiKey' => $_ENV['FINAEGIS_API_KEY'],
@@ -763,7 +763,7 @@ convertAndTransfer(
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b">
                             <h3 class="text-xl font-semibold text-gray-900">Setting Up Webhook Endpoints</h3>
-                            <p class="text-gray-600 mt-1">Handle real-time events from FinAegis</p>
+                            <p class="text-gray-600 mt-1">Handle real-time events from {{ config('brand.name', 'Zelta') }}</p>
                         </div>
                         
                         <div class="p-6">
@@ -921,9 +921,9 @@ async function testWebhook(webhookId) {
                             <!-- JavaScript -->
                             <div id="ai-chat-js" class="tab-content active animate-fade-in">
                                 <x-code-block language="javascript">
-import { FinAegisAI } from '@finaegis/ai-sdk';
+import { {{ config('brand.name', 'Zelta') }}AI } from '@finaegis/ai-sdk';
 
-const aiClient = new FinAegisAI({
+const aiClient = new {{ config('brand.name', 'Zelta') }}AI({
   apiKey: process.env.FINAEGIS_API_KEY,
   conversationId: 'conv_' + Math.random().toString(36).substr(2, 9)
 });
@@ -1007,11 +1007,11 @@ async function streamingChat() {
                             <!-- Python -->
                             <div id="ai-chat-py" class="tab-content animate-fade-in">
                                 <x-code-block language="python">
-from finaegis_ai import FinAegisAI
+from finaegis_ai import {{ config('brand.name', 'Zelta') }}AI
 import asyncio
 import uuid
 
-ai_client = FinAegisAI(
+ai_client = {{ config('brand.name', 'Zelta') }}AI(
     api_key=os.environ['FINAEGIS_API_KEY'],
     conversation_id=f'conv_{uuid.uuid4().hex[:9]}'
 )
@@ -1469,7 +1469,7 @@ console.log('MCP Banking Tools Server started on port 3001');
                             <div id="mcp-usage-js" class="tab-content animate-fade-in">
                                 <x-code-block language="javascript">
 // Using MCP tools in AI conversations
-const aiClient = new FinAegisAI({
+const aiClient = new {{ config('brand.name', 'Zelta') }}AI({
   apiKey: process.env.FINAEGIS_API_KEY,
   mcp_servers: [
     {
@@ -1580,8 +1580,8 @@ aiClient.on('tool_executed', (event) => {
 {
   "name": "finaegis-banking-tools",
   "version": "1.0.0",
-  "description": "MCP tools for FinAegis banking operations",
-  "author": "FinAegis",
+  "description": "MCP tools for {{ config('brand.name', 'Zelta') }} banking operations",
+  "author": "{{ config('brand.name', 'Zelta') }}",
   "license": "MIT",
   "server": {
     "command": "node",
@@ -1864,9 +1864,9 @@ curl -X POST https://api.finaegis.org/api/v1/crosschain/bridge/initiate \
                             <!-- JavaScript -->
                             <div id="bridge-js" class="tab-content animate-fade-in">
                                 <x-code-block language="javascript">
-import { FinAegis } from '@finaegis/sdk';
+import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
 
-const client = new FinAegis({
+const client = new {{ config('brand.name', 'Zelta') }}({
   apiKey: process.env.FINAEGIS_API_KEY,
   baseURL: 'https://api.finaegis.org'
 });
@@ -1915,10 +1915,10 @@ bridgeTokens('ethereum', 'polygon', 'USDC', '1000.00');
                             <!-- Python -->
                             <div id="bridge-py" class="tab-content animate-fade-in">
                                 <x-code-block language="python">
-from finaegis import FinAegis
+from finaegis import {{ config('brand.name', 'Zelta') }}
 import os
 
-client = FinAegis(
+client = {{ config('brand.name', 'Zelta') }}(
     api_key=os.environ['FINAEGIS_API_KEY'],
     base_url='https://api.finaegis.org'
 )
@@ -2263,7 +2263,7 @@ curl -X POST https://api.finaegis.org/api/v1/regtech/travel-rule/check \
     "originator": {
       "name": "Alice Johnson",
       "account_number": "acct_1234567890",
-      "institution_name": "FinAegis",
+      "institution_name": "{{ config('brand.name', 'Zelta') }}",
       "institution_country": "US"
     },
     "beneficiary": {
@@ -2293,7 +2293,7 @@ async function checkTravelRuleCompliance(transferData) {
       originator: {
         name: 'Alice Johnson',
         account_number: transferData.fromAccount,
-        institution_name: 'FinAegis',
+        institution_name: config('brand.name', 'Zelta') . '',
         institution_country: 'US'
       },
       beneficiary: {
@@ -2355,7 +2355,7 @@ def check_travel_rule_compliance(transfer_data):
             originator={
                 'name': 'Alice Johnson',
                 'account_number': transfer_data['from_account'],
-                'institution_name': 'FinAegis',
+                'institution_name': config('brand.name', 'Zelta') . '',
                 'institution_country': 'US'
             },
             beneficiary={
@@ -2897,9 +2897,9 @@ query_transactions_with_ai(
                     
                     <div class="p-6">
                         <x-code-block language="javascript" title="Complete Error Handling Implementation">
-class FinAegisWrapper {
+class {{ config('brand.name', 'Zelta') }}Wrapper {
   constructor(apiKey, options = {}) {
-    this.client = new FinAegis({
+    this.client = new {{ config('brand.name', 'Zelta') }}({
       apiKey,
       baseURL: options.baseURL || 'https://api.finaegis.org/v2'
     });
@@ -2974,7 +2974,7 @@ class FinAegisWrapper {
 }
 
 // Usage example
-const finAegis = new FinAegisWrapper(process.env.FINAEGIS_API_KEY, {
+const finAegis = new {{ config('brand.name', 'Zelta') }}Wrapper(process.env.FINAEGIS_API_KEY, {
   environment: 'production',
   maxRetries: 3,
   backoffMultiplier: 2,
@@ -3037,7 +3037,7 @@ async function robustTransfer(fromAccount, toAccount, amount) {
     <section class="py-16 bg-gradient-to-br from-green-600 to-blue-600 text-white">
         <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl md:text-4xl font-bold mb-4">Start Building Today</h2>
-            <p class="text-xl text-green-100 mb-8">Use these examples as a starting point for your FinAegis integration.</p>
+            <p class="text-xl text-green-100 mb-8">Use these examples as a starting point for your {{ config('brand.name', 'Zelta') }} integration.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-8 py-3 bg-white text-green-600 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
                     Get API Keys

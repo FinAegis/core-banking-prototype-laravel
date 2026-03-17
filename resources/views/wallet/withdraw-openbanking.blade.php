@@ -134,7 +134,7 @@
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">Secure Connection</h3>
                                     <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                                        <p>You will be redirected to your bank's secure login page to authorize this withdrawal. FinAegis never sees or stores your bank login credentials.</p>
+                                        <p>You will be redirected to your bank's secure login page to authorize this withdrawal. {{ config('brand.name', 'Zelta') }} never sees or stores your bank login credentials.</p>
                                     </div>
                                 </div>
                             </div>

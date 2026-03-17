@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('title', 'Cross-Chain & DeFi - FinAegis')
+@section('title', 'Cross-Chain & DeFi - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Cross-Chain & DeFi Integration',
-        'description' => 'Bridge assets across blockchains and access DeFi protocols with FinAegis. Wormhole, LayerZero, Axelar bridges with Uniswap, Aave, Curve, and Lido connectors.',
+        'description' => 'Bridge assets across blockchains and access DeFi protocols with ' . config('brand.name', 'Zelta') . '. Wormhole, LayerZero, Axelar bridges with Uniswap, Aave, Curve, and Lido connectors.',
         'keywords' => 'cross-chain, DeFi, bridge protocol, Wormhole, LayerZero, Axelar, Uniswap, Aave, Curve, Lido, DEX aggregation, yield optimization, flash loans, multi-chain portfolio',
     ])
 
@@ -492,7 +492,7 @@ console.log('ETA:', quotes[0].estimated_time);</code></pre>
             <div class="max-w-4xl mx-auto">
                 <div class="bg-gray-900 rounded-lg p-6 text-green-400 font-mono text-sm overflow-x-auto">
                     <pre><code>                    +------------------+
-                    |   FinAegis API   |
+                    |   {{ config('brand.name', 'Zelta') }} API   |
                     +--------+---------+
                              |
               +--------------+--------------+

@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Mobile Payments - FinAegis')
+@section('title', 'Mobile Payments - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Mobile Payments',
         'description' => 'Next-generation mobile payment infrastructure with Payment Intents, Passkey Authentication, P2P transfers, and ERC-4337 gasless transactions.',
-        'keywords' => 'mobile payments, payment intents, passkey authentication, FIDO2, WebAuthn, P2P transfers, QR code, gasless transactions, ERC-4337, FinAegis',
+        'keywords' => 'mobile payments, payment intents, passkey authentication, FIDO2, WebAuthn, P2P transfers, QR code, gasless transactions, ERC-4337, ' . config('brand.name', 'Zelta') . '',
     ])
 
     {{-- Schema.org Markup --}}

@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Support Guides - FinAegis')
+@section('title', 'Support Guides - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Support Guides - FinAegis',
-        'description' => 'FinAegis platform guides and documentation. Learn how to use, deploy, and contribute to our open-source core banking platform with 43 domain modules.',
-        'keywords' => 'FinAegis guides, documentation, tutorials, open source banking, core banking platform',
+        'title' => 'Support Guides - ' . config('brand.name', 'Zelta') . '',
+        'description' => config('brand.name', 'Zelta') . ' platform guides and documentation. Learn how to use, deploy, and contribute to our open-source core banking platform with 43 domain modules.',
+        'keywords' => config('brand.name', 'Zelta') . ' guides, documentation, tutorials, open source banking, core banking platform',
     ])
 @endsection
 
@@ -28,7 +28,7 @@
                         Platform Guides
                     </h1>
                     <p class="text-xl md:text-2xl mb-8 text-slate-400 max-w-4xl mx-auto">
-                        Learn how to explore the FinAegis platform and contribute to our open-source project.
+                        Learn how to explore the {{ config('brand.name', 'Zelta') }} platform and contribute to our open-source project.
                     </p>
                     <div class="max-w-2xl mx-auto">
                         <div class="relative">
@@ -103,13 +103,13 @@
                 <section id="getting-started" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
                         <h2 class="text-2xl font-bold text-slate-900">Getting Started</h2>
-                        <p class="mt-2 text-slate-500">Understanding the FinAegis platform and how to explore it</p>
+                        <p class="mt-2 text-slate-500">Understanding the {{ config('brand.name', 'Zelta') }} platform and how to explore it</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">About the Sandbox</h3>
-                            <p class="text-slate-500 mb-4">The public FinAegis instance runs in sandbox mode, which means:</p>
+                            <p class="text-slate-500 mb-4">The public {{ config('brand.name', 'Zelta') }} instance runs in sandbox mode, which means:</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
                                 <li>All transactions and balances use test data (no real money)</li>
                                 <li>Every feature is available for you to explore</li>
@@ -155,16 +155,16 @@
                 <section id="development" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
                         <h2 class="text-2xl font-bold text-slate-900">Development Setup</h2>
-                        <p class="mt-2 text-slate-500">Contributing to the FinAegis open source project</p>
+                        <p class="mt-2 text-slate-500">Contributing to the {{ config('brand.name', 'Zelta') }} open source project</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Local Development Environment</h3>
-                            <p class="text-slate-500 mb-4">Set up FinAegis locally for development:</p>
+                            <p class="text-slate-500 mb-4">Set up {{ config('brand.name', 'Zelta') }} locally for development:</p>
                             <div class="bg-slate-50 rounded-lg p-4 font-mono text-sm">
                                 <p class="text-slate-600"># Clone the repository</p>
-                                <p class="text-green-600">git clone https://github.com/FinAegis/core-banking-prototype-laravel.git</p>
+                                <p class="text-green-600">git clone {{ config('brand.github_url') }}.git</p>
                                 <p class="text-green-600">cd core-banking-prototype-laravel</p>
                                 <br>
                                 <p class="text-slate-600"># Install dependencies</p>
@@ -185,7 +185,7 @@
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Tech Stack Overview</h3>
-                            <p class="text-slate-500 mb-4">FinAegis is built with:</p>
+                            <p class="text-slate-500 mb-4">{{ config('brand.name', 'Zelta') }} is built with:</p>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <h4 class="font-semibold text-slate-800 mb-2">Backend</h4>
@@ -210,7 +210,7 @@
 
                         <div class="card-feature">
                             <h3 class="text-lg font-semibold text-slate-900 mb-3">Contributing Guidelines</h3>
-                            <p class="text-slate-500 mb-4">How to contribute to FinAegis:</p>
+                            <p class="text-slate-500 mb-4">How to contribute to {{ config('brand.name', 'Zelta') }}:</p>
                             <ol class="list-decimal list-inside text-slate-500 space-y-2">
                                 <li>Fork the repository on GitHub</li>
                                 <li>Create a feature branch (<code class="bg-slate-100 px-2 py-1 rounded">git checkout -b feature/your-feature</code>)</li>
@@ -281,7 +281,7 @@
                 <section id="feedback" class="mb-16">
                     <div class="border-b border-gray-200 pb-6 mb-8">
                         <h2 class="text-2xl font-bold text-slate-900">Providing Feedback</h2>
-                        <p class="mt-2 text-slate-500">Help us improve FinAegis with your feedback</p>
+                        <p class="mt-2 text-slate-500">Help us improve {{ config('brand.name', 'Zelta') }} with your feedback</p>
                     </div>
                     
                     <div class="space-y-6">
@@ -296,7 +296,7 @@
                                 <li>Mention your environment (OS, browser, etc.)</li>
                             </ol>
                             <div class="mt-4">
-                                <a href="https://github.com/FinAegis/core-banking-prototype-laravel/issues/new" class="text-indigo-600 font-medium hover:text-indigo-700">
+                                <a href="{{ config('brand.github_url') }}/issues/new" class="text-indigo-600 font-medium hover:text-indigo-700">
                                     Create Bug Report →
                                 </a>
                             </div>
@@ -324,7 +324,7 @@
                                 <li>Share the project with other developers</li>
                             </ul>
                             <div class="mt-4 flex gap-4">
-                                <a href="https://github.com/FinAegis/core-banking-prototype-laravel/discussions" class="text-indigo-600 font-medium hover:text-indigo-700">
+                                <a href="{{ config('brand.github_url') }}/discussions" class="text-indigo-600 font-medium hover:text-indigo-700">
                                     Join Discussions →
                                 </a>
                                 <a href="mailto:info@finaegis.org" class="text-indigo-600 font-medium hover:text-indigo-700">
@@ -395,7 +395,7 @@
                     </div>
                 </div>
                 <div class="mt-8 pt-8 border-t border-gray-800 text-center">
-                    <p>&copy; {{ date('Y') }} FinAegis. All rights reserved. Open Source Project.</p>
+                    <p>&copy; {{ date('Y') }} {{ config('brand.name', 'Zelta') }}. All rights reserved. Open Source Project.</p>
                 </div>
             </div>
         </footer>

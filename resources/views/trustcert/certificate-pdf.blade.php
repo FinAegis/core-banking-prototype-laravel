@@ -110,7 +110,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ $branding['name'] ?? 'FinAegis' }} Certificate</h1>
+        <h1>{{ $branding['name'] ?? config('brand.name', 'Zelta') . '' }} Certificate</h1>
         <div class="subtitle">Digital Trust Certificate</div>
         <div class="shield">Secured by {{ $branding['shield'] ?? 'Aegis Shield' }}</div>
     </div>
@@ -177,7 +177,7 @@
 
     <div class="footer">
         <p>Generated on {{ now()->format('Y-m-d H:i:s T') }}</p>
-        <p>{{ $branding['name'] ?? 'FinAegis' }} &mdash; Digital Trust Infrastructure</p>
+        <p>{{ $branding['name'] ?? config('brand.name', 'Zelta') . '' }} &mdash; Digital Trust Infrastructure</p>
     </div>
 </body>
 </html>

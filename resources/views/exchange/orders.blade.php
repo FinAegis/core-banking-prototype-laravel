@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Orders - FinAegis Exchange')
+@section('title', 'My Orders - ' . config('brand.name', 'Zelta') . ' Exchange')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">

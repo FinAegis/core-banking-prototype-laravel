@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Pricing - Flexible Plans for Every Scale | FinAegis')
+@section('title', 'Pricing - Flexible Plans for Every Scale | ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Pricing - Flexible Plans for Every Scale',
-        'description' => 'FinAegis Pricing - Start with our free open-source community edition. Scale with enterprise support, custom features, and dedicated infrastructure when ready.',
-        'keywords' => 'FinAegis pricing, open source banking, enterprise support, core banking pricing, fintech platform cost, free banking software',
+        'description' => config('brand.name', 'Zelta') . ' Pricing - Start with our free open-source community edition. Scale with enterprise support, custom features, and dedicated infrastructure when ready.',
+        'keywords' => config('brand.name', 'Zelta') . ' pricing, open source banking, enterprise support, core banking pricing, fintech platform cost, free banking software',
     ])
 
     {{-- Schema.org Markup --}}
@@ -62,7 +62,7 @@
                             <li class="list-check">Community support</li>
                             <li class="list-check">Self-hosted deployment</li>
                         </ul>
-                        <a href="https://github.com/FinAegis/core-banking-prototype-laravel" target="_blank" class="btn-secondary w-full text-center">
+                        <a href="{{ config('brand.github_url') }}" target="_blank" class="btn-secondary w-full text-center">
                             Get Started on GitHub
                         </a>
                     </div>
@@ -167,7 +167,7 @@
                     Start free with the Community Edition, or talk to us about managed and enterprise options.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="https://github.com/FinAegis" target="_blank" class="btn-primary px-8 py-4 text-lg">
+                    <a href="https://{{ config('brand.github_url') }}" target="_blank" class="btn-primary px-8 py-4 text-lg">
                         Start with Community Edition
                     </a>
                     <a href="{{ route('support.contact') }}" class="btn-outline px-8 py-4 text-lg">

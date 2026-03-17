@@ -31,7 +31,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Welcome to FinAegis!</h3>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Welcome to {{ config('brand.name', 'Zelta') }}!</h3>
                     <p class="text-lg text-gray-600 mb-6">
                         We're excited to have you onboard. Let's set up your account and explore the platform together.
                     </p>
@@ -48,7 +48,7 @@
                         </div>
                         <div class="ml-3">
                             <h4 class="text-sm font-medium text-gray-900">Account Created</h4>
-                            <p class="text-sm text-gray-500">Your FinAegis account is ready to use</p>
+                            <p class="text-sm text-gray-500">Your {{ config('brand.name', 'Zelta') }} account is ready to use</p>
                         </div>
                     </div>
                     
@@ -420,7 +420,7 @@
 
         function startTour() {
             // This would integrate with a tour library like Intro.js or Shepherd.js
-            alert('Starting your FinAegis tour! Let\'s explore the platform together.');
+            alert('Starting your ' . config('brand.name', 'Zelta') . ' tour! Let\'s explore the platform together.');
             // In a real implementation, this would start an interactive tour
         }
     </script>

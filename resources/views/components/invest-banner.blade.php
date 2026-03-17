@@ -18,7 +18,7 @@
                 </p>
             </div>
             <div class="flex items-center space-x-4">
-                <a href="https://github.com/FinAegis/core-banking-prototype-laravel"
+                <a href="{{ config('brand.github_url') }}"
                    target="_blank"
                    class="relative z-20 inline-flex items-center px-4 py-2 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition duration-150 ease-in-out shadow-md">
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">

@@ -1,12 +1,12 @@
-<x-guest-layout :title="'Blog — ' . config('app.name', 'FinAegis')">
+<x-guest-layout :title="'Blog — ' . config('app.name', config('brand.name', 'Zelta') . '')">
     @push('meta')
-        <meta name="description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and the future of open-source core banking from the FinAegis team.">
-        <meta property="og:title" content="Blog — {{ config('app.name', 'FinAegis') }}">
+        <meta name="description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and the future of open-source core banking from the {{ config('brand.name', 'Zelta') }} team.">
+        <meta property="og:title" content="Blog — {{ config('app.name', config('brand.name', 'Zelta') . '') }}">
         <meta property="og:description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and the future of open-source core banking.">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url('/blog') }}">
         <meta name="twitter:card" content="summary">
-        <meta name="twitter:title" content="Blog — {{ config('app.name', 'FinAegis') }}">
+        <meta name="twitter:title" content="Blog — {{ config('app.name', config('brand.name', 'Zelta') . '') }}">
         <meta name="twitter:description" content="Insights, updates, and thought leadership on multi-asset banking, financial technology, and open-source core banking.">
         <link rel="canonical" href="{{ url('/blog') }}">
     @endpush
@@ -17,7 +17,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                 <div class="text-center">
                     <h1 class="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
-                        FinAegis Blog
+                        {{ config('brand.name', 'Zelta') }} Blog
                     </h1>
                     <p class="mt-6 text-xl text-gray-300 max-w-3xl mx-auto">
                         Insights, updates, and thought leadership on the future of multi-asset banking and financial technology.

@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Developer Documentation - FinAegis')
+@section('title', 'Developer Documentation - ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
-        'title' => 'Developer Documentation - FinAegis',
-        'description' => 'FinAegis Developer Documentation - Build on FinAegis platform. Open source, API-first, and designed for developers.',
-        'keywords' => 'FinAegis, developer, API, documentation, SDK, integration',
+        'title' => 'Developer Documentation - ' . config('brand.name', 'Zelta') . '',
+        'description' => '{{ config('brand.name', 'Zelta') }} Developer Documentation - Build on ' . config('brand.name', 'Zelta') . ' platform. Open source, API-first, and designed for developers.',
+        'keywords' => config('brand.name', 'Zelta') . ', developer, API, documentation, SDK, integration',
     ])
 @endsection
 
@@ -189,7 +189,7 @@
                 <div class="text-center mb-16">
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">Quick Start Guide</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Get up and running with FinAegis in three simple steps
+                        Get up and running with {{ config('brand.name', 'Zelta') }} in three simple steps
                     </p>
                 </div>
 
@@ -218,7 +218,7 @@
                             </div>
                             <div class="p-4 font-mono text-sm">
                                 <div id="code-step1">
-                                    <div><span class="text-gray-500">$</span> <span class="text-green-400">git</span> <span class="text-blue-400">clone</span> <span class="text-yellow-400">https://github.com/FinAegis/core-banking-prototype-laravel.git</span></div>
+                                    <div><span class="text-gray-500">$</span> <span class="text-green-400">git</span> <span class="text-blue-400">clone</span> <span class="text-yellow-400">{{ config('brand.github_url') }}.git</span></div>
                                     <div><span class="text-gray-500">$</span> <span class="text-green-400">cd</span> <span class="text-yellow-400">core-banking-prototype-laravel</span></div>
                                 </div>
                             </div>
@@ -434,7 +434,7 @@
                 <!-- Platform API Area Cards -->
                 <div class="mt-16">
                     <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Platform API Areas</h3>
-                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the FinAegis platform across 43 DDD domains</p>
+                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 43 DDD domains</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                         <!-- CrossChain -->
@@ -837,7 +837,7 @@
                     <a href="{{ route('register') }}" class="btn-primary btn-lg">
                         Get API Key
                     </a>
-                    <a href="https://github.com/FinAegis/core-banking-prototype-laravel" target="_blank" class="btn-outline-dark btn-lg">
+                    <a href="{{ config('brand.github_url') }}" target="_blank" class="btn-outline-dark btn-lg">
                         View on GitHub
                     </a>
                 </div>

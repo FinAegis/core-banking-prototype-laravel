@@ -19,7 +19,7 @@
                         You're on the List!
                     </h1>
                     <p class="text-xl text-green-50 max-w-2xl mx-auto">
-                        Your interest in the FinAegis Continuous Growth Offering has been registered
+                        Your interest in the {{ config('brand.name', 'Zelta') }} Continuous Growth Offering has been registered
                     </p>
                 </div>
 
@@ -28,7 +28,7 @@
                     <!-- Confirmation Message -->
                     <div class="text-center mb-10">
                         <p class="text-lg text-gray-700 mb-4">
-                            Thank you for your interest in the FinAegis CGO concept.
+                            Thank you for your interest in the {{ config('brand.name', 'Zelta') }} CGO concept.
                             We've added your email to our notification list for future updates.
                         </p>
                         <p class="text-gray-600">
@@ -75,7 +75,7 @@
                                 </div>
                                 <div class="ml-4">
                                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Platform Development</h3>
-                                    <p class="text-gray-600">Follow the open-source development of the FinAegis platform and contribute to the community.</p>
+                                    <p class="text-gray-600">Follow the open-source development of the {{ config('brand.name', 'Zelta') }} platform and contribute to the community.</p>
                                 </div>
                             </div>
                             <div class="flex items-start">

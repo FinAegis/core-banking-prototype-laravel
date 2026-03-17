@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Features - Modern Banking Platform | FinAegis')
+@section('title', 'Features - Modern Banking Platform | ' . config('brand.name', 'Zelta') . '')
 
 @section('seo')
     @include('partials.seo', [
         'title' => 'Features - Modern Banking Platform',
-        'description' => 'FinAegis features - Global Currency Unit (GCU), x402 protocol, cross-chain bridges, DeFi protocols, privacy-preserving identity, mobile payments, RegTech compliance, BaaS, and AI analytics.',
-        'keywords' => 'FinAegis features, GCU, global currency unit, cross-chain, DeFi, privacy, mobile payments, RegTech, BaaS, AI, multi-tenancy',
+        'description' => config('brand.name', 'Zelta') . ' features - Global Currency Unit (GCU), x402 protocol, cross-chain bridges, DeFi protocols, privacy-preserving identity, mobile payments, RegTech compliance, BaaS, and AI analytics.',
+        'keywords' => config('brand.name', 'Zelta') . ' features, GCU, global currency unit, cross-chain, DeFi, privacy, mobile payments, RegTech, BaaS, AI, multi-tenancy',
     ])
 
     {{-- Schema.org Markup --}}
@@ -58,7 +58,7 @@
                 <div>
                     <h3 class="font-display text-sm font-semibold text-slate-900">Feature Status Guide</h3>
                     <p class="text-sm text-slate-600 mt-1">
-                        FinAegis is under active development with new modules shipping regularly.
+                        {{ config('brand.name', 'Zelta') }} is under active development with new modules shipping regularly.
                         The demo environment lets you explore every feature without external dependencies.
                     </p>
                     <div class="mt-3 flex flex-wrap gap-2">
@@ -476,7 +476,7 @@
     <section class="py-20 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="font-display text-4xl font-bold text-slate-900 mb-4">FinAegis vs Traditional Banking</h2>
+                <h2 class="font-display text-4xl font-bold text-slate-900 mb-4">{{ config('brand.name', 'Zelta') }} vs Traditional Banking</h2>
                 <p class="text-xl text-slate-500">See how we compare to traditional financial institutions</p>
             </div>
             
@@ -485,7 +485,7 @@
                     <thead class="bg-slate-50">
                         <tr>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Feature</th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold text-slate-900">FinAegis</th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold text-slate-900">{{ config('brand.name', 'Zelta') }}</th>
                             <th class="px-6 py-4 text-center text-sm font-semibold text-slate-900">Traditional Banks</th>
                         </tr>
                     </thead>
@@ -551,7 +551,7 @@
                 <a href="{{ route('register') }}" class="btn-primary btn-lg">
                     Explore the Platform
                 </a>
-                <a href="https://github.com/FinAegis/core-banking-prototype-laravel" target="_blank" class="btn-outline btn-lg">
+                <a href="{{ config('brand.github_url') }}" target="_blank" class="btn-outline btn-lg">
                     View Source
                 </a>
             </div>
