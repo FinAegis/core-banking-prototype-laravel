@@ -65,7 +65,7 @@
                             
                             <h3>Base URL</h3>
                             <x-code-block language="plaintext">
-https://api.finaegis.org/v2
+{{ config('app.url') }}/api/v2
                             </x-code-block>
                             
                             <h3>Response Format</h3>
@@ -102,7 +102,7 @@ https://api.finaegis.org/v2
                             <x-code-block language="bash">
 curl -H "Authorization: Bearer fak_your_api_key_here" \
      -H "Content-Type: application/json" \
-     https://api.finaegis.org/v2/accounts
+     {{ config('app.url') }}/api/v2/accounts
                             </x-code-block>
                             
                             <h3>API Key Security</h3>
@@ -117,8 +117,8 @@ curl -H "Authorization: Bearer fak_your_api_key_here" \
                             <h3>Sandbox vs Production</h3>
                             <p>Use these base URLs for testing and production:</p>
                             <ul>
-                                <li><strong>Sandbox:</strong> https://api-sandbox.finaegis.org/v2</li>
-                                <li><strong>Production:</strong> https://api.finaegis.org/v2</li>
+                                <li><strong>Sandbox:</strong> {{ config('app.url') }}/api/v2</li>
+                                <li><strong>Production:</strong> {{ config('app.url') }}/api/v2</li>
                             </ul>
                         </div>
                     </section>
@@ -140,7 +140,7 @@ curl -H "Authorization: Bearer fak_your_api_key_here" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/accounts
+     {{ config('app.url') }}/api/v2/accounts
                                 </x-code-block>
                             </div>
 
@@ -157,7 +157,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/accounts/acct_1234567890
+     {{ config('app.url') }}/api/v2/accounts/acct_1234567890
                                 </x-code-block>
                             </div>
 
@@ -226,7 +226,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "https://api.finaegis.org/v2/transactions?page=1&per_page=20"
+     "{{ config('app.url') }}/api/v2/transactions?page=1&per_page=20"
                                 </x-code-block>
                             </div>
                             
@@ -250,7 +250,7 @@ curl -X POST \
     "asset_code": "USD",
     "reference": "Initial deposit"
   }' \
-  https://api.finaegis.org/v2/accounts/acct_1234567890/deposit
+  {{ config('app.url') }}/api/v2/accounts/acct_1234567890/deposit
                                 </x-code-block>
                             </div>
                             
@@ -274,7 +274,7 @@ curl -X POST \
     "asset_code": "USD",
     "reference": "ATM withdrawal"
   }' \
-  https://api.finaegis.org/v2/accounts/acct_1234567890/withdraw
+  {{ config('app.url') }}/api/v2/accounts/acct_1234567890/withdraw
                                 </x-code-block>
                             </div>
                         </div>
@@ -307,7 +307,7 @@ curl -X POST \
     "reference": "Payment for services",
     "workflow_enabled": true
   }' \
-  https://api.finaegis.org/v2/transfers
+  {{ config('app.url') }}/api/v2/transfers
                                 </x-code-block>
                             </div>
                             
@@ -324,7 +324,7 @@ curl -X POST \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/accounts/acct_1234567890/transfers
+     {{ config('app.url') }}/api/v2/accounts/acct_1234567890/transfers
                                 </x-code-block>
                             </div>
                         </div>
@@ -351,7 +351,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/gcu
+     {{ config('app.url') }}/api/v2/gcu
                                 </x-code-block>
                             </div>
 
@@ -368,7 +368,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/gcu/composition
+     {{ config('app.url') }}/api/v2/gcu/composition
                                 </x-code-block>
                                 
                                 <h4 class="font-semibold mb-2">Response Example:</h4>
@@ -440,7 +440,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "https://api.finaegis.org/v2/gcu/value-history?period=7d&interval=hourly"
+     "{{ config('app.url') }}/api/v2/gcu/value-history?period=7d&interval=hourly"
                                 </x-code-block>
                             </div>
 
@@ -468,7 +468,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "https://api.finaegis.org/v2/gcu/voting/proposals?status=active"
+     "{{ config('app.url') }}/api/v2/gcu/voting/proposals?status=active"
                                 </x-code-block>
                             </div>
 
@@ -485,7 +485,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/gcu/voting/proposals/123
+     {{ config('app.url') }}/api/v2/gcu/voting/proposals/123
                                 </x-code-block>
                             </div>
 
@@ -515,7 +515,7 @@ curl -X POST \
      -H "Authorization: Bearer your_api_key" \
      -H "Content-Type: application/json" \
      -d '{"vote": "for"}' \
-     https://api.finaegis.org/v2/gcu/voting/proposals/123/vote
+     {{ config('app.url') }}/api/v2/gcu/voting/proposals/123/vote
                                 </x-code-block>
                             </div>
 
@@ -535,7 +535,7 @@ curl -X POST \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/gcu/voting/my-votes
+     {{ config('app.url') }}/api/v2/gcu/voting/my-votes
                                 </x-code-block>
                             </div>
                         </div>
@@ -562,7 +562,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/baskets
+     {{ config('app.url') }}/api/v2/baskets
                                 </x-code-block>
                             </div>
                             
@@ -579,7 +579,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/baskets/GCU
+     {{ config('app.url') }}/api/v2/baskets/GCU
                                 </x-code-block>
                             </div>
                             
@@ -602,7 +602,7 @@ curl -X POST \
     "basket_code": "GCU",
     "amount": "100.00"
   }' \
-  https://api.finaegis.org/v2/accounts/acct_123/baskets/compose
+  {{ config('app.url') }}/api/v2/accounts/acct_123/baskets/compose
                                 </x-code-block>
                             </div>
                             
@@ -625,7 +625,7 @@ curl -X POST \
     "basket_code": "GCU",
     "amount": "50.00"
   }' \
-  https://api.finaegis.org/v2/accounts/acct_123/baskets/decompose
+  {{ config('app.url') }}/api/v2/accounts/acct_123/baskets/decompose
                                 </x-code-block>
                             </div>
                         </div>
@@ -652,7 +652,7 @@ curl -X POST \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/webhooks/events
+     {{ config('app.url') }}/api/v2/webhooks/events
                                 </x-code-block>
                             </div>
                             
@@ -676,7 +676,7 @@ curl -X POST \
     "events": ["transaction.created", "transfer.completed"],
     "description": "Main webhook endpoint"
   }' \
-  https://api.finaegis.org/v2/webhooks
+  {{ config('app.url') }}/api/v2/webhooks
                                 </x-code-block>
                             </div>
                             
@@ -693,7 +693,7 @@ curl -X POST \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/webhooks
+     {{ config('app.url') }}/api/v2/webhooks
                                 </x-code-block>
                             </div>
                             
@@ -710,7 +710,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/webhooks/webhook_123/deliveries
+     {{ config('app.url') }}/api/v2/webhooks/webhook_123/deliveries
                                 </x-code-block>
                             </div>
                         </div>
@@ -746,7 +746,7 @@ curl -X POST \
     "amount": "1000.00",
     "protocol": "wormhole"
   }' \
-  https://api.finaegis.org/v2/crosschain/bridge
+  {{ config('app.url') }}/api/v2/crosschain/bridge
                                 </x-code-block>
                             </div>
 
@@ -761,7 +761,7 @@ curl -X POST \
                                 <p class="text-gray-600 mb-4">Compare fees and estimated times across all supported bridge protocols for a given route.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "https://api.finaegis.org/v2/crosschain/bridge/fees?from=ethereum&to=arbitrum&token=USDC&amount=5000"
+     "{{ config('app.url') }}/api/v2/crosschain/bridge/fees?from=ethereum&to=arbitrum&token=USDC&amount=5000"
                                 </x-code-block>
                             </div>
 
@@ -786,7 +786,7 @@ curl -X POST \
     "amount": "1.5",
     "slippage_bps": 50
   }' \
-  https://api.finaegis.org/v2/crosschain/swap
+  {{ config('app.url') }}/api/v2/crosschain/swap
                                 </x-code-block>
                             </div>
 
@@ -801,7 +801,7 @@ curl -X POST \
                                 <p class="text-gray-600 mb-4">Retrieve an aggregated portfolio view across all supported chains.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/crosschain/portfolio
+     {{ config('app.url') }}/api/v2/crosschain/portfolio
                                 </x-code-block>
                             </div>
                         </div>
@@ -828,7 +828,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">Get the best swap quote aggregated across Uniswap, Curve, and other supported DEXes.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "https://api.finaegis.org/v2/defi/swap/quote?from=ETH&to=USDC&amount=2.0&chain=ethereum"
+     "{{ config('app.url') }}/api/v2/defi/swap/quote?from=ETH&to=USDC&amount=2.0&chain=ethereum"
                                 </x-code-block>
                             </div>
 
@@ -852,7 +852,7 @@ curl -X POST \
     "slippage_bps": 50,
     "chain": "ethereum"
   }' \
-  https://api.finaegis.org/v2/defi/swap/execute
+  {{ config('app.url') }}/api/v2/defi/swap/execute
                                 </x-code-block>
                             </div>
 
@@ -867,7 +867,7 @@ curl -X POST \
                                 <p class="text-gray-600 mb-4">Retrieve all DeFi positions including lending deposits, staking, liquidity pools, and yield farming.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/defi/portfolio
+     {{ config('app.url') }}/api/v2/defi/portfolio
                                 </x-code-block>
                             </div>
 
@@ -892,7 +892,7 @@ curl -X POST \
       {"type": "swap", "from": "ETH", "to": "USDC", "dex": "curve"}
     ]
   }' \
-  https://api.finaegis.org/v2/defi/flash-loan
+  {{ config('app.url') }}/api/v2/defi/flash-loan
                                 </x-code-block>
                             </div>
                         </div>
@@ -926,7 +926,7 @@ curl -X POST \
     "report_type": "transaction",
     "jurisdiction": "EU"
   }' \
-  https://api.finaegis.org/v2/regtech/mifid/reports
+  {{ config('app.url') }}/api/v2/regtech/mifid/reports
                                 </x-code-block>
                             </div>
 
@@ -948,7 +948,7 @@ curl -X POST \
     "issuer_id": "issuer_xyz",
     "whitepaper_hash": "sha256:abc..."
   }' \
-  https://api.finaegis.org/v2/regtech/mica/check
+  {{ config('app.url') }}/api/v2/regtech/mica/check
                                 </x-code-block>
                             </div>
 
@@ -972,7 +972,7 @@ curl -X POST \
     "amount": "15000.00",
     "currency": "USDC"
   }' \
-  https://api.finaegis.org/v2/regtech/travel-rule/transfers
+  {{ config('app.url') }}/api/v2/regtech/travel-rule/transfers
                                 </x-code-block>
                             </div>
 
@@ -987,7 +987,7 @@ curl -X POST \
                                 <p class="text-gray-600 mb-4">Get overall compliance status across all active regulatory frameworks.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/regtech/status
+     {{ config('app.url') }}/api/v2/regtech/status
                                 </x-code-block>
                             </div>
                         </div>
@@ -1022,7 +1022,7 @@ curl -X POST \
     "recipient": "user_456",
     "description": "Coffee payment"
   }' \
-  https://api.finaegis.org/v2/mobile/payments/intents
+  {{ config('app.url') }}/api/v2/mobile/payments/intents
                                 </x-code-block>
                             </div>
 
@@ -1037,7 +1037,7 @@ curl -X POST \
                                 <p class="text-gray-600 mb-4">Retrieve the mobile wallet activity feed with payments, transfers, and notifications.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "https://api.finaegis.org/v2/mobile/activity?page=1&per_page=20"
+     "{{ config('app.url') }}/api/v2/mobile/activity?page=1&per_page=20"
                                 </x-code-block>
                             </div>
 
@@ -1060,7 +1060,7 @@ curl -X POST \
     "currency": "USD",
     "note": "Dinner split"
   }' \
-  https://api.finaegis.org/v2/mobile/transfers/p2p
+  {{ config('app.url') }}/api/v2/mobile/transfers/p2p
                                 </x-code-block>
                             </div>
 
@@ -1082,7 +1082,7 @@ curl -X POST \
     "client_data_json": "base64...",
     "signature": "base64..."
   }' \
-  https://api.finaegis.org/v2/mobile/auth/passkey/verify
+  {{ config('app.url') }}/api/v2/mobile/auth/passkey/verify
                                 </x-code-block>
                             </div>
                         </div>
@@ -1120,7 +1120,7 @@ curl -X POST \
     "plan": "enterprise",
     "domain": "acme.finaegis.io"
   }' \
-  https://api.finaegis.org/v2/partner/tenants
+  {{ config('app.url') }}/api/v2/partner/tenants
                                 </x-code-block>
                             </div>
 
@@ -1146,7 +1146,7 @@ curl -X POST \
     "branding": {"name": "AcmeSDK", "color": "#3B82F6"},
     "modules": ["accounts", "transfers", "payments"]
   }' \
-  https://api.finaegis.org/v2/partner/sdk/generate
+  {{ config('app.url') }}/api/v2/partner/sdk/generate
                                 </x-code-block>
                             </div>
 
@@ -1172,7 +1172,7 @@ curl -X PUT \
     "primary_color": "#3B82F6",
     "features": {"defi": true, "crosschain": true, "lending": false}
   }' \
-  https://api.finaegis.org/v2/partner/config/whitelabel
+  {{ config('app.url') }}/api/v2/partner/config/whitelabel
                                 </x-code-block>
                             </div>
 
@@ -1191,7 +1191,7 @@ curl -X PUT \
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
      -H "X-Partner-Key: fpk_your_partner_key" \
-     https://api.finaegis.org/v2/partner/tenants
+     {{ config('app.url') }}/api/v2/partner/tenants
                                 </x-code-block>
                             </div>
                         </div>
@@ -1224,7 +1224,7 @@ curl -X POST \
     "query": "What were my largest transactions last month?",
     "context": {"account_id": "acc_123"}
   }' \
-  https://api.finaegis.org/v2/ai/query
+  {{ config('app.url') }}/api/v2/ai/query
                                 </x-code-block>
                             </div>
 
@@ -1239,7 +1239,7 @@ curl -X POST \
                                 <p class="text-gray-600 mb-4">Retrieve your past AI query history with cached results.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/ai/queries
+     {{ config('app.url') }}/api/v2/ai/queries
                                 </x-code-block>
                             </div>
                         </div>
@@ -1271,7 +1271,7 @@ curl -X POST \
   -d '{
     "query": "{ accounts(first: 10) { data { id name currency balance { available total } } } }"
   }' \
-  https://api.finaegis.org/graphql
+  {{ config('app.url') }}/api/graphql
                                 </x-code-block>
 
                                 <h4 class="font-semibold mb-2 mt-6">Example Query:</h4>
@@ -1308,7 +1308,7 @@ query {
                                 <p class="text-gray-600 mb-4">Interactive GraphQL explorer with schema introspection, auto-complete, and query history. Use this to explore available types, queries, mutations, and subscriptions.</p>
                                 <x-code-block language="bash">
 # Open in your browser
-https://api.finaegis.org/graphql-playground
+{{ config('app.url') }}/api/graphql-playground
                                 </x-code-block>
                             </div>
 
@@ -1346,7 +1346,7 @@ https://api.finaegis.org/graphql-playground
                                 <p class="text-gray-600 mb-4">Retrieve aggregated system metrics including event counts, processing rates, error rates, and uptime statistics.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v1/live-dashboard/metrics
+     {{ config('app.url') }}/api/v1/live-dashboard/metrics
                                 </x-code-block>
                             </div>
 
@@ -1361,7 +1361,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">Get health status for each event-sourced domain including event store connectivity, projector status, and recent error counts.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v1/live-dashboard/domain-health
+     {{ config('app.url') }}/api/v1/live-dashboard/domain-health
                                 </x-code-block>
                             </div>
 
@@ -1376,7 +1376,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">Monitor real-time event throughput rates per domain and aggregate, including events per second and processing latency.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v1/live-dashboard/event-throughput
+     {{ config('app.url') }}/api/v1/live-dashboard/event-throughput
                                 </x-code-block>
                             </div>
 
@@ -1391,7 +1391,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">Check Redis Streams connectivity, consumer group status, pending message counts, and stream memory usage.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v1/live-dashboard/stream-status
+     {{ config('app.url') }}/api/v1/live-dashboard/stream-status
                                 </x-code-block>
                             </div>
 
@@ -1406,7 +1406,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">Monitor projector lag across all event-sourced domains showing how far behind each read model projector is from the latest events.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v1/live-dashboard/projector-lag
+     {{ config('app.url') }}/api/v1/live-dashboard/projector-lag
                                 </x-code-block>
                             </div>
                         </div>
@@ -1433,7 +1433,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">Get the current x402 protocol status including supported networks, assets, and facilitator connectivity.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/x402/status
+     {{ config('app.url') }}/api/v2/x402/status
                                 </x-code-block>
                             </div>
 
@@ -1448,7 +1448,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">List all supported blockchain networks and payment assets for x402 settlement.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/x402/supported
+     {{ config('app.url') }}/api/v2/x402/supported
                                 </x-code-block>
                             </div>
 
@@ -1472,7 +1472,7 @@ curl -X POST \
     "asset": "USDC",
     "description": "Premium market data"
   }' \
-  https://api.finaegis.org/v2/x402/endpoints
+  {{ config('app.url') }}/api/v2/x402/endpoints
                                 </x-code-block>
                             </div>
 
@@ -1487,7 +1487,7 @@ curl -X POST \
                                 <p class="text-gray-600 mb-4">Retrieve payment history and settlement status for x402 transactions.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     "https://api.finaegis.org/v2/x402/payments?page=1&per_page=20"
+     "{{ config('app.url') }}/api/v2/x402/payments?page=1&per_page=20"
                                 </x-code-block>
                             </div>
 
@@ -1502,7 +1502,7 @@ curl -H "Authorization: Bearer your_api_key" \
                                 <p class="text-gray-600 mb-4">View and manage spending limits for automated x402 payments including AI agent budgets.</p>
                                 <x-code-block language="bash">
 curl -H "Authorization: Bearer your_api_key" \
-     https://api.finaegis.org/v2/x402/spending-limits
+     {{ config('app.url') }}/api/v2/x402/spending-limits
                                 </x-code-block>
                             </div>
 
@@ -1521,7 +1521,7 @@ X-Payment-Facilitator: https://x402.org/facilitator
 
                                 <h4 class="font-semibold mb-2 mt-6">JavaScript Client Example:</h4>
                                 <x-code-block language="javascript">
-const response = await fetch('https://api.finaegis.org/v2/premium/data', {
+const response = await fetch('{{ config('app.url') }}/api/v2/premium/data', {
   headers: { 'Authorization': 'Bearer YOUR_API_KEY' }
 });
 
@@ -1535,7 +1535,7 @@ if (response.status === 402) {
 
   // Sign and submit payment, then retry with proof
   const proof = await signPayment(paymentInfo);
-  const paid = await fetch('https://api.finaegis.org/v2/premium/data', {
+  const paid = await fetch('{{ config('app.url') }}/api/v2/premium/data', {
     headers: {
       'Authorization': 'Bearer YOUR_API_KEY',
       'X-Payment-Signature': proof.signature,

@@ -153,7 +153,7 @@
                     <div class="mt-10 pt-10 border-t border-gray-200 text-center">
                         <p class="text-sm text-gray-600">
                             Questions? Contact us at
-                            <a href="mailto:info@finaegis.org" class="text-indigo-600 hover:text-indigo-700 font-medium">info@finaegis.org</a>
+                            <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="text-indigo-600 hover:text-indigo-700 font-medium">{{ config('brand.support_email', 'info@zelta.app') }}</a>
                         </p>
                     </div>
                 </div>

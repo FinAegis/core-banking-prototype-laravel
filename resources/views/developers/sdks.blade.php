@@ -591,7 +591,7 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
 
                     <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto mb-8">
 <pre><span class="text-gray-500"># Request SDK generation for your partner account</span>
-curl -X POST https://api.finaegis.org/api/v1/partner/sdk/generate \
+curl -X POST {{ config('app.url') }}/api/api/v1/partner/sdk/generate \
   -H "Authorization: Bearer YOUR_PARTNER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -615,35 +615,35 @@ curl -X POST https://api.finaegis.org/api/v1/partner/sdk/generate \
         "language": "typescript",
         "version": "5.0.0",
         "package_name": "@finaegis/sdk",
-        "download_url": "https://sdk.finaegis.org/packages/typescript/finaegis-sdk-5.0.0.tgz",
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/typescript/finaegis-sdk-5.0.0.tgz",
         "install_command": "npm install @finaegis/sdk@5.0.0"
       },
       {
         "language": "python",
         "version": "5.0.0",
         "package_name": "finaegis-sdk",
-        "download_url": "https://sdk.finaegis.org/packages/python/finaegis-sdk-5.0.0.tar.gz",
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/python/finaegis-sdk-5.0.0.tar.gz",
         "install_command": "pip install finaegis-sdk==5.0.0"
       },
       {
         "language": "java",
         "version": "5.0.0",
         "package_name": "com.finaegis:sdk",
-        "download_url": "https://sdk.finaegis.org/packages/java/finaegis-sdk-5.0.0.jar",
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/java/finaegis-sdk-5.0.0.jar",
         "install_command": "mvn install com.finaegis:sdk:5.0.0"
       },
       {
         "language": "go",
         "version": "5.0.0",
         "package_name": "github.com/finaegis/sdk-go",
-        "download_url": "https://sdk.finaegis.org/packages/go/finaegis-sdk-go-5.12.0.tar.gz",
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/go/finaegis-sdk-go-5.12.0.tar.gz",
         "install_command": "go get github.com/finaegis/sdk-go@v5.12.0"
       },
       {
         "language": "php",
         "version": "5.0.0",
         "package_name": "finaegis/sdk",
-        "download_url": "https://sdk.finaegis.org/packages/php/finaegis-sdk-5.0.0.zip",
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/php/finaegis-sdk-5.0.0.zip",
         "install_command": "composer require finaegis/sdk:^5.0"
       }
     ]

@@ -244,7 +244,7 @@ import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
 
 const client = new {{ config('brand.name', 'Zelta') }}({
   apiKey: process.env.FINAEGIS_API_KEY,
-  baseURL: 'https://api.finaegis.org/v2'
+  baseURL: '{{ config('app.url') }}/api/v2'
 });
 
 async function createAccountAndCheckBalance() {
@@ -288,7 +288,7 @@ import os
 
 client = {{ config('brand.name', 'Zelta') }}(
     api_key=os.environ['FINAEGIS_API_KEY'],
-    base_url='https://api.finaegis.org/v2'
+    base_url='{{ config('app.url') }}/api/v2'
 )
 
 def create_account_and_check_balance():
@@ -330,7 +330,7 @@ use {{ config('brand.name', 'Zelta') }}\Client;
 
 $client = new Client([
     'apiKey' => $_ENV['FINAEGIS_API_KEY'],
-    'baseURL' => 'https://api.finaegis.org/v2'
+    'baseURL' => '{{ config('app.url') }}/api/v2'
 ]);
 
 function createAccountAndCheckBalance($client) {
@@ -370,7 +370,7 @@ createAccountAndCheckBalance($client);
                             <div id="create-curl" class="tab-content animate-fade-in">
                                 <x-code-block language="bash">
 # Create a new account
-curl -X POST https://api.finaegis.org/v2/accounts \
+curl -X POST {{ config('app.url') }}/api/v2/accounts \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -394,7 +394,7 @@ curl -X POST https://api.finaegis.org/v2/accounts \
 }
 
 # Get account balances
-curl -X GET https://api.finaegis.org/v2/accounts/acct_1234567890abcdef/balances \
+curl -X GET {{ config('app.url') }}/api/v2/accounts/acct_1234567890abcdef/balances \
   -H "Authorization: Bearer YOUR_API_KEY"
                                 </x-code-block>
                             </div>
@@ -609,11 +609,11 @@ getAccountTransactions('acct_1234567890', {
                             <div id="list-curl" class="tab-content animate-fade-in">
                                 <x-code-block language="bash">
 # Get all transactions for an account
-curl -X GET "https://api.finaegis.org/v2/accounts/acct_1234567890/transactions" \
+curl -X GET "{{ config('app.url') }}/api/v2/accounts/acct_1234567890/transactions" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Get transactions with filters
-curl -X GET "https://api.finaegis.org/v2/accounts/acct_1234567890/transactions?\
+curl -X GET "{{ config('app.url') }}/api/v2/accounts/acct_1234567890/transactions?\
 limit=20&\
 page=1&\
 type=withdrawal&\
@@ -664,10 +664,10 @@ sort=-created_at" \
     "to": 20
   },
   "links": {
-    "first": "https://api.finaegis.org/v2/accounts/acct_1234567890/transactions?page=1",
-    "last": "https://api.finaegis.org/v2/accounts/acct_1234567890/transactions?page=5",
+    "first": "{{ config('app.url') }}/api/v2/accounts/acct_1234567890/transactions?page=1",
+    "last": "{{ config('app.url') }}/api/v2/accounts/acct_1234567890/transactions?page=5",
     "prev": null,
-    "next": "https://api.finaegis.org/v2/accounts/acct_1234567890/transactions?page=2"
+    "next": "{{ config('app.url') }}/api/v2/accounts/acct_1234567890/transactions?page=2"
   }
 }
                                 </x-code-block>
@@ -1836,7 +1836,7 @@ processLoanApplication('cust_456', {
                             <div id="bridge-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
 # Step 1: Get a bridge quote
-curl -X POST https://api.finaegis.org/api/v1/crosschain/bridge/quote \
+curl -X POST {{ config('app.url') }}/api/api/v1/crosschain/bridge/quote \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1848,7 +1848,7 @@ curl -X POST https://api.finaegis.org/api/v1/crosschain/bridge/quote \
   }'
 
 # Step 2: Initiate the bridge transfer using the quote_id
-curl -X POST https://api.finaegis.org/api/v1/crosschain/bridge/initiate \
+curl -X POST {{ config('app.url') }}/api/api/v1/crosschain/bridge/initiate \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1868,7 +1868,7 @@ import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
 
 const client = new {{ config('brand.name', 'Zelta') }}({
   apiKey: process.env.FINAEGIS_API_KEY,
-  baseURL: 'https://api.finaegis.org'
+  baseURL: '{{ config('app.url') }}/api'
 });
 
 async function bridgeTokens(sourceChain, destChain, token, amount) {
@@ -1920,7 +1920,7 @@ import os
 
 client = {{ config('brand.name', 'Zelta') }}(
     api_key=os.environ['FINAEGIS_API_KEY'],
-    base_url='https://api.finaegis.org'
+    base_url='{{ config('app.url') }}/api'
 )
 
 def bridge_tokens(source_chain, dest_chain, token, amount):
@@ -2049,7 +2049,7 @@ bridge_tokens('ethereum', 'polygon', 'USDC', '1000.00')
                             <div id="swap-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
 # Step 1: Get a swap quote with DEX aggregation
-curl -X POST https://api.finaegis.org/api/v1/defi/swap/quote \
+curl -X POST {{ config('app.url') }}/api/api/v1/defi/swap/quote \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2062,7 +2062,7 @@ curl -X POST https://api.finaegis.org/api/v1/defi/swap/quote \
   }'
 
 # Step 2: Execute the swap with the best route
-curl -X POST https://api.finaegis.org/api/v1/defi/swap/execute \
+curl -X POST {{ config('app.url') }}/api/api/v1/defi/swap/execute \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2255,7 +2255,7 @@ swap_tokens('ethereum', 'WETH', 'USDC', '2.5')
                             <div id="travel-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
 # Run a Travel Rule compliance check before a transfer
-curl -X POST https://api.finaegis.org/api/v1/regtech/travel-rule/check \
+curl -X POST {{ config('app.url') }}/api/api/v1/regtech/travel-rule/check \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2480,7 +2480,7 @@ check_travel_rule_compliance({
                             <div id="partner-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
 # Onboard a new BaaS partner
-curl -X POST https://api.finaegis.org/api/v1/partner/onboard \
+curl -X POST {{ config('app.url') }}/api/api/v1/partner/onboard \
   -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2626,23 +2626,23 @@ onboard_partner({
         "language": "typescript",
         "version": "3.0.0",
         "package_name": "@finaegis/sdk",
-        "download_url": "https://sdk.finaegis.org/packages/typescript/finaegis-sdk-3.0.0.tgz",
-        "docs_url": "https://docs.finaegis.org/sdk/typescript"
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/typescript/finaegis-sdk-3.0.0.tgz",
+        "docs_url": "{{ config('app.url') }}/developers/sdk/typescript"
       },
       {
         "language": "python",
         "version": "3.0.0",
         "package_name": "finaegis-sdk",
-        "download_url": "https://sdk.finaegis.org/packages/python/finaegis-sdk-3.0.0.tar.gz",
-        "docs_url": "https://docs.finaegis.org/sdk/python"
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/python/finaegis-sdk-3.0.0.tar.gz",
+        "docs_url": "{{ config('app.url') }}/developers/sdk/python"
       }
     ],
     "rate_limits": {
       "requests_per_minute": 5000,
       "burst_limit": 500
     },
-    "sandbox_url": "https://sandbox.finaegis.org",
-    "dashboard_url": "https://partners.finaegis.org/acme-fintech",
+    "sandbox_url": "{{ config('app.url') }}",
+    "dashboard_url": "{{ config('app.url') }}/acme-fintech",
     "created_at": "2026-01-15T12:00:00Z",
     "onboarding_checklist": {
       "api_key_generated": true,
@@ -2694,7 +2694,7 @@ onboard_partner({
                             <div id="aitx-curl" class="tab-content active animate-fade-in">
                                 <x-code-block language="bash">
 # Query transactions with natural language
-curl -X POST https://api.finaegis.org/api/v1/ai/transactions \
+curl -X POST {{ config('app.url') }}/api/api/v1/ai/transactions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -2901,7 +2901,7 @@ class {{ config('brand.name', 'Zelta') }}Wrapper {
   constructor(apiKey, options = {}) {
     this.client = new {{ config('brand.name', 'Zelta') }}({
       apiKey,
-      baseURL: options.baseURL || 'https://api.finaegis.org/v2'
+      baseURL: options.baseURL || '{{ config('app.url') }}/api/v2'
     });
     
     this.retryOptions = {

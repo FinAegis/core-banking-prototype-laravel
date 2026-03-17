@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "FinAegis API v2",
-    "description": "Complete API collection for FinAegis GCU Platform",
+    "name": "Zelta API v2",
+    "description": "Complete API collection for Zelta GCU Platform",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

@@ -38,7 +38,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Email Support</h3>
                     <p class="text-slate-500 mb-2">General inquiries & support</p>
-                    <a href="mailto:info@finaegis.org" class="text-indigo-600 hover:text-indigo-700 font-medium">info@finaegis.org</a>
+                    <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="text-indigo-600 hover:text-indigo-700 font-medium">{{ config('brand.support_email', 'info@zelta.app') }}</a>
                 </div>
                 
                 <!-- GitHub Issues -->

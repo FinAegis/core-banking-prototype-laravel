@@ -119,7 +119,7 @@
                 <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-3xl p-8 text-center">
                     <h3 class="text-2xl font-bold text-slate-900 mb-4">Quick Setup</h3>
                     <x-code-block language="bash">
-curl -X POST https://api.finaegis.org/v2/webhooks \
+curl -X POST {{ config('app.url') }}/api/v2/webhooks \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"url": "https://yourapp.com/webhooks", "events": ["*"]}'
                 </x-code-block>

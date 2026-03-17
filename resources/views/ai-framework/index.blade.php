@@ -901,7 +901,7 @@
                 <a href="{{ route('register') }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
                     Start Free Trial
                 </a>
-                <a href="mailto:info@finaegis.org" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
+                <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-purple-600 transition">
                     Schedule Demo
                 </a>
             </div>

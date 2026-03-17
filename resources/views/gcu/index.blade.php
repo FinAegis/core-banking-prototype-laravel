@@ -769,7 +769,7 @@
                 </div>
 
                 <div class="mt-12 text-sm text-slate-500">
-                    <p>Questions? Contact our team at <a href="mailto:info@finaegis.org" class="underline">info@finaegis.org</a></p>
+                    <p>Questions? Contact our team at <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="underline">{{ config('brand.support_email', 'info@zelta.app') }}</a></p>
                 </div>
             </div>
         </section>

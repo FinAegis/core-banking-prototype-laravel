@@ -185,7 +185,7 @@
                             <li>Register for a free account on the platform</li>
                             <li>Explore the sandbox features and test transactions</li>
                             <li>Report bugs and issues on our GitHub repository</li>
-                            <li>Provide feedback via email at info@finaegis.org</li>
+                            <li>Provide feedback via email at {{ config('brand.support_email', 'info@zelta.app') }}</li>
                             <li>Join discussions on our GitHub community forum</li>
                         </ol>
                         <p class="text-slate-500 mt-3">

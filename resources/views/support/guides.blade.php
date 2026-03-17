@@ -319,7 +319,7 @@
                             <p class="text-slate-500 mb-4">Join our community:</p>
                             <ul class="list-disc list-inside text-slate-500 space-y-2">
                                 <li>GitHub Discussions for general topics</li>
-                                <li>Email info@finaegis.org for direct feedback</li>
+                                <li>Email {{ config('brand.support_email', 'info@zelta.app') }} for direct feedback</li>
                                 <li>Star the repository to show support</li>
                                 <li>Share the project with other developers</li>
                             </ul>
@@ -327,7 +327,7 @@
                                 <a href="{{ config('brand.github_url') }}/discussions" class="text-indigo-600 font-medium hover:text-indigo-700">
                                     Join Discussions →
                                 </a>
-                                <a href="mailto:info@finaegis.org" class="text-indigo-600 font-medium hover:text-indigo-700">
+                                <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="text-indigo-600 font-medium hover:text-indigo-700">
                                     Email Feedback →
                                 </a>
                             </div>

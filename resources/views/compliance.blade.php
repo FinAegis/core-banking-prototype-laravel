@@ -282,7 +282,7 @@
             <div class="card-feature !p-0 overflow-hidden animate-on-scroll stagger-1">
                 <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
                     <p class="text-sm text-slate-600">
-                        <strong class="text-slate-900">Note:</strong> For api.finaegis.org, endpoints are available without the /api prefix.
+                        <strong class="text-slate-900">Note:</strong> For {{ request()->getHost() }}, endpoints are available without the /api prefix.
                     </p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">

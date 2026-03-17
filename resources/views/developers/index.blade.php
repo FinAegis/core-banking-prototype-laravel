@@ -342,7 +342,7 @@
                                         <div><span class="text-gray-400">};</span></div>
                                         <div class="mt-4"></div>
                                         <div><span class="text-gray-400">// Example API call</span></div>
-                                        <div><span class="text-purple-400">fetch</span><span class="text-gray-400">(</span><span class="text-yellow-400">'https://api.finaegis.org/v2/accounts'</span><span class="text-gray-400">,</span> <span class="text-gray-400">{</span></div>
+                                        <div><span class="text-purple-400">fetch</span><span class="text-gray-400">(</span><span class="text-yellow-400">'{{ config('app.url') }}/api/v2/accounts'</span><span class="text-gray-400">,</span> <span class="text-gray-400">{</span></div>
                                         <div class="pl-4"><span class="text-green-400">method</span><span class="text-gray-400">:</span> <span class="text-yellow-400">'GET'</span><span class="text-gray-400">,</span></div>
                                         <div class="pl-4"><span class="text-green-400">headers</span><span class="text-gray-400">:</span> <span class="text-white">headers</span></div>
                                         <div><span class="text-gray-400">})</span></div>
@@ -812,7 +812,7 @@
                                 </div>
                                 <div class="p-4 font-mono text-sm">
                                     <div id="code-partner-auth">
-                                        <div><span class="text-gray-500">$</span> <span class="text-green-400">curl</span> <span class="text-blue-400">-X</span> <span class="text-purple-400">POST</span> <span class="text-yellow-400">"https://api.finaegis.org/v2/partner/tenants"</span> <span class="text-gray-400">\</span></div>
+                                        <div><span class="text-gray-500">$</span> <span class="text-green-400">curl</span> <span class="text-blue-400">-X</span> <span class="text-purple-400">POST</span> <span class="text-yellow-400">"{{ config('app.url') }}/api/v2/partner/tenants"</span> <span class="text-gray-400">\</span></div>
                                         <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"Authorization: Bearer YOUR_API_KEY"</span> <span class="text-gray-400">\</span></div>
                                         <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"X-Partner-Key: fpk_your_partner_key"</span> <span class="text-gray-400">\</span></div>
                                         <div>  <span class="text-blue-400">-H</span> <span class="text-yellow-400">"Content-Type: application/json"</span> <span class="text-gray-400">\</span></div>
@@ -877,7 +877,7 @@
                                 </button>
                             </div>
                             <pre class="p-4 code-block"><code id="code-create-account"><span class="text-purple-400">const</span> <span class="text-blue-400">createAccount</span> = <span class="text-purple-400">async</span> () <span class="text-blue-400">=></span> {
-    <span class="text-purple-400">const</span> <span class="text-white">response</span> = <span class="text-purple-400">await</span> <span class="text-green-400">fetch</span>(<span class="text-amber-400">'https://api.finaegis.org/v2/accounts'</span>, {
+    <span class="text-purple-400">const</span> <span class="text-white">response</span> = <span class="text-purple-400">await</span> <span class="text-green-400">fetch</span>(<span class="text-amber-400">'{{ config('app.url') }}/api/v2/accounts'</span>, {
         <span class="text-cyan-400">method</span>: <span class="text-amber-400">'POST'</span>,
         <span class="text-cyan-400">headers</span>: {
             <span class="text-amber-400">'Authorization'</span>: <span class="text-amber-400">'Bearer YOUR_API_KEY'</span>,
@@ -921,7 +921,7 @@
                             <pre class="p-4 code-block"><code id="code-transfer"><span class="text-purple-400">import</span> <span class="text-amber-400">requests</span>
 
 <span class="text-purple-400">def</span> <span class="text-blue-400">transfer_funds</span>(<span class="text-white">from_account</span>, <span class="text-white">to_account</span>, <span class="text-white">amount</span>):
-    <span class="text-white">url</span> = <span class="text-amber-400">"https://api.finaegis.org/v2/transfers"</span>
+    <span class="text-white">url</span> = <span class="text-amber-400">"{{ config('app.url') }}/api/v2/transfers"</span>
     <span class="text-white">headers</span> = {
         <span class="text-amber-400">"Authorization"</span>: <span class="text-amber-400">"Bearer YOUR_API_KEY"</span>,
         <span class="text-amber-400">"Content-Type"</span>: <span class="text-amber-400">"application/json"</span>
@@ -967,7 +967,7 @@
                             </div>
                             <pre class="p-4 code-block"><code id="code-gcu-exchange"><span class="text-purple-400">&lt;?php</span>
 <span class="text-blue-400">$api_key</span> = <span class="text-amber-400">'YOUR_API_KEY'</span>;
-<span class="text-blue-400">$endpoint</span> = <span class="text-amber-400">'https://api.finaegis.org/v2/gcu/exchange'</span>;
+<span class="text-blue-400">$endpoint</span> = <span class="text-amber-400">'{{ config('app.url') }}/api/v2/gcu/exchange'</span>;
 
 <span class="text-blue-400">$data</span> = [
     <span class="text-amber-400">'from_currency'</span> => <span class="text-amber-400">'USD'</span>,
