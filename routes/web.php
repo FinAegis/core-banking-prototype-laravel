@@ -126,6 +126,10 @@ if (config('brand.show_promo_pages')) {
         return view('compliance');
     })->name('compliance');
 
+    // Plugin Marketplace (public browsing)
+    Route::get('/marketplace', [App\Http\Controllers\PluginMarketplaceWebController::class, 'index'])->name('marketplace.index');
+    Route::get('/marketplace/{vendor}/{name}', [App\Http\Controllers\PluginMarketplaceWebController::class, 'show'])->name('marketplace.show');
+
     Route::get('/developers', function () {
         return view('developers.index');
     })->name('developers');
