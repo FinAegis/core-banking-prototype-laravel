@@ -494,20 +494,17 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
         <section id="sdk-timeline" class="py-20 bg-gray-50">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-gray-50 rounded-2xl p-8 text-center">
-                    <h2 class="font-display text-2xl font-bold text-slate-900 mb-4">Native SDKs Are Planned</h2>
+                    <h2 class="font-display text-2xl font-bold text-slate-900 mb-4">Official SDKs</h2>
                     <p class="text-slate-500 mb-6">
-                        We're planning to build native SDKs for all major programming languages to make integration even easier.
+                        Official SDKs are available for JavaScript/TypeScript, Python, and PHP. Additional language SDKs are planned.
                     </p>
                     <div class="flex flex-wrap gap-3 justify-center text-sm">
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">JavaScript</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">Python</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">PHP</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">Java</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">Go</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">Ruby</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">C#/.NET</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">Rust</span>
-                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200">& more</span>
+                        <span class="bg-green-50 px-4 py-2 rounded-lg border border-green-200 text-green-700">JavaScript/TypeScript</span>
+                        <span class="bg-green-50 px-4 py-2 rounded-lg border border-green-200 text-green-700">Python</span>
+                        <span class="bg-green-50 px-4 py-2 rounded-lg border border-green-200 text-green-700">PHP</span>
+                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200 text-slate-400">Java (planned)</span>
+                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200 text-slate-400">Go (planned)</span>
+                        <span class="bg-white px-4 py-2 rounded-lg border border-gray-200 text-slate-400">Ruby (planned)</span>
                     </div>
                 </div>
             </div>
@@ -523,7 +520,7 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                     </span>
                     <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">BaaS SDK Generation</h2>
                     <p class="text-xl text-slate-500 max-w-3xl mx-auto">
-                        Generate type-safe, versioned SDKs for your partner integration in TypeScript, Python, Java, Go, and PHP -- directly through the Partner API.
+                        Generate type-safe, versioned SDKs for your partner integration in TypeScript, Python, and PHP -- directly through the Partner API. Java and Go SDKs are planned.
                     </p>
                 </div>
 
@@ -557,7 +554,7 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                         </div>
                         <h4 class="font-semibold text-slate-900 mb-1">Java</h4>
                         <p class="text-xs text-gray-500">com.finaegis:sdk</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Available</span>
+                        <span class="inline-block mt-2 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">Planned</span>
                     </div>
                     <div class="sdk-card bg-white rounded-xl shadow-lg p-6 text-center">
                         <div class="w-14 h-14 bg-cyan-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -567,7 +564,7 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
                         </div>
                         <h4 class="font-semibold text-slate-900 mb-1">Go</h4>
                         <p class="text-xs text-gray-500">finaegis-go</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Available</span>
+                        <span class="inline-block mt-2 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">Planned</span>
                     </div>
                     <div class="sdk-card bg-white rounded-xl shadow-lg p-6 text-center">
                         <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -664,18 +661,6 @@ curl -X POST {{ config('app.url') }}/api/api/v1/partner/sdk/generate \
                             <p class="text-sm font-medium text-slate-600 mb-2">Python</p>
                             <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm">
                                 <code>pip install finaegis-sdk==5.0.0</code>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-600 mb-2">Java (Maven)</p>
-                            <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm">
-                                <code>mvn install com.finaegis:sdk:5.0.0</code>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-600 mb-2">Go</p>
-                            <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm">
-                                <code>go get github.com/finaegis/sdk-go@v5.12.0</code>
                             </div>
                         </div>
                         <div>

@@ -347,7 +347,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Banking-as-a-Service</h3>
                     <p class="text-slate-500 mb-4">
-                        Partner APIs, auto-generated SDKs (TypeScript, Python, Java, Go, PHP), embeddable widgets, and usage-based billing.
+                        Partner APIs, official SDKs (TypeScript, Python, PHP), embeddable widgets, and usage-based billing.
                     </p>
                     <a href="{{ route('features.show', 'baas-platform') }}" class="text-violet-600 font-medium hover:text-violet-700">
                         Explore BaaS →
