@@ -11,8 +11,8 @@ return new class () extends Migration {
     {
         Schema::create('cards', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('cardholder_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('cardholder_id')->constrained()->cascadeOnDelete(); // cardholders uses uuid PK
             $table->string('issuer_card_token')->unique();
             $table->string('issuer'); // rain, marqeta, demo
             $table->string('last4', 4);

@@ -11,6 +11,7 @@ use App\Domain\Security\ValueObjects\PostQuantumKeyPair;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -136,7 +137,7 @@ class QuantumSafeKeyRotationService
         $classicalSecBytes = base64_decode($classicalSecretKey, true);
 
         if ($classicalPubBytes === false || $classicalSecBytes === false) {
-            throw new \RuntimeException('Invalid base64-encoded classical key');
+            throw new RuntimeException('Invalid base64-encoded classical key');
         }
 
         // Generate fresh PQ key material
