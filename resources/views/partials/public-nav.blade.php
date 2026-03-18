@@ -1,5 +1,5 @@
 <!-- Navigation -->
-<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-fa-navy/80 backdrop-blur-xl border-b border-white/[0.04]">
+<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent" style="color:#fff">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
@@ -189,23 +189,49 @@
 <div class="h-16"></div>
 
 <style>
-    .nav-link {
-        @apply px-3 py-2 text-sm font-medium text-slate-400 hover:text-white rounded-md transition-colors duration-200;
+    /* Nav links — inline color ensures visibility even before Tailwind loads */
+    #main-nav .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: rgba(148, 163, 184, 1); /* slate-400 */
+        border-radius: 0.375rem;
+        transition: color 0.2s;
     }
-    .nav-link-active {
-        @apply text-white;
-    }
+    #main-nav .nav-link:hover { color: #fff; }
+    #main-nav .nav-link-active { color: #fff; }
+
     .dropdown-link {
-        @apply flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.04] transition-all duration-150;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 0.75rem;
+        border-radius: 0.375rem;
+        color: rgba(148, 163, 184, 1);
+        transition: all 0.15s;
     }
-    .dropdown-link-active {
-        @apply text-white bg-white/[0.04];
-    }
+    .dropdown-link:hover { color: #fff; background: rgba(255,255,255,0.04); }
+    .dropdown-link-active { color: #fff; background: rgba(255,255,255,0.04); }
+
     .mobile-nav-link {
-        @apply block px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/[0.04] rounded-md transition-colors;
+        display: block;
+        padding: 0.625rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: rgba(148, 163, 184, 1);
+        border-radius: 0.375rem;
+        transition: color 0.2s;
     }
-    .mobile-nav-link-active {
-        @apply text-white bg-white/[0.04];
+    .mobile-nav-link:hover { color: #fff; background: rgba(255,255,255,0.04); }
+    .mobile-nav-link-active { color: #fff; background: rgba(255,255,255,0.04); }
+
+    /* Scroll state — nav solidifies */
+    #main-nav.nav-scrolled {
+        background: rgba(12, 18, 34, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom-color: rgba(255,255,255,0.04);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 </style>
 

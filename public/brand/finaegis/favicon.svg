@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+    <!-- Shield shape background -->
+    <path d="M256 28L460 120V268C460 380 370 468 256 496C142 468 52 380 52 268V120L256 28Z" fill="#0c1222"/>
+    <path d="M256 28L460 120V268C460 380 370 468 256 496C142 468 52 380 52 268V120L256 28Z" stroke="#3b82f6" stroke-width="16" fill="none" opacity="0.6"/>
+    <!-- Inner shield glow -->
+    <path d="M256 68L424 144V268C424 362 346 436 256 460C166 436 88 362 88 268V144L256 68Z" fill="#131b2e"/>
+    <!-- FA monogram -->
+    <text x="256" y="310" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-weight="800" font-size="200" fill="white" letter-spacing="-12">FA</text>
+    <!-- Accent line -->
+    <line x1="160" y1="340" x2="352" y2="340" stroke="#3b82f6" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -47,4 +47,19 @@ return [
 
     'show_api_docs_publicly' => env('SHOW_API_DOCS_PUBLICLY', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Favicon & Theme
+    |--------------------------------------------------------------------------
+    |
+    | Brand-specific favicons and theme color. Set BRAND_FAVICON_PATH to a
+    | subdirectory under public/brand/ (e.g. 'finaegis' or 'zelta').
+    | When empty, falls back to root public/ favicons.
+    |
+    */
+
+    'favicon_path' => env('BRAND_FAVICON_PATH', ''),
+
+    'theme_color' => env('BRAND_THEME_COLOR', '#0c1222'),
+
 ];
