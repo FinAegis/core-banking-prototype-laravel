@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Cache;
 uses(Tests\TestCase::class);
 
 beforeEach(function (): void {
+    // Use array driver to avoid cross-process interference when running --parallel
+    config(['cache.default' => 'array']);
     Cache::flush();
 });
 
