@@ -260,12 +260,24 @@ class BankIntegrationService implements IBankIntegrationService
         $credentials = decrypt($connection->credentials);
         $connector->authenticate();
 
-        // Fetch accounts from bank
-        // This would need to be implemented based on specific bank API
+        // Fetch accounts from bank via connector
+        $accountIds = $this->getRemoteAccountIds($connector, $credentials);
         $accounts = collect();
 
+        foreach ($accountIds as $accountId) {
+            try {
+                $accounts->push($connector->getAccount($accountId));
+            } catch (Exception $e) {
+                Log::warning('Failed to fetch account from bank', [
+                    'bank_code'  => $bankCode,
+                    'account_id' => $accountId,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        }
+
         DB::transaction(
-            function () use ($accounts, $user, $bankCode) {
+            function () use ($accounts, $user, $bankCode, $connection) {
                 foreach ($accounts as $account) {
                     BankAccountModel::updateOrCreate(
                         [
@@ -292,6 +304,28 @@ class BankIntegrationService implements IBankIntegrationService
         );
 
         return $accounts;
+    }
+
+    /**
+     * Extract remote account IDs from connector credentials/metadata.
+     *
+     * @param  array<string, mixed>  $credentials
+     * @return array<string>
+     */
+    private function getRemoteAccountIds(IBankConnector $connector, array $credentials): array
+    {
+        // Account IDs may be embedded in credentials during onboarding
+        if (isset($credentials['account_ids']) && is_array($credentials['account_ids'])) {
+            return $credentials['account_ids'];
+        }
+
+        // Fallback: use cached account list from the connector's configuration
+        $cacheKey = "bank_accounts:{$connector->getBankCode()}";
+
+        /** @var array<string> $accountIds */
+        $accountIds = Cache::get($cacheKey, []);
+
+        return $accountIds;
     }
 
     /**

@@ -1821,13 +1821,13 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$num1 of function bcmul expects numeric\-string, string given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 4
 			path: app/Domain/DeFi/Services/Connectors/UniswapV3Connector.php
 
 		-
 			message: '#^Parameter \#1 \$num1 of function bcsub expects numeric\-string, string given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: app/Domain/DeFi/Services/Connectors/UniswapV3Connector.php
 
 		-

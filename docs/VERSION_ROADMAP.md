@@ -2236,10 +2236,102 @@ Mobile app polling `wallet/balances` + `wallet/state` every 60s generated ~98K A
 - Flaky CI test fix — UserOperationSigningServiceTest parallel isolation (PR #773)
 - Complete Zelta rebrand — 71 blade templates, 353 replacements (PR #772)
 
-### PRs: #746-#775 (21 PRs)
+### PRs: #746-#777 (23 PRs)
 
 ---
 
-*Document Version: 6.0.0*
+## v6.1.0 — Feature Completeness & Production Readiness (PLANNED)
+
+**Target**: Q2 2026
+**Theme**: Every advertised feature at 100% — no gaps between marketing and implementation
+
+### Comprehensive Feature Audit (March 17, 2026)
+
+Professional architect audit of ALL 43 domains against what the features pages advertise.
+15 domains at 75%+, 7 domains at 50-70%, 1 feature advertised but not implemented.
+
+### Phase 1 — Security: Post-Quantum Cryptography (CRITICAL)
+
+Features page advertises "quantum-resistant encryption" under Bank-Grade Security,
+but zero quantum-related code exists. This is a credibility gap that must be fixed first.
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Post-Quantum Key Encapsulation | CRITICAL | Implement ML-KEM (Kyber) for key exchange using phpseclib/libsodium |
+| Post-Quantum Digital Signatures | CRITICAL | Implement ML-DSA (Dilithium) for digital signatures |
+| Hybrid Encryption Service | CRITICAL | Classical + post-quantum hybrid mode for backwards compatibility |
+| Quantum-Safe Key Rotation | HIGH | Key rotation service that upgrades existing keys to PQ-safe |
+| Update Security Feature Page | HIGH | Accurate documentation of what PQ algorithms are implemented |
+
+### Phase 2 — Card Issuance: Rain Integration (HIGH)
+
+Card Issuance domain is thin (55%) — no persistent models, only demo adapter.
+Rain is a modern card issuing platform for crypto/fintech companies.
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Rain Card Issuer Adapter | HIGH | Implement CardIssuerInterface for Rain API (create, freeze, fund, spend limits) |
+| Card Model + Migration | HIGH | Persistent Card model with status, last4, network, funding source |
+| Cardholder Model | HIGH | KYC-linked cardholder with shipping address, verification status |
+| Transaction Sync | MEDIUM | Sync card transactions from Rain webhooks |
+| Card Management API | MEDIUM | REST + GraphQL endpoints for card lifecycle |
+
+### Phase 3 — Banking Integration Completion (60% → 90%)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Complete syncBankAccounts | HIGH | Real implementation instead of empty collection stub |
+| Open Banking Adapter | HIGH | PSD2/Open Banking API connector for EU bank data |
+| Bank Transfer Service | MEDIUM | Complete inter-bank transfer workflow with status tracking |
+| Account Verification | MEDIUM | Micro-deposit or instant verification flow |
+
+### Phase 4 — Multi-Tenancy Hardening (50% → 90%)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Tenant Provisioning Service | HIGH | Create/configure/migrate tenants programmatically |
+| Tenant Middleware | HIGH | Auto-resolve tenant from subdomain/header/token |
+| Tenant Data Isolation Tests | MEDIUM | Verify no cross-tenant data leakage |
+| Tenant Billing/Usage | LOW | Usage metering per tenant |
+
+### Phase 5 — Event Streaming Hardening (50% → 85%)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Dead Letter Queue | HIGH | Failed messages routed to DLQ for manual review |
+| Backpressure Handling | MEDIUM | Slow consumer detection + pause/resume |
+| Stream Health Dashboard | MEDIUM | Lag metrics, consumer health, throughput charts |
+| Message Schema Registry | LOW | Schema validation for published events |
+
+### Phase 6 — Cross-Chain & DeFi Production Adapters (65-70% → 85%)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Wormhole Production Adapter | MEDIUM | Real Wormhole SDK integration (VAA submission) |
+| Circle CCTP Adapter | MEDIUM | Real CCTP integration for USDC bridging |
+| Uniswap V3 Quoter | MEDIUM | Real on-chain quote via Quoter contract |
+| Aave V3 Position Reader | LOW | Read user positions from Aave on-chain |
+
+### Phase 7 — Privacy ZK Production Prover (70% → 85%)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| SnarkJS Integration | MEDIUM | Production ZK prover using SnarkJS/Circom |
+| Trusted Setup Ceremony | LOW | SRS manifest for production circuit params |
+| Proof Verification On-Chain | LOW | Solidity verifier contract integration |
+
+### Success Criteria
+
+- [ ] Post-quantum encryption implemented and tested (ML-KEM + ML-DSA)
+- [ ] Rain card issuing adapter with persistent models
+- [ ] Banking syncBankAccounts fully implemented
+- [ ] Tenant provisioning service with middleware
+- [ ] Dead letter queue for event streaming
+- [ ] Every feature page claim backed by real code
+- [ ] All domains at 80%+ completeness
+
+---
+
+*Document Version: 6.1.0-planned*
 *Created: January 11, 2026*
-*Updated: March 17, 2026 (v6.0.0 — ALL 19/19 roadmap items complete)*
+*Updated: March 17, 2026 (v6.1.0 roadmap planned from comprehensive feature audit)*

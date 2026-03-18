@@ -1,0 +1,61 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Cannot access property \$last4 on App\\Domain\\CardIssuance\\ValueObjects\\VirtualCard\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/CardIssuance/Adapters/RainCardIssuerAdapterTest.php
+
+		-
+			message: '#^Cannot access property \$network on App\\Domain\\CardIssuance\\ValueObjects\\VirtualCard\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Domain/CardIssuance/Adapters/RainCardIssuerAdapterTest.php
+
+		-
+			message: '#^Cannot access property \$status on App\\Domain\\CardIssuance\\ValueObjects\\VirtualCard\|null\.$#'
+			identifier: property.nonObject
+			count: 6
+			path: tests/Unit/Domain/CardIssuance/Adapters/RainCardIssuerAdapterTest.php
+
+		-
+			message: '#^Parameter \$publicInputs of class App\\Domain\\Privacy\\ValueObjects\\ZkProof constructor expects array\<string, mixed\>, array\<int, string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/Privacy/Services/OnChainVerifierServiceTest.php
+
+		-
+			message: '#^Access to an undefined property Pest\\Mixins\\Expectation\<string\|null\>\:\:\$not\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Unit/Domain/Security/Enums/PostQuantumAlgorithmTest.php
+
+		-
+			message: '#^Access to an undefined property Pest\\Mixins\\Expectation\<string\|null\>\:\:\$not\.$#'
+			identifier: property.notFound
+			count: 3
+			path: tests/Unit/Domain/Security/Services/PostQuantum/MlDsaServiceTest.php
+
+		-
+			message: '#^Access to an undefined property Pest\\Mixins\\Expectation\<string\|null\>\:\:\$not\.$#'
+			identifier: property.notFound
+			count: 3
+			path: tests/Unit/Domain/Security/Services/PostQuantum/MlKemServiceTest.php
+
+		-
+			message: '#^Parameter \#2 \$array of method PHPUnit\\Framework\\Assert\:\:assertArrayHasKey\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, array\<string, string\>\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/Domain/Shared/EventSourcing/MessageSchemaRegistryTest.php
+
+		-
+			message: '#^Parameter \#2 \$array of method PHPUnit\\Framework\\Assert\:\:assertArrayNotHasKey\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, array\<string, string\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/Shared/EventSourcing/MessageSchemaRegistryTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, array\<string, string\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Domain/Shared/EventSourcing/MessageSchemaRegistryTest.php

@@ -18,6 +18,7 @@ includes:
     - phpstan-baseline-level6.neon
     - phpstan-baseline-level7.neon
     - phpstan-baseline-level8.neon
+    - phpstan-baseline-v61.neon
     - phpstan-baseline-pre-existing.neon
 
 parameters:

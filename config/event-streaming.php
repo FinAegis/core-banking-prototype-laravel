@@ -78,4 +78,30 @@ return [
         'strategy'  => env('EVENT_STREAMING_RETENTION', 'maxlen'),
         'ttl_hours' => env('EVENT_STREAMING_TTL_HOURS', 168), // 7 days
     ],
+
+    /*
+     * Dead letter queue configuration.
+     * Failed messages are routed to per-domain DLQ streams.
+     */
+    'dead_letter' => [
+        'max_retries' => env('EVENT_STREAMING_DLQ_MAX_RETRIES', 3),
+        'max_length'  => env('EVENT_STREAMING_DLQ_MAX_LENGTH', 10000),
+    ],
+
+    /*
+     * Backpressure handling configuration.
+     * Controls when consumers are paused/resumed based on pending message count.
+     */
+    'backpressure' => [
+        'warning_threshold'  => env('EVENT_STREAMING_BACKPRESSURE_WARNING', 1000),
+        'critical_threshold' => env('EVENT_STREAMING_BACKPRESSURE_CRITICAL', 5000),
+        'resume_threshold'   => env('EVENT_STREAMING_BACKPRESSURE_RESUME', 500),
+    ],
+
+    /*
+     * Schema validation for published events.
+     */
+    'schema_validation' => [
+        'enabled' => env('EVENT_STREAMING_SCHEMA_VALIDATION', true),
+    ],
 ];
