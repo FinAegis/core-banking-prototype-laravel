@@ -2322,16 +2322,24 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 
 ### Success Criteria
 
-- [ ] Post-quantum encryption implemented and tested (ML-KEM + ML-DSA)
-- [ ] Rain card issuing adapter with persistent models
-- [ ] Banking syncBankAccounts fully implemented
-- [ ] Tenant provisioning service with middleware
-- [ ] Dead letter queue for event streaming
-- [ ] Every feature page claim backed by real code
-- [ ] All domains at 80%+ completeness
+- [x] Post-quantum encryption implemented and tested (ML-KEM + ML-DSA)
+- [x] Rain card issuing adapter with persistent models
+- [x] Banking syncBankAccounts fully implemented
+- [x] Tenant provisioning service with middleware
+- [x] Dead letter queue for event streaming
+- [x] Every feature page claim backed by real code
+- [ ] All domains at 80%+ completeness (Phase 2 card management API pending)
+
+### Deferred to v6.1.1
+
+| Task | Phase | Reason |
+|------|-------|--------|
+| Card Transaction Sync (Rain webhooks) | 2 | Requires Rain sandbox access for webhook testing |
+| Card Management API (REST + GraphQL) | 2 | Depends on transaction sync; will add with webhook integration |
+| Bank Transfer Service (inter-bank workflow) | 3 | Complex status tracking; requires partner bank sandbox |
 
 ---
 
-*Document Version: 6.1.0-planned*
+*Document Version: 6.1.0*
 *Created: January 11, 2026*
-*Updated: March 17, 2026 (v6.1.0 roadmap planned from comprehensive feature audit)*
+*Updated: March 18, 2026 (v6.1.0 implemented — 7 phases delivered, 3 items deferred to v6.1.1)*

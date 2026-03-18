@@ -60,7 +60,7 @@ class MlKemService implements PostQuantumCipherInterface
 
         $keyId = self::KEY_ID_PREFIX . bin2hex(random_bytes(8));
 
-        return new PostQuantumKeyPair(
+        $keyPair = new PostQuantumKeyPair(
             publicKey: base64_encode($publicKey),
             secretKey: base64_encode($secretKey),
             algorithm: $this->algorithm,
@@ -68,6 +68,13 @@ class MlKemService implements PostQuantumCipherInterface
             createdAt: new DateTimeImmutable(),
             expiresAt: new DateTimeImmutable('+1 year'),
         );
+
+        // Zero sensitive intermediates after embedding in key pair
+        sodium_memzero($pqSeed);
+        sodium_memzero($pqSecretSeed);
+        sodium_memzero($classicalSecret);
+
+        return $keyPair;
     }
 
     public function encapsulate(string $recipientPublicKey): EncapsulatedKey
@@ -114,6 +121,7 @@ class MlKemService implements PostQuantumCipherInterface
         sodium_memzero($classicalSharedSecret);
         sodium_memzero($pqSharedSecret);
         sodium_memzero($combinedInput);
+        sodium_memzero($pqRandomness);
 
         return new EncapsulatedKey(
             ciphertext: base64_encode($ciphertext),
@@ -169,6 +177,7 @@ class MlKemService implements PostQuantumCipherInterface
         if (! hash_equals($expectedPqCiphertext, $pqCiphertext)) {
             sodium_memzero($classicalSecret);
             sodium_memzero($classicalSharedSecret);
+            sodium_memzero($pqRandomness);
             throw new RuntimeException('KEM decapsulation failed: ciphertext verification mismatch');
         }
 
@@ -189,6 +198,7 @@ class MlKemService implements PostQuantumCipherInterface
         sodium_memzero($classicalSharedSecret);
         sodium_memzero($pqSharedSecret);
         sodium_memzero($combinedInput);
+        sodium_memzero($pqRandomness);
 
         return $sharedSecret;
     }

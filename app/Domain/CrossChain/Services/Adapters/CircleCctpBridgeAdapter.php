@@ -141,8 +141,8 @@ class CircleCctpBridgeAdapter implements BridgeAdapterInterface
         // Demo mode fallback
         return [
             'status'         => BridgeStatus::COMPLETED,
-            'source_tx_hash' => '0x' . md5($transactionId . 'source'),
-            'dest_tx_hash'   => '0x' . md5($transactionId . 'dest'),
+            'source_tx_hash' => '0x' . hash('sha256', $transactionId . 'source'),
+            'dest_tx_hash'   => '0x' . hash('sha256', $transactionId . 'dest'),
             'confirmations'  => 65,
         ];
     }

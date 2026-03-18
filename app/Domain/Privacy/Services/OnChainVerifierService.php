@@ -204,29 +204,56 @@ class OnChainVerifierService
         // Function selector for verifyProof
         $selector = '43753b4d';
 
-        // ABI encode: offset to dynamic array, then a[2], b[2][2], c[2], inputs
+        // ABI encode: a[2], b[2][2], c[2], inputs
+        // Uses bcmath for 256-bit field elements that exceed PHP int range
         $encoded = $selector;
 
         // Encode a[0], a[1]
-        $encoded .= str_pad(dechex((int) ($piA[0] ?? 0)), 64, '0', STR_PAD_LEFT);
-        $encoded .= str_pad(dechex((int) ($piA[1] ?? 0)), 64, '0', STR_PAD_LEFT);
+        $encoded .= $this->encodeUint256((string) ($piA[0] ?? '0'));
+        $encoded .= $this->encodeUint256((string) ($piA[1] ?? '0'));
 
         // Encode b[0][0], b[0][1], b[1][0], b[1][1]
-        $encoded .= str_pad(dechex((int) ($piB[0][0] ?? 0)), 64, '0', STR_PAD_LEFT);
-        $encoded .= str_pad(dechex((int) ($piB[0][1] ?? 0)), 64, '0', STR_PAD_LEFT);
-        $encoded .= str_pad(dechex((int) ($piB[1][0] ?? 0)), 64, '0', STR_PAD_LEFT);
-        $encoded .= str_pad(dechex((int) ($piB[1][1] ?? 0)), 64, '0', STR_PAD_LEFT);
+        $encoded .= $this->encodeUint256((string) ($piB[0][0] ?? '0'));
+        $encoded .= $this->encodeUint256((string) ($piB[0][1] ?? '0'));
+        $encoded .= $this->encodeUint256((string) ($piB[1][0] ?? '0'));
+        $encoded .= $this->encodeUint256((string) ($piB[1][1] ?? '0'));
 
         // Encode c[0], c[1]
-        $encoded .= str_pad(dechex((int) ($piC[0] ?? 0)), 64, '0', STR_PAD_LEFT);
-        $encoded .= str_pad(dechex((int) ($piC[1] ?? 0)), 64, '0', STR_PAD_LEFT);
+        $encoded .= $this->encodeUint256((string) ($piC[0] ?? '0'));
+        $encoded .= $this->encodeUint256((string) ($piC[1] ?? '0'));
 
         // Encode public inputs
         foreach ($proof->publicInputs as $input) {
-            $encoded .= str_pad(dechex((int) $input), 64, '0', STR_PAD_LEFT);
+            $encoded .= $this->encodeUint256((string) $input);
         }
 
         return '0x' . $encoded;
+    }
+
+    /**
+     * Encode a decimal string as a 32-byte (64-char) hex ABI uint256.
+     * Uses bcmath to handle 256-bit field elements that exceed PHP int range.
+     */
+    private function encodeUint256(string $decimalValue): string
+    {
+        if (! is_numeric($decimalValue)) {
+            return str_repeat('0', 64);
+        }
+
+        $hex = '';
+        $value = $decimalValue;
+
+        if (bccomp($value, '0') === 0) {
+            return str_repeat('0', 64);
+        }
+
+        while (bccomp($value, '0') > 0) {
+            $remainder = bcmod($value, '16');
+            $hex = dechex((int) $remainder) . $hex;
+            $value = bcdiv($value, '16', 0);
+        }
+
+        return str_pad($hex, 64, '0', STR_PAD_LEFT);
     }
 
     /**

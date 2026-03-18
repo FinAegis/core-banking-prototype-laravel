@@ -62,7 +62,7 @@ class MlDsaService implements PostQuantumSignatureInterface
 
         $keyId = self::KEY_ID_PREFIX . bin2hex(random_bytes(8));
 
-        return new PostQuantumKeyPair(
+        $keyPair = new PostQuantumKeyPair(
             publicKey: base64_encode($publicKey),
             secretKey: base64_encode($secretKey),
             algorithm: $this->algorithm,
@@ -70,6 +70,13 @@ class MlDsaService implements PostQuantumSignatureInterface
             createdAt: new DateTimeImmutable(),
             expiresAt: new DateTimeImmutable('+2 years'),
         );
+
+        // Zero sensitive intermediates after embedding in key pair
+        sodium_memzero($pqSeed);
+        sodium_memzero($pqSecretSeed);
+        sodium_memzero($classicalSecret);
+
+        return $keyPair;
     }
 
     public function sign(string $message, string $secretKey, string $signerKeyId): QuantumSignature

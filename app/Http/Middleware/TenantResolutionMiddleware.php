@@ -49,9 +49,9 @@ class TenantResolutionMiddleware
             ]);
 
             return response()->json([
-                'error'   => 'Tenant not found',
-                'message' => 'Unable to resolve tenant for this request. Provide X-Tenant-ID header, use a tenant subdomain, or authenticate with a valid token.',
-            ], Response::HTTP_FORBIDDEN);
+                'error'   => 'Not found',
+                'message' => 'The requested resource could not be found.',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         // Check tenant status

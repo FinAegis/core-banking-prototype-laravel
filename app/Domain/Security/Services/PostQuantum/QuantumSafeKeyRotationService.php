@@ -132,13 +132,17 @@ class QuantumSafeKeyRotationService
      */
     public function upgradeToQuantumSafe(string $classicalPublicKey, string $classicalSecretKey): PostQuantumKeyPair
     {
+        $classicalPubBytes = base64_decode($classicalPublicKey, true);
+        $classicalSecBytes = base64_decode($classicalSecretKey, true);
+
+        if ($classicalPubBytes === false || $classicalSecBytes === false) {
+            throw new \RuntimeException('Invalid base64-encoded classical key');
+        }
+
         // Generate fresh PQ key material
         $pqSeed = random_bytes(64);
         $pqPublicSeed = hash('sha3-256', $pqSeed . 'public', true);
         $pqSecretSeed = hash('sha3-256', $pqSeed . 'secret', true);
-
-        $classicalPubBytes = base64_decode($classicalPublicKey, true) ?: '';
-        $classicalSecBytes = base64_decode($classicalSecretKey, true) ?: '';
 
         // Compose hybrid key: classical || PQ
         $hybridPublic = $classicalPubBytes . $pqPublicSeed;
@@ -152,6 +156,11 @@ class QuantumSafeKeyRotationService
             createdAt: new DateTimeImmutable(),
             expiresAt: new DateTimeImmutable('+1 year'),
         );
+
+        // Zero sensitive intermediates
+        sodium_memzero($pqSeed);
+        sodium_memzero($pqSecretSeed);
+        sodium_memzero($classicalSecBytes);
 
         Log::info('Classical key upgraded to quantum-safe', [
             'key_id'    => $keyPair->keyId,
