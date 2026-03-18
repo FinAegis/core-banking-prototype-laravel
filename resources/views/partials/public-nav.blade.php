@@ -1,5 +1,5 @@
 <!-- Navigation -->
-<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent" style="color:#fff">
+<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-white/[0.04]" style="color:#fff;background:rgba(12,18,34,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
