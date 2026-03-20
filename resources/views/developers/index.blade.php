@@ -137,7 +137,7 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>v5.12 Documentation — 43 Domains, 1,250+ Routes, GraphQL + REST + x402</span>
+                        <span>v5.12 Documentation — 45 Domains, 1,250+ Routes, GraphQL + REST + x402</span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
                         Built for Developers
@@ -178,7 +178,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <span class="font-medium">v5.12 Released:</span>
-                    <span class="ml-2">Design System v2, Onramper Fiat Ramp, Foodo Insights, Referral System, Gas Sponsorship, Banners API, V1 Notifications — plus 43 DDD domains, 1,250+ API routes, GraphQL (35 domains), x402 Protocol, and more.</span>
+                    <span class="ml-2">Design System v2, Onramper Fiat Ramp, Foodo Insights, Referral System, Gas Sponsorship, Banners API, V1 Notifications — plus 45 DDD domains, 1,250+ API routes, GraphQL (36 domains), x402 Protocol, and more.</span>
                 </div>
             </div>
         </section>
@@ -434,7 +434,7 @@
                 <!-- Platform API Area Cards -->
                 <div class="mt-16">
                     <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Platform API Areas</h3>
-                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 43 DDD domains</p>
+                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 45 DDD domains</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                         <!-- CrossChain -->
@@ -563,10 +563,10 @@
                                     </div>
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-900">GraphQL API</h4>
-                                        <span class="text-xs text-slate-400">35 domains</span>
+                                        <span class="text-xs text-slate-400">36 domains</span>
                                     </div>
                                 </div>
-                                <p class="text-slate-500 text-sm mb-3">Schema-first GraphQL via Lighthouse PHP with queries, mutations, subscriptions, and DataLoaders across 35 domain schemas.</p>
+                                <p class="text-slate-500 text-sm mb-3">Schema-first GraphQL via Lighthouse PHP with queries, mutations, subscriptions, and DataLoaders across 36 domain schemas.</p>
                                 <span class="text-sky-600 text-sm font-medium group-hover:text-sky-700">View endpoints &rarr;</span>
                             </div>
                         </a>

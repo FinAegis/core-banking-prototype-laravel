@@ -38,7 +38,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
                 @include('partials.breadcrumb', ['items' => [['name' => 'Features', 'url' => url('/features')]]])
-                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">43 Domain Modules. <span class="text-gradient">One Platform.</span></h1>
+                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">45 Domain Modules. <span class="text-gradient">One Platform.</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
                     Every building block a modern fintech needs — from democratic currency governance to AI agent commerce, cross-chain DeFi, and privacy-preserving identity.
                 </p>
@@ -251,7 +251,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Developer APIs</h3>
                     <p class="text-slate-500 mb-4">
-                        Full REST coverage with OpenAPI specs, GraphQL across 35 domains with real-time subscriptions, and configurable webhooks.
+                        Full REST coverage with OpenAPI specs, GraphQL across 36 domains with real-time subscriptions, and configurable webhooks.
                     </p>
                     <a href="{{ route('features.show', 'api') }}" class="text-blue-600 font-medium hover:text-blue-700">
                         View docs →
@@ -395,7 +395,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">GraphQL API</h3>
                     <p class="text-slate-500 mb-4">
-                        Lighthouse-powered GraphQL covering 35 domains with real-time subscriptions, N+1 safe DataLoaders, and cursor-based pagination.
+                        Lighthouse-powered GraphQL covering 36 domains with real-time subscriptions, N+1 safe DataLoaders, and cursor-based pagination.
                     </p>
                     <a href="{{ route('features.show', 'api') }}" class="text-pink-600 font-medium hover:text-pink-700">
                         View API &rarr;

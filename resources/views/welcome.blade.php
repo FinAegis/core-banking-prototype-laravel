@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' - Open Source Core Banking Infrastructure',
-        'description' => 'Open-source core banking infrastructure with 43 DDD domains, event sourcing, cross-chain DeFi, privacy-preserving identity, RegTech compliance, AI analytics, and HTTP-native micropayments. Built with Laravel.',
+        'description' => 'Open-source core banking infrastructure with 45 DDD domains, event sourcing, cross-chain DeFi, privacy-preserving identity, RegTech compliance, AI analytics, and HTTP-native micropayments. Built with Laravel.',
         'keywords' => config('brand.name', 'Zelta') . ', open source banking, core banking infrastructure, GCU, event sourcing, DeFi, cross-chain, RegTech, banking API, Laravel fintech',
     ])
 
@@ -32,7 +32,7 @@
                     <svg class="w-4 h-4 text-fa-teal" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
                     </svg>
-                    Open Source &middot; MIT Licensed &middot; 43 Domains
+                    Open Source &middot; MIT Licensed &middot; 45 Domains
                 </div>
 
                 <!-- Heading -->
@@ -150,7 +150,7 @@
             <div class="text-center mb-16 animate-on-scroll">
                 <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">Built-In Capabilities</h2>
                 <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-                    43 domain modules spanning payments, lending, compliance, DeFi, privacy, mobile wallets, AI analytics, and more.
+                    45 domain modules spanning payments, lending, compliance, DeFi, privacy, mobile wallets, AI analytics, and more.
                 </p>
             </div>
 
@@ -162,7 +162,7 @@
                         ['route' => 'features.show', 'slug' => 'settlements', 'title' => 'Event-Sourced Ledger', 'desc' => 'Every transaction is an immutable event. Full audit trails, point-in-time reconstruction, and replay capability.', 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'emerald'],
                         ['route' => 'features.show', 'slug' => 'governance', 'title' => 'Democratic Governance', 'desc' => 'Stake-weighted voting on monetary policy. Users shape their currency through on-chain governance proposals.', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'amber'],
                         ['route' => 'features.show', 'slug' => 'bank-integration', 'title' => 'Banking API Patterns', 'desc' => 'Open Banking-compliant API patterns with Ondato KYC, Chainalysis sanctions, and Marqeta card issuing.', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'color' => 'red'],
-                        ['route' => 'features.show', 'slug' => 'api', 'title' => 'REST, GraphQL & OpenAPI', 'desc' => 'Full REST coverage with OpenAPI specs, GraphQL across 35 domains, real-time subscriptions, and webhooks.', 'icon' => 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4', 'color' => 'sky'],
+                        ['route' => 'features.show', 'slug' => 'api', 'title' => 'REST, GraphQL & OpenAPI', 'desc' => 'Full REST coverage with OpenAPI specs, GraphQL across 36 domains, real-time subscriptions, and webhooks.', 'icon' => 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4', 'color' => 'sky'],
                         ['route' => 'ai-framework', 'slug' => null, 'title' => 'AI Agent Protocol', 'desc' => 'Google A2A protocol for autonomous agent commerce. MCP tools, spending limits, and transaction analytics.', 'icon' => 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'color' => 'violet'],
                         ['route' => 'features.show', 'slug' => 'crosschain-defi', 'title' => 'Cross-Chain & DeFi', 'desc' => 'Bridge across Wormhole, LayerZero, Axelar. Aggregate DEX liquidity, optimize yield, manage multi-chain portfolios.', 'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', 'color' => 'orange'],
                         ['route' => 'features.show', 'slug' => 'privacy-identity', 'title' => 'Privacy & Identity', 'desc' => 'ZK-KYC proofs, RAILGUN shielded transfers, W3C verifiable credentials, soulbound tokens, Shamir key mgmt.', 'icon' => 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', 'color' => 'teal'],
@@ -194,7 +194,7 @@
 
             <div class="text-center mt-12 animate-on-scroll">
                 <a href="{{ route('features') }}" class="btn-primary !bg-slate-900 hover:!bg-slate-800 !rounded-lg group">
-                    See All 43 Domains
+                    See All 45 Domains
                     <svg class="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                 </a>
             </div>

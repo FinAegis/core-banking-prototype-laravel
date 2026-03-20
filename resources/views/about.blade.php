@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'About ' . config('brand.name', 'Zelta') . ' - Open Source Core Banking Infrastructure',
-        'description' => config('brand.name', 'Zelta') . ' is an open-source core banking platform with 43 DDD domains, event sourcing, CQRS, and the Global Currency Unit. Built with Laravel for fintech developers.',
+        'description' => config('brand.name', 'Zelta') . ' is an open-source core banking platform with 45 DDD domains, event sourcing, CQRS, and the Global Currency Unit. Built with Laravel for fintech developers.',
         'keywords' => config('brand.name', 'Zelta') . ' about, open source banking, core banking platform, GCU, event sourcing, CQRS, Laravel banking, DDD, fintech infrastructure',
     ])
 
@@ -33,7 +33,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'About', 'url' => url('/about')]]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">About <span class="text-gradient">{{ config('brand.name', 'Zelta') }}</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    Open-source core banking infrastructure built with Laravel — 43 domain modules covering everything from democratic currency governance to AI agent commerce.
+                    Open-source core banking infrastructure built with Laravel — 45 domain modules covering everything from democratic currency governance to AI agent commerce.
                 </p>
             </div>
         </div>
@@ -147,7 +147,7 @@
                     ['title' => 'Banking API Patterns', 'desc' => 'Open Banking-compliant API adapters including Ondato KYC, Chainalysis sanctions screening, and Marqeta card issuing for real-world integration patterns.'],
                     ['title' => 'Cross-Chain & DeFi', 'desc' => 'Bridge protocols (Wormhole, LayerZero, Axelar), DEX aggregation via Uniswap/Aave/Curve/Lido, cross-chain swaps, and multi-chain portfolio management.'],
                     ['title' => 'Privacy & Identity', 'desc' => 'ZK-KYC proofs, Merkle tree commitments, soulbound tokens, W3C verifiable credentials, Shamir secret sharing, and delegated proof verification.'],
-                    ['title' => 'GraphQL API', 'desc' => 'Lighthouse-powered GraphQL covering 35 domains with real-time subscriptions, N+1 safe DataLoaders, and cursor-based pagination alongside REST/OpenAPI.'],
+                    ['title' => 'GraphQL API', 'desc' => 'Lighthouse-powered GraphQL covering 36 domains with real-time subscriptions, N+1 safe DataLoaders, and cursor-based pagination alongside REST/OpenAPI.'],
                     ['title' => 'Plugin Marketplace', 'desc' => 'Extensible plugin system with sandboxed execution, static security scanning, hook-based integration points, and a manager UI for discovering and installing plugins.'],
                     ['title' => 'Event Streaming', 'desc' => 'Redis Streams-powered event streaming with a live dashboard, consumer groups, backpressure handling, and dead-letter queues for reliable event processing.'],
                     ['title' => 'Compliance Certification', 'desc' => 'SOC 2 Type II and PCI DSS readiness tooling, GDPR enhanced privacy (ROPA, DPIA, breach notification, consent v2), and multi-region deployment support.'],
@@ -205,7 +205,7 @@
                 <div class="card-feature">
                     <h4 class="font-display text-base font-bold text-slate-900 mb-2">For Founders</h4>
                     <p class="text-sm text-slate-500 mb-3">
-                        Build your fintech product on battle-tested infrastructure. 43 domain modules, MIT licensed, ready to customize.
+                        Build your fintech product on battle-tested infrastructure. 45 domain modules, MIT licensed, ready to customize.
                     </p>
                     <a href="{{ route('developers') }}" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition">
                         View Documentation &rarr;

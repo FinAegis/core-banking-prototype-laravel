@@ -20,7 +20,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 
 | Challenge | FinAegis Solution |
 |-----------|-------------------|
-| Building financial systems from scratch | 43 production-ready domain modules |
+| Building financial systems from scratch | 45 production-ready domain modules |
 | Audit trail requirements | Event sourcing with domain-specific event tables |
 | Complex multi-step transactions | Saga pattern with automatic compensation |
 | Regulatory compliance | Built-in KYC/AML, SOC 2, PCI DSS, GDPR (v3.5.0) |
@@ -30,7 +30,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Privacy-preserving transactions | ZK-KYC, Merkle trees, ERC-4337 gas abstraction (v2.4.0-v2.6.0) |
 | Multi-jurisdiction RegTech | MiFID II, MiCA, FATF Travel Rule, 4-jurisdiction adapters (v2.8.0) |
 | Cross-chain & DeFi | Bridge protocols, DEX aggregation, yield optimization (v3.0.0) |
-| Modular plugin architecture | 43 domains with manifests, enable/disable, dependency resolution (v3.2.0) |
+| Modular plugin architecture | 45 domains with manifests, enable/disable, dependency resolution (v3.2.0) |
 | Compliance certification | SOC 2 Type II, PCI DSS readiness, multi-region deployment (v3.5.0) |
 | GraphQL API | Schema-first Lighthouse PHP, 35 domains, subscriptions (v4.0.0+) |
 | Event Store v2 | Domain routing (35 domains), upcasting, migration tooling (v4.0.0) |
