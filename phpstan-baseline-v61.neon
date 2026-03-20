@@ -59,3 +59,9 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: tests/Unit/Domain/Shared/EventSourcing/MessageSchemaRegistryTest.php
+
+		-
+			message: '#^Cannot access property \$\w+ on stdClass\|null\.$#'
+			identifier: property.nonObject
+			count: 5
+			path: tests/Unit/Domain/CardIssuance/Services/CardTransactionSyncServiceTest.php

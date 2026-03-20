@@ -2328,18 +2328,18 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 - [x] Tenant provisioning service with middleware
 - [x] Dead letter queue for event streaming
 - [x] Every feature page claim backed by real code
-- [ ] All domains at 80%+ completeness (Phase 2 card management API pending)
+- [x] All domains at 80%+ completeness
 
-### Deferred to v6.1.1
+### v6.1.1 — Deferred Items (COMPLETED)
 
-| Task | Phase | Reason |
-|------|-------|--------|
-| Card Transaction Sync (Rain webhooks) | 2 | Requires Rain sandbox access for webhook testing |
-| Card Management API (REST + GraphQL) | 2 | Depends on transaction sync; will add with webhook integration |
-| Bank Transfer Service (inter-bank workflow) | 3 | Complex status tracking; requires partner bank sandbox |
+| Task | Status | Description |
+|------|--------|-------------|
+| Card Transaction Sync | DONE | CardTransactionSyncService with webhook processing (created/settled/declined/reversed) + polling |
+| Card Management API | DONE | REST: CardholderController (list/create/show), GraphQL: full card lifecycle mutations + cardholder queries |
+| Bank Transfer Service | DONE | BankTransferService with state machine (initiated→pending→processing→completed/failed), status tracking, cancellation |
 
 ---
 
-*Document Version: 6.1.0*
+*Document Version: 6.1.1*
 *Created: January 11, 2026*
-*Updated: March 18, 2026 (v6.1.0 implemented — 7 phases delivered, 3 items deferred to v6.1.1)*
+*Updated: March 20, 2026 (v6.1.1 deferred items delivered — all success criteria met)*

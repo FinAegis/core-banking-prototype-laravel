@@ -5,12 +5,57 @@ type VirtualCard {
     last_four: String!
     network: String!
     status: String!
+    currency: String
+    label: String
+    issuer: String
+    funding_source: String
+    spend_limit_interval: String
     expires_at: String
+    created_at: DateTime
+}
+
+type CardTransaction {
+    id: ID!
+    card_id: String!
+    merchant_name: String!
+    merchant_category: String
+    amount_cents: Int!
+    currency: String!
+    status: String!
+    transacted_at: String
+}
+
+type Cardholder {
+    id: ID!
+    first_name: String!
+    last_name: String!
+    full_name: String!
+    email: String
+    kyc_status: String!
+    is_verified: Boolean!
+    card_count: Int
     created_at: DateTime
 }
 
 input ProvisionCardInput {
     cardholder_name: String!
+}
+
+input CreateCardInput {
+    cardholder_id: String!
+    network: String
+    label: String
+    currency: String
+}
+
+input CreateCardholderInput {
+    first_name: String!
+    last_name: String!
+    email: String
+    phone: String
+    shipping_address_line1: String
+    shipping_city: String
+    shipping_country: String
 }
 
 extend type Query {
@@ -24,10 +69,45 @@ extend type Query {
     ): [VirtualCard!]!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Queries\\CardIssuance\\CardsQuery")
+
+    cardTransactions(
+        card_id: String!
+        first: Int @rules(apply: ["integer", "min:1", "max:100"])
+    ): [CardTransaction!]!
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Queries\\CardIssuance\\CardTransactionsQuery")
+
+    cardholders: [Cardholder!]!
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Queries\\CardIssuance\\CardholdersQuery")
+
+    cardholder(id: ID!): Cardholder
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Queries\\CardIssuance\\CardholderQuery")
 }
 
 extend type Mutation {
     provisionCard(input: ProvisionCardInput! @spread): VirtualCard!
         @guard(with: ["sanctum"])
         @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\ProvisionCardMutation")
+
+    createCard(input: CreateCardInput! @spread): VirtualCard!
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\CreateCardMutation")
+
+    freezeCard(id: ID!): VirtualCard!
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\FreezeCardMutation")
+
+    unfreezeCard(id: ID!): VirtualCard!
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\UnfreezeCardMutation")
+
+    cancelCard(id: ID!): VirtualCard!
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\CancelCardMutation")
+
+    createCardholder(input: CreateCardholderInput! @spread): Cardholder!
+        @guard(with: ["sanctum"])
+        @field(resolver: "App\\GraphQL\\Mutations\\CardIssuance\\CreateCardholderMutation")
 }
