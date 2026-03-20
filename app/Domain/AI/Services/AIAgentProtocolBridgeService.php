@@ -12,6 +12,8 @@ use App\Domain\AgentProtocol\Services\AgentRegistryService;
 use App\Domain\AgentProtocol\Services\DIDService;
 use App\Domain\AgentProtocol\Services\EscrowService;
 use App\Domain\AgentProtocol\Services\ReputationService;
+use App\Domain\VisaCli\DataObjects\VisaCliPaymentRequest;
+use App\Domain\VisaCli\Services\VisaCliPaymentService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -58,6 +60,7 @@ class AIAgentProtocolBridgeService
         private readonly ReputationService $reputationService,
         /** @phpstan-ignore-next-line property.onlyWritten - Reserved for future escrow integration */
         private readonly EscrowService $escrowService,
+        private readonly ?VisaCliPaymentService $visaCliPaymentService = null,
     ) {
     }
 
@@ -195,6 +198,64 @@ class AIAgentProtocolBridgeService
             'fees'           => $fee,
             'from_did'       => $fromDid,
             'to_did'         => $toDid,
+        ];
+    }
+
+    /**
+     * Initiate a Visa CLI payment from an AI agent.
+     *
+     * @param  string  $aiAgentName  Source AI agent name
+     * @param  string  $url          Payment target URL
+     * @param  int     $amountCents  Amount in USD cents
+     * @param  string  $purpose      Payment purpose
+     * @param  array<string, mixed>  $metadata Additional metadata
+     * @return array{transaction_id: string, status: string, amount_cents: int, payment_reference: string|null, from_did: string}
+     */
+    public function initiateVisaCliPayment(
+        string $aiAgentName,
+        string $url,
+        int $amountCents,
+        string $purpose = 'ai_agent_visa_payment',
+        array $metadata = []
+    ): array {
+        if ($this->visaCliPaymentService === null) {
+            return [
+                'transaction_id'    => '',
+                'status'            => 'unavailable',
+                'amount_cents'      => $amountCents,
+                'payment_reference' => null,
+                'from_did'          => '',
+            ];
+        }
+
+        $fromDid = $this->getOrRegisterAIAgentDid($aiAgentName);
+
+        $request = new VisaCliPaymentRequest(
+            agentId: $fromDid,
+            url: $url,
+            amountCents: $amountCents,
+            purpose: $purpose,
+            metadata: array_merge($metadata, [
+                'ai_agent_name' => $aiAgentName,
+                'source'        => 'agent_protocol_bridge',
+            ]),
+        );
+
+        $result = $this->visaCliPaymentService->executePayment($request);
+
+        Log::info('AI Agent Visa CLI payment initiated', [
+            'agent'     => $aiAgentName,
+            'url'       => $url,
+            'amount'    => $amountCents,
+            'reference' => $result->paymentReference,
+        ]);
+
+        return [
+            'transaction_id'    => $request->requestId,
+            'status'            => $result->status->value,
+            'amount_cents'      => $result->amountCents,
+            'payment_reference' => $result->paymentReference,
+            'from_did'          => $fromDid,
         ];
     }
 
