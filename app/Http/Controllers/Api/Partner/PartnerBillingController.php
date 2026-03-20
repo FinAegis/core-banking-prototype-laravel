@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\Partner;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionPartner;
 use App\Domain\FinancialInstitution\Models\PartnerInvoice;
 use App\Domain\FinancialInstitution\Services\PartnerBillingService;
+use App\Domain\VisaCli\Contracts\VisaCliPaymentGatewayInterface;
+use App\Domain\VisaCli\Exceptions\VisaCliPaymentException;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +18,7 @@ class PartnerBillingController extends Controller
 {
     public function __construct(
         private readonly PartnerBillingService $billingService,
+        private readonly VisaCliPaymentGatewayInterface $paymentGateway,
     ) {
     }
 
@@ -242,6 +245,96 @@ class PartnerBillingController extends Controller
             'success' => true,
             'data'    => $breakdown,
         ]);
+    }
+
+    /**
+     * Pay an invoice via Visa CLI.
+     *
+     * POST /api/partner/v1/billing/invoices/{id}/pay
+     */
+    #[OA\Post(
+        path: '/api/partner/v1/billing/invoices/{id}/pay',
+        operationId: 'partnerPayInvoice',
+        summary: 'Pay an invoice via Visa CLI',
+        description: 'Collects payment for a pending or overdue invoice using the Visa CLI payment gateway.',
+        tags: ['Partner BaaS'],
+        security: [['sanctum' => []]],
+        parameters: [
+        new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Invoice ID', schema: new OA\Schema(type: 'integer', example: 1)),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'card_id', type: 'string', description: 'Optional enrolled card ID', example: null),
+            ])
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Payment successful',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: true),
+        new OA\Property(property: 'data', type: 'object', properties: [
+        new OA\Property(property: 'payment_reference', type: 'string'),
+        new OA\Property(property: 'status', type: 'string', example: 'completed'),
+        new OA\Property(property: 'amount_cents', type: 'integer', example: 29900),
+        ]),
+        ])
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Invoice not found',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'message', type: 'string', example: 'Invoice not found'),
+        ])
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Invoice cannot be paid or payment failed',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'message', type: 'string', example: 'Invoice cannot be paid'),
+        ])
+    )]
+    public function payInvoice(Request $request, int $id): JsonResponse
+    {
+        $partner = $this->getPartner($request);
+
+        $invoice = PartnerInvoice::where('partner_id', $partner->id)
+            ->where('id', $id)
+            ->first();
+
+        if (! $invoice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice not found',
+            ], 404);
+        }
+
+        if (! $invoice->canBePaid()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice cannot be paid (status: ' . $invoice->status . ')',
+            ], 422);
+        }
+
+        try {
+            $cardId = $request->input('card_id');
+            $result = $this->paymentGateway->collectPayment(
+                $invoice,
+                is_string($cardId) ? $cardId : null,
+            );
+
+            return response()->json([
+                'success' => true,
+                'data'    => $result->toArray(),
+            ]);
+        } catch (VisaCliPaymentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     private function getPartner(Request $request): FinancialInstitutionPartner

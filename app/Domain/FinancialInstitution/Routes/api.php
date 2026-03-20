@@ -34,6 +34,7 @@ Route::prefix('partner/v1')->name('api.partner.')->middleware('partner.auth')->g
     // Billing
     Route::get('/billing/invoices', [PartnerBillingController::class, 'invoices'])->name('billing.invoices');
     Route::get('/billing/invoices/{id}', [PartnerBillingController::class, 'invoice'])->name('billing.invoice');
+    Route::post('/billing/invoices/{id}/pay', [PartnerBillingController::class, 'payInvoice'])->name('billing.invoice.pay');
     Route::get('/billing/outstanding', [PartnerBillingController::class, 'outstanding'])->name('billing.outstanding');
     Route::get('/billing/breakdown', [PartnerBillingController::class, 'breakdown'])->name('billing.breakdown');
 
