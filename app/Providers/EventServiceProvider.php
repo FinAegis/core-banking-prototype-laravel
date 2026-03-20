@@ -9,6 +9,8 @@ use App\Domain\Mobile\Listeners\LogMobileAuditEventListener;
 use App\Domain\Mobile\Listeners\SendSecurityAlertListener;
 use App\Domain\Mobile\Listeners\SendTransactionPushNotificationListener;
 use App\Domain\Referral\Listeners\CompleteReferralOnKycApproval;
+use App\Domain\VisaCli\Events\VisaCliCardEnrolled;
+use App\Domain\VisaCli\Listeners\SyncVisaCliCardToCardIssuance;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -28,6 +30,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         KycVerificationCompleted::class => [
             CompleteReferralOnKycApproval::class,
+        ],
+        VisaCliCardEnrolled::class => [
+            SyncVisaCliCardToCardIssuance::class,
         ],
     ];
 
