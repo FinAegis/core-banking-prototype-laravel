@@ -37,6 +37,7 @@ return [
     App\Providers\TelescopeServiceProvider::class,
     App\Providers\TenancyServiceProvider::class,
     App\Providers\TestingServiceProvider::class,
+    App\Providers\VisaCliServiceProvider::class,
     App\Providers\WalletServiceProvider::class,
     App\Providers\X402ServiceProvider::class,
     App\Providers\WebhookServiceProvider::class,
