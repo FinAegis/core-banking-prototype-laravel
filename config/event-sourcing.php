@@ -443,6 +443,13 @@ return [
         'payment_recorded'                => App\Domain\AgentProtocol\Events\PaymentRecorded::class,
         'payment_notification_sent'       => App\Domain\AgentProtocol\Events\PaymentNotificationSent::class,
         'escrow_status_notification_sent' => App\Domain\AgentProtocol\Events\EscrowStatusNotificationSent::class,
+
+        // Visa CLI Events
+        'visacli_payment_initiated' => App\Domain\VisaCli\Events\VisaCliPaymentInitiated::class,
+        'visacli_payment_completed' => App\Domain\VisaCli\Events\VisaCliPaymentCompleted::class,
+        'visacli_payment_failed'    => App\Domain\VisaCli\Events\VisaCliPaymentFailed::class,
+        'visacli_card_enrolled'     => App\Domain\VisaCli\Events\VisaCliCardEnrolled::class,
+        'visacli_card_removed'      => App\Domain\VisaCli\Events\VisaCliCardRemoved::class,
     ],
 
     /*
