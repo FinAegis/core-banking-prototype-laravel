@@ -258,6 +258,11 @@ Route::post('webhooks/alchemy/address-activity', [App\Http\Controllers\Api\Webho
     ->middleware('api.rate_limit:webhook')
     ->name('api.webhooks.alchemy.address-activity');
 
+// Visa CLI payment status webhook (no auth, HMAC verified)
+Route::post('webhooks/visa-cli/payment', [App\Http\Controllers\Api\Webhook\VisaCliWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.visacli.payment');
+
 // v5.13.0 — Referral System
 Route::prefix('v1/referrals')->name('api.v1.referrals.')
     ->middleware(['auth:sanctum'])
