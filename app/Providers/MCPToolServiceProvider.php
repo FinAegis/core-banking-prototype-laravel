@@ -19,6 +19,8 @@ use App\Domain\AI\MCP\Tools\Exchange\QuoteTool;
 use App\Domain\AI\MCP\Tools\Exchange\TradeTool;
 use App\Domain\AI\MCP\Tools\Payment\PaymentStatusTool;
 use App\Domain\AI\MCP\Tools\Payment\TransferTool;
+use App\Domain\AI\MCP\Tools\VisaCli\VisaCliCardsTool;
+use App\Domain\AI\MCP\Tools\VisaCli\VisaCliPaymentTool;
 use App\Domain\AI\MCP\Tools\X402\X402PaymentTool;
 use Exception;
 use Illuminate\Support\ServiceProvider;
@@ -64,6 +66,10 @@ class MCPToolServiceProvider extends ServiceProvider
 
         // x402 Payment Tools
         X402PaymentTool::class,
+
+        // Visa CLI Payment Tools
+        VisaCliPaymentTool::class,
+        VisaCliCardsTool::class,
     ];
 
     /**
