@@ -1,7 +1,7 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-5.12.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-6.1.1-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
@@ -32,8 +32,8 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Cross-chain & DeFi | Bridge protocols, DEX aggregation, yield optimization (v3.0.0) |
 | Modular plugin architecture | 45 domains with manifests, enable/disable, dependency resolution (v3.2.0) |
 | Compliance certification | SOC 2 Type II, PCI DSS readiness, multi-region deployment (v3.5.0) |
-| GraphQL API | Schema-first Lighthouse PHP, 35 domains, subscriptions (v4.0.0+) |
-| Event Store v2 | Domain routing (35 domains), upcasting, migration tooling (v4.0.0) |
+| GraphQL API | Schema-first Lighthouse PHP, 36 domains, subscriptions (v4.0.0+) |
+| Event Store v2 | Domain routing (36 domains), upcasting, migration tooling (v4.0.0) |
 | Plugin Marketplace | Manager, loader, sandbox, security scanner (v4.0.0) |
 | Event streaming | Redis Streams publisher/consumer, live dashboard (v5.0.0) |
 | API monetization | x402 protocol: HTTP-native micropayments with USDC on Base (v5.2.0) |
@@ -41,6 +41,9 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Mobile gamification | Rewards system: quests, XP/levels, points shop, streaks (v5.7.0) |
 | Fiat on/off ramp | Onramper aggregator with provider-agnostic session management (v5.12.0) |
 | Design system v2 | Complete frontend overhaul with consistent typography, dark heroes (v5.12.0) |
+| Developer ecosystem | Plugin marketplace, developer portal, 3 official SDKs (v6.0.0) |
+| Post-quantum cryptography | ML-KEM-768, ML-DSA-65, hybrid encryption with key rotation (v6.1.0) |
+| Feature completeness | Card sync webhooks, bank transfer state machine, tenant provisioning (v6.1.1) |
 | Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
 
 ---
@@ -50,7 +53,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 FinAegis uses a modular plugin system where each domain is a self-contained module:
 
 ```bash
-php artisan domain:list              # List all 42 domain modules with status
+php artisan domain:list              # List all 45 domain modules with status
 php artisan module:enable exchange   # Enable a module
 php artisan module:disable exchange  # Disable a module (preserves data)
 php artisan domain:verify exchange   # Verify module health
@@ -66,7 +69,7 @@ php artisan performance:report       # Generate performance baseline
 
 ## GraphQL API (v4.0.0-v4.3.0)
 
-FinAegis provides a schema-first GraphQL API via [Lighthouse PHP](https://lighthouse-php.com/) covering 34 domains:
+FinAegis provides a schema-first GraphQL API via [Lighthouse PHP](https://lighthouse-php.com/) covering 36 domains:
 
 ```bash
 # Available at /graphql
@@ -79,7 +82,7 @@ curl -X POST http://localhost:8000/graphql \
   -d '{"query": "{ accounts { id name balance currency } }"}'
 ```
 
-- **34 domain schemas** — Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet, X402
+- **36 domain schemas** — Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet, X402
 - **Subscriptions** — Real-time updates via WebSocket (account updates, wallet changes, compliance alerts, order matching)
 - **DataLoaders** — N+1 query prevention with batched loading
 - **Security** — `@guard(with: ["sanctum"])`, query cost analysis, introspection control
@@ -294,9 +297,9 @@ See [Domain Management Guide](docs/06-DEVELOPMENT/DOMAIN_MANAGEMENT.md) for deta
 - **Event Sourcing** - Domain-specific event tables with Event Store v2, replay, and upcasting (v4.0.0)
 - **CQRS** - Separated read/write models for optimal performance
 - **Saga Pattern** - Distributed transactions with automatic rollback
-- **DDD** - 42+ bounded contexts with clear boundaries
+- **DDD** - 45 bounded contexts with clear boundaries
 - **Multi-Tenancy** - Team-based data isolation with stancl/tenancy v3.9
-- **GraphQL** - Schema-first Lighthouse PHP across 34 domains with subscriptions (v4.0.0+)
+- **GraphQL** - Schema-first Lighthouse PHP across 36 domains with subscriptions (v4.0.0+)
 - **Event Streaming** - Redis Streams publisher/consumer with live dashboard (v5.0.0)
 
 See [Architecture Decision Records](docs/ADR/) for detailed design rationale.
@@ -374,13 +377,13 @@ See [Kubernetes Deployment Guide](docs/06-DEVELOPMENT/KUBERNETES.md) for details
 |-------|------------|
 | **Backend** | Laravel 12, PHP 8.4+ |
 | **Event Sourcing** | Spatie Event Sourcing with Event Store v2 (domain routing, upcasting) |
-| **GraphQL** | Lighthouse PHP (schema-first, 34 domains, subscriptions) |
+| **GraphQL** | Lighthouse PHP (schema-first, 36 domains, subscriptions) |
 | **Workflows** | Laravel Workflow (Waterline) |
 | **Multi-Tenancy** | stancl/tenancy v3.9 |
 | **Database** | MySQL 8.0+ / MariaDB 10.3+ / PostgreSQL 13+ |
 | **Cache/Queue/Streaming** | Redis (cache, queues, Streams), Laravel Horizon |
 | **Real-time** | Soketi (Pusher-compatible), Laravel Echo, Redis Streams |
-| **Testing** | Pest PHP (parallel, 850+ test files, 6,500+ tests), PHPStan Level 8 |
+| **Testing** | Pest PHP (parallel, 886 test files, 6,500+ tests), PHPStan Level 8 |
 | **Admin** | Filament v3 |
 | **Frontend** | Livewire, Tailwind CSS |
 | **Deployment** | Docker, Kubernetes (Helm), Istio |

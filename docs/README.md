@@ -1,6 +1,6 @@
 # FinAegis Documentation
 
-Welcome to the FinAegis documentation. This guide will help you understand, use, and contribute to the platform.
+Welcome to the FinAegis documentation. This guide covers the platform's 45 domain modules, APIs, and operational patterns.
 
 ## Start Here
 
@@ -11,6 +11,7 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 | **Integrate via API** | [REST API Reference](04-API/REST_API_REFERENCE.md) |
 | **Understand the architecture** | [Architecture Overview](02-ARCHITECTURE/ARCHITECTURE.md) |
 | **Build AI agents** | [AI Framework](13-AI-FRAMEWORK/README.md) |
+| **See the roadmap** | [Version Roadmap](VERSION_ROADMAP.md) |
 
 ## Documentation by Topic
 
@@ -21,7 +22,7 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 
 ### Architecture
 - [System Architecture](02-ARCHITECTURE/ARCHITECTURE.md) - Technical overview
-- [Multi-Tenancy v2.0](V2.0.0_MULTI_TENANCY_ARCHITECTURE.md) - Team-based tenant isolation
+- [Multi-Tenancy](V2.0.0_MULTI_TENANCY_ARCHITECTURE.md) - Team-based tenant isolation
 - [Multi-Asset Support](02-ARCHITECTURE/MULTI_ASSET_ARCHITECTURE.md) - Multi-currency implementation
 - [Workflow Patterns](02-ARCHITECTURE/WORKFLOW_PATTERNS.md) - Saga and orchestration patterns
 
@@ -33,14 +34,12 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 - [Demo Mode](03-FEATURES/DEMO-MODE.md) - Demo environment features
 
 ### API Reference
-- [REST API v2.1](04-API/REST_API_REFERENCE.md) - Complete API documentation
-- [Hardware Wallet API](04-API/REST_API_REFERENCE.md#hardware-wallet) - Ledger/Trezor integration
+- [REST API](04-API/REST_API_REFERENCE.md) - Complete API documentation (1,250+ routes)
+- [GraphQL API](04-API/REST_API_REFERENCE.md#graphql) - 36 domain schemas
 - [WebSocket Streaming](04-API/REST_API_REFERENCE.md#websocket) - Real-time events
 - [BIAN API](04-API/BIAN_API_DOCUMENTATION.md) - Banking industry standard
 - [Webhook Integration](04-API/WEBHOOK_INTEGRATION.md) - Event notifications
 - [CQRS Implementation](04-API/CQRS_IMPLEMENTATION.md) - Command/Query separation
-- [GraphQL API](../graphql-playground) - GraphQL API (33 domains)
-- [Event Streaming](../config/event-streaming.php) - Event Streaming configuration
 
 ### User Guides
 - [Getting Started](05-USER-GUIDES/GETTING-STARTED.md) - First steps
@@ -49,27 +48,22 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 - [Exchange Trading](05-USER-GUIDES/EXCHANGE_ENGINE_GUIDE.md) - Trading guide
 - [P2P Lending](05-USER-GUIDES/P2P_LENDING_GUIDE.md) - Lending platform
 - [Stablecoins](05-USER-GUIDES/STABLECOIN_GUIDE.md) - Token management
-- [Liquidity Pools](05-USER-GUIDES/LIQUIDITY_POOLS_GUIDE.md) - AMM guide
 - [GCU Guide](05-USER-GUIDES/GCU-USER-GUIDE.md) - Global Currency Unit
-- [CGO Investment](05-USER-GUIDES/CGO-USER-GUIDE.md) - Investment platform
 
 ### Development
 - [Development Setup](06-DEVELOPMENT/DEVELOPMENT.md) - Environment setup
 - [Testing Guide](06-DEVELOPMENT/TESTING_GUIDE.md) - Test patterns and tools
 - [Demo Environment](06-DEVELOPMENT/DEMO-ENVIRONMENT.md) - Demo mode development
 
-### Technical Reference
-- [Database Schema](14-TECHNICAL/DATABASE_SCHEMA.md) - Data model
-- [Admin Dashboard](14-TECHNICAL/ADMIN_DASHBOARD.md) - Filament admin
-- [CGO Documentation](14-TECHNICAL/CGO_DOCUMENTATION.md) - Investment platform
-
 ### Developer Resources
 - [API Integration Guide](09-DEVELOPER/API-INTEGRATION-GUIDE.md) - Integration patterns
-- [SDK Guide](09-DEVELOPER/SDK-GUIDE.md) - SDK usage
+- [SDK Guide](09-DEVELOPER/SDK-GUIDE.md) - SDK usage (JS, PHP, Python)
 - [API Examples](09-DEVELOPER/API-EXAMPLES.md) - Code examples
 - [Postman Collection](09-DEVELOPER/finaegis-api-v2.postman_collection.json) - API testing
 
 ### Operations
+- [Deployment Guide](10-OPERATIONS/DEPLOYMENT_GUIDE.md) - Deployment and configuration
+- [Operational Runbook](10-OPERATIONS/OPERATIONAL_RUNBOOK.md) - Day-to-day operations
 - [Performance Optimization](10-OPERATIONS/PERFORMANCE-OPTIMIZATION.md) - Performance tuning
 - [Security Audit Prep](10-OPERATIONS/SECURITY-AUDIT-PREPARATION.md) - Security guidelines
 
@@ -79,42 +73,35 @@ Welcome to the FinAegis documentation. This guide will help you understand, use,
 
 ### AI Framework
 - [Overview](13-AI-FRAMEWORK/00-Overview.md) - AI framework introduction
-- [MCP Integration](13-AI-FRAMEWORK/01-MCP-Integration.md) - Model Context Protocol
+- [MCP Integration](13-AI-FRAMEWORK/01-MCP-Integration.md) - Model Context Protocol (17 tools)
 - [Agent Creation](13-AI-FRAMEWORK/02-Agent-Creation.md) - Building AI agents
 - [Workflows](13-AI-FRAMEWORK/03-Workflows.md) - AI workflow development
-- [Event Sourcing](13-AI-FRAMEWORK/04-Event-Sourcing.md) - AI event patterns
 - [API Reference](13-AI-FRAMEWORK/05-API-Reference.md) - AI API documentation
-- [Agent Protocol Phases](13-AI-FRAMEWORK/) - Implementation phases
+
+### Technical Reference
+- [Database Schema](14-TECHNICAL/DATABASE_SCHEMA.md) - Data model
+- [Admin Dashboard](14-TECHNICAL/ADMIN_DASHBOARD.md) - Filament admin
 
 ### Troubleshooting
 - [Common Issues](08-TROUBLESHOOTING/TROUBLESHOOTING.md) - Problem resolution
 
-### CGO (Continuous Growth Offering)
-- [Analysis Report](16-CGO/CGO_ANALYSIS_REPORT.md) - CGO analysis
-- [Implementation Plan](16-CGO/CGO_IMPLEMENTATION_PLAN.md) - Development plan
-- [Refund Processing](16-CGO/CGO_REFUND_PROCESSING.md) - Refund handling
-
 ## Platform Status
 
-- **Version**: 5.7.0 (Mobile Rewards & Security Hardening)
+- **Version**: 6.1.1
 - **Status**: Production-Grade Platform
-- **Last Updated**: February 28, 2026
+- **Last Updated**: March 20, 2026
 
-### Current Release Features (v5.7.0)
-- **v5.7.0**: Mobile Rewards & Security Hardening — Rewards/gamification domain (quests, XP/levels, points shop, streaks), WebAuthn FIDO2 hardening (rpIdHash, UV/UP, COSE validation), race-safe redemption with pessimistic locking, recent recipients, notification unread count, route aliases
-- **v5.6.0**: RAILGUN Privacy Protocol — Node.js bridge to `@railgun-community/wallet` SDK, shield/unshield/transfer, Merkle tree integration, 4-chain support (Ethereum/Polygon/Arbitrum/BSC)
-- **v5.5.0**: Production Relayer & Card Webhooks — ERC-4337 Pimlico v2, Marqeta webhook auth, platform hardening
-- **v5.4.0**: Ondato KYC, Chainalysis sanctions adapter, Marqeta card issuing adapter, Firebase FCM v1
-- **v5.2.0**: X402 Protocol — HTTP 402 micropayments with USDC on Base, AI agent payments
-- **v5.0.0**: Event Streaming — Redis Streams publisher/consumer, live dashboard, notification system
+### Current Release (v6.1.x)
+- **v6.1.1**: Card transaction sync webhooks, card management REST + GraphQL API, bank transfer state machine
+- **v6.1.0**: Post-quantum cryptography (ML-KEM, ML-DSA), Rain card issuing, Open Banking PSD2, tenant provisioning, event streaming DLQ, cross-chain/DeFi production adapters, ZK on-chain verifier
+- **v6.0.0**: Developer ecosystem — plugin marketplace, developer portal, 3 official SDKs
 
 ### Previous Releases
-- v4.x: GraphQL API (34 domains), Event Store v2, Plugin Marketplace, real-time subscriptions
-- v3.x: Cross-Chain & DeFi, compliance certification (SOC 2, PCI DSS, GDPR), production readiness
+- v5.x: x402 micropayments, RAILGUN privacy, event streaming, rewards, fiat ramp, design system v2
+- v4.x: GraphQL API (36 domains), Event Store v2, Plugin Marketplace, real-time subscriptions
+- v3.x: Cross-chain & DeFi, compliance certification (SOC 2, PCI DSS, GDPR), production readiness
 - v2.x: Multi-tenancy, hardware wallets, mobile backend, privacy layer, ERC-4337, RegTech
 - v1.x: Foundation — event sourcing, DDD, core banking domains
-
-This platform demonstrates modern banking architecture patterns including event sourcing, DDD, and workflow orchestration.
 
 ## Contributing to Docs
 
@@ -125,4 +112,4 @@ This platform demonstrates modern banking architecture patterns including event 
 
 ---
 
-Questions? [Open an issue](https://github.com/finaegis/core-banking-prototype-laravel/issues) or start a [discussion](https://github.com/finaegis/core-banking-prototype-laravel/discussions).
+Questions? [Open an issue](https://github.com/FinAegis/core-banking-prototype-laravel/issues) or start a [discussion](https://github.com/FinAegis/core-banking-prototype-laravel/discussions).
