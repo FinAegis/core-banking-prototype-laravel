@@ -292,7 +292,7 @@
 
                     <!-- Native SDKs -->
                     <div class="integration-card rounded-2xl p-8">
-                        <div class="status-indicator status-coming-soon">In Development</div>
+                        <div class="status-indicator status-available">Available</div>
                         <div class="flex items-center mb-6">
                             <div class="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
                                 <svg class="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -305,26 +305,26 @@
                             </div>
                         </div>
                         
-                        <p class="text-slate-600 mb-6">Official SDKs for popular programming languages with idiomatic APIs and comprehensive type safety.</p>
-                        
+                        <p class="text-slate-600 mb-6">Available for JavaScript/TypeScript, Python, and PHP. Official SDKs with idiomatic APIs and comprehensive type safety.</p>
+
                         <div class="grid grid-cols-2 gap-3 mb-6">
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 11-2 0V9zm0-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-slate-500">JavaScript/TypeScript</span>
+                                <span class="text-slate-700">JavaScript/TypeScript</span>
                             </div>
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 11-2 0V9zm0-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-slate-500">Python</span>
+                                <span class="text-slate-700">Python</span>
                             </div>
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 11-2 0V9zm0-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
-                                <span class="text-slate-500">PHP</span>
+                                <span class="text-slate-700">PHP</span>
                             </div>
                             <div class="flex items-center">
                                 <svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -345,11 +345,17 @@
                                 <span class="text-slate-500">Java</span>
                             </div>
                         </div>
-                        
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                            <p class="text-sm text-slate-500">
-                                Native SDKs are planned for future development. Currently, use our REST API directly.
-                            </p>
+
+                        <div class="space-y-2">
+                            <div class="bg-gray-900 rounded-lg px-4 py-2 font-mono text-green-400 text-sm">
+                                <code>npm install @finaegis/sdk@1.0.0</code>
+                            </div>
+                            <div class="bg-gray-900 rounded-lg px-4 py-2 font-mono text-green-400 text-sm">
+                                <code>pip install finaegis-sdk==1.0.0</code>
+                            </div>
+                            <div class="bg-gray-900 rounded-lg px-4 py-2 font-mono text-green-400 text-sm">
+                                <code>composer require finaegis/sdk:^1.0</code>
+                            </div>
                         </div>
                     </div>
 
@@ -588,7 +594,7 @@ console.<span style="color: #89ddff;">log</span>(<span style="color: #82aaff;">r
 
                     <div class="bg-gray-900 rounded-lg p-6 font-mono text-green-400 text-sm overflow-x-auto mb-8">
 <pre><span class="text-gray-500"># Request SDK generation for your partner account</span>
-curl -X POST {{ config('app.url') }}/api/api/v1/partner/sdk/generate \
+curl -X POST {{ config('app.url') }}/api/v1/partner/sdk/generate \
   -H "Authorization: Bearer YOUR_PARTNER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -610,38 +616,24 @@ curl -X POST {{ config('app.url') }}/api/api/v1/partner/sdk/generate \
     "packages": [
       {
         "language": "typescript",
-        "version": "5.0.0",
+        "version": "1.0.0",
         "package_name": "@finaegis/sdk",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/typescript/finaegis-sdk-5.0.0.tgz",
-        "install_command": "npm install @finaegis/sdk@5.0.0"
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/typescript/finaegis-sdk-1.0.0.tgz",
+        "install_command": "npm install @finaegis/sdk@1.0.0"
       },
       {
         "language": "python",
-        "version": "5.0.0",
+        "version": "1.0.0",
         "package_name": "finaegis-sdk",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/python/finaegis-sdk-5.0.0.tar.gz",
-        "install_command": "pip install finaegis-sdk==5.0.0"
-      },
-      {
-        "language": "java",
-        "version": "5.0.0",
-        "package_name": "com.finaegis:sdk",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/java/finaegis-sdk-5.0.0.jar",
-        "install_command": "mvn install com.finaegis:sdk:5.0.0"
-      },
-      {
-        "language": "go",
-        "version": "5.0.0",
-        "package_name": "github.com/finaegis/sdk-go",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/go/finaegis-sdk-go-5.12.0.tar.gz",
-        "install_command": "go get github.com/finaegis/sdk-go@v5.12.0"
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/python/finaegis-sdk-1.0.0.tar.gz",
+        "install_command": "pip install finaegis-sdk==1.0.0"
       },
       {
         "language": "php",
-        "version": "5.0.0",
+        "version": "1.0.0",
         "package_name": "finaegis/sdk",
-        "download_url": "{{ config('app.url') }}/developers/sdks/packages/php/finaegis-sdk-5.0.0.zip",
-        "install_command": "composer require finaegis/sdk:^5.0"
+        "download_url": "{{ config('app.url') }}/developers/sdks/packages/php/finaegis-sdk-1.0.0.zip",
+        "install_command": "composer require finaegis/sdk:^1.0"
       }
     ]
   }
@@ -654,19 +646,19 @@ curl -X POST {{ config('app.url') }}/api/api/v1/partner/sdk/generate \
                         <div>
                             <p class="text-sm font-medium text-slate-600 mb-2">TypeScript / JavaScript</p>
                             <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm">
-                                <code>npm install @finaegis/sdk@5.0.0</code>
+                                <code>npm install @finaegis/sdk@1.0.0</code>
                             </div>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-slate-600 mb-2">Python</p>
                             <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm">
-                                <code>pip install finaegis-sdk==5.0.0</code>
+                                <code>pip install finaegis-sdk==1.0.0</code>
                             </div>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-slate-600 mb-2">PHP (Composer)</p>
                             <div class="bg-gray-900 rounded-lg p-4 font-mono text-green-400 text-sm">
-                                <code>composer require finaegis/sdk:^5.0</code>
+                                <code>composer require finaegis/sdk:^1.0</code>
                             </div>
                         </div>
                     </div>

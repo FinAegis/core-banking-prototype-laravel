@@ -58,7 +58,7 @@
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
                             <li class="list-check">Full source code access</li>
                             <li class="list-check">MIT License</li>
-                            <li class="list-check">All 45 domain modules</li>
+                            <li class="list-check">All 46 domain modules</li>
                             <li class="list-check">Community support</li>
                             <li class="list-check">Self-hosted deployment</li>
                         </ul>
@@ -167,7 +167,7 @@
                     Start free with the Community Edition, or talk to us about managed and enterprise options.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="https://{{ config('brand.github_url') }}" target="_blank" class="btn-primary px-8 py-4 text-lg">
+                    <a href="{{ config('brand.github_url') }}" target="_blank" class="btn-primary px-8 py-4 text-lg">
                         Start with Community Edition
                     </a>
                     <a href="{{ route('support.contact') }}" class="btn-outline px-8 py-4 text-lg">

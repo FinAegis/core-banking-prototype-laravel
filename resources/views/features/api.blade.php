@@ -215,7 +215,7 @@
                     <h3 class="text-xl font-bold mb-4">Authentication</h3>
                     <div class="code-block">
                         <pre><code>// Login and get access token
-const response = await fetch('https://api.finaegis.com/api/auth/login', {
+const response = await fetch('{{ config('app.url') }}/api/auth/login', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -241,7 +241,7 @@ const headers = {
                     <h3 class="text-xl font-bold mb-4">Create Transfer</h3>
                     <div class="code-block">
                         <pre><code>// Transfer between accounts
-const transfer = await fetch('https://api.finaegis.com/api/transfers', {
+const transfer = await fetch('{{ config('app.url') }}/api/transfers', {
   method: 'POST',
   headers: {
     'Authorization': `Bearer ${access_token}`,

@@ -136,7 +136,7 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-3">Full API Access</h3>
                     <p class="text-slate-500 mb-4">
-                        Agents have access to the complete {{ config('brand.name', 'Zelta') }} API surface: 1,250+ REST endpoints and 35 GraphQL domain schemas with real-time subscriptions.
+                        Agents have access to the complete {{ config('brand.name', 'Zelta') }} API surface: 1,350+ REST endpoints and 39 GraphQL domain schemas with real-time subscriptions.
                     </p>
                     <code class="text-sm text-cyan-600 bg-cyan-50 px-3 py-1 rounded">REST + GraphQL</code>
                 </div>

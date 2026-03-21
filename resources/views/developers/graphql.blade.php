@@ -7,7 +7,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'GraphQL API - ' . $brand . ' Developer Documentation',
-        'description' => $brand . ' GraphQL API — 36 domain schemas, real-time subscriptions, Lighthouse PHP powered.',
+        'description' => $brand . ' GraphQL API — 39 domain schemas, real-time subscriptions, Lighthouse PHP powered.',
         'keywords' => $brand . ', GraphQL, API, Lighthouse, subscriptions, queries, mutations',
     ])
 @endsection
@@ -33,10 +33,10 @@
     </div>
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div class="text-center">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/20 mb-4">35 Domain Schemas</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/20 mb-4">39 Domain Schemas</span>
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">GraphQL API</h1>
             <p class="text-xl text-white/80 max-w-2xl mx-auto">
-                Query 36 domains with a single endpoint. Real-time subscriptions, Sanctum auth, and Lighthouse-powered schema composition.
+                Query 39 domains with a single endpoint. Real-time subscriptions, Sanctum auth, and Lighthouse-powered schema composition.
             </p>
         </div>
     </div>
@@ -132,7 +132,7 @@
 <section class="bg-slate-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-4">Domain Schemas</h2>
-        <p class="text-slate-600 mb-8">36 domain-specific schemas composed into one unified GraphQL endpoint. Each domain provides queries, mutations, and types scoped to its bounded context.</p>
+        <p class="text-slate-600 mb-8">39 domain-specific schemas composed into one unified GraphQL endpoint. Each domain provides queries, mutations, and types scoped to its bounded context.</p>
 
         @php
         $schemaGroups = [

@@ -308,7 +308,7 @@
                 <h3 class="text-xl font-bold mb-4">Example: Get Bridge Quote</h3>
                 <div class="bg-gray-900 rounded-lg p-6 text-green-400 font-mono text-sm overflow-x-auto">
                     <pre><code>// Request a bridge quote across providers
-const response = await fetch('https://api.finaegis.com/api/v1/crosschain/bridge/quote', {
+const response = await fetch('{{ config('app.url') }}/api/v1/crosschain/bridge/quote', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_TOKEN',
