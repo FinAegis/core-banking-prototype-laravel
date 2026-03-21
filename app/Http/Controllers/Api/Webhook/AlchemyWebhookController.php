@@ -157,14 +157,17 @@ class AlchemyWebhookController extends Controller
 
     /**
      * Verify the Alchemy webhook signature using HMAC-SHA256.
+     *
+     * Each chain webhook has its own signing key. We try all configured
+     * keys and accept if any one matches (same endpoint for all chains).
      */
     private function verifySignature(Request $request): bool
     {
-        $signingKey = config('relayer.alchemy_webhook_signing_key');
+        /** @var array<string> $signingKeys */
+        $signingKeys = config('relayer.alchemy_webhook_signing_keys', []);
 
-        // Reject all requests if signing key is not configured (secure by default)
-        if (empty($signingKey)) {
-            Log::critical('Alchemy webhook rejected: ALCHEMY_WEBHOOK_SIGNING_KEY not configured');
+        if ($signingKeys === []) {
+            Log::critical('Alchemy webhook rejected: no signing keys configured');
 
             return app()->environment('local', 'testing');
         }
@@ -174,9 +177,15 @@ class AlchemyWebhookController extends Controller
             return false;
         }
 
-        $expectedSignature = hash_hmac('sha256', $request->getContent(), $signingKey);
+        $payload = $request->getContent();
 
-        return hash_equals($expectedSignature, $signature);
+        foreach ($signingKeys as $key) {
+            if (hash_equals(hash_hmac('sha256', $payload, $key), $signature)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

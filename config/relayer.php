@@ -231,12 +231,18 @@ return [
     | Alchemy Webhook Configuration (v5.14.0)
     |--------------------------------------------------------------------------
     |
-    | Signing key for verifying Alchemy Address Activity Webhooks.
-    | Set via Alchemy Dashboard → Notify → Signing Key.
+    | Signing keys for verifying Alchemy Address Activity Webhooks.
+    | Each chain webhook gets its own signing key from Alchemy Dashboard.
+    | The controller tries all configured keys (one must match).
     |
     */
 
-    'alchemy_webhook_signing_key' => env('ALCHEMY_WEBHOOK_SIGNING_KEY'),
+    'alchemy_webhook_signing_keys' => array_filter([
+        env('ALCHEMY_WEBHOOK_SIGNING_KEY_POLYGON'),
+        env('ALCHEMY_WEBHOOK_SIGNING_KEY_ARBITRUM'),
+        env('ALCHEMY_WEBHOOK_SIGNING_KEY_ETHEREUM'),
+        env('ALCHEMY_WEBHOOK_SIGNING_KEY'),  // Legacy single-key fallback
+    ]),
 
     /*
     |--------------------------------------------------------------------------
