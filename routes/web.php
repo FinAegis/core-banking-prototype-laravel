@@ -241,6 +241,43 @@ Route::get('/legal/cookies', function () {
     return view('legal.cookies');
 })->name('legal.cookies');
 
+// Apple App Site Association — enables passkey AutoFill + Universal Links on iOS 16+
+Route::get('/.well-known/apple-app-site-association', function () {
+    return response()->json([
+        'webcredentials' => [
+            'apps' => [config('mobile.apple_team_id', 'REPLACE_TEAM_ID') . '.com.zelta.wallet'],
+        ],
+        'applinks' => [
+            'apps'    => [],
+            'details' => [
+                [
+                    'appID'   => config('mobile.apple_team_id', 'REPLACE_TEAM_ID') . '.com.zelta.wallet',
+                    'paths'   => ['/pay/*', '/verify/*'],
+                ],
+            ],
+        ],
+    ], 200, ['Content-Type' => 'application/json']);
+})->name('well-known.apple-app-site-association');
+
+// Android Digital Asset Links — enables passkey + App Links on Android 9+
+Route::get('/.well-known/assetlinks.json', function () {
+    return response()->json([
+        [
+            'relation' => [
+                'delegate_permission/common.handle_all_urls',
+                'delegate_permission/common.get_login_creds',
+            ],
+            'target' => [
+                'namespace'              => 'android_app',
+                'package_name'           => 'com.zelta.wallet',
+                'sha256_cert_fingerprints' => array_filter([
+                    config('mobile.android_sha256_fingerprint', ''),
+                ]),
+            ],
+        ],
+    ], 200, ['Content-Type' => 'application/json']);
+})->name('well-known.assetlinks');
+
 Route::get('/status', [StatusController::class, 'index'])->name('status');
 
 Route::get('/cgo', function () {

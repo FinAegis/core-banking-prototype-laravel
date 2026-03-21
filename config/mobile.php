@@ -288,4 +288,18 @@ return [
             'importance'  => 'high',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | App Store & Play Store — Passkey / Deep Link Verification
+    |--------------------------------------------------------------------------
+    |
+    | Used by /.well-known/apple-app-site-association and assetlinks.json
+    | to enable native passkey registration and Universal/App Links.
+    |
+    */
+
+    'apple_team_id' => env('MOBILE_APPLE_TEAM_ID', ''),
+
+    'android_sha256_fingerprint' => env('MOBILE_ANDROID_SHA256_FINGERPRINT', ''),
 ];
