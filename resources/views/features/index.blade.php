@@ -453,6 +453,25 @@
                     </a>
                 </div>
 
+                <!-- Visa CLI -->
+                <div class="card-feature">
+                    <div class="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-xl font-semibold">Visa CLI</h3>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Beta</span>
+                    </div>
+                    <p class="text-slate-500 mb-4">
+                        Programmatic Visa card payments for AI agents and developer billing. MCP tools, spending limits, card enrollment, and invoice collection.
+                    </p>
+                    <a href="{{ route('features.show', 'visa-cli') }}" class="text-blue-600 font-medium hover:text-blue-700">
+                        Learn more &rarr;
+                    </a>
+                </div>
+
                 <!-- SOC 2 / PCI DSS Compliance -->
                 <div class="card-feature">
                     <div class="w-14 h-14 bg-emerald-100 rounded-lg flex items-center justify-center mb-6">

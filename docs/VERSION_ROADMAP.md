@@ -2340,6 +2340,25 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 
 ---
 
-*Document Version: 6.1.1*
+### v6.2.0 — Visa CLI Integration (COMPLETED)
+
+**Release Date**: March 21, 2026
+**Theme**: Programmatic Visa Card Payments for AI Agents
+
+| Component | Files | Description |
+|-----------|-------|-------------|
+| Domain Foundation | 32 | Contracts, services, models, migrations, events, exceptions, enums, data objects |
+| MCP Tools | 2 | `visacli.payment` + `visacli.cards` for AI agent workflows |
+| Payment Gateway | 2 | Invoice collection endpoint + webhook handler with HMAC verification |
+| Card Enrollment | 1 | Event-driven sync to CardIssuance domain |
+| Artisan Commands | 3 | `visa:status`, `visa:enroll`, `visa:pay` |
+| Test Suite | 9 | 52 tests (unit, feature, integration) — all passing |
+| Documentation | 3 | Feature page, feature index card, markdown docs |
+
+**Security hardening**: SSRF prevention, atomic spending limits with row-level locking, webhook replay protection, log redaction, production-enforced signature verification.
+
+---
+
+*Document Version: 6.2.0*
 *Created: January 11, 2026*
-*Updated: March 20, 2026 (v6.1.1 deferred items delivered — all success criteria met)*
+*Updated: March 21, 2026 (v6.2.0 Visa CLI integration complete)*

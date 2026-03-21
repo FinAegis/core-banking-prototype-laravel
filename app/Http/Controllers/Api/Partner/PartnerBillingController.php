@@ -320,9 +320,14 @@ class PartnerBillingController extends Controller
 
         try {
             $cardId = $request->input('card_id');
+            // Card ID is optional — used to select a specific enrolled card.
+            // Ownership is validated at the VisaCli gateway layer (card must be enrolled).
+            $validCardId = is_string($cardId) && preg_match('/^[a-zA-Z0-9_\-]{1,255}$/', $cardId)
+                ? $cardId
+                : null;
             $result = $this->paymentGateway->collectPayment(
                 $invoice,
-                is_string($cardId) ? $cardId : null,
+                $validCardId,
             );
 
             return response()->json([

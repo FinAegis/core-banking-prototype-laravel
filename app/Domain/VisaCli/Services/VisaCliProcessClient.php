@@ -94,6 +94,15 @@ class VisaCliProcessClient implements VisaCliClientInterface
 
     public function pay(string $url, int $amountCents, ?string $cardId = null): VisaCliPaymentResult
     {
+        // Validate inputs before passing to shell
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            throw new VisaCliPaymentException("Invalid payment URL: {$url}");
+        }
+
+        if ($cardId !== null && ! preg_match('/^[a-zA-Z0-9_\-]{1,255}$/', $cardId)) {
+            throw new VisaCliPaymentException('Invalid card identifier format.');
+        }
+
         $args = ['pay', $url, '--amount', (string) $amountCents, '--json'];
         if ($cardId !== null) {
             $args[] = '--card';
@@ -167,17 +176,20 @@ class VisaCliProcessClient implements VisaCliClientInterface
         $process = new Process($command, null, $env !== [] ? $env : null);
         $process->setTimeout($timeout ?? $this->defaultTimeout);
 
-        Log::debug('Visa CLI: executing command', ['command' => implode(' ', $command)]);
+        // Log command without sensitive environment variables
+        Log::debug('Visa CLI: executing command', ['command' => $args[0] ?? 'unknown', 'args_count' => count($args)]);
 
         $process->run();
 
         if (! $process->isSuccessful()) {
             $errorOutput = $process->getErrorOutput() ?: $process->getOutput();
+            // Redact potential secrets from error output
+            $safeOutput = preg_replace('/ghp_[a-zA-Z0-9]+/', 'ghp_***REDACTED***', $errorOutput) ?? $errorOutput;
 
             Log::error('Visa CLI command failed', [
-                'command'   => implode(' ', $command),
+                'command'   => $args[0] ?? 'unknown',
                 'exit_code' => $process->getExitCode(),
-                'error'     => $errorOutput,
+                'error'     => $safeOutput,
             ]);
 
             throw new VisaCliException(

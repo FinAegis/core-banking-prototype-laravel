@@ -13,6 +13,7 @@ use App\Domain\VisaCli\Events\VisaCliPaymentFailed;
 use App\Domain\VisaCli\Events\VisaCliPaymentInitiated;
 use App\Domain\VisaCli\Exceptions\VisaCliPaymentException;
 use App\Domain\VisaCli\Models\VisaCliPayment;
+use App\Domain\VisaCli\Models\VisaCliSpendingLimit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -36,29 +37,41 @@ class VisaCliPaymentService
             throw new VisaCliPaymentException('Visa CLI integration is not enabled.');
         }
 
-        // Enforce spending limits
-        if (! $this->spendingLimitService->canSpend($request->agentId, $request->amountCents)) {
-            throw new VisaCliPaymentException(
-                "Spending limit exceeded for agent {$request->agentId}. "
-                . "Requested: {$request->amountCents} cents."
-            );
-        }
+        // Atomic check-and-reserve: prevents race condition on concurrent payments
+        $payment = DB::transaction(function () use ($request): VisaCliPayment {
+            /** @var VisaCliSpendingLimit|null $limit */
+            $limit = VisaCliSpendingLimit::where('agent_id', $request->agentId)
+                ->lockForUpdate()
+                ->first();
 
-        // Record the payment
-        $payment = VisaCliPayment::create([
-            'agent_id'        => $request->agentId,
-            'url'             => $request->url,
-            'amount_cents'    => $request->amountCents,
-            'currency'        => $request->currency,
-            'status'          => VisaCliPaymentStatus::PROCESSING,
-            'card_identifier' => $request->cardId,
-            'metadata'        => array_merge($request->metadata, [
-                'request_id' => $request->requestId,
-                'purpose'    => $request->purpose,
-            ]),
-        ]);
+            if ($limit === null) {
+                $limit = $this->spendingLimitService->getOrCreateLimit($request->agentId);
+            }
 
-        // Dispatch initiated event
+            if (! $limit->canSpend($request->amountCents)) {
+                throw new VisaCliPaymentException(
+                    "Spending limit exceeded for agent {$request->agentId}. "
+                    . "Requested: {$request->amountCents} cents."
+                );
+            }
+
+            // Reserve the spend immediately under lock
+            $limit->recordSpending($request->amountCents);
+
+            return VisaCliPayment::create([
+                'agent_id'        => $request->agentId,
+                'url'             => $request->url,
+                'amount_cents'    => $request->amountCents,
+                'currency'        => $request->currency,
+                'status'          => VisaCliPaymentStatus::PROCESSING,
+                'card_identifier' => $request->cardId,
+                'metadata'        => array_merge($request->metadata, [
+                    'request_id' => $request->requestId,
+                    'purpose'    => $request->purpose,
+                ]),
+            ]);
+        });
+
         event(new VisaCliPaymentInitiated(
             paymentId: $payment->id,
             agentId: $request->agentId,
@@ -76,35 +89,25 @@ class VisaCliPaymentService
         ]);
 
         try {
-            $result = DB::transaction(function () use ($request, $payment): VisaCliPaymentResult {
-                // Execute the payment via client
-                $result = $this->client->pay(
-                    $request->url,
-                    $request->amountCents,
-                    $request->cardId,
-                );
+            $result = $this->client->pay(
+                $request->url,
+                $request->amountCents,
+                $request->cardId,
+            );
 
-                // Record spending
-                $this->spendingLimitService->recordSpending($request->agentId, $request->amountCents);
+            $payment->markCompleted($result->paymentReference);
 
-                // Update payment record
-                $payment->markCompleted($result->paymentReference);
+            event(new VisaCliPaymentCompleted(
+                paymentId: $payment->id,
+                paymentReference: $result->paymentReference,
+                amountCents: $request->amountCents,
+                currency: $request->currency,
+            ));
 
-                // Dispatch completed event
-                event(new VisaCliPaymentCompleted(
-                    paymentId: $payment->id,
-                    paymentReference: $result->paymentReference,
-                    amountCents: $request->amountCents,
-                    currency: $request->currency,
-                ));
-
-                Log::info('Visa CLI payment completed', [
-                    'payment_id' => $payment->id,
-                    'reference'  => $result->paymentReference,
-                ]);
-
-                return $result;
-            });
+            Log::info('Visa CLI payment completed', [
+                'payment_id' => $payment->id,
+                'reference'  => $result->paymentReference,
+            ]);
 
             return $result;
         } catch (VisaCliPaymentException $e) {

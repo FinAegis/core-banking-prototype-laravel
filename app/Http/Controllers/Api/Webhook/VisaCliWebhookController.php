@@ -108,16 +108,43 @@ class VisaCliWebhookController extends Controller
     {
         $secret = config('visacli.webhook.secret');
 
-        // Skip verification if no secret configured (demo mode)
         if (empty($secret)) {
+            if (app()->environment('production')) {
+                Log::error('Visa CLI webhook secret not configured in production — rejecting request');
+
+                return false;
+            }
+
+            Log::warning('Visa CLI webhook secret not configured — accepting unsigned request (non-production only)');
+
             return true;
         }
 
         $signature = $request->header('X-VisaCli-Signature', '');
-        $payload = $request->getContent();
+        if (empty($signature)) {
+            return false;
+        }
 
+        $payload = $request->getContent();
         $expected = hash_hmac('sha256', $payload, (string) $secret);
 
-        return hash_equals($expected, (string) $signature);
+        if (! hash_equals($expected, (string) $signature)) {
+            return false;
+        }
+
+        // Replay protection: reject webhooks older than 5 minutes
+        /** @var array<string, mixed> $body */
+        $body = json_decode($payload, true) ?? [];
+        $timestamp = (int) ($body['timestamp'] ?? 0);
+        if ($timestamp > 0 && abs(time() - $timestamp) > 300) {
+            Log::warning('Visa CLI webhook rejected: stale timestamp', [
+                'timestamp' => $timestamp,
+                'age'       => abs(time() - $timestamp),
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 }

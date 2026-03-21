@@ -17,5 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call(StablecoinSeeder::class);
         $this->call(GCUBasketSeeder::class);
         $this->call(SettingSeeder::class);
+        $this->call(RewardsSeeder::class);
     }
 }
