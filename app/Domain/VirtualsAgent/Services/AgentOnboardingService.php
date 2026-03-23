@@ -195,8 +195,10 @@ class AgentOnboardingService
             throw new RuntimeException('Per-transaction limit must be positive.');
         }
 
-        if ($request->dailyLimitCents !== null && $request->perTxLimitCents !== null
-            && $request->perTxLimitCents > $request->dailyLimitCents) {
+        if (
+            $request->dailyLimitCents !== null && $request->perTxLimitCents !== null
+            && $request->perTxLimitCents > $request->dailyLimitCents
+        ) {
             throw new RuntimeException('Per-transaction limit cannot exceed daily limit.');
         }
     }
