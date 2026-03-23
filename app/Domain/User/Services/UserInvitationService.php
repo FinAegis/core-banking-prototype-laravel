@@ -7,6 +7,7 @@ namespace App\Domain\User\Services;
 use App\Domain\User\Mail\UserInvitationMail;
 use App\Domain\User\Models\UserInvitation;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -16,25 +17,24 @@ use Spatie\Permission\Models\Role;
 
 class UserInvitationService
 {
+    private const ALLOWED_ROLES = ['private', 'admin', 'super_admin'];
+
     /**
      * Send an invitation to a new user.
      */
     public function invite(string $email, string $role, User $inviter, int $expiryHours = 72): UserInvitation
     {
-        // Prevent inviting existing users
+        $this->validateRole($role);
+
         if (User::where('email', $email)->exists()) {
             throw new RuntimeException("User {$email} already exists.");
         }
 
-        // Prevent duplicate pending invitations
-        $existing = UserInvitation::where('email', $email)
+        // Expire any previous pending invitations for this email
+        UserInvitation::where('email', $email)
             ->whereNull('accepted_at')
             ->where('expires_at', '>', now())
-            ->first();
-
-        if ($existing !== null) {
-            throw new RuntimeException("A pending invitation for {$email} already exists (expires {$existing->expires_at->format('Y-m-d H:i')}).");
-        }
+            ->update(['expires_at' => now()]);
 
         $invitation = UserInvitation::create([
             'email'      => $email,
@@ -58,47 +58,54 @@ class UserInvitationService
 
     /**
      * Accept an invitation and create the user account.
+     *
+     * Atomic: locks the invitation row, creates user + role, marks accepted.
      */
     public function accept(string $token, string $name, string $password): User
     {
-        $invitation = UserInvitation::where('token', $token)->first();
+        return DB::transaction(function () use ($token, $name, $password): User {
+            $invitation = UserInvitation::where('token', $token)
+                ->lockForUpdate()
+                ->first();
 
-        if ($invitation === null) {
-            throw new RuntimeException('Invalid invitation token.');
-        }
+            if ($invitation === null) {
+                throw new RuntimeException('Invalid invitation token.');
+            }
 
-        if ($invitation->isAccepted()) {
-            throw new RuntimeException('This invitation has already been used.');
-        }
+            if ($invitation->isAccepted()) {
+                throw new RuntimeException('This invitation has already been used.');
+            }
 
-        if ($invitation->isExpired()) {
-            throw new RuntimeException('This invitation has expired.');
-        }
+            if ($invitation->isExpired()) {
+                throw new RuntimeException('This invitation has expired.');
+            }
 
-        $user = User::create([
-            'name'     => $name,
-            'email'    => $invitation->email,
-            'password' => Hash::make($password),
-        ]);
+            $this->validateRole($invitation->role);
 
-        // Assign the invited role
-        Role::firstOrCreate(['name' => $invitation->role, 'guard_name' => 'web']);
-        $user->assignRole($invitation->role);
+            $user = User::create([
+                'name'     => $name,
+                'email'    => $invitation->email,
+                'password' => Hash::make($password),
+            ]);
 
-        $invitation->update(['accepted_at' => now()]);
+            Role::firstOrCreate(['name' => $invitation->role, 'guard_name' => 'web']);
+            $user->assignRole($invitation->role);
 
-        Log::info('User invitation accepted', [
-            'user_id'       => $user->id,
-            'email'         => $user->email,
-            'role'          => $invitation->role,
-            'invitation_id' => $invitation->id,
-        ]);
+            $invitation->update(['accepted_at' => now()]);
 
-        return $user;
+            Log::info('User invitation accepted', [
+                'user_id'       => $user->id,
+                'email'         => $user->email,
+                'role'          => $invitation->role,
+                'invitation_id' => $invitation->id,
+            ]);
+
+            return $user;
+        });
     }
 
     /**
-     * Resend an existing invitation.
+     * Resend an existing invitation (refreshes token + expiry).
      */
     public function resend(string $invitationId, User $inviter): UserInvitation
     {
@@ -113,7 +120,6 @@ class UserInvitationService
             throw new RuntimeException('Cannot resend — invitation already accepted.');
         }
 
-        // Refresh expiry
         $invitation->update([
             'expires_at' => now()->addHours(72),
             'token'      => Str::random(64),
@@ -149,5 +155,12 @@ class UserInvitationService
         ]);
 
         return true;
+    }
+
+    private function validateRole(string $role): void
+    {
+        if (! in_array($role, self::ALLOWED_ROLES, true)) {
+            throw new RuntimeException("Invalid role: {$role}. Allowed: " . implode(', ', self::ALLOWED_ROLES));
+        }
     }
 }

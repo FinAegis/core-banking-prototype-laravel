@@ -55,9 +55,9 @@ class UserInviteCommand extends Command
             $this->info("Invitation sent to {$email}");
             $this->line("  Role:    {$role}");
             $this->line("  Expires: {$invitation->expires_at->format('Y-m-d H:i')}");
-            $this->line("  Token:   {$invitation->token}");
+            $this->line("  ID:      {$invitation->id}");
             $this->line('');
-            $this->line('  Accept URL: ' . config('app.url') . '/invitation/accept?token=' . $invitation->token);
+            $this->info('The invitation link has been sent via email.');
 
             return 0;
         } catch (RuntimeException $e) {

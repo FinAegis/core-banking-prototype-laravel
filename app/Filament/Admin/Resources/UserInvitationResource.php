@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use RuntimeException;
 
 class UserInvitationResource extends Resource
 {
@@ -112,9 +113,14 @@ class UserInvitationResource extends Resource
                     ->requiresConfirmation()
                     ->visible(fn (UserInvitation $record): bool => $record->isPending() || $record->isExpired())
                     ->action(function (UserInvitation $record): void {
-                        $inviter = auth()->user();
-                        app(UserInvitationService::class)->resend($record->id, $inviter);
-                        Notification::make()->title('Invitation resent')->success()->send();
+                        try {
+                            /** @var \App\Models\User $inviter */
+                            $inviter = auth()->user();
+                            app(UserInvitationService::class)->resend($record->id, $inviter);
+                            Notification::make()->title('Invitation resent')->success()->send();
+                        } catch (RuntimeException $e) {
+                            Notification::make()->title('Error')->body($e->getMessage())->danger()->send();
+                        }
                     }),
                 Tables\Actions\Action::make('revoke')
                     ->label('Revoke')
@@ -123,8 +129,12 @@ class UserInvitationResource extends Resource
                     ->requiresConfirmation()
                     ->visible(fn (UserInvitation $record): bool => $record->isPending())
                     ->action(function (UserInvitation $record): void {
-                        app(UserInvitationService::class)->revoke($record->id);
-                        Notification::make()->title('Invitation revoked')->success()->send();
+                        try {
+                            app(UserInvitationService::class)->revoke($record->id);
+                            Notification::make()->title('Invitation revoked')->success()->send();
+                        } catch (RuntimeException $e) {
+                            Notification::make()->title('Error')->body($e->getMessage())->danger()->send();
+                        }
                     }),
                 Tables\Actions\Action::make('copyLink')
                     ->label('Copy Link')
@@ -153,6 +163,16 @@ class UserInvitationResource extends Resource
             'index'  => Pages\ListUserInvitations::route('/'),
             'create' => Pages\CreateUserInvitation::route('/create'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']) ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasRole(['admin', 'super_admin']) ?? false;
     }
 
     public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
