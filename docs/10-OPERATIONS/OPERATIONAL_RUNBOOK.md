@@ -37,6 +37,30 @@ php artisan horizon:terminate                        # Stop all workers
 php artisan queue:retry all                          # Retry failed jobs
 ```
 
+### User & Admin Management
+
+```bash
+# Create a new user (interactive — prompts for name, email, password)
+php artisan user:create
+
+# Create an admin user (one-liner for automation)
+php artisan user:create --name="Jane Admin" --email=jane@company.com --password=SecureP@ss123 --admin
+
+# Promote an existing user to admin
+php artisan user:promote jane@company.com
+
+# Promote to super_admin (Filament full access)
+php artisan user:promote jane@company.com --role=super_admin
+
+# Remove admin role
+php artisan user:demote jane@company.com
+
+# List all admin users
+php artisan user:admins
+```
+
+**Registration control:** Public registration is disabled in production (`REGISTRATION_ENABLED=false`). All users must be created by an admin via CLI. In demo/local/testing environments, registration is enabled by default.
+
 ### Key Metrics Thresholds
 
 | Metric | Warning | Critical |

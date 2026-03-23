@@ -12,6 +12,12 @@ XDEBUG_MODE=off vendor/bin/phpstan analyse --memory-limit=2G
 php artisan serve                    # Start server
 npm run dev                          # Vite dev server
 php artisan l5-swagger:generate      # API docs
+
+# User & Admin management
+php artisan user:create --admin      # Create user (--admin for admin role)
+php artisan user:promote user@email  # Promote existing user to admin
+php artisan user:demote user@email   # Remove admin role
+php artisan user:admins              # List all admin users
 ```
 
 ## Architecture
