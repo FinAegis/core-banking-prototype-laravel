@@ -65,14 +65,12 @@ class HeliusWebhookController extends Controller
      */
     private function processTransaction(array $tx): int
     {
-        $type = $tx['type'] ?? '';
+        $matched = 0;
 
-        // We care about token transfers (USDC movements)
-        if (! in_array($type, ['TRANSFER', 'TOKEN_TRANSFER', 'SWAP'], true)) {
+        // Skip transactions with no token or native transfers
+        if (empty($tx['tokenTransfers']) && empty($tx['nativeTransfers'])) {
             return 0;
         }
-
-        $matched = 0;
 
         // Check token transfers for known addresses
         /** @var array<int, array<string, mixed>> $tokenTransfers */
