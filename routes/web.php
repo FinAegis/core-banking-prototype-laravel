@@ -229,6 +229,10 @@ if (config('brand.show_promo_pages')) {
     Route::get('/marketplace/{vendor}/{name}', $redirectHome)->where(['vendor' => '[a-zA-Z0-9_-]+', 'name' => '[a-zA-Z0-9_-]+'])->name('marketplace.show');
 }
 
+// User invitation acceptance (public — no auth required)
+Route::get('/invitation/accept', [App\Http\Controllers\InvitationController::class, 'show'])->name('invitation.show');
+Route::post('/invitation/accept', [App\Http\Controllers\InvitationController::class, 'accept'])->name('invitation.accept');
+
 Route::get('/legal/terms', function () {
     return view('legal.terms');
 })->name('legal.terms');
