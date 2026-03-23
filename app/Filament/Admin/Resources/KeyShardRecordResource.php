@@ -16,6 +16,7 @@ use Filament\Tables\Table;
 
 class KeyShardRecordResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = KeyShardRecord::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-key';

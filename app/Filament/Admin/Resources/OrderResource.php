@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 
 class OrderResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-trending-up';

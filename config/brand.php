@@ -53,6 +53,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Admin Panel — Visible Module Groups
+    |--------------------------------------------------------------------------
+    |
+    | Controls which Filament navigation groups appear in /admin.
+    | Set ADMIN_MODULES in .env as comma-separated list, or leave empty for all.
+    |
+    | Zelta (mobile wallet):
+    |   ADMIN_MODULES=System,Mobile,Relayer,TrustCert,Banking,AI Agents,Commerce,Mobile Payments,Privacy,Fraud Detection
+    |
+    | FinAegis (full platform): leave empty or don't set — shows everything.
+    |
+    */
+
+    'admin_modules' => env('ADMIN_MODULES')
+        ? array_map('trim', explode(',', (string) env('ADMIN_MODULES')))
+        : null, // null = show all
+
+    /*
+    |--------------------------------------------------------------------------
     | Favicon & Theme
     |--------------------------------------------------------------------------
     |

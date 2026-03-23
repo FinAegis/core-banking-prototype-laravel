@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class FinancialInstitutionApplicationResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = FinancialInstitutionApplication::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';

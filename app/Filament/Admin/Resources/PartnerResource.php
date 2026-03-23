@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class PartnerResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = FinancialInstitutionPartner::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';

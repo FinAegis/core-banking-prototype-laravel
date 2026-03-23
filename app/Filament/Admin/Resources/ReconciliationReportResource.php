@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReconciliationReportResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = null; // We'll use a virtual model
 
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';

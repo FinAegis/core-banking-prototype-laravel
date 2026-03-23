@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class DelegatedProofJobResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = DelegatedProofJob::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-finger-print';

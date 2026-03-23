@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SubscriberResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = Subscriber::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';

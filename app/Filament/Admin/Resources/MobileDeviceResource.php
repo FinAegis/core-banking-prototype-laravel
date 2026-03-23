@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class MobileDeviceResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = MobileDevice::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-device-phone-mobile';

@@ -17,6 +17,7 @@ use Filament\Tables\Table;
 
 class AssetResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = Asset::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';

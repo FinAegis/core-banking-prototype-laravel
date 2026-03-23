@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class FilingScheduleResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = FilingSchedule::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';

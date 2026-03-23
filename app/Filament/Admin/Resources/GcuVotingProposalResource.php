@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 
 class GcuVotingProposalResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = GcuVotingProposal::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';

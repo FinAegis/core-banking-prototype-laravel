@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ExchangeRateResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = ExchangeRate::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';

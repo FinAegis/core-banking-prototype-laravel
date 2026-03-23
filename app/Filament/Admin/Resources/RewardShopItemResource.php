@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class RewardShopItemResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = RewardShopItem::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';

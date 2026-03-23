@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class DeFiPositionResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = DeFiPosition::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';

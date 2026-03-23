@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class RewardQuestResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = RewardQuest::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-fire';

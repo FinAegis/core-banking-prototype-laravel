@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 
 class BridgeTransactionResource extends Resource
 {
+    use \App\Filament\Admin\Traits\RespectsModuleVisibility;
     protected static ?string $model = BridgeTransaction::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
