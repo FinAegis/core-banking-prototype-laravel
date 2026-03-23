@@ -448,6 +448,17 @@ class VirtualsAgentController extends Controller
         $period = $request->query('period', '24h');
         $period = is_string($period) ? $period : '24h';
 
+        $validPeriods = ['1h', '24h', '7d', '30d'];
+        if (! in_array($period, $validPeriods, true)) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'INVALID_PERIOD',
+                    'message' => 'Invalid period. Must be one of: ' . implode(', ', $validPeriods),
+                ],
+            ], 422);
+        }
+
         $metrics = $this->agdpReportingService->getMetrics($period);
 
         return response()->json([

@@ -2359,6 +2359,30 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 
 ---
 
-*Document Version: 6.2.0*
+### v6.3.0 — Virtuals Protocol Agent Integration (COMPLETED)
+
+**Release Date**: March 23, 2026
+**Theme**: AI Agent Commerce — Compliant Spending Bridge for Autonomous Agents
+
+| Component | Files | Description |
+|-----------|-------|-------------|
+| VirtualsAgent Domain | 15 | Model, 6 services, 3 DTOs, 3 events, enum, config, migration |
+| REST API | 2 | 7 endpoints for mobile agent management + aGDP reporting |
+| ACP Bridge | 1 | Maps Virtuals ACP job requests to 5 Zelta service categories |
+| Token Tracking | 1 | ERC-20 agent token balance reads via EthRpcClient |
+| aGDP Reporting | 1 | Aggregate economic output metrics per agent/period |
+| Pimlico Enforcement | 1 | Session key policy bridge for on-chain spending limits |
+| TrustCert Extension | 1 modified | Agent-scoped certificate lookup (`?agent_id=` parameter) |
+| Filament Dashboard | 5 | Full CRUD with suspend/activate actions, status badges |
+| Feature Page | 1 | `/features/virtuals-protocol` with ACP catalog + code examples |
+| Documentation | 1 | Architecture spec with 8-phase roadmap |
+
+**Security hardening**: Atomic onboarding (DB transactions + lockForUpdate), input validation (agent ID pattern, employer existence, chain whitelist, spending limit caps), TrustCert delimiter injection prevention, URL format validation in ACP bridge, approved UserOp audit logging.
+
+**Integration points**: ACP Service Provider (5 services), Butler discovery (via ACP), Agent Token tracking, aGDP reporting endpoint.
+
+---
+
+*Document Version: 6.3.0*
 *Created: January 11, 2026*
-*Updated: March 21, 2026 (v6.2.0 Visa CLI integration complete)*
+*Updated: March 23, 2026 (v6.3.0 Virtuals Protocol agent integration complete)*

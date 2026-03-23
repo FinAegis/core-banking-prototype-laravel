@@ -27,6 +27,9 @@ class VirtualsAgentService
 
     /**
      * Execute a payment on behalf of a Virtuals agent.
+     *
+     * @throws RuntimeException If the agent is not found or not active.
+     * @throws \App\Domain\VisaCli\Exceptions\VisaCliPaymentException If payment fails or spending limit exceeded.
      */
     public function executeAgentPayment(
         string $virtualsAgentId,

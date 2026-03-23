@@ -131,6 +131,10 @@ class AgentTokenTrackingService
         /** @var array<int, array{address: string, symbol: string, decimals: int}> $tokens */
         $tokens = config('virtuals-agent.tracked_tokens', []);
 
+        if ($tokens === []) {
+            Log::warning('No tracked tokens configured — set virtuals-agent.tracked_tokens in config');
+        }
+
         return $tokens;
     }
 
