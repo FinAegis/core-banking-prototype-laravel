@@ -71,7 +71,10 @@ class AgentOnboardingService
             );
 
             // 3. Generate TrustCert subject (sanitize agent ID to prevent delimiter injection)
-            $safeAgentId = preg_replace('/[^a-zA-Z0-9_\-]/', '', $request->virtualsAgentId);
+            $safeAgentId = preg_replace('/[^a-zA-Z0-9_\-]/', '', $request->virtualsAgentId) ?? '';
+            if ($safeAgentId === '') {
+                throw new RuntimeException('Agent ID contains no valid characters after sanitization.');
+            }
             $trustcertSubjectId = 'agent:' . $safeAgentId . ':employer:' . $request->employerUserId;
 
             // 4. Update profile with linked IDs and activate
@@ -195,11 +198,27 @@ class AgentOnboardingService
             throw new RuntimeException('Per-transaction limit must be positive.');
         }
 
+        // Enforce system maximums
+        $maxDaily = (int) config('virtuals-agent.max_daily_limit', 10000000);
+        if ($request->dailyLimitCents !== null && $request->dailyLimitCents > $maxDaily) {
+            throw new RuntimeException("Daily limit cannot exceed \${$this->formatCents($maxDaily)}.");
+        }
+
+        $maxPerTx = (int) config('virtuals-agent.max_per_tx_limit', 1000000);
+        if ($request->perTxLimitCents !== null && $request->perTxLimitCents > $maxPerTx) {
+            throw new RuntimeException("Per-transaction limit cannot exceed \${$this->formatCents($maxPerTx)}.");
+        }
+
         if (
             $request->dailyLimitCents !== null && $request->perTxLimitCents !== null
             && $request->perTxLimitCents > $request->dailyLimitCents
         ) {
             throw new RuntimeException('Per-transaction limit cannot exceed daily limit.');
         }
+    }
+
+    private function formatCents(int $cents): string
+    {
+        return number_format($cents / 100, 2);
     }
 }

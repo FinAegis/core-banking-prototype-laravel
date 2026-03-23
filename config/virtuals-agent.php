@@ -58,4 +58,32 @@ return [
     */
 
     'auto_provision_card' => (bool) env('VIRTUALS_AGENT_AUTO_PROVISION_CARD', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spending Limit Caps
+    |--------------------------------------------------------------------------
+    |
+    | Maximum allowed spending limits for agent onboarding.
+    | Prevents misconfiguration of excessively high limits.
+    |
+    */
+
+    'max_daily_limit' => (int) env('VIRTUALS_AGENT_MAX_DAILY_LIMIT', 10000000), // $100,000
+
+    'max_per_tx_limit' => (int) env('VIRTUALS_AGENT_MAX_PER_TX_LIMIT', 1000000), // $10,000
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agent Token Tracking
+    |--------------------------------------------------------------------------
+    |
+    | ERC-20 agent tokens to track for portfolio views.
+    | Each entry: address (on Base), symbol, decimals.
+    |
+    */
+
+    'tracked_tokens' => [
+        ['address' => '0x44ff8620b8cA30902395A7bD3F2407e1A091BF73', 'symbol' => 'VIRTUAL', 'decimals' => 18],
+    ],
 ];

@@ -89,6 +89,13 @@ class AgentSpendingEnforcementService
             ];
         }
 
+        Log::info('Virtuals agent UserOp approved', [
+            'agent_id'    => $virtualsAgentId,
+            'requested'   => $estimatedCostCents,
+            'remaining'   => $remaining,
+            'daily_limit' => $limit->daily_limit,
+        ]);
+
         return [
             'allowed'         => true,
             'reason'          => null,

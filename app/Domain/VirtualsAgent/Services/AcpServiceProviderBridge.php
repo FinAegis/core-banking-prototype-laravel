@@ -172,6 +172,11 @@ class AcpServiceProviderBridge
             return ['status' => 'error', 'message' => 'Payments require "url" (string) and "amount_cents" (int).'];
         }
 
+        if (filter_var($url, FILTER_VALIDATE_URL) === false
+            || ! in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true)) {
+            return ['status' => 'error', 'message' => 'Invalid payment URL. Only http/https URLs are accepted.'];
+        }
+
         try {
             $result = $this->agentService->executeAgentPayment(
                 virtualsAgentId: $agentId,
@@ -249,6 +254,10 @@ class AcpServiceProviderBridge
 
         if (! is_string($agentId) || $agentId === '') {
             throw new RuntimeException('ACP job payload must include a non-empty "agent_id" field.');
+        }
+
+        if (! preg_match('/^[a-zA-Z0-9_\-]{1,255}$/', $agentId)) {
+            throw new RuntimeException('Invalid agent ID format. Must be alphanumeric with hyphens/underscores.');
         }
 
         return $agentId;
