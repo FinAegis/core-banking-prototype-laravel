@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Contact Us - ' . config('brand.name', 'Zelta') . ' Support',
-        'description' => 'Contact the ' . config('brand.name', 'Zelta') . ' team for technical support, partnership inquiries, or to report issues. Community support for our open-source core banking platform with 46 domain modules.',
+        'description' => 'Contact the ' . config('brand.name', 'Zelta') . ' team for technical support, partnership inquiries, or to report issues. Community support for our open-source core banking platform with 47 domain modules.',
     ])
 @endsection
 

@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domain\VirtualsAgent\Enums\AgentStatus;
 use App\Domain\VirtualsAgent\Models\VirtualsAgentProfile;
+use App\Domain\VirtualsAgent\Services\AgentOnboardingService;
 use App\Filament\Admin\Resources\VirtualsAgentResource\Pages;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -186,18 +187,31 @@ class VirtualsAgentResource extends Resource
                         ->icon('heroicon-o-pause-circle')
                         ->color('warning')
                         ->requiresConfirmation()
-                        ->visible(fn ($record): bool => $record->status === AgentStatus::ACTIVE->value || $record->status instanceof AgentStatus && $record->status === AgentStatus::ACTIVE)
+                        ->modalDescription('This will prevent the agent from executing any payments.')
+                        ->visible(fn ($record): bool => in_array(
+                            $record->status instanceof AgentStatus ? $record->status->value : $record->status,
+                            [AgentStatus::ACTIVE->value],
+                            true,
+                        ))
                         ->action(function ($record): void {
-                            $record->update(['status' => AgentStatus::SUSPENDED]);
+                            app(AgentOnboardingService::class)->suspendAgent($record->id, 'Suspended via admin dashboard');
                         }),
                     Tables\Actions\Action::make('activate')
                         ->label('Activate')
                         ->icon('heroicon-o-play-circle')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->visible(fn ($record): bool => $record->status === AgentStatus::SUSPENDED->value || $record->status === AgentStatus::REGISTERED->value || ($record->status instanceof AgentStatus && in_array($record->status, [AgentStatus::SUSPENDED, AgentStatus::REGISTERED])))
+                        ->visible(fn ($record): bool => in_array(
+                            $record->status instanceof AgentStatus ? $record->status->value : $record->status,
+                            [AgentStatus::SUSPENDED->value, AgentStatus::REGISTERED->value],
+                            true,
+                        ))
                         ->action(function ($record): void {
                             $record->update(['status' => AgentStatus::ACTIVE]);
+                            event(new \App\Domain\VirtualsAgent\Events\VirtualsAgentActivated(
+                                agentProfileId: $record->id,
+                                virtualsAgentId: $record->virtuals_agent_id,
+                            ));
                         }),
                 ]
             )
@@ -208,7 +222,11 @@ class VirtualsAgentResource extends Resource
                         ->icon('heroicon-o-pause-circle')
                         ->color('warning')
                         ->requiresConfirmation()
-                        ->action(fn ($records) => $records->each(fn ($r) => $r->update(['status' => AgentStatus::SUSPENDED]))),
+                        ->modalDescription('This will suspend all selected agents and prevent them from executing payments.')
+                        ->action(function ($records): void {
+                            $service = app(AgentOnboardingService::class);
+                            $records->each(fn ($r) => $service->suspendAgent($r->id, 'Bulk suspended via admin dashboard'));
+                        }),
                 ]
             );
     }

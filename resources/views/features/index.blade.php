@@ -38,7 +38,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
                 @include('partials.breadcrumb', ['items' => [['name' => 'Features', 'url' => url('/features')]]])
-                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">46 Domain Modules. <span class="text-gradient">One Platform.</span></h1>
+                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">47 Domain Modules. <span class="text-gradient">One Platform.</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
                     Every building block a modern fintech needs — from democratic currency governance to AI agent commerce, cross-chain DeFi, and privacy-preserving identity.
                 </p>
@@ -468,6 +468,25 @@
                         Programmatic Visa card payments for AI agents and developer billing. MCP tools, spending limits, card enrollment, and invoice collection.
                     </p>
                     <a href="{{ route('features.show', 'visa-cli') }}" class="text-blue-600 font-medium hover:text-blue-700">
+                        Learn more &rarr;
+                    </a>
+                </div>
+
+                <!-- Virtuals Agent Integration -->
+                <div class="card-feature">
+                    <div class="w-14 h-14 bg-violet-100 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-xl font-semibold">AI Agent Commerce</h3>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full font-medium">New</span>
+                    </div>
+                    <p class="text-slate-500 mb-4">
+                        Give autonomous AI agents a compliant bank account. Virtuals Protocol integration with TrustCert identity, spending limits, and Pimlico enforcement.
+                    </p>
+                    <a href="{{ url('/developers') }}" class="text-violet-600 font-medium hover:text-violet-700">
                         Learn more &rarr;
                     </a>
                 </div>

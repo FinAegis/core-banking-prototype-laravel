@@ -11,7 +11,9 @@ use App\Domain\VirtualsAgent\Events\VirtualsAgentRegistered;
 use App\Domain\VirtualsAgent\Events\VirtualsAgentSuspended;
 use App\Domain\VirtualsAgent\Models\VirtualsAgentProfile;
 use App\Domain\VisaCli\Services\VisaCliSpendingLimitService;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
@@ -28,73 +30,78 @@ class AgentOnboardingService
     /**
      * Onboard a new Virtuals agent into FinAegis.
      *
-     * Creates the agent profile, provisions a spending limit, generates a
-     * TrustCert subject identifier, and transitions the agent to ACTIVE.
+     * Atomic operation: creates profile, provisions spending limit, generates
+     * TrustCert subject, and activates — all within a single transaction.
      */
     public function onboardAgent(AgentOnboardingRequest $request): VirtualsAgentProfile
     {
-        // Guard: prevent duplicate registrations
-        $existing = VirtualsAgentProfile::where('virtuals_agent_id', $request->virtualsAgentId)->first();
-        if ($existing !== null) {
-            throw new RuntimeException(
-                "Virtuals agent [{$request->virtualsAgentId}] is already registered."
+        // Validate inputs
+        $this->validateOnboardingRequest($request);
+
+        return DB::transaction(function () use ($request): VirtualsAgentProfile {
+            // Atomic duplicate check under transaction isolation
+            $existing = VirtualsAgentProfile::where('virtuals_agent_id', $request->virtualsAgentId)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing !== null) {
+                throw new RuntimeException(
+                    "Virtuals agent [{$request->virtualsAgentId}] is already registered."
+                );
+            }
+
+            // 1. Create profile in REGISTERED state
+            $profile = VirtualsAgentProfile::create([
+                'virtuals_agent_id' => $request->virtualsAgentId,
+                'employer_user_id'  => $request->employerUserId,
+                'agent_name'        => trim($request->agentName),
+                'agent_description' => $request->agentDescription !== null ? trim($request->agentDescription) : null,
+                'status'            => AgentStatus::REGISTERED,
+                'chain'             => $request->chain,
+            ]);
+
+            // 2. Create spending limit
+            $dailyLimit = $request->dailyLimitCents ?? (int) config('virtuals-agent.default_daily_limit', 50000);
+            $perTxLimit = $request->perTxLimitCents ?? (int) config('virtuals-agent.default_per_tx_limit', 10000);
+
+            $spendingLimit = $this->spendingLimitService->updateLimit(
+                agentId: $request->virtualsAgentId,
+                dailyLimit: $dailyLimit,
+                perTransactionLimit: $perTxLimit,
             );
-        }
 
-        // 1. Create profile in REGISTERED state
-        $profile = VirtualsAgentProfile::create([
-            'virtuals_agent_id' => $request->virtualsAgentId,
-            'employer_user_id'  => $request->employerUserId,
-            'agent_name'        => $request->agentName,
-            'agent_description' => $request->agentDescription,
-            'status'            => AgentStatus::REGISTERED,
-            'chain'             => $request->chain,
-        ]);
+            // 3. Generate TrustCert subject (sanitize agent ID to prevent delimiter injection)
+            $safeAgentId = preg_replace('/[^a-zA-Z0-9_\-]/', '', $request->virtualsAgentId);
+            $trustcertSubjectId = 'agent:' . $safeAgentId . ':employer:' . $request->employerUserId;
 
-        // 2. Create spending limit (reuses VisaCli spending limit infrastructure)
-        $dailyLimit = $request->dailyLimitCents ?? (int) config('virtuals-agent.default_daily_limit', 50000);
-        $perTxLimit = $request->perTxLimitCents ?? (int) config('virtuals-agent.default_per_tx_limit', 10000);
+            // 4. Update profile with linked IDs and activate
+            $profile->update([
+                'x402_spending_limit_id' => $spendingLimit->id,
+                'trustcert_subject_id'   => $trustcertSubjectId,
+                'status'                 => AgentStatus::ACTIVE,
+            ]);
 
-        $spendingLimit = $this->spendingLimitService->updateLimit(
-            agentId: $request->virtualsAgentId,
-            dailyLimit: $dailyLimit,
-            perTransactionLimit: $perTxLimit,
-        );
+            // 5. Dispatch domain events
+            event(new VirtualsAgentRegistered(
+                agentProfileId: $profile->id,
+                virtualsAgentId: $request->virtualsAgentId,
+                employerUserId: $request->employerUserId,
+                agentName: $request->agentName,
+            ));
 
-        $profile->update([
-            'x402_spending_limit_id' => $spendingLimit->id,
-        ]);
+            event(new VirtualsAgentActivated(
+                agentProfileId: $profile->id,
+                virtualsAgentId: $request->virtualsAgentId,
+            ));
 
-        // 3. Generate TrustCert subject ID
-        $trustcertSubjectId = 'agent:' . $request->virtualsAgentId . ':employer:' . $request->employerUserId;
-        $profile->update([
-            'trustcert_subject_id' => $trustcertSubjectId,
-        ]);
+            Log::info('Virtuals agent onboarded', [
+                'profile_id'        => $profile->id,
+                'virtuals_agent_id' => $request->virtualsAgentId,
+                'employer_user_id'  => $request->employerUserId,
+            ]);
 
-        // 4. Dispatch registered event
-        event(new VirtualsAgentRegistered(
-            agentProfileId: $profile->id,
-            virtualsAgentId: $request->virtualsAgentId,
-            employerUserId: $request->employerUserId,
-            agentName: $request->agentName,
-        ));
-
-        // 5. Transition to ACTIVE
-        $profile->update(['status' => AgentStatus::ACTIVE]);
-
-        // 6. Dispatch activated event
-        event(new VirtualsAgentActivated(
-            agentProfileId: $profile->id,
-            virtualsAgentId: $request->virtualsAgentId,
-        ));
-
-        Log::info('Virtuals agent onboarded', [
-            'profile_id'        => $profile->id,
-            'virtuals_agent_id' => $request->virtualsAgentId,
-            'employer_user_id'  => $request->employerUserId,
-        ]);
-
-        return $profile->refresh();
+            return $profile->refresh();
+        });
     }
 
     /**
@@ -109,8 +116,14 @@ class AgentOnboardingService
             return false;
         }
 
-        if ($profile->status === AgentStatus::SUSPENDED) {
+        $status = $profile->status instanceof AgentStatus ? $profile->status : AgentStatus::tryFrom((string) $profile->status);
+
+        if ($status === AgentStatus::SUSPENDED) {
             return true;
+        }
+
+        if ($status === AgentStatus::DEACTIVATED) {
+            return false;
         }
 
         $profile->update(['status' => AgentStatus::SUSPENDED]);
@@ -148,5 +161,43 @@ class AgentOnboardingService
         return VirtualsAgentProfile::where('employer_user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
+    }
+
+    private function validateOnboardingRequest(AgentOnboardingRequest $request): void
+    {
+        // Validate agent ID format (alphanumeric + hyphens/underscores, 1-255 chars)
+        if (! preg_match('/^[a-zA-Z0-9_\-]{1,255}$/', $request->virtualsAgentId)) {
+            throw new RuntimeException('Invalid Virtuals agent ID format. Must be alphanumeric with hyphens/underscores, 1-255 characters.');
+        }
+
+        // Validate employer exists
+        if (! User::where('id', $request->employerUserId)->exists()) {
+            throw new RuntimeException("Employer user [{$request->employerUserId}] not found.");
+        }
+
+        // Validate agent name
+        if (trim($request->agentName) === '') {
+            throw new RuntimeException('Agent name cannot be empty.');
+        }
+
+        // Validate chain
+        $supported = (array) config('virtuals-agent.supported_chains', ['base', 'polygon', 'arbitrum', 'ethereum']);
+        if (! in_array($request->chain, $supported, true)) {
+            throw new RuntimeException("Unsupported chain [{$request->chain}]. Supported: " . implode(', ', $supported));
+        }
+
+        // Validate spending limits (if provided)
+        if ($request->dailyLimitCents !== null && $request->dailyLimitCents <= 0) {
+            throw new RuntimeException('Daily limit must be positive.');
+        }
+
+        if ($request->perTxLimitCents !== null && $request->perTxLimitCents <= 0) {
+            throw new RuntimeException('Per-transaction limit must be positive.');
+        }
+
+        if ($request->dailyLimitCents !== null && $request->perTxLimitCents !== null
+            && $request->perTxLimitCents > $request->dailyLimitCents) {
+            throw new RuntimeException('Per-transaction limit cannot exceed daily limit.');
+        }
     }
 }

@@ -16,10 +16,10 @@ php artisan l5-swagger:generate      # API docs
 
 ## Architecture
 
-- **45 domains** in `app/Domain/` (DDD bounded contexts)
+- **47 domains** in `app/Domain/` (DDD bounded contexts)
 - **Event Sourcing**: Spatie v7.7+ with domain-specific tables
 - **CQRS**: Command/Query Bus in `app/Infrastructure/`
-- **GraphQL**: Lighthouse PHP, 36 domain schemas
+- **GraphQL**: Lighthouse PHP, 39 domain schemas
 - **Multi-Tenancy**: Team-based isolation (`UsesTenantConnection` trait)
 - **Event Streaming**: Redis Streams publisher/consumer with DLQ + backpressure
 - **Post-Quantum Crypto**: ML-KEM-768, ML-DSA-65, hybrid encryption

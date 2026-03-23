@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' Platform - Open Banking for Developers',
-        'description' => config('brand.name', 'Zelta') . ' Platform - Open-source core banking infrastructure with 46 DDD domains, event sourcing, REST + GraphQL APIs, and cross-chain DeFi. MIT licensed.',
+        'description' => config('brand.name', 'Zelta') . ' Platform - Open-source core banking infrastructure with 47 DDD domains, event sourcing, REST + GraphQL APIs, and cross-chain DeFi. MIT licensed.',
         'keywords' => config('brand.name', 'Zelta') . ' platform, banking infrastructure, open source banking, developer API, MIT license, core banking API, fintech development, DDD, event sourcing',
     ])
 
