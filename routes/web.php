@@ -251,8 +251,8 @@ Route::get('/.well-known/apple-app-site-association', function () {
             'apps'    => [],
             'details' => [
                 [
-                    'appID'   => config('mobile.apple_team_id', 'REPLACE_TEAM_ID') . '.com.zelta.wallet',
-                    'paths'   => ['/pay/*', '/verify/*'],
+                    'appID' => config('mobile.apple_team_id', 'REPLACE_TEAM_ID') . '.com.zelta.wallet',
+                    'paths' => ['/pay/*', '/verify/*'],
                 ],
             ],
         ],
@@ -268,8 +268,8 @@ Route::get('/.well-known/assetlinks.json', function () {
                 'delegate_permission/common.get_login_creds',
             ],
             'target' => [
-                'namespace'              => 'android_app',
-                'package_name'           => 'com.zelta.wallet',
+                'namespace'                => 'android_app',
+                'package_name'             => 'com.zelta.wallet',
                 'sha256_cert_fingerprints' => array_filter([
                     config('mobile.android_sha256_fingerprint', ''),
                 ]),
