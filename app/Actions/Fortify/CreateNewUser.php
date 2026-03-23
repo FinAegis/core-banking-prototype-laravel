@@ -33,6 +33,7 @@ class CreateNewUser implements CreatesNewUsers
                 'name'                 => ['required', 'string', 'max:255'],
                 'email'                => ['required', 'string', 'email', 'max:255', 'unique:users'],
                 'is_business_customer' => ['boolean'],
+                'referral_code'        => ['nullable', 'string', 'max:20'],
                 'password'             => $this->passwordRules(),
                 'terms'                => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
             ]
@@ -45,6 +46,14 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => Hash::make($input['password']),
             ]
         );
+
+        // Track referral if code provided
+        if (! empty($input['referral_code'])) {
+            $referrer = User::where('referral_code', $input['referral_code'])->first();
+            if ($referrer) {
+                $user->update(['referred_by' => $referrer->id]);
+            }
+        }
 
         $team = $this->createTeam($user);
 

@@ -132,6 +132,12 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
     });
 });
 
+// User profile (avatar upload/delete)
+Route::prefix('v1/users')->middleware(['auth:sanctum', 'api.rate_limit:query'])->group(function () {
+    Route::post('/avatar', [App\Http\Controllers\Api\UserProfileController::class, 'uploadAvatar'])->name('api.users.avatar.upload');
+    Route::delete('/avatar', [App\Http\Controllers\Api\UserProfileController::class, 'deleteAvatar'])->name('api.users.avatar.delete');
+});
+
 // Legacy profile route for backward compatibility
 Route::get('/profile', function (Request $request) {
     $user = $request->user();
