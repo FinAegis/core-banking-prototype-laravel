@@ -215,6 +215,12 @@ class SitemapController extends Controller
                 'priority'   => '0.7',
             ],
             [
+                'url'        => $baseUrl . '/features/virtuals-protocol',
+                'lastmod'    => $now,
+                'changefreq' => 'weekly',
+                'priority'   => '0.7',
+            ],
+            [
                 'url'        => $baseUrl . '/features/plugin-marketplace',
                 'lastmod'    => $now,
                 'changefreq' => 'monthly',

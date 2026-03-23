@@ -486,7 +486,7 @@
                     <p class="text-slate-500 mb-4">
                         Give autonomous AI agents a compliant bank account. Virtuals Protocol integration with TrustCert identity, spending limits, and Pimlico enforcement.
                     </p>
-                    <a href="{{ url('/developers') }}" class="text-violet-600 font-medium hover:text-violet-700">
+                    <a href="{{ route('features.show', 'virtuals-protocol') }}" class="text-violet-600 font-medium hover:text-violet-700">
                         Learn more &rarr;
                     </a>
                 </div>
