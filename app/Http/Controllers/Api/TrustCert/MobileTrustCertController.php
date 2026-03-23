@@ -50,8 +50,14 @@ class MobileTrustCertController extends Controller
     )]
     public function current(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
-        $subjectId = 'user:' . $user->id;
+
+        // Support agent-scoped certificate lookup: ?agent_id=virtuals_abc123
+        $agentId = $request->query('agent_id');
+        $subjectId = is_string($agentId) && $agentId !== ''
+            ? 'agent:' . $agentId . ':employer:' . $user->id
+            : 'user:' . $user->id;
 
         $certificate = $this->certificateAuthority->getCertificateBySubject($subjectId);
 
@@ -315,8 +321,13 @@ class MobileTrustCertController extends Controller
             'transaction_type' => ['required', 'string', 'in:daily,monthly,single'],
         ]);
 
+        /** @var \App\Models\User $user */
         $user = $request->user();
-        $subjectId = 'user:' . $user->id;
+
+        $agentId = $request->input('agent_id');
+        $subjectId = is_string($agentId) && $agentId !== ''
+            ? 'agent:' . $agentId . ':employer:' . $user->id
+            : 'user:' . $user->id;
 
         $certificate = $this->certificateAuthority->getCertificateBySubject($subjectId);
         $trustLevel = TrustLevel::UNKNOWN;

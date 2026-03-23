@@ -450,6 +450,11 @@ return [
         'visacli_payment_failed'    => App\Domain\VisaCli\Events\VisaCliPaymentFailed::class,
         'visacli_card_enrolled'     => App\Domain\VisaCli\Events\VisaCliCardEnrolled::class,
         'visacli_card_removed'      => App\Domain\VisaCli\Events\VisaCliCardRemoved::class,
+
+        // Virtuals Agent Events
+        'virtuals_agent_registered' => App\Domain\VirtualsAgent\Events\VirtualsAgentRegistered::class,
+        'virtuals_agent_activated'  => App\Domain\VirtualsAgent\Events\VirtualsAgentActivated::class,
+        'virtuals_agent_suspended'  => App\Domain\VirtualsAgent\Events\VirtualsAgentSuspended::class,
     ],
 
     /*
