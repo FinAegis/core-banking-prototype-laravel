@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 uses(Tests\TestCase::class);
 
 beforeEach(function () {
+    config(['cache.default' => 'array']);
     Cache::flush();
     $this->tracker = new DeFiPositionTrackerService();
     $this->portfolio = new DeFiPortfolioService($this->tracker);
