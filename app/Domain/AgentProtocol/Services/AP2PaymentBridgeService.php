@@ -18,7 +18,6 @@ use RuntimeException;
  */
 class AP2PaymentBridgeService
 {
-
     /**
      * Resolve the best payment method for a mandate.
      *
