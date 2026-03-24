@@ -47,7 +47,7 @@
                 <div class="animate-on-scroll">
                     <h2 class="font-display text-3xl lg:text-4xl font-bold text-slate-900 mb-6">What Is {{ config('brand.name', 'Zelta') }}?</h2>
                     <p class="text-lg text-slate-600 mb-4 leading-relaxed">
-                        {{ config('brand.name', 'Zelta') }} is a core banking platform built with Laravel, implementing event sourcing, CQRS, domain-driven design, and AI agent integration across 47 bounded contexts.
+                        {{ config('brand.name', 'Zelta') }} is a core banking platform built with Laravel, implementing event sourcing, CQRS, domain-driven design, and AI agent integration across 49 bounded contexts.
                     </p>
                     <p class="text-lg text-slate-600 mb-6 leading-relaxed">
                         At its heart is the <strong>Global Currency Unit (GCU)</strong>&mdash;a democratically governed basket currency where users vote on composition from six global reserve assets.

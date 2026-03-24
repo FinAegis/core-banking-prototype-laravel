@@ -1,6 +1,6 @@
 # FinAegis Documentation
 
-Welcome to the FinAegis documentation. This guide covers the platform's 45 domain modules, APIs, and operational patterns.
+Welcome to the FinAegis documentation. This guide covers the platform's 49 domain modules, APIs, and operational patterns.
 
 ## Start Here
 

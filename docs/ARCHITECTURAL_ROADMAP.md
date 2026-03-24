@@ -58,7 +58,7 @@ Transform FinAegis into the **premier open source core banking platform** that:
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Domain Inventory (42 Bounded Contexts)
+### Domain Inventory (49 Bounded Contexts)
 
 | Category | Domains | Status |
 |----------|---------|--------|

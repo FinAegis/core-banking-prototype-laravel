@@ -87,7 +87,7 @@
                         What Is {{ config('brand.name', 'Zelta') }}?
                     </h2>
                     <p class="text-lg text-slate-600 leading-relaxed mb-6">
-                        A production-grade core banking platform built with Laravel and domain-driven design. 47 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
+                        A production-grade core banking platform built with Laravel and domain-driven design. 49 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
                     </p>
                     <div class="space-y-3 mb-8">
                         @foreach([
@@ -213,7 +213,7 @@
             <div class="text-center mb-16 animate-on-scroll">
                 <h2 class="font-display text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">Platform Architecture</h2>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    47 bounded contexts built with DDD, event sourcing, and CQRS. Each module implements specific financial system patterns you can use independently.
+                    49 bounded contexts built with DDD, event sourcing, and CQRS. Each module implements specific financial system patterns you can use independently.
                 </p>
             </div>
 
@@ -324,8 +324,8 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 animate-on-scroll">
                 @foreach([
-                    ['value' => '43', 'label' => 'Domain Modules'],
-                    ['value' => '35', 'label' => 'GraphQL Schemas'],
+                    ['value' => '49', 'label' => 'Domain Modules'],
+                    ['value' => '39', 'label' => 'GraphQL Schemas'],
                     ['value' => '143+', 'label' => 'API Endpoints'],
                     ['value' => 'MIT', 'label' => 'Licensed'],
                 ] as $stat)
