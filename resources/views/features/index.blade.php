@@ -361,12 +361,34 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold mb-3">AI Framework</h3>
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-xl font-semibold">AI Framework</h3>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">24 Tools</span>
+                    </div>
                     <p class="text-slate-500 mb-4">
-                        AI-powered transaction queries, MCP tool integration, ML anomaly detection, and Google A2A agent protocol.
+                        6 specialized agents, 24 MCP tools, ML anomaly detection, Temporal workflow orchestration, and multi-agent consensus engine.
                     </p>
                     <a href="{{ route('features.show', 'ai-framework') }}" class="text-purple-600 font-medium hover:text-purple-700">
                         Explore AI →
+                    </a>
+                </div>
+
+                <!-- Agent Protocol -->
+                <div class="card-feature">
+                    <div class="w-14 h-14 bg-cyan-100 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                    </div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-xl font-semibold">Agent Protocol (AP2)</h3>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full font-medium">New</span>
+                    </div>
+                    <p class="text-slate-500 mb-4">
+                        DID authentication, A2A messaging, escrow with dispute resolution, reputation scoring, and AP2 payment mandates for autonomous agent commerce.
+                    </p>
+                    <a href="{{ route('features.show', 'agent-protocol') }}" class="text-cyan-600 font-medium hover:text-cyan-700">
+                        Explore AP2 →
                     </a>
                 </div>
 

@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Zelta API",
-        "description": "Agentic payments API — stablecoin-powered virtual cards, non-custodial wallet, and AI agent card issuance. Built with Laravel 12, featuring 43 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.",
+        "description": "Agentic payments API — stablecoin-powered virtual cards, non-custodial wallet, and AI agent card issuance. Built with Laravel 12, featuring 49 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.",
         "contact": {
             "name": "Zelta Support",
             "email": "support@finaegis.org"
@@ -11,7 +11,7 @@
             "name": "Apache 2.0",
             "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
         },
-        "version": "5.1.5"
+        "version": "6.5.0"
     },
     "servers": [
         {
@@ -26814,6 +26814,575 @@
                 ]
             }
         },
+        "/api/v1/mpp/payments": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "List MPP payment history",
+                "description": "Returns paginated payment history with optional rail and status filters.",
+                "operationId": "mppPayments",
+                "parameters": [
+                    {
+                        "name": "rail",
+                        "in": "query",
+                        "description": "Filter by rail (stripe, tempo, lightning, card, x402)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status (pending, settled, failed)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment history",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/mpp/payments/stats": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "Payment statistics",
+                "description": "Returns aggregate statistics: total payments, settled/failed counts, total volume, and breakdown by rail.",
+                "operationId": "mppPaymentStats",
+                "responses": {
+                    "200": {
+                        "description": "Payment stats",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_payments": {
+                                                    "type": "integer"
+                                                },
+                                                "settled": {
+                                                    "type": "integer"
+                                                },
+                                                "failed": {
+                                                    "type": "integer"
+                                                },
+                                                "total_settled_cents": {
+                                                    "type": "integer"
+                                                },
+                                                "by_rail": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/mpp/spending-limits": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "List agent spending limits",
+                "description": "Returns all configured agent spending limits for MPP payments.",
+                "operationId": "mppSpendingLimits",
+                "responses": {
+                    "200": {
+                        "description": "Spending limits"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "Set or update a spending limit",
+                "description": "Creates or updates daily and per-transaction spending limits for an agent.",
+                "operationId": "mppSetSpendingLimit",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "agent_id",
+                                    "daily_limit",
+                                    "per_tx_limit"
+                                ],
+                                "properties": {
+                                    "agent_id": {
+                                        "type": "string"
+                                    },
+                                    "daily_limit": {
+                                        "type": "integer",
+                                        "example": 5000000
+                                    },
+                                    "per_tx_limit": {
+                                        "type": "integer",
+                                        "example": 100000
+                                    },
+                                    "auto_pay": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Spending limit set"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/mpp/spending-limits/{agentId}": {
+            "delete": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "Delete a spending limit",
+                "operationId": "mppDeleteSpendingLimit",
+                "parameters": [
+                    {
+                        "name": "agentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Spending limit deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/mpp/resources": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "List monetized resources",
+                "description": "Returns paginated list of API endpoints that require MPP payment. Filter active-only by default.",
+                "operationId": "mppResources",
+                "parameters": [
+                    {
+                        "name": "active_only",
+                        "in": "query",
+                        "description": "Filter to active resources only (default: true)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Monetized resources"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "Create a monetized resource",
+                "description": "Register an API endpoint for MPP payment gating. Admin only. Blocked for auth/admin/monitoring/webhook paths.",
+                "operationId": "mppCreateResource",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "method",
+                                    "path",
+                                    "amount_cents",
+                                    "currency",
+                                    "available_rails"
+                                ],
+                                "properties": {
+                                    "method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "GET",
+                                            "POST",
+                                            "PUT",
+                                            "PATCH",
+                                            "DELETE"
+                                        ]
+                                    },
+                                    "path": {
+                                        "type": "string",
+                                        "example": "v1/sms/send"
+                                    },
+                                    "amount_cents": {
+                                        "type": "integer",
+                                        "example": 5000
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "example": "USD"
+                                    },
+                                    "available_rails": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "stripe",
+                                                "tempo",
+                                                "lightning",
+                                                "card",
+                                                "x402"
+                                            ]
+                                        }
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Resource created"
+                    },
+                    "409": {
+                        "description": "Duplicate method+path"
+                    },
+                    "422": {
+                        "description": "Validation error or blocked path"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/mpp/resources/{id}": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "Get a monetized resource",
+                "operationId": "mppShowResource",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resource details"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "Update a monetized resource",
+                "description": "Update pricing, rails, or active status. Admin only.",
+                "operationId": "mppUpdateResource",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount_cents": {
+                                        "type": "integer"
+                                    },
+                                    "currency": {
+                                        "type": "string"
+                                    },
+                                    "available_rails": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Resource updated"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "Delete a monetized resource",
+                "description": "Remove an API endpoint from MPP payment gating. Admin only.",
+                "operationId": "mppDeleteResource",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resource deleted"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/mpp/status": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "MPP protocol status",
+                "description": "Returns whether MPP is enabled, protocol version, available payment rails, and MCP binding status.",
+                "operationId": "mppStatus",
+                "responses": {
+                    "200": {
+                        "description": "Protocol status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "enabled": {
+                                                    "type": "boolean"
+                                                },
+                                                "version": {
+                                                    "type": "integer"
+                                                },
+                                                "available_rails": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "rail_count": {
+                                                    "type": "integer"
+                                                },
+                                                "mcp_enabled": {
+                                                    "type": "boolean"
+                                                },
+                                                "spec_url": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mpp/supported-rails": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "List supported payment rails",
+                "description": "Returns detailed info for each payment rail: Stripe SPT, Tempo, Lightning, Card, and x402 USDC.",
+                "operationId": "mppSupportedRails",
+                "responses": {
+                    "200": {
+                        "description": "Rail details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "label": {
+                                                        "type": "string"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "supports_fiat": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "supports_crypto": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "currencies": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "available": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/.well-known/mpp-configuration": {
+            "get": {
+                "tags": [
+                    "Machine Payments"
+                ],
+                "summary": "MPP discovery endpoint",
+                "description": "Returns the .well-known/mpp-configuration JSON for protocol discovery.",
+                "operationId": "mppWellKnown",
+                "responses": {
+                    "200": {
+                        "description": "MPP configuration JSON"
+                    }
+                }
+            }
+        },
         "/api/v1/user/preferences": {
             "get": {
                 "tags": [
@@ -39764,6 +40333,259 @@
                         "sanctum": []
                     }
                 ]
+            }
+        },
+        "/api/v1/sms/send": {
+            "post": {
+                "tags": [
+                    "SMS"
+                ],
+                "summary": "Send an SMS message",
+                "description": "Send an SMS message to a phone number. Protected by MPP payment gate — requires payment via x402, Stripe, or other configured rail.",
+                "operationId": "smsSend",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "to",
+                                    "message"
+                                ],
+                                "properties": {
+                                    "to": {
+                                        "description": "E.164 phone number",
+                                        "type": "string",
+                                        "example": "+37069912345"
+                                    },
+                                    "from": {
+                                        "description": "Sender ID (alphanumeric, max 20 chars)",
+                                        "type": "string",
+                                        "example": "Zelta"
+                                    },
+                                    "message": {
+                                        "description": "Message body (max 1600 chars)",
+                                        "type": "string",
+                                        "example": "Hello from Zelta!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "SMS sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "message_id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "pending",
+                                                        "sent"
+                                                    ]
+                                                },
+                                                "price_usdc": {
+                                                    "type": "string"
+                                                },
+                                                "parts": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Payment required — MPP challenge issued"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "503": {
+                        "description": "SMS service disabled"
+                    }
+                }
+            }
+        },
+        "/api/v1/sms/rates": {
+            "get": {
+                "tags": [
+                    "SMS"
+                ],
+                "summary": "Get SMS rates for a country",
+                "description": "Returns per-message USDC pricing for a given ISO 3166-1 alpha-2 country code.",
+                "operationId": "smsRates",
+                "parameters": [
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 2,
+                            "minLength": 2
+                        },
+                        "example": "LT"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rate found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "country_code": {
+                                                    "type": "string"
+                                                },
+                                                "price_usdc": {
+                                                    "type": "string"
+                                                },
+                                                "currency": {
+                                                    "type": "string",
+                                                    "example": "USDC"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No rate found for country"
+                    },
+                    "422": {
+                        "description": "Invalid country code"
+                    }
+                }
+            }
+        },
+        "/api/v1/sms/status/{messageId}": {
+            "get": {
+                "tags": [
+                    "SMS"
+                ],
+                "summary": "Get message delivery status",
+                "description": "Returns the current delivery status of a previously sent SMS message. Requires authentication.",
+                "operationId": "smsStatus",
+                "parameters": [
+                    {
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "message_id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "pending",
+                                                        "sent",
+                                                        "delivered",
+                                                        "failed"
+                                                    ]
+                                                },
+                                                "delivered_at": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Message not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/sms/info": {
+            "get": {
+                "tags": [
+                    "SMS"
+                ],
+                "summary": "Get SMS service info",
+                "description": "Returns provider information, enabled status, test mode flag, and supported networks.",
+                "operationId": "smsInfo",
+                "responses": {
+                    "200": {
+                        "description": "Service info",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "provider": {
+                                                    "type": "string"
+                                                },
+                                                "enabled": {
+                                                    "type": "boolean"
+                                                },
+                                                "test_mode": {
+                                                    "type": "boolean"
+                                                },
+                                                "networks": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/settings": {
@@ -53462,6 +54284,58 @@
                 }
             }
         },
+        "/api/v1/webhooks/vertexsms/dlr": {
+            "post": {
+                "tags": [
+                    "SMS Webhooks"
+                ],
+                "summary": "VertexSMS delivery report webhook",
+                "description": "Receives SMS delivery status updates from VertexSMS. Verifies HMAC-SHA256 signature from X-VertexSMS-Signature header.",
+                "operationId": "vertexSmsDlr",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "message_id",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "message_id": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "sent",
+                                            "delivered",
+                                            "failed"
+                                        ]
+                                    },
+                                    "delivered_at": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Delivery report accepted"
+                    },
+                    "401": {
+                        "description": "Invalid webhook signature"
+                    },
+                    "422": {
+                        "description": "Missing message_id"
+                    }
+                }
+            }
+        },
         "/api/workflows": {
             "get": {
                 "tags": [
@@ -60309,6 +61183,15 @@
         {
             "name": "Lending",
             "description": "P2P lending: loan applications, payments, early settlement, and loan management"
+        },
+        {
+            "name": "SMS"
+        },
+        {
+            "name": "Machine Payments"
+        },
+        {
+            "name": "SMS Webhooks"
         },
         {
             "name": "Exchange Rates",

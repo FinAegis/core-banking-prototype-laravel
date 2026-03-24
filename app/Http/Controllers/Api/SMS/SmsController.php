@@ -9,7 +9,9 @@ use App\Domain\SMS\Services\SmsService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: 'SMS')]
 class SmsController extends Controller
 {
     public function __construct(
@@ -18,12 +20,41 @@ class SmsController extends Controller
     ) {
     }
 
-    /**
-     * Send an SMS message.
-     *
-     * This endpoint is protected by MppPaymentGateMiddleware.
-     * Payment metadata is attached to the request by the middleware.
-     */
+    #[OA\Post(
+        path: '/api/v1/sms/send',
+        operationId: 'smsSend',
+        summary: 'Send an SMS message',
+        description: 'Send an SMS message to a phone number. Protected by MPP payment gate — requires payment via x402, Stripe, or other configured rail.',
+        tags: ['SMS'],
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['to', 'message'],
+            properties: [
+                new OA\Property(property: 'to', type: 'string', example: '+37069912345', description: 'E.164 phone number'),
+                new OA\Property(property: 'from', type: 'string', example: 'Zelta', description: 'Sender ID (alphanumeric, max 20 chars)'),
+                new OA\Property(property: 'message', type: 'string', example: 'Hello from Zelta!', description: 'Message body (max 1600 chars)'),
+            ],
+        ),
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'SMS sent successfully',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'object', properties: [
+                    new OA\Property(property: 'message_id', type: 'string'),
+                    new OA\Property(property: 'status', type: 'string', enum: ['pending', 'sent']),
+                    new OA\Property(property: 'price_usdc', type: 'string'),
+                    new OA\Property(property: 'parts', type: 'integer'),
+                ]),
+            ],
+        ),
+    )]
+    #[OA\Response(response: 402, description: 'Payment required — MPP challenge issued')]
+    #[OA\Response(response: 422, description: 'Validation error')]
+    #[OA\Response(response: 503, description: 'SMS service disabled')]
     public function send(Request $request): JsonResponse
     {
         if (! config('sms.enabled', false)) {
@@ -54,9 +85,31 @@ class SmsController extends Controller
         ]);
     }
 
-    /**
-     * Get SMS rates for a country.
-     */
+    #[OA\Get(
+        path: '/api/v1/sms/rates',
+        operationId: 'smsRates',
+        summary: 'Get SMS rates for a country',
+        description: 'Returns per-message USDC pricing for a given ISO 3166-1 alpha-2 country code.',
+        tags: ['SMS'],
+        parameters: [
+            new OA\Parameter(name: 'country', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2), example: 'LT'),
+        ],
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Rate found',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'object', properties: [
+                    new OA\Property(property: 'country_code', type: 'string'),
+                    new OA\Property(property: 'price_usdc', type: 'string'),
+                    new OA\Property(property: 'currency', type: 'string', example: 'USDC'),
+                ]),
+            ],
+        ),
+    )]
+    #[OA\Response(response: 404, description: 'No rate found for country')]
+    #[OA\Response(response: 422, description: 'Invalid country code')]
     public function rates(Request $request): JsonResponse
     {
         $request->validate([
@@ -78,9 +131,32 @@ class SmsController extends Controller
         ]);
     }
 
-    /**
-     * Get message delivery status.
-     */
+    #[OA\Get(
+        path: '/api/v1/sms/status/{messageId}',
+        operationId: 'smsStatus',
+        summary: 'Get message delivery status',
+        description: 'Returns the current delivery status of a previously sent SMS message. Requires authentication.',
+        tags: ['SMS'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'messageId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Message status',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'object', properties: [
+                    new OA\Property(property: 'message_id', type: 'string'),
+                    new OA\Property(property: 'status', type: 'string', enum: ['pending', 'sent', 'delivered', 'failed']),
+                    new OA\Property(property: 'delivered_at', type: 'string', nullable: true),
+                ]),
+            ],
+        ),
+    )]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Message not found')]
     public function status(string $messageId): JsonResponse
     {
         $result = $this->smsService->getStatus($messageId);
@@ -97,9 +173,27 @@ class SmsController extends Controller
         ]);
     }
 
-    /**
-     * Get SMS service info.
-     */
+    #[OA\Get(
+        path: '/api/v1/sms/info',
+        operationId: 'smsInfo',
+        summary: 'Get SMS service info',
+        description: 'Returns provider information, enabled status, test mode flag, and supported networks.',
+        tags: ['SMS'],
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Service info',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'object', properties: [
+                    new OA\Property(property: 'provider', type: 'string'),
+                    new OA\Property(property: 'enabled', type: 'boolean'),
+                    new OA\Property(property: 'test_mode', type: 'boolean'),
+                    new OA\Property(property: 'networks', type: 'array', items: new OA\Items(type: 'string')),
+                ]),
+            ],
+        ),
+    )]
     public function info(): JsonResponse
     {
         return response()->json([

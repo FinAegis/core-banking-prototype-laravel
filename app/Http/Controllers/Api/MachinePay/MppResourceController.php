@@ -8,7 +8,9 @@ use App\Domain\MachinePay\Models\MppMonetizedResource;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: 'Machine Payments')]
 class MppResourceController extends Controller
 {
     public function __construct()
@@ -16,6 +18,18 @@ class MppResourceController extends Controller
         $this->middleware('is_admin')->except(['index', 'show']);
     }
 
+    #[OA\Get(
+        path: '/api/v1/mpp/resources',
+        operationId: 'mppResources',
+        summary: 'List monetized resources',
+        description: 'Returns paginated list of API endpoints that require MPP payment. Filter active-only by default.',
+        security: [['sanctum' => []]],
+        tags: ['Machine Payments'],
+        parameters: [
+            new OA\Parameter(name: 'active_only', in: 'query', required: false, schema: new OA\Schema(type: 'boolean'), description: 'Filter to active resources only (default: true)'),
+        ],
+    )]
+    #[OA\Response(response: 200, description: 'Monetized resources')]
     public function index(Request $request): JsonResponse
     {
         $resources = MppMonetizedResource::query()
@@ -29,6 +43,31 @@ class MppResourceController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/v1/mpp/resources',
+        operationId: 'mppCreateResource',
+        summary: 'Create a monetized resource',
+        description: 'Register an API endpoint for MPP payment gating. Admin only. Blocked for auth/admin/monitoring/webhook paths.',
+        security: [['sanctum' => []]],
+        tags: ['Machine Payments'],
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['method', 'path', 'amount_cents', 'currency', 'available_rails'],
+            properties: [
+                new OA\Property(property: 'method', type: 'string', enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+                new OA\Property(property: 'path', type: 'string', example: 'v1/sms/send'),
+                new OA\Property(property: 'amount_cents', type: 'integer', example: 5000),
+                new OA\Property(property: 'currency', type: 'string', example: 'USD'),
+                new OA\Property(property: 'available_rails', type: 'array', items: new OA\Items(type: 'string', enum: ['stripe', 'tempo', 'lightning', 'card', 'x402'])),
+                new OA\Property(property: 'description', type: 'string', nullable: true),
+            ],
+        ),
+    )]
+    #[OA\Response(response: 201, description: 'Resource created')]
+    #[OA\Response(response: 409, description: 'Duplicate method+path')]
+    #[OA\Response(response: 422, description: 'Validation error or blocked path')]
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -73,6 +112,18 @@ class MppResourceController extends Controller
         ], 201);
     }
 
+    #[OA\Get(
+        path: '/api/v1/mpp/resources/{id}',
+        operationId: 'mppShowResource',
+        summary: 'Get a monetized resource',
+        security: [['sanctum' => []]],
+        tags: ['Machine Payments'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+    )]
+    #[OA\Response(response: 200, description: 'Resource details')]
+    #[OA\Response(response: 404, description: 'Not found')]
     public function show(int $id): JsonResponse
     {
         $resource = MppMonetizedResource::findOrFail($id);
@@ -83,6 +134,29 @@ class MppResourceController extends Controller
         ]);
     }
 
+    #[OA\Put(
+        path: '/api/v1/mpp/resources/{id}',
+        operationId: 'mppUpdateResource',
+        summary: 'Update a monetized resource',
+        description: 'Update pricing, rails, or active status. Admin only.',
+        security: [['sanctum' => []]],
+        tags: ['Machine Payments'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+    )]
+    #[OA\RequestBody(
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'amount_cents', type: 'integer'),
+                new OA\Property(property: 'currency', type: 'string'),
+                new OA\Property(property: 'available_rails', type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'is_active', type: 'boolean'),
+            ],
+        ),
+    )]
+    #[OA\Response(response: 200, description: 'Resource updated')]
+    #[OA\Response(response: 404, description: 'Not found')]
     public function update(Request $request, int $id): JsonResponse
     {
         $resource = MppMonetizedResource::findOrFail($id);
@@ -104,6 +178,19 @@ class MppResourceController extends Controller
         ]);
     }
 
+    #[OA\Delete(
+        path: '/api/v1/mpp/resources/{id}',
+        operationId: 'mppDeleteResource',
+        summary: 'Delete a monetized resource',
+        description: 'Remove an API endpoint from MPP payment gating. Admin only.',
+        security: [['sanctum' => []]],
+        tags: ['Machine Payments'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+    )]
+    #[OA\Response(response: 200, description: 'Resource deleted')]
+    #[OA\Response(response: 404, description: 'Not found')]
     public function destroy(int $id): JsonResponse
     {
         $resource = MppMonetizedResource::findOrFail($id);

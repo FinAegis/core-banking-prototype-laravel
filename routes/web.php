@@ -88,7 +88,7 @@ if (config('brand.show_promo_pages')) {
     })->name('features');
 
     Route::get('/features/{feature}', function ($feature) {
-        $validFeatures = ['gcu', 'multi-asset', 'settlements', 'governance', 'bank-integration', 'api', 'crosschain-defi', 'privacy-identity', 'mobile-payments', 'regtech-compliance', 'baas-platform', 'ai-framework', 'multi-tenancy', 'x402-protocol', 'visa-cli', 'virtuals-protocol', 'plugin-marketplace', 'machine-payments'];
+        $validFeatures = ['gcu', 'multi-asset', 'settlements', 'governance', 'bank-integration', 'api', 'crosschain-defi', 'privacy-identity', 'mobile-payments', 'regtech-compliance', 'baas-platform', 'ai-framework', 'multi-tenancy', 'x402-protocol', 'visa-cli', 'virtuals-protocol', 'plugin-marketplace', 'machine-payments', 'agent-protocol'];
 
         if (! in_array($feature, $validFeatures)) {
             abort(404);

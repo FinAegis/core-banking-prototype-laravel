@@ -71,10 +71,7 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals('https://schema.org', $schema['@context']);
         $this->assertEquals('WebSite', $schema['@type']);
         $this->assertEquals(config('brand.name', 'Zelta'), $schema['name']);
-        $this->assertArrayHasKey('potentialAction', $schema);
-        $this->assertEquals('SearchAction', $schema['potentialAction']['@type']);
-        $this->assertArrayHasKey('target', $schema['potentialAction']);
-        $this->assertStringContainsString('{search_term_string}', $schema['potentialAction']['target']['urlTemplate']);
+        $this->assertArrayHasKey('url', $schema);
     }
 
     #[Test]

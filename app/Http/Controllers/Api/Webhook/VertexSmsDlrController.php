@@ -10,7 +10,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: 'SMS Webhooks')]
 class VertexSmsDlrController extends Controller
 {
     public function __construct(
@@ -19,9 +21,27 @@ class VertexSmsDlrController extends Controller
     ) {
     }
 
-    /**
-     * Handle VertexSMS delivery report webhook.
-     */
+    #[OA\Post(
+        path: '/api/v1/webhooks/vertexsms/dlr',
+        operationId: 'vertexSmsDlr',
+        summary: 'VertexSMS delivery report webhook',
+        description: 'Receives SMS delivery status updates from VertexSMS. Verifies HMAC-SHA256 signature from X-VertexSMS-Signature header.',
+        tags: ['SMS Webhooks'],
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['message_id', 'status'],
+            properties: [
+                new OA\Property(property: 'message_id', type: 'string'),
+                new OA\Property(property: 'status', type: 'string', enum: ['sent', 'delivered', 'failed']),
+                new OA\Property(property: 'delivered_at', type: 'string', nullable: true),
+            ],
+        ),
+    )]
+    #[OA\Response(response: 200, description: 'Delivery report accepted')]
+    #[OA\Response(response: 401, description: 'Invalid webhook signature')]
+    #[OA\Response(response: 422, description: 'Missing message_id')]
     public function handle(Request $request): JsonResponse
     {
         // Verify signature
