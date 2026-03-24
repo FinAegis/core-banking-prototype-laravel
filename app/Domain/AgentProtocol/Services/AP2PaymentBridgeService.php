@@ -18,6 +18,7 @@ use RuntimeException;
  */
 class AP2PaymentBridgeService
 {
+
     /**
      * Resolve the best payment method for a mandate.
      *
@@ -67,6 +68,41 @@ class AP2PaymentBridgeService
         ]);
 
         return $payment;
+    }
+
+    /**
+     * Check remaining budget for a mandate.
+     *
+     * @return array{budget_cents: int, spent_cents: int, remaining_cents: int}
+     */
+    public function getMandateBudgetStatus(string $mandateId): array
+    {
+        $mandate = AgentMandate::where('uuid', $mandateId)->firstOrFail();
+
+        /** @var array<string, mixed> $payload */
+        $payload = $mandate->payload ?? [];
+
+        $budgetCents = (int) ($payload['budget']['amount'] ?? 0);
+
+        $spentCents = MandatePayment::where('mandate_id', $mandate->uuid)
+            ->where('status', 'settled')
+            ->sum('amount_cents');
+
+        return [
+            'budget_cents'    => $budgetCents,
+            'spent_cents'     => (int) $spentCents,
+            'remaining_cents' => max(0, $budgetCents - (int) $spentCents),
+        ];
+    }
+
+    /**
+     * Check if a payment is within mandate budget.
+     */
+    public function isWithinBudget(string $mandateId, int $amountCents): bool
+    {
+        $status = $this->getMandateBudgetStatus($mandateId);
+
+        return $amountCents <= $status['remaining_cents'];
     }
 
     /**
