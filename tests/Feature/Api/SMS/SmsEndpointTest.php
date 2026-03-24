@@ -36,9 +36,9 @@ describe('SMS Endpoints', function (): void {
             'message' => 'Hello from test',
         ]);
 
-        // MPP disabled → middleware passes through → but VertexSMS client will fail
-        // In test env without VertexSMS configured, we expect an error
-        expect($response->status())->toBeIn([402, 422, 500]);
+        // SMS_ENABLED=false by default → returns 503
+        // Or MPP disabled → middleware passes through → 503
+        expect($response->status())->toBeIn([402, 422, 500, 503]);
     });
 
     it('requires authentication for status check', function (): void {

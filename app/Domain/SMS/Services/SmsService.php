@@ -6,6 +6,7 @@ namespace App\Domain\SMS\Services;
 
 use App\Domain\SMS\Clients\VertexSmsClient;
 use App\Domain\SMS\Models\SmsMessage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -45,8 +46,8 @@ class SmsService
             $price = $this->pricing->getPriceForNumber($to, $result['parts']);
         }
 
-        // Record in database
-        $sms = SmsMessage::create([
+        // Record in database — wrap in transaction for consistency
+        $sms = DB::transaction(fn () => SmsMessage::create([
             'provider'        => (string) config('sms.default_provider', 'mock'),
             'provider_id'     => $result['message_id'],
             'to'              => $to,
@@ -60,14 +61,16 @@ class SmsService
             'payment_id'      => $paymentMeta['payment_id'] ?? null,
             'payment_receipt' => $paymentMeta['receipt_id'] ?? null,
             'test_mode'       => $testMode,
-        ]);
+        ]));
 
         Log::info('SMS: Message recorded', [
-            'id'          => $sms->id,
-            'provider_id' => $result['message_id'],
-            'to'          => $to,
-            'parts'       => $result['parts'],
-            'price_usdc'  => $price['amount_usdc'],
+            'id'           => $sms->id,
+            'provider_id'  => $result['message_id'],
+            'to'           => $to,
+            'parts'        => $result['parts'],
+            'price_usdc'   => $price['amount_usdc'],
+            'payment_rail' => $paymentMeta['rail'] ?? null,
+            'payment_id'   => $paymentMeta['payment_id'] ?? null,
         ]);
 
         return [
@@ -82,30 +85,49 @@ class SmsService
     /**
      * Handle a delivery report from VertexSMS.
      *
+     * Uses pessimistic locking to prevent race conditions from
+     * concurrent DLR webhooks for the same message.
+     *
      * @param  array{message_id: string, status: string, delivered_at?: string|null}  $dlr
      */
     public function handleDeliveryReport(array $dlr): void
     {
-        $sms = SmsMessage::where('provider_id', $dlr['message_id'])->first();
+        DB::transaction(function () use ($dlr): void {
+            $sms = SmsMessage::where('provider_id', $dlr['message_id'])
+                ->lockForUpdate()
+                ->first();
 
-        if ($sms === null) {
-            Log::warning('SMS: DLR for unknown message', ['provider_id' => $dlr['message_id']]);
+            if ($sms === null) {
+                Log::warning('SMS: DLR for unknown message', ['provider_id' => $dlr['message_id']]);
 
-            return;
-        }
+                return;
+            }
 
-        $newStatus = $this->normalizeDlrStatus($dlr['status'] ?? '');
+            $newStatus = $this->normalizeDlrStatus($dlr['status'] ?? '');
+            $currentStatus = (string) $sms->status;
 
-        $sms->update([
-            'status'       => $newStatus,
-            'delivered_at' => $dlr['delivered_at'] ?? ($newStatus === SmsMessage::STATUS_DELIVERED ? now() : null),
-        ]);
+            // Only allow forward state transitions
+            if (! $this->isValidTransition($currentStatus, $newStatus)) {
+                Log::debug('SMS: DLR skipped (invalid transition)', [
+                    'provider_id' => $dlr['message_id'],
+                    'current'     => $currentStatus,
+                    'new'         => $newStatus,
+                ]);
 
-        Log::info('SMS: DLR processed', [
-            'id'          => $sms->id,
-            'provider_id' => $dlr['message_id'],
-            'status'      => $newStatus,
-        ]);
+                return;
+            }
+
+            $sms->update([
+                'status'       => $newStatus,
+                'delivered_at' => $dlr['delivered_at'] ?? ($newStatus === SmsMessage::STATUS_DELIVERED ? now() : null),
+            ]);
+
+            Log::info('SMS: DLR processed', [
+                'id'          => $sms->id,
+                'provider_id' => $dlr['message_id'],
+                'status'      => $newStatus,
+            ]);
+        });
     }
 
     /**
@@ -153,5 +175,23 @@ class SmsService
             'sent', 'accepted', 'enroute' => SmsMessage::STATUS_SENT,
             default => SmsMessage::STATUS_SENT,
         };
+    }
+
+    /**
+     * Check if a DLR status transition is valid (forward-only).
+     *
+     * pending → sent → delivered (terminal)
+     * pending → sent → failed (terminal)
+     */
+    private function isValidTransition(string $current, string $new): bool
+    {
+        $order = [
+            SmsMessage::STATUS_PENDING   => 0,
+            SmsMessage::STATUS_SENT      => 1,
+            SmsMessage::STATUS_DELIVERED => 2,
+            SmsMessage::STATUS_FAILED    => 2,
+        ];
+
+        return ($order[$new] ?? 0) >= ($order[$current] ?? 0);
     }
 }

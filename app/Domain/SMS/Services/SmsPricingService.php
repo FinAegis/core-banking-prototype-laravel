@@ -30,14 +30,19 @@ class SmsPricingService
         $countryCode = $this->extractCountryCode($phoneNumber);
         $rateEur = $this->getRateForCountry($countryCode);
 
-        $marginMultiplier = (float) config('sms.pricing.margin_multiplier', 1.15);
-        $eurUsdRate = (float) config('sms.pricing.eur_usd_rate', 1.08);
+        // Guard against zero/negative rates
+        if ($rateEur <= 0.0) {
+            $rateEur = 0.01;
+        }
+
+        $marginMultiplier = max(1.0, (float) config('sms.pricing.margin_multiplier', 1.15));
+        $eurUsdRate = max(0.5, (float) config('sms.pricing.eur_usd_rate', 1.08));
 
         $perPartUsd = $rateEur * $eurUsdRate * $marginMultiplier;
         $totalUsd = $perPartUsd * $parts;
 
-        // Convert to atomic USDC (6 decimals)
-        $atomicUsdc = (string) (int) ceil($totalUsd * 1_000_000);
+        // Convert to atomic USDC (6 decimals), minimum 1000 ($0.001)
+        $atomicUsdc = (string) max(1000, (int) ceil($totalUsd * 1_000_000));
 
         return [
             'amount_usdc'  => $atomicUsdc,

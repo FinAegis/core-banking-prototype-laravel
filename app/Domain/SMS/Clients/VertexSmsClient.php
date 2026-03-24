@@ -67,8 +67,15 @@ class VertexSmsClient
         /** @var array<int, string>|null $data */
         $data = $response->json();
 
-        $messageId = is_array($data) ? ($data[0] ?? '') : '';
-        $parts = (int) ($response->header('X-VertexSMS-Amount-Sent') ?? '1');
+        $messageId = is_array($data) && isset($data[0]) ? (string) $data[0] : '';
+
+        if ($messageId === '') {
+            throw new RuntimeException(
+                'VertexSMS API returned empty or invalid message ID'
+            );
+        }
+
+        $parts = max(1, (int) ($response->header('X-VertexSMS-Amount-Sent') ?? '1'));
 
         Log::info('VertexSMS: SMS sent', [
             'message_id' => $messageId,

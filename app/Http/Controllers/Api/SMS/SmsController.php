@@ -26,10 +26,14 @@ class SmsController extends Controller
      */
     public function send(Request $request): JsonResponse
     {
+        if (! config('sms.enabled', false)) {
+            return response()->json(['error' => 'SMS service is not enabled'], 503);
+        }
+
         $request->validate([
-            'to'      => 'required|string|min:5|max:20',
-            'from'    => 'nullable|string|max:20',
-            'message' => 'required|string|min:1|max:1600',
+            'to'      => ['required', 'string', 'regex:/^\+?[1-9]\d{4,18}$/'],
+            'from'    => ['nullable', 'string', 'regex:/^[a-zA-Z0-9 ]{1,20}$/'],
+            'message' => ['required', 'string', 'min:1', 'max:1600'],
         ]);
 
         $from = $request->input('from', config('sms.defaults.sender_id', 'Zelta'));
@@ -56,7 +60,7 @@ class SmsController extends Controller
     public function rates(Request $request): JsonResponse
     {
         $request->validate([
-            'country' => 'required|string|size:2',
+            'country' => ['required', 'string', 'size:2', 'alpha'],
         ]);
 
         $countryCode = strtoupper((string) $request->input('country'));
