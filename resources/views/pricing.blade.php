@@ -58,7 +58,7 @@
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
                             <li class="list-check">Full source code access</li>
                             <li class="list-check">MIT License</li>
-                            <li class="list-check">All 47 domain modules</li>
+                            <li class="list-check">All 49 domain modules</li>
                             <li class="list-check">Community support</li>
                             <li class="list-check">Self-hosted deployment</li>
                         </ul>

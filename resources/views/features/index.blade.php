@@ -38,7 +38,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
             <div class="text-center">
                 @include('partials.breadcrumb', ['items' => [['name' => 'Features', 'url' => url('/features')]]])
-                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">47 Domain Modules. <span class="text-gradient">One Platform.</span></h1>
+                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">49 Domain Modules. <span class="text-gradient">One Platform.</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
                     Every building block a modern fintech needs — from democratic currency governance to AI agent commerce, cross-chain DeFi, and privacy-preserving identity.
                 </p>
@@ -487,6 +487,25 @@
                         Give autonomous AI agents a compliant bank account. Virtuals Protocol integration with TrustCert identity, spending limits, and Pimlico enforcement.
                     </p>
                     <a href="{{ route('features.show', 'virtuals-protocol') }}" class="text-violet-600 font-medium hover:text-violet-700">
+                        Learn more &rarr;
+                    </a>
+                </div>
+
+                <!-- Machine Payments (MPP + x402 + AP2) -->
+                <div class="card-feature">
+                    <div class="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-xl font-semibold">Machine Payments</h3>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">New</span>
+                    </div>
+                    <p class="text-slate-500 mb-4">
+                        Three payment protocols for AI agents: x402 (USDC), MPP (Stripe + Lightning + stablecoins), and AP2 enterprise mandates. Multi-rail SMS payments via VertexSMS.
+                    </p>
+                    <a href="{{ route('features.show', 'machine-payments') }}" class="text-orange-600 font-medium hover:text-orange-700">
                         Learn more &rarr;
                     </a>
                 </div>

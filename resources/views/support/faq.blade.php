@@ -13,7 +13,7 @@
     $faqData = [
         [
             'question' => 'What is the current status of ' . config('brand.name', 'Zelta') . '?',
-            'answer' => config('brand.name', 'Zelta') . ' v5.12.0 is a fully-featured open-source core banking platform with 47 domain modules. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
+            'answer' => config('brand.name', 'Zelta') . ' v6.5.0 is a fully-featured open-source core banking platform with 49 domain modules. The public instance runs in sandbox mode with test data so you can explore every feature freely. No real money is processed in the sandbox environment.'
         ],
         [
             'question' => 'Can I use real money on the platform?',
@@ -21,7 +21,7 @@
         ],
         [
             'question' => 'How do I get started?',
-            'answer' => 'Register for a free account to explore the sandbox, or clone the repository from GitHub to self-host. You can explore all 47 domain modules, test the APIs, and provide feedback through our support channels.'
+            'answer' => 'Register for a free account to explore the sandbox, or clone the repository from GitHub to self-host. You can explore all 49 domain modules, test the APIs, and provide feedback through our support channels.'
         ],
         [
             'question' => 'What is the Global Currency Unit (GCU)?',
@@ -127,10 +127,10 @@
                     </button>
                     <div class="faq-answer px-6 py-4 bg-white rounded-b-lg">
                         <p class="text-slate-500">
-                            {{ config('brand.name', 'Zelta') }} is a fully-featured open-source core banking platform at v5.12.0. The sandbox environment lets you:
+                            {{ config('brand.name', 'Zelta') }} is a fully-featured open-source core banking platform at v6.5.0. The sandbox environment lets you:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li>Explore 47 domain modules including DeFi, cross-chain, privacy, and rewards</li>
+                            <li>Explore 49 domain modules including DeFi, cross-chain, privacy, and rewards</li>
                             <li>Test 143+ REST API endpoints and a 39-domain GraphQL API</li>
                             <li>Try KYC/AML compliance flows, card issuing, and mobile payments</li>
                             <li>All transactions use test data &mdash; no real funds are involved</li>
@@ -343,7 +343,7 @@
                             We have an exciting roadmap ahead:
                         </p>
                         <ul class="list-disc list-inside mt-2 text-slate-500 space-y-1">
-                            <li><strong>Delivered:</strong> 47 domain modules, 143+ API endpoints, GraphQL, event sourcing</li>
+                            <li><strong>Delivered:</strong> 49 domain modules, 143+ API endpoints, GraphQL, event sourcing</li>
                             <li><strong>Delivered:</strong> Mobile app backend, passkey auth, card issuing, KYC/AML</li>
                             <li><strong>Delivered:</strong> Cross-chain bridges, DeFi connectors, X402 micropayments</li>
                             <li><strong>Upcoming:</strong> GCU voting system, production bank integrations</li>

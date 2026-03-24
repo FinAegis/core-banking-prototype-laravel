@@ -2468,6 +2468,74 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 
 ---
 
-*Document Version: 6.4.0*
+## Version 6.4.1 — Helius Auto-Sync + Security Hardening (RELEASED)
+
+**Release Date**: March 23, 2026
+
+- Helius webhook auto-sync for Solana address monitoring
+- HMAC key separation (derived domain-specific keys)
+- Settlement idempotency with `lockForUpdate`
+- CI fix: K8s workflow manual trigger only
+
+---
+
+## Version 6.4.2 — HyperSwitch Payment Orchestration (RELEASED)
+
+**Release Date**: March 23, 2026
+
+- HyperSwitch integration: 150+ payment connectors, smart routing, failover
+- REST client for payments, refunds, customers, connectors
+- HMAC-SHA512 webhook verification
+
+---
+
+## Version 6.4.3 — Swagger 403 Fix (RELEASED)
+
+**Release Date**: March 23, 2026
+
+- Moved `public/docs/` to `public/postman/` to resolve nginx 403 on Swagger
+- HyperSwitch PHPStan compliance
+
+---
+
+## Version 6.5.0 — SMS Multi-Rail Payments + Mobile Launch (RELEASED)
+
+**Release Date**: March 24, 2026
+**Theme**: First Partner Integration + Mobile Readiness
+
+### SMS Domain (VertexSMS)
+
+| Component | Files | Description |
+|-----------|-------|-------------|
+| SMS Service | 6 | VertexSMS client, pricing, settlement, exchange rates |
+| SMS Controller | 2 | Send (MPP-gated), rates, status, DLR webhook |
+| x402 Rail Adapter | 1 | Bridges x402 facilitator as MPP payment rail |
+| MCP Tool | 1 | `sms.send` for AI agent SMS discovery |
+| AP2 Mandate | 1 | `SmsIntentMandate` template for enterprise campaigns |
+| Migration | 1 | `sms_messages` table |
+| Partner Spec | 1 | Multi-rail integration guide for VertexSMS |
+
+### Mobile Launch Readiness
+
+| Component | Description |
+|-----------|-------------|
+| Quest Triggers | 5 auto-completion listeners (login, payment, card, shield, transaction) |
+| Device Attestation | Apple App Attest + Google Play Integrity verifiers |
+| JIT Funding | Real balance via AccountQueryService (demo fallback) |
+| Handover Doc | Complete mobile developer specification |
+
+### Security Hardening
+- DLR webhook: `DB::transaction` + `lockForUpdate` + forward-only state machine
+- Rate limiting: SMS send (60/min), DLR webhook (200/min)
+- E.164 phone validation, zero-rate pricing guard
+- Stripe Connect with `transfer_data` for direct provider settlement
+
+### PaymentRail Enum
+- New `X402_USDC` case for USDC payments via x402 facilitator
+- Total rails: Stripe SPT, Tempo, Lightning, Card, x402 USDC
+
+---
+
+*Document Version: 6.5.0*
 *Created: January 11, 2026*
-*Updated: March 23, 2026 (v6.4.0 MPP + AP2 + Solana)*
+*Updated: March 24, 2026 (v6.5.0 SMS + Mobile Launch)*

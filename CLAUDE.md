@@ -22,7 +22,7 @@ php artisan user:admins              # List all admin users
 
 ## Architecture
 
-- **47 domains** in `app/Domain/` (DDD bounded contexts)
+- **49 domains** in `app/Domain/` (DDD bounded contexts)
 - **Event Sourcing**: Spatie v7.7+ with domain-specific tables
 - **CQRS**: Command/Query Bus in `app/Infrastructure/`
 - **GraphQL**: Lighthouse PHP, 39 domain schemas

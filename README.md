@@ -1,7 +1,7 @@
 # FinAegis Core Banking Platform
 
 [![CI Pipeline](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/finaegis/core-banking-prototype-laravel/actions/workflows/ci-pipeline.yml)
-[![Version](https://img.shields.io/badge/version-6.1.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-6.5.0-blue.svg)](CHANGELOG.md)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20.svg)](https://laravel.com/)
@@ -20,7 +20,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 
 | Challenge | FinAegis Solution |
 |-----------|-------------------|
-| Building financial systems from scratch | 45 production-ready domain modules |
+| Building financial systems from scratch | 49 production-ready domain modules |
 | Audit trail requirements | Event sourcing with domain-specific event tables |
 | Complex multi-step transactions | Saga pattern with automatic compensation |
 | Regulatory compliance | Built-in KYC/AML, SOC 2, PCI DSS, GDPR (v3.5.0) |
@@ -44,6 +44,12 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Developer ecosystem | Plugin marketplace, developer portal, 3 official SDKs (v6.0.0) |
 | Post-quantum cryptography | ML-KEM-768, ML-DSA-65, hybrid encryption with key rotation (v6.1.0) |
 | Feature completeness | Card sync webhooks, bank transfer state machine, tenant provisioning (v6.1.1) |
+| Distributed tracing | OpenTelemetry, Zipkin, Jaeger, per-request trace propagation (v6.2.0) |
+| AI agent commerce | A2A messaging, DID identity, escrow, reputation framework (v6.3.0) |
+| Machine payments | MPP multi-rail (Stripe, USDC, Lightning), AP2 mandates, x402 Solana (v6.4.0) |
+| Payment orchestration | HyperSwitch 150+ connectors, smart routing, failover (v6.4.2) |
+| Mobile launch readiness | Quest auto-triggers, device attestation, JIT funding, rewards (v6.5.0) |
+| SMS multi-rail payments | VertexSMS integration, MPP-gated SMS, MCP tool for AI agents (v6.5.0) |
 | Learning modern architecture | Complete DDD + CQRS + Event Sourcing example |
 
 ---
@@ -53,7 +59,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 FinAegis uses a modular plugin system where each domain is a self-contained module:
 
 ```bash
-php artisan domain:list              # List all 45 domain modules with status
+php artisan domain:list              # List all 49 domain modules with status
 php artisan module:enable exchange   # Enable a module
 php artisan module:disable exchange  # Disable a module (preserves data)
 php artisan domain:verify exchange   # Verify module health
@@ -82,7 +88,7 @@ curl -X POST http://localhost:8000/graphql \
   -d '{"query": "{ accounts { id name balance currency } }"}'
 ```
 
-- **36 domain schemas** — Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet, X402
+- **39 domain schemas** — Account, AgentProtocol, AI, Asset, Banking, Basket, Batch, CardIssuance, Cgo, Commerce, Compliance, CrossChain, Custodian, DeFi, Exchange, FinancialInstitution, Fraud, Governance, KeyManagement, Lending, MachinePay, Mobile, MobilePayment, Payment, Privacy, Product, RegTech, Regulatory, Relayer, Stablecoin, Treasury, TrustCert, User, Wallet, X402
 - **Subscriptions** — Real-time updates via WebSocket (account updates, wallet changes, compliance alerts, order matching)
 - **DataLoaders** — N+1 query prevention with batched loading
 - **Security** — `@guard(with: ["sanctum"])`, query cost analysis, introspection control

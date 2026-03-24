@@ -32,7 +32,7 @@
                     <svg class="w-4 h-4 text-fa-teal" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
                     </svg>
-                    Open Source &middot; MIT Licensed &middot; 47 Domains
+                    Open Source &middot; MIT Licensed &middot; 49 Domains
                 </div>
 
                 <!-- Heading -->
@@ -150,7 +150,7 @@
             <div class="text-center mb-16 animate-on-scroll">
                 <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">Built-In Capabilities</h2>
                 <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-                    47 domain modules spanning payments, lending, compliance, DeFi, privacy, mobile wallets, AI analytics, and more.
+                    49 domain modules spanning payments, lending, compliance, DeFi, privacy, mobile wallets, AI analytics, and more.
                 </p>
             </div>
 
@@ -195,7 +195,7 @@
 
             <div class="text-center mt-12 animate-on-scroll">
                 <a href="{{ route('features') }}" class="btn-primary !bg-slate-900 hover:!bg-slate-800 !rounded-lg group">
-                    See All 47 Domains
+                    See All 49 Domains
                     <svg class="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                 </a>
             </div>
