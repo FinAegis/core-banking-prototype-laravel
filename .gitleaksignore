@@ -1,28 +1,9 @@
-# Ignore specific files that contain example secrets
-docs/04-DEVELOPER/SDK-GUIDE.md
-docs/04-DEVELOPER/API-EXAMPLES.md
-docs/04-DEVELOPER/finaegis-api-v2.postman_collection.json
+# Gitleaks fingerprint ignore list
+# Format: commit:file:rule:line (use gitleaks detect --report-format=json to get fingerprints)
+#
+# All entries below are false positives — public blockchain contract addresses,
+# env variable names (not values), and documentation code examples.
 
-# Ignore specific patterns
-whsec_[a-zA-Z0-9]{32}:docs/
-your_api_key:docs/
-your_webhook_secret:docs/
-
-# Ignore specific commits if needed (use commit hash)
-# a92d3c6:app/Http/Controllers/Api/V2/WebhookController.php
-
-# Ignore development API keys from .env.dev
+# Development API keys from .env.dev
 5ef219fca15ff91e9c77b2ef1a00d37e8d08b0ee:.env.dev:generic-api-key:171
 5ef219fca15ff91e9c77b2ef1a00d37e8d08b0ee:.env.dev:generic-api-key:242
-
-# Developer documentation Blade views with placeholder API keys in code examples
-resources/views/developers/sdks.blade.php
-resources/views/developers/examples.blade.php
-
-# Public blockchain smart contract addresses (NOT secrets)
-# These are publicly deployed, immutable contract addresses visible on block explorers.
-# GitLeaks flags the 0x... hex strings as generic-api-key false positives.
-config/crosschain.php
-config/defi.php
-config/relayer.php
-config/privacy.php
