@@ -613,7 +613,7 @@
                         <div class="flex items-center gap-3 md:gap-4">
                             <div class="flex flex-col items-center">
                                 <div class="w-[64px] h-[64px] md:w-[80px] md:h-[80px] rounded-full overflow-hidden bru-card-sm">
-                                    <img src="{{ $node['icon'] }}" alt="{{ $node['label'] }}" class="h-full w-full">
+                                    <img src="{{ $node['icon'] }}" alt="{{ $node['label'] }}" class="h-full w-full" loading="lazy">
                                 </div>
                                 <span class="text-[10px] md:text-xs font-bold mt-1.5 font-mono text-text-sec">{{ $node['label'] }}</span>
                             </div>
@@ -638,7 +638,7 @@
                     <div class="flex gap-4 justify-center">
                         @foreach($panel['icons'] as $src)
                         <div class="w-[72px] h-[72px] md:w-[88px] md:h-[88px] rounded-full overflow-hidden bru-border hs-4">
-                            <img src="{{ $src }}" alt="" class="h-full w-full">
+                            <img src="{{ $src }}" alt="" class="h-full w-full" loading="lazy">
                         </div>
                         @endforeach
                     </div>
@@ -657,7 +657,7 @@
                 ] as $subCard)
                 <div class="p-8 bg-white bru-card rounded-[2rem]">
                     <div class="rounded-full overflow-hidden mb-4 bru-card-sm" style="width: 56px; height: 56px;">
-                        <img src="{{ $subCard['icon'] }}" alt="" class="h-full w-full">
+                        <img src="{{ $subCard['icon'] }}" alt="" class="h-full w-full" loading="lazy">
                     </div>
                     <h3 class="text-xl md:text-2xl font-black mb-2 font-heading tracking-tighter">{{ $subCard['title'] }}</h3>
                     <p class="text-base text-text-sec">{{ $subCard['desc'] }}</p>

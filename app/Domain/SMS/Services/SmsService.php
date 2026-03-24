@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\SMS\Services;
 
 use App\Domain\SMS\Clients\VertexSmsClient;
+use App\Domain\SMS\Events\SmsDelivered;
+use App\Domain\SMS\Events\SmsFailed;
+use App\Domain\SMS\Events\SmsSent;
 use App\Domain\SMS\Models\SmsMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -73,6 +76,14 @@ class SmsService
             'payment_id'   => $paymentMeta['payment_id'] ?? null,
         ]);
 
+        SmsSent::dispatch(
+            (string) $sms->id,
+            $to,
+            $result['parts'],
+            $price['amount_usdc'],
+            $paymentMeta,
+        );
+
         return [
             'message_id'  => $result['message_id'],
             'status'      => 'sent',
@@ -121,6 +132,12 @@ class SmsService
                 'status'       => $newStatus,
                 'delivered_at' => $dlr['delivered_at'] ?? ($newStatus === SmsMessage::STATUS_DELIVERED ? now() : null),
             ]);
+
+            if ($newStatus === SmsMessage::STATUS_DELIVERED) {
+                SmsDelivered::dispatch((string) $sms->id, $dlr['message_id']);
+            } elseif ($newStatus === SmsMessage::STATUS_FAILED) {
+                SmsFailed::dispatch((string) $sms->id, $dlr['message_id'], $dlr['status'] ?? 'unknown');
+            }
 
             Log::info('SMS: DLR processed', [
                 'id'          => $sms->id,

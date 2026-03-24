@@ -1,0 +1,63 @@
+"""
+SMS Domain — VertexSMS integration with multi-rail payment gating.
+"""
+
+enum SmsStatus {
+    PENDING @enum(value: "pending")
+    SENT @enum(value: "sent")
+    DELIVERED @enum(value: "delivered")
+    FAILED @enum(value: "failed")
+}
+
+type SmsMessage {
+    id: ID!
+    provider: String!
+    provider_id: String!
+    to: String!
+    from: String!
+    parts: Int!
+    status: SmsStatus!
+    price_usdc: String!
+    country_code: String!
+    payment_rail: String
+    payment_id: String
+    test_mode: Boolean!
+    delivered_at: DateTime
+    created_at: DateTime!
+}
+
+type SmsRate {
+    country: String!
+    country_code: String!
+    rate_eur: String!
+    rate_usdc: String!
+}
+
+type SmsServiceInfo {
+    provider: String!
+    enabled: Boolean!
+    test_mode: Boolean!
+    networks: [String!]!
+}
+
+type SendSmsResult {
+    message_id: String!
+    status: String!
+    parts: Int!
+    destination: String!
+    price_usdc: String!
+}
+
+extend type Query {
+    "Get SMS message status by provider message ID."
+    smsStatus(messageId: String! @eq(key: "provider_id")): SmsMessage
+        @find(model: "App\\Domain\\SMS\\Models\\SmsMessage")
+        @guard(with: ["sanctum"])
+
+    "Get SMS rates for a country code."
+    smsRates(country: String!): SmsRate
+        @guard(with: ["sanctum"])
+
+    "Get SMS service information."
+    smsInfo: SmsServiceInfo
+}
