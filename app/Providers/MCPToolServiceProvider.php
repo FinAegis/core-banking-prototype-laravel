@@ -23,6 +23,7 @@ use App\Domain\AI\MCP\Tools\MachinePay\MppDiscoveryTool;
 use App\Domain\AI\MCP\Tools\MachinePay\MppPaymentTool;
 use App\Domain\AI\MCP\Tools\Payment\PaymentStatusTool;
 use App\Domain\AI\MCP\Tools\Payment\TransferTool;
+use App\Domain\AI\MCP\Tools\SMS\SmsSendTool;
 use App\Domain\AI\MCP\Tools\VisaCli\VisaCliCardsTool;
 use App\Domain\AI\MCP\Tools\VisaCli\VisaCliPaymentTool;
 use App\Domain\AI\MCP\Tools\X402\X402PaymentTool;
@@ -82,6 +83,9 @@ class MCPToolServiceProvider extends ServiceProvider
         // AP2 Mandate Tools
         AgentMandateTool::class,
         AgentVdcTool::class,
+
+        // SMS Tools
+        SmsSendTool::class,
     ];
 
     /**

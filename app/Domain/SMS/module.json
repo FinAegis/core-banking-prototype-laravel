@@ -1,0 +1,29 @@
+{
+    "$schema": "https://finaegis.io/schemas/module.json",
+    "name": "finaegis/sms",
+    "version": "1.0.0",
+    "description": "SMS service — VertexSMS integration with x402/MPP multi-rail payment gating",
+    "type": "feature",
+    "dependencies": {
+        "required": {
+            "finaegis/shared": "^1.0",
+            "finaegis/machinepay": "^1.0"
+        },
+        "optional": {}
+    },
+    "provides": {
+        "interfaces": [],
+        "events": [
+            "App\\Domain\\SMS\\Events\\SmsSent",
+            "App\\Domain\\SMS\\Events\\SmsDelivered",
+            "App\\Domain\\SMS\\Events\\SmsFailed"
+        ],
+        "commands": []
+    },
+    "paths": {
+        "routes": "Routes/api.php",
+        "migrations": null,
+        "config": null,
+        "tests": null
+    }
+}

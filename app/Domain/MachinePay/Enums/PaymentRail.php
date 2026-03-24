@@ -17,6 +17,7 @@ enum PaymentRail: string
     case TEMPO = 'tempo';
     case LIGHTNING = 'lightning';
     case CARD = 'card';
+    case X402_USDC = 'x402';
 
     /**
      * Human-readable label for this rail.
@@ -28,6 +29,7 @@ enum PaymentRail: string
             self::TEMPO      => 'Tempo Stablecoin',
             self::LIGHTNING  => 'Lightning Network',
             self::CARD       => 'Card Network',
+            self::X402_USDC  => 'x402 USDC (Coinbase)',
         };
     }
 
@@ -41,6 +43,7 @@ enum PaymentRail: string
             self::TEMPO      => 'TIP-20 stablecoin transfers on Tempo blockchain (chain 42431)',
             self::LIGHTNING  => 'BOLT11 invoice payments with preimage-based proof of payment',
             self::CARD       => 'Encrypted network tokens via JWE (RSA-OAEP-256 + AES-256-GCM)',
+            self::X402_USDC  => 'USDC payments via x402 protocol and Coinbase facilitator (EVM + Solana)',
         };
     }
 
@@ -51,7 +54,7 @@ enum PaymentRail: string
     {
         return match ($this) {
             self::STRIPE_SPT, self::CARD => true,
-            self::TEMPO, self::LIGHTNING => false,
+            self::TEMPO, self::LIGHTNING, self::X402_USDC => false,
         };
     }
 
@@ -61,7 +64,7 @@ enum PaymentRail: string
     public function supportsCrypto(): bool
     {
         return match ($this) {
-            self::TEMPO, self::LIGHTNING => true,
+            self::TEMPO, self::LIGHTNING, self::X402_USDC => true,
             self::STRIPE_SPT, self::CARD => false,
         };
     }
@@ -78,6 +81,7 @@ enum PaymentRail: string
             self::TEMPO      => ['USDC', 'USDT'],
             self::LIGHTNING  => ['BTC'],
             self::CARD       => ['USD', 'EUR', 'GBP'],
+            self::X402_USDC  => ['USDC'],
         };
     }
 }

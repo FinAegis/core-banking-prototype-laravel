@@ -37,7 +37,7 @@ class MppResourceController extends Controller
             'amount_cents'      => ['required', 'integer', 'min:1', 'max:100000000'],
             'currency'          => ['required', 'string', 'max:10'],
             'available_rails'   => ['required', 'array', 'min:1'],
-            'available_rails.*' => ['string', 'in:stripe,tempo,lightning,card'],
+            'available_rails.*' => ['string', 'in:stripe,tempo,lightning,card,x402'],
             'description'       => ['nullable', 'string', 'max:500'],
             'mime_type'         => ['nullable', 'string', 'max:128'],
         ]);
@@ -91,7 +91,7 @@ class MppResourceController extends Controller
             'amount_cents'      => ['sometimes', 'integer', 'min:1', 'max:100000000'],
             'currency'          => ['sometimes', 'string', 'max:10'],
             'available_rails'   => ['sometimes', 'array', 'min:1'],
-            'available_rails.*' => ['string', 'in:stripe,tempo,lightning,card'],
+            'available_rails.*' => ['string', 'in:stripe,tempo,lightning,card,x402'],
             'description'       => ['nullable', 'string', 'max:500'],
             'is_active'         => ['sometimes', 'boolean'],
         ]);

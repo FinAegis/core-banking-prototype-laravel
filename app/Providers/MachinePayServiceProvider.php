@@ -18,6 +18,7 @@ use App\Domain\MachinePay\Services\Rails\DemoRailAdapter;
 use App\Domain\MachinePay\Services\Rails\LightningRailAdapter;
 use App\Domain\MachinePay\Services\Rails\StripeRailAdapter;
 use App\Domain\MachinePay\Services\Rails\TempoRailAdapter;
+use App\Domain\MachinePay\Services\Rails\X402RailAdapter;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -54,6 +55,7 @@ class MachinePayServiceProvider extends ServiceProvider
                 $resolver->register($app->make(StripeRailAdapter::class));
                 $resolver->register($app->make(TempoRailAdapter::class));
                 $resolver->register($app->make(LightningRailAdapter::class));
+                $resolver->register($app->make(X402RailAdapter::class));
             } else {
                 // Non-production: demo adapters for all rails
                 foreach (PaymentRail::cases() as $rail) {

@@ -9,11 +9,12 @@ use App\Domain\MachinePay\Enums\TransportBinding;
 
 describe('MachinePay Enums', function (): void {
     it('has all payment rail cases', function (): void {
-        expect(PaymentRail::cases())->toHaveCount(4);
+        expect(PaymentRail::cases())->toHaveCount(5);
         expect(PaymentRail::STRIPE_SPT->value)->toBe('stripe');
         expect(PaymentRail::TEMPO->value)->toBe('tempo');
         expect(PaymentRail::LIGHTNING->value)->toBe('lightning');
         expect(PaymentRail::CARD->value)->toBe('card');
+        expect(PaymentRail::X402_USDC->value)->toBe('x402');
     });
 
     it('returns correct labels', function (): void {
@@ -21,6 +22,7 @@ describe('MachinePay Enums', function (): void {
         expect(PaymentRail::TEMPO->label())->toBe('Tempo Stablecoin');
         expect(PaymentRail::LIGHTNING->label())->toBe('Lightning Network');
         expect(PaymentRail::CARD->label())->toBe('Card Network');
+        expect(PaymentRail::X402_USDC->label())->toBe('x402 USDC (Coinbase)');
     });
 
     it('correctly identifies fiat and crypto support', function (): void {
@@ -30,6 +32,8 @@ describe('MachinePay Enums', function (): void {
         expect(PaymentRail::TEMPO->supportsCrypto())->toBeTrue();
         expect(PaymentRail::LIGHTNING->supportsCrypto())->toBeTrue();
         expect(PaymentRail::CARD->supportsFiat())->toBeTrue();
+        expect(PaymentRail::X402_USDC->supportsCrypto())->toBeTrue();
+        expect(PaymentRail::X402_USDC->supportsFiat())->toBeFalse();
     });
 
     it('returns default currencies per rail', function (): void {
