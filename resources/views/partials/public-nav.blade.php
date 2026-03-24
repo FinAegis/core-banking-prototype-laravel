@@ -14,14 +14,14 @@
                     <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'nav-link-active' : '' }}">Home</a>
 
                     <!-- Products Dropdown -->
-                    <div class="relative group">
-                        <button class="nav-link inline-flex items-center {{ request()->routeIs(['platform*', 'features*', 'ai-framework*']) ? 'nav-link-active' : '' }}">
+                    <div class="relative group" data-dropdown>
+                        <button class="nav-link inline-flex items-center {{ request()->routeIs(['platform*', 'features*', 'ai-framework*']) ? 'nav-link-active' : '' }}" aria-haspopup="true" aria-expanded="false">
                             Products
-                            <svg class="ml-1 h-3.5 w-3.5 opacity-50 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="ml-1 h-3.5 w-3.5 opacity-50 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="absolute left-0 mt-1 w-56 rounded-lg bg-fa-navy-light/95 backdrop-blur-xl border border-white/[0.06] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-left scale-95 group-hover:scale-100">
+                        <div class="absolute left-0 mt-1 w-56 rounded-lg bg-fa-navy-light/95 backdrop-blur-xl border border-white/[0.06] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-left scale-95 group-hover:scale-100" role="menu">
                             <div class="p-1.5">
                                 <a href="{{ route('platform') }}" class="dropdown-link {{ request()->routeIs('platform*') ? 'dropdown-link-active' : '' }}">
                                     <div class="w-8 h-8 rounded-md bg-blue-500/10 flex items-center justify-center flex-shrink-0">
@@ -64,14 +64,14 @@
                     </div>
 
                     <!-- Resources Dropdown -->
-                    <div class="relative group">
-                        <button class="nav-link inline-flex items-center {{ request()->routeIs(['developers*', 'support*', 'about']) ? 'nav-link-active' : '' }}">
+                    <div class="relative group" data-dropdown>
+                        <button class="nav-link inline-flex items-center {{ request()->routeIs(['developers*', 'support*', 'about']) ? 'nav-link-active' : '' }}" aria-haspopup="true" aria-expanded="false">
                             Resources
-                            <svg class="ml-1 h-3.5 w-3.5 opacity-50 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="ml-1 h-3.5 w-3.5 opacity-50 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="absolute left-0 mt-1 w-56 rounded-lg bg-fa-navy-light/95 backdrop-blur-xl border border-white/[0.06] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-left scale-95 group-hover:scale-100">
+                        <div class="absolute left-0 mt-1 w-56 rounded-lg bg-fa-navy-light/95 backdrop-blur-xl border border-white/[0.06] shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-left scale-95 group-hover:scale-100" role="menu">
                             <div class="p-1.5">
                                 <a href="{{ route('developers') }}" class="dropdown-link {{ request()->routeIs('developers*') ? 'dropdown-link-active' : '' }}">
                                     <div class="w-8 h-8 rounded-md bg-green-500/10 flex items-center justify-center flex-shrink-0">
@@ -194,7 +194,7 @@
         padding: 0.5rem 0.75rem;
         font-size: 0.875rem;
         font-weight: 500;
-        color: rgba(148, 163, 184, 1); /* slate-400 */
+        color: rgba(203, 213, 225, 1); /* slate-300 — WCAG AA 4.5:1+ on dark nav */
         border-radius: 0.375rem;
         transition: color 0.2s;
     }
@@ -243,6 +243,53 @@
         const isOpen = button.getAttribute('aria-expanded') === 'true';
         button.setAttribute('aria-expanded', !isOpen);
         menu.classList.toggle('hidden');
+    });
+
+    // Keyboard-accessible dropdowns
+    document.querySelectorAll('[data-dropdown]').forEach(function(dropdown) {
+        const btn = dropdown.querySelector('button[aria-haspopup]');
+        const menu = dropdown.querySelector('[role="menu"]');
+        const links = menu ? menu.querySelectorAll('a') : [];
+
+        function open() {
+            btn.setAttribute('aria-expanded', 'true');
+            dropdown.classList.add('dropdown-open');
+            menu.classList.add('!opacity-100', '!visible', '!scale-100');
+        }
+        function close() {
+            btn.setAttribute('aria-expanded', 'false');
+            dropdown.classList.remove('dropdown-open');
+            menu.classList.remove('!opacity-100', '!visible', '!scale-100');
+        }
+
+        btn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                open();
+                if (links.length) links[0].focus();
+            }
+        });
+
+        menu.addEventListener('keydown', function(e) {
+            var idx = Array.from(links).indexOf(document.activeElement);
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (idx < links.length - 1) links[idx + 1].focus();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (idx > 0) links[idx - 1].focus();
+                else { close(); btn.focus(); }
+            } else if (e.key === 'Escape') {
+                close();
+                btn.focus();
+            }
+        });
+
+        dropdown.addEventListener('focusout', function(e) {
+            setTimeout(function() {
+                if (!dropdown.contains(document.activeElement)) close();
+            }, 0);
+        });
     });
 
     // Nav scroll effect

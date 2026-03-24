@@ -15,12 +15,21 @@ export default defineConfig({
         }),
     ],
     build: {
+        chunkSizeWarningLimit: 200,
         rollupOptions: {
             external: [
                 '@ledgerhq/hw-transport-webusb',
                 '@ledgerhq/hw-app-eth',
                 '@trezor/connect-web',
             ],
+            output: {
+                manualChunks(id) {
+                    // Split chart libraries into separate chunk
+                    if (id.includes('chart.js') || id.includes('chartjs')) {
+                        return 'vendor-charts';
+                    }
+                },
+            },
         },
     },
 });
