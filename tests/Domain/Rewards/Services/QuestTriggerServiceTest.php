@@ -60,13 +60,13 @@ describe('QuestTriggerService', function (): void {
 
     it('triggers multiple quests at once', function (): void {
         RewardQuest::create([
-            'slug' => 'multi-a', 'title' => 'A', 'description' => 'A',
-            'xp_reward' => 10, 'points_reward' => 10, 'category' => 'test',
+            'slug'          => 'multi-a', 'title' => 'A', 'description' => 'A',
+            'xp_reward'     => 10, 'points_reward' => 10, 'category' => 'test',
             'is_repeatable' => false, 'is_active' => true,
         ]);
         RewardQuest::create([
-            'slug' => 'multi-b', 'title' => 'B', 'description' => 'B',
-            'xp_reward' => 20, 'points_reward' => 20, 'category' => 'test',
+            'slug'          => 'multi-b', 'title' => 'B', 'description' => 'B',
+            'xp_reward'     => 20, 'points_reward' => 20, 'category' => 'test',
             'is_repeatable' => false, 'is_active' => true,
         ]);
 
@@ -79,8 +79,8 @@ describe('QuestTriggerService', function (): void {
 
     it('skips inactive quests', function (): void {
         RewardQuest::create([
-            'slug' => 'inactive-quest', 'title' => 'Inactive', 'description' => 'Off',
-            'xp_reward' => 100, 'points_reward' => 100, 'category' => 'test',
+            'slug'          => 'inactive-quest', 'title' => 'Inactive', 'description' => 'Off',
+            'xp_reward'     => 100, 'points_reward' => 100, 'category' => 'test',
             'is_repeatable' => false, 'is_active' => false,
         ]);
 
