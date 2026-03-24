@@ -15,7 +15,7 @@ class SchemaHelper
             '@type'    => 'Organization',
             'name'     => $brand,
             'url'      => config('app.url'),
-            'logo'     => config('app.url') . '/images/logo.png',
+            'logo'     => config('app.url') . '/images/og-default.png',
             'sameAs'   => [
                 config('brand.github_url', 'https://github.com/FinAegis'),
             ],
@@ -46,18 +46,10 @@ class SchemaHelper
     public static function website(): string
     {
         $schema = [
-            '@context'        => 'https://schema.org',
-            '@type'           => 'WebSite',
-            'name'            => config('brand.name', 'Zelta'),
-            'url'             => config('app.url'),
-            'potentialAction' => [
-                '@type'  => 'SearchAction',
-                'target' => [
-                    '@type'       => 'EntryPoint',
-                    'urlTemplate' => config('app.url') . '/search?q={search_term_string}',
-                ],
-                'query-input' => 'required name=search_term_string',
-            ],
+            '@context' => 'https://schema.org',
+            '@type'    => 'WebSite',
+            'name'     => config('brand.name', 'Zelta'),
+            'url'      => config('app.url'),
         ];
 
         return self::generateScript($schema);
@@ -224,7 +216,7 @@ class SchemaHelper
                 'name'  => config('brand.name', 'Zelta'),
                 'logo'  => [
                     '@type' => 'ImageObject',
-                    'url'   => config('app.url') . '/images/logo.png',
+                    'url'   => config('app.url') . '/images/og-default.png',
                 ],
             ],
             'datePublished'    => $data['published_at'] ?? now()->toIso8601String(),
