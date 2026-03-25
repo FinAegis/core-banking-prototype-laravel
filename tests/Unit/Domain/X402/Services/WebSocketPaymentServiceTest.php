@@ -39,6 +39,7 @@ describe('WebSocketPaymentService', function (): void {
         $pricing = $service->getChannelPricing('tenant.1.exchange.orderbook');
 
         expect($pricing)->not->toBeNull();
+        assert(is_array($pricing));
         expect($pricing['price'])->toBe('1000');
         expect($pricing['protocol'])->toBe('x402');
         expect($pricing['duration_seconds'])->toBe(3600);
