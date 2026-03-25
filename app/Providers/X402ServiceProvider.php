@@ -13,6 +13,8 @@ use App\Domain\X402\Services\X402HeaderCodecService;
 use App\Domain\X402\Services\X402PaymentVerificationService;
 use App\Domain\X402\Services\X402PricingService;
 use App\Domain\X402\Services\X402SettlementService;
+use App\Domain\X402\Services\X402SignerFactory;
+use App\Domain\X402\Services\X402SolanaSignerService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,12 +42,33 @@ class X402ServiceProvider extends ServiceProvider
             );
         });
 
-        // Bind the EIP-712 signer (demo mode)
-        // For production, swap with HSM-backed signer via KeyManagement domain
-        $this->app->bind(X402SignerInterface::class, function ($app) {
+        // Bind concrete signers (demo mode — swap with HSM-backed for production)
+        $this->app->bind(X402EIP712SignerService::class, function () {
             return new X402EIP712SignerService(
                 signerKeyId: (string) config('x402.client.signer_key_id', 'default'),
             );
+        });
+
+        $this->app->bind(X402SolanaSignerService::class, function () {
+            return new X402SolanaSignerService(
+                signerKeyId: (string) config('x402.client.signer_key_id', 'default'),
+            );
+        });
+
+        // Signer factory — returns appropriate signer based on network
+        $this->app->singleton(X402SignerFactory::class, function ($app) {
+            return new X402SignerFactory(
+                evmSigner: $app->make(X402EIP712SignerService::class),
+                solanaSigner: $app->make(X402SolanaSignerService::class),
+            );
+        });
+
+        // Default signer interface binding (based on configured default network)
+        $this->app->bind(X402SignerInterface::class, function ($app) {
+            /** @var X402SignerFactory $factory */
+            $factory = $app->make(X402SignerFactory::class);
+
+            return $factory->default();
         });
 
         // Register core services as singletons

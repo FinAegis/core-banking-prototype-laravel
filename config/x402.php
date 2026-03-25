@@ -80,6 +80,15 @@ return [
 
         // Maximum auto-pay amount per request in atomic USDC units ($0.10)
         'max_auto_pay_amount' => env('X402_CLIENT_MAX_AUTO_PAY', '100000'),
+
+        // Preferred network order for payment option selection
+        'preferred_networks' => array_filter(explode(',', (string) env(
+            'X402_PREFERRED_NETWORKS',
+            'eip155:8453,eip155:84532,solana:mainnet,eip155:1',
+        ))),
+
+        // Solana-specific signer address (base58 public key)
+        'solana_signer_address' => env('X402_CLIENT_SOLANA_SIGNER_ADDRESS', ''),
     ],
 
     /*
@@ -131,6 +140,20 @@ return [
         'permit2'             => '0x000000000022D473030F116dDEE9F6B43aC78BA3',
         'exact_permit2_proxy' => '0x4020615294c913F045dc10f0a5cdEbd86c280001',
         'upto_permit2_proxy'  => '0x4020633461b2895a48930Ff97eE8fCdE8E520002',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Solana Program Addresses
+    |--------------------------------------------------------------------------
+    |
+    | SPL Token program addresses used for Solana x402 transactions.
+    |
+    */
+
+    'solana_programs' => [
+        'token_program'            => 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+        'associated_token_program' => 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
     ],
 
     /*
