@@ -265,7 +265,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900">Multi-Network Settlement</h3>
                     <p class="text-slate-500 mb-4">
-                        Settle payments on Base (primary, low fees), Ethereum, or Avalanche using USDC. Each endpoint can be independently configured with its preferred network.
+                        Settle payments on Base (primary, low fees), Ethereum, Avalanche, or Solana using USDC. Each endpoint can be independently configured with its preferred network.
                     </p>
                     <ul class="space-y-2 text-sm text-gray-500">
                         <li class="flex items-center">
@@ -278,7 +278,7 @@
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Ethereum and Avalanche supported
+                            Ethereum, Avalanche, and Solana supported
                         </li>
                         <li class="flex items-center">
                             <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -544,10 +544,60 @@ Route::middleware([<span class="text-emerald-400">'x402:250000'</span>])->group(
                                 <td class="px-6 py-4 text-sm text-slate-500">USDC</td>
                                 <td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Supported</span></td>
                             </tr>
+                            <tr class="bg-gray-50/50">
+                                <td class="px-6 py-4 text-sm font-medium text-slate-900">
+                                    <span class="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>Solana
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-500 font-mono">solana:mainnet</td>
+                                <td class="px-6 py-4 text-sm text-slate-500">USDC</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Supported</span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
                 <p class="text-sm text-gray-500 text-center mt-4">Networks are configurable per-endpoint via middleware parameters or the management API.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Error Handling -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">Error Handling</h2>
+            <p class="text-lg text-slate-500 text-center max-w-2xl mx-auto mb-12">
+                x402 errors follow RFC 9457 (Problem Details for HTTP APIs). Every error includes a machine-readable type, human-readable detail, and the 402 status code.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Payment Verification Failed -->
+                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Payment Verification Failed</h3>
+                    <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
+                        <div class="text-red-400">HTTP/1.1 402 Payment Required</div>
+                        <div>Content-Type: application/problem+json</div>
+                        <div class="mt-2">{</div>
+                        <div class="pl-4">"type": "verification-failed",</div>
+                        <div class="pl-4">"title": "Payment signature invalid",</div>
+                        <div class="pl-4">"detail": "EIP-712 signature recovery failed for network eip155:8453",</div>
+                        <div class="pl-4">"status": 402</div>
+                        <div>}</div>
+                    </div>
+                </div>
+
+                <!-- Spending Limit Exceeded -->
+                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Spending Limit Exceeded</h3>
+                    <div class="bg-gray-900 rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
+                        <div class="text-red-400">HTTP/1.1 402 Payment Required</div>
+                        <div>Content-Type: application/problem+json</div>
+                        <div class="mt-2">{</div>
+                        <div class="pl-4">"type": "spending-limit-exceeded",</div>
+                        <div class="pl-4">"title": "Agent daily limit reached",</div>
+                        <div class="pl-4">"detail": "Agent 'data-bot' spent $4.85 of $5.00 daily budget",</div>
+                        <div class="pl-4">"status": 402</div>
+                        <div>}</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -569,7 +619,9 @@ Route::middleware([<span class="text-emerald-400">'x402:250000'</span>])->group(
                 </a>
             </div>
             <p class="mt-8 text-slate-500 text-sm">
-                Building a mobile wallet? See <a href="{{ url('/features/mobile-payments') }}" class="underline hover:text-white transition text-slate-400">Mobile Payments</a> &rarr;
+                Related: <a href="{{ url('/features/machine-payments') }}" class="underline hover:text-white transition text-slate-400">Machine Payments (MPP)</a> &middot;
+                <a href="{{ url('/features/zelta-cli') }}" class="underline hover:text-white transition text-slate-400">Zelta CLI</a> &middot;
+                <a href="{{ url('/features/visa-cli') }}" class="underline hover:text-white transition text-slate-400">Visa CLI</a>
             </p>
         </div>
     </section>
