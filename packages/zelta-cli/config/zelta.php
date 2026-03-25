@@ -7,5 +7,5 @@ return [
     'credentials_path' => $_SERVER['HOME'] . '/.zelta/credentials.json',
     'config_path'      => $_SERVER['HOME'] . '/.zelta/config.json',
     'timeout'          => 30,
-    'version'          => '0.1.0',
+    'version'          => '0.2.0',
 ];

@@ -10,8 +10,18 @@ declare(strict_types=1);
  *
  * Usage:
  *   zelta auth login --key zk_live_xxx
+ *   zelta auth logout
+ *   zelta auth token --unmask
  *   zelta pay list
+ *   zelta pay send https://api.example.com/data --yes
+ *   zelta pay status <paymentId>
  *   zelta sms send --to +370xxx --message "Hello"
+ *   zelta sms status <messageId>
+ *   zelta wallet balance
+ *   zelta wallet send --to 0x... --amount 10 --token USDC --yes
+ *   zelta limits list
+ *   zelta agents discover --capability payment
+ *   zelta sdk generate typescript --output ./sdk
  *   zelta endpoints list
  *   zelta whoami
  */
@@ -28,33 +38,71 @@ foreach ([
 }
 
 use Symfony\Component\Console\Application;
+use ZeltaCli\Commands\Agents\DiscoverCommand;
+use ZeltaCli\Commands\Agents\RegisterCommand;
 use ZeltaCli\Commands\Auth\LoginCommand;
+use ZeltaCli\Commands\Auth\LogoutCommand;
 use ZeltaCli\Commands\Auth\StatusCommand;
+use ZeltaCli\Commands\Auth\TokenCommand;
 use ZeltaCli\Commands\Endpoints\ListCommand as EndpointsListCommand;
+use ZeltaCli\Commands\Limits\ListCommand as LimitsListCommand;
+use ZeltaCli\Commands\Limits\RemoveCommand as LimitsRemoveCommand;
+use ZeltaCli\Commands\Limits\SetCommand as LimitsSetCommand;
 use ZeltaCli\Commands\Pay\ListCommand as PayListCommand;
+use ZeltaCli\Commands\Pay\SendCommand as PaySendCommand;
 use ZeltaCli\Commands\Pay\StatsCommand;
+use ZeltaCli\Commands\Pay\StatusCommand as PayStatusCommand;
+use ZeltaCli\Commands\Sdk\GenerateCommand;
 use ZeltaCli\Commands\Sms\RatesCommand;
 use ZeltaCli\Commands\Sms\SendCommand;
+use ZeltaCli\Commands\Sms\StatusCommand as SmsStatusCommand;
+use ZeltaCli\Commands\Wallet\BalanceCommand;
+use ZeltaCli\Commands\Wallet\SendCommand as WalletSendCommand;
+use ZeltaCli\Commands\Wallet\TokensCommand;
+use ZeltaCli\Commands\ConfigCommand;
 use ZeltaCli\Commands\WhoamiCommand;
 
-$app = new Application('Zelta CLI', '0.1.0');
+$app = new Application('Zelta CLI', '0.2.0');
 
 // Auth
 $app->add(new LoginCommand());
+$app->add(new LogoutCommand());
 $app->add(new StatusCommand());
+$app->add(new TokenCommand());
 
 // Payments
 $app->add(new PayListCommand());
+$app->add(new PaySendCommand());
 $app->add(new StatsCommand());
+$app->add(new PayStatusCommand());
 
 // SMS
 $app->add(new SendCommand());
 $app->add(new RatesCommand());
+$app->add(new SmsStatusCommand());
+
+// Wallet
+$app->add(new BalanceCommand());
+$app->add(new WalletSendCommand());
+$app->add(new TokensCommand());
+
+// Limits
+$app->add(new LimitsListCommand());
+$app->add(new LimitsSetCommand());
+$app->add(new LimitsRemoveCommand());
+
+// Agents
+$app->add(new RegisterCommand());
+$app->add(new DiscoverCommand());
+
+// SDK
+$app->add(new GenerateCommand());
 
 // Endpoints
 $app->add(new EndpointsListCommand());
 
 // Utility
+$app->add(new ConfigCommand());
 $app->add(new WhoamiCommand());
 
 $app->run();
