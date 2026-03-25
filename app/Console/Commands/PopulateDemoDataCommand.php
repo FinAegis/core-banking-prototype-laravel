@@ -51,6 +51,11 @@ class PopulateDemoDataCommand extends Command
         $this->info('Creating demo users and data...');
         Artisan::call('db:seed', ['--class' => 'DemoDataSeeder'], $this->output);
 
+        // Run SMS + mobile rewards demo seeder
+        $this->info('Creating SMS & mobile rewards demo data...');
+        Artisan::call('db:seed', ['--class' => 'SmsDemoSeeder'], $this->output);
+        Artisan::call('db:seed', ['--class' => 'MobileRewardsDemoSeeder'], $this->output);
+
         // Create admin user if requested
         if ($this->option('with-admin')) {
             $this->createAdminUser();
@@ -125,6 +130,14 @@ class PopulateDemoDataCommand extends Command
         // Bank preferences
         $bankPrefCount = DB::table('user_bank_preferences')->count();
         $this->line("Bank Preferences: $bankPrefCount");
+
+        // SMS demo data
+        $smsMsgCount = DB::table('sms_messages')->where('test_mode', true)->count();
+        $this->line("SMS Demo Messages: $smsMsgCount");
+
+        // Reward profiles
+        $rewardProfileCount = DB::table('reward_profiles')->count();
+        $this->line("Reward Profiles: $rewardProfileCount");
 
         $this->newLine();
         $this->info('🔐 Demo User Credentials');
