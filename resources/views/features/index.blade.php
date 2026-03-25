@@ -494,6 +494,25 @@
                     </a>
                 </div>
 
+                <!-- Zelta CLI -->
+                <div class="card-feature">
+                    <div class="w-14 h-14 bg-emerald-100 rounded-lg flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-xl font-semibold">Zelta CLI</h3>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">v0.1.0</span>
+                    </div>
+                    <p class="text-slate-500 mb-4">
+                        Manage payments, SMS, wallets, and API monetization from the terminal. Built for humans and AI agents with dual output: tables or JSON.
+                    </p>
+                    <a href="{{ route('features.show', 'zelta-cli') }}" class="text-emerald-600 font-medium hover:text-emerald-700">
+                        Learn more &rarr;
+                    </a>
+                </div>
+
                 <!-- Virtuals Agent Integration -->
                 <div class="card-feature">
                     <div class="w-14 h-14 bg-violet-100 rounded-lg flex items-center justify-center mb-6">
