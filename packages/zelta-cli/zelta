@@ -1,0 +1,60 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Zelta CLI — manage payments, SMS, wallets, and AI agents from the terminal.
+ *
+ * Built for humans and AI agents.
+ *
+ * Usage:
+ *   zelta auth login --key zk_live_xxx
+ *   zelta pay list
+ *   zelta sms send --to +370xxx --message "Hello"
+ *   zelta endpoints list
+ *   zelta whoami
+ */
+
+// Autoload
+foreach ([
+    __DIR__ . '/vendor/autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+] as $file) {
+    if (file_exists($file)) {
+        require $file;
+        break;
+    }
+}
+
+use Symfony\Component\Console\Application;
+use ZeltaCli\Commands\Auth\LoginCommand;
+use ZeltaCli\Commands\Auth\StatusCommand;
+use ZeltaCli\Commands\Endpoints\ListCommand as EndpointsListCommand;
+use ZeltaCli\Commands\Pay\ListCommand as PayListCommand;
+use ZeltaCli\Commands\Pay\StatsCommand;
+use ZeltaCli\Commands\Sms\RatesCommand;
+use ZeltaCli\Commands\Sms\SendCommand;
+use ZeltaCli\Commands\WhoamiCommand;
+
+$app = new Application('Zelta CLI', '0.1.0');
+
+// Auth
+$app->add(new LoginCommand());
+$app->add(new StatusCommand());
+
+// Payments
+$app->add(new PayListCommand());
+$app->add(new StatsCommand());
+
+// SMS
+$app->add(new SendCommand());
+$app->add(new RatesCommand());
+
+// Endpoints
+$app->add(new EndpointsListCommand());
+
+// Utility
+$app->add(new WhoamiCommand());
+
+$app->run();

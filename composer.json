@@ -106,7 +106,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "ZeltaCli\\": "packages/zelta-cli/app/"
         }
     },
     "scripts": {
