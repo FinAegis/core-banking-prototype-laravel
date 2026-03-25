@@ -8,6 +8,7 @@ use App\Domain\X402\Contracts\FacilitatorClientInterface;
 use App\Domain\X402\Contracts\X402SignerInterface;
 use App\Domain\X402\Services\HttpFacilitatorClient;
 use App\Domain\X402\Services\X402ClientService;
+use App\Domain\X402\Services\X402DiscoveryService;
 use App\Domain\X402\Services\X402EIP712SignerService;
 use App\Domain\X402\Services\X402HeaderCodecService;
 use App\Domain\X402\Services\X402PaymentVerificationService;
@@ -49,6 +50,7 @@ class X402ServiceProvider extends ServiceProvider
         });
 
         // Register core services as singletons
+        $this->app->singleton(X402DiscoveryService::class);
         $this->app->singleton(X402HeaderCodecService::class);
         $this->app->singleton(X402PricingService::class);
 

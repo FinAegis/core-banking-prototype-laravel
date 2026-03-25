@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\X402;
 
 use App\Domain\X402\Enums\X402Network;
+use App\Domain\X402\Services\X402DiscoveryService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use OpenApi\Attributes as OA;
@@ -78,6 +79,43 @@ class X402StatusController extends Controller
         ]),
         ])
     )]
+    /**
+     * Well-known x402 protocol discovery endpoint.
+     */
+    #[OA\Get(
+        path: '/.well-known/x402-configuration',
+        operationId: 'x402WellKnown',
+        summary: 'x402 protocol discovery endpoint',
+        tags: ['X402 Protocol']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'x402 protocol discovery configuration',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'x402_version', type: 'integer', example: 2),
+        new OA\Property(property: 'issuer', type: 'string'),
+        new OA\Property(property: 'spec_url', type: 'string'),
+        new OA\Property(property: 'default_network', type: 'string', example: 'eip155:8453'),
+        new OA\Property(property: 'supported_networks', type: 'array', items: new OA\Items(properties: [
+        new OA\Property(property: 'id', type: 'string'),
+        new OA\Property(property: 'name', type: 'string'),
+        new OA\Property(property: 'testnet', type: 'boolean'),
+        ])),
+        new OA\Property(property: 'supported_assets', type: 'array', items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'supported_schemes', type: 'array', items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'facilitator', type: 'object'),
+        new OA\Property(property: 'endpoints', type: 'object'),
+        new OA\Property(property: 'contracts', type: 'object'),
+        ])
+    )]
+    public function wellKnown(X402DiscoveryService $discovery): JsonResponse
+    {
+        return response()->json($discovery->getWellKnownConfiguration());
+    }
+
+    /**
+     * Get supported networks and assets.
+     */
     public function supported(): JsonResponse
     {
         $networks = collect(X402Network::cases())->map(fn (X402Network $n) => [
