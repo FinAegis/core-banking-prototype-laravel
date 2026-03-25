@@ -503,7 +503,7 @@
                     </div>
                     <div class="flex items-center gap-2 mb-3">
                         <h3 class="text-xl font-semibold">Zelta CLI</h3>
-                        <span class="inline-flex items-center px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">v0.1.0</span>
+                        <span class="inline-flex items-center px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">v0.2.0</span>
                     </div>
                     <p class="text-slate-500 mb-4">
                         Manage payments, SMS, wallets, and API monetization from the terminal. Built for humans and AI agents with dual output: tables or JSON.

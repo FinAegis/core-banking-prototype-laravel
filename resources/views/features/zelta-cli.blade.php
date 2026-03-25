@@ -29,7 +29,7 @@
                 <div class="flex justify-center mb-6">
                     <span class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-sm text-emerald-300 font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        v0.1.0 &middot; CLI Toolkit
+                        v0.2.0 &middot; 25 Commands
                     </span>
                 </div>
                 @include('partials.breadcrumb', ['items' => [
@@ -113,8 +113,11 @@
                     <div class="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Expanding</h3>
-                    <p class="text-slate-500 text-sm">More commands shipping in v0.2.0: wallet management, spending limits, agent registration, SDK generation, and plugin management.</p>
+                    <h3 class="text-lg font-semibold mb-2">Wallet &amp; Agents</h3>
+                    <p class="text-slate-500 text-sm">Manage wallet balances, spending limits, and agent registration. Generate SDKs in 6 languages directly from the CLI.</p>
+                    <div class="space-y-1.5 font-mono text-xs mt-3">
+                        <div class="text-slate-600"><span class="text-cyan-500">wallet:balance</span> &middot; <span class="text-cyan-500">limits:set</span> &middot; <span class="text-cyan-500">agents:register</span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,7 +139,7 @@
 
 <span class="text-slate-500"># Verify installation</span>
 <span class="text-emerald-400">$</span> zelta --version
-zelta/0.1.0 linux-x64 node-v20.11.0</code></pre>
+zelta/0.2.0 linux-x64 node-v20.11.0</code></pre>
                     </div>
                 </div>
                 <div class="flex gap-6">
