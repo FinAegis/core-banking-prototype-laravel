@@ -98,6 +98,26 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Premium Channels (Paid Subscriptions)
+    |--------------------------------------------------------------------------
+    |
+    | Channels requiring payment to subscribe. Supports wildcard patterns.
+    | Price is in USD (converted to USDC atomic units at payment time).
+    | Duration is how long the subscription remains active after payment.
+    |
+    */
+
+    'premium_channels' => [
+        // Example: paid order book feed
+        // 'tenant.*.exchange.orderbook' => [
+        //     'price'            => '0.001',
+        //     'protocol'         => 'x402',
+        //     'duration_seconds' => 3600,
+        // ],
+    ],
+
     'channels' => [
         // Exchange/Trading updates
         'exchange' => [

@@ -68,6 +68,8 @@ Route::prefix('websocket')->name('api.websocket.')
     ->middleware(['auth:sanctum'])
     ->group(function () {
         Route::get('/channels', [App\Http\Controllers\Api\WebSocketController::class, 'channels'])->name('channels');
+        Route::get('/subscriptions', [App\Http\Controllers\Api\WebSocket\PaidChannelController::class, 'index'])->name('subscriptions.index');
+        Route::delete('/subscriptions/{id}', [App\Http\Controllers\Api\WebSocket\PaidChannelController::class, 'destroy'])->name('subscriptions.destroy');
     });
 
 // Authentication endpoints (public)
