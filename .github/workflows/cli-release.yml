@@ -1,0 +1,135 @@
+name: Zelta CLI Release
+
+on:
+  push:
+    tags:
+      - 'cli-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-phar:
+    name: Build PHAR Binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          extensions: json, mbstring, sodium
+
+      - name: Install dependencies
+        working-directory: packages/zelta-cli
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Download Box
+        run: |
+          curl -LSs https://box-project.github.io/box2/installer.php | php
+          mv box.phar /usr/local/bin/box
+          chmod +x /usr/local/bin/box
+
+      - name: Build PHAR
+        working-directory: packages/zelta-cli
+        run: |
+          mkdir -p builds
+          box compile
+
+      - name: Verify PHAR
+        working-directory: packages/zelta-cli
+        run: php builds/zelta.phar list
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/cli-v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Zelta CLI v${{ steps.version.outputs.version }}"
+          body: |
+            ## Zelta CLI v${{ steps.version.outputs.version }}
+
+            ### Install
+            ```bash
+            curl -fsSL https://cli.zelta.app/install.sh | bash
+            ```
+
+            ### What's included
+            - 25 commands across 8 resource groups
+            - Multi-profile authentication
+            - Dual output: tables for humans, JSON for pipes
+            - x402 + MPP payment protocol support
+          files: |
+            packages/zelta-cli/builds/zelta.phar
+          draft: false
+          prerelease: false
+
+  publish-npm:
+    name: Publish npm Package
+    runs-on: ubuntu-latest
+    needs: build-phar
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Create npm wrapper
+        working-directory: packages/zelta-cli
+        run: |
+          mkdir -p npm-package/bin
+          cat > npm-package/package.json << 'NPMEOF'
+          {
+            "name": "@zelta/cli",
+            "version": "${{ github.ref_name }}",
+            "description": "Zelta CLI — manage payments, SMS, wallets, and APIs from the terminal",
+            "license": "Apache-2.0",
+            "bin": {
+              "zelta": "./bin/zelta"
+            },
+            "scripts": {
+              "postinstall": "node install.js"
+            },
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/FinAegis/core-banking-prototype-laravel.git"
+            },
+            "keywords": ["cli", "payments", "x402", "mpp", "fintech"]
+          }
+          NPMEOF
+          cat > npm-package/bin/zelta << 'BINEOF'
+          #!/usr/bin/env node
+          const { execFileSync } = require('child_process');
+          const path = require('path');
+          try {
+            execFileSync('php', [path.join(__dirname, '..', 'zelta.phar'), ...process.argv.slice(2)], { stdio: 'inherit' });
+          } catch (e) {
+            process.exit(e.status || 1);
+          }
+          BINEOF
+          chmod +x npm-package/bin/zelta
+
+      - name: Publish to npm
+        working-directory: packages/zelta-cli/npm-package
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
+
+  update-homebrew:
+    name: Update Homebrew Tap
+    runs-on: ubuntu-latest
+    needs: build-phar
+    steps:
+      - name: Trigger Homebrew tap update
+        run: |
+          echo "Homebrew tap update would be triggered here."
+          echo "Requires: zelta-app/homebrew-tap repository with Formula/zelta.rb"
+        continue-on-error: true

@@ -1,0 +1,27 @@
+{
+    "main": "zelta",
+    "output": "builds/zelta.phar",
+    "directories": [
+        "app",
+        "config"
+    ],
+    "files": [
+        "zelta"
+    ],
+    "compression": "GZ",
+    "compactors": [
+        "KevinGH\\Box\\Compactor\\Php"
+    ],
+    "chmod": "0755",
+    "git": "git-version",
+    "stub": true,
+    "banner": [
+        "Zelta CLI",
+        "",
+        "Manage payments, SMS, wallets, and API monetization from the terminal.",
+        "Built for humans and AI agents.",
+        "",
+        "(c) 2024-2026 FinAegis Contributors",
+        "License: Apache-2.0"
+    ]
+}
