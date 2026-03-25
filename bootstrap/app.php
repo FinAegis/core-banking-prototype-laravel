@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\View;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         using: function () {
-            $isApiSubdomain = str_starts_with(request()->getHost(), 'api.');
+            $host = request()->getHost();
+            $isApiSubdomain = str_starts_with($host, 'api.');
+            $isProtocolSubdomain = str_starts_with($host, 'x402.') || str_starts_with($host, 'mpp.');
 
             // Health check route — must be registered inside `using` callback
             // because Laravel skips buildRoutingCallback when `using` is provided
@@ -22,8 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 $exception = null;
 
                 try {
-                    Event::dispatch(new DiagnosingHealth);
-                } catch (\Throwable $e) {
+                    Event::dispatch(new DiagnosingHealth());
+                } catch (Throwable $e) {
                     if (app()->hasDebugModeEnabled()) {
                         throw $e;
                     }
@@ -41,7 +43,19 @@ return Application::configure(basePath: dirname(__DIR__))
             // Always load console routes
             Route::group([], base_path('routes/console.php'));
 
-            if ($isApiSubdomain) {
+            if ($isProtocolSubdomain) {
+                // For x402.* or mpp.* subdomains, load API routes without /api prefix
+                // and auto-apply the protocol payment gate middleware via ProtocolSubdomainMiddleware
+                Route::middleware(['api', 'protocol.subdomain'])
+                    ->group(base_path('routes/api.php'));
+
+                Route::middleware(['api', 'protocol.subdomain'])
+                    ->group(base_path('routes/api-bian.php'));
+
+                Route::middleware(['api', 'protocol.subdomain'])
+                    ->prefix('v2')
+                    ->group(base_path('routes/api-v2.php'));
+            } elseif ($isApiSubdomain) {
                 // For api.* subdomain, ONLY load API routes without /api prefix
                 Route::middleware('api')
                     ->group(base_path('routes/api.php'));
@@ -117,6 +131,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'x402.payment' => App\Http\Middleware\X402PaymentGateMiddleware::class,
             // Machine Payments Protocol middleware (v6.4.0)
             'mpp.payment' => App\Http\Middleware\MppPaymentGateMiddleware::class,
+            // Protocol subdomain auto-detection (v6.5.0)
+            'protocol.subdomain' => App\Http\Middleware\ProtocolSubdomainMiddleware::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware
@@ -162,8 +178,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         // Treat 'demo' environment as production for error handling
         $exceptions->shouldRenderJsonWhen(function ($request, $e) {
-            // Check if we're on the API subdomain
-            if (str_starts_with($request->getHost(), 'api.')) {
+            // Check if we're on the API or protocol subdomain
+            $reqHost = $request->getHost();
+            if (str_starts_with($reqHost, 'api.') || str_starts_with($reqHost, 'x402.') || str_starts_with($reqHost, 'mpp.')) {
                 return true;
             }
 
@@ -180,7 +197,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
-            $isApi = $request->is('api/*') || str_starts_with($request->getHost(), 'api.') || $request->expectsJson();
+            $errHost = $request->getHost();
+            $isApi = $request->is('api/*') || str_starts_with($errHost, 'api.') || str_starts_with($errHost, 'x402.') || str_starts_with($errHost, 'mpp.') || $request->expectsJson();
             if (! $isApi) {
                 return $response;
             }
@@ -189,15 +207,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Map exception types to error codes
             $errorCode = match (true) {
-                $e instanceof Illuminate\Validation\ValidationException => 'VALIDATION_ERROR',
-                $e instanceof Illuminate\Auth\AuthenticationException => 'UNAUTHENTICATED',
-                $e instanceof Illuminate\Auth\Access\AuthorizationException => 'FORBIDDEN',
-                $e instanceof Illuminate\Database\Eloquent\ModelNotFoundException => 'NOT_FOUND',
-                $e instanceof Symfony\Component\HttpKernel\Exception\NotFoundHttpException => 'NOT_FOUND',
+                $e instanceof Illuminate\Validation\ValidationException                            => 'VALIDATION_ERROR',
+                $e instanceof Illuminate\Auth\AuthenticationException                              => 'UNAUTHENTICATED',
+                $e instanceof Illuminate\Auth\Access\AuthorizationException                        => 'FORBIDDEN',
+                $e instanceof Illuminate\Database\Eloquent\ModelNotFoundException                  => 'NOT_FOUND',
+                $e instanceof Symfony\Component\HttpKernel\Exception\NotFoundHttpException         => 'NOT_FOUND',
                 $e instanceof Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException => 'METHOD_NOT_ALLOWED',
-                $e instanceof Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException => 'RATE_LIMITED',
-                $e instanceof Symfony\Component\HttpKernel\Exception\HttpException => 'HTTP_ERROR',
-                default => 'SERVER_ERROR',
+                $e instanceof Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException  => 'RATE_LIMITED',
+                $e instanceof Symfony\Component\HttpKernel\Exception\HttpException                 => 'HTTP_ERROR',
+                default                                                                            => 'SERVER_ERROR',
             };
 
             // Add standardized fields without overwriting existing ones

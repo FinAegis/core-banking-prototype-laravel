@@ -18,6 +18,9 @@ return [
 
     'version' => 2,
 
+    // Subdomain prefix for protocol-specific routing (e.g. x402.api.zelta.app)
+    'subdomain' => env('X402_SUBDOMAIN', 'x402'),
+
     /*
     |--------------------------------------------------------------------------
     | Resource Server Settings
