@@ -180,15 +180,100 @@
         </div>
     </section>
 
+    <!-- Quick Start -->
+    <section class="py-20 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-display text-3xl font-bold text-slate-900">Try It Now</h2>
+                <p class="text-slate-500 mt-4">Three steps from discovery to paid API response.</p>
+            </div>
+            <div class="space-y-8">
+                <div class="flex gap-6">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">1</div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg text-slate-900 mb-2">Discover MPP capabilities</h3>
+                        <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code><span class="text-emerald-400">$</span> curl https://api.zelta.app/.well-known/mpp-configuration | jq
+
+{
+  <span class="text-emerald-400">"mpp_version"</span>: 1,
+  <span class="text-emerald-400">"supported_rails"</span>: [<span class="text-amber-300">"stripe"</span>, <span class="text-amber-300">"tempo"</span>, <span class="text-amber-300">"lightning"</span>, <span class="text-amber-300">"card"</span>, <span class="text-amber-300">"x402"</span>],
+  <span class="text-emerald-400">"endpoints"</span>: { ... }
+}</code></pre>
+                    </div>
+                </div>
+                <div class="flex gap-6">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">2</div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg text-slate-900 mb-2">Make a request to a monetized endpoint</h3>
+                        <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code><span class="text-emerald-400">$</span> curl -i https://api.zelta.app/v1/premium/data \
+  -H <span class="text-amber-300">"Authorization: Bearer YOUR_TOKEN"</span>
+
+<span class="text-red-400">HTTP/1.1 402 Payment Required</span>
+WWW-Authenticate: Payment eyJpZC...
+Content-Type: application/json
+
+{<span class="text-emerald-400">"error"</span>:<span class="text-amber-300">"PAYMENT_REQUIRED"</span>,<span class="text-emerald-400">"pricing"</span>:{<span class="text-emerald-400">"amount_cents"</span>:50,<span class="text-emerald-400">"currency"</span>:<span class="text-amber-300">"USD"</span>,<span class="text-emerald-400">"rails"</span>:[<span class="text-amber-300">"stripe"</span>,<span class="text-amber-300">"x402"</span>]}}</code></pre>
+                    </div>
+                </div>
+                <div class="flex gap-6">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">3</div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg text-slate-900 mb-2">Pay and receive data</h3>
+                        <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code><span class="text-emerald-400">$</span> curl https://api.zelta.app/v1/premium/data \
+  -H <span class="text-amber-300">"Authorization: Payment eyJjaGFsbG..."</span> \
+  -H <span class="text-amber-300">"Accept: application/json"</span>
+
+<span class="text-emerald-400">HTTP/1.1 200 OK</span>
+Payment-Receipt: eyJzdGF0dXMi...
+
+{<span class="text-emerald-400">"data"</span>: {<span class="text-emerald-400">"market_cap"</span>: <span class="text-amber-300">"2.1T"</span>, <span class="text-emerald-400">"volume_24h"</span>: <span class="text-amber-300">"89.4B"</span>}}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Error Handling -->
+    <section class="py-16 lg:py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">Error Handling</h2>
+                <p class="text-slate-500 mt-4">RFC 9457 problem details for every failure mode. Your agents always know what went wrong.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card-feature !p-8">
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Spending Limit Exceeded</h3>
+                    <p class="text-slate-600 mb-4">Returned when an agent's daily or per-transaction budget has been exhausted.</p>
+                    <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code>{
+  <span class="text-emerald-400">"type"</span>: <span class="text-amber-300">"spending-limit-exceeded"</span>,
+  <span class="text-emerald-400">"title"</span>: <span class="text-amber-300">"Daily budget exceeded"</span>,
+  <span class="text-emerald-400">"detail"</span>: <span class="text-amber-300">"Agent agent-123 has spent $48.50 of $50.00 daily limit"</span>,
+  <span class="text-emerald-400">"status"</span>: 402
+}</code></pre>
+                </div>
+                <div class="card-feature !p-8">
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Settlement Failed</h3>
+                    <p class="text-slate-600 mb-4">Returned when the selected payment rail rejects the transaction.</p>
+                    <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code>{
+  <span class="text-emerald-400">"type"</span>: <span class="text-amber-300">"settlement-failed"</span>,
+  <span class="text-emerald-400">"title"</span>: <span class="text-amber-300">"Payment settlement failed"</span>,
+  <span class="text-emerald-400">"detail"</span>: <span class="text-amber-300">"Rail 'stripe' returned error: card_declined"</span>,
+  <span class="text-emerald-400">"status"</span>: 402
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- CTA -->
     <section class="py-16 lg:py-20 bg-fa-navy">
         <div class="max-w-3xl mx-auto px-4 text-center">
             <h2 class="text-3xl font-bold text-white mb-6">Three Protocols, One Platform</h2>
             <p class="text-slate-300 mb-8">{{ config('brand.name', 'Zelta') }} supports x402, MPP, and AP2 mandates. Your AI agents choose the best payment method for each transaction.</p>
             <div class="flex flex-wrap justify-center gap-4">
+                <a href="{{ url('/features/zelta-cli') }}" class="btn btn-outline">Zelta CLI</a>
                 <a href="{{ url('/features/x402-protocol') }}" class="btn btn-outline">x402 Protocol</a>
-                <a href="{{ url('/features/ai-framework') }}" class="btn btn-outline">AI Framework</a>
-                <a href="{{ url('/features') }}" class="btn btn-outline">All Features</a>
+                <a href="{{ url('/api/documentation') }}" class="btn btn-outline">Developer Docs</a>
             </div>
         </div>
     </section>

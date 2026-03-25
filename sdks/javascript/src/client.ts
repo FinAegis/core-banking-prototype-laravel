@@ -1,10 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 import axiosRetry from 'axios-retry';
-import { 
-  FinAegisConfig, 
+import {
+  FinAegisConfig,
   FinAegisEnvironment,
-  ApiResponse,
-  PaginatedResponse 
+  ApiResponse
 } from './types';
 import { FinAegisError } from './errors';
 import { Accounts } from './resources/accounts';

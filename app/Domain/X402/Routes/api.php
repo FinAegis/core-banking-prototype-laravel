@@ -8,6 +8,10 @@ use App\Http\Controllers\Api\X402\X402SpendingLimitController;
 use App\Http\Controllers\Api\X402\X402StatusController;
 use Illuminate\Support\Facades\Route;
 
+// Well-known discovery endpoint
+Route::get('/.well-known/x402-configuration', [X402StatusController::class, 'wellKnown'])
+    ->name('api.x402.well-known');
+
 Route::prefix('v1/x402')->name('api.x402.')->group(function () {
     // Public endpoints
     Route::get('/status', [X402StatusController::class, 'status'])->name('status');

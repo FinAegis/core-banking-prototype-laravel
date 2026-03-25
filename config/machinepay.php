@@ -19,6 +19,9 @@ return [
 
     'version' => 1,
 
+    // Subdomain prefix for protocol-specific routing (e.g. mpp.api.zelta.app)
+    'subdomain' => env('MPP_SUBDOMAIN', 'mpp'),
+
     /*
     |--------------------------------------------------------------------------
     | Server Settings

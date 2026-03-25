@@ -86,6 +86,30 @@ enum X402Network: string
     }
 
     /**
+     * Determine whether this network is a Solana network.
+     */
+    public function isSolana(): bool
+    {
+        return str_starts_with($this->value, 'solana:');
+    }
+
+    /**
+     * Determine whether this network is an EVM network.
+     */
+    public function isEvm(): bool
+    {
+        return str_starts_with($this->value, 'eip155:');
+    }
+
+    /**
+     * Get the signing scheme required for this network.
+     */
+    public function signingScheme(): string
+    {
+        return $this->isSolana() ? 'ed25519' : 'eip712';
+    }
+
+    /**
      * Get the block explorer base URL for this network.
      */
     public function explorerUrl(): string
