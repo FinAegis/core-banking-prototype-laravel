@@ -41,7 +41,7 @@ class X402ClientService
         // Select the best payment option
         $selected = $this->selectPaymentOption($paymentRequired->accepts);
         if ($selected === null) {
-            throw new RuntimeException('No compatible payment option found in x402 requirements. Ensure the server offers an EVM network with the "exact" scheme.');
+            throw new RuntimeException('No compatible payment option found in x402 requirements. Ensure the server offers an EVM or Solana network with the "exact" scheme.');
         }
 
         // Enforce spending limits
@@ -79,13 +79,16 @@ class X402ClientService
     /**
      * Select the best payment option from available requirements.
      *
-     * Prefers Base mainnet, then Base Sepolia (testnet), then other EVM.
+     * Prefers networks in config order, then falls back to any supported network.
      *
      * @param array<PaymentRequirements> $accepts
      */
     private function selectPaymentOption(array $accepts): ?PaymentRequirements
     {
-        $preferred = ['eip155:8453', 'eip155:84532', 'eip155:1'];
+        /** @var array<int, string> $preferred */
+        $preferred = config('x402.client.preferred_networks', [
+            'eip155:8453', 'eip155:84532', 'solana:mainnet', 'eip155:1',
+        ]);
 
         foreach ($preferred as $network) {
             foreach ($accepts as $option) {
@@ -95,9 +98,9 @@ class X402ClientService
             }
         }
 
-        // Fallback: first EVM option
+        // Fallback: first EVM or Solana option
         foreach ($accepts as $option) {
-            if (str_starts_with($option->network, 'eip155:')) {
+            if (str_starts_with($option->network, 'eip155:') || str_starts_with($option->network, 'solana:')) {
                 return $option;
             }
         }

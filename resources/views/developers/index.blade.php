@@ -609,6 +609,14 @@
                             </div>
                         </a>
 
+                        <div class="col-span-full mt-2">
+                            <p class="text-slate-500 text-sm text-center">
+                                Explore payment features: <a href="/features/x402-protocol" class="text-blue-600 hover:text-blue-800 font-medium">x402 Protocol</a> &middot;
+                                <a href="/features/machine-payments" class="text-blue-600 hover:text-blue-800 font-medium">Machine Payments</a> &middot;
+                                <a href="/features/zelta-cli" class="text-blue-600 hover:text-blue-800 font-medium">Zelta CLI</a>
+                            </p>
+                        </div>
+
                     </div>
                 </div>
             </div>

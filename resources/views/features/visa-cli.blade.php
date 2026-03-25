@@ -345,6 +345,10 @@ VISACLI_PER_TX_LIMIT=1000    <span class="text-slate-500"># $10.00 per transacti
                 <a href="{{ url('/developers') }}" class="btn-primary px-8 py-4 text-lg">Developer Docs</a>
                 <a href="{{ route('features.show', 'x402-protocol') }}" class="btn-outline px-8 py-4 text-lg">Compare with x402</a>
             </div>
+            <p class="mt-8 text-slate-500 text-sm">
+                Related: <a href="{{ url('/features/zelta-cli') }}" class="underline hover:text-white transition text-slate-400">Zelta CLI</a> &middot;
+                <a href="{{ url('/features/machine-payments') }}" class="underline hover:text-white transition text-slate-400">Machine Payments</a>
+            </p>
         </div>
     </section>
 
