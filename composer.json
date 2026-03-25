@@ -12,6 +12,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/YOzaz/laravel-data-object-tools.git"
+        },
+        {
+            "type": "path",
+            "url": "packages/zelta-sdk"
         }
     ],
     "authors": [
@@ -106,7 +110,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Zelta\\": "packages/zelta-sdk/src/",
+            "Zelta\\Tests\\": "packages/zelta-sdk/tests/"
         }
     },
     "scripts": {

@@ -1,0 +1,32 @@
+{
+    "name": "zelta/payment-sdk",
+    "description": "Zelta Payment SDK — transparent x402 and MPP payment handling for PHP",
+    "type": "library",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.4",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0",
+        "phpstan/phpstan": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zelta\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Zelta\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Zelta\\ZeltaServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
