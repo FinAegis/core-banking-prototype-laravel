@@ -12,7 +12,7 @@ use InvalidArgumentException;
  * - backoff_coefficient: Exponential backoff multiplier
  * - maximum_interval: Maximum delay cap in milliseconds
  * - maximum_attempts: Total number of retry attempts
- * - non_retryable_exceptions: Exception classes that should not trigger retries
+ * - non_retryable_exceptions: Exception classes that should not trigger retries.
  *
  * When typed RetryOptions become available in a future laravel-workflow release,
  * these methods can be refactored to use the fluent builder API (see commented code).
