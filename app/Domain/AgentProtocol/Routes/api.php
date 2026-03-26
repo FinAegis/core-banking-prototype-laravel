@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\AgentProtocol\A2ATaskController;
 use App\Http\Controllers\Api\AgentProtocol\AgentAuthController;
 use App\Http\Controllers\Api\AgentProtocol\AgentEscrowController;
 use App\Http\Controllers\Api\AgentProtocol\AgentIdentityController;
@@ -59,6 +60,14 @@ Route::prefix('agent-protocol')->name('api.agent-protocol.')->group(function () 
 
     // User-authenticated endpoints (users manage their agents via sanctum)
     Route::middleware(['auth:sanctum', 'api.rate_limit:private'])->group(function () {
+        // A2A Task lifecycle endpoints
+        Route::prefix('tasks')->name('tasks.')->group(function () {
+            Route::post('/send', [A2ATaskController::class, 'send'])->name('send');
+            Route::get('/', [A2ATaskController::class, 'list'])->name('list');
+            Route::get('/{taskId}', [A2ATaskController::class, 'get'])->name('get');
+            Route::post('/{taskId}/cancel', [A2ATaskController::class, 'cancel'])->name('cancel');
+        });
+
         // Agent registration (users create/own agents)
         Route::post('/agents/register', [AgentIdentityController::class, 'register'])->name('agents.register');
 
