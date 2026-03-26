@@ -36,14 +36,14 @@ class WhoamiCommand extends Command
         $formatter = new OutputFormatter($output);
         $auth = new AuthManager();
 
-        if (! $this->ensureAuthenticated($auth)) {
+        if (! $this->ensureAuthenticated($auth, $output)) {
             return 2;
         }
 
         $formatter->output([
             'profile'  => $auth->getActiveProfile(),
             'base_url' => $auth->getBaseUrl(),
-            'api_key'  => substr($auth->getApiKey() ?? '', 0, 10) . '...',
+            'api_key'  => '***' . substr($auth->getApiKey() ?? '', -4),
         ], forceJson: $this->shouldOutputJson($input));
 
         return Command::SUCCESS;

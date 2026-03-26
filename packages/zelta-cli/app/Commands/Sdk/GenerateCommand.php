@@ -67,7 +67,7 @@ class GenerateCommand extends Command
         }
 
         // Fallback to API
-        if (! $this->ensureAuthenticated($auth)) {
+        if (! $this->ensureAuthenticated($auth, $output)) {
             return 2;
         }
 

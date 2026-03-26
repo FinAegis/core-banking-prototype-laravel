@@ -42,7 +42,7 @@ class SendCommand extends Command
         $formatter = new OutputFormatter($output);
         $auth = new AuthManager();
 
-        if (! $this->ensureAuthenticated($auth)) {
+        if (! $this->ensureAuthenticated($auth, $output)) {
             return 2;
         }
 

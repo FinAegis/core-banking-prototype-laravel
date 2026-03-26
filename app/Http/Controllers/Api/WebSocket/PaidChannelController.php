@@ -62,9 +62,11 @@ class PaidChannelController extends Controller
     )]
     #[OA\Response(response: 200, description: 'Subscription cancelled')]
     #[OA\Response(response: 404, description: 'Subscription not found')]
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        $cancelled = $this->paymentService->cancelSubscription($id);
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $cancelled = $this->paymentService->cancelSubscription($id, $user->id);
 
         if (! $cancelled) {
             return response()->json([

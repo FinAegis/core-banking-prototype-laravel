@@ -67,9 +67,14 @@ class X402SolanaVerifierService
             return ['valid' => false, 'reason' => "Invalid USDC mint address: {$mint}"];
         }
 
-        // In production: verify Ed25519 signature using sodium_crypto_sign_verify_detached
-        // For now: accept if structure is valid (facilitator handles crypto verification)
-        Log::info('x402: Solana payment payload verified (structure check)', [
+        // In production, require facilitator-based verification — do not trust
+        // client-provided signatures without on-chain or facilitator confirmation.
+        if (app()->isProduction()) {
+            return ['valid' => false, 'reason' => 'Self-hosted Solana verification not enabled. Use facilitator-based verification in production.'];
+        }
+
+        // Demo/staging: accept if structure is valid (facilitator handles crypto verification)
+        Log::info('x402: Solana payment payload verified (structure check — demo mode)', [
             'from'   => $transaction['from'] ?? '',
             'to'     => $to,
             'amount' => $amount,

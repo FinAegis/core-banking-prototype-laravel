@@ -88,6 +88,13 @@ class X402SolanaHsmSignerService implements X402SignerInterface
 
     private function signWithSodium(string $message): string
     {
+        if (app()->isProduction()) {
+            throw new RuntimeException(
+                'Sodium provider reads raw private keys from disk — use "aws" or "azure" provider in production. '
+                . 'Set X402_SOLANA_HSM_PROVIDER=aws in .env.'
+            );
+        }
+
         $keyPath = (string) config('x402.client.solana_key_path', '');
         if ($keyPath === '' || ! file_exists($keyPath)) {
             throw new RuntimeException(

@@ -113,6 +113,13 @@ class WebSocketPaymentGateMiddleware
             return $this->paymentErrorResponse($channel, $pricing, 'Channel pricing not found.');
         }
 
+        // SECURITY: In production, verify the payment via facilitator before granting access.
+        // The payment_id must be validated against X402PaymentVerificationService or
+        // on-chain settlement status. Without verification, any crafted header grants access.
+        if (app()->isProduction()) {
+            return $this->paymentErrorResponse($channel, $pricing, 'WebSocket payment verification not yet enabled for production.');
+        }
+
         $this->paymentService->createSubscription(
             channel: $channel,
             pricing: array_merge($pricing, ['protocol' => 'x402']),
@@ -162,6 +169,12 @@ class WebSocketPaymentGateMiddleware
 
         if ($pricing === null) {
             return $this->paymentErrorResponse($channel, $pricing, 'Channel pricing not found.');
+        }
+
+        // SECURITY: In production, verify the MPP credential via MppVerificationService
+        // before granting access. Without verification, any crafted header grants access.
+        if (app()->isProduction()) {
+            return $this->paymentErrorResponse($channel, $pricing, 'WebSocket payment verification not yet enabled for production.');
         }
 
         $this->paymentService->createSubscription(
