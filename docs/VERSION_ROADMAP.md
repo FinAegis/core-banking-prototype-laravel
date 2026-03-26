@@ -2536,6 +2536,46 @@ Rain is a modern card issuing platform for crypto/fintech companies.
 
 ---
 
-*Document Version: 6.5.0*
+## Version 6.6.0 — Zelta CLI, Payment SDK, Solana HSM, WebSocket Payments (RELEASED)
+
+**Release Date**: March 26, 2026
+**Theme**: Developer Tooling + Payment Protocol Expansion
+
+- Zelta CLI v0.2.0 (25 commands across 8 resource groups)
+- Zelta Payment SDK (packages/zelta-sdk — Packagist-ready)
+- x402 .well-known/x402-configuration discovery endpoint
+- Solana first-class rail (Ed25519 + HSM signer + verifier)
+- Protocol subdomains (x402.api.* / mpp.api.*)
+- WebSocket payment gate (paid channel subscriptions)
+- CLI distribution pipeline (PHAR, npm, Homebrew, GH Releases)
+- SMS demo seeding + mobile rewards auto-creation
+- 4 security fixes from code review (payment verification guards, IDOR, key masking)
+- PRs: #828–#849 (20 PRs merged)
+
+---
+
+## Version 6.7.0 — A2A Protocol + Developer Ecosystem (RELEASED)
+
+**Release Date**: March 27, 2026
+**Theme**: Agent-to-Agent Protocol Compliance + Developer Experience
+
+### A2A Protocol Spec Compliance
+- A2A Agent Card at /.well-known/agent.json (5 skills, streaming/push support)
+- A2A Task lifecycle: send, get, cancel, list endpoints
+- A2ATaskState enum with 6 states + validated transitions
+- A2ATask model with UUID, state machine, query scopes
+
+### Developer Ecosystem
+- SDK Packagist publish workflow (triggered on sdk-v* tags)
+- API Sandbox at /developers/sandbox (client-side API testing tool)
+- 7 smoke tests for critical pages and API endpoints
+
+### Cleanup
+- Exchange LiquidityRetryPolicy TODO resolved
+- VERSION_ROADMAP.md updated through v6.7.0
+
+---
+
+*Document Version: 6.7.0*
 *Created: January 11, 2026*
-*Updated: March 24, 2026 (v6.5.0 SMS + Mobile Launch)*
+*Updated: March 27, 2026 (v6.7.0 A2A Protocol + Developer Ecosystem)*
