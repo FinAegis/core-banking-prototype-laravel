@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/.well-known/ap2-configuration', [AgentIdentityController::class, 'wellKnownConfiguration'])
     ->name('ap2.configuration');
 
+// A2A Agent Card (public)
+Route::get('/.well-known/agent.json', App\Http\Controllers\Api\AgentProtocol\A2AAgentCardController::class)
+    ->name('api.a2a.agent-card');
+
 Route::prefix('agent-protocol')->name('api.agent-protocol.')->group(function () {
     // Public endpoints
     Route::middleware('api.rate_limit:public')->group(function () {
