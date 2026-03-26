@@ -1,0 +1,41 @@
+name: Zelta SDK Release
+
+on:
+  push:
+    tags:
+      - 'sdk-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to Packagist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Install dependencies
+        working-directory: packages/zelta-sdk
+        run: composer install --no-dev
+
+      - name: Notify Packagist
+        run: |
+          curl -X POST "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}" \
+            -d '{"repository":{"url":"https://github.com/FinAegis/core-banking-prototype-laravel"}}'
+        continue-on-error: true
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/sdk-v}" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        run: |
+          echo "## Zelta SDK v${{ steps.version.outputs.version }} Published" >> $GITHUB_STEP_SUMMARY
+          echo "Install: \`composer require zelta/payment-sdk\`" >> $GITHUB_STEP_SUMMARY
