@@ -15,12 +15,13 @@ return new class () extends Migration {
             $table->string('agent_id', 128)->nullable();
             $table->string('channel', 255);
             $table->string('protocol', 10)->comment('x402 or mpp');
-            $table->uuid('payment_id')->nullable();
+            $table->string('payment_id', 128)->nullable();
             $table->string('amount', 78)->nullable()->comment('Atomic units');
             $table->string('network', 64)->nullable()->comment('CAIP-2 identifier');
             $table->timestamp('expires_at');
             $table->timestamps();
 
+            $table->unique('payment_id');
             $table->index(['channel', 'expires_at']);
             $table->index(['user_id', 'channel']);
             $table->index('agent_id');
