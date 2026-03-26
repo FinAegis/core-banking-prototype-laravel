@@ -137,7 +137,7 @@ if (config('brand.show_promo_pages')) {
     })->name('developers');
 
     Route::get('/developers/{section}', function ($section) {
-        $validSections = ['api-docs', 'sdks', 'examples', 'webhooks', 'postman', 'plugins', 'graphql', 'event-streaming', 'mcp-tools'];
+        $validSections = ['api-docs', 'sdks', 'examples', 'webhooks', 'postman', 'plugins', 'graphql', 'event-streaming', 'mcp-tools', 'sandbox'];
 
         if (! in_array($section, $validSections)) {
             abort(404);
