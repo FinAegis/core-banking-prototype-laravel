@@ -5,7 +5,19 @@ namespace App\Domain\Exchange\Workflows\Policies;
 use DomainException;
 use InvalidArgumentException;
 
-// TODO: Implement RetryOptions when available in laravel-workflow package
+/**
+ * NOTE: laravel-workflow v1.0.71 does not yet provide a typed RetryOptions class.
+ * All retry policies are returned as associative arrays with configuration keys:
+ * - initial_interval: Initial retry delay in milliseconds
+ * - backoff_coefficient: Exponential backoff multiplier
+ * - maximum_interval: Maximum delay cap in milliseconds
+ * - maximum_attempts: Total number of retry attempts
+ * - non_retryable_exceptions: Exception classes that should not trigger retries
+ *
+ * When typed RetryOptions become available in a future laravel-workflow release,
+ * these methods can be refactored to use the fluent builder API (see commented code).
+ * For now, array-based configuration is the recommended and required approach.
+ */
 // use Workflow\Exception\RetryOptions;
 
 class LiquidityRetryPolicy
