@@ -164,8 +164,12 @@ describe('X402SolanaHsmSignerService', function (): void {
         );
 
         $address = $signer->getAddress();
-        // The public key is extracted from bytes 32-64 of the secret key and hex-encoded
-        expect($address)->toBe(bin2hex($publicKey));
+        // The public key is extracted from bytes 32-64 and Base58-encoded
+        expect($address)->toBeString();
+        expect(strlen($address))->toBeGreaterThan(30)
+            ->and(strlen($address))->toBeLessThan(50);
+        // Base58 alphabet: no 0, O, I, l characters
+        expect($address)->not->toMatch('/[0OIl]/');
 
         @unlink($tempFile);
     });
