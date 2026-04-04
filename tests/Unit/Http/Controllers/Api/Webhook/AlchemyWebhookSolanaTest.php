@@ -149,6 +149,8 @@ function makeAlchemySolanaNativePayload(
 
 /**
  * Create a signed request for the Alchemy webhook.
+ *
+ * @param array<string, mixed> $payload
  */
 function makeSignedAlchemyRequest(array $payload, string $signingKey = 'test-signing-key'): Request
 {
