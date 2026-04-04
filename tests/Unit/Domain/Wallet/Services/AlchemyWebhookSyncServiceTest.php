@@ -200,5 +200,4 @@ it('syncs all active Solana addresses in one PATCH call', function (): void {
             && in_array('UserWallet222', $data['addresses_to_add'], true)
             && $data['addresses_to_remove'] === [];
     });
-
 });
