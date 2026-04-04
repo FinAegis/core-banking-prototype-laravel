@@ -8,6 +8,7 @@ use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Mobile\Services\PushNotificationService;
 use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
+use App\Domain\Wallet\Constants\SolanaCacheKeys;
 use App\Domain\Wallet\Events\Broadcast\WalletBalanceUpdated;
 use App\Domain\Wallet\Factories\BlockchainConnectorFactory;
 use App\Domain\Wallet\Services\HeliusTransactionProcessor;
@@ -190,14 +191,14 @@ class AlchemyWebhookController extends Controller
                 }
 
                 // Invalidate Solana balance caches
-                Cache::forget("solana_balance:{$address}");
-                Cache::forget("solana_balances:{$address}");
+                Cache::forget(SolanaCacheKeys::balance($address));
+                Cache::forget(SolanaCacheKeys::balances($address));
 
                 // Pre-warm balance cache (best-effort)
                 try {
                     $connector = BlockchainConnectorFactory::create('solana');
                     $balanceData = $connector->getBalance($address);
-                    Cache::put("solana_balance:{$address}", $balanceData->balance, 300);
+                    Cache::put(SolanaCacheKeys::balance($address), $balanceData->balance, 300);
                 } catch (Throwable) {
                     // Pre-warm is best-effort — next request will query fresh
                 }
