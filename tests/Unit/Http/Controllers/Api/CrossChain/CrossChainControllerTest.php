@@ -77,11 +77,11 @@ describe('CrossChainController', function () {
     });
 
     it('initiates a bridge transfer', function () {
-        $user = \App\Models\User::factory()->create();
+        $user = App\Models\User::factory()->create();
 
         // Register a blockchain address so sender address verification passes
-        \App\Domain\Account\Models\BlockchainAddress::create([
-            'uuid'       => \Illuminate\Support\Str::uuid()->toString(),
+        App\Domain\Account\Models\BlockchainAddress::create([
+            'uuid'       => Illuminate\Support\Str::uuid()->toString(),
             'user_uuid'  => $user->uuid,
             'chain'      => 'ethereum',
             'address'    => '0xSender',
@@ -153,10 +153,10 @@ describe('CrossChainController', function () {
     });
 
     it('executes cross-chain swap', function () {
-        $user = \App\Models\User::factory()->create();
+        $user = App\Models\User::factory()->create();
 
-        \App\Domain\Account\Models\BlockchainAddress::create([
-            'uuid'       => \Illuminate\Support\Str::uuid()->toString(),
+        App\Domain\Account\Models\BlockchainAddress::create([
+            'uuid'       => Illuminate\Support\Str::uuid()->toString(),
             'user_uuid'  => $user->uuid,
             'chain'      => 'ethereum',
             'address'    => '0xTestWallet',
@@ -194,7 +194,7 @@ describe('CrossChainController', function () {
     })->throws(Illuminate\Validation\ValidationException::class);
 
     it('validates chain enum for invalid to_chain in swap execute', function () {
-        $user = \App\Models\User::factory()->create();
+        $user = App\Models\User::factory()->create();
         $request = makePostRequest('/api/v1/crosschain/swap/execute', [
             'from_chain'     => 'ethereum',
             'to_chain'       => 'nonexistent',

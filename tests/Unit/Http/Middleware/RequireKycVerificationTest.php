@@ -20,7 +20,7 @@ it('blocks unverified users from financial endpoints', function () {
     ]);
 
     $response->assertStatus(403)
-        ->assertJsonPath('error', 'ERR_CERT_500');
+        ->assertJsonPath('error', 'ERR_KYC_REQUIRED');
 });
 
 it('allows verified users through', function () {
