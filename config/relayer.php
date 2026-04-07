@@ -68,14 +68,6 @@ return [
             'bundler_url' => env('ARBITRUM_BUNDLER_URL'),
         ],
 
-        'optimism' => [
-            'chain_id'    => 10,
-            'rpc_url'     => env('OPTIMISM_RPC_URL', 'https://mainnet.optimism.io'),
-            'entry_point' => '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
-            'paymaster'   => env('OPTIMISM_PAYMASTER_ADDRESS'),
-            'bundler_url' => env('OPTIMISM_BUNDLER_URL'),
-        ],
-
         'base' => [
             'chain_id'    => 8453,
             'rpc_url'     => env('BASE_RPC_URL', 'https://mainnet.base.org'),
@@ -200,7 +192,6 @@ return [
             'polygon'  => env('CUSTOM_RPC_POLYGON'),
             'base'     => env('CUSTOM_RPC_BASE'),
             'arbitrum' => env('CUSTOM_RPC_ARBITRUM'),
-            'optimism' => env('CUSTOM_RPC_OPTIMISM'),
             'ethereum' => env('CUSTOM_RPC_ETHEREUM'),
         ],
 
@@ -210,7 +201,6 @@ return [
                 'polygon'  => env('USDC_POLYGON', '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'),
                 'base'     => env('USDC_BASE', '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'),
                 'arbitrum' => env('USDC_ARBITRUM', '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'),
-                'optimism' => env('USDC_OPTIMISM', '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85'),
                 'ethereum' => env('USDC_ETHEREUM', '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
             ],
             'USDT' => [
@@ -225,25 +215,6 @@ return [
             // Example: '0x123...' => ['USDC' => '1000.000000', 'USDT' => '500.000000']
         ],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Alchemy Webhook Configuration (v5.14.0)
-    |--------------------------------------------------------------------------
-    |
-    | Signing keys for verifying Alchemy Address Activity Webhooks.
-    | Each chain webhook gets its own signing key from Alchemy Dashboard.
-    | The controller tries all configured keys (one must match).
-    |
-    */
-
-    'alchemy_webhook_signing_keys' => array_filter([
-        env('ALCHEMY_WEBHOOK_SIGNING_KEY_POLYGON'),
-        env('ALCHEMY_WEBHOOK_SIGNING_KEY_ARBITRUM'),
-        env('ALCHEMY_WEBHOOK_SIGNING_KEY_ETHEREUM'),
-        env('ALCHEMY_WEBHOOK_SIGNING_KEY_SOLANA'),
-        env('ALCHEMY_WEBHOOK_SIGNING_KEY'),  // Legacy single-key fallback
-    ]),
 
     /*
     |--------------------------------------------------------------------------

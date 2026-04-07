@@ -262,10 +262,7 @@ return [
     ],
 
     'alchemy' => [
-        'notify_token'      => env('ALCHEMY_NOTIFY_TOKEN'),
-        'solana_webhook_id' => env('ALCHEMY_SOLANA_WEBHOOK_ID'),
+        'notify_token' => env('ALCHEMY_NOTIFY_TOKEN'),
     ],
-
-    'solana_webhook_provider' => env('SOLANA_WEBHOOK_PROVIDER', 'helius'),
 
 ];

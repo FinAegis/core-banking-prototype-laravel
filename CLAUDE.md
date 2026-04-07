@@ -103,8 +103,9 @@ gh run view <RUN_ID> --log-failed     # View failed logs
 - New domains: add env vars to `.env.production.example` and `.env.zelta.example`
 - Use Serena memories for deep architectural context when needed
 - Solana constants: `SolanaTokens::KNOWN_MINTS` and `SolanaCacheKeys::balance()` in `app/Domain/Wallet/Constants/`
-- Solana webhook provider: `SOLANA_WEBHOOK_PROVIDER=alchemy|helius` (default: helius) — controls observer + sync command
-- Solana tx processor: `HeliusTransactionProcessor` is shared by both Helius and Alchemy webhook handlers
-- Webhook controllers: both Helius and Alchemy handlers send FCM push via `PushNotificationService`
+- Solana webhook: always uses Helius (`HeliusWebhookSyncService`), Alchemy handles EVM only
+- Solana tx processor: `HeliusTransactionProcessor` handles all Solana transaction parsing
+- Webhook controllers: Helius handles Solana, Alchemy handles EVM — both send FCM push via `PushNotificationService`
+- Alchemy webhook signing keys: stored in `webhook_endpoints` table (managed by `AlchemyWebhookManager`), not env vars
 - Test tables: use `Tests\Traits\CreatesSolanaTestTables` trait for in-memory SQLite schema in webhook/wallet tests
 - Parallel agent merges: always check for duplicate `use` imports after merging agent branches
