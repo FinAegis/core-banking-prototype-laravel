@@ -7,7 +7,7 @@ use Laravel\Sanctum\Sanctum;
 
 describe('Ramp Endpoints', function (): void {
     it('returns supported currencies and limits', function (): void {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['kyc_status' => 'approved']);
         Sanctum::actingAs($user, ['read', 'write', 'delete']);
 
         $response = $this->getJson('/api/v1/ramp/supported');
