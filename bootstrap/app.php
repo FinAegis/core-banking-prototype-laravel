@@ -111,6 +111,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.agent'       => App\Http\Middleware\AuthenticateAgentDID::class,
             'agent.scope'      => App\Http\Middleware\CheckAgentScope::class,
             'agent.capability' => App\Http\Middleware\CheckAgentCapability::class,
+            // KYC verification gate — blocks financial operations for Level 0 users
+            'require.kyc' => App\Http\Middleware\RequireKycVerification::class,
             // BaaS partner authentication middleware
             'partner.auth' => App\Http\Middleware\PartnerAuthMiddleware::class,
             // Multi-tenancy middleware

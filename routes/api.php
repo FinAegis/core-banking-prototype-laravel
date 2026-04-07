@@ -264,7 +264,7 @@ Route::prefix('v1/banners')->name('api.v1.banners.')
 
 // v5.13.0 — On/Off Ramp
 Route::prefix('v1/ramp')->name('api.v1.ramp.')
-    ->middleware(['auth:sanctum'])
+    ->middleware(['auth:sanctum', 'require.kyc'])
     ->group(function () {
         Route::get('/supported', [App\Http\Controllers\Api\V1\RampController::class, 'supported'])->middleware('api.rate_limit:query')->name('supported');
         Route::get('/quotes', [App\Http\Controllers\Api\V1\RampController::class, 'quotes'])->middleware('api.rate_limit:query')->name('quotes');
@@ -277,6 +277,11 @@ Route::prefix('v1/ramp')->name('api.v1.ramp.')
 Route::post('v1/ramp/webhook/{provider}', [App\Http\Controllers\Api\V1\RampWebhookController::class, 'handle'])
     ->middleware('api.rate_limit:webhook')
     ->name('api.v1.ramp.webhook');
+
+// Stripe Bridge (Crypto Onramp) webhook — Stripe signature verified
+Route::post('webhooks/stripe/bridge', [App\Http\Controllers\Api\Webhook\StripeBridgeWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.stripe.bridge');
 
 // v5.14.0 — Alchemy Address Activity Webhook (no auth, HMAC verified)
 Route::post('webhooks/alchemy/address-activity', [App\Http\Controllers\Api\Webhook\AlchemyWebhookController::class, 'handle'])
