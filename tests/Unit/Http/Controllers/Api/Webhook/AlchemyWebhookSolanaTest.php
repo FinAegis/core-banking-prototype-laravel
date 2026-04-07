@@ -2,20 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\Wallet\Models\WebhookEndpoint;
 use App\Http\Controllers\Api\Webhook\AlchemyWebhookController;
-use App\Models\User;
+use App\Jobs\ProcessAlchemyWebhookJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
-use Tests\Traits\CreatesSolanaTestTables;
 
-uses(TestCase::class, CreatesSolanaTestTables::class);
+uses(TestCase::class);
 
 beforeEach(function (): void {
     config(['cache.default' => 'array']);
-    $this->createSolanaTestTables();
 
     // Create webhook_endpoints table for DB-based signing keys
     if (! Schema::hasTable('webhook_endpoints')) {
@@ -47,24 +45,19 @@ beforeEach(function (): void {
         'is_active'           => true,
         'address_count'       => 0,
     ]);
-});
 
-afterEach(function (): void {
-    $this->dropSolanaTestTables();
+    Queue::fake();
 });
 
 /**
- * Build an Alchemy ADDRESS_ACTIVITY webhook payload for a Solana SPL token transfer.
+ * Build an Alchemy ADDRESS_ACTIVITY webhook payload.
  *
  * @return array<string, mixed>
  */
-function makeAlchemySolanaTokenPayload(
-    string $hash,
-    string $from,
-    string $to,
-    string $value = '25.50',
-    string $mint = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-    string $network = 'sol-mainnet',
+function makeAlchemyPayload(
+    string $network = 'eth-mainnet',
+    string $asset = 'USDC',
+    string $category = 'token',
 ): array {
     return [
         'type'  => 'ADDRESS_ACTIVITY',
@@ -72,15 +65,12 @@ function makeAlchemySolanaTokenPayload(
             'network'  => $network,
             'activity' => [
                 [
-                    'category'    => 'token',
-                    'hash'        => $hash,
-                    'fromAddress' => $from,
-                    'toAddress'   => $to,
-                    'value'       => $value,
-                    'asset'       => 'USDC',
-                    'rawContract' => [
-                        'address' => $mint,
-                    ],
+                    'category'    => $category,
+                    'hash'        => '0xabc123',
+                    'fromAddress' => '0x1111111111111111111111111111111111111111',
+                    'toAddress'   => '0x2222222222222222222222222222222222222222',
+                    'value'       => '100.00',
+                    'asset'       => $asset,
                 ],
             ],
         ],
@@ -97,50 +87,26 @@ function makeSignedAlchemyRequest(array $payload, string $signingKey = 'test-sig
     $body = (string) json_encode($payload);
     $signature = hash_hmac('sha256', $body, $signingKey);
 
-    $request = Request::create('/api/webhooks/alchemy/address-activity', 'POST', [], [], [], [
+    return Request::create('/api/webhooks/alchemy/address-activity', 'POST', [], [], [], [
         'HTTP_X_ALCHEMY_SIGNATURE' => $signature,
         'CONTENT_TYPE'             => 'application/json',
     ], $body);
-
-    return $request;
 }
 
-it('ignores Solana webhooks and returns ignored status', function (): void {
-    $user = User::factory()->create();
-    BlockchainAddress::create([
-        'user_uuid'  => $user->uuid,
-        'chain'      => 'solana',
-        'address'    => '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
-        'public_key' => '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
-        'is_active'  => true,
-    ]);
-
-    $payload = makeAlchemySolanaTokenPayload(
-        'alchemy_sol_sig_001',
-        'ExternalSender123',
-        '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
-        '25.50',
-    );
-
+it('dispatches job and returns queued for valid EVM payload', function (): void {
+    $payload = makeAlchemyPayload('eth-mainnet');
     $controller = app(AlchemyWebhookController::class);
     $request = makeSignedAlchemyRequest($payload);
     $response = $controller->handle($request);
 
-    $data = $response->getData(true);
-    expect($data['status'])->toBe('ignored');
-    expect($data['reason'])->toBe('solana handled by helius');
+    expect($response->getStatusCode())->toBe(200);
+    expect($response->getData(true)['status'])->toBe('queued');
+
+    Queue::assertPushed(ProcessAlchemyWebhookJob::class, 1);
 });
 
-it('verifies HMAC signature using DB-stored keys', function (): void {
-    $payload = makeAlchemySolanaTokenPayload(
-        'alchemy_auth_001',
-        'From',
-        'To',
-    );
-
-    $controller = app(AlchemyWebhookController::class);
-
-    // Send with wrong signature
+it('rejects requests with invalid signature', function (): void {
+    $payload = makeAlchemyPayload();
     $body = (string) json_encode($payload);
     $wrongSignature = hash_hmac('sha256', $body, 'wrong-key');
 
@@ -149,19 +115,42 @@ it('verifies HMAC signature using DB-stored keys', function (): void {
         'CONTENT_TYPE'             => 'application/json',
     ], $body);
 
+    $controller = app(AlchemyWebhookController::class);
     $response = $controller->handle($request);
 
     expect($response->getStatusCode())->toBe(401);
     expect($response->getData(true)['error'])->toBe('Invalid signature');
+
+    Queue::assertNotPushed(ProcessAlchemyWebhookJob::class);
+});
+
+it('ignores Solana webhooks and returns ignored status', function (): void {
+    $payload = makeAlchemyPayload('sol-mainnet');
+    $controller = app(AlchemyWebhookController::class);
+    $request = makeSignedAlchemyRequest($payload);
+    $response = $controller->handle($request);
+
+    expect($response->getStatusCode())->toBe(200);
+    expect($response->getData(true)['status'])->toBe('ignored');
+    expect($response->getData(true)['reason'])->toBe('solana handled by helius');
+
+    Queue::assertNotPushed(ProcessAlchemyWebhookJob::class);
+});
+
+it('ignores non-ADDRESS_ACTIVITY webhook types', function (): void {
+    $payload = ['type' => 'MINED_TRANSACTION', 'event' => []];
+    $controller = app(AlchemyWebhookController::class);
+    $request = makeSignedAlchemyRequest($payload);
+    $response = $controller->handle($request);
+
+    expect($response->getStatusCode())->toBe(200);
+    expect($response->getData(true)['status'])->toBe('ignored');
+
+    Queue::assertNotPushed(ProcessAlchemyWebhookJob::class);
 });
 
 it('accepts valid signature from DB-stored signing key', function (): void {
-    $payload = makeAlchemySolanaTokenPayload(
-        'alchemy_valid_sig_001',
-        'From',
-        'To',
-    );
-
+    $payload = makeAlchemyPayload('sol-mainnet');
     $controller = app(AlchemyWebhookController::class);
     $request = makeSignedAlchemyRequest($payload);
     $response = $controller->handle($request);
