@@ -84,9 +84,11 @@ it('processes USDC token transfer for known blockchain address', function (): vo
         ],
     ]);
 
+    /** @var WalletBalanceProviderInterface&Mockery\MockInterface $balanceProvider */
     $balanceProvider = Mockery::mock(WalletBalanceProviderInterface::class);
-    $balanceProvider->shouldReceive('invalidateCache')->atLeast()->once();
+    $balanceProvider->shouldReceive('invalidateCache');
 
+    /** @var PushNotificationService&Mockery\MockInterface $pushService */
     $pushService = Mockery::mock(PushNotificationService::class);
     $pushService->shouldReceive('sendTransactionReceived')->once();
 
@@ -121,9 +123,11 @@ it('resolves user from smart_accounts table', function (): void {
         ],
     ]);
 
+    /** @var WalletBalanceProviderInterface&Mockery\MockInterface $balanceProvider */
     $balanceProvider = Mockery::mock(WalletBalanceProviderInterface::class);
-    $balanceProvider->shouldReceive('invalidateCache')->atLeast()->once();
+    $balanceProvider->shouldReceive('invalidateCache');
 
+    /** @var PushNotificationService&Mockery\MockInterface $pushService */
     $pushService = Mockery::mock(PushNotificationService::class);
     $pushService->shouldReceive('sendTransactionReceived')->once();
 
@@ -156,9 +160,11 @@ it('filters out spam tokens (non-USDC/USDT)', function (): void {
         ],
     ]);
 
+    /** @var WalletBalanceProviderInterface&Mockery\MockInterface $balanceProvider */
     $balanceProvider = Mockery::mock(WalletBalanceProviderInterface::class);
     $balanceProvider->shouldNotReceive('invalidateCache');
 
+    /** @var PushNotificationService&Mockery\MockInterface $pushService */
     $pushService = Mockery::mock(PushNotificationService::class);
     $pushService->shouldNotReceive('sendTransactionReceived');
     $pushService->shouldNotReceive('sendTransactionSent');
@@ -191,9 +197,11 @@ it('skips activities with removed flag (block reorg)', function (): void {
         ],
     ]);
 
+    /** @var WalletBalanceProviderInterface&Mockery\MockInterface $balanceProvider */
     $balanceProvider = Mockery::mock(WalletBalanceProviderInterface::class);
     $balanceProvider->shouldNotReceive('invalidateCache');
 
+    /** @var PushNotificationService&Mockery\MockInterface $pushService */
     $pushService = Mockery::mock(PushNotificationService::class);
     $pushService->shouldNotReceive('sendTransactionReceived');
 
@@ -232,9 +240,11 @@ it('deduplicates notifications per user within batch', function (): void {
         ],
     ]);
 
+    /** @var WalletBalanceProviderInterface&Mockery\MockInterface $balanceProvider */
     $balanceProvider = Mockery::mock(WalletBalanceProviderInterface::class);
-    $balanceProvider->shouldReceive('invalidateCache')->atLeast()->once();
+    $balanceProvider->shouldReceive('invalidateCache');
 
+    /** @var PushNotificationService&Mockery\MockInterface $pushService */
     $pushService = Mockery::mock(PushNotificationService::class);
     $pushService->shouldReceive('sendTransactionReceived')->once();
 

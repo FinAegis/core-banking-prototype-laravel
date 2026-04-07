@@ -131,6 +131,7 @@ it('rejects provider mismatch', function (): void {
     // Session should not be updated
     $session = RampSession::where('stripe_session_id', 'cos_mismatch')->first();
     expect($session)->not->toBeNull();
+    assert($session instanceof RampSession);
     expect($session->status)->toBe('pending');
 });
 

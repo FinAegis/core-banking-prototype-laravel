@@ -154,7 +154,7 @@ class PimlicoBundlerServiceTest extends TestCase
 
         // All networks return null (not found)
         $this->rpcClient->shouldReceive('bundlerCall')
-            ->times(5) // one per SupportedNetwork case
+            ->times(4) // one per SupportedNetwork case
             ->andReturn(null);
 
         $result = $this->service->getUserOperationStatus($hash);

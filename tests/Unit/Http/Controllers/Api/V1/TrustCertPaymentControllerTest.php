@@ -36,6 +36,9 @@ beforeEach(function (): void {
     });
 });
 
+/**
+ * @param array<string, mixed> $data
+ */
 function makePaymentRequest(string $uri, string $method = 'POST', array $data = [], int $userId = 1): Request
 {
     $request = Request::create($uri, $method, $data, [], [], ['CONTENT_TYPE' => 'application/json'], (string) json_encode($data));
