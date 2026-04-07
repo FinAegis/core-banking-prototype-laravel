@@ -5,51 +5,37 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Account\Models\BlockchainAddress;
-use App\Domain\Wallet\Services\AlchemyWebhookSyncService;
 use App\Domain\Wallet\Services\HeliusWebhookSyncService;
 use Illuminate\Console\Command;
 
 /**
- * Sync all Solana addresses to webhook monitoring (Helius or Alchemy).
+ * Sync all Solana addresses to Helius webhook monitoring.
  *
  * Run periodically or after bulk imports to ensure all user
- * Solana addresses are registered with the active webhook provider.
+ * Solana addresses are registered with the Helius webhook.
  */
 class SolanaWebhookSyncCommand extends Command
 {
     protected $signature = 'solana:sync
-        {--provider= : Webhook provider (helius or alchemy)}
         {--dry-run : Show count without updating the webhook}';
 
-    protected $description = 'Sync all Solana blockchain addresses to the active webhook provider (helius or alchemy)';
+    protected $description = 'Sync all Solana blockchain addresses to the Helius webhook provider';
 
     public function handle(
         HeliusWebhookSyncService $heliusService,
-        AlchemyWebhookSyncService $alchemyService,
     ): int {
-        $provider = $this->option('provider')
-            ?? config('services.solana_webhook_provider', 'helius');
-
-        if (! in_array($provider, ['helius', 'alchemy'], true)) {
-            $this->error("Unknown provider: {$provider}. Valid options: helius, alchemy.");
-
-            return self::FAILURE;
-        }
-
-        $service = $provider === 'alchemy' ? $alchemyService : $heliusService;
-
         if ($this->option('dry-run')) {
             $count = BlockchainAddress::where('chain', 'solana')
                 ->where('is_active', true)
                 ->count();
-            $this->info("Would sync {$count} Solana addresses to {$provider} webhook.");
+            $this->info("Would sync {$count} Solana addresses to helius webhook.");
 
             return self::SUCCESS;
         }
 
-        $this->info("Syncing Solana addresses to {$provider}...");
+        $this->info('Syncing Solana addresses to helius...');
 
-        $count = $service->syncAllAddresses();
+        $count = $heliusService->syncAllAddresses();
 
         if ($count === 0) {
             $dbCount = BlockchainAddress::where('chain', 'solana')
@@ -59,16 +45,13 @@ class SolanaWebhookSyncCommand extends Command
             if ($dbCount === 0) {
                 $this->warn('No Solana addresses found in blockchain_addresses table. Call /api/v1/wallet/addresses to auto-register user addresses first.');
             } else {
-                $envHint = $provider === 'alchemy'
-                    ? 'ALCHEMY_API_KEY and ALCHEMY_WEBHOOK_SIGNING_KEY'
-                    : 'HELIUS_API_KEY and HELIUS_WEBHOOK_ID';
-                $this->warn("No addresses synced. Check {$envHint} are set.");
+                $this->warn('No addresses synced. Check HELIUS_API_KEY and HELIUS_WEBHOOK_ID are set.');
             }
 
             return self::FAILURE;
         }
 
-        $this->info("Synced {$count} Solana addresses to {$provider} webhook.");
+        $this->info("Synced {$count} Solana addresses to helius webhook.");
 
         return self::SUCCESS;
     }
