@@ -46,5 +46,10 @@ class WalletServiceProvider extends ServiceProvider
         \App\Domain\Account\Models\BlockchainAddress::observe(
             \App\Domain\Wallet\Observers\BlockchainAddressObserver::class,
         );
+
+        // Auto-sync EVM SmartAccount addresses to Alchemy webhook monitoring
+        \App\Domain\Relayer\Models\SmartAccount::observe(
+            \App\Domain\Wallet\Observers\SmartAccountObserver::class,
+        );
     }
 }
