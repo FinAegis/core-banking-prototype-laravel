@@ -11,7 +11,8 @@ return new class () extends Migration {
     {
         Schema::create('verification_payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('user_id')->constrained()->index();
+            $table->unsignedBigInteger('user_id')->index();
+            $table->foreign('user_id')->references('id')->on('users');
             $table->string('application_id', 128)->index();
             $table->string('method', 20); // wallet, card, iap
             $table->decimal('amount', 10, 2);
