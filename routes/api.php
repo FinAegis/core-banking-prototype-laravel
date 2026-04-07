@@ -310,6 +310,12 @@ Route::prefix('v1/sponsorship')->name('api.v1.sponsorship.')
         Route::get('/status', [App\Http\Controllers\Api\V1\SponsorshipController::class, 'status'])->name('status');
     });
 
+// Card pre-order waitlist
+Route::prefix('v1/cards/waitlist')->name('api.v1.cards.waitlist.')->middleware(['auth:sanctum'])->group(function () {
+    Route::post('/', [App\Http\Controllers\Api\V1\CardWaitlistController::class, 'join'])->name('join');
+    Route::get('/status', [App\Http\Controllers\Api\V1\CardWaitlistController::class, 'status'])->name('status');
+});
+
 /*
 |--------------------------------------------------------------------------
 | External Route Includes
