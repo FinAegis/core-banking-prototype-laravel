@@ -162,6 +162,8 @@ parameters:
         # Null-safe property access on firstWhere/first results in tests
         - '#Cannot access property \$[a-zA-Z_]+ on App\\Domain\\[a-zA-Z\\]+\\Models\\[a-zA-Z]+\|null#'
         - '#Access to an undefined property PHPUnit\\Framework\\TestCase::\$[a-zA-Z_]+#'
+        - '#Call to an undefined method PHPUnit\\Framework\\TestCase::(createSolanaTestTables|dropSolanaTestTables)\(\)#'
+        - '#Trait Tests\\Traits\\CreatesSolanaTestTables is used zero times and is not analysed#'
         - '#Call to an undefined static method PHPUnit\\Framework\\TestCase::uses\(\)#'
         - '#Call to function (it|test|expect|beforeEach|afterEach|beforeAll|afterAll|dataset|uses|covers|group|skip|todo)\(\) not found#'
         - '#Function method_exists\(\) with .* and .* will always evaluate to true#'
