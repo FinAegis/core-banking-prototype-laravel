@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $wallet_address
  * @property string $status
  * @property string|null $provider_session_id
+ * @property string|null $stripe_session_id
+ * @property string|null $stripe_client_secret
  * @property array<string, mixed>|null $metadata
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
@@ -36,6 +38,8 @@ class RampSession extends Model
 
     public const STATUS_FAILED = 'failed';
 
+    public const STATUS_EXPIRED = 'expired';
+
     protected $fillable = [
         'user_id',
         'provider',
@@ -47,6 +51,8 @@ class RampSession extends Model
         'wallet_address',
         'status',
         'provider_session_id',
+        'stripe_session_id',
+        'stripe_client_secret',
         'metadata',
     ];
 

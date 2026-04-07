@@ -31,6 +31,12 @@ return [
             'success_redirect_url' => env('ONRAMPER_SUCCESS_REDIRECT_URL'),
             'enabled'              => (bool) env('ONRAMPER_ENABLED', false),
         ],
+
+        'stripe_bridge' => [
+            'driver'         => 'stripe_bridge',
+            'enabled'        => (bool) env('STRIPE_BRIDGE_ENABLED', false),
+            'webhook_secret' => env('STRIPE_BRIDGE_WEBHOOK_SECRET'),
+        ],
     ],
 
     /*

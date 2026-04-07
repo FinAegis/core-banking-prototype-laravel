@@ -58,7 +58,7 @@ class RampService
             'quote_id'        => $quoteId,
         ]);
 
-        $session = RampSession::create([
+        $sessionData = [
             'user_id'             => $user->id,
             'provider'            => $this->provider->getName(),
             'type'                => $type,
@@ -72,7 +72,18 @@ class RampService
                 'checkout_url' => $providerResult['checkout_url'],
                 'provider'     => $providerResult['metadata'] ?? [],
             ],
-        ]);
+        ];
+
+        // Store Stripe Bridge specific fields
+        $metadata = $providerResult['metadata'] ?? [];
+        if (isset($metadata['stripe_session_id'])) {
+            $sessionData['stripe_session_id'] = $metadata['stripe_session_id'];
+        }
+        if (isset($metadata['client_secret'])) {
+            $sessionData['stripe_client_secret'] = $metadata['client_secret'];
+        }
+
+        $session = RampSession::create($sessionData);
 
         Log::info('Ramp session created', [
             'session_id' => $session->id,
@@ -147,7 +158,7 @@ class RampService
         }
 
         // Idempotency: don't overwrite terminal states
-        if (in_array($session->status, [RampSession::STATUS_COMPLETED, RampSession::STATUS_FAILED], true)) {
+        if (in_array($session->status, [RampSession::STATUS_COMPLETED, RampSession::STATUS_FAILED, RampSession::STATUS_EXPIRED], true)) {
             Log::info('Ramp webhook skipped — session already terminal', [
                 'session_id' => $session->id,
                 'status'     => $session->status,
@@ -212,9 +223,11 @@ class RampService
     private function normalizeWebhookStatus(string $status): string
     {
         return match (strtolower($status)) {
-            'completed', 'success', 'done' => RampSession::STATUS_COMPLETED,
-            'failed', 'error', 'cancelled', 'expired' => RampSession::STATUS_FAILED,
-            'pending', 'new', 'created' => RampSession::STATUS_PENDING,
+            'completed', 'success', 'done', 'fulfilled' => RampSession::STATUS_COMPLETED,
+            'failed', 'error', 'cancelled', 'payment_failed' => RampSession::STATUS_FAILED,
+            'expired' => RampSession::STATUS_EXPIRED,
+            'pending', 'new', 'created', 'initialized' => RampSession::STATUS_PENDING,
+            'payment_pending', 'payment_complete' => RampSession::STATUS_PROCESSING,
             default => RampSession::STATUS_PROCESSING,
         };
     }

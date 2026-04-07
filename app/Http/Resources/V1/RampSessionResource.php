@@ -28,10 +28,32 @@ class RampSessionResource extends JsonResource
             'crypto_amount'   => $this->crypto_amount,
             'wallet_address'  => $this->wallet_address,
             'status'          => $this->status,
-            'status_label'    => ucfirst($this->status),
+            'status_label'    => $this->resolveStatusLabel(),
             'checkout_url'    => $metadata['checkout_url'] ?? null,
             'created_at'      => $this->created_at->toIso8601String(),
             'updated_at'      => $this->updated_at->toIso8601String(),
         ];
+    }
+
+    /**
+     * Resolve a human-readable status label.
+     * For Stripe Bridge sessions, use the label from webhook metadata if available.
+     */
+    private function resolveStatusLabel(): string
+    {
+        $metadata = $this->metadata ?? [];
+
+        if ($this->provider === 'stripe_bridge' && isset($metadata['stripe_status_label'])) {
+            return (string) $metadata['stripe_status_label'];
+        }
+
+        return match ($this->status) {
+            'pending'    => 'Waiting for payment',
+            'processing' => 'Processing',
+            'completed'  => 'Completed',
+            'failed'     => 'Payment failed',
+            'expired'    => 'Session expired',
+            default      => ucfirst($this->status),
+        };
     }
 }
