@@ -9,7 +9,9 @@ use App\Domain\Account\Models\BlockchainTransaction;
 use App\Domain\MobilePayment\Enums\ActivityItemType;
 use App\Domain\MobilePayment\Models\ActivityFeedItem;
 use App\Domain\Wallet\Constants\SolanaTokens;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Shared Helius transaction parsing and persistence logic.
@@ -86,19 +88,40 @@ class HeliusTransactionProcessor
             $occurredAt,
             &$wasCreated,
         ): void {
-            $btx = BlockchainTransaction::firstOrCreate(
-                ['tx_hash' => $signature, 'chain' => 'solana'],
-                [
-                    'address_uuid' => $blockchainAddress->uuid,
-                    'type'         => $isIncoming ? 'receive' : 'send',
-                    'amount'       => $amount,
-                    'fee'          => $fee,
-                    'from_address' => $fromAddr ?? '',
-                    'to_address'   => $toAddr ?? '',
-                    'status'       => 'confirmed',
-                    'metadata'     => $metadata,
-                ]
-            );
+            try {
+                $btx = BlockchainTransaction::firstOrCreate(
+                    ['tx_hash' => $signature, 'chain' => 'solana'],
+                    [
+                        'address_uuid' => $blockchainAddress->uuid,
+                        'type'         => $isIncoming ? 'receive' : 'send',
+                        'amount'       => $amount,
+                        'fee'          => $fee,
+                        'from_address' => $fromAddr ?? '',
+                        'to_address'   => $toAddr ?? '',
+                        'status'       => 'confirmed',
+                        'metadata'     => $metadata,
+                    ]
+                );
+            } catch (QueryException $e) {
+                if ($e->getCode() === '23000') {
+                    // Duplicate entry — race condition on concurrent webhook retries.
+                    // The unique constraint on (tx_hash, chain) fired; fetch the winner.
+                    $btx = BlockchainTransaction::where('tx_hash', $signature)
+                        ->where('chain', 'solana')
+                        ->first();
+
+                    if ($btx === null) {
+                        Log::warning('Duplicate tx_hash but record not found', ['signature' => $signature]);
+
+                        return;
+                    }
+
+                    // Transaction already persisted — nothing more to do.
+                    return;
+                }
+
+                throw $e;
+            }
 
             ActivityFeedItem::firstOrCreate(
                 ['reference_type' => 'solana_tx', 'reference_id' => $refId],

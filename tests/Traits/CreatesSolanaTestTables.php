@@ -32,13 +32,14 @@ trait CreatesSolanaTestTables
                 $table->id();
                 $table->uuid('uuid')->unique();
                 $table->string('address_uuid')->index();
-                $table->string('tx_hash')->index();
+                $table->string('tx_hash');
                 $table->string('type');
                 $table->decimal('amount', 36, 18);
                 $table->decimal('fee', 36, 18)->default(0);
                 $table->string('from_address');
                 $table->string('to_address');
                 $table->string('chain');
+                $table->unique(['tx_hash', 'chain'], 'uq_tx_hash_chain');
                 $table->string('status')->default('pending');
                 $table->json('metadata')->nullable();
                 $table->timestamps();
