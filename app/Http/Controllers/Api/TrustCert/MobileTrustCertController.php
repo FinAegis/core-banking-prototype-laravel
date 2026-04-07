@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\TrustCert;
 
 use App\Domain\TrustCert\Enums\TrustLevel;
 use App\Domain\TrustCert\Services\CertificateAuthorityService;
+use App\Http\Controllers\Api\V1\TrustCertPaymentController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -211,17 +212,27 @@ class MobileTrustCertController extends Controller
 
         $limits = $this->getLimitsForLevel($trustLevel);
 
+        $data = [
+            'level'        => $trustLevel->numericValue(),
+            'name'         => $trustLevel->label(),
+            'description'  => $trustLevel->description(),
+            'dailyLimit'   => $limits['daily'] ?? 0,
+            'monthlyLimit' => $limits['monthly'] ?? 0,
+            'requirements' => $trustLevel->requirements(),
+            'documents'    => $trustLevel->documents(),
+        ];
+
+        $fee = TrustCertPaymentController::getVerificationFee($trustLevel->numericValue());
+        if ($fee !== null) {
+            $data['verificationFee'] = [
+                'amount'   => (float) $fee,
+                'currency' => 'USD',
+            ];
+        }
+
         return response()->json([
             'success' => true,
-            'data'    => [
-                'level'        => $trustLevel->numericValue(),
-                'name'         => $trustLevel->label(),
-                'description'  => $trustLevel->description(),
-                'dailyLimit'   => $limits['daily'] ?? 0,
-                'monthlyLimit' => $limits['monthly'] ?? 0,
-                'requirements' => $trustLevel->requirements(),
-                'documents'    => $trustLevel->documents(),
-            ],
+            'data'    => $data,
         ]);
     }
 

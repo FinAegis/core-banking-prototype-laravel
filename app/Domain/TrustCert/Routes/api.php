@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\TrustCert\CertificateApplicationController;
 use App\Http\Controllers\Api\TrustCert\CertificateController;
 use App\Http\Controllers\Api\TrustCert\MobileTrustCertController;
 use App\Http\Controllers\Api\TrustCert\PresentationController;
+use App\Http\Controllers\Api\V1\TrustCertPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/trustcert')->name('api.trustcert.')->group(function () {
@@ -60,4 +61,15 @@ Route::prefix('v1/trustcert')->name('mobile.trustcert.')
         Route::post('/applications/{id}/cancel', [CertificateApplicationController::class, 'cancel'])
             ->middleware('api.rate_limit:mutation')
             ->name('applications.cancel');
+
+        // Payment routes for paid KYC verification
+        Route::post('/applications/{applicationId}/pay', [TrustCertPaymentController::class, 'payWallet'])
+            ->middleware('api.rate_limit:mutation')
+            ->name('applications.pay.wallet');
+        Route::post('/applications/{applicationId}/pay/card', [TrustCertPaymentController::class, 'payCard'])
+            ->middleware('api.rate_limit:mutation')
+            ->name('applications.pay.card');
+        Route::post('/applications/{applicationId}/pay/iap', [TrustCertPaymentController::class, 'payIap'])
+            ->middleware('api.rate_limit:mutation')
+            ->name('applications.pay.iap');
     });

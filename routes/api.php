@@ -187,6 +187,11 @@ Route::prefix('webhooks/ondato')->middleware(['api.rate_limit:webhook'])->group(
     Route::post('/identification', [App\Http\Controllers\Api\OndatoWebhookController::class, 'identification']);
 });
 
+// Stripe KYC payment webhook (signature-verified, no auth)
+Route::post('webhooks/stripe/kyc', [App\Http\Controllers\Api\Webhook\StripeKycWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.stripe.kyc');
+
 // Extended monitoring endpoints with authentication
 Route::prefix('monitoring')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/metrics-json', [App\Http\Controllers\Api\MonitoringController::class, 'metrics']);
