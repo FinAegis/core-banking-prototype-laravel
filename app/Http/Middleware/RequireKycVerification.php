@@ -32,7 +32,7 @@ class RequireKycVerification
 
         if (! $user->hasCompletedKyc()) {
             return response()->json([
-                'error'   => 'ERR_CERT_500',
+                'error'   => 'ERR_KYC_REQUIRED',
                 'message' => 'Identity verification required. Please complete KYC to unlock this feature.',
             ], 403);
         }

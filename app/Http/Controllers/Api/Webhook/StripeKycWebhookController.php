@@ -185,6 +185,12 @@ class StripeKycWebhookController extends Controller
             return false;
         }
 
+        if (abs(time() - (int) $timestamp) > 300) {
+            Log::warning('StripeKycWebhook: timestamp too old');
+
+            return false;
+        }
+
         $payload = $timestamp . '.' . $request->getContent();
         $computed = hash_hmac('sha256', $payload, $secret);
 

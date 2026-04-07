@@ -8,6 +8,7 @@ use App\Domain\CardIssuance\Models\CardWaitlist;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CardWaitlistController extends Controller
 {
@@ -33,14 +34,16 @@ class CardWaitlistController extends Controller
             ], 409);
         }
 
-        $position = CardWaitlist::max('position') ?? 0;
-        $position++;
+        $entry = DB::transaction(function () use ($user) {
+            $position = CardWaitlist::lockForUpdate()->max('position') ?? 0;
+            $position++;
 
-        $entry = CardWaitlist::create([
-            'user_id'   => $user->id,
-            'position'  => $position,
-            'joined_at' => now(),
-        ]);
+            return CardWaitlist::create([
+                'user_id'   => $user->id,
+                'position'  => $position,
+                'joined_at' => now(),
+            ]);
+        });
 
         return response()->json([
             'id'       => 'wl_' . $entry->id,

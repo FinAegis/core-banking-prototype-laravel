@@ -9,7 +9,7 @@ interface RampProviderInterface
     /**
      * Create a ramp session via checkout API (not widget).
      *
-     * @param  array{type: string, fiat_currency: string, fiat_amount: float, crypto_currency: string, wallet_address: string, quote_id: string|null}  $params
+     * @param  array{type: string, fiat_currency: string, fiat_amount: string, crypto_currency: string, wallet_address: string, quote_id: string|null}  $params
      * @return array{session_id: string, checkout_url: string|null, metadata: array<string, mixed>}
      */
     public function createSession(array $params): array;
@@ -33,7 +33,7 @@ interface RampProviderInterface
      *
      * @return array<int, array{provider_name: string, quote_id: string|null, fiat_amount: float, crypto_amount: float, exchange_rate: float, fee: float, network_fee: float, fee_currency: string, payment_methods: array<string>}>
      */
-    public function getQuotes(string $type, string $fiatCurrency, float $fiatAmount, string $cryptoCurrency): array;
+    public function getQuotes(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): array;
 
     /**
      * Get the webhook validator for this provider.

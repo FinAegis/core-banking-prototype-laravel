@@ -187,6 +187,13 @@ class TrustCertPaymentController extends Controller
      */
     public function payIap(string $applicationId, Request $request): JsonResponse
     {
+        if (app()->environment('production')) {
+            return response()->json([
+                'error'   => 'ERR_CERT_501',
+                'message' => 'IAP validation not yet available',
+            ], 501);
+        }
+
         $user = $request->user();
         if (! $user instanceof \App\Models\User) {
             return response()->json(['error' => 'Unauthenticated'], 401);
@@ -298,11 +305,11 @@ class TrustCertPaymentController extends Controller
         $balance = Cache::get("wallet_balance:{$userId}");
 
         if (is_string($balance) && is_numeric($balance)) {
-            return number_format((float) $balance, 2, '.', '');
+            return bcadd($balance, '0', 2);
         }
 
         if (is_int($balance) || is_float($balance)) {
-            return number_format($balance, 2, '.', '');
+            return bcadd((string) $balance, '0', 2);
         }
 
         // Default demo balance for testing

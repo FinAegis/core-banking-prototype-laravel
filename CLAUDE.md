@@ -15,7 +15,7 @@ php artisan l5-swagger:generate      # API docs
 
 # Solana operations
 php artisan solana:backfill                    # Register addresses for existing users
-php artisan solana:sync --provider=alchemy     # Push addresses to webhook provider
+php artisan solana:sync                          # Push addresses to Helius webhook
 php artisan solana:backfill-transactions       # Fetch historical tx from Helius API
 
 # User & Admin management

@@ -35,7 +35,7 @@ class OnramperProviderTest extends TestCase
     public function test_get_quotes_returns_all_provider_quotes(): void
     {
         $this->client->shouldReceive('getQuotes')
-            ->with('usd', 'btc', 100.0)
+            ->with('usd', 'btc', '100.0')
             ->once()
             ->andReturn([
                 [
@@ -54,7 +54,7 @@ class OnramperProviderTest extends TestCase
                 ],
             ]);
 
-        $quotes = $this->provider->getQuotes('on', 'USD', 100.0, 'BTC');
+        $quotes = $this->provider->getQuotes('on', 'USD', '100.0', 'BTC');
 
         $this->assertCount(2, $quotes);
         $this->assertEquals('Simplex', $quotes[0]['provider_name']);
@@ -72,7 +72,7 @@ class OnramperProviderTest extends TestCase
     public function test_get_quotes_off_ramp_swaps_currencies(): void
     {
         $this->client->shouldReceive('getQuotes')
-            ->with('btc', 'usd', 0.005)
+            ->with('btc', 'usd', '0.005')
             ->once()
             ->andReturn([
                 [
@@ -82,7 +82,7 @@ class OnramperProviderTest extends TestCase
                 ],
             ]);
 
-        $quotes = $this->provider->getQuotes('off', 'USD', 0.005, 'BTC');
+        $quotes = $this->provider->getQuotes('off', 'USD', '0.005', 'BTC');
 
         $this->assertCount(1, $quotes);
         $this->assertEquals('Transak', $quotes[0]['provider_name']);
@@ -94,7 +94,7 @@ class OnramperProviderTest extends TestCase
             ->once()
             ->andReturn([]);
 
-        $quotes = $this->provider->getQuotes('on', 'USD', 100.0, 'BTC');
+        $quotes = $this->provider->getQuotes('on', 'USD', '100.0', 'BTC');
 
         $this->assertEmpty($quotes);
     }
@@ -115,7 +115,7 @@ class OnramperProviderTest extends TestCase
         $result = $this->provider->createSession([
             'type'            => 'on',
             'fiat_currency'   => 'USD',
-            'fiat_amount'     => 100.0,
+            'fiat_amount'     => '100.0',
             'crypto_currency' => 'USDC',
             'wallet_address'  => '0x1234',
             'quote_id'        => 'q_12345',
@@ -135,7 +135,7 @@ class OnramperProviderTest extends TestCase
         $this->provider->createSession([
             'type'            => 'on',
             'fiat_currency'   => 'USD',
-            'fiat_amount'     => 100.0,
+            'fiat_amount'     => '100.0',
             'crypto_currency' => 'USDC',
             'wallet_address'  => '0x1234',
             'quote_id'        => null,

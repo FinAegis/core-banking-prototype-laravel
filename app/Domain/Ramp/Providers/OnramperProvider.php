@@ -93,7 +93,7 @@ class OnramperProvider implements RampProviderInterface
         return $pairs;
     }
 
-    public function getQuotes(string $type, string $fiatCurrency, float $fiatAmount, string $cryptoCurrency): array
+    public function getQuotes(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): array
     {
         $source = strtolower($fiatCurrency);
         $destination = strtolower($cryptoCurrency);
@@ -118,13 +118,13 @@ class OnramperProvider implements RampProviderInterface
             $fiatFee = (float) ($q['fee']['fiatFee'] ?? $q['fiatFee'] ?? $q['totalFee'] ?? 0);
             $networkFee = (float) ($q['fee']['networkFee'] ?? $q['networkFee'] ?? 0);
             $totalFee = $fiatFee + $networkFee;
-            $netFiat = $fiatAmount - $totalFee;
+            $netFiat = (float) $fiatAmount - $totalFee;
             $exchangeRate = $netFiat > 0 ? $cryptoAmount / $netFiat : 0;
 
             $normalized[] = [
                 'provider_name'   => $q['provider'] ?? 'unknown',
                 'quote_id'        => $q['quoteId'] ?? $q['id'] ?? null,
-                'fiat_amount'     => $fiatAmount,
+                'fiat_amount'     => (float) $fiatAmount,
                 'crypto_amount'   => round($cryptoAmount, 8),
                 'exchange_rate'   => round($exchangeRate, 8),
                 'fee'             => round($fiatFee, 2),

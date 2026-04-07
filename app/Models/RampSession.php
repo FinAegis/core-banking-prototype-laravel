@@ -60,9 +60,10 @@ class RampSession extends Model
     protected function casts(): array
     {
         return [
-            'fiat_amount'   => 'float',
-            'crypto_amount' => 'float',
-            'metadata'      => 'array',
+            'fiat_amount'          => 'float',
+            'crypto_amount'        => 'float',
+            'metadata'             => 'array',
+            'stripe_client_secret' => 'encrypted',
         ];
     }
 

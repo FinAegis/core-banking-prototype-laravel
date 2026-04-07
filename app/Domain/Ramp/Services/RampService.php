@@ -22,7 +22,7 @@ class RampService
      *
      * @return array{quotes: array<int, array<string, mixed>>, provider: string, valid_until: string}
      */
-    public function getQuotes(string $type, string $fiatCurrency, float $fiatAmount, string $cryptoCurrency): array
+    public function getQuotes(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): array
     {
         $this->validateRampParams($type, $fiatCurrency, $fiatAmount, $cryptoCurrency);
 
@@ -42,7 +42,7 @@ class RampService
         User $user,
         string $type,
         string $fiatCurrency,
-        float $fiatAmount,
+        string $fiatAmount,
         string $cryptoCurrency,
         string $walletAddress,
         ?string $quoteId = null,
@@ -194,7 +194,7 @@ class RampService
             ->get();
     }
 
-    private function validateRampParams(string $type, string $fiatCurrency, float $fiatAmount, string $cryptoCurrency): void
+    private function validateRampParams(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): void
     {
         if (! in_array($type, ['on', 'off'], true)) {
             throw new RuntimeException('Invalid transaction type. Use "on" for buying crypto or "off" for selling.');
@@ -210,9 +210,15 @@ class RampService
             throw new RuntimeException("{$cryptoCurrency} is not available for trading at this time.");
         }
 
-        $min = (float) config('ramp.limits.min_fiat_amount', 10);
-        $max = (float) config('ramp.limits.max_fiat_amount', 10000);
-        if ($fiatAmount < $min || $fiatAmount > $max) {
+        /** @var numeric-string $minStr */
+        $minStr = (string) config('ramp.limits.min_fiat_amount', 10);
+        /** @var numeric-string $maxStr */
+        $maxStr = (string) config('ramp.limits.max_fiat_amount', 10000);
+        $min = bcadd($minStr, '0', 2);
+        $max = bcadd($maxStr, '0', 2);
+        /** @var numeric-string $fiatAmount */
+        $amount = bcadd($fiatAmount, '0', 2);
+        if (bccomp($amount, $min, 2) < 0 || bccomp($amount, $max, 2) > 0) {
             throw new RuntimeException("Amount must be between \${$min} and \${$max}.");
         }
     }

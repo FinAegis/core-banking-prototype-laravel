@@ -58,7 +58,7 @@ class MockRampProvider implements RampProviderInterface
         ];
     }
 
-    public function getQuotes(string $type, string $fiatCurrency, float $fiatAmount, string $cryptoCurrency): array
+    public function getQuotes(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): array
     {
         $rates = [
             'USDC' => 1.0,
@@ -69,14 +69,17 @@ class MockRampProvider implements RampProviderInterface
 
         $rate = $rates[$cryptoCurrency] ?? 1.0;
 
+        // Mock provider uses float arithmetic for demo calculations only
+        $amount = (float) $fiatAmount;
+
         return [
             [
                 'provider_name'   => 'MockProvider A',
                 'quote_id'        => 'mock_quote_a_' . Str::random(8),
-                'fiat_amount'     => $fiatAmount,
-                'crypto_amount'   => round(($fiatAmount - $fiatAmount * 0.015) * $rate, 8),
+                'fiat_amount'     => $amount,
+                'crypto_amount'   => round(($amount - $amount * 0.015) * $rate, 8),
                 'exchange_rate'   => $rate,
-                'fee'             => round($fiatAmount * 0.015, 2),
+                'fee'             => round($amount * 0.015, 2),
                 'network_fee'     => 0.0,
                 'fee_currency'    => $fiatCurrency,
                 'payment_methods' => ['credit_card', 'bank_transfer'],
@@ -84,11 +87,11 @@ class MockRampProvider implements RampProviderInterface
             [
                 'provider_name'   => 'MockProvider B',
                 'quote_id'        => 'mock_quote_b_' . Str::random(8),
-                'fiat_amount'     => $fiatAmount,
-                'crypto_amount'   => round(($fiatAmount - $fiatAmount * 0.025) * $rate, 8),
+                'fiat_amount'     => $amount,
+                'crypto_amount'   => round(($amount - $amount * 0.025) * $rate, 8),
                 'exchange_rate'   => $rate,
-                'fee'             => round($fiatAmount * 0.020, 2),
-                'network_fee'     => round($fiatAmount * 0.005, 2),
+                'fee'             => round($amount * 0.020, 2),
+                'network_fee'     => round($amount * 0.005, 2),
                 'fee_currency'    => $fiatCurrency,
                 'payment_methods' => ['credit_card'],
             ],

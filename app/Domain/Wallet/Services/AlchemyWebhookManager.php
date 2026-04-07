@@ -100,13 +100,9 @@ class AlchemyWebhookManager
             return false;
         }
 
-        $success = $this->patchAddresses($token, $endpoint->external_webhook_id, [], [$address]);
-
-        if ($success) {
-            $endpoint->decrementAddressCount();
-        }
-
-        return $success;
+        // address_count is not decremented on remove because we cannot determine
+        // which shard the address belongs to. The count serves as a high watermark.
+        return $this->patchAddresses($token, $endpoint->external_webhook_id, [], [$address]);
     }
 
     /**
@@ -140,23 +136,36 @@ class AlchemyWebhookManager
             return 0;
         }
 
-        $endpoint = $this->getOrCreateWebhook($network, $token);
+        $synced = 0;
 
-        if ($endpoint === null) {
-            return 0;
+        $chunks = collect($addresses)->chunk(WebhookEndpoint::MAX_ADDRESSES_PER_WEBHOOK);
+
+        foreach ($chunks as $chunk) {
+            /** @var array<string> $batch */
+            $batch = array_values($chunk->all());
+
+            $endpoint = $this->getOrCreateWebhook($network, $token);
+
+            if ($endpoint === null) {
+                return $synced;
+            }
+
+            $success = $this->patchAddresses($token, $endpoint->external_webhook_id, $batch, []);
+
+            if ($success) {
+                $endpoint->update(['address_count' => count($batch)]);
+                $synced += count($batch);
+            } else {
+                return $synced;
+            }
         }
 
-        $success = $this->patchAddresses($token, $endpoint->external_webhook_id, $addresses, []);
+        Log::info('AlchemyWebhookManager: Synced addresses', [
+            'network' => $network,
+            'count'   => $synced,
+        ]);
 
-        if ($success) {
-            $endpoint->update(['address_count' => count($addresses)]);
-            Log::info('AlchemyWebhookManager: Synced addresses', [
-                'network' => $network,
-                'count'   => count($addresses),
-            ]);
-        }
-
-        return $success ? count($addresses) : 0;
+        return $synced;
     }
 
     /**

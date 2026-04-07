@@ -205,7 +205,7 @@ it('removes address and decrements count', function (): void {
 
     $endpoint = WebhookEndpoint::where('external_webhook_id', 'wh_arb1')->first();
     assert($endpoint instanceof WebhookEndpoint);
-    expect($endpoint->address_count)->toBe(9);
+    expect($endpoint->address_count)->toBe(10); // address_count is a high watermark, not decremented on remove
 });
 
 it('skips when notify token is not configured', function (): void {

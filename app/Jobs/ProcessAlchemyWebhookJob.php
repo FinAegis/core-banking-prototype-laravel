@@ -39,9 +39,11 @@ class ProcessAlchemyWebhookJob implements ShouldQueue
     public int $tries = 3;
 
     /**
-     * Seconds to wait before retrying.
+     * Seconds to wait before retrying (exponential backoff).
+     *
+     * @var array<int, int>
      */
-    public int $backoff = 5;
+    public array $backoff = [5, 30, 120];
 
     /**
      * Allowed token assets (spam filter).
@@ -73,6 +75,16 @@ class ProcessAlchemyWebhookJob implements ShouldQueue
             if (($activity['removed'] ?? false) === true) {
                 Log::debug('Alchemy webhook: skipping removed (reorged) activity', [
                     'hash' => $activity['hash'] ?? 'unknown',
+                ]);
+
+                continue;
+            }
+
+            // Per-transaction deduplication: skip if we've already seen this hash (10 min TTL)
+            $hash = (string) ($activity['hash'] ?? '');
+            if ($hash !== '' && ! Cache::add("webhook:alchemy:seen:{$hash}", true, 600)) {
+                Log::debug('Alchemy webhook: skipping duplicate activity', [
+                    'hash' => $hash,
                 ]);
 
                 continue;

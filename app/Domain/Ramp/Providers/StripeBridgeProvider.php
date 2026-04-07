@@ -17,7 +17,9 @@ class StripeBridgeProvider implements RampProviderInterface
 
     public function createSession(array $params): array
     {
-        $fiatAmount = bcadd((string) $params['fiat_amount'], '0', 2);
+        /** @var numeric-string $rawAmount */
+        $rawAmount = (string) $params['fiat_amount'];
+        $fiatAmount = bcadd($rawAmount, '0', 2);
 
         $result = $this->service->createSession(
             $params['type'],
@@ -65,9 +67,10 @@ class StripeBridgeProvider implements RampProviderInterface
         return $pairs;
     }
 
-    public function getQuotes(string $type, string $fiatCurrency, float $fiatAmount, string $cryptoCurrency): array
+    public function getQuotes(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): array
     {
-        $amount = bcadd((string) $fiatAmount, '0', 2);
+        /** @var numeric-string $fiatAmount */
+        $amount = bcadd($fiatAmount, '0', 2);
         $quote = $this->service->getQuote($type, $fiatCurrency, $amount, $cryptoCurrency);
 
         return [

@@ -31,6 +31,11 @@ use Illuminate\Support\Facades\Log;
  */
 class AlchemyWebhookController extends Controller
 {
+    public function __construct(
+        private readonly AlchemyWebhookManager $webhookManager,
+    ) {
+    }
+
     public function handle(Request $request): JsonResponse
     {
         if (! $this->verifySignature($request)) {
@@ -66,7 +71,7 @@ class AlchemyWebhookController extends Controller
     private function verifySignature(Request $request): bool
     {
         /** @var array<string> $signingKeys */
-        $signingKeys = app(AlchemyWebhookManager::class)->getSigningKeys();
+        $signingKeys = $this->webhookManager->getSigningKeys();
 
         if ($signingKeys === []) {
             Log::critical('Alchemy webhook rejected: no signing keys in database');

@@ -37,7 +37,7 @@ class OnramperClient
     public function getQuotes(
         string $sourceCurrency,
         string $destinationCurrency,
-        float $amount,
+        string $amount,
         ?string $paymentMethod = null,
         ?string $country = null,
     ): array {

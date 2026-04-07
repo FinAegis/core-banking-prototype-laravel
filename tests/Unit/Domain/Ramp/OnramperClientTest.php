@@ -44,7 +44,7 @@ class OnramperClientTest extends TestCase
             ]),
         ]);
 
-        $quotes = $this->client->getQuotes('usd', 'btc', 100.0);
+        $quotes = $this->client->getQuotes('usd', 'btc', '100.0');
 
         $this->assertCount(1, $quotes);
         $this->assertEquals('Simplex', $quotes[0]['provider']);
@@ -61,7 +61,7 @@ class OnramperClientTest extends TestCase
             'api.onramper.com/quotes/*' => Http::response([]),
         ]);
 
-        $this->client->getQuotes('eur', 'eth', 200.0, 'creditCard', 'DE');
+        $this->client->getQuotes('eur', 'eth', '200.0', 'creditCard', 'DE');
 
         Http::assertSent(function ($request) {
             $url = $request->url();
@@ -80,7 +80,7 @@ class OnramperClientTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Onramper quote request failed');
 
-        $this->client->getQuotes('xxx', 'yyy', 100.0);
+        $this->client->getQuotes('xxx', 'yyy', '100.0');
     }
 
     public function test_create_checkout_intent(): void
@@ -108,7 +108,7 @@ class OnramperClientTest extends TestCase
             'api.onramper.com/transaction/tx_789' => Http::response([
                 'id'           => 'tx_789',
                 'status'       => 'completed',
-                'fiatAmount'   => 100.0,
+                'fiatAmount'   => '100.0',
                 'cryptoAmount' => 0.0025,
             ]),
         ]);

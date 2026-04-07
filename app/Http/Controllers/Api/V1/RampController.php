@@ -52,7 +52,7 @@ class RampController extends Controller
                         new OA\Property(property: 'fee_currency', type: 'string', example: 'USD'),
                         new OA\Property(property: 'payment_methods', type: 'array', items: new OA\Items(type: 'string')),
                     ])),
-                    new OA\Property(property: 'provider', type: 'string', example: 'onramper'),
+                    new OA\Property(property: 'provider', type: 'string', example: 'stripe_bridge'),
                     new OA\Property(property: 'valid_until', type: 'string', format: 'date-time'),
                 ]),
             ]
@@ -72,7 +72,7 @@ class RampController extends Controller
             $result = $this->rampService->getQuotes(
                 $request->input('type'),
                 strtoupper($request->input('fiat')),
-                (float) $request->input('amount'),
+                (string) $request->input('amount'),
                 strtoupper($request->input('crypto'))
             );
 
@@ -125,7 +125,7 @@ class RampController extends Controller
                 $user,
                 $request->input('type'),
                 strtoupper($request->input('fiat_currency')),
-                (float) $request->input('fiat_amount'),
+                (string) $request->input('fiat_amount'),
                 strtoupper($request->input('crypto_currency')),
                 $request->input('wallet_address'),
                 $request->input('quote_id')
@@ -206,7 +206,7 @@ class RampController extends Controller
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'data', type: 'object', properties: [
-                    new OA\Property(property: 'provider', type: 'string', example: 'onramper'),
+                    new OA\Property(property: 'provider', type: 'string', example: 'stripe_bridge'),
                     new OA\Property(property: 'fiat_currencies', type: 'array', items: new OA\Items(type: 'string'), example: '["USD","EUR","GBP"]'),
                     new OA\Property(property: 'crypto_currencies', type: 'array', items: new OA\Items(type: 'string'), example: '["USDC","USDT","ETH","BTC"]'),
                     new OA\Property(property: 'modes', type: 'array', items: new OA\Items(type: 'object', properties: [

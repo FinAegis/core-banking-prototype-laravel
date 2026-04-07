@@ -153,7 +153,7 @@ it('observer deleted method calls removeAddress on webhook manager', function ()
 
     $endpoint = WebhookEndpoint::where('external_webhook_id', 'wh_base_delete')->first();
     assert($endpoint instanceof WebhookEndpoint);
-    expect($endpoint->address_count)->toBe(4);
+    expect($endpoint->address_count)->toBe(5); // address_count is a high watermark, not decremented on remove
 });
 
 it('observer logs errors when webhook API call fails', function (): void {
