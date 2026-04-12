@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domain\Ramp\Contracts\RampProviderInterface;
 use App\Domain\Ramp\Services\RampService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\RampSessionResource;
@@ -17,6 +18,7 @@ class RampController extends Controller
 {
     public function __construct(
         private readonly RampService $rampService,
+        private readonly RampProviderInterface $provider,
     ) {
     }
 
@@ -218,8 +220,7 @@ class RampController extends Controller
     public function supported(): JsonResponse
     {
         $providerName = (string) config('ramp.default_provider');
-        $provider = app(\App\Domain\Ramp\Contracts\RampProviderInterface::class);
-        $supported = $provider->getSupportedCurrencies();
+        $supported = $this->provider->getSupportedCurrencies();
 
         return response()->json([
             'data' => [
