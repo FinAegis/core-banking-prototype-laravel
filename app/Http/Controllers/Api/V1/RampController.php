@@ -219,7 +219,7 @@ class RampController extends Controller
     )]
     public function supported(): JsonResponse
     {
-        $providerName = (string) config('ramp.default_provider');
+        $providerName = $this->provider->getName();
         $supported = $this->provider->getSupportedCurrencies();
 
         return response()->json([
