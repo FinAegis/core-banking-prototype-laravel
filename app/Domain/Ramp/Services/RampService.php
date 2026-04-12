@@ -112,11 +112,13 @@ class RampService
             /** @var RampSession $fresh */
             $fresh = RampSession::where('id', $session->id)->lockForUpdate()->first();
 
-            if (in_array($fresh->status, [
+            if (
+                in_array($fresh->status, [
                 RampSession::STATUS_COMPLETED,
                 RampSession::STATUS_FAILED,
                 RampSession::STATUS_EXPIRED,
-            ], true)) {
+                ], true)
+            ) {
                 return $fresh;
             }
 
@@ -170,18 +172,22 @@ class RampService
                     'provider'   => $provider->getName(),
                     'session_id' => $normalized['session_id'],
                 ]);
+
                 return;
             }
 
-            if (in_array($session->status, [
+            if (
+                in_array($session->status, [
                 RampSession::STATUS_COMPLETED,
                 RampSession::STATUS_FAILED,
                 RampSession::STATUS_EXPIRED,
-            ], true)) {
+                ], true)
+            ) {
                 Log::info('Ramp webhook skipped — session already terminal', [
                     'session_id' => $session->id,
                     'status'     => $session->status,
                 ]);
+
                 return;
             }
 

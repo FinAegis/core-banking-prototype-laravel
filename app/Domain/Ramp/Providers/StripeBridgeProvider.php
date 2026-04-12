@@ -6,7 +6,6 @@ namespace App\Domain\Ramp\Providers;
 
 use App\Domain\Ramp\Contracts\RampProviderInterface;
 use App\Domain\Ramp\Services\StripeBridgeService;
-use App\Models\RampSession;
 
 class StripeBridgeProvider implements RampProviderInterface
 {
