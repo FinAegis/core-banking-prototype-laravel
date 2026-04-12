@@ -188,13 +188,22 @@ class OnramperProviderTest extends TestCase
         $this->assertEquals('pending', $result['status']);
     }
 
-    public function test_get_supported_currencies_returns_pairs(): void
+    public function test_get_supported_currencies_returns_keyed_shape(): void
     {
         $currencies = $this->provider->getSupportedCurrencies();
 
-        $this->assertNotEmpty($currencies);
-        $this->assertArrayHasKey('fiat', $currencies[0]);
-        $this->assertArrayHasKey('crypto', $currencies[0]);
+        $this->assertIsArray($currencies);
+        $this->assertArrayHasKey('fiatCurrencies', $currencies);
+        $this->assertArrayHasKey('cryptoCurrencies', $currencies);
+        $this->assertArrayHasKey('modes', $currencies);
+        $this->assertArrayHasKey('limits', $currencies);
+
+        $this->assertNotEmpty($currencies['fiatCurrencies']);
+        $this->assertNotEmpty($currencies['cryptoCurrencies']);
+
+        $this->assertArrayHasKey('minAmount', $currencies['limits']);
+        $this->assertArrayHasKey('maxAmount', $currencies['limits']);
+        $this->assertArrayHasKey('dailyLimit', $currencies['limits']);
     }
 
     public function test_webhook_validator_delegates_to_client(): void
