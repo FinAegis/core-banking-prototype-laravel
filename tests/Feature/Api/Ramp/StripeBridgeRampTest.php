@@ -15,10 +15,10 @@ beforeEach(function () {
 it('fetches a Stripe onramp session via getSession()', function () {
     Http::fake([
         'api.stripe.com/v1/crypto/onramp_sessions/cos_test_abc123' => Http::response([
-            'id'                 => 'cos_test_abc123',
-            'status'             => 'fulfilled',
-            'source_amount'      => '100.00',
-            'destination_amount' => '98.50000000',
+            'id'                   => 'cos_test_abc123',
+            'status'               => 'fulfilled',
+            'source_amount'        => '100.00',
+            'destination_amount'   => '98.50000000',
             'destination_currency' => 'usdc',
         ], 200),
     ]);
@@ -48,7 +48,7 @@ it('throws RuntimeException when Stripe returns 404 for getSession()', function 
 // ──────────────────────────────────────────────────────────────────────────────
 
 it('accepts a valid Stripe-Signature header with a fresh timestamp', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     $secret = 'whsec_test_fake';
     $body = '{"id":"evt_test","type":"crypto_onramp_session.updated"}';
     $timestamp = time();
@@ -61,7 +61,7 @@ it('accepts a valid Stripe-Signature header with a fresh timestamp', function ()
 });
 
 it('rejects a tampered body even with a valid-looking signature', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     $secret = 'whsec_test_fake';
     $originalBody = '{"id":"evt_test","type":"crypto_onramp_session.updated"}';
     $tamperedBody = '{"id":"evt_test","type":"crypto_onramp_session.completed"}';
@@ -75,7 +75,7 @@ it('rejects a tampered body even with a valid-looking signature', function () {
 });
 
 it('rejects a timestamp older than the 300s replay window', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     $secret = 'whsec_test_fake';
     $body = '{"id":"evt_test","type":"crypto_onramp_session.updated"}';
     $timestamp = time() - 600;  // 10 minutes ago
@@ -88,7 +88,7 @@ it('rejects a timestamp older than the 300s replay window', function () {
 });
 
 it('rejects a header missing the v1 signature element', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     $validator = $provider->getWebhookValidator();
     $timestamp = time();
 
@@ -96,14 +96,14 @@ it('rejects a header missing the v1 signature element', function () {
 });
 
 it('rejects an empty signature header', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     $validator = $provider->getWebhookValidator();
 
     expect($validator('{}', ''))->toBeFalse();
 });
 
 it('accepts any of multiple v1 signature entries', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     $secret = 'whsec_test_fake';
     $body = '{"test":"multi"}';
     $timestamp = time();
@@ -121,39 +121,41 @@ it('accepts any of multiple v1 signature entries', function () {
 
 it('normalizes a Stripe session.updated event into the canonical shape', function () {
     $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
 
     $result = $provider->normalizeWebhookPayload($fixtures['session_updated']);
 
-    expect($result)->not->toBeNull()
-        ->and($result['session_id'])->toBe('cos_test_abc123')
-        ->and($result['status'])->toBe(\App\Models\RampSession::STATUS_PROCESSING)
-        ->and($result['crypto_amount'])->toBeNull()
-        ->and($result['raw'])->toBeArray();
+    expect($result)->not->toBeNull();
+    assert($result !== null);
+    expect($result['session_id'])->toBe('cos_test_abc123');
+    expect($result['status'])->toBe(App\Models\RampSession::STATUS_PROCESSING);
+    expect($result['crypto_amount'])->toBeNull();
+    expect($result['raw'])->toBeArray();
 });
 
 it('normalizes a Stripe session.completed event with destination_amount', function () {
     $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
 
     $result = $provider->normalizeWebhookPayload($fixtures['session_completed']);
 
-    expect($result)->not->toBeNull()
-        ->and($result['session_id'])->toBe('cos_test_abc123')
-        ->and($result['status'])->toBe(\App\Models\RampSession::STATUS_COMPLETED)
-        ->and($result['crypto_amount'])->toBe('98.50000000');
+    expect($result)->not->toBeNull();
+    assert($result !== null);
+    expect($result['session_id'])->toBe('cos_test_abc123');
+    expect($result['status'])->toBe(App\Models\RampSession::STATUS_COMPLETED);
+    expect($result['crypto_amount'])->toBe('98.50000000');
 });
 
 it('returns null for an unrelated Stripe event type', function () {
     $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
 
     expect($provider->normalizeWebhookPayload($fixtures['unrelated_event']))->toBeNull();
 });
 
 it('returns null for a malformed event without a session id', function () {
     $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
 
     expect($provider->normalizeWebhookPayload($fixtures['session_without_id']))->toBeNull();
 });
@@ -163,12 +165,12 @@ it('returns null for a malformed event without a session id', function () {
 // ──────────────────────────────────────────────────────────────────────────────
 
 it('returns the correct webhook signature header name', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     expect($provider->getWebhookSignatureHeader())->toBe('Stripe-Signature');
 });
 
 it('returns supported currencies in the canonical keyed shape', function () {
-    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $provider = app(App\Domain\Ramp\Providers\StripeBridgeProvider::class);
     $supported = $provider->getSupportedCurrencies();
 
     expect($supported)
