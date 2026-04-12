@@ -49,12 +49,14 @@ class MockRampProvider implements RampProviderInterface
     public function getSupportedCurrencies(): array
     {
         return [
-            ['fiat' => 'USD', 'crypto' => 'USDC'],
-            ['fiat' => 'USD', 'crypto' => 'USDT'],
-            ['fiat' => 'USD', 'crypto' => 'ETH'],
-            ['fiat' => 'EUR', 'crypto' => 'USDC'],
-            ['fiat' => 'EUR', 'crypto' => 'ETH'],
-            ['fiat' => 'GBP', 'crypto' => 'USDC'],
+            'fiatCurrencies'   => ['USD', 'EUR', 'GBP'],
+            'cryptoCurrencies' => ['USDC', 'USDT', 'ETH', 'BTC'],
+            'modes'            => ['on', 'off'],
+            'limits'           => [
+                'minAmount'  => (int) config('ramp.limits.min_fiat_amount', 10),
+                'maxAmount'  => (int) config('ramp.limits.max_fiat_amount', 10000),
+                'dailyLimit' => (int) config('ramp.limits.daily_limit', 50000),
+            ],
         ];
     }
 
@@ -100,7 +102,27 @@ class MockRampProvider implements RampProviderInterface
 
     public function getWebhookValidator(): callable
     {
-        return fn (string $payload, string $signature): bool => $signature !== '';
+        return fn (string $rawBody, string $signatureHeader): bool => $signatureHeader !== '';
+    }
+
+    public function getWebhookSignatureHeader(): string
+    {
+        return 'X-Mock-Signature';
+    }
+
+    public function normalizeWebhookPayload(array $payload): ?array
+    {
+        $sessionId = (string) ($payload['session_id'] ?? '');
+        if ($sessionId === '') {
+            return null;
+        }
+
+        return [
+            'session_id'    => $sessionId,
+            'status'        => \App\Models\RampSession::STATUS_COMPLETED,
+            'crypto_amount' => isset($payload['crypto_amount']) ? (string) $payload['crypto_amount'] : null,
+            'raw'           => $payload,
+        ];
     }
 
     public function getName(): string
