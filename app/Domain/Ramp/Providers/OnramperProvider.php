@@ -80,17 +80,21 @@ class OnramperProvider implements RampProviderInterface
 
     public function getSupportedCurrencies(): array
     {
-        $pairs = [];
+        /** @var list<string> $fiats */
         $fiats = config('ramp.supported_fiat', ['USD', 'EUR', 'GBP']);
+        /** @var list<string> $cryptos */
         $cryptos = config('ramp.supported_crypto', ['USDC', 'USDT', 'ETH', 'BTC']);
 
-        foreach ($fiats as $fiat) {
-            foreach ($cryptos as $crypto) {
-                $pairs[] = ['fiat' => $fiat, 'crypto' => $crypto];
-            }
-        }
-
-        return $pairs;
+        return [
+            'fiatCurrencies'   => array_values($fiats),
+            'cryptoCurrencies' => array_values($cryptos),
+            'modes'            => ['on', 'off'],
+            'limits'           => [
+                'minAmount'  => (int) config('ramp.limits.min_fiat_amount', 10),
+                'maxAmount'  => (int) config('ramp.limits.max_fiat_amount', 10000),
+                'dailyLimit' => (int) config('ramp.limits.daily_limit', 50000),
+            ],
+        ];
     }
 
     public function getQuotes(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): array
@@ -139,7 +143,38 @@ class OnramperProvider implements RampProviderInterface
 
     public function getWebhookValidator(): callable
     {
-        return fn (string $payload, string $signature): bool => $this->client->verifyWebhookSignature($payload, $signature);
+        return fn (string $rawBody, string $signatureHeader): bool => $this->client->verifyWebhookSignature($rawBody, $signatureHeader);
+    }
+
+    public function getWebhookSignatureHeader(): string
+    {
+        return 'X-Onramper-Webhook-Signature';
+    }
+
+    public function normalizeWebhookPayload(array $payload): ?array
+    {
+        /** @var mixed $sessionId */
+        $sessionId = $payload['session_id'] ?? $payload['partnerContext'] ?? $payload['id'] ?? null;
+        if (! is_string($sessionId) || $sessionId === '') {
+            return null;
+        }
+
+        $rawStatus = (string) ($payload['status'] ?? '');
+        if ($rawStatus === '') {
+            return null;
+        }
+
+        $cryptoAmount = null;
+        if (isset($payload['crypto_amount']) && is_numeric($payload['crypto_amount'])) {
+            $cryptoAmount = bcadd((string) $payload['crypto_amount'], '0', 8);
+        }
+
+        return [
+            'session_id'    => $sessionId,
+            'status'        => $this->mapOnramperStatus($rawStatus),
+            'crypto_amount' => $cryptoAmount,
+            'raw'           => $payload,
+        ];
     }
 
     public function getName(): string
