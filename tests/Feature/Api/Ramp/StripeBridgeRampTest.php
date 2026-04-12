@@ -179,3 +179,17 @@ it('returns supported currencies in the canonical keyed shape', function () {
         ->and($supported['cryptoCurrencies'])->toContain('USDC')
         ->and($supported['limits'])->toHaveKeys(['minAmount', 'maxAmount', 'dailyLimit']);
 });
+
+it('GET /api/v1/ramp/supported returns stripe_bridge capabilities via the interface', function () {
+    $user = \App\Models\User::factory()->create(['kyc_status' => 'approved']);
+    \Laravel\Sanctum\Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    config(['ramp.default_provider' => 'stripe_bridge']);
+
+    $response = $this->getJson('/api/v1/ramp/supported');
+
+    $response->assertOk();
+    $response->assertJsonPath('data.provider', 'stripe_bridge');
+    $response->assertJsonPath('data.crypto_currencies', ['USDC']);
+    expect($response->json('data.fiat_currencies'))->toContain('USD');
+});

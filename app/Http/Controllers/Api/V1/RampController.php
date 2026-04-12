@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Domain\Ramp\Services\RampService;
-use App\Domain\Ramp\Services\StripeBridgeService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\RampSessionResource;
 use App\Models\RampSession;
@@ -18,7 +17,6 @@ class RampController extends Controller
 {
     public function __construct(
         private readonly RampService $rampService,
-        private readonly StripeBridgeService $stripeBridgeService,
     ) {
     }
 
@@ -219,42 +217,23 @@ class RampController extends Controller
     )]
     public function supported(): JsonResponse
     {
-        $provider = (string) config('ramp.default_provider');
-
-        if ($provider === 'stripe_bridge') {
-            $supported = $this->stripeBridgeService->getSupportedCurrencies();
-
-            return response()->json([
-                'data' => [
-                    'provider'          => 'stripe_bridge',
-                    'fiat_currencies'   => $supported['fiatCurrencies'],
-                    'crypto_currencies' => $supported['cryptoCurrencies'],
-                    'modes'             => [
-                        ['type' => 'on', 'label' => 'Buy Crypto'],
-                        ['type' => 'off', 'label' => 'Sell Crypto'],
-                    ],
-                    'limits' => [
-                        'min_amount'  => $supported['limits']['minAmount'],
-                        'max_amount'  => $supported['limits']['maxAmount'],
-                        'daily_limit' => $supported['limits']['dailyLimit'],
-                    ],
-                ],
-            ]);
-        }
+        $providerName = (string) config('ramp.default_provider');
+        $provider = app(\App\Domain\Ramp\Contracts\RampProviderInterface::class);
+        $supported = $provider->getSupportedCurrencies();
 
         return response()->json([
             'data' => [
-                'provider'          => $provider,
-                'fiat_currencies'   => config('ramp.supported_fiat'),
-                'crypto_currencies' => config('ramp.supported_crypto'),
+                'provider'          => $providerName,
+                'fiat_currencies'   => $supported['fiatCurrencies'],
+                'crypto_currencies' => $supported['cryptoCurrencies'],
                 'modes'             => [
                     ['type' => 'on', 'label' => 'Buy Crypto'],
                     ['type' => 'off', 'label' => 'Sell Crypto'],
                 ],
                 'limits' => [
-                    'min_amount'  => config('ramp.limits.min_fiat_amount'),
-                    'max_amount'  => config('ramp.limits.max_fiat_amount'),
-                    'daily_limit' => config('ramp.limits.daily_limit'),
+                    'min_amount'  => $supported['limits']['minAmount'],
+                    'max_amount'  => $supported['limits']['maxAmount'],
+                    'daily_limit' => $supported['limits']['dailyLimit'],
                 ],
             ],
         ]);
