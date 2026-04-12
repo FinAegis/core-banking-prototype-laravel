@@ -44,27 +44,27 @@ class StripeBridgeProvider implements RampProviderInterface
 
     public function getSessionStatus(string $sessionId): array
     {
-        // Stripe Bridge status is updated via webhooks; return current DB state
+        $stripeSession = $this->service->getSession($sessionId);
+
+        $cryptoAmount = null;
+        if ($stripeSession['destination_amount'] !== null) {
+            $cryptoAmount = (float) $stripeSession['destination_amount'];
+        }
+
         return [
-            'status'        => RampSession::STATUS_PENDING,
+            'status'        => $this->service->mapStripeStatus($stripeSession['status']),
             'fiat_amount'   => null,
-            'crypto_amount' => null,
-            'metadata'      => ['provider' => 'stripe_bridge'],
+            'crypto_amount' => $cryptoAmount,
+            'metadata'      => [
+                'provider'      => 'stripe_bridge',
+                'stripe_status' => $stripeSession['status'],
+            ],
         ];
     }
 
     public function getSupportedCurrencies(): array
     {
-        $supported = $this->service->getSupportedCurrencies();
-        $pairs = [];
-
-        foreach ($supported['fiatCurrencies'] as $fiat) {
-            foreach ($supported['cryptoCurrencies'] as $crypto) {
-                $pairs[] = ['fiat' => $fiat, 'crypto' => $crypto];
-            }
-        }
-
-        return $pairs;
+        return $this->service->getSupportedCurrencies();
     }
 
     public function getQuotes(string $type, string $fiatCurrency, string $fiatAmount, string $cryptoCurrency): array
@@ -90,17 +90,89 @@ class StripeBridgeProvider implements RampProviderInterface
 
     public function getWebhookValidator(): callable
     {
-        return function (string $payload, string $signature): bool {
+        return function (string $rawBody, string $signatureHeader): bool {
             $secret = (string) config('services.stripe.bridge_webhook_secret', '');
 
             if ($secret === '') {
                 return ! app()->environment('production');
             }
 
-            $computed = hash_hmac('sha256', $payload, $secret);
+            if ($signatureHeader === '') {
+                return false;
+            }
 
-            return hash_equals($computed, $signature);
+            /** @var array<string, list<string>> $parts */
+            $parts = [];
+            foreach (explode(',', $signatureHeader) as $element) {
+                $element = trim($element);
+                if ($element === '') {
+                    continue;
+                }
+                $pair = array_pad(explode('=', $element, 2), 2, '');
+                $parts[$pair[0]][] = $pair[1];
+            }
+
+            $timestamp = (int) ($parts['t'][0] ?? 0);
+            $signatures = $parts['v1'] ?? [];
+
+            if ($timestamp === 0 || $signatures === []) {
+                return false;
+            }
+
+            if (abs(time() - $timestamp) > 300) {
+                return false;
+            }
+
+            $expected = hash_hmac('sha256', $timestamp . '.' . $rawBody, $secret);
+
+            foreach ($signatures as $candidate) {
+                if (hash_equals($expected, $candidate)) {
+                    return true;
+                }
+            }
+
+            return false;
         };
+    }
+
+    public function getWebhookSignatureHeader(): string
+    {
+        return 'Stripe-Signature';
+    }
+
+    public function normalizeWebhookPayload(array $payload): ?array
+    {
+        $eventType = (string) ($payload['type'] ?? '');
+        if (! str_starts_with($eventType, 'crypto_onramp_session.')) {
+            return null;
+        }
+
+        $object = $payload['data']['object'] ?? null;
+        if (! is_array($object)) {
+            return null;
+        }
+
+        $sessionId = (string) ($object['id'] ?? '');
+        if ($sessionId === '') {
+            return null;
+        }
+
+        $stripeStatus = (string) ($object['status'] ?? '');
+        if ($stripeStatus === '') {
+            return null;
+        }
+
+        $cryptoAmount = null;
+        if (isset($object['destination_amount']) && is_numeric($object['destination_amount'])) {
+            $cryptoAmount = bcadd((string) $object['destination_amount'], '0', 8);
+        }
+
+        return [
+            'session_id'    => $sessionId,
+            'status'        => $this->service->mapStripeStatus($stripeStatus),
+            'crypto_amount' => $cryptoAmount,
+            'raw'           => $object,
+        ];
     }
 
     public function getName(): string

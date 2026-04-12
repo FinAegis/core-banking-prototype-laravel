@@ -194,7 +194,7 @@ class StripeBridgeService
     /**
      * Get supported currencies for Stripe Bridge.
      *
-     * @return array{fiatCurrencies: array<string>, cryptoCurrencies: array<string>, modes: array<string>, limits: array{minAmount: int, maxAmount: int, dailyLimit: int}}
+     * @return array{fiatCurrencies: list<string>, cryptoCurrencies: list<string>, modes: list<string>, limits: array{minAmount: int, maxAmount: int, dailyLimit: int}}
      */
     public function getSupportedCurrencies(): array
     {

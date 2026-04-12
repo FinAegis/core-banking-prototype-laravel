@@ -42,3 +42,138 @@ it('throws RuntimeException when Stripe returns 404 for getSession()', function 
     $service = new StripeBridgeService();
     $service->getSession('cos_missing');
 })->throws(RuntimeException::class);
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Signature verification
+// ──────────────────────────────────────────────────────────────────────────────
+
+it('accepts a valid Stripe-Signature header with a fresh timestamp', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $secret = 'whsec_test_fake';
+    $body = '{"id":"evt_test","type":"crypto_onramp_session.updated"}';
+    $timestamp = time();
+    $expected = hash_hmac('sha256', $timestamp . '.' . $body, $secret);
+    $header = "t={$timestamp},v1={$expected}";
+
+    $validator = $provider->getWebhookValidator();
+
+    expect($validator($body, $header))->toBeTrue();
+});
+
+it('rejects a tampered body even with a valid-looking signature', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $secret = 'whsec_test_fake';
+    $originalBody = '{"id":"evt_test","type":"crypto_onramp_session.updated"}';
+    $tamperedBody = '{"id":"evt_test","type":"crypto_onramp_session.completed"}';
+    $timestamp = time();
+    $expected = hash_hmac('sha256', $timestamp . '.' . $originalBody, $secret);
+    $header = "t={$timestamp},v1={$expected}";
+
+    $validator = $provider->getWebhookValidator();
+
+    expect($validator($tamperedBody, $header))->toBeFalse();
+});
+
+it('rejects a timestamp older than the 300s replay window', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $secret = 'whsec_test_fake';
+    $body = '{"id":"evt_test","type":"crypto_onramp_session.updated"}';
+    $timestamp = time() - 600;  // 10 minutes ago
+    $expected = hash_hmac('sha256', $timestamp . '.' . $body, $secret);
+    $header = "t={$timestamp},v1={$expected}";
+
+    $validator = $provider->getWebhookValidator();
+
+    expect($validator($body, $header))->toBeFalse();
+});
+
+it('rejects a header missing the v1 signature element', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $validator = $provider->getWebhookValidator();
+    $timestamp = time();
+
+    expect($validator('{}', "t={$timestamp}"))->toBeFalse();
+});
+
+it('rejects an empty signature header', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $validator = $provider->getWebhookValidator();
+
+    expect($validator('{}', ''))->toBeFalse();
+});
+
+it('accepts any of multiple v1 signature entries', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $secret = 'whsec_test_fake';
+    $body = '{"test":"multi"}';
+    $timestamp = time();
+    $correct = hash_hmac('sha256', $timestamp . '.' . $body, $secret);
+    $header = "t={$timestamp},v1=decoy_signature_1,v1={$correct},v1=decoy_signature_2";
+
+    $validator = $provider->getWebhookValidator();
+
+    expect($validator($body, $header))->toBeTrue();
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Payload normalisation
+// ──────────────────────────────────────────────────────────────────────────────
+
+it('normalizes a Stripe session.updated event into the canonical shape', function () {
+    $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+
+    $result = $provider->normalizeWebhookPayload($fixtures['session_updated']);
+
+    expect($result)->not->toBeNull()
+        ->and($result['session_id'])->toBe('cos_test_abc123')
+        ->and($result['status'])->toBe(\App\Models\RampSession::STATUS_PROCESSING)
+        ->and($result['crypto_amount'])->toBeNull()
+        ->and($result['raw'])->toBeArray();
+});
+
+it('normalizes a Stripe session.completed event with destination_amount', function () {
+    $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+
+    $result = $provider->normalizeWebhookPayload($fixtures['session_completed']);
+
+    expect($result)->not->toBeNull()
+        ->and($result['session_id'])->toBe('cos_test_abc123')
+        ->and($result['status'])->toBe(\App\Models\RampSession::STATUS_COMPLETED)
+        ->and($result['crypto_amount'])->toBe('98.50000000');
+});
+
+it('returns null for an unrelated Stripe event type', function () {
+    $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+
+    expect($provider->normalizeWebhookPayload($fixtures['unrelated_event']))->toBeNull();
+});
+
+it('returns null for a malformed event without a session id', function () {
+    $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+
+    expect($provider->normalizeWebhookPayload($fixtures['session_without_id']))->toBeNull();
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Capability + signature header
+// ──────────────────────────────────────────────────────────────────────────────
+
+it('returns the correct webhook signature header name', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    expect($provider->getWebhookSignatureHeader())->toBe('Stripe-Signature');
+});
+
+it('returns supported currencies in the canonical keyed shape', function () {
+    $provider = app(\App\Domain\Ramp\Providers\StripeBridgeProvider::class);
+    $supported = $provider->getSupportedCurrencies();
+
+    expect($supported)
+        ->toHaveKeys(['fiatCurrencies', 'cryptoCurrencies', 'modes', 'limits'])
+        ->and($supported['fiatCurrencies'])->toContain('USD')
+        ->and($supported['cryptoCurrencies'])->toContain('USDC')
+        ->and($supported['limits'])->toHaveKeys(['minAmount', 'maxAmount', 'dailyLimit']);
+});
