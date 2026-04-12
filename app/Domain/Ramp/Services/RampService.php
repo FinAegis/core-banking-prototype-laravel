@@ -136,6 +136,7 @@ class RampService
      * handling to the provider's own normalizeWebhookPayload().
      *
      * @throws InvalidWebhookSignatureException
+     * @throws RuntimeException
      */
     public function handleWebhook(
         RampProviderInterface $provider,

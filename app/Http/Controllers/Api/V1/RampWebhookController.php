@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
-use Throwable;
+use RuntimeException;
 
 class RampWebhookController extends Controller
 {
@@ -58,7 +58,7 @@ class RampWebhookController extends Controller
             return response()->json([
                 'error' => ['code' => 'INVALID_SIGNATURE', 'message' => 'Webhook signature verification failed'],
             ], 400);
-        } catch (Throwable $e) {
+        } catch (RuntimeException $e) {
             Log::error('Ramp webhook processing failed', [
                 'provider' => $provider,
                 'error'    => $e->getMessage(),
