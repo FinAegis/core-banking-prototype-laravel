@@ -9,6 +9,7 @@ use App\Domain\Ramp\Contracts\RampProviderInterface;
 use App\Domain\Ramp\Providers\MockRampProvider;
 use App\Domain\Ramp\Providers\OnramperProvider;
 use App\Domain\Ramp\Providers\StripeBridgeProvider;
+use App\Domain\Ramp\Registries\RampProviderRegistry;
 use App\Domain\Ramp\Services\RampService;
 use App\Domain\Ramp\Services\StripeBridgeService;
 use Illuminate\Support\ServiceProvider;
@@ -44,6 +45,14 @@ class RampServiceProvider extends ServiceProvider
             return new RampService(
                 $app->make(RampProviderInterface::class)
             );
+        });
+
+        $this->app->singleton(RampProviderRegistry::class, function ($app) {
+            return new RampProviderRegistry([
+                'onramper'      => new OnramperProvider($app->make(OnramperClient::class)),
+                'stripe_bridge' => new StripeBridgeProvider($app->make(StripeBridgeService::class)),
+                'mock'          => new MockRampProvider(),
+            ]);
         });
     }
 }
