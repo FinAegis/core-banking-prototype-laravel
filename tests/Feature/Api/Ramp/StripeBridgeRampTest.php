@@ -9,6 +9,8 @@ beforeEach(function () {
     config([
         'services.stripe.secret'                => 'sk_test_fake_key',
         'services.stripe.bridge_webhook_secret' => 'whsec_test_fake',
+        // Prevent OnramperClient from throwing during RampProviderRegistry boot
+        'ramp.providers.onramper.api_key'       => 'test_onramper_fake_key',
     ]);
 });
 
@@ -192,4 +194,172 @@ it('GET /api/v1/ramp/supported returns stripe_bridge capabilities via the interf
     $response->assertJsonPath('data.provider', 'stripe_bridge');
     $response->assertJsonPath('data.crypto_currencies', ['USDC']);
     expect($response->json('data.fiat_currencies'))->toContain('USD');
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// End-to-end integration tests
+// ──────────────────────────────────────────────────────────────────────────────
+
+it('POST /api/v1/ramp/session persists stripe_session_id and stripe_client_secret', function () {
+    $user = \App\Models\User::factory()->create(['kyc_status' => 'approved']);
+    \Laravel\Sanctum\Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    config(['ramp.default_provider' => 'stripe_bridge']);
+
+    Http::fake([
+        'api.stripe.com/v1/crypto/onramp_sessions' => Http::response([
+            'id'            => 'cos_test_created',
+            'client_secret' => 'cs_live_secret_fake',
+            'status'        => 'initialized',
+        ], 200),
+    ]);
+
+    $response = $this->postJson('/api/v1/ramp/session', [
+        'type'            => 'on',
+        'fiat_currency'   => 'USD',
+        'fiat_amount'     => 100,
+        'crypto_currency' => 'USDC',
+        'wallet_address'  => '0x1234567890abcdef1234567890abcdef12345678',
+    ]);
+
+    $response->assertStatus(201);
+    $response->assertJsonPath('data.provider', 'stripe_bridge');
+
+    $session = \App\Models\RampSession::where('user_id', $user->id)->first();
+    expect($session)->not->toBeNull();
+    assert($session !== null);
+    expect($session->provider)->toBe('stripe_bridge');
+    expect($session->stripe_session_id)->toBe('cos_test_created');
+    expect($session->stripe_client_secret)->toBe('cs_live_secret_fake');
+});
+
+it('GET /api/v1/ramp/quotes returns a single-element array with canonical payment methods', function () {
+    $user = \App\Models\User::factory()->create(['kyc_status' => 'approved']);
+    \Laravel\Sanctum\Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    config(['ramp.default_provider' => 'stripe_bridge']);
+
+    Http::fake([
+        'api.stripe.com/v1/crypto/onramp_sessions/quotes*' => Http::response([
+            'source_amount'      => '100.00',
+            'destination_amount' => '98.50000000',
+            'fees'               => ['total_fee' => '1.50', 'network_fee' => '0.50'],
+        ], 200),
+    ]);
+
+    $response = $this->getJson('/api/v1/ramp/quotes?type=on&fiat=USD&amount=100&crypto=USDC');
+
+    $response->assertOk();
+    $response->assertJsonPath('data.provider', 'stripe_bridge');
+    $quotes = $response->json('data.quotes');
+    expect($quotes)->toHaveCount(1);
+    expect($quotes[0]['payment_methods'])->toBe(['card', 'bank_transfer']);
+});
+
+it('rejects BTC on Stripe with a provider-named error message', function () {
+    $user = \App\Models\User::factory()->create(['kyc_status' => 'approved']);
+    \Laravel\Sanctum\Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    config(['ramp.default_provider' => 'stripe_bridge']);
+
+    $response = $this->postJson('/api/v1/ramp/session', [
+        'type'            => 'on',
+        'fiat_currency'   => 'USD',
+        'fiat_amount'     => 100,
+        'crypto_currency' => 'BTC',
+        'wallet_address'  => 'bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    ]);
+
+    $response->assertStatus(422);
+    $errorMessage = $response->json('error.message');
+    expect($errorMessage)->toContain('BTC')->toContain('stripe_bridge');
+});
+
+it('getSessionStatus does not clobber a webhook-set terminal status', function () {
+    $user = \App\Models\User::factory()->create(['kyc_status' => 'approved']);
+    \Laravel\Sanctum\Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    config(['ramp.default_provider' => 'stripe_bridge']);
+
+    // Seed a session that a webhook has already marked as completed
+    $session = \App\Models\RampSession::create([
+        'user_id'             => $user->id,
+        'provider'            => 'stripe_bridge',
+        'type'                => 'on',
+        'fiat_currency'       => 'USD',
+        'fiat_amount'         => 100.0,
+        'crypto_currency'     => 'USDC',
+        'wallet_address'      => '0xabcdef',
+        'status'              => \App\Models\RampSession::STATUS_COMPLETED,
+        'crypto_amount'       => 98.5,
+        'provider_session_id' => 'cos_test_terminal',
+    ]);
+
+    // Stripe happens to still say payment_pending (the webhook is ahead of the poll)
+    Http::fake([
+        'api.stripe.com/v1/crypto/onramp_sessions/cos_test_terminal' => Http::response([
+            'id'                 => 'cos_test_terminal',
+            'status'             => 'payment_pending',
+            'destination_amount' => null,
+        ], 200),
+    ]);
+
+    $response = $this->getJson("/api/v1/ramp/session/{$session->id}");
+
+    $response->assertOk();
+    $session->refresh();
+    // Must remain COMPLETED — the pending-path early return plus the terminal
+    // state check inside the transaction prevent the clobber.
+    expect($session->status)->toBe(\App\Models\RampSession::STATUS_COMPLETED);
+    expect($session->crypto_amount)->toBe(98.5);
+});
+
+it('non-custody: a successful completion webhook writes zero rows to wallet/ledger tables', function () {
+    $user = \App\Models\User::factory()->create();
+    \App\Models\RampSession::create([
+        'user_id'             => $user->id,
+        'provider'            => 'stripe_bridge',
+        'type'                => 'on',
+        'fiat_currency'       => 'USD',
+        'fiat_amount'         => 100.0,
+        'crypto_currency'     => 'USDC',
+        'wallet_address'      => '0xabcdef',
+        'status'              => \App\Models\RampSession::STATUS_PENDING,
+        'provider_session_id' => 'cos_test_noncustody',
+    ]);
+
+    // Capture row counts in fund-custody tables before the webhook fires.
+    // - ledgers: event-sourced ledger entries (double-entry bookkeeping rows)
+    // - transactions: event-sourced transaction aggregate rows
+    // A non-custodial ramp completion must NOT write to either table because
+    // no internal funds move — crypto goes directly to the user's external wallet.
+    $tableCountsBefore = [
+        'ledgers'      => \Illuminate\Support\Facades\DB::table('ledgers')->count(),
+        'transactions' => \Illuminate\Support\Facades\DB::table('transactions')->count(),
+    ];
+
+    // Send the webhook
+    $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
+    $fixtures['session_completed']['data']['object']['id'] = 'cos_test_noncustody';
+    $body = (string) json_encode($fixtures['session_completed']);
+    $secret = 'whsec_test_fake';
+    $timestamp = time();
+    $signature = hash_hmac('sha256', $timestamp . '.' . $body, $secret);
+
+    $response = $this->call(
+        'POST',
+        '/api/v1/ramp/webhook/stripe_bridge',
+        [],
+        [],
+        [],
+        ['HTTP_STRIPE_SIGNATURE' => "t={$timestamp},v1={$signature}"],
+        $body
+    );
+
+    $response->assertOk();
+
+    // Assert zero row growth in balance/ledger tables
+    foreach ($tableCountsBefore as $table => $before) {
+        expect(\Illuminate\Support\Facades\DB::table($table)->count())->toBe($before);
+    }
 });
