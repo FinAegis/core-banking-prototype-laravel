@@ -45,6 +45,11 @@ return [
     |--------------------------------------------------------------------------
     */
 
+    /*
+     * Mock-provider fallback defaults only. Production providers return
+     * their own supported currency lists via RampProviderInterface::getSupportedCurrencies().
+     * RampService::validateRampParams() reads from the provider, not from here.
+     */
     'supported_fiat'   => ['USD', 'EUR', 'GBP'],
     'supported_crypto' => ['USDC', 'USDT', 'ETH', 'BTC'],
 
