@@ -9,8 +9,6 @@ beforeEach(function () {
     config([
         'services.stripe.secret'                => 'sk_test_fake_key',
         'services.stripe.bridge_webhook_secret' => 'whsec_test_fake',
-        // Prevent OnramperClient from throwing during RampProviderRegistry boot
-        'ramp.providers.onramper.api_key' => 'test_onramper_fake_key',
     ]);
 });
 

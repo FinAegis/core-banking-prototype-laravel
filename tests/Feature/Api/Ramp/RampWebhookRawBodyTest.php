@@ -13,8 +13,6 @@ beforeEach(function () {
         'ramp.default_provider'                 => 'stripe_bridge',
         'services.stripe.secret'                => 'sk_test_fake_key',
         'services.stripe.bridge_webhook_secret' => 'whsec_test_fake',
-        // Prevent OnramperClient from throwing during RampProviderRegistry boot
-        'ramp.providers.onramper.api_key' => 'test_onramper_fake_key',
     ]);
 });
 
@@ -64,7 +62,7 @@ it('returns 400 when the Stripe-Signature header is missing', function () {
 
 it('returns 200 for a valid signature on an ignored event type', function () {
     $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
-    $body = json_encode($fixtures['unrelated_event']);
+    $body = (string) json_encode($fixtures['unrelated_event']);
 
     $response = $this->call(
         'POST',
@@ -94,7 +92,7 @@ it('processes a valid session.completed event and updates the session row', func
     ]);
 
     $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
-    $body = json_encode($fixtures['session_completed']);
+    $body = (string) json_encode($fixtures['session_completed']);
 
     $response = $this->call(
         'POST',
@@ -151,7 +149,7 @@ it('idempotent: replaying a completed event on a terminal session is a no-op', f
     ]);
 
     $fixtures = require base_path('tests/Fixtures/stripe_bridge_webhooks.php');
-    $body = json_encode($fixtures['session_completed']);
+    $body = (string) json_encode($fixtures['session_completed']);
 
     $response = $this->call(
         'POST',

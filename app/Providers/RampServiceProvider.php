@@ -49,9 +49,9 @@ class RampServiceProvider extends ServiceProvider
 
         $this->app->singleton(RampProviderRegistry::class, function ($app) {
             return new RampProviderRegistry([
-                'onramper'      => new OnramperProvider($app->make(OnramperClient::class)),
-                'stripe_bridge' => new StripeBridgeProvider($app->make(StripeBridgeService::class)),
-                'mock'          => new MockRampProvider(),
+                'onramper'      => static fn () => new OnramperProvider($app->make(OnramperClient::class)),
+                'stripe_bridge' => static fn () => new StripeBridgeProvider($app->make(StripeBridgeService::class)),
+                'mock'          => static fn () => new MockRampProvider(),
             ]);
         });
     }
