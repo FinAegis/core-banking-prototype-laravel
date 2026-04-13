@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Realistic Stripe Crypto Onramp webhook event fixtures.
  *
@@ -10,6 +8,9 @@ declare(strict_types=1);
  *
  * @see https://docs.stripe.com/crypto/onramp
  */
+
+declare(strict_types=1);
+
 return [
     'session_updated' => [
         'id'      => 'evt_test_updated_123',

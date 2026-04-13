@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Parameterized contract test — every RampProviderInterface implementation
+ * must pass every assertion here. Adding a new provider = adding one line
+ * to the dataset below.
+ */
+
 declare(strict_types=1);
 
 use App\Domain\Ramp\Contracts\RampProviderInterface;
@@ -7,11 +13,6 @@ use App\Domain\Ramp\Providers\MockRampProvider;
 use App\Domain\Ramp\Providers\OnramperProvider;
 use App\Domain\Ramp\Providers\StripeBridgeProvider;
 
-/**
- * Parameterized contract test — every RampProviderInterface implementation
- * must pass every assertion here. Adding a new provider = adding one line
- * to the dataset below.
- */
 dataset('ramp_providers', [
     'mock'          => fn () => app(MockRampProvider::class),
     'onramper'      => fn () => app(OnramperProvider::class),
