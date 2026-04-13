@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.1.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,23 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.1',
+                        'date' => 'April 13, 2026',
+                        'label' => 'Stripe Bridge Ramp Hardening',
+                        'label_color' => 'teal',
+                        'badge_color' => 'bg-teal-100 text-teal-700 border-teal-200',
+                        'dot_color' => 'bg-teal-500',
+                        'items' => [
+                            'Stripe Bridge Ramp — Working Stripe Crypto Onramp integration with proper t=,v1= signature verification (HMAC-SHA256, 300s replay window, multi-v1 support), real session status fetch, and event envelope normalization. Replaces broken scaffolding that would have rejected every real Stripe webhook.',
+                            'Platform-Generic Webhook Abstraction — Widened RampProviderInterface with normalizeWebhookPayload() and getWebhookSignatureHeader(); validator callable now receives raw HTTP body bytes (not re-encoded JSON) and the full signature header. Onramper, Stripe Bridge, and Mock providers all share the same contract.',
+                            'Lazy RampProviderRegistry — Webhook controller resolves providers by name via a registry that lazily instantiates only the provider for the inbound webhook. Production deployments using only Stripe no longer need fake Onramper credentials to boot.',
+                            'Provider-Aware Validation — RampService::validateRampParams() reads supported currencies from the active provider instead of global config; requesting BTC through Stripe now returns a clear 422 naming the active provider.',
+                            'Race Safety — Both webhook processing and session status polling wrap DB updates in DB::transaction() + lockForUpdate() with terminal-state idempotency; webhooks arriving during a poll are no longer clobbered.',
+                            'Parallel Webhook Cleanup — Deleted the legacy StripeBridgeWebhookController and its /api/webhooks/stripe/bridge route. The old code path used the wrong event type prefix and had a non-production signature bypass. The generic /api/v1/ramp/webhook/{provider} route is now the single Stripe webhook entry point.',
+                            'Test Coverage — 95 ramp tests passing including a parameterized provider-contract suite (every provider inherits the same checks), Stripe signature verification, raw-body preservation, and a non-custody regression test asserting zero row growth in ledgers/transactions tables on ramp completion.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.0',
                         'date' => 'April 7, 2026',
