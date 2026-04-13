@@ -55,7 +55,7 @@
                             'Webhook Hardening — Unique (tx_hash, chain) constraint, ProcessAlchemyWebhookJob and ProcessHeliusWebhookJob for async queue-based processing, Cache-based deduplication, spam filter, and reorg detection',
                             'Per-User Sharding — Per-user webhook endpoints with encrypted signing keys and 100K address sharding for scalable on-chain monitoring',
                             'Mobile Backend — CardWaitlistController, TrustCertPaymentController with 3 payment methods (wallet, card, IAP), and RequireKycVerification middleware for Level 0 user restrictions',
-                            'Ramp Migration — StripeBridgeService and StripeBridgeWebhookController replacing Onramper with Stripe Bridge for fiat on/off-ramp',
+                            'Ramp Migration — StripeBridgeService and generic RampWebhookController replacing Onramper with Stripe Bridge for fiat on/off-ramp',
                             'Security — bcmath for all financial amounts, encrypted stripe_client_secret, webhook timestamp tolerance, IAP production gate, 15 security findings identified and fixed via post-phase review',
                         ],
                     ],

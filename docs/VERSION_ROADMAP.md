@@ -3098,7 +3098,7 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 - Card Waitlist: POST join (race-safe with lockForUpdate) + GET status endpoints
 - Paid KYC Verification: 3 payment methods (wallet deduction, Stripe card, IAP), VerificationPayment audit table, StripeKycWebhookController
 - RequireKycVerification Middleware: Blocks Level 0 users from financial endpoints
-- Stripe Bridge Ramp: Replaces Onramper — StripeBridgeService, StripeBridgeWebhookController, async webhook processing
+- Stripe Bridge Ramp: Replaces Onramper — StripeBridgeService, generic RampWebhookController (provider-agnostic), async webhook processing
 - Security: bcmath for all fiat amounts, encrypted stripe_client_secret, webhook replay protection, IAP production gate
 - Pre-existing fixes: LedgerDriverInterface binding, CrossChain test auth, PimlicoBundler enum count
 

@@ -278,11 +278,6 @@ Route::post('v1/ramp/webhook/{provider}', [App\Http\Controllers\Api\V1\RampWebho
     ->middleware('api.rate_limit:webhook')
     ->name('api.v1.ramp.webhook');
 
-// Stripe Bridge (Crypto Onramp) webhook — Stripe signature verified
-Route::post('webhooks/stripe/bridge', [App\Http\Controllers\Api\Webhook\StripeBridgeWebhookController::class, 'handle'])
-    ->middleware('api.rate_limit:webhook')
-    ->name('api.webhooks.stripe.bridge');
-
 // v5.14.0 — Alchemy Address Activity Webhook (no auth, HMAC verified)
 Route::post('webhooks/alchemy/address-activity', [App\Http\Controllers\Api\Webhook\AlchemyWebhookController::class, 'handle'])
     ->middleware('api.rate_limit:webhook')
