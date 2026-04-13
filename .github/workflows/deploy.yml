@@ -98,8 +98,14 @@ jobs:
           APP_ENV: testing
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
-          CACHE_DRIVER: redis
-          SESSION_DRIVER: redis
+          # Use array cache/session — matches .env.testing used by the
+          # passing 03-test-suite.yml. The redis driver breaks tests that
+          # mock the Redis facade (e.g. BackpressureHandlerTest) because
+          # Cache::put silently fails when its Redis backend hits an
+          # unmocked method on the swapped facade.
+          CACHE_DRIVER: array
+          CACHE_STORE: array
+          SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
           MAIL_MAILER: array
           BROADCAST_DRIVER: log
@@ -115,6 +121,9 @@ jobs:
           echo "APP_KEY=$APP_KEY" >> .env
           echo "DB_CONNECTION=sqlite" >> .env
           echo "DB_DATABASE=:memory:" >> .env
+          echo "CACHE_STORE=array" >> .env
+          echo "CACHE_DRIVER=array" >> .env
+          echo "SESSION_DRIVER=array" >> .env
           echo "REDIS_HOST=127.0.0.1" >> .env
           echo "REDIS_PORT=6379" >> .env
           echo "QUEUE_CONNECTION=sync" >> .env
