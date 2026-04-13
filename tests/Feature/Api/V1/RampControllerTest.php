@@ -164,7 +164,7 @@ class RampControllerTest extends TestCase
             'session_id'    => 'mock_webhook_test',
             'status'        => 'completed',
             'crypto_amount' => 98.50,
-        ], ['X-Webhook-Signature' => 'valid'])
+        ], ['X-Mock-Signature' => 'valid'])
             ->assertOk();
 
         $session->refresh();
@@ -189,7 +189,7 @@ class RampControllerTest extends TestCase
             'session_id'    => 'mock_terminal_test',
             'status'        => 'failed',
             'crypto_amount' => 0,
-        ], ['X-Webhook-Signature' => 'valid'])
+        ], ['X-Mock-Signature' => 'valid'])
             ->assertOk();
 
         $session->refresh();
@@ -213,7 +213,7 @@ class RampControllerTest extends TestCase
         $this->postJson('/api/v1/ramp/webhook/mock', [
             'session_id' => 'mismatch_test',
             'status'     => 'completed',
-        ], ['X-Webhook-Signature' => 'valid'])
+        ], ['X-Mock-Signature' => 'valid'])
             ->assertOk();
 
         $session->refresh();
@@ -237,7 +237,7 @@ class RampControllerTest extends TestCase
         $this->postJson('/api/v1/ramp/webhook/mock', [
             'session_id' => 'normalize_test',
             'status'     => 'success',
-        ], ['X-Webhook-Signature' => 'valid'])
+        ], ['X-Mock-Signature' => 'valid'])
             ->assertOk();
 
         $session->refresh();
