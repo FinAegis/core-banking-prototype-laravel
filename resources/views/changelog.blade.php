@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.1.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.2.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,20 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.2',
+                        'date' => 'April 13, 2026',
+                        'label' => 'Deployment Pipeline Fix',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Deploy Pipeline — Fixed a 1GB OOM in the Pre-deployment Validation job that had been blocking the Deploy to Production workflow since v7.10.0. Unit tests now run in batched PHP processes via the shared bin/pest-batch runner, mirroring the CI Pipeline unit test step.',
+                            'Cache Driver — Switched the Pre-deployment Validation step to the array cache driver (matching .env.testing). The previous redis driver broke tests that mock the Redis facade because Cache::put silently failed through the swapped facade.',
+                            'Dotenv Quoting — Wrapped BRAND_LEGAL_JURISDICTION in .env.example and BRAND_TAGLINE in .env.zelta.example in double quotes. The unquoted whitespace was tripping vlucas/phpdotenv with "Failed to parse dotenv file. Encountered unexpected whitespace". Affects anyone copying .env.example for a fresh setup.',
+                            'First Deployable Release — v7.10.2 is the first release tag since v7.10.0 whose Deploy to Production pipeline is actually functional. v7.10.0 and v7.10.1 both had Pre-deployment Validation failures that blocked the deployment artifact build.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.1',
                         'date' => 'April 13, 2026',
