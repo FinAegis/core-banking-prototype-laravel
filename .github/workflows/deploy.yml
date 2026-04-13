@@ -77,17 +77,20 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, redis, opcache, gmp
           tools: composer:v2
           coverage: none
-          
+          ini-values: |
+            memory_limit=1G
+            max_execution_time=360
+
       - name: Validate Composer Files
         run: composer validate --strict
-        
+
       - name: Check for Security Vulnerabilities
         run: |
           composer audit --no-dev || AUDIT_FAILED=1
           if [ "$AUDIT_FAILED" == "1" ]; then
             echo "::warning::Security vulnerabilities found in dependencies"
           fi
-          
+
       - name: Run Critical Tests
         if: ${{ !inputs.skip-tests }}
         env:
@@ -102,6 +105,11 @@ jobs:
           BROADCAST_DRIVER: log
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
+          CI: true
+          PEST_NO_SORT: true
+          MEMORY_LIMIT: 1G
+          PEST_PARALLEL: true
+          PARALLEL_PROCS: 2
         run: |
           cp .env.example .env || true
           echo "APP_KEY=$APP_KEY" >> .env
@@ -111,7 +119,21 @@ jobs:
           echo "REDIS_PORT=6379" >> .env
           echo "QUEUE_CONNECTION=sync" >> .env
           composer install --prefer-dist --no-progress --optimize-autoloader
-          ./vendor/bin/pest tests/Unit --stop-on-failure
+
+          # Run unit tests in batches via the shared pest-batch runner.
+          # Each batch runs in a fresh PHP process so memory is freed between
+          # batches — replaces the prior single-process pest call that OOMed
+          # at 1G after accumulating Eloquent class definitions, container
+          # singletons, and observers across hundreds of tests.
+          # Mirrors 03-test-suite.yml's Unit Tests step.
+          chmod +x ./bin/pest-batch
+
+          ./bin/pest-batch tests/Unit/Domain || exit 1
+          ./bin/pest-batch tests/Unit/Http tests/Unit/Services || exit 1
+
+          if [ -d "tests/Unit/Filament" ] || [ -d "tests/Unit/Http/Middleware" ]; then
+            ./bin/pest-batch tests/Unit/Filament tests/Unit/Http/Middleware || exit 1
+          fi
 
   build-artifacts:
     name: Build Release Artifacts
