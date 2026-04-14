@@ -34,7 +34,7 @@
                 </div>
                 <div class="inline-flex items-center px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm text-slate-300 mb-6">
                     <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
-                    v7.10.4 &middot; Multi-Rail Payments
+                    v7.10.5 &middot; Multi-Rail Payments
                 </div>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
                     Machine Payments Protocol

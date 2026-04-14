@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.4.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.5.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,21 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.5',
+                        'date' => 'April 14, 2026',
+                        'label' => 'npm Dependency Sweep',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'npm Semver-Safe Update — Ran npm update within the existing package.json ranges, which pulled minor/patch bumps for @ledgerhq/hw-transport-webusb (6.32.0 → 6.33.0), autoprefixer (10.4.27 → 10.5.0), postcss (8.5.8 → 8.5.9), plus transitive dedup across the @ledgerhq/* tree.',
+                            'Lockfile Dedup — package-lock.json shrank by ~500 lines as newer axios/vite/ledger versions consolidated redundant transitive dep trees.',
+                            'follow-redirects Cleared — The remaining moderate-severity follow-redirects advisory carried over from the v7.10.4 cycle was resolved by this update. Audit now reports zero critical, zero high, zero moderate — 18 lows remain in deep transitive dev tooling.',
+                            'Zero Runtime Impact — Lockfile-only change. No package.json edits, no application code touched. Production bundle rebuilds byte-equivalent under the existing Vite 6.4.2 configuration.',
+                            'Out of Scope — Major-version bumps (@ledgerhq/hw-app-eth 6.x → 7.x, laravel-vite-plugin 1.x → 3.x, tailwindcss 3.x → 4.x, vite 6.x → 8.x) are deliberately deferred. Each is a dedicated migration project — Tailwind v4 and the laravel-vite-plugin/vite alignment in particular need their own brainstorming pass.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.4',
                         'date' => 'April 14, 2026',
