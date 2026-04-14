@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.5.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.6.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,21 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.6',
+                        'date' => 'April 14, 2026',
+                        'label' => 'Composer Dependency Sweep',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Composer Semver-Safe Update — 230 packages upgraded within the existing composer.json ranges. Notable bumps include Laravel 12.55.1 → 12.56.0, Filament 3.3.49 → 3.3.50, Livewire 3.7.11 → 3.7.15, Larastan 3.9.3 → 3.9.5, PHPStan 2.1.42 → 2.1.47, php-cs-fixer 3.94.2 → 3.95.1, AWS SDK 3.373.8 → 3.379.0, Lighthouse 6.65.0 → 6.66.0, Behat 3.29.0 → 3.30.0, Laravel Passport 13.6.0 → 13.7.4, plus 220+ smaller / transitive bumps.',
+                            'PHPStan Level 8 Kept Clean — Larastan 3.9.5 tightened several rules, surfacing 6 pre-existing errors across RecordPaymentActivity, MessageDeliveryWorkflow, RegulatoryCalendarService, BasketController, StatusController, and the Account Exceptions test. All fixed in-PR per the CLAUDE.md policy against suppression — dead null-coalesces removed, Collection covariance resolved by closure type hints and by flattening to plain arrays where invariance bit, and the Pest toThrow() dead-code false positive worked around with try/catch assertions.',
+                            'php-cs-fixer 3.95.1 Repo-Wide Reformat — The new fixer version tightened match-arm alignment, flagging 65 files where existing match expressions had inconsistent whitespace around the fat arrow. 218 insertions / 218 deletions — pure whitespace normalization, no semantic changes.',
+                            'Zero Security Advisories — composer update reported "No security vulnerability advisories found." No CVE-driven bumps in this release; strictly maintenance within the Laravel 12 / PHP 8.4 line.',
+                            'Out of Scope — Major-version backend bumps are each dedicated migration projects and deliberately deferred: Laravel 12 → 13, Filament 3 → 5 (two majors), Livewire 3 → 4, Pest 3 → 4, Predis 2 → 3, Cashier 15 → 16, Scout 10 → 11, Tinker 2 → 3, Symfony http-client 7 → 8, L5-Swagger 10 → 11, Resend 0 → 1. Each of these needs its own migration plan and review pass.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.5',
                         'date' => 'April 14, 2026',
