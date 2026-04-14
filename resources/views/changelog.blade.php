@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.2.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.3.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,20 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.3',
+                        'date' => 'April 14, 2026',
+                        'label' => 'Onboarding Welcome Modal Fix',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'Dashboard Welcome Modal — Removed the broken "Take Tour" header button and startTour() placeholder from the new-user welcome modal. The placeholder contained PHP string-concat syntax dropped into a raw <script> block, which JavaScript parsed as member access on a string literal and threw TypeError at runtime, silently breaking the onboarding flow for every new registrant.',
+                            'Onboarding Flow — Stripped the startTour() fallback from startOnboarding()\'s .catch branch so a failed /onboarding/complete POST no longer cascades into a second runtime error.',
+                            'Registration Verified — RegistrationTest suite confirmed green end-to-end (POST /register → CreateNewUser → team provisioning → dashboard). The bug was confined to the post-registration welcome modal JavaScript, not the registration pipeline itself.',
+                            'Tour Deferred — A real interactive tour (Shepherd.js / Intro.js etc.) is parked for a future design pass. Removing the stub is the honest minimum fix.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.2',
                         'date' => 'April 13, 2026',
