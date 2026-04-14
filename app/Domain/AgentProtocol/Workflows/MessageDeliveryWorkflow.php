@@ -279,7 +279,7 @@ class MessageDeliveryWorkflow extends Workflow
     {
         return [
             'workflowId'     => $this->getWorkflowId(),
-            'status'         => $this->result->status ?? 'processing',
+            'status'         => $this->result->status,
             'messageId'      => $this->request->messageId ?? null,
             'retryCount'     => $this->retryCount,
             'deliveredAt'    => $this->result->deliveredAt ?? null,

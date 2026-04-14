@@ -319,28 +319,30 @@ class StatusController extends Controller
             ->get();
 
         if ($forApi) {
-            return $incidents->map(
-                function ($incident) {
-                    return [
-                        'id'          => $incident->id,
-                        'title'       => $incident->title,
-                        'status'      => $incident->status,
-                        'impact'      => $incident->impact,
-                        'started_at'  => $incident->started_at->toIso8601String(),
-                        'resolved_at' => $incident->resolved_at?->toIso8601String(),
-                        'duration'    => $incident->duration,
-                        'updates'     => $incident->updates->map(
-                            function ($update) {
-                                return [
-                                    'status'     => $update->status,
-                                    'message'    => $update->message,
-                                    'created_at' => $update->created_at->toIso8601String(),
-                                ];
-                            }
-                        ),
+            $result = [];
+            foreach ($incidents as $incident) {
+                $updates = [];
+                foreach ($incident->updates as $update) {
+                    $updates[] = [
+                        'status'     => $update->status,
+                        'message'    => $update->message,
+                        'created_at' => $update->created_at->toIso8601String(),
                     ];
                 }
-            );
+
+                $result[] = [
+                    'id'          => $incident->id,
+                    'title'       => $incident->title,
+                    'status'      => $incident->status,
+                    'impact'      => $incident->impact,
+                    'started_at'  => $incident->started_at->toIso8601String(),
+                    'resolved_at' => $incident->resolved_at?->toIso8601String(),
+                    'duration'    => $incident->duration,
+                    'updates'     => $updates,
+                ];
+            }
+
+            return $result;
         }
 
         return $incidents;

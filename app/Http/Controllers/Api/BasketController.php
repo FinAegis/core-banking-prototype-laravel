@@ -79,7 +79,7 @@ class BasketController extends Controller
                                 'max_weight' => $component->max_weight,
                             ];
                         }
-                    ),
+                    )->all(),
                 ];
             }
         );

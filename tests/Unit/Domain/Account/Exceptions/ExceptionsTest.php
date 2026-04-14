@@ -42,11 +42,17 @@ it('exceptions have proper inheritance', function () {
 });
 
 it('can throw and catch invalid hash exception', function () {
-    expect(fn () => throw new InvalidHashException('Test hash error'))
-        ->toThrow(InvalidHashException::class, 'Test hash error');
+    try {
+        throw new InvalidHashException('Test hash error');
+    } catch (InvalidHashException $e) {
+        expect($e->getMessage())->toBe('Test hash error');
+    }
 });
 
 it('can throw and catch not enough funds exception', function () {
-    expect(fn () => throw new NotEnoughFunds('Test funds error'))
-        ->toThrow(NotEnoughFunds::class, 'Test funds error');
+    try {
+        throw new NotEnoughFunds('Test funds error');
+    } catch (NotEnoughFunds $e) {
+        expect($e->getMessage())->toBe('Test funds error');
+    }
 });

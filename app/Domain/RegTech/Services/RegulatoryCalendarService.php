@@ -268,8 +268,8 @@ class RegulatoryCalendarService
             ->dueWithinDays($maxWarningDays)
             ->get();
 
-        return $schedules->map(function ($schedule) use ($warningDays) {
-            $daysUntilDue = $schedule->daysUntilDue();
+        return $schedules->map(function (FilingSchedule $schedule) use ($warningDays): ?array {
+            $daysUntilDue = (int) $schedule->daysUntilDue();
 
             if (in_array($daysUntilDue, $warningDays)) {
                 return [

@@ -83,7 +83,7 @@ class RecordPaymentActivity extends Activity
                             'payment_id'        => $splitResult->paymentId ?? $splitResult->transactionId,
                             'from_agent_did'    => $request->fromAgentDid,
                             'to_agent_did'      => $splitResult->toAgentDid ?? 'unknown',
-                            'amount'            => $splitResult->amount ?? 0,
+                            'amount'            => $splitResult->amount,
                             'currency'          => $request->currency,
                             'status'            => $splitResult->status,
                             'payment_type'      => 'split',
