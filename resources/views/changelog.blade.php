@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.3.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.4.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,20 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.4',
+                        'date' => 'April 14, 2026',
+                        'label' => 'Frontend Security Patch',
+                        'label_color' => 'red',
+                        'badge_color' => 'bg-red-100 text-red-700 border-red-200',
+                        'dot_color' => 'bg-red-500',
+                        'items' => [
+                            'axios Security Patch — Raised axios from ^1.13.5 to ^1.15.0 (also mirrored in the npm overrides block) to close GHSA-3p68-rc4w-qgx5, a NO_PROXY hostname normalization bypass that could be leveraged into SSRF. The single advisory cascaded through 4 @ledgerhq/* hardware-wallet packages, so bumping axios resolved all 5 critical severity entries at once.',
+                            'Vite Security Patch — Bumped Vite from ^6.4.1 to ^6.4.2 to close a high-severity path traversal in the Optimized Deps .map handling code path.',
+                            'Zero Runtime Impact — Both affected packages are dev/build-time only. axios is a devDependency and Vite is the build bundler; neither ships in the Laravel runtime. No application code or PHP dependencies were touched in this release.',
+                            'npm Audit Before/After — 23 vulnerabilities (16 low, 1 moderate, 1 high, 5 critical) → 19 vulnerabilities (18 low, 1 moderate). Remaining lows and the 1 moderate (follow-redirects) live in deep transitive dev tooling and are scheduled for the next general npm bump PR.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.3',
                         'date' => 'April 14, 2026',
