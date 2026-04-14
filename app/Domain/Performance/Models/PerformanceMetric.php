@@ -53,10 +53,10 @@ class PerformanceMetric extends Model
     {
         return match ($this->type) {
             'percentage', 'cpu_usage', 'error_rate' => number_format($this->value, 1) . '%',
-            'bytes', 'memory_usage', 'disk_usage' => $this->formatBytes($this->value),
-            'milliseconds', 'latency', 'timer' => number_format($this->value, 2) . 'ms',
-            'throughput' => number_format($this->value, 0) . ' ops/s',
-            default      => number_format($this->value, 2),
+            'bytes', 'memory_usage', 'disk_usage'   => $this->formatBytes($this->value),
+            'milliseconds', 'latency', 'timer'      => number_format($this->value, 2) . 'ms',
+            'throughput'                            => number_format($this->value, 0) . ' ops/s',
+            default                                 => number_format($this->value, 2),
         };
     }
 

@@ -26,7 +26,7 @@ enum PaymentState: string
     {
         return match ($this) {
             self::COMPLETED, self::FAILED, self::EXPIRED => true,
-            self::PENDING, self::SENDING => false,
+            self::PENDING, self::SENDING                 => false,
         };
     }
 

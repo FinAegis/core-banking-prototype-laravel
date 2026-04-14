@@ -388,10 +388,10 @@ class DemoBlockchainService implements BlockchainConnector
     {
         return match ($this->chain) {
             'ethereum', 'polygon' => 18,
-            'bitcoin' => 8,
-            'solana'  => 9,
-            'tron'    => 6,
-            default   => 18,
+            'bitcoin'             => 8,
+            'solana'              => 9,
+            'tron'                => 6,
+            default               => 18,
         };
     }
 
@@ -399,10 +399,10 @@ class DemoBlockchainService implements BlockchainConnector
     {
         return match ($this->chain) {
             'ethereum', 'polygon' => '100000000000000000', // 0.1 ETH/MATIC
-            'bitcoin' => '10000000', // 0.1 BTC
-            'solana'  => '1000000000', // 1 SOL
-            'tron'    => '100000000', // 100 TRX
-            default   => '1000000',
+            'bitcoin'             => '10000000', // 0.1 BTC
+            'solana'              => '1000000000', // 1 SOL
+            'tron'                => '100000000', // 100 TRX
+            default               => '1000000',
         };
     }
 

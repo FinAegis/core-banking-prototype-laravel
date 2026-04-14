@@ -175,7 +175,7 @@ class RailgunPrivacyService
             // Stablecoins are ~1:1 USD, ETH/WETH would need a price oracle
             $usdValue = match ($balance->token) {
                 'USDC', 'USDT' => $balance->balance,
-                default => '0.00', // Non-stablecoin tokens need price feed
+                default        => '0.00', // Non-stablecoin tokens need price feed
             };
             /** @var numeric-string $usdValue */
             $total = bcadd($total, $usdValue, 2);
@@ -535,8 +535,8 @@ class RailgunPrivacyService
     {
         $decimals = match ($token) {
             'USDC', 'USDT' => 6,
-            'WETH'  => 18,
-            default => 18,
+            'WETH'         => 18,
+            default        => 18,
         };
 
         /** @var numeric-string $amount */
@@ -550,8 +550,8 @@ class RailgunPrivacyService
     {
         $decimals = match ($token) {
             'USDC', 'USDT' => 6,
-            'WETH'  => 18,
-            default => 18,
+            'WETH'         => 18,
+            default        => 18,
         };
 
         if ($rawBalance === '0' || $rawBalance === '') {

@@ -28,9 +28,9 @@ enum DetectionMethod: string
     public function anomalyType(): AnomalyType
     {
         return match ($this) {
-            self::ZScore, self::IQR, self::IsolationForest, self::LOF => AnomalyType::Statistical,
-            self::AdaptiveThreshold, self::DriftDetection => AnomalyType::Behavioral,
-            self::SlidingWindow, self::BurstDetection => AnomalyType::Velocity,
+            self::ZScore, self::IQR, self::IsolationForest, self::LOF       => AnomalyType::Statistical,
+            self::AdaptiveThreshold, self::DriftDetection                   => AnomalyType::Behavioral,
+            self::SlidingWindow, self::BurstDetection                       => AnomalyType::Velocity,
             self::ImpossibleTravel, self::IpReputation, self::GeoClustering => AnomalyType::Geolocation,
         };
     }

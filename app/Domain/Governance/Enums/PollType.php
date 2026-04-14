@@ -38,7 +38,7 @@ enum PollType: string
     {
         return match ($this) {
             self::MULTIPLE_CHOICE, self::WEIGHTED_CHOICE, self::RANKED_CHOICE => true,
-            self::SINGLE_CHOICE, self::YES_NO => false,
+            self::SINGLE_CHOICE, self::YES_NO                                 => false,
         };
     }
 }

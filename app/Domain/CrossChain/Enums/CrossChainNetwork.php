@@ -45,11 +45,11 @@ enum CrossChainNetwork: string
     {
         return match ($this) {
             self::ETHEREUM, self::ARBITRUM, self::OPTIMISM, self::BASE => 'ETH',
-            self::POLYGON => 'MATIC',
-            self::BSC     => 'BNB',
-            self::BITCOIN => 'BTC',
-            self::SOLANA  => 'SOL',
-            self::TRON    => 'TRX',
+            self::POLYGON                                              => 'MATIC',
+            self::BSC                                                  => 'BNB',
+            self::BITCOIN                                              => 'BTC',
+            self::SOLANA                                               => 'SOL',
+            self::TRON                                                 => 'TRX',
         };
     }
 

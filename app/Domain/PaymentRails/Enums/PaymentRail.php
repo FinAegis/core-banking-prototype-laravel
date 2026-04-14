@@ -31,7 +31,7 @@ enum PaymentRail: string
     {
         return match ($this) {
             self::RTP, self::FEDNOW, self::SEPA_INSTANT => true,
-            default => false,
+            default                                     => false,
         };
     }
 

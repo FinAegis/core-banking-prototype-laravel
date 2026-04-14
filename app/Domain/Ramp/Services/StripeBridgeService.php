@@ -302,8 +302,8 @@ class StripeBridgeService
     {
         return match (strtoupper($crypto)) {
             'USDC', 'USDT', 'ETH' => 'ethereum',
-            'BTC'   => 'bitcoin',
-            default => 'ethereum',
+            'BTC'                 => 'bitcoin',
+            default               => 'ethereum',
         };
     }
 

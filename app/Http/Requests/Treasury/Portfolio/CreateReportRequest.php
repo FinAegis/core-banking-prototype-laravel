@@ -187,11 +187,11 @@ class CreateReportRequest extends FormRequest
     private function getDefaultGranularity(): string
     {
         return match ($this->input('period')) {
-            '1d', '7d' => 'daily',
-            '30d' => 'weekly',
-            '90d', '6m' => 'monthly',
+            '1d', '7d'         => 'daily',
+            '30d'              => 'weekly',
+            '90d', '6m'        => 'monthly',
             '1y', 'ytd', 'all' => 'quarterly',
-            default => 'monthly',
+            default            => 'monthly',
         };
     }
 }

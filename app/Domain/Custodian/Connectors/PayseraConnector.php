@@ -386,11 +386,11 @@ class PayseraConnector extends BaseCustodianConnector
     private function mapAccountStatus(string $payseraStatus): string
     {
         return match ($payseraStatus) {
-            'active', 'verified' => 'active',
+            'active', 'verified'    => 'active',
             'pending', 'unverified' => 'pending',
-            'blocked', 'suspended' => 'suspended',
-            'closed' => 'closed',
-            default  => 'unknown',
+            'blocked', 'suspended'  => 'suspended',
+            'closed'                => 'closed',
+            default                 => 'unknown',
         };
     }
 
@@ -401,10 +401,10 @@ class PayseraConnector extends BaseCustodianConnector
     {
         return match ($payseraStatus) {
             'created', 'pending', 'processing' => 'pending',
-            'completed', 'done' => 'completed',
-            'failed', 'rejected' => 'failed',
-            'cancelled', 'revoked' => 'cancelled',
-            default => 'unknown',
+            'completed', 'done'                => 'completed',
+            'failed', 'rejected'               => 'failed',
+            'cancelled', 'revoked'             => 'cancelled',
+            default                            => 'unknown',
         };
     }
 }

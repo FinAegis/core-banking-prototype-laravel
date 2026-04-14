@@ -21,7 +21,7 @@ enum AccountType: string
     public function normalBalance(): string
     {
         return match ($this) {
-            self::ASSET, self::EXPENSE => 'debit',
+            self::ASSET, self::EXPENSE                   => 'debit',
             self::LIABILITY, self::EQUITY, self::REVENUE => 'credit',
         };
     }

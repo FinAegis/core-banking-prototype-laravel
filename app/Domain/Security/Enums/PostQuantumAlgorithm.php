@@ -17,7 +17,7 @@ enum PostQuantumAlgorithm: string
     {
         return match ($this) {
             self::ML_KEM_768, self::ML_KEM_1024, self::HYBRID_X25519_ML_KEM => true,
-            default => false,
+            default                                                         => false,
         };
     }
 
@@ -25,7 +25,7 @@ enum PostQuantumAlgorithm: string
     {
         return match ($this) {
             self::ML_DSA_65, self::ML_DSA_87, self::HYBRID_ED25519_ML_DSA => true,
-            default => false,
+            default                                                       => false,
         };
     }
 
@@ -33,7 +33,7 @@ enum PostQuantumAlgorithm: string
     {
         return match ($this) {
             self::HYBRID_X25519_ML_KEM, self::HYBRID_ED25519_ML_DSA => true,
-            default => false,
+            default                                                 => false,
         };
     }
 
@@ -41,7 +41,7 @@ enum PostQuantumAlgorithm: string
     {
         return match ($this) {
             self::ML_KEM_768, self::ML_DSA_65, self::HYBRID_X25519_ML_KEM, self::HYBRID_ED25519_ML_DSA => 3,
-            self::ML_KEM_1024, self::ML_DSA_87 => 5,
+            self::ML_KEM_1024, self::ML_DSA_87                                                         => 5,
         };
     }
 

@@ -262,11 +262,11 @@ class StablecoinReserveProjector extends Projector
     private function mapCustodianType(string $type): string
     {
         return match ($type) {
-            'hot'           => 'hot_wallet',
-            'cold'          => 'cold_wallet',
-            'institutional' => 'institutional',
+            'hot'                        => 'hot_wallet',
+            'cold'                       => 'cold_wallet',
+            'institutional'              => 'institutional',
             'smart_contract', 'contract' => 'smart_contract',
-            default => 'hot_wallet',
+            default                      => 'hot_wallet',
         };
     }
 }

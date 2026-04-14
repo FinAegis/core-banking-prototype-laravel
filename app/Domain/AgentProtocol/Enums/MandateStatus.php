@@ -36,7 +36,7 @@ enum MandateStatus: string
     {
         return match ($this) {
             self::COMPLETED, self::REVOKED, self::EXPIRED => true,
-            default => false,
+            default                                       => false,
         };
     }
 
@@ -44,7 +44,7 @@ enum MandateStatus: string
     {
         return match ($this) {
             self::ISSUED, self::ACCEPTED, self::EXECUTED => true,
-            default => false,
+            default                                      => false,
         };
     }
 }

@@ -375,10 +375,10 @@ class TransactionController extends Controller
     private function getTransactionType(string $eventClass): string
     {
         return match ($eventClass) {
-            'MoneyAdded', 'AssetBalanceAdded' => 'credit',
+            'MoneyAdded', 'AssetBalanceAdded'           => 'credit',
             'MoneySubtracted', 'AssetBalanceSubtracted' => 'debit',
-            'MoneyTransferred', 'AssetTransferred' => 'transfer',
-            default => 'unknown',
+            'MoneyTransferred', 'AssetTransferred'      => 'transfer',
+            default                                     => 'unknown',
         };
     }
 
@@ -388,10 +388,10 @@ class TransactionController extends Controller
     private function getTransactionDescription(string $eventClass): string
     {
         return match ($eventClass) {
-            'MoneyAdded', 'AssetBalanceAdded' => 'Deposit',
+            'MoneyAdded', 'AssetBalanceAdded'           => 'Deposit',
             'MoneySubtracted', 'AssetBalanceSubtracted' => 'Withdrawal',
-            'MoneyTransferred', 'AssetTransferred' => 'Transfer',
-            default => 'Transaction',
+            'MoneyTransferred', 'AssetTransferred'      => 'Transfer',
+            default                                     => 'Transaction',
         };
     }
 }

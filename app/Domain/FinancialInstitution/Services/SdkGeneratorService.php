@@ -359,10 +359,10 @@ README;
     {
         return match ($oaType) {
             'integer', 'number' => 'number',
-            'boolean' => 'boolean',
-            'array'   => 'any[]',
-            'object'  => 'Record<string, any>',
-            default   => 'string',
+            'boolean'           => 'boolean',
+            'array'             => 'any[]',
+            'object'            => 'Record<string, any>',
+            default             => 'string',
         };
     }
 

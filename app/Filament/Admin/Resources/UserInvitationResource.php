@@ -67,7 +67,7 @@ class UserInvitationResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'admin', 'super_admin' => 'warning',
-                        default => 'gray',
+                        default                => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('inviter.name')
                     ->label('Invited By'),

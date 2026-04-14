@@ -27,9 +27,9 @@ enum DeFiProtocol: string
     {
         return match ($this) {
             self::UNISWAP_V3, self::CURVE => 'dex',
-            self::AAVE_V3 => 'lending',
-            self::LIDO    => 'liquid_staking',
-            self::DEMO    => 'demo',
+            self::AAVE_V3                 => 'lending',
+            self::LIDO                    => 'liquid_staking',
+            self::DEMO                    => 'demo',
         };
     }
 

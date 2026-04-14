@@ -435,8 +435,8 @@ class MobileRelayerController extends Controller
 
             $status = match ($result['status'] ?? 'unknown') {
                 'success', 'confirmed', 'complete' => 'confirmed',
-                'reverted', 'failed' => 'failed',
-                default => 'pending',
+                'reverted', 'failed'               => 'failed',
+                default                            => 'pending',
             };
 
             return response()->json([

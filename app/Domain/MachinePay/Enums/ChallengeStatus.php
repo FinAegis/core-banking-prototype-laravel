@@ -32,7 +32,7 @@ enum ChallengeStatus: string
     {
         return match ($this) {
             self::SETTLED, self::EXPIRED, self::FAILED => true,
-            default => false,
+            default                                    => false,
         };
     }
 }

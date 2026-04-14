@@ -23,9 +23,9 @@ enum CardStatus: string
     public function canTransitionTo(self $newStatus): bool
     {
         return match ($this) {
-            self::PENDING => in_array($newStatus, [self::ACTIVE, self::CANCELLED]),
-            self::ACTIVE  => in_array($newStatus, [self::FROZEN, self::CANCELLED, self::EXPIRED]),
-            self::FROZEN  => in_array($newStatus, [self::ACTIVE, self::CANCELLED]),
+            self::PENDING                  => in_array($newStatus, [self::ACTIVE, self::CANCELLED]),
+            self::ACTIVE                   => in_array($newStatus, [self::FROZEN, self::CANCELLED, self::EXPIRED]),
+            self::FROZEN                   => in_array($newStatus, [self::ACTIVE, self::CANCELLED]),
             self::CANCELLED, self::EXPIRED => false,
         };
     }

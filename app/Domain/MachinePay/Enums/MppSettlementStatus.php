@@ -28,7 +28,7 @@ enum MppSettlementStatus: string
     {
         return match ($this) {
             self::SETTLED, self::FAILED => true,
-            default => false,
+            default                     => false,
         };
     }
 }

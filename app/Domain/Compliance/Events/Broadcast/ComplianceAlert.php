@@ -74,9 +74,9 @@ class ComplianceAlert implements ShouldBroadcast
     {
         return match ($this->alertType) {
             self::TYPE_AML_ALERT, self::TYPE_SANCTIONS_MATCH, self::TYPE_SUSPICIOUS_ACTIVITY => 'alert.created',
-            self::TYPE_KYC_REQUIRED       => 'review.required',
-            self::TYPE_THRESHOLD_EXCEEDED => 'threshold.exceeded',
-            default                       => 'alert.created',
+            self::TYPE_KYC_REQUIRED                                                          => 'review.required',
+            self::TYPE_THRESHOLD_EXCEEDED                                                    => 'threshold.exceeded',
+            default                                                                          => 'alert.created',
         };
     }
 

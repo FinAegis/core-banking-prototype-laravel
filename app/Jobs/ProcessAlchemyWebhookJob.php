@@ -239,11 +239,11 @@ class ProcessAlchemyWebhookJob implements ShouldQueue
     private function resolveNetwork(string $alchemyNetwork): ?string
     {
         return match (strtolower($alchemyNetwork)) {
-            'eth-mainnet', 'eth_mainnet' => 'ethereum',
+            'eth-mainnet', 'eth_mainnet'       => 'ethereum',
             'polygon-mainnet', 'matic_mainnet' => 'polygon',
-            'arb-mainnet', 'arb_mainnet' => 'arbitrum',
-            'base-mainnet', 'base_mainnet' => 'base',
-            default => null,
+            'arb-mainnet', 'arb_mainnet'       => 'arbitrum',
+            'base-mainnet', 'base_mainnet'     => 'base',
+            default                            => null,
         };
     }
 }

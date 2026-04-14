@@ -477,7 +477,7 @@ class ImportTenantDataCommand extends Command
         // Determine the key column for upsert
         $keyColumn = match ($table) {
             'accounts', 'transactions', 'transfers' => 'uuid',
-            default => 'id',
+            default                                 => 'id',
         };
 
         if (isset($record[$keyColumn])) {

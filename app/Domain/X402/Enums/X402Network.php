@@ -45,7 +45,7 @@ enum X402Network: string
     public function isTestnet(): bool
     {
         return match ($this) {
-            self::BASE_SEPOLIA, self::SEPOLIA, self::AVALANCHE_FUJI, self::SOLANA_DEVNET => true,
+            self::BASE_SEPOLIA, self::SEPOLIA, self::AVALANCHE_FUJI, self::SOLANA_DEVNET      => true,
             self::BASE_MAINNET, self::ETHEREUM_MAINNET, self::AVALANCHE, self::SOLANA_MAINNET => false,
         };
     }

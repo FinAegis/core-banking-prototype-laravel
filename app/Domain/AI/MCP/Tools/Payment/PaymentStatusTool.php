@@ -417,13 +417,13 @@ class PaymentStatusTool implements MCPToolInterface
         $eventName = class_basename($eventClass);
 
         return match ($eventName) {
-            'TransferStarted', 'TransferInitiated' => 'pending',
+            'TransferStarted', 'TransferInitiated'                       => 'pending',
             'TransferCompleted', 'TransferSucceeded', 'MoneyTransferred' => 'completed',
-            'TransferFailed', 'TransferFailedEvent' => 'failed',
-            'TransferCancelled' => 'cancelled',
-            'TransferReversed'  => 'reversed',
-            'TransferPending'   => 'processing',
-            default             => 'completed', // Default to completed for unknown events
+            'TransferFailed', 'TransferFailedEvent'                      => 'failed',
+            'TransferCancelled'                                          => 'cancelled',
+            'TransferReversed'                                           => 'reversed',
+            'TransferPending'                                            => 'processing',
+            default                                                      => 'completed', // Default to completed for unknown events
         };
     }
 

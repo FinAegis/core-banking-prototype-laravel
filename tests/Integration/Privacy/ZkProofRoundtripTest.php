@@ -129,11 +129,11 @@ describe('ZK Proof Roundtrip (DemoZkProver)', function (): void {
     it('supports all proof types for roundtrip', function (): void {
         $testCases = [
             [ProofType::AGE_VERIFICATION, ['date_of_birth' => '1990-01-01', 'minimum_age' => 18]],
-            [ProofType::RESIDENCY, ['country' => 'US', 'region' => 'CA']],
-            [ProofType::KYC_TIER, ['kyc_tier' => 3, 'kyc_provider' => 'jumio']],
+            [ProofType::RESIDENCY, ['country'                        => 'US', 'region' => 'CA']],
+            [ProofType::KYC_TIER, ['kyc_tier'                        => 3, 'kyc_provider' => 'jumio']],
             [ProofType::ACCREDITED_INVESTOR, ['accreditation_status' => 'approved', 'jurisdiction' => 'US']],
-            [ProofType::SANCTIONS_CLEAR, ['identity_hash' => 'hash1', 'sanctions_list_hash' => 'hash2']],
-            [ProofType::INCOME_RANGE, ['income_range_min' => 50000, 'income_range_max' => 100000]],
+            [ProofType::SANCTIONS_CLEAR, ['identity_hash'            => 'hash1', 'sanctions_list_hash' => 'hash2']],
+            [ProofType::INCOME_RANGE, ['income_range_min'            => 50000, 'income_range_max' => 100000]],
         ];
 
         foreach ($testCases as [$proofType, $privateInputs]) {

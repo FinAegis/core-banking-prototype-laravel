@@ -109,11 +109,11 @@ class ViewApiKey extends ViewRecord
                                                 ->badge()
                                                 ->color(
                                                     fn (string $state): string => match ($state) {
-                                                        'GET'  => 'info',
-                                                        'POST' => 'success',
+                                                        'GET'          => 'info',
+                                                        'POST'         => 'success',
                                                         'PUT', 'PATCH' => 'warning',
-                                                        'DELETE' => 'danger',
-                                                        default  => 'gray',
+                                                        'DELETE'       => 'danger',
+                                                        default        => 'gray',
                                                     }
                                                 ),
                                             Infolists\Components\TextEntry::make('path'),

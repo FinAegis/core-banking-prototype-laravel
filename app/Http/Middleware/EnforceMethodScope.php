@@ -48,9 +48,9 @@ class EnforceMethodScope
     private function getScopeForMethod(string $method): string
     {
         return match (strtoupper($method)) {
-            'DELETE' => 'delete',
+            'DELETE'               => 'delete',
             'POST', 'PUT', 'PATCH' => 'write',
-            default => 'read',
+            default                => 'read',
         };
     }
 }

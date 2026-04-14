@@ -367,11 +367,11 @@ class DeutscheBankConnector extends BaseCustodianConnector
     private function mapAccountStatus(string $dbStatus): string
     {
         return match (strtoupper($dbStatus)) {
-            'ACTIVE', 'ENABLED' => 'active',
+            'ACTIVE', 'ENABLED'     => 'active',
             'PENDING', 'PROCESSING' => 'pending',
-            'SUSPENDED', 'BLOCKED' => 'suspended',
-            'CLOSED', 'TERMINATED' => 'closed',
-            default => 'unknown',
+            'SUSPENDED', 'BLOCKED'  => 'suspended',
+            'CLOSED', 'TERMINATED'  => 'closed',
+            default                 => 'unknown',
         };
     }
 
@@ -382,10 +382,10 @@ class DeutscheBankConnector extends BaseCustodianConnector
     {
         return match (strtoupper($dbStatus)) {
             'ACCP', 'ACSC', 'ACSP' => 'pending', // Accepted statuses
-            'ACCC', 'ACWC' => 'completed', // Completed statuses
-            'RJCT', 'CANC' => 'failed', // Rejected or cancelled
-            'PDNG', 'RCVD' => 'pending', // Pending statuses
-            default => 'unknown',
+            'ACCC', 'ACWC'         => 'completed', // Completed statuses
+            'RJCT', 'CANC'         => 'failed', // Rejected or cancelled
+            'PDNG', 'RCVD'         => 'pending', // Pending statuses
+            default                => 'unknown',
         };
     }
 }

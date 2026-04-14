@@ -150,14 +150,14 @@ class MessageSchemaRegistry
         }
 
         return match ($normalizedType) {
-            'string' => is_string($value),
-            'int', 'integer' => is_int($value),
+            'string'          => is_string($value),
+            'int', 'integer'  => is_int($value),
             'float', 'double' => is_float($value) || is_int($value),
             'bool', 'boolean' => is_bool($value),
-            'array'  => is_array($value),
-            'object' => is_object($value),
-            'null'   => $value === null,
-            default  => false,
+            'array'           => is_array($value),
+            'object'          => is_object($value),
+            'null'            => $value === null,
+            default           => false,
         };
     }
 }

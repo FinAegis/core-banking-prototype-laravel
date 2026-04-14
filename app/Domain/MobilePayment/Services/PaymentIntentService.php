@@ -191,8 +191,8 @@ class PaymentIntentService implements PaymentIntentServiceInterface
     private function generateDemoTxHash(PaymentNetwork $network): string
     {
         return match ($network) {
-            PaymentNetwork::SOLANA => Str::random(88),
-            PaymentNetwork::TRON   => Str::random(64),
+            PaymentNetwork::SOLANA                                                                            => Str::random(88),
+            PaymentNetwork::TRON                                                                              => Str::random(64),
             PaymentNetwork::POLYGON, PaymentNetwork::BASE, PaymentNetwork::ARBITRUM, PaymentNetwork::ETHEREUM => '0x' . bin2hex(random_bytes(32)),
         };
     }

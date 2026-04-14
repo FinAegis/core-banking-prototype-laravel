@@ -335,11 +335,11 @@ class RainCardIssuerAdapter implements CardIssuerInterface
     private function mapCardStatus(string $rainStatus): CardStatus
     {
         return match (strtolower($rainStatus)) {
-            'active' => CardStatus::ACTIVE,
-            'frozen', 'locked' => CardStatus::FROZEN,
+            'active'                  => CardStatus::ACTIVE,
+            'frozen', 'locked'        => CardStatus::FROZEN,
             'cancelled', 'terminated' => CardStatus::CANCELLED,
-            'expired' => CardStatus::EXPIRED,
-            default   => CardStatus::PENDING,
+            'expired'                 => CardStatus::EXPIRED,
+            default                   => CardStatus::PENDING,
         };
     }
 

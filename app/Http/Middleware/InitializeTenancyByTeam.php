@@ -225,8 +225,8 @@ class InitializeTenancyByTeam
 
         match ($event) {
             'unauthorized_team_access', 'rate_limited' => Log::warning("[Tenancy] {$message}", $logContext),
-            'tenant_not_found' => Log::info("[Tenancy] {$message}", $logContext),
-            default            => Log::debug("[Tenancy] {$message}", $logContext),
+            'tenant_not_found'                         => Log::info("[Tenancy] {$message}", $logContext),
+            default                                    => Log::debug("[Tenancy] {$message}", $logContext),
         };
     }
 

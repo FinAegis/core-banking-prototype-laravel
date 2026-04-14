@@ -17,7 +17,7 @@ enum EntryStatus: string
     {
         return match ($this) {
             self::POSTED, self::REVERSED => true,
-            self::DRAFT => false,
+            self::DRAFT                  => false,
         };
     }
 }

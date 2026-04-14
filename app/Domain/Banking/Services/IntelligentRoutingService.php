@@ -386,12 +386,12 @@ class IntelligentRoutingService
     {
         return match ($rail) {
             'FEDNOW', 'RTP' => 0.995,
-            'FEDWIRE'      => 0.990,
-            'SEPA_INSTANT' => 0.993,
-            'SEPA'         => 0.985,
-            'ACH'          => 0.975,
-            'SWIFT'        => 0.960,
-            default        => 0.950,
+            'FEDWIRE'       => 0.990,
+            'SEPA_INSTANT'  => 0.993,
+            'SEPA'          => 0.985,
+            'ACH'           => 0.975,
+            'SWIFT'         => 0.960,
+            default         => 0.950,
         };
     }
 
@@ -402,12 +402,12 @@ class IntelligentRoutingService
     {
         return match ($rail) {
             'FEDNOW', 'RTP' => 5000,
-            'FEDWIRE'      => 3600000,    // ~1 h
-            'SEPA_INSTANT' => 10000,
-            'SEPA'         => 86400000,   // ~1 day
-            'ACH'          => 172800000,  // ~2 days
-            'SWIFT'        => 259200000,  // ~3 days
-            default        => 86400000,
+            'FEDWIRE'       => 3600000,    // ~1 h
+            'SEPA_INSTANT'  => 10000,
+            'SEPA'          => 86400000,   // ~1 day
+            'ACH'           => 172800000,  // ~2 days
+            'SWIFT'         => 259200000,  // ~3 days
+            default         => 86400000,
         };
     }
 }

@@ -27,7 +27,7 @@ enum A2ATaskState: string
     {
         return match ($this) {
             self::COMPLETED, self::CANCELED, self::FAILED => true,
-            default => false,
+            default                                       => false,
         };
     }
 

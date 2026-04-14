@@ -53,7 +53,7 @@ enum PaymentRail: string
     public function supportsFiat(): bool
     {
         return match ($this) {
-            self::STRIPE_SPT, self::CARD => true,
+            self::STRIPE_SPT, self::CARD                  => true,
             self::TEMPO, self::LIGHTNING, self::X402_USDC => false,
         };
     }
@@ -65,7 +65,7 @@ enum PaymentRail: string
     {
         return match ($this) {
             self::TEMPO, self::LIGHTNING, self::X402_USDC => true,
-            self::STRIPE_SPT, self::CARD => false,
+            self::STRIPE_SPT, self::CARD                  => false,
         };
     }
 

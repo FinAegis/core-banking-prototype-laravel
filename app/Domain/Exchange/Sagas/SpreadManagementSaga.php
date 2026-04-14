@@ -334,10 +334,10 @@ class SpreadManagementSaga extends Reactor
         // This would integrate with price oracle or exchange service
         // For now, return mock prices
         return match ($assetCode) {
-            'BTC' => 50000,
-            'ETH' => 3000,
+            'BTC'                 => 50000,
+            'ETH'                 => 3000,
             'USD', 'USDT', 'USDC' => 1,
-            default => 100,
+            default               => 100,
         };
     }
 

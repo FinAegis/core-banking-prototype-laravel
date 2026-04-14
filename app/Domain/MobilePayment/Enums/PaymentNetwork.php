@@ -34,9 +34,9 @@ enum PaymentNetwork: string
     public function nativeAsset(): string
     {
         return match ($this) {
-            self::SOLANA  => 'SOL',
-            self::TRON    => 'TRX',
-            self::POLYGON => 'MATIC',
+            self::SOLANA                               => 'SOL',
+            self::TRON                                 => 'TRX',
+            self::POLYGON                              => 'MATIC',
             self::BASE, self::ARBITRUM, self::ETHEREUM => 'ETH',
         };
     }
@@ -85,8 +85,8 @@ enum PaymentNetwork: string
     public function addressPattern(): string
     {
         return match ($this) {
-            self::SOLANA => '/^[1-9A-HJ-NP-Za-km-z]{32,44}$/',
-            self::TRON   => '/^T[1-9A-HJ-NP-Za-km-z]{33}$/',
+            self::SOLANA                                              => '/^[1-9A-HJ-NP-Za-km-z]{32,44}$/',
+            self::TRON                                                => '/^T[1-9A-HJ-NP-Za-km-z]{33}$/',
             self::POLYGON, self::BASE, self::ARBITRUM, self::ETHEREUM => '/^0x[0-9a-fA-F]{40}$/',
         };
     }

@@ -68,9 +68,9 @@ class ReceiveAddressService
         $hash = hash('sha256', "demo:{$userId}:{$network->value}");
 
         return match ($network) {
-            PaymentNetwork::TRON => 'T' . substr(strtoupper($hash), 0, 33),
+            PaymentNetwork::TRON                                                                              => 'T' . substr(strtoupper($hash), 0, 33),
             PaymentNetwork::POLYGON, PaymentNetwork::BASE, PaymentNetwork::ARBITRUM, PaymentNetwork::ETHEREUM => '0x' . substr($hash, 0, 40),
-            default => '0x' . substr($hash, 0, 40),
+            default                                                                                           => '0x' . substr($hash, 0, 40),
         };
     }
 
@@ -80,8 +80,8 @@ class ReceiveAddressService
     private function buildQrValue(string $address, PaymentNetwork $network, PaymentAsset $asset): string
     {
         return match ($network) {
-            PaymentNetwork::SOLANA => "solana:{$address}?spl-token=USDC",
-            PaymentNetwork::TRON   => $address,
+            PaymentNetwork::SOLANA                                                                            => "solana:{$address}?spl-token=USDC",
+            PaymentNetwork::TRON                                                                              => $address,
             PaymentNetwork::POLYGON, PaymentNetwork::BASE, PaymentNetwork::ARBITRUM, PaymentNetwork::ETHEREUM => "ethereum:{$address}",
         };
     }

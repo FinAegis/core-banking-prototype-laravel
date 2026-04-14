@@ -713,8 +713,8 @@ class OpenBankingConnector extends BaseBankConnector
             'ACTC', 'PATC' => 'processing',
             'ACSC', 'ACCC' => 'completed',
             'RJCT', 'CANC' => 'failed',
-            'ACWC'  => 'completed',
-            default => 'pending',
+            'ACWC'         => 'completed',
+            default        => 'pending',
         };
     }
 

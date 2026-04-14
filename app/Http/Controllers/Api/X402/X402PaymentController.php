@@ -154,9 +154,9 @@ class X402PaymentController extends Controller
         // Normalize common aliases
         $period = match ($period) {
             '24h', '1d' => 'day',
-            '7d'    => 'week',
-            '30d'   => 'month',
-            default => $period,
+            '7d'        => 'week',
+            '30d'       => 'month',
+            default     => $period,
         };
 
         if (! in_array($period, ['day', 'week', 'month'], true)) {

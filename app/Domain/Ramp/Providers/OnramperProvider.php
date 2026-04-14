@@ -185,10 +185,10 @@ class OnramperProvider implements RampProviderInterface
     private function mapOnramperStatus(string $status): string
     {
         return match (strtolower($status)) {
-            'completed', 'success', 'done' => RampSession::STATUS_COMPLETED,
+            'completed', 'success', 'done'            => RampSession::STATUS_COMPLETED,
             'failed', 'error', 'cancelled', 'expired' => RampSession::STATUS_FAILED,
-            'pending', 'new', 'created' => RampSession::STATUS_PENDING,
-            default => RampSession::STATUS_PROCESSING,
+            'pending', 'new', 'created'               => RampSession::STATUS_PENDING,
+            default                                   => RampSession::STATUS_PROCESSING,
         };
     }
 }

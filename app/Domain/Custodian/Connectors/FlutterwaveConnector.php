@@ -338,11 +338,11 @@ class FlutterwaveConnector extends BaseCustodianConnector
     private function mapTransactionStatus(string $flutterwaveStatus): string
     {
         return match (strtoupper($flutterwaveStatus)) {
-            'NEW', 'PENDING' => 'pending',
+            'NEW', 'PENDING'        => 'pending',
             'SUCCESSFUL', 'SUCCESS' => 'completed',
-            'FAILED'    => 'failed',
-            'CANCELLED' => 'cancelled',
-            default     => 'unknown',
+            'FAILED'                => 'failed',
+            'CANCELLED'             => 'cancelled',
+            default                 => 'unknown',
         };
     }
 }

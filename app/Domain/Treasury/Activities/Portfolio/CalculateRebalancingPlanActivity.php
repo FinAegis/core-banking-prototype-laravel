@@ -254,9 +254,9 @@ class CalculateRebalancingPlanActivity extends Activity
         }
 
         return match ($riskFactors) {
-            0, 1 => 'low',
-            2, 3 => 'medium',
-            4, 5 => 'high',
+            0, 1    => 'low',
+            2, 3    => 'medium',
+            4, 5    => 'high',
             default => 'critical',
         };
     }

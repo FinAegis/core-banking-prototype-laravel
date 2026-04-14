@@ -29,7 +29,7 @@ enum SupportedNetwork: string
     public function getNativeCurrency(): string
     {
         return match ($this) {
-            self::POLYGON => 'MATIC',
+            self::POLYGON                                              => 'MATIC',
             self::ARBITRUM, self::OPTIMISM, self::BASE, self::ETHEREUM => 'ETH',
         };
     }

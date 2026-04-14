@@ -186,11 +186,11 @@ class SmsService
     private function normalizeDlrStatus(string $status): string
     {
         return match (strtolower($status)) {
-            'delivered', 'success' => SmsMessage::STATUS_DELIVERED,
+            'delivered', 'success'        => SmsMessage::STATUS_DELIVERED,
             'failed', 'error', 'rejected' => SmsMessage::STATUS_FAILED,
-            'expired', 'undeliverable' => SmsMessage::STATUS_FAILED,
+            'expired', 'undeliverable'    => SmsMessage::STATUS_FAILED,
             'sent', 'accepted', 'enroute' => SmsMessage::STATUS_SENT,
-            default => SmsMessage::STATUS_SENT,
+            default                       => SmsMessage::STATUS_SENT,
         };
     }
 

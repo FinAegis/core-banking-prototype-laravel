@@ -39,7 +39,7 @@ class TransactionFactory extends Factory
 
         // Generate amount based on type (deposits and transfers in are positive, withdrawals and transfers out are negative)
         $amount = match($type) { // @phpstan-ignore match.unhandled
-            'deposit', 'transfer_in' => fake()->numberBetween(100, 100000), // $1 to $1000
+            'deposit', 'transfer_in'     => fake()->numberBetween(100, 100000), // $1 to $1000
             'withdrawal', 'transfer_out' => -fake()->numberBetween(100, 50000), // -$1 to -$500
         };
 

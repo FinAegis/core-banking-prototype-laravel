@@ -42,10 +42,10 @@ class CardTransactionSyncService
 
         return match ($eventType) {
             'transaction.created', 'transaction.updated' => $this->syncTransaction($txData),
-            'transaction.settled'  => $this->settleTransaction($txData),
-            'transaction.declined' => $this->recordDeclinedTransaction($txData),
-            'transaction.reversed' => $this->reverseTransaction($txData),
-            default                => ['synced' => false, 'transaction_id' => null],
+            'transaction.settled'                        => $this->settleTransaction($txData),
+            'transaction.declined'                       => $this->recordDeclinedTransaction($txData),
+            'transaction.reversed'                       => $this->reverseTransaction($txData),
+            default                                      => ['synced' => false, 'transaction_id' => null],
         };
     }
 
@@ -217,9 +217,9 @@ class CardTransactionSyncService
     {
         return match (strtolower($issuerStatus)) {
             'settled', 'completed', 'cleared' => 'settled',
-            'declined', 'rejected' => 'declined',
-            'reversed', 'refunded' => 'reversed',
-            default => 'pending',
+            'declined', 'rejected'            => 'declined',
+            'reversed', 'refunded'            => 'reversed',
+            default                           => 'pending',
         };
     }
 }

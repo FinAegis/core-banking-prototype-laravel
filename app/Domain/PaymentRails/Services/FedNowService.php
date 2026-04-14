@@ -252,10 +252,10 @@ final class FedNowService
     {
         return match (strtoupper($isoStatus)) {
             'ACSC', 'ACCC', 'ACSP', 'ACWC', 'ACWP' => RailStatus::COMPLETED,
-            'PDNG'  => RailStatus::PENDING,
-            'RJCT'  => RailStatus::FAILED,
-            'CANC'  => RailStatus::CANCELLED,
-            default => RailStatus::PROCESSING,
+            'PDNG'                                 => RailStatus::PENDING,
+            'RJCT'                                 => RailStatus::FAILED,
+            'CANC'                                 => RailStatus::CANCELLED,
+            default                                => RailStatus::PROCESSING,
         };
     }
 }

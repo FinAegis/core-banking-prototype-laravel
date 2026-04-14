@@ -31,7 +31,7 @@ enum RailStatus: string
     {
         return match ($this) {
             self::COMPLETED, self::FAILED, self::RETURNED, self::CANCELLED => true,
-            default => false,
+            default                                                        => false,
         };
     }
 

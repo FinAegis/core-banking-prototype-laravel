@@ -40,7 +40,7 @@ enum SettlementStatus: string
     {
         return match ($this) {
             self::SETTLED, self::FAILED, self::EXPIRED => true,
-            self::PENDING, self::VERIFIED => false,
+            self::PENDING, self::VERIFIED              => false,
         };
     }
 

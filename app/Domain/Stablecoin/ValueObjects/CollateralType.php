@@ -15,7 +15,7 @@ enum CollateralType: string
     public function isVolatile(): bool
     {
         return match ($this) {
-            self::CRYPTO, self::COMMODITY => true,
+            self::CRYPTO, self::COMMODITY              => true,
             self::FIAT, self::MIXED, self::ALGORITHMIC => false,
         };
     }

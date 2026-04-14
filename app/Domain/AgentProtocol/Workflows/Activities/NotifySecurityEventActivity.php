@@ -29,9 +29,9 @@ class NotifySecurityEventActivity extends Activity
 
             // Send notification based on event type
             $notificationSent = match ($eventType) {
-                'rejected', 'security_failure' => $this->sendHighPriorityAlert($transactionId, $agentId, $eventData),
+                'rejected', 'security_failure'   => $this->sendHighPriorityAlert($transactionId, $agentId, $eventData),
                 'review_required', 'audit_alert' => $this->sendMediumPriorityAlert($transactionId, $agentId, $eventData),
-                default => $this->sendLowPriorityNotification($transactionId, $agentId, $eventData),
+                default                          => $this->sendLowPriorityNotification($transactionId, $agentId, $eventData),
             };
 
             // Store event in database (simplified)

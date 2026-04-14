@@ -197,9 +197,9 @@ class NaturalLanguageProcessorService
             $currency = strtoupper($matches[1]);
             $currency = match (strtolower($matches[1])) {
                 'dollar', 'dollars' => 'USD',
-                'euro', 'euros' => 'EUR',
-                'pound', 'pounds' => 'GBP',
-                default => $currency,
+                'euro', 'euros'     => 'EUR',
+                'pound', 'pounds'   => 'GBP',
+                default             => $currency,
             };
             $entities[self::ENTITY_CURRENCY] = $currency;
         }

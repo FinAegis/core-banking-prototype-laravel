@@ -355,9 +355,9 @@ class MultiSigWalletService
         ]));
 
         $prefix = match ($wallet->chain) {
-            'bitcoin' => 'bc1q',
+            'bitcoin'                    => 'bc1q',
             'ethereum', 'polygon', 'bsc' => '0x',
-            default => 'ms',
+            default                      => 'ms',
         };
 
         $wallet->setAddress($prefix . substr($addressHash, 0, 40));

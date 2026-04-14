@@ -268,9 +268,9 @@ class GovernanceService
         // Validate based on poll type
         match ($poll->type) {
             PollType::SINGLE_CHOICE, PollType::YES_NO => $this->validateSingleChoice($selectedOptions),
-            PollType::MULTIPLE_CHOICE => $this->validateMultipleChoice($selectedOptions, count($validOptionIds)),
-            PollType::WEIGHTED_CHOICE => $this->validateWeightedChoice($selectedOptions),
-            PollType::RANKED_CHOICE   => $this->validateRankedChoice($selectedOptions, $validOptionIds),
+            PollType::MULTIPLE_CHOICE                 => $this->validateMultipleChoice($selectedOptions, count($validOptionIds)),
+            PollType::WEIGHTED_CHOICE                 => $this->validateWeightedChoice($selectedOptions),
+            PollType::RANKED_CHOICE                   => $this->validateRankedChoice($selectedOptions, $validOptionIds),
         };
     }
 

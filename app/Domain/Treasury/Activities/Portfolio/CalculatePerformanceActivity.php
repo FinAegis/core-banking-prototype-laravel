@@ -360,10 +360,10 @@ class CalculatePerformanceActivity extends Activity
         // Simplified estimation - in reality would use actual market data
         return match ($assetClass) {
             'equities', 'stocks' => 0.08,
-            'bonds'        => 0.04,
-            'cash'         => 0.02,
-            'alternatives' => 0.06,
-            default        => 0.05,
+            'bonds'              => 0.04,
+            'cash'               => 0.02,
+            'alternatives'       => 0.06,
+            default              => 0.05,
         };
     }
 

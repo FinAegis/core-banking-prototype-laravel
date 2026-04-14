@@ -452,11 +452,11 @@ class SantanderConnector extends BaseCustodianConnector
     private function mapAccountStatus(string $santanderStatus): string
     {
         return match ($santanderStatus) {
-            'Enabled', 'Active' => 'active',
-            'Disabled', 'Pending' => 'pending',
+            'Enabled', 'Active'    => 'active',
+            'Disabled', 'Pending'  => 'pending',
             'Deleted', 'Suspended' => 'suspended',
-            'ProForma', 'Closed' => 'closed',
-            default => 'unknown',
+            'ProForma', 'Closed'   => 'closed',
+            default                => 'unknown',
         };
     }
 
@@ -467,10 +467,10 @@ class SantanderConnector extends BaseCustodianConnector
     {
         return match ($santanderStatus) {
             'AcceptedTechnicalValidation', 'AcceptedCustomerProfile', 'AcceptedSettlementInProcess' => 'pending',
-            'AcceptedSettlementCompleted', 'AcceptedWithoutPosting' => 'completed',
-            'Rejected' => 'failed',
-            'Pending'  => 'pending',
-            default    => 'unknown',
+            'AcceptedSettlementCompleted', 'AcceptedWithoutPosting'                                 => 'completed',
+            'Rejected'                                                                              => 'failed',
+            'Pending'                                                                               => 'pending',
+            default                                                                                 => 'unknown',
         };
     }
 }

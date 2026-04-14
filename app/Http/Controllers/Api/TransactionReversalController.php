@@ -310,11 +310,11 @@ class TransactionReversalController extends Controller
 
         // Determine progress based on status
         $progress = match ($transaction->status) {
-            'completed'  => 100,
-            'pending'    => 25,
-            'processing' => 50,
+            'completed'           => 100,
+            'pending'             => 25,
+            'processing'          => 50,
             'cancelled', 'failed' => 0,
-            default => 50,
+            default               => 50,
         };
 
         // Build steps completed based on status
