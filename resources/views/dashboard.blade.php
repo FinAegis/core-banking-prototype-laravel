@@ -8,12 +8,6 @@
                 <span class="text-sm text-gray-600 dark:text-gray-400">
                     Welcome back, {{ Auth::user()->name }}!
                 </span>
-                <button onclick="startTour()" class="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Take Tour
-                </button>
             </div>
         </div>
     </x-slot>
@@ -395,7 +389,6 @@
         }
 
         function startOnboarding() {
-            // Mark onboarding as started
             fetch('/onboarding/complete', {
                 method: 'POST',
                 headers: {
@@ -408,20 +401,12 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('welcome-modal').style.display = 'none';
-                // Redirect to KYC page
                 window.location.href = '/compliance/kyc';
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Onboarding error:', error);
                 document.getElementById('welcome-modal').style.display = 'none';
-                startTour();
             });
-        }
-
-        function startTour() {
-            // This would integrate with a tour library like Intro.js or Shepherd.js
-            alert('Starting your ' . config('brand.name', 'Zelta') . ' tour! Let\'s explore the platform together.');
-            // In a real implementation, this would start an interactive tour
         }
     </script>
 </x-app-layout>
