@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use RuntimeException;
-use Throwable;
 
 /**
  * HTTP client wrapper for the VertexSMS REST API (kube-api.vertexsms.com).
@@ -22,6 +21,10 @@ class VertexSmsClient
 
     private readonly string $baseUrl;
 
+    private bool $dlrUrlResolved = false;
+
+    private ?string $dlrUrl = null;
+
     public function __construct()
     {
         /** @var array{api_token?: string, base_url?: string} $config */
@@ -32,12 +35,12 @@ class VertexSmsClient
     }
 
     /**
-     * Estimate cost + parts for a message before actually sending.
+     * Estimate cost + parts for a message via POST /sms/cost.
      *
-     * Hits POST /sms/cost. This is authoritative for `parts` and `countryISO`
-     * (replaces the brittle X-VertexSMS-Amount-Sent header workaround).
+     * Numeric fields are returned as bcmath-safe `numeric-string`s. `mccmnc`
+     * is split into separate `mcc` (3 digits) and `mnc` (rest) at this boundary.
      *
-     * @return array{parts: int, price_per_part_eur: float, total_price_eur: float, country_iso: string, mccmnc: ?string}
+     * @return array{parts: int, price_per_part_eur: numeric-string, total_price_eur: numeric-string, country_iso: string, mcc: ?string, mnc: ?string}
      */
     public function estimateCost(string $to, string $from, string $message): array
     {
@@ -68,72 +71,24 @@ class VertexSmsClient
             throw new RuntimeException('VertexSMS /sms/cost returned empty response');
         }
 
-        // Response can be a single object or an array of one object (per docs).
+        // Vertex returns a single-object response or an array-of-one (per docs).
         /** @var array<string, mixed> $entry */
         $entry = isset($data[0]) && is_array($data[0]) ? $data[0] : $data;
 
+        [$mcc, $mnc] = $this->splitMccMnc(isset($entry['mccmnc']) ? (string) $entry['mccmnc'] : '');
+
         return [
-            'parts'              => $this->extractInt($entry, 'parts', 1, 1),
-            'price_per_part_eur' => $this->extractFloat($entry, 'pricePerPart'),
-            'total_price_eur'    => $this->extractFloat($entry, 'totalPrice'),
-            'country_iso'        => strtoupper($this->extractString($entry, 'countryISO')),
-            'mccmnc'             => $this->extractOptionalString($entry, 'mccmnc'),
+            'parts'              => max(1, $this->toInt($entry['parts'] ?? 1)),
+            'price_per_part_eur' => $this->toNumericString($entry['pricePerPart'] ?? 0),
+            'total_price_eur'    => $this->toNumericString($entry['totalPrice'] ?? 0),
+            'country_iso'        => is_string($entry['countryISO'] ?? null) ? strtoupper((string) $entry['countryISO']) : '',
+            'mcc'                => $mcc,
+            'mnc'                => $mnc,
         ];
     }
 
     /**
-     * @param  array<string, mixed>  $source
-     */
-    private function extractInt(array $source, string $key, int $default = 0, int $min = 0): int
-    {
-        $value = $source[$key] ?? $default;
-
-        return is_numeric($value) ? max($min, (int) $value) : $default;
-    }
-
-    /**
-     * @param  array<string, mixed>  $source
-     */
-    private function extractFloat(array $source, string $key, float $default = 0.0): float
-    {
-        $value = $source[$key] ?? $default;
-
-        return is_numeric($value) ? (float) $value : $default;
-    }
-
-    /**
-     * @param  array<string, mixed>  $source
-     */
-    private function extractString(array $source, string $key, string $default = ''): string
-    {
-        $value = $source[$key] ?? $default;
-
-        return is_string($value) ? $value : $default;
-    }
-
-    /**
-     * @param  array<string, mixed>  $source
-     */
-    private function extractOptionalString(array $source, string $key): ?string
-    {
-        $value = $source[$key] ?? null;
-
-        if (is_string($value) && $value !== '') {
-            return $value;
-        }
-
-        if (is_numeric($value)) {
-            return (string) $value;
-        }
-
-        return null;
-    }
-
-    /**
-     * Send an SMS message via POST /sms.
-     *
-     * Includes the configured `dlrUrl` so Vertex can deliver the DLR callback
-     * back to us. URL-token auth (`?t=<token>`) is appended when configured.
+     * Send an SMS via POST /sms.
      *
      * @return array{message_id: string}
      */
@@ -185,7 +140,6 @@ class VertexSmsClient
             'message_id' => $messageId,
             'to'         => $to,
             'test_mode'  => $testMode,
-            'dlr_url'    => $dlrUrl !== null,
         ]);
 
         return [
@@ -238,14 +192,10 @@ class VertexSmsClient
             return true;
         }
 
-        $computed = hash_hmac('sha256', $payload, $secret);
-
-        return hash_equals($computed, $signature);
+        return hash_equals(hash_hmac('sha256', $payload, $secret), $signature);
     }
 
     /**
-     * Constant-time comparison of the DLR URL token Vertex echoed back at us.
-     *
      * Returns null when no token is configured (signals "fall through to HMAC
      * header verification"). Returns true/false when a configured token is
      * present.
@@ -262,36 +212,64 @@ class VertexSmsClient
     }
 
     /**
-     * Assemble the dlrUrl that we want Vertex to POST back to.
-     *
-     * Preference order:
-     *   1. `sms.webhook.dlr_url` config override (absolute URL)
-     *   2. Named route `webhooks.vertexsms.dlr`
-     *
-     * Appends `?t=<token>` when a URL token is configured.
+     * Memoized at instance level — base URL + token are process-lifetime
+     * stable, no point re-resolving the route + reading config on every send.
      */
     private function buildDlrUrl(): ?string
     {
-        /** @var string $override */
-        $override = (string) config('sms.webhook.dlr_url', '');
-
-        if ($override !== '') {
-            $url = $override;
-        } else {
-            try {
-                $url = URL::route('webhooks.vertexsms.dlr');
-            } catch (Throwable) {
-                return null;
-            }
+        if ($this->dlrUrlResolved) {
+            return $this->dlrUrl;
         }
+
+        $override = (string) config('sms.webhook.dlr_url', '');
+        $url = $override !== '' ? $override : URL::route('webhooks.vertexsms.dlr');
 
         $token = (string) config('sms.webhook.dlr_url_token', '');
         if ($token !== '') {
-            $separator = str_contains($url, '?') ? '&' : '?';
-            $url .= $separator . 't=' . urlencode($token);
+            $url .= (str_contains($url, '?') ? '&' : '?') . 't=' . urlencode($token);
         }
 
-        return $url;
+        $this->dlrUrlResolved = true;
+
+        return $this->dlrUrl = $url;
+    }
+
+    /**
+     * Split "24601" → ["246", "01"]. Returns [null, null] for malformed input.
+     *
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function splitMccMnc(string $mccmnc): array
+    {
+        if ($mccmnc === '' || ! ctype_digit($mccmnc) || strlen($mccmnc) < 4) {
+            return [null, null];
+        }
+
+        return [substr($mccmnc, 0, 3), substr($mccmnc, 3)];
+    }
+
+    private function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    /**
+     * Convert a JSON-decoded numeric (float|int|string) into a fixed-precision
+     * numeric string suitable for bcmath. Six decimals matches USDC precision.
+     *
+     * @return numeric-string
+     */
+    private function toNumericString(mixed $value): string
+    {
+        if (is_string($value) && is_numeric($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return number_format((float) $value, 6, '.', '');
+        }
+
+        return '0';
     }
 
     private function request(): PendingRequest

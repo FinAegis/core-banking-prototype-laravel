@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Webhook;
 
 use App\Domain\SMS\Clients\VertexSmsClient;
-use App\Domain\SMS\Models\SmsMessage;
 use App\Domain\SMS\Services\SmsService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -57,35 +56,29 @@ class VertexSmsDlrController extends Controller
             return response()->json(['error' => 'Unauthenticated webhook'], 401);
         }
 
-        // Vertex posts `id` (the message ID from POST /sms). Accept legacy
-        // `message_id` name too so internal health-check and existing test
-        // fixtures keep working.
         $messageId = (string) ($request->input('id') ?? $request->input('message_id', ''));
 
         if ($messageId === '') {
             return response()->json(['error' => 'Missing id'], 422);
         }
 
-        // Status: integer in Vertex's real payload, string in the legacy
-        // internal shape. Both routes fall into normalizeStatus().
         $rawStatus = $request->input('status');
-        $normalized = $this->normalizeStatus($rawStatus);
-
         $errorCode = $request->input('error');
         $mcc = $request->input('mcc');
         $mnc = $request->input('mnc');
 
+        $deliveredAt = $request->input('delivered_at');
+
         Log::info('VertexSMS DLR: Received', [
             'message_id' => $messageId,
             'raw_status' => $rawStatus,
-            'status'     => $normalized,
             'error'      => $errorCode,
         ]);
 
         $this->smsService->handleDeliveryReport([
             'message_id'   => $messageId,
-            'status'       => $normalized,
-            'delivered_at' => $this->extractDeliveredAt($request, $normalized),
+            'raw_status'   => $rawStatus,
+            'delivered_at' => is_string($deliveredAt) && $deliveredAt !== '' ? $deliveredAt : null,
             'error_code'   => is_numeric($errorCode) ? (int) $errorCode : null,
             'mcc'          => is_string($mcc) && $mcc !== '' ? $mcc : null,
             'mnc'          => is_string($mnc) && $mnc !== '' ? $mnc : null,
@@ -96,9 +89,7 @@ class VertexSmsDlrController extends Controller
 
     /**
      * Accept either a valid URL token (`?t=<token>`) OR a valid HMAC
-     * `X-VertexSMS-Signature` header. In non-production with no secret/token
-     * configured, both verifiers allow-through so local tests can exercise
-     * the flow.
+     * `X-VertexSMS-Signature` header.
      */
     private function authenticate(Request $request): bool
     {
@@ -109,57 +100,15 @@ class VertexSmsDlrController extends Controller
             return true;
         }
 
-        // Token was configured but mismatched — do NOT fall through to HMAC
-        // in production, it would defeat the point of having the token.
+        // Token configured but mismatched — do NOT fall through to HMAC in
+        // production; that would defeat the point of having the token.
         if ($tokenResult === false && app()->environment('production')) {
             return false;
         }
 
-        $signature = $request->header('X-VertexSMS-Signature', '');
-        if (! is_string($signature)) {
-            $signature = '';
-        }
-
-        return $this->client->verifyWebhookSignature($request->getContent(), $signature);
-    }
-
-    /**
-     * Map either Vertex's numeric status (1/2/3/16) or a legacy string into
-     * the internal SmsMessage enum.
-     */
-    private function normalizeStatus(mixed $raw): string
-    {
-        if (is_numeric($raw)) {
-            return match ((int) $raw) {
-                1, 3    => SmsMessage::STATUS_DELIVERED,
-                2, 16   => SmsMessage::STATUS_FAILED,
-                default => SmsMessage::STATUS_SENT,
-            };
-        }
-
-        if (is_string($raw)) {
-            return match (strtolower($raw)) {
-                'delivered', 'success' => SmsMessage::STATUS_DELIVERED,
-                'failed', 'error', 'rejected',
-                'expired', 'undeliverable', 'undelivered' => SmsMessage::STATUS_FAILED,
-                default                                   => SmsMessage::STATUS_SENT,
-            };
-        }
-
-        return SmsMessage::STATUS_SENT;
-    }
-
-    private function extractDeliveredAt(Request $request, string $normalizedStatus): ?string
-    {
-        $explicit = $request->input('delivered_at');
-
-        if (is_string($explicit) && $explicit !== '') {
-            return $explicit;
-        }
-
-        // Vertex's /sms/status/{id} uses `dlrDate`. DLR POST doesn't include a
-        // timestamp — we infer it from the receipt time via the service layer
-        // (now()) when the payload is terminal.
-        return null;
+        return $this->client->verifyWebhookSignature(
+            $request->getContent(),
+            (string) $request->header('X-VertexSMS-Signature', ''),
+        );
     }
 }

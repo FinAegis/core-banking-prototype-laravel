@@ -16,7 +16,7 @@ beforeEach(function (): void {
 });
 
 describe('VertexSmsClient::estimateCost', function (): void {
-    it('parses /sms/cost single-object response', function (): void {
+    it('parses /sms/cost single-object response and splits mccmnc', function (): void {
         Http::fake([
             'kube-api.vertexsms.com/sms/cost' => Http::response([[
                 'from'         => 'Zelta',
@@ -34,9 +34,28 @@ describe('VertexSmsClient::estimateCost', function (): void {
 
         expect($cost['parts'])->toBe(2);
         expect($cost['country_iso'])->toBe('LT');
-        expect($cost['price_per_part_eur'])->toBe(0.035);
-        expect($cost['total_price_eur'])->toBe(0.070);
-        expect($cost['mccmnc'])->toBe('24601');
+        expect($cost['mcc'])->toBe('246');
+        expect($cost['mnc'])->toBe('01');
+        expect($cost['price_per_part_eur'])->toBeString();
+        expect((float) $cost['price_per_part_eur'])->toBe(0.035);
+        expect((float) $cost['total_price_eur'])->toBe(0.070);
+    });
+
+    it('handles missing mccmnc gracefully', function (): void {
+        Http::fake([
+            'kube-api.vertexsms.com/sms/cost' => Http::response([[
+                'parts'        => 1,
+                'countryISO'   => 'DE',
+                'pricePerPart' => 0.04,
+                'totalPrice'   => 0.04,
+                'currency'     => 'EUR',
+            ]], 200),
+        ]);
+
+        $cost = (new VertexSmsClient())->estimateCost('491701234567', 'Zelta', 'x');
+
+        expect($cost['mcc'])->toBeNull();
+        expect($cost['mnc'])->toBeNull();
     });
 
     it('throws when /sms/cost returns non-2xx', function (): void {
@@ -72,7 +91,7 @@ describe('VertexSmsClient::sendSms', function (): void {
         });
     });
 
-    it('omits dlrUrl when no configured override and no named route available', function (): void {
+    it('returns the message id from the API response', function (): void {
         config([
             'sms.webhook.dlr_url'       => '',
             'sms.webhook.dlr_url_token' => '',
@@ -82,9 +101,6 @@ describe('VertexSmsClient::sendSms', function (): void {
             'kube-api.vertexsms.com/sms' => Http::response(['msg-456'], 200),
         ]);
 
-        // NOTE: this test runs inside the full app so the named route may
-        // actually resolve (fine). We only assert the response shape is
-        // parsed into the internal return type.
         $result = (new VertexSmsClient())->sendSms('37069912345', 'Zelta', 'Hello');
 
         expect($result['message_id'])->toBe('msg-456');
