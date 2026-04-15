@@ -55,31 +55,6 @@ class X402StatusController extends Controller
     }
 
     /**
-     * Get supported networks and assets.
-     */
-    #[OA\Get(
-        path: '/api/v1/x402/supported',
-        summary: 'List supported networks and payment assets',
-        tags: ['X402 Protocol']
-    )]
-    #[OA\Response(
-        response: 200,
-        description: 'Supported networks and assets',
-        content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'networks', type: 'array', items: new OA\Items(properties: [
-        new OA\Property(property: 'id', type: 'string', example: 'eip155:8453'),
-        new OA\Property(property: 'name', type: 'string', example: 'Base Mainnet'),
-        new OA\Property(property: 'testnet', type: 'boolean'),
-        new OA\Property(property: 'usdc_address', type: 'string'),
-        new OA\Property(property: 'usdc_decimals', type: 'integer', example: 6),
-        ])),
-        new OA\Property(property: 'contracts', type: 'object', properties: [
-        new OA\Property(property: 'permit2', type: 'string'),
-        new OA\Property(property: 'exact_permit2_proxy', type: 'string'),
-        ]),
-        ])
-    )]
-    /**
      * Well-known x402 protocol discovery endpoint.
      */
     #[OA\Get(
@@ -116,6 +91,28 @@ class X402StatusController extends Controller
     /**
      * Get supported networks and assets.
      */
+    #[OA\Get(
+        path: '/api/v1/x402/supported',
+        summary: 'List supported networks and payment assets',
+        tags: ['X402 Protocol']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Supported networks and assets',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'networks', type: 'array', items: new OA\Items(properties: [
+        new OA\Property(property: 'id', type: 'string', example: 'eip155:8453'),
+        new OA\Property(property: 'name', type: 'string', example: 'Base Mainnet'),
+        new OA\Property(property: 'testnet', type: 'boolean'),
+        new OA\Property(property: 'usdc_address', type: 'string'),
+        new OA\Property(property: 'usdc_decimals', type: 'integer', example: 6),
+        ])),
+        new OA\Property(property: 'contracts', type: 'object', properties: [
+        new OA\Property(property: 'permit2', type: 'string'),
+        new OA\Property(property: 'exact_permit2_proxy', type: 'string'),
+        ]),
+        ])
+    )]
     public function supported(): JsonResponse
     {
         $networks = collect(X402Network::cases())->map(fn (X402Network $n) => [

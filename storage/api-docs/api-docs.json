@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Zelta API",
-        "description": "Agentic payments API — stablecoin-powered virtual cards, non-custodial wallet, and AI agent card issuance. Built with Laravel 12, featuring 49 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.",
+        "description": "Core banking API — stablecoin-powered virtual cards, non-custodial wallet, AI agent card issuance, ISO 20022, Open Banking, US Payment Rails, Interledger, and Microfinance. Built with Laravel 12, featuring 56 DDD domains, event sourcing, CQRS, and privacy-preserving architecture.",
         "contact": {
             "name": "Zelta Support",
             "email": "support@finaegis.org"
@@ -11,7 +11,7 @@
             "name": "Apache 2.0",
             "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
         },
-        "version": "6.5.0"
+        "version": "7.7.0"
     },
     "servers": [
         {
@@ -409,18 +409,18 @@
                                     },
                                     "model": {
                                         "type": "string",
+                                        "example": "gpt-4",
                                         "enum": [
                                             "gpt-4",
                                             "gpt-3.5-turbo",
                                             "claude-3"
-                                        ],
-                                        "example": "gpt-4"
+                                        ]
                                     },
                                     "temperature": {
                                         "type": "number",
+                                        "example": 0.7,
                                         "maximum": 2,
-                                        "minimum": 0,
-                                        "example": 0.7
+                                        "minimum": 0
                                     },
                                     "stream": {
                                         "type": "boolean",
@@ -893,9 +893,9 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
+                            "example": 20,
                             "maximum": 100,
-                            "minimum": 1,
-                            "example": 20
+                            "minimum": 1
                         }
                     }
                 ],
@@ -1039,14 +1039,14 @@
                                     },
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Savings Account"
+                                        "example": "Savings Account",
+                                        "maxLength": 255
                                     },
                                     "initial_balance": {
                                         "description": "Initial balance in cents",
                                         "type": "integer",
-                                        "minimum": 0,
-                                        "example": 10000
+                                        "example": 10000,
+                                        "minimum": 0
                                     }
                                 },
                                 "type": "object"
@@ -1240,13 +1240,13 @@
                                 "properties": {
                                     "reason": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Suspicious activity detected"
+                                        "example": "Suspicious activity detected",
+                                        "maxLength": 255
                                     },
                                     "authorized_by": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "admin@example.com"
+                                        "example": "admin@example.com",
+                                        "maxLength": 255
                                     }
                                 },
                                 "type": "object"
@@ -1320,13 +1320,13 @@
                                 "properties": {
                                     "reason": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Investigation completed"
+                                        "example": "Investigation completed",
+                                        "maxLength": 255
                                     },
                                     "authorized_by": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "admin@example.com"
+                                        "example": "admin@example.com",
+                                        "maxLength": 255
                                     }
                                 },
                                 "type": "object"
@@ -2461,12 +2461,12 @@
                                     },
                                     "resolution_type": {
                                         "type": "string",
+                                        "example": "release_to_receiver",
                                         "enum": [
                                             "release_to_receiver",
                                             "return_to_sender",
                                             "split"
-                                        ],
-                                        "example": "release_to_receiver"
+                                        ]
                                     },
                                     "split_percentage": {
                                         "description": "Required if resolution_type is split",
@@ -2524,12 +2524,12 @@
                                     },
                                     "type": {
                                         "type": "string",
+                                        "example": "service",
                                         "enum": [
                                             "service",
                                             "user",
                                             "system"
-                                        ],
-                                        "example": "service"
+                                        ]
                                     },
                                     "description": {
                                         "type": "string",
@@ -2964,14 +2964,14 @@
                                     },
                                     "message_type": {
                                         "type": "string",
+                                        "example": "direct",
                                         "enum": [
                                             "direct",
                                             "broadcast",
                                             "protocol",
                                             "transaction",
                                             "notification"
-                                        ],
-                                        "example": "direct"
+                                        ]
                                     },
                                     "payload": {
                                         "type": "object",
@@ -2982,13 +2982,13 @@
                                     },
                                     "priority": {
                                         "type": "string",
+                                        "example": "normal",
                                         "enum": [
                                             "low",
                                             "normal",
                                             "high",
                                             "critical"
-                                        ],
-                                        "example": "normal"
+                                        ]
                                     },
                                     "requires_acknowledgment": {
                                         "type": "boolean",
@@ -4085,19 +4085,19 @@
                                     },
                                     "outcome": {
                                         "type": "string",
+                                        "example": "success",
                                         "enum": [
                                             "success",
                                             "failed",
                                             "cancelled",
                                             "timeout"
-                                        ],
-                                        "example": "success"
+                                        ]
                                     },
                                     "rating": {
                                         "type": "integer",
+                                        "example": 5,
                                         "maximum": 5,
-                                        "minimum": 1,
-                                        "example": 5
+                                        "minimum": 1
                                     },
                                     "comment": {
                                         "type": "string",
@@ -7079,8 +7079,8 @@
                                     "currency": {
                                         "description": "Currency code",
                                         "type": "string",
-                                        "default": "USD",
-                                        "pattern": "^[A-Z]{3}$"
+                                        "pattern": "^[A-Z]{3}$",
+                                        "default": "USD"
                                     }
                                 },
                                 "type": "object"
@@ -7967,8 +7967,8 @@
                                     },
                                     "paymentCurrency": {
                                         "type": "string",
-                                        "default": "USD",
-                                        "pattern": "^[A-Z]{3}$"
+                                        "pattern": "^[A-Z]{3}$",
+                                        "default": "USD"
                                     },
                                     "paymentPurpose": {
                                         "type": "string",
@@ -9271,9 +9271,9 @@
                                 "properties": {
                                     "cooldown_minutes": {
                                         "type": "integer",
+                                        "example": 30,
                                         "maximum": 1440,
-                                        "minimum": 1,
-                                        "example": 30
+                                        "minimum": 1
                                     },
                                     "severity_thresholds": {
                                         "properties": {
@@ -9382,8 +9382,8 @@
                                     },
                                     "message": {
                                         "type": "string",
-                                        "maxLength": 500,
-                                        "example": "Test alert from API"
+                                        "example": "Test alert from API",
+                                        "maxLength": 500
                                     }
                                 },
                                 "type": "object"
@@ -9730,9 +9730,9 @@
                                     },
                                     "percentage": {
                                         "type": "number",
+                                        "example": 15,
                                         "maximum": 100,
-                                        "minimum": 0.01,
-                                        "example": 15
+                                        "minimum": 0.01
                                     }
                                 },
                                 "type": "object"
@@ -10004,8 +10004,8 @@
                                 "properties": {
                                     "amount": {
                                         "type": "number",
-                                        "minimum": 0.01,
-                                        "example": 1000
+                                        "example": 1000,
+                                        "minimum": 0.01
                                     },
                                     "asset_code": {
                                         "type": "string",
@@ -11232,13 +11232,13 @@
                                             "properties": {
                                                 "type": {
                                                     "type": "string",
+                                                    "example": "account_interest",
                                                     "enum": [
                                                         "account_interest",
                                                         "fee_collection",
                                                         "balance_reconciliation",
                                                         "report_generation"
-                                                    ],
-                                                    "example": "account_interest"
+                                                    ]
                                                 },
                                                 "parameters": {
                                                     "type": "object",
@@ -11249,9 +11249,9 @@
                                                 },
                                                 "priority": {
                                                     "type": "integer",
+                                                    "example": 5,
                                                     "maximum": 10,
-                                                    "minimum": 1,
-                                                    "example": 5
+                                                    "minimum": 1
                                                 }
                                             },
                                             "type": "object"
@@ -11375,20 +11375,20 @@
                                                 },
                                                 "status": {
                                                     "type": "string",
+                                                    "example": "running",
                                                     "enum": [
                                                         "initiated",
                                                         "running",
                                                         "completed",
                                                         "failed",
                                                         "compensating"
-                                                    ],
-                                                    "example": "running"
+                                                    ]
                                                 },
                                                 "progress": {
                                                     "type": "integer",
+                                                    "example": 65,
                                                     "maximum": 100,
-                                                    "minimum": 0,
-                                                    "example": 65
+                                                    "minimum": 0
                                                 },
                                                 "operations_total": {
                                                     "type": "integer",
@@ -11720,11 +11720,11 @@
                                                     },
                                                     "type": {
                                                         "type": "string",
+                                                        "example": "custodial",
                                                         "enum": [
                                                             "custodial",
                                                             "non-custodial"
-                                                        ],
-                                                        "example": "custodial"
+                                                        ]
                                                     },
                                                     "user_id": {
                                                         "type": "integer",
@@ -11775,11 +11775,11 @@
                                 "properties": {
                                     "type": {
                                         "type": "string",
+                                        "example": "custodial",
                                         "enum": [
                                             "custodial",
                                             "non-custodial"
-                                        ],
-                                        "example": "custodial"
+                                        ]
                                     },
                                     "mnemonic": {
                                         "description": "Required if type is non-custodial",
@@ -12143,18 +12143,18 @@
                                 "properties": {
                                     "chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
                                             "bsc",
                                             "bitcoin"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "label": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "My savings address"
+                                        "example": "My savings address",
+                                        "maxLength": 255
                                     }
                                 },
                                 "type": "object"
@@ -12272,9 +12272,9 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
+                            "example": 50,
                             "maximum": 100,
-                            "minimum": 1,
-                            "example": 50
+                            "minimum": 1
                         }
                     }
                 ],
@@ -12369,8 +12369,8 @@
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "minLength": 8,
-                                        "example": "securepass123"
+                                        "example": "securepass123",
+                                        "minLength": 8
                                     }
                                 },
                                 "type": "object"
@@ -12634,16 +12634,16 @@
                                     },
                                     "network": {
                                         "type": "string",
+                                        "example": "visa",
                                         "enum": [
                                             "visa",
                                             "mastercard"
-                                        ],
-                                        "example": "visa"
+                                        ]
                                     },
                                     "label": {
                                         "type": "string",
-                                        "maxLength": 50,
-                                        "example": "My Travel Card"
+                                        "example": "My Travel Card",
+                                        "maxLength": 50
                                     }
                                 },
                                 "type": "object"
@@ -12811,6 +12811,84 @@
                     },
                     "503": {
                         "description": "Biometric service unavailable"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Card Issuance"
+                ],
+                "summary": "Update card settings (nickname, network preference, notifications)",
+                "description": "Update card settings.",
+                "operationId": "d4c82eae337bba9946abb51da32c4a16",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "network_preference": {
+                                        "type": "string",
+                                        "enum": [
+                                            "visa",
+                                            "mastercard"
+                                        ]
+                                    },
+                                    "nickname": {
+                                        "type": "string",
+                                        "example": "Travel Card",
+                                        "maxLength": 50
+                                    },
+                                    "notifications_enabled": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Card settings updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Card settings updated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -13500,13 +13578,13 @@
                                     "asset": {
                                         "description": "The token asset for payment",
                                         "type": "string",
+                                        "example": "USDC",
                                         "enum": [
                                             "USDC",
                                             "USDT",
                                             "WETH",
                                             "WBTC"
-                                        ],
-                                        "example": "USDC"
+                                        ]
                                     },
                                     "network": {
                                         "description": "The blockchain network for the transaction",
@@ -13718,13 +13796,13 @@
                                     "asset": {
                                         "description": "The token asset for payment",
                                         "type": "string",
+                                        "example": "USDC",
                                         "enum": [
                                             "USDC",
                                             "USDT",
                                             "WETH",
                                             "WBTC"
-                                        ],
-                                        "example": "USDC"
+                                        ]
                                     },
                                     "network": {
                                         "description": "The blockchain network for the transaction",
@@ -16448,6 +16526,7 @@
                                 "properties": {
                                     "from_chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -16458,11 +16537,11 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "to_chain": {
                                         "type": "string",
+                                        "example": "polygon",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -16473,13 +16552,12 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "polygon"
+                                        ]
                                     },
                                     "token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "USDC"
+                                        "example": "USDC",
+                                        "maxLength": 20
                                     },
                                     "amount": {
                                         "description": "Numeric amount as string",
@@ -16616,6 +16694,7 @@
                                 "properties": {
                                     "from_chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -16626,11 +16705,11 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "to_chain": {
                                         "type": "string",
+                                        "example": "arbitrum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -16641,13 +16720,12 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "arbitrum"
+                                        ]
                                     },
                                     "token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "USDC"
+                                        "example": "USDC",
+                                        "maxLength": 20
                                     },
                                     "amount": {
                                         "description": "Numeric amount as string",
@@ -16656,13 +16734,13 @@
                                     },
                                     "sender_address": {
                                         "type": "string",
-                                        "maxLength": 100,
-                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                                        "maxLength": 100
                                     },
                                     "recipient_address": {
                                         "type": "string",
-                                        "maxLength": 100,
-                                        "example": "0x8ba1f109551bD432803012645Ac136ddd64DBA72"
+                                        "example": "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
+                                        "maxLength": 100
                                     }
                                 },
                                 "type": "object"
@@ -16925,6 +17003,7 @@
                                 "properties": {
                                     "from_chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -16935,11 +17014,11 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "to_chain": {
                                         "type": "string",
+                                        "example": "polygon",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -16950,18 +17029,17 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "polygon"
+                                        ]
                                     },
                                     "from_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "ETH"
+                                        "example": "ETH",
+                                        "maxLength": 20
                                     },
                                     "to_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "USDC"
+                                        "example": "USDC",
+                                        "maxLength": 20
                                     },
                                     "amount": {
                                         "description": "Numeric amount as string",
@@ -17105,6 +17183,7 @@
                                 "properties": {
                                     "from_chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -17115,11 +17194,11 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "to_chain": {
                                         "type": "string",
+                                        "example": "polygon",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -17130,18 +17209,17 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "polygon"
+                                        ]
                                     },
                                     "from_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "ETH"
+                                        "example": "ETH",
+                                        "maxLength": 20
                                     },
                                     "to_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "USDC"
+                                        "example": "USDC",
+                                        "maxLength": 20
                                     },
                                     "amount": {
                                         "description": "Numeric amount as string",
@@ -17150,8 +17228,8 @@
                                     },
                                     "wallet_address": {
                                         "type": "string",
-                                        "maxLength": 100,
-                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                                        "maxLength": 100
                                     }
                                 },
                                 "type": "object"
@@ -17535,11 +17613,11 @@
                                     },
                                     "direction": {
                                         "type": "string",
+                                        "example": "deposit",
                                         "enum": [
                                             "deposit",
                                             "withdraw"
-                                        ],
-                                        "example": "deposit"
+                                        ]
                                     },
                                     "reference": {
                                         "type": "string",
@@ -18699,6 +18777,7 @@
                                 "properties": {
                                     "chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -18709,18 +18788,17 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "from_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "USDC"
+                                        "example": "USDC",
+                                        "maxLength": 20
                                     },
                                     "to_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "ETH"
+                                        "example": "ETH",
+                                        "maxLength": 20
                                     },
                                     "amount": {
                                         "description": "Decimal amount as string",
@@ -18731,10 +18809,10 @@
                                         "description": "Slippage tolerance percentage (default 0.5)",
                                         "type": "number",
                                         "format": "float",
-                                        "maximum": 5,
-                                        "minimum": 0.01,
                                         "example": 0.5,
-                                        "nullable": true
+                                        "nullable": true,
+                                        "maximum": 5,
+                                        "minimum": 0.01
                                     }
                                 },
                                 "type": "object"
@@ -18868,6 +18946,7 @@
                                 "properties": {
                                     "chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -18878,18 +18957,17 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "from_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "USDC"
+                                        "example": "USDC",
+                                        "maxLength": 20
                                     },
                                     "to_token": {
                                         "type": "string",
-                                        "maxLength": 20,
-                                        "example": "ETH"
+                                        "example": "ETH",
+                                        "maxLength": 20
                                     },
                                     "amount": {
                                         "description": "Decimal amount as string",
@@ -18898,17 +18976,17 @@
                                     },
                                     "wallet_address": {
                                         "type": "string",
-                                        "maxLength": 100,
-                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                                        "maxLength": 100
                                     },
                                     "slippage": {
                                         "description": "Slippage tolerance percentage (default 0.5)",
                                         "type": "number",
                                         "format": "float",
-                                        "maximum": 5,
-                                        "minimum": 0.01,
                                         "example": 0.5,
-                                        "nullable": true
+                                        "nullable": true,
+                                        "maximum": 5,
+                                        "minimum": 0.01
                                     }
                                 },
                                 "type": "object"
@@ -19185,8 +19263,8 @@
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "maxLength": 100,
-                            "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                            "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                            "maxLength": 100
                         }
                     }
                 ],
@@ -19286,8 +19364,8 @@
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "maxLength": 100,
-                            "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                            "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                            "maxLength": 100
                         }
                     },
                     {
@@ -19423,6 +19501,7 @@
                                 "properties": {
                                     "chain": {
                                         "type": "string",
+                                        "example": "ethereum",
                                         "enum": [
                                             "ethereum",
                                             "polygon",
@@ -19433,13 +19512,12 @@
                                             "arbitrum",
                                             "optimism",
                                             "base"
-                                        ],
-                                        "example": "ethereum"
+                                        ]
                                     },
                                     "wallet_address": {
                                         "type": "string",
-                                        "maxLength": 100,
-                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                                        "maxLength": 100
                                     }
                                 },
                                 "type": "object"
@@ -19541,8 +19619,8 @@
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "maxLength": 100,
-                            "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                            "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                            "maxLength": 100
                         }
                     }
                 ],
@@ -19633,8 +19711,8 @@
                                 "properties": {
                                     "message": {
                                         "type": "string",
-                                        "maxLength": 500,
-                                        "example": "What is my account balance?"
+                                        "example": "What is my account balance?",
+                                        "maxLength": 500
                                     }
                                 },
                                 "type": "object"
@@ -20230,15 +20308,15 @@
                                     "quarter": {
                                         "description": "Fiscal quarter (1-4)",
                                         "type": "integer",
+                                        "example": 1,
                                         "maximum": 4,
-                                        "minimum": 1,
-                                        "example": 1
+                                        "minimum": 1
                                     },
                                     "year": {
                                         "description": "Report year",
                                         "type": "integer",
-                                        "minimum": 2020,
-                                        "example": 2025
+                                        "example": 2025,
+                                        "minimum": 2020
                                     }
                                 },
                                 "type": "object"
@@ -20314,22 +20392,22 @@
                                     "filing_type": {
                                         "description": "Type of filing",
                                         "type": "string",
+                                        "example": "initial",
                                         "enum": [
                                             "initial",
                                             "amendment",
                                             "correction"
-                                        ],
-                                        "example": "initial"
+                                        ]
                                     },
                                     "filing_method": {
                                         "description": "Filing submission method",
                                         "type": "string",
+                                        "example": "api",
                                         "enum": [
                                             "api",
                                             "portal",
                                             "email"
-                                        ],
-                                        "example": "api"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -20644,8 +20722,8 @@
                                     "count_threshold": {
                                         "description": "Transaction count threshold",
                                         "type": "integer",
-                                        "minimum": 0,
-                                        "example": 5
+                                        "example": 5,
+                                        "minimum": 0
                                     },
                                     "is_active": {
                                         "description": "Whether the threshold is active",
@@ -20655,9 +20733,9 @@
                                     "review_priority": {
                                         "description": "Review priority level",
                                         "type": "integer",
+                                        "example": 3,
                                         "maximum": 5,
-                                        "minimum": 1,
-                                        "example": 3
+                                        "minimum": 1
                                     }
                                 },
                                 "type": "object"
@@ -22058,8 +22136,8 @@
                                         "description": "Exchange rate to validate",
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 0,
-                                        "example": 1.0825
+                                        "example": 1.0825,
+                                        "minimum": 0
                                     },
                                     "provider": {
                                         "description": "Optional provider name",
@@ -23383,8 +23461,8 @@
                                     },
                                     "reason": {
                                         "type": "string",
-                                        "maxLength": 500,
-                                        "example": "No longer using the service"
+                                        "example": "No longer using the service",
+                                        "maxLength": 500
                                     }
                                 },
                                 "type": "object"
@@ -24252,22 +24330,22 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
+                                            "example": "pending",
                                             "enum": [
                                                 "unverified",
                                                 "pending",
                                                 "approved",
                                                 "rejected"
-                                            ],
-                                            "example": "pending"
+                                            ]
                                         },
                                         "level": {
                                             "type": "string",
+                                            "example": "enhanced",
                                             "enum": [
                                                 "basic",
                                                 "enhanced",
                                                 "full"
-                                            ],
-                                            "example": "enhanced"
+                                            ]
                                         },
                                         "submitted_at": {
                                             "type": "string",
@@ -24755,9 +24833,9 @@
                                     "forecast_days": {
                                         "description": "Number of days to forecast (default: 30)",
                                         "type": "integer",
+                                        "example": 30,
                                         "maximum": 365,
-                                        "minimum": 1,
-                                        "example": 30
+                                        "minimum": 1
                                     },
                                     "scenarios": {
                                         "description": "Custom scenarios for stress testing",
@@ -24771,16 +24849,16 @@
                                                 "inflow_adjustment": {
                                                     "type": "number",
                                                     "format": "float",
+                                                    "example": 0.7,
                                                     "maximum": 2,
-                                                    "minimum": 0,
-                                                    "example": 0.7
+                                                    "minimum": 0
                                                 },
                                                 "outflow_adjustment": {
                                                     "type": "number",
                                                     "format": "float",
+                                                    "example": 1.5,
                                                     "maximum": 3,
-                                                    "minimum": 0,
-                                                    "example": 1.5
+                                                    "minimum": 0
                                                 }
                                             },
                                             "type": "object"
@@ -24973,16 +25051,16 @@
                                     "forecast_days": {
                                         "description": "Days to forecast (default: 30)",
                                         "type": "integer",
+                                        "example": 30,
                                         "maximum": 365,
-                                        "minimum": 1,
-                                        "example": 30
+                                        "minimum": 1
                                     },
                                     "update_interval_hours": {
                                         "description": "Hours between forecast updates (default: 6)",
                                         "type": "integer",
+                                        "example": 6,
                                         "maximum": 24,
-                                        "minimum": 1,
-                                        "example": 6
+                                        "minimum": 1
                                     },
                                     "auto_mitigation": {
                                         "description": "Enable automatic mitigation actions (default: false)",
@@ -25901,20 +25979,21 @@
                                         "description": "Loan amount requested",
                                         "type": "number",
                                         "format": "float",
+                                        "example": 15000,
                                         "maximum": 100000,
-                                        "minimum": 1000,
-                                        "example": 15000
+                                        "minimum": 1000
                                     },
                                     "term_months": {
                                         "description": "Loan term in months",
                                         "type": "integer",
+                                        "example": 24,
                                         "maximum": 60,
-                                        "minimum": 6,
-                                        "example": 24
+                                        "minimum": 6
                                     },
                                     "purpose": {
                                         "description": "Purpose of the loan",
                                         "type": "string",
+                                        "example": "personal",
                                         "enum": [
                                             "personal",
                                             "business",
@@ -25923,8 +26002,7 @@
                                             "medical",
                                             "home_improvement",
                                             "other"
-                                        ],
-                                        "example": "personal"
+                                        ]
                                     },
                                     "employment_status": {
                                         "description": "Borrower's employment status",
@@ -25935,21 +26013,21 @@
                                         "description": "Monthly income",
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 0,
-                                        "example": 5000
+                                        "example": 5000,
+                                        "minimum": 0
                                     },
                                     "monthly_expenses": {
                                         "description": "Monthly expenses",
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 0,
-                                        "example": 2000
+                                        "example": 2000,
+                                        "minimum": 0
                                     },
                                     "additional_info": {
                                         "description": "Optional additional information",
                                         "type": "string",
-                                        "maxLength": 500,
-                                        "example": "First-time borrower"
+                                        "example": "First-time borrower",
+                                        "maxLength": 500
                                     }
                                 },
                                 "type": "object"
@@ -26338,14 +26416,14 @@
                                         "description": "Payment amount",
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 0.01,
-                                        "example": 250
+                                        "example": 250,
+                                        "minimum": 0.01
                                     },
                                     "payment_number": {
                                         "description": "Scheduled payment number",
                                         "type": "integer",
-                                        "minimum": 1,
-                                        "example": 1
+                                        "example": 1,
+                                        "minimum": 1
                                     }
                                 },
                                 "type": "object"
@@ -27379,6 +27457,72 @@
                 "responses": {
                     "200": {
                         "description": "MPP configuration JSON"
+                    }
+                }
+            }
+        },
+        "/api/metrics/prometheus": {
+            "get": {
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "Export domain metrics in Prometheus format",
+                "description": "Returns domain-specific business metrics formatted for Prometheus scraping",
+                "operationId": "getDomainPrometheusMetrics",
+                "responses": {
+                    "200": {
+                        "description": "Prometheus metrics exported",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "Quick health check for load balancers",
+                "description": "Returns lightweight health status checking database and cache connectivity",
+                "operationId": "getQuickHealthStatus",
+                "responses": {
+                    "200": {
+                        "description": "Application is healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "healthy",
+                                                "degraded"
+                                            ]
+                                        },
+                                        "checks": {
+                                            "type": "object"
+                                        },
+                                        "version": {
+                                            "type": "string"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Application is degraded"
                     }
                 }
             }
@@ -28523,12 +28667,12 @@
                                                             },
                                                             "status": {
                                                                 "type": "string",
+                                                                "example": "operational",
                                                                 "enum": [
                                                                     "operational",
                                                                     "degraded",
                                                                     "down"
-                                                                ],
-                                                                "example": "operational"
+                                                                ]
                                                             },
                                                             "latency_ms": {
                                                                 "type": "integer",
@@ -28633,19 +28777,19 @@
                                     "asset": {
                                         "description": "Payment asset",
                                         "type": "string",
+                                        "example": "USDC",
                                         "enum": [
                                             "USDC"
-                                        ],
-                                        "example": "USDC"
+                                        ]
                                     },
                                     "preferredNetwork": {
                                         "description": "Preferred payment network",
                                         "type": "string",
+                                        "example": "SOLANA",
                                         "enum": [
                                             "SOLANA",
                                             "TRON"
-                                        ],
-                                        "example": "SOLANA"
+                                        ]
                                     },
                                     "shield": {
                                         "description": "Enable privacy shield",
@@ -28967,11 +29111,11 @@
                                     "auth": {
                                         "description": "Authentication method",
                                         "type": "string",
+                                        "example": "biometric",
                                         "enum": [
                                             "biometric",
                                             "pin"
-                                        ],
-                                        "example": "biometric"
+                                        ]
                                     },
                                     "shield": {
                                         "description": "Enable privacy shield",
@@ -29605,10 +29749,10 @@
                         "required": true,
                         "schema": {
                             "type": "string",
+                            "example": "USDC",
                             "enum": [
                                 "USDC"
-                            ],
-                            "example": "USDC"
+                            ]
                         }
                     },
                     {
@@ -29618,11 +29762,11 @@
                         "required": true,
                         "schema": {
                             "type": "string",
+                            "example": "SOLANA",
                             "enum": [
                                 "SOLANA",
                                 "TRON"
-                            ],
-                            "example": "SOLANA"
+                            ]
                         }
                     }
                 ],
@@ -32862,12 +33006,12 @@
                                                             },
                                                             "status": {
                                                                 "type": "string",
+                                                                "example": "healthy",
                                                                 "enum": [
                                                                     "healthy",
                                                                     "degraded",
                                                                     "down"
-                                                                ],
-                                                                "example": "healthy"
+                                                                ]
                                                             },
                                                             "last_check": {
                                                                 "type": "string",
@@ -33303,6 +33447,229 @@
                                         "message": {
                                             "type": "string",
                                             "example": "OpenAPI spec not available"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/partner/v1/webhooks/events": {
+            "get": {
+                "tags": [
+                    "Partner BaaS"
+                ],
+                "summary": "List available webhook test event types",
+                "description": "Returns all event types that can be used for webhook testing.",
+                "operationId": "partnerWebhookEvents",
+                "responses": {
+                    "200": {
+                        "description": "Available webhook event types",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "payment.completed"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/partner/v1/webhooks/test/{eventType}": {
+            "post": {
+                "tags": [
+                    "Partner BaaS"
+                ],
+                "summary": "Send a test webhook for a given event type",
+                "description": "Generates a test webhook payload for the specified event type and optionally sends it to the provided URL.",
+                "operationId": "partnerWebhookTest",
+                "parameters": [
+                    {
+                        "name": "eventType",
+                        "in": "path",
+                        "description": "Webhook event type",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "payment.completed"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "target_url": {
+                                        "description": "URL to send the test webhook to",
+                                        "type": "string",
+                                        "example": "https://example.com/webhook",
+                                        "nullable": true
+                                    },
+                                    "secret": {
+                                        "description": "HMAC secret for signature generation",
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Test webhook payload generated (and optionally sent)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "payload": {
+                                                    "description": "Generated test payload",
+                                                    "type": "object"
+                                                },
+                                                "sent": {
+                                                    "type": "boolean",
+                                                    "example": true,
+                                                    "nullable": true
+                                                },
+                                                "status_code": {
+                                                    "type": "integer",
+                                                    "example": 200,
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/partner/v1/webhooks/replay/{deliveryId}": {
+            "post": {
+                "tags": [
+                    "Partner BaaS"
+                ],
+                "summary": "Replay a webhook delivery",
+                "description": "Replays a past webhook delivery to the specified target URL.",
+                "operationId": "partnerWebhookReplay",
+                "parameters": [
+                    {
+                        "name": "deliveryId",
+                        "in": "path",
+                        "description": "Webhook delivery ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "whk_test_abc123"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "target_url",
+                                    "payload"
+                                ],
+                                "properties": {
+                                    "target_url": {
+                                        "type": "string",
+                                        "example": "https://example.com/webhook"
+                                    },
+                                    "payload": {
+                                        "description": "JSON payload to replay",
+                                        "type": "string"
+                                    },
+                                    "secret": {
+                                        "description": "HMAC secret for signature",
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook replayed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "replayed": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "delivery_id": {
+                                                    "type": "string",
+                                                    "example": "whk_test_abc123"
+                                                },
+                                                "status_code": {
+                                                    "type": "integer",
+                                                    "example": 200,
+                                                    "nullable": true
+                                                },
+                                                "error": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -36103,13 +36470,13 @@
                         "required": false,
                         "schema": {
                             "type": "string",
+                            "example": "EU",
                             "enum": [
                                 "US",
                                 "EU",
                                 "UK",
                                 "SG"
-                            ],
-                            "example": "EU"
+                            ]
                         }
                     }
                 ],
@@ -36192,19 +36559,19 @@
                                     "report_type": {
                                         "description": "Type of regulatory report",
                                         "type": "string",
-                                        "maxLength": 50,
-                                        "example": "transaction_report"
+                                        "example": "transaction_report",
+                                        "maxLength": 50
                                     },
                                     "jurisdiction": {
                                         "description": "Target jurisdiction",
                                         "type": "string",
+                                        "example": "EU",
                                         "enum": [
                                             "US",
                                             "EU",
                                             "UK",
                                             "SG"
-                                        ],
-                                        "example": "EU"
+                                        ]
                                     },
                                     "report_data": {
                                         "description": "Report payload data",
@@ -36360,14 +36727,14 @@
                         "required": false,
                         "schema": {
                             "type": "string",
+                            "example": "EU",
                             "default": "US",
                             "enum": [
                                 "US",
                                 "EU",
                                 "UK",
                                 "SG"
-                            ],
-                            "example": "EU"
+                            ]
                         }
                     }
                 ],
@@ -36553,9 +36920,9 @@
                         "schema": {
                             "type": "number",
                             "format": "float",
+                            "example": 15000,
                             "maximum": 999999999999.99,
-                            "minimum": 0,
-                            "example": 15000
+                            "minimum": 0
                         }
                     },
                     {
@@ -36576,8 +36943,8 @@
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "maxLength": 50,
-                            "example": "wire_transfer"
+                            "example": "wire_transfer",
+                            "maxLength": 50
                         }
                     },
                     {
@@ -36587,8 +36954,8 @@
                         "required": false,
                         "schema": {
                             "type": "boolean",
-                            "default": false,
-                            "example": false
+                            "example": false,
+                            "default": false
                         }
                     }
                 ],
@@ -36824,9 +37191,9 @@
                                     "issuer_legal_name": {
                                         "description": "Legal name of the issuer",
                                         "type": "string",
-                                        "maxLength": 255,
                                         "example": "FinAegis Digital Assets AG",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "maxLength": 255
                                     },
                                     "publication_date": {
                                         "description": "Whitepaper publication date",
@@ -36838,9 +37205,9 @@
                                     "page_count": {
                                         "description": "Number of pages in the whitepaper",
                                         "type": "integer",
-                                        "minimum": 0,
                                         "example": 42,
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0
                                     },
                                     "sections": {
                                         "description": "Whitepaper sections to validate",
@@ -37018,8 +37385,8 @@
                                         "description": "Transfer amount",
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 0,
-                                        "example": 5000
+                                        "example": 5000,
+                                        "minimum": 0
                                     },
                                     "currency": {
                                         "description": "ISO 4217 currency code",
@@ -37032,23 +37399,23 @@
                                         "properties": {
                                             "name": {
                                                 "type": "string",
-                                                "maxLength": 255,
-                                                "example": "John Doe"
+                                                "example": "John Doe",
+                                                "maxLength": 255
                                             },
                                             "address": {
                                                 "type": "string",
-                                                "maxLength": 500,
-                                                "example": "123 Main St, New York, NY"
+                                                "example": "123 Main St, New York, NY",
+                                                "maxLength": 500
                                             },
                                             "account_number": {
                                                 "type": "string",
-                                                "maxLength": 100,
-                                                "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+                                                "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                                                "maxLength": 100
                                             },
                                             "doc_id": {
                                                 "type": "string",
-                                                "maxLength": 100,
-                                                "example": "PASSPORT-12345"
+                                                "example": "PASSPORT-12345",
+                                                "maxLength": 100
                                             }
                                         },
                                         "type": "object",
@@ -37059,13 +37426,13 @@
                                         "properties": {
                                             "name": {
                                                 "type": "string",
-                                                "maxLength": 255,
-                                                "example": "Jane Smith"
+                                                "example": "Jane Smith",
+                                                "maxLength": 255
                                             },
                                             "account_number": {
                                                 "type": "string",
-                                                "maxLength": 100,
-                                                "example": "0x8ba1f109551bD432803012645Ac136ddd64DBA72"
+                                                "example": "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
+                                                "maxLength": 100
                                             }
                                         },
                                         "type": "object",
@@ -38878,22 +39245,22 @@
                                     },
                                     "network": {
                                         "type": "string",
+                                        "example": "polygon",
                                         "enum": [
                                             "polygon",
                                             "arbitrum",
                                             "optimism",
                                             "base",
                                             "ethereum"
-                                        ],
-                                        "example": "polygon"
+                                        ]
                                     },
                                     "fee_token": {
                                         "type": "string",
+                                        "example": "USDC",
                                         "enum": [
                                             "USDC",
                                             "USDT"
-                                        ],
-                                        "example": "USDC"
+                                        ]
                                     },
                                     "init_code": {
                                         "description": "Factory calldata for first-time account deployment",
@@ -39096,12 +39463,12 @@
                                                     },
                                                     "congestion_level": {
                                                         "type": "string",
+                                                        "example": "low",
                                                         "enum": [
                                                             "low",
                                                             "medium",
                                                             "high"
-                                                        ],
-                                                        "example": "low"
+                                                        ]
                                                     },
                                                     "fee_token": {
                                                         "type": "string",
@@ -39224,12 +39591,12 @@
                                     },
                                     "network": {
                                         "type": "string",
+                                        "example": "polygon",
                                         "enum": [
                                             "polygon",
                                             "base",
                                             "arbitrum"
-                                        ],
-                                        "example": "polygon"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -42267,9 +42634,9 @@
                                     "price_drop_percentage": {
                                         "description": "Price drop percentage (0-1)",
                                         "type": "number",
+                                        "example": 0.2,
                                         "maximum": 1,
-                                        "minimum": 0,
-                                        "example": 0.2
+                                        "minimum": 0
                                     }
                                 },
                                 "type": "object"
@@ -42481,13 +42848,13 @@
                                                     },
                                                     "risk_level": {
                                                         "type": "string",
+                                                        "example": "high",
                                                         "enum": [
                                                             "low",
                                                             "medium",
                                                             "high",
                                                             "critical"
-                                                        ],
-                                                        "example": "high"
+                                                        ]
                                                     },
                                                     "recommendations": {
                                                         "type": "array",
@@ -42936,13 +43303,13 @@
                                     "amount": {
                                         "description": "Amount in cents",
                                         "type": "integer",
-                                        "minimum": 1,
-                                        "example": 10000
+                                        "example": 10000,
+                                        "minimum": 1
                                     },
                                     "description": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Monthly salary"
+                                        "example": "Monthly salary",
+                                        "maxLength": 255
                                     }
                                 },
                                 "type": "object"
@@ -43048,13 +43415,13 @@
                                     "amount": {
                                         "description": "Amount in cents",
                                         "type": "integer",
-                                        "minimum": 1,
-                                        "example": 5000
+                                        "example": 5000,
+                                        "minimum": 1
                                     },
                                     "description": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "ATM withdrawal"
+                                        "example": "ATM withdrawal",
+                                        "maxLength": 255
                                     }
                                 },
                                 "type": "object"
@@ -43874,8 +44241,8 @@
                                     "amount": {
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 0.01,
-                                        "example": 100.5
+                                        "example": 100.5,
+                                        "minimum": 0.01
                                     },
                                     "asset_code": {
                                         "type": "string",
@@ -43883,11 +44250,11 @@
                                     },
                                     "transaction_type": {
                                         "type": "string",
+                                        "example": "debit",
                                         "enum": [
                                             "debit",
                                             "credit"
-                                        ],
-                                        "example": "debit"
+                                        ]
                                     },
                                     "reversal_reason": {
                                         "type": "string",
@@ -44208,13 +44575,13 @@
                                     "amount": {
                                         "description": "Amount in cents",
                                         "type": "integer",
-                                        "minimum": 1,
-                                        "example": 5000
+                                        "example": 5000,
+                                        "minimum": 1
                                     },
                                     "description": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Payment for services"
+                                        "example": "Payment for services",
+                                        "maxLength": 255
                                     }
                                 },
                                 "type": "object"
@@ -45250,13 +45617,13 @@
                                     "target_level": {
                                         "description": "The target trust level to apply for",
                                         "type": "string",
+                                        "example": "verified",
                                         "enum": [
                                             "basic",
                                             "verified",
                                             "high",
                                             "ultimate"
-                                        ],
-                                        "example": "verified"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -45609,13 +45976,13 @@
                                     "document_type": {
                                         "description": "The type of document being uploaded",
                                         "type": "string",
+                                        "example": "identity",
                                         "enum": [
                                             "identity",
                                             "address",
                                             "kyc",
                                             "audit"
-                                        ],
-                                        "example": "identity"
+                                        ]
                                     },
                                     "file_name": {
                                         "description": "The name of the uploaded file",
@@ -46261,6 +46628,7 @@
                         "required": true,
                         "schema": {
                             "type": "string",
+                            "example": "verified",
                             "enum": [
                                 "unknown",
                                 "basic",
@@ -46272,8 +46640,7 @@
                                 "2",
                                 "3",
                                 "4"
-                            ],
-                            "example": "verified"
+                            ]
                         }
                     }
                 ],
@@ -46469,12 +46836,12 @@
                                     "transaction_type": {
                                         "description": "The type of transaction limit to check against",
                                         "type": "string",
+                                        "example": "single",
                                         "enum": [
                                             "daily",
                                             "monthly",
                                             "single"
-                                        ],
-                                        "example": "single"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -47473,7 +47840,7 @@
                                                 },
                                                 "provider": {
                                                     "type": "string",
-                                                    "example": "onramper"
+                                                    "example": "stripe_bridge"
                                                 },
                                                 "valid_until": {
                                                     "type": "string",
@@ -47637,7 +48004,7 @@
                                             "properties": {
                                                 "provider": {
                                                     "type": "string",
-                                                    "example": "onramper"
+                                                    "example": "stripe_bridge"
                                                 },
                                                 "fiat_currencies": {
                                                     "type": "array",
@@ -47691,7 +48058,7 @@
                 "tags": [
                     "Ramp"
                 ],
-                "summary": "Ramp provider webhook",
+                "summary": "Ramp provider webhook (Stripe Bridge, Onramper, etc.)",
                 "operationId": "v1RampWebhook",
                 "parameters": [
                     {
@@ -47699,7 +48066,12 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                                "stripe_bridge",
+                                "onramper",
+                                "mock"
+                            ]
                         }
                     }
                 ],
@@ -47708,7 +48080,13 @@
                         "description": "Webhook processed"
                     },
                     "400": {
-                        "description": "Invalid signature"
+                        "description": "Invalid signature or malformed body"
+                    },
+                    "404": {
+                        "description": "Unknown provider"
+                    },
+                    "500": {
+                        "description": "Processing error"
                     }
                 }
             }
@@ -48453,9 +48831,9 @@
                         "required": true,
                         "schema": {
                             "type": "string",
+                            "example": "EUR",
                             "maxLength": 3,
-                            "minLength": 3,
-                            "example": "EUR"
+                            "minLength": 3
                         }
                     }
                 ],
@@ -48551,21 +48929,21 @@
                                     },
                                     "currency": {
                                         "type": "string",
+                                        "example": "EUR",
                                         "maxLength": 3,
-                                        "minLength": 3,
-                                        "example": "EUR"
+                                        "minLength": 3
                                     },
                                     "reference": {
                                         "type": "string",
-                                        "maxLength": 140,
                                         "example": "Invoice #1234",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "maxLength": 140
                                     },
                                     "description": {
                                         "type": "string",
-                                        "maxLength": 500,
                                         "example": "Payment for services",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "maxLength": 500
                                     }
                                 },
                                 "type": "object"
@@ -48913,23 +49291,23 @@
                                 "properties": {
                                     "type": {
                                         "type": "string",
+                                        "example": "identity",
                                         "enum": [
                                             "identity",
                                             "address",
                                             "income",
                                             "enhanced_due_diligence"
-                                        ],
-                                        "example": "identity"
+                                        ]
                                     },
                                     "provider": {
                                         "type": "string",
+                                        "example": "onfido",
+                                        "nullable": true,
                                         "enum": [
                                             "jumio",
                                             "onfido",
                                             "manual"
-                                        ],
-                                        "example": "onfido",
-                                        "nullable": true
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -49036,11 +49414,11 @@
                                     "document_side": {
                                         "description": "Which side of the document",
                                         "type": "string",
+                                        "nullable": true,
                                         "enum": [
                                             "front",
                                             "back"
-                                        ],
-                                        "nullable": true
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -49303,19 +49681,19 @@
                                 "properties": {
                                     "type": {
                                         "type": "string",
+                                        "example": "comprehensive",
                                         "enum": [
                                             "sanctions",
                                             "pep",
                                             "adverse_media",
                                             "comprehensive"
-                                        ],
-                                        "example": "comprehensive"
+                                        ]
                                     },
                                     "reason": {
                                         "type": "string",
-                                        "maxLength": 500,
                                         "example": "Routine periodic review",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "maxLength": 500
                                     }
                                 },
                                 "type": "object"
@@ -49498,9 +49876,9 @@
                                     },
                                     "currency": {
                                         "type": "string",
+                                        "example": "USD",
                                         "maxLength": 3,
-                                        "minLength": 3,
-                                        "example": "USD"
+                                        "minLength": 3
                                     },
                                     "type": {
                                         "type": "string",
@@ -49508,10 +49886,10 @@
                                     },
                                     "destination_country": {
                                         "type": "string",
-                                        "maxLength": 2,
-                                        "minLength": 2,
                                         "example": "DE",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "maxLength": 2,
+                                        "minLength": 2
                                     }
                                 },
                                 "type": "object"
@@ -49721,9 +50099,9 @@
                                     },
                                     "country": {
                                         "type": "string",
+                                        "example": "GB",
                                         "maxLength": 2,
-                                        "minLength": 2,
-                                        "example": "GB"
+                                        "minLength": 2
                                     },
                                     "institution_type": {
                                         "type": "string",
@@ -49789,9 +50167,9 @@
                                     },
                                     "headquarters_country": {
                                         "type": "string",
+                                        "example": "GB",
                                         "maxLength": 2,
-                                        "minLength": 2,
-                                        "example": "GB"
+                                        "minLength": 2
                                     },
                                     "business_description": {
                                         "type": "string",
@@ -50743,8 +51121,8 @@
                                         "description": "Amount to spend in source currency",
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 100,
-                                        "example": 1000
+                                        "example": 1000,
+                                        "minimum": 100
                                     },
                                     "currency": {
                                         "description": "Source currency code (EUR, USD, GBP, CHF)",
@@ -50883,8 +51261,8 @@
                                         "description": "Amount of GCU to sell",
                                         "type": "number",
                                         "format": "float",
-                                        "minimum": 10,
-                                        "example": 100
+                                        "example": 100,
+                                        "minimum": 10
                                     },
                                     "currency": {
                                         "description": "Target currency code (EUR, USD, GBP, CHF)",
@@ -52150,13 +52528,13 @@
                                 "properties": {
                                     "virtuals_agent_id": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "agent_abc123"
+                                        "example": "agent_abc123",
+                                        "maxLength": 255
                                     },
                                     "agent_name": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Treasury Bot"
+                                        "example": "Treasury Bot",
+                                        "maxLength": 255
                                     },
                                     "agent_description": {
                                         "type": "string",
@@ -52165,25 +52543,25 @@
                                     },
                                     "chain": {
                                         "type": "string",
+                                        "example": "base",
                                         "enum": [
                                             "base",
                                             "polygon",
                                             "arbitrum",
                                             "ethereum"
-                                        ],
-                                        "example": "base"
+                                        ]
                                     },
                                     "daily_limit_cents": {
                                         "type": "integer",
-                                        "minimum": 1,
                                         "example": 50000,
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 1
                                     },
                                     "per_tx_limit_cents": {
                                         "type": "integer",
-                                        "minimum": 1,
                                         "example": 10000,
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 1
                                     }
                                 },
                                 "type": "object"
@@ -52880,8 +53258,8 @@
                 "tags": [
                     "Mobile Wallet"
                 ],
-                "summary": "Get ERC-20 balances",
-                "description": "Returns ERC-20 token balances across all of the authenticated user's smart accounts.",
+                "summary": "Get token balances (EVM + Solana)",
+                "description": "Returns token balances across all of the authenticated user's EVM smart accounts and Solana wallet (SPL tokens + native SOL).",
                 "operationId": "walletBalances",
                 "responses": {
                     "200": {
@@ -53293,13 +53671,13 @@
                                     "token": {
                                         "description": "Token symbol",
                                         "type": "string",
+                                        "example": "USDC",
                                         "enum": [
                                             "USDC",
                                             "USDT",
                                             "WETH",
                                             "WBTC"
-                                        ],
-                                        "example": "USDC"
+                                        ]
                                     },
                                     "amount": {
                                         "description": "Amount to send",
@@ -53524,12 +53902,12 @@
                                     },
                                     "backup_provider": {
                                         "type": "string",
+                                        "example": "icloud",
                                         "enum": [
                                             "icloud",
                                             "google_drive",
                                             "manual"
-                                        ],
-                                        "example": "icloud"
+                                        ]
                                     },
                                     "encrypted_shard_hash": {
                                         "type": "string",
@@ -53588,12 +53966,12 @@
                                     },
                                     "backup_provider": {
                                         "type": "string",
+                                        "example": "icloud",
                                         "enum": [
                                             "icloud",
                                             "google_drive",
                                             "manual"
-                                        ],
-                                        "example": "icloud"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -53697,6 +54075,75 @@
                 ]
             }
         },
+        "/api/v1/wallet/recovery/reconstruct": {
+            "post": {
+                "tags": [
+                    "Recovery Shard Backup"
+                ],
+                "summary": "Reconstruct key from device and recovery shards",
+                "description": "Uses KeyReconstructionService to combine device shard + recovery shard into an ephemeral key for client-side signing.",
+                "operationId": "reconstructRecoveryKey",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "device_shard",
+                                    "recovery_shard"
+                                ],
+                                "properties": {
+                                    "device_shard": {
+                                        "description": "Base64-encoded device shard",
+                                        "type": "string"
+                                    },
+                                    "recovery_shard": {
+                                        "description": "Base64-encoded recovery shard",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Key reconstructed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "reconstructed_key": {
+                                                    "description": "Ephemeral key — use immediately and discard",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Recovery failed — invalid shards"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/wallet/validate-address": {
             "get": {
                 "tags": [
@@ -53713,9 +54160,9 @@
                         "required": true,
                         "schema": {
                             "type": "string",
+                            "example": "0x1234567890abcdef1234567890abcdef12345678",
                             "maxLength": 128,
-                            "minLength": 20,
-                            "example": "0x1234567890abcdef1234567890abcdef12345678"
+                            "minLength": 20
                         }
                     },
                     {
@@ -54062,6 +54509,39 @@
                         "sanctum": []
                     }
                 ]
+            }
+        },
+        "/api/v1/websocket/subscriptions": {
+            "get": {
+                "tags": [
+                    "WebSocket Subscriptions"
+                ],
+                "summary": "List active paid channel subscriptions",
+                "description": "List active subscriptions for the authenticated user.",
+                "operationId": "643d46df899b7378ebecc4bacb16d173",
+                "responses": {
+                    "200": {
+                        "description": "Active subscriptions"
+                    }
+                }
+            }
+        },
+        "/api/v1/websocket/subscriptions/{id}": {
+            "delete": {
+                "tags": [
+                    "WebSocket Subscriptions"
+                ],
+                "summary": "Cancel a paid channel subscription",
+                "description": "Cancel an active subscription.",
+                "operationId": "5b023406d2808cd390c20d8dcfa8f4cf",
+                "responses": {
+                    "200": {
+                        "description": "Subscription cancelled"
+                    },
+                    "404": {
+                        "description": "Subscription not found"
+                    }
+                }
             }
         },
         "/api/websocket/config": {
@@ -55670,6 +56150,82 @@
                 }
             }
         },
+        "/.well-known/x402-configuration": {
+            "get": {
+                "tags": [
+                    "X402 Protocol"
+                ],
+                "summary": "x402 protocol discovery endpoint",
+                "description": "Well-known x402 protocol discovery endpoint.",
+                "operationId": "x402WellKnown",
+                "responses": {
+                    "200": {
+                        "description": "x402 protocol discovery configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "x402_version": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "issuer": {
+                                            "type": "string"
+                                        },
+                                        "spec_url": {
+                                            "type": "string"
+                                        },
+                                        "default_network": {
+                                            "type": "string",
+                                            "example": "eip155:8453"
+                                        },
+                                        "supported_networks": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "testnet": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "supported_assets": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "supported_schemes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "facilitator": {
+                                            "type": "object"
+                                        },
+                                        "endpoints": {
+                                            "type": "object"
+                                        },
+                                        "contracts": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/x402/supported": {
             "get": {
                 "tags": [
@@ -56005,20 +56561,20 @@
                     "model": {
                         "description": "AI model to use",
                         "type": "string",
+                        "example": "gpt-4",
                         "enum": [
                             "gpt-4",
                             "gpt-3.5-turbo",
                             "claude-3",
                             "llama-2"
-                        ],
-                        "example": "gpt-4"
+                        ]
                     },
                     "temperature": {
                         "description": "Creativity level",
                         "type": "number",
+                        "example": 0.7,
                         "maximum": 2,
-                        "minimum": 0,
-                        "example": 0.7
+                        "minimum": 0
                     },
                     "stream": {
                         "description": "Enable streaming responses",
@@ -56060,9 +56616,9 @@
                     "confidence": {
                         "description": "Confidence score",
                         "type": "number",
+                        "example": 0.92,
                         "maximum": 1,
-                        "minimum": 0,
-                        "example": 0.92
+                        "minimum": 0
                     },
                     "tools_used": {
                         "description": "MCP tools used",
@@ -56256,12 +56812,12 @@
                             "properties": {
                                 "role": {
                                     "type": "string",
+                                    "example": "user",
                                     "enum": [
                                         "user",
                                         "assistant",
                                         "system"
-                                    ],
-                                    "example": "user"
+                                    ]
                                 },
                                 "content": {
                                     "type": "string",
@@ -56306,9 +56862,9 @@
                     "rating": {
                         "description": "Rating 1-5",
                         "type": "integer",
+                        "example": 5,
                         "maximum": 5,
-                        "minimum": 1,
-                        "example": 5
+                        "minimum": 1
                     },
                     "feedback": {
                         "description": "Optional text feedback",
@@ -56397,13 +56953,13 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "running",
                         "enum": [
                             "pending",
                             "running",
                             "completed",
                             "failed"
-                        ],
-                        "example": "running"
+                        ]
                     },
                     "steps": {
                         "description": "Workflow steps",
@@ -56469,14 +57025,14 @@
                     },
                     "document_type": {
                         "type": "string",
+                        "example": "passport",
                         "enum": [
                             "passport",
                             "national_id",
                             "driving_license",
                             "proof_of_address",
                             "bank_statement"
-                        ],
-                        "example": "passport"
+                        ]
                     },
                     "document_number": {
                         "description": "Document identification number",
@@ -56489,13 +57045,13 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "approved",
                         "enum": [
                             "pending",
                             "approved",
                             "rejected",
                             "expired"
-                        ],
-                        "example": "approved"
+                        ]
                     },
                     "verification_notes": {
                         "type": "string",
@@ -56544,23 +57100,23 @@
                     "verification_level": {
                         "description": "KYC verification tier",
                         "type": "string",
+                        "example": "enhanced",
                         "enum": [
                             "basic",
                             "enhanced",
                             "premium"
-                        ],
-                        "example": "enhanced"
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "example": "verified",
                         "enum": [
                             "unverified",
                             "pending",
                             "verified",
                             "rejected",
                             "expired"
-                        ],
-                        "example": "verified"
+                        ]
                     },
                     "documents": {
                         "type": "array",
@@ -56591,9 +57147,9 @@
                     "risk_score": {
                         "description": "Risk assessment score",
                         "type": "integer",
+                        "example": 25,
                         "maximum": 100,
-                        "minimum": 0,
-                        "example": 25
+                        "minimum": 0
                     },
                     "next_review_date": {
                         "type": "string",
@@ -56653,11 +57209,11 @@
                 "properties": {
                     "status": {
                         "type": "string",
+                        "example": "approved",
                         "enum": [
                             "approved",
                             "rejected"
-                        ],
-                        "example": "approved"
+                        ]
                     },
                     "verification_notes": {
                         "type": "string",
@@ -56695,23 +57251,23 @@
                     },
                     "request_type": {
                         "type": "string",
+                        "example": "export",
                         "enum": [
                             "export",
                             "deletion",
                             "rectification",
                             "portability"
-                        ],
-                        "example": "export"
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "pending",
                             "processing",
                             "completed",
                             "rejected"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "requested_data": {
                         "type": "array",
@@ -56806,22 +57362,22 @@
                     },
                     "consent_type": {
                         "type": "string",
+                        "example": "marketing",
                         "enum": [
                             "marketing",
                             "data_processing",
                             "third_party_sharing",
                             "cookies"
-                        ],
-                        "example": "marketing"
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "example": "granted",
                         "enum": [
                             "granted",
                             "revoked",
                             "expired"
-                        ],
-                        "example": "granted"
+                        ]
                     },
                     "version": {
                         "description": "Version of consent terms",
@@ -56868,11 +57424,11 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "granted",
                         "enum": [
                             "granted",
                             "revoked"
-                        ],
-                        "example": "granted"
+                        ]
                     },
                     "duration_days": {
                         "description": "Consent duration in days",
@@ -56902,35 +57458,35 @@
                     },
                     "alert_type": {
                         "type": "string",
+                        "example": "high_value_transaction",
                         "enum": [
                             "high_value_transaction",
                             "rapid_movement",
                             "suspicious_pattern",
                             "sanctions_match",
                             "pep_match"
-                        ],
-                        "example": "high_value_transaction"
+                        ]
                     },
                     "severity": {
                         "type": "string",
+                        "example": "high",
                         "enum": [
                             "low",
                             "medium",
                             "high",
                             "critical"
-                        ],
-                        "example": "high"
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "example": "under_review",
                         "enum": [
                             "new",
                             "under_review",
                             "escalated",
                             "closed",
                             "reported"
-                        ],
-                        "example": "under_review"
+                        ]
                     },
                     "transaction_ids": {
                         "description": "Related transaction IDs",
@@ -56984,12 +57540,12 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "clear",
                         "enum": [
                             "clear",
                             "potential_match",
                             "confirmed_match"
-                        ],
-                        "example": "clear"
+                        ]
                     },
                     "matches": {
                         "type": "array",
@@ -57049,13 +57605,13 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "emi",
                         "enum": [
                             "bank",
                             "emi",
                             "crypto_exchange",
                             "wallet_provider"
-                        ],
-                        "example": "emi"
+                        ]
                     },
                     "country": {
                         "description": "ISO country code",
@@ -57094,12 +57650,12 @@
                     },
                     "health_status": {
                         "type": "string",
+                        "example": "healthy",
                         "enum": [
                             "healthy",
                             "degraded",
                             "unhealthy"
-                        ],
-                        "example": "healthy"
+                        ]
                     },
                     "metadata": {
                         "description": "Additional custodian-specific data",
@@ -57198,12 +57754,12 @@
                     },
                     "direction": {
                         "type": "string",
+                        "example": "outgoing",
                         "enum": [
                             "incoming",
                             "outgoing",
                             "internal"
-                        ],
-                        "example": "outgoing"
+                        ]
                     },
                     "amount": {
                         "description": "Amount in cents",
@@ -57216,14 +57772,14 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "pending",
                             "processing",
                             "completed",
                             "failed",
                             "cancelled"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "reference": {
                         "description": "Internal reference",
@@ -57318,12 +57874,12 @@
                     },
                     "urgency": {
                         "type": "string",
+                        "example": "normal",
                         "enum": [
                             "normal",
                             "urgent",
                             "instant"
-                        ],
-                        "example": "normal"
+                        ]
                     },
                     "metadata": {
                         "description": "Additional transfer data",
@@ -57356,13 +57912,13 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "pending",
                             "in_progress",
                             "completed",
                             "failed"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "internal_balance": {
                         "properties": {
@@ -57452,13 +58008,13 @@
                 "properties": {
                     "event_type": {
                         "type": "string",
+                        "example": "transfer.completed",
                         "enum": [
                             "transfer.completed",
                             "transfer.failed",
                             "balance.updated",
                             "account.blocked"
-                        ],
-                        "example": "transfer.completed"
+                        ]
                     },
                     "custodian_code": {
                         "type": "string",
@@ -57494,12 +58050,12 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "healthy",
                         "enum": [
                             "healthy",
                             "degraded",
                             "unhealthy"
-                        ],
-                        "example": "healthy"
+                        ]
                     },
                     "last_check": {
                         "type": "string",
@@ -57550,12 +58106,12 @@
                         "properties": {
                             "state": {
                                 "type": "string",
+                                "example": "closed",
                                 "enum": [
                                     "closed",
                                     "open",
                                     "half_open"
-                                ],
-                                "example": "closed"
+                                ]
                             },
                             "failure_count": {
                                 "type": "integer",
@@ -57591,13 +58147,13 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "pending",
                             "processing",
                             "completed",
                             "failed"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "total_amount": {
                         "properties": {
@@ -57634,11 +58190,11 @@
                                 },
                                 "type": {
                                     "type": "string",
+                                    "example": "net",
                                     "enum": [
                                         "net",
                                         "gross"
-                                    ],
-                                    "example": "net"
+                                    ]
                                 }
                             },
                             "type": "object"
@@ -57646,12 +58202,12 @@
                     },
                     "settlement_method": {
                         "type": "string",
+                        "example": "net",
                         "enum": [
                             "net",
                             "gross",
                             "batch"
-                        ],
-                        "example": "net"
+                        ]
                     },
                     "executed_at": {
                         "type": "string",
@@ -57681,6 +58237,7 @@
                     },
                     "report_type": {
                         "type": "string",
+                        "example": "ctr",
                         "enum": [
                             "ctr",
                             "sar",
@@ -57688,8 +58245,7 @@
                             "large_exposure",
                             "liquidity",
                             "capital_adequacy"
-                        ],
-                        "example": "ctr"
+                        ]
                     },
                     "period_start": {
                         "type": "string",
@@ -57703,14 +58259,14 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "submitted",
                         "enum": [
                             "draft",
                             "pending_review",
                             "approved",
                             "submitted",
                             "rejected"
-                        ],
-                        "example": "submitted"
+                        ]
                     },
                     "submission_deadline": {
                         "type": "string",
@@ -57763,10 +58319,10 @@
                         "properties": {
                             "report_type": {
                                 "type": "string",
+                                "example": "ctr",
                                 "enum": [
                                     "ctr"
-                                ],
-                                "example": "ctr"
+                                ]
                             },
                             "total_transactions": {
                                 "type": "integer",
@@ -57836,10 +58392,10 @@
                         "properties": {
                             "report_type": {
                                 "type": "string",
+                                "example": "sar",
                                 "enum": [
                                     "sar"
-                                ],
-                                "example": "sar"
+                                ]
                             },
                             "case_number": {
                                 "type": "string",
@@ -57847,13 +58403,13 @@
                             },
                             "priority": {
                                 "type": "string",
+                                "example": "high",
                                 "enum": [
                                     "low",
                                     "medium",
                                     "high",
                                     "critical"
-                                ],
-                                "example": "high"
+                                ]
                             },
                             "suspicious_activities": {
                                 "type": "array",
@@ -58027,12 +58583,12 @@
                     },
                     "submission_type": {
                         "type": "string",
+                        "example": "electronic",
                         "enum": [
                             "electronic",
                             "manual",
                             "api"
-                        ],
-                        "example": "electronic"
+                        ]
                     },
                     "regulator_system_id": {
                         "type": "string",
@@ -58069,25 +58625,25 @@
                     },
                     "rule_type": {
                         "type": "string",
+                        "example": "amount",
                         "enum": [
                             "amount",
                             "velocity",
                             "pattern",
                             "behavioral"
-                        ],
-                        "example": "amount"
+                        ]
                     },
                     "description": {
                         "type": "string"
                     },
                     "status": {
                         "type": "string",
+                        "example": "active",
                         "enum": [
                             "active",
                             "inactive",
                             "testing"
-                        ],
-                        "example": "active"
+                        ]
                     },
                     "threshold": {
                         "properties": {
@@ -58108,9 +58664,9 @@
                     },
                     "risk_score_impact": {
                         "type": "integer",
+                        "example": 25,
                         "maximum": 100,
-                        "minimum": 0,
-                        "example": 25
+                        "minimum": 0
                     },
                     "auto_escalate": {
                         "type": "boolean",
@@ -58146,44 +58702,44 @@
                     },
                     "case_type": {
                         "type": "string",
+                        "example": "aml",
                         "enum": [
                             "aml",
                             "kyc",
                             "sanctions",
                             "fraud",
                             "other"
-                        ],
-                        "example": "aml"
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "example": "under_investigation",
                         "enum": [
                             "open",
                             "under_investigation",
                             "escalated",
                             "closed",
                             "reported"
-                        ],
-                        "example": "under_investigation"
+                        ]
                     },
                     "priority": {
                         "type": "string",
+                        "example": "high",
                         "enum": [
                             "low",
                             "medium",
                             "high",
                             "critical"
-                        ],
-                        "example": "high"
+                        ]
                     },
                     "subject_type": {
                         "type": "string",
+                        "example": "account",
                         "enum": [
                             "user",
                             "account",
                             "transaction"
-                        ],
-                        "example": "account"
+                        ]
                     },
                     "subject_id": {
                         "type": "string"
@@ -58253,14 +58809,14 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "deadline",
                         "enum": [
                             "deadline",
                             "regulation_change",
                             "audit",
                             "inspection",
                             "violation"
-                        ],
-                        "example": "deadline"
+                        ]
                     },
                     "title": {
                         "type": "string",
@@ -58271,13 +58827,13 @@
                     },
                     "severity": {
                         "type": "string",
+                        "example": "warning",
                         "enum": [
                             "info",
                             "warning",
                             "urgent",
                             "critical"
-                        ],
-                        "example": "warning"
+                        ]
                     },
                     "regulator": {
                         "type": "string",
@@ -58377,11 +58933,11 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "deposit",
                         "enum": [
                             "deposit",
                             "withdrawal"
-                        ],
-                        "example": "deposit"
+                        ]
                     },
                     "amount": {
                         "description": "Amount in cents",
@@ -58448,12 +59004,12 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "pending",
                             "completed",
                             "failed"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "hash": {
                         "description": "SHA3-512 transfer hash",
@@ -58547,13 +59103,13 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "fiat",
                         "enum": [
                             "fiat",
                             "crypto",
                             "commodity",
                             "custom"
-                        ],
-                        "example": "fiat"
+                        ]
                     },
                     "precision": {
                         "description": "Number of decimal places",
@@ -58726,24 +59282,24 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "yes_no",
                         "enum": [
                             "single_choice",
                             "multiple_choice",
                             "weighted_choice",
                             "yes_no",
                             "ranked_choice"
-                        ],
-                        "example": "yes_no"
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "example": "active",
                         "enum": [
                             "draft",
                             "active",
                             "completed",
                             "cancelled"
-                        ],
-                        "example": "active"
+                        ]
                     },
                     "options": {
                         "type": "array",
@@ -59024,22 +59580,22 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "fixed",
                         "enum": [
                             "fixed",
                             "dynamic"
-                        ],
-                        "example": "fixed"
+                        ]
                     },
                     "rebalance_frequency": {
                         "type": "string",
+                        "example": "never",
                         "enum": [
                             "daily",
                             "weekly",
                             "monthly",
                             "quarterly",
                             "never"
-                        ],
-                        "example": "never"
+                        ]
                     },
                     "last_rebalanced_at": {
                         "type": "string",
@@ -59195,24 +59751,24 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "weighted_choice",
                         "enum": [
                             "single_choice",
                             "multiple_choice",
                             "weighted_choice",
                             "yes_no",
                             "ranked_choice"
-                        ],
-                        "example": "weighted_choice"
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "example": "active",
                         "enum": [
                             "draft",
                             "active",
                             "closed",
                             "cancelled"
-                        ],
-                        "example": "active"
+                        ]
                     },
                     "options": {
                         "type": "array",
@@ -59371,12 +59927,12 @@
                     },
                     "stability_mechanism": {
                         "type": "string",
+                        "example": "collateralized",
                         "enum": [
                             "collateralized",
                             "algorithmic",
                             "hybrid"
-                        ],
-                        "example": "collateralized"
+                        ]
                     },
                     "collateral_ratio": {
                         "description": "Required collateral ratio",
@@ -59588,12 +60144,12 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "mint",
                         "enum": [
                             "mint",
                             "burn",
                             "transfer"
-                        ],
-                        "example": "mint"
+                        ]
                     },
                     "account_uuid": {
                         "type": "string",
@@ -59605,13 +60161,13 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "pending",
                             "completed",
                             "failed",
                             "cancelled"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "reference": {
                         "type": "string",
@@ -59749,14 +60305,14 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "running",
                             "completed",
                             "failed",
                             "compensating",
                             "compensated"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "input_data": {
                         "description": "Workflow input parameters",
@@ -59911,12 +60467,12 @@
                     },
                     "state": {
                         "type": "string",
+                        "example": "closed",
                         "enum": [
                             "closed",
                             "open",
                             "half_open"
-                        ],
-                        "example": "closed"
+                        ]
                     },
                     "failure_count": {
                         "type": "integer",
@@ -60026,12 +60582,12 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "completed",
                             "failed",
                             "partial"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "final_state": {
                         "description": "Final aggregate state after replay",
@@ -60140,13 +60696,13 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "active",
                         "enum": [
                             "active",
                             "inactive",
                             "rebalancing",
                             "liquidating"
-                        ],
-                        "example": "active"
+                        ]
                     },
                     "total_value": {
                         "type": "number",
@@ -60247,22 +60803,22 @@
                         "properties": {
                             "type": {
                                 "type": "string",
+                                "example": "balanced",
                                 "enum": [
                                     "conservative",
                                     "balanced",
                                     "aggressive",
                                     "custom"
-                                ],
-                                "example": "balanced"
+                                ]
                             },
                             "risk_tolerance": {
                                 "type": "string",
+                                "example": "moderate",
                                 "enum": [
                                     "low",
                                     "moderate",
                                     "high"
-                                ],
-                                "example": "moderate"
+                                ]
                             },
                             "target_allocations": {
                                 "properties": {
@@ -60305,22 +60861,22 @@
                         "properties": {
                             "type": {
                                 "type": "string",
+                                "example": "balanced",
                                 "enum": [
                                     "conservative",
                                     "balanced",
                                     "aggressive",
                                     "custom"
-                                ],
-                                "example": "balanced"
+                                ]
                             },
                             "risk_tolerance": {
                                 "type": "string",
+                                "example": "moderate",
                                 "enum": [
                                     "low",
                                     "moderate",
                                     "high"
-                                ],
-                                "example": "moderate"
+                                ]
                             },
                             "target_allocations": {
                                 "type": "object"
@@ -60379,13 +60935,13 @@
                     },
                     "asset_type": {
                         "type": "string",
+                        "example": "fiat",
                         "enum": [
                             "fiat",
                             "crypto",
                             "stablecoin",
                             "commodity"
-                        ],
-                        "example": "fiat"
+                        ]
                     },
                     "quantity": {
                         "type": "number",
@@ -60438,14 +60994,14 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "pending",
                         "enum": [
                             "pending",
                             "approved",
                             "executing",
                             "completed",
                             "cancelled"
-                        ],
-                        "example": "pending"
+                        ]
                     },
                     "trades": {
                         "type": "array",
@@ -60665,12 +61221,12 @@
                     },
                     "type": {
                         "type": "string",
+                        "example": "all",
                         "enum": [
                             "rebalancing",
                             "performance",
                             "all"
-                        ],
-                        "example": "all"
+                        ]
                     },
                     "history": {
                         "properties": {
@@ -60726,13 +61282,13 @@
                 "properties": {
                     "type": {
                         "type": "string",
+                        "example": "summary",
                         "enum": [
                             "summary",
                             "detailed",
                             "compliance",
                             "performance"
-                        ],
-                        "example": "summary"
+                        ]
                     },
                     "period": {
                         "description": "Report period (e.g., 7d, 30d, 90d, 1y)",
@@ -60763,13 +61319,13 @@
                     },
                     "status": {
                         "type": "string",
+                        "example": "completed",
                         "enum": [
                             "pending",
                             "generating",
                             "completed",
                             "failed"
-                        ],
-                        "example": "completed"
+                        ]
                     },
                     "generated_at": {
                         "type": "string",
@@ -61354,6 +61910,10 @@
             "description": "Cloud backup metadata for encrypted recovery shards"
         },
         {
+            "name": "WebSocket Subscriptions",
+            "description": "Manage paid WebSocket channel subscriptions"
+        },
+        {
             "name": "WebSocket",
             "description": "WebSocket configuration and channel management"
         },
@@ -61392,6 +61952,10 @@
         {
             "name": "Exchange",
             "description": "Exchange"
+        },
+        {
+            "name": "Metrics",
+            "description": "Metrics"
         },
         {
             "name": "Monitoring",
