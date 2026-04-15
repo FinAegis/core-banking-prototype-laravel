@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property string      $message
  * @property int         $parts
  * @property string      $status
+ * @property int|null    $error_code
+ * @property string|null $mcc
+ * @property string|null $mnc
  * @property string      $price_usdc
  * @property string      $country_code
  * @property string|null $payment_rail
@@ -48,6 +51,9 @@ class SmsMessage extends Model
         'message',
         'parts',
         'status',
+        'error_code',
+        'mcc',
+        'mnc',
         'price_usdc',
         'country_code',
         'payment_rail',
@@ -62,6 +68,7 @@ class SmsMessage extends Model
     {
         return [
             'parts'        => 'integer',
+            'error_code'   => 'integer',
             'test_mode'    => 'boolean',
             'delivered_at' => 'datetime',
         ];

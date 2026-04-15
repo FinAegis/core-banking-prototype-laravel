@@ -35,6 +35,8 @@ Route::prefix('v1/sms')->group(function (): void {
     });
 });
 
-// Webhook endpoint — rate-limited, signature verified in controller
+// Webhook endpoint — rate-limited, signature/URL-token verified in controller.
+// Named so VertexSmsClient::buildDlrUrl() can resolve it when `sms.webhook.dlr_url` is unset.
 Route::post('v1/webhooks/vertexsms/dlr', [VertexSmsDlrController::class, 'handle'])
-    ->middleware('throttle:200,1');
+    ->middleware('throttle:200,1')
+    ->name('webhooks.vertexsms.dlr');

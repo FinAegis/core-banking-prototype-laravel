@@ -25,7 +25,7 @@ return [
         'vertexsms' => [
             'driver'    => 'vertexsms',
             'api_token' => env('VERTEXSMS_API_TOKEN', ''),
-            'base_url'  => env('VERTEXSMS_BASE_URL', 'https://api.vertexsms.com'),
+            'base_url'  => env('VERTEXSMS_BASE_URL', 'https://kube-api.vertexsms.com'),
             'sender_id' => env('VERTEXSMS_SENDER_ID', 'Zelta'),
             'enabled'   => (bool) env('VERTEXSMS_ENABLED', false),
         ],
@@ -58,8 +58,17 @@ return [
     */
 
     'webhook' => [
-        // Shared secret for verifying DLR webhook signatures
+        // HMAC shared secret for verifying DLR webhook body signatures (optional fallback).
         'secret' => env('VERTEXSMS_WEBHOOK_SECRET', ''),
+
+        // Optional absolute DLR URL override. When empty, the named route `webhooks.vertexsms.dlr`
+        // is used (auto-derived from APP_URL). Useful when Zelta sits behind a proxy or has multiple
+        // edge domains and Vertex must post to a specific one.
+        'dlr_url' => env('VERTEXSMS_DLR_URL', ''),
+
+        // Opaque bearer token appended as `?t=<token>` on the dlrUrl we hand Vertex. Controller
+        // accepts either this URL token OR a valid HMAC `X-VertexSMS-Signature` header.
+        'dlr_url_token' => env('VERTEXSMS_DLR_URL_TOKEN', ''),
 
         // Allowed IPs for DLR webhook delivery (VertexSMS IP range)
         'allowed_ips' => array_filter(explode(',', env('VERTEXSMS_WEBHOOK_IPS', '178.33.133.192/28'))),

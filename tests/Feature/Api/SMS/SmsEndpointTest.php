@@ -126,12 +126,12 @@ describe('SMS Endpoints', function (): void {
 });
 
 describe('SMS DLR Webhook', function (): void {
-    it('accepts valid delivery report', function (): void {
-        config(['sms.webhook.secret' => '']);
+    it('accepts Vertex real payload with numeric delivered status', function (): void {
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
 
         SmsMessage::create([
             'provider'     => 'vertexsms',
-            'provider_id'  => 'dlr-test-001',
+            'provider_id'  => '1281532560',
             'to'           => '+37069912345',
             'from'         => 'Zelta',
             'message'      => 'DLR test',
@@ -143,40 +143,149 @@ describe('SMS DLR Webhook', function (): void {
         ]);
 
         $response = $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
-            'message_id' => 'dlr-test-001',
-            'status'     => 'delivered',
+            'id'     => '1281532560',
+            'status' => 1,
+            'error'  => 0,
+            'mcc'    => '246',
+            'mnc'    => '021',
         ]);
 
         $response->assertOk();
         $response->assertJson(['received' => true]);
 
-        $sms = SmsMessage::where('provider_id', 'dlr-test-001')->first();
+        $sms = SmsMessage::where('provider_id', '1281532560')->first();
+        expect($sms->status)->toBe(SmsMessage::STATUS_DELIVERED);
+        expect($sms->error_code)->toBe(0);
+        expect($sms->mcc)->toBe('246');
+        expect($sms->mnc)->toBe('021');
+    });
+
+    it('maps Vertex undelivered status (2) to failed', function (): void {
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
+
+        SmsMessage::create([
+            'provider'     => 'vertexsms',
+            'provider_id'  => '1281532561',
+            'to'           => '+37069912345',
+            'from'         => 'Zelta',
+            'message'      => 'DLR fail test',
+            'parts'        => 1,
+            'status'       => SmsMessage::STATUS_SENT,
+            'price_usdc'   => '48000',
+            'country_code' => 'LT',
+            'test_mode'    => true,
+        ]);
+
+        $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
+            'id'     => '1281532561',
+            'status' => 2,
+            'error'  => 42,
+        ])->assertOk();
+
+        $sms = SmsMessage::where('provider_id', '1281532561')->first();
+        expect($sms->status)->toBe(SmsMessage::STATUS_FAILED);
+        expect($sms->error_code)->toBe(42);
+    });
+
+    it('maps Vertex expired status (16) to failed', function (): void {
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
+
+        SmsMessage::create([
+            'provider'     => 'vertexsms',
+            'provider_id'  => '1281532562',
+            'to'           => '+37069912345',
+            'from'         => 'Zelta',
+            'message'      => 'DLR expired test',
+            'parts'        => 1,
+            'status'       => SmsMessage::STATUS_SENT,
+            'price_usdc'   => '48000',
+            'country_code' => 'LT',
+            'test_mode'    => true,
+        ]);
+
+        $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
+            'id'     => '1281532562',
+            'status' => 16,
+            'error'  => 99,
+        ])->assertOk();
+
+        $sms = SmsMessage::where('provider_id', '1281532562')->first();
+        expect($sms->status)->toBe(SmsMessage::STATUS_FAILED);
+    });
+
+    it('maps Viber seen status (3) to delivered', function (): void {
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
+
+        SmsMessage::create([
+            'provider'     => 'vertexsms',
+            'provider_id'  => '1281532563',
+            'to'           => '+37069912345',
+            'from'         => 'Zelta',
+            'message'      => 'Viber seen test',
+            'parts'        => 1,
+            'status'       => SmsMessage::STATUS_SENT,
+            'price_usdc'   => '48000',
+            'country_code' => 'LT',
+            'test_mode'    => true,
+        ]);
+
+        $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
+            'id'     => '1281532563',
+            'status' => 3,
+        ])->assertOk();
+
+        $sms = SmsMessage::where('provider_id', '1281532563')->first();
         expect($sms->status)->toBe(SmsMessage::STATUS_DELIVERED);
     });
 
-    it('rejects DLR without message_id', function (): void {
-        config(['sms.webhook.secret' => '']);
+    it('still accepts legacy message_id/status string payload for backwards compatibility', function (): void {
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
+
+        SmsMessage::create([
+            'provider'     => 'vertexsms',
+            'provider_id'  => 'dlr-legacy-001',
+            'to'           => '+37069912345',
+            'from'         => 'Zelta',
+            'message'      => 'Legacy DLR test',
+            'parts'        => 1,
+            'status'       => SmsMessage::STATUS_SENT,
+            'price_usdc'   => '48000',
+            'country_code' => 'LT',
+            'test_mode'    => true,
+        ]);
+
+        $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
+            'message_id' => 'dlr-legacy-001',
+            'status'     => 'delivered',
+        ])->assertOk();
+
+        $sms = SmsMessage::where('provider_id', 'dlr-legacy-001')->first();
+        expect($sms->status)->toBe(SmsMessage::STATUS_DELIVERED);
+    });
+
+    it('rejects DLR without id', function (): void {
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
 
         $response = $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
-            'status' => 'delivered',
+            'status' => 1,
         ]);
 
         $response->assertUnprocessable();
     });
 
     it('ignores DLR for unknown messages', function (): void {
-        config(['sms.webhook.secret' => '']);
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
 
         $response = $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
-            'message_id' => 'does-not-exist',
-            'status'     => 'delivered',
+            'id'     => 'does-not-exist',
+            'status' => 1,
         ]);
 
         $response->assertOk();
     });
 
     it('enforces forward-only status transitions', function (): void {
-        config(['sms.webhook.secret' => '']);
+        config(['sms.webhook.secret' => '', 'sms.webhook.dlr_url_token' => '']);
 
         SmsMessage::create([
             'provider'     => 'vertexsms',
@@ -192,12 +301,40 @@ describe('SMS DLR Webhook', function (): void {
         ]);
 
         $this->postJson('/api/v1/webhooks/vertexsms/dlr', [
-            'message_id' => 'dlr-fwd-001',
-            'status'     => 'sent',
+            'id'     => 'dlr-fwd-001',
+            'status' => 0,  // pseudo 'sent' — must be ignored since already delivered
         ]);
 
         $sms = SmsMessage::where('provider_id', 'dlr-fwd-001')->first();
         expect($sms->status)->toBe(SmsMessage::STATUS_DELIVERED);
+    });
+
+    it('accepts DLR with valid URL token', function (): void {
+        config([
+            'sms.webhook.secret'        => '',
+            'sms.webhook.dlr_url_token' => 'super-secret-token-abc',
+        ]);
+
+        SmsMessage::create([
+            'provider'     => 'vertexsms',
+            'provider_id'  => 'dlr-tok-001',
+            'to'           => '+37069912345',
+            'from'         => 'Zelta',
+            'message'      => 'Token test',
+            'parts'        => 1,
+            'status'       => SmsMessage::STATUS_SENT,
+            'price_usdc'   => '48000',
+            'country_code' => 'LT',
+            'test_mode'    => true,
+        ]);
+
+        $this->postJson('/api/v1/webhooks/vertexsms/dlr?t=super-secret-token-abc', [
+            'id'     => 'dlr-tok-001',
+            'status' => 1,
+        ])->assertOk();
+
+        expect(SmsMessage::where('provider_id', 'dlr-tok-001')->value('status'))
+            ->toBe(SmsMessage::STATUS_DELIVERED);
     });
 });
 

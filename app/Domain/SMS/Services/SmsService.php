@@ -11,6 +11,7 @@ use App\Domain\SMS\Events\SmsSent;
 use App\Domain\SMS\Models\SmsMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Core SMS business logic. Sends messages via VertexSMS,
@@ -38,28 +39,42 @@ class SmsService
     ): array {
         $testMode = (bool) config('sms.defaults.test_mode', false);
 
-        // Get pricing before sending (for record)
-        $price = $this->pricing->getPriceForNumber($to);
+        // Step 1: ask Vertex for the authoritative cost + parts + mccmnc.
+        // Falls back to local estimation if /sms/cost is unreachable so we
+        // never block a send because pricing is temporarily degraded.
+        $cost = $this->tryEstimateCost($to, $from, $message);
 
-        // Send via provider
-        $result = $this->client->sendSms($to, $from, $message, $testMode);
-
-        // Update price if multi-part
-        if ($result['parts'] > 1) {
-            $price = $this->pricing->getPriceForNumber($to, $result['parts']);
+        if ($cost !== null) {
+            $price = $this->pricing->getPriceFromCostEstimate($cost);
+            $parts = $cost['parts'];
+            $mccmnc = $cost['mccmnc'];
+        } else {
+            $price = $this->pricing->getPriceForNumber($to);
+            $parts = 1;
+            $mccmnc = null;
         }
 
-        // Record in database — wrap in transaction for consistency
+        // Step 2: send via provider. Returns just the message_id — parts come
+        // from the cost estimate (the old X-VertexSMS-Amount-Sent header was
+        // undocumented and brittle).
+        $result = $this->client->sendSms($to, $from, $message, $testMode);
+
+        [$mcc, $mnc] = $this->splitMccMnc($mccmnc);
+
+        // Step 3: persist. Wrap in a transaction so the SmsMessage insert and
+        // the subsequent event dispatch observe the same committed row.
         $sms = DB::transaction(fn () => SmsMessage::create([
             'provider'        => (string) config('sms.default_provider', 'mock'),
             'provider_id'     => $result['message_id'],
             'to'              => $to,
             'from'            => $from,
             'message'         => $message,
-            'parts'           => $result['parts'],
+            'parts'           => $parts,
             'status'          => SmsMessage::STATUS_SENT,
             'price_usdc'      => $price['amount_usdc'],
             'country_code'    => $price['country_code'],
+            'mcc'             => $mcc,
+            'mnc'             => $mnc,
             'payment_rail'    => $paymentMeta['rail'] ?? null,
             'payment_id'      => $paymentMeta['payment_id'] ?? null,
             'payment_receipt' => $paymentMeta['receipt_id'] ?? null,
@@ -70,7 +85,7 @@ class SmsService
             'id'           => $sms->id,
             'provider_id'  => $result['message_id'],
             'to'           => $to,
-            'parts'        => $result['parts'],
+            'parts'        => $parts,
             'price_usdc'   => $price['amount_usdc'],
             'payment_rail' => $paymentMeta['rail'] ?? null,
             'payment_id'   => $paymentMeta['payment_id'] ?? null,
@@ -79,7 +94,7 @@ class SmsService
         SmsSent::dispatch(
             (string) $sms->id,
             $to,
-            $result['parts'],
+            $parts,
             $price['amount_usdc'],
             $paymentMeta,
         );
@@ -87,7 +102,7 @@ class SmsService
         return [
             'message_id'  => $result['message_id'],
             'status'      => 'sent',
-            'parts'       => $result['parts'],
+            'parts'       => $parts,
             'destination' => $to,
             'price_usdc'  => $price['amount_usdc'],
         ];
@@ -99,7 +114,7 @@ class SmsService
      * Uses pessimistic locking to prevent race conditions from
      * concurrent DLR webhooks for the same message.
      *
-     * @param  array{message_id: string, status: string, delivered_at?: string|null}  $dlr
+     * @param  array{message_id: string, status: string, delivered_at?: string|null, error_code?: int|null, mcc?: string|null, mnc?: string|null}  $dlr
      */
     public function handleDeliveryReport(array $dlr): void
     {
@@ -128,10 +143,22 @@ class SmsService
                 return;
             }
 
-            $sms->update([
+            $updates = [
                 'status'       => $newStatus,
                 'delivered_at' => $dlr['delivered_at'] ?? ($newStatus === SmsMessage::STATUS_DELIVERED ? now() : null),
-            ]);
+            ];
+
+            if (array_key_exists('error_code', $dlr) && $dlr['error_code'] !== null) {
+                $updates['error_code'] = $dlr['error_code'];
+            }
+            if (array_key_exists('mcc', $dlr) && $dlr['mcc'] !== null && $dlr['mcc'] !== '') {
+                $updates['mcc'] = $dlr['mcc'];
+            }
+            if (array_key_exists('mnc', $dlr) && $dlr['mnc'] !== null && $dlr['mnc'] !== '') {
+                $updates['mnc'] = $dlr['mnc'];
+            }
+
+            $sms->update($updates);
 
             if ($newStatus === SmsMessage::STATUS_DELIVERED) {
                 SmsDelivered::dispatch((string) $sms->id, $dlr['message_id']);
@@ -143,6 +170,7 @@ class SmsService
                 'id'          => $sms->id,
                 'provider_id' => $dlr['message_id'],
                 'status'      => $newStatus,
+                'error_code'  => $dlr['error_code'] ?? null,
             ]);
         });
     }
@@ -183,14 +211,48 @@ class SmsService
         ];
     }
 
+    /**
+     * @return array{parts: int, price_per_part_eur: float, total_price_eur: float, country_iso: string, mccmnc: ?string}|null
+     */
+    private function tryEstimateCost(string $to, string $from, string $message): ?array
+    {
+        try {
+            return $this->client->estimateCost($to, $from, $message);
+        } catch (Throwable $e) {
+            Log::warning('SMS: cost estimate failed, falling back to local pricing', [
+                'to'    => $to,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Split a concatenated MCCMNC like "24601" into ["246", "01"].
+     *
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function splitMccMnc(?string $mccmnc): array
+    {
+        if ($mccmnc === null || $mccmnc === '' || ! ctype_digit($mccmnc) || strlen($mccmnc) < 4) {
+            return [null, null];
+        }
+
+        return [
+            substr($mccmnc, 0, 3),
+            substr($mccmnc, 3),
+        ];
+    }
+
     private function normalizeDlrStatus(string $status): string
     {
         return match (strtolower($status)) {
-            'delivered', 'success'        => SmsMessage::STATUS_DELIVERED,
-            'failed', 'error', 'rejected' => SmsMessage::STATUS_FAILED,
-            'expired', 'undeliverable'    => SmsMessage::STATUS_FAILED,
-            'sent', 'accepted', 'enroute' => SmsMessage::STATUS_SENT,
-            default                       => SmsMessage::STATUS_SENT,
+            'delivered', 'success' => SmsMessage::STATUS_DELIVERED,
+            'failed', 'error', 'rejected',
+            'expired', 'undeliverable', 'undelivered' => SmsMessage::STATUS_FAILED,
+            'sent', 'accepted', 'enroute'             => SmsMessage::STATUS_SENT,
+            default                                   => SmsMessage::STATUS_SENT,
         };
     }
 

@@ -53,6 +53,52 @@ class SmsPricingService
     }
 
     /**
+     * Convert a VertexSMS /sms/cost estimate into internal USDC pricing.
+     *
+     * Preferred over country-level estimation because /sms/cost returns the
+     * authoritative per-recipient price after network routing.
+     *
+     * @param  array{parts: int, price_per_part_eur: float, total_price_eur: float, country_iso: string, mccmnc: ?string}  $cost
+     * @return array{amount_usdc: string, rate_eur: string, country_code: string, parts: int}
+     */
+    public function getPriceFromCostEstimate(array $cost): array
+    {
+        $parts = max(1, $cost['parts']);
+        $totalEur = $cost['total_price_eur'];
+
+        // Guard against missing totals (some Vertex routes may omit it in
+        // degraded-pricing scenarios) by deriving from pricePerPart × parts.
+        if ($totalEur <= 0.0) {
+            $totalEur = $cost['price_per_part_eur'] * $parts;
+        }
+
+        // Final safety net: fall back to the configured fallback USDC price.
+        if ($totalEur <= 0.0) {
+            $fallbackUsdc = (int) config('sms.pricing.fallback_usdc', 50000);
+
+            return [
+                'amount_usdc'  => (string) max(1000, $fallbackUsdc * $parts),
+                'rate_eur'     => '0.0000',
+                'country_code' => $cost['country_iso'] !== '' ? $cost['country_iso'] : 'US',
+                'parts'        => $parts,
+            ];
+        }
+
+        $marginMultiplier = max(1.0, (float) config('sms.pricing.margin_multiplier', 1.15));
+        $eurUsdRate = max(0.5, (float) config('sms.pricing.eur_usd_rate', 1.08));
+
+        $totalUsd = $totalEur * $eurUsdRate * $marginMultiplier;
+        $atomicUsdc = (string) max(1000, (int) ceil($totalUsd * 1_000_000));
+
+        return [
+            'amount_usdc'  => $atomicUsdc,
+            'rate_eur'     => number_format($cost['price_per_part_eur'], 4, '.', ''),
+            'country_code' => $cost['country_iso'] !== '' ? $cost['country_iso'] : 'US',
+            'parts'        => $parts,
+        ];
+    }
+
+    /**
      * Get rate card for a specific country.
      *
      * @return array{country: string, country_code: string, rate_eur: string, rate_usdc: string}|null
