@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.6.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.7.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,21 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.7',
+                        'date' => 'April 15, 2026',
+                        'label' => 'Safe-Major Composer Trio',
+                        'label_color' => 'slate',
+                        'badge_color' => 'bg-slate-100 text-slate-700 border-slate-200',
+                        'dot_color' => 'bg-slate-500',
+                        'items' => [
+                            'laravel/tinker ^2.9 → ^3.0 — Dev-only REPL. v3 requires PHP 8.4, which the project is already on. Zero runtime impact.',
+                            'resend/resend-php ^0.23.0 → ^1.0 — v1.0 is the stable release, not a breaking rewrite. Bounded to the Resend mail adapter — email verification notification path verified via the EmailVerificationControllerTest suite.',
+                            'darkaonline/l5-swagger ^10.1 → ^11.0 — Pulls in swagger-php v5, which is stricter about OpenAPI annotation validation. php artisan l5-swagger:generate regenerates a clean 2.7 MB api-docs.json.',
+                            'X402StatusController Annotation Fix — The l5-swagger upgrade surfaced one pre-existing bug: the #[OA\\Get] + #[OA\\Response] attributes for /api/v1/x402/supported were misattached to the wellKnown() method instead of supported(), because PHP attributes attach to the next declaration and the docblock between them did not reset the anchor. Old swagger-php v4 tolerated the duplicate response="200" silently; v5 errors out. Moved the attributes down to the right method — each now carries exactly one #[OA\\Get] + one #[OA\\Response(response: 200)].',
+                            'Still-Deferred Majors — Laravel 12 → 13 (ecosystem lock-step), Filament 3 → 5 (two majors), Livewire 3 → 4, Pest 3 → 4, Predis 2 → 3, Cashier 15 → 16, Scout 10 → 11, Symfony http-client 7 → 8, Tailwind 3 → 4, Vite 6 → 8 + laravel-vite-plugin 1 → 3, and @ledgerhq/hw-app-eth 6 → 7 each remain their own dedicated migration project.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.6',
                         'date' => 'April 14, 2026',
