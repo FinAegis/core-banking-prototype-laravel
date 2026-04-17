@@ -145,6 +145,15 @@ class SmsService
 
             $sms->update($updates);
 
+            // Alert on VertexSMS error code 24 = Account balance limit reached
+            if (($dlr['error_code'] ?? null) === 24) {
+                Log::critical('SMS: VertexSMS account balance exhausted — all further SMS will fail until topped up', [
+                    'provider_id' => $dlr['message_id'],
+                    'error_code'  => 24,
+                    'sms_id'      => $sms->id,
+                ]);
+            }
+
             if ($newStatus === SmsMessage::STATUS_DELIVERED) {
                 SmsDelivered::dispatch((string) $sms->id, $dlr['message_id']);
             } elseif ($newStatus === SmsMessage::STATUS_FAILED) {
