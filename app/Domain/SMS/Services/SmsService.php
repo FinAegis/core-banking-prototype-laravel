@@ -9,8 +9,10 @@ use App\Domain\SMS\Events\SmsDelivered;
 use App\Domain\SMS\Events\SmsFailed;
 use App\Domain\SMS\Events\SmsSent;
 use App\Domain\SMS\Models\SmsMessage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 /**
  * Core SMS business logic. Sends messages via VertexSMS,
@@ -36,6 +38,12 @@ class SmsService
         string $message,
         array $paymentMeta = [],
     ): array {
+        $dedupKey = 'sms:dedup:' . hash('sha256', $to . '|' . $from . '|' . $message);
+        if (! Cache::add($dedupKey, true, 60)) {
+            Log::warning('SMS: Duplicate send blocked', ['to' => $to, 'from' => $from]);
+            throw new RuntimeException('Duplicate SMS detected within 60-second window');
+        }
+
         $testMode = (bool) config('sms.defaults.test_mode', false);
         $priced = $this->pricing->priceFor($to, $from, $message);
 
