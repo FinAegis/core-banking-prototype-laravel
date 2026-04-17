@@ -181,6 +181,44 @@ class VertexSmsClient
     }
 
     /**
+     * Query delivery status for a single message via GET /sms/status/{id}.
+     *
+     * VertexSMS confirmed no rate limit on this endpoint (Q11). Use as
+     * reconciliation fallback for missed DLRs after the SMS expiration
+     * window (default 3 days).
+     *
+     * @return array{id: string, status: int, error: int}|null
+     */
+    public function getMessageStatus(string $messageId): ?array
+    {
+        $this->requireApiToken();
+
+        $response = $this->request()->get("{$this->baseUrl}/sms/status/{$messageId}");
+
+        if (! $response->successful()) {
+            Log::warning('VertexSMS: /sms/status failed', [
+                'message_id' => $messageId,
+                'status'     => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        /** @var array<string, mixed>|null $data */
+        $data = $response->json();
+
+        if (! is_array($data) || $data === []) {
+            return null;
+        }
+
+        return [
+            'id'     => (string) ($data['id'] ?? $messageId),
+            'status' => is_numeric($data['status'] ?? null) ? (int) $data['status'] : -1,
+            'error'  => is_numeric($data['error'] ?? null) ? (int) $data['error'] : 0,
+        ];
+    }
+
+    /**
      * Verify a DLR webhook HMAC-SHA256 signature over the raw request body.
      *
      * Returns true in non-production when the secret is unset so local/test
