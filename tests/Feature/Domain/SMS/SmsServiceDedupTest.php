@@ -25,7 +25,7 @@ describe('SmsService dedup guard', function (): void {
     it('rejects duplicate send within 60s window', function (): void {
         Http::fake([
             'kube-api.vertexsms.com/sms/cost' => Http::response([[
-                'parts' => 1, 'countryISO' => 'LT', 'mccmnc' => '24601',
+                'parts'        => 1, 'countryISO' => 'LT', 'mccmnc' => '24601',
                 'pricePerPart' => 0.035, 'totalPrice' => 0.035, 'currency' => 'EUR',
             ]], 200),
             'kube-api.vertexsms.com/sms' => Http::response(['dedup-msg-1'], 200),
@@ -45,7 +45,7 @@ describe('SmsService dedup guard', function (): void {
     it('allows same message to different recipients', function (): void {
         Http::fake([
             'kube-api.vertexsms.com/sms/cost' => Http::response([[
-                'parts' => 1, 'countryISO' => 'LT', 'mccmnc' => '24601',
+                'parts'        => 1, 'countryISO' => 'LT', 'mccmnc' => '24601',
                 'pricePerPart' => 0.035, 'totalPrice' => 0.035, 'currency' => 'EUR',
             ]], 200),
             'kube-api.vertexsms.com/sms' => Http::sequence()

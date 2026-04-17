@@ -26,7 +26,7 @@ describe('VertexSmsClient::getMessageStatus', function (): void {
 
         $result = (new VertexSmsClient())->getMessageStatus('12345');
 
-        expect($result)->not->toBeNull();
+        assert(is_array($result));
         expect($result['id'])->toBe('12345');
         expect($result['status'])->toBe(1);
         expect($result['error'])->toBe(0);
@@ -43,6 +43,7 @@ describe('VertexSmsClient::getMessageStatus', function (): void {
 
         $result = (new VertexSmsClient())->getMessageStatus('67890');
 
+        assert(is_array($result));
         expect($result['status'])->toBe(2);
         expect($result['error'])->toBe(24);
     });
