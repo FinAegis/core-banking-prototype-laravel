@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\SMS\Clients;
 
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -95,6 +96,13 @@ class VertexSmsClient
     public function sendSms(string $to, string $from, string $message, bool $testMode = false): array
     {
         $this->requireApiToken();
+
+        $intervalMs = (int) config('sms.defaults.send_interval_ms', 1000);
+        if ($intervalMs > 0) {
+            $lockSeconds = (int) ceil($intervalMs / 1000);
+            $lock = Cache::lock('sms:vertexsms:send-throttle', $lockSeconds);
+            $lock->block($lockSeconds + 5);
+        }
 
         $payload = [
             'to'      => $to,

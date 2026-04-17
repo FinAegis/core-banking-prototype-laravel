@@ -142,3 +142,22 @@ describe('VertexSmsClient::verifyDlrUrlToken', function (): void {
         expect((new VertexSmsClient())->verifyDlrUrlToken('wrong-token'))->toBeFalse();
     });
 });
+
+describe('VertexSmsClient::sendSms throttle', function (): void {
+    it('acquires a cache lock before sending', function (): void {
+        config([
+            'sms.defaults.send_interval_ms' => 1000,
+            'cache.default'                 => 'array',
+        ]);
+
+        Http::fake([
+            'kube-api.vertexsms.com/sms' => Http::response(['throttle-msg-1'], 200),
+        ]);
+
+        $client = new VertexSmsClient();
+        $result = $client->sendSms('37069912345', 'Zelta', 'Throttle test');
+
+        expect($result['message_id'])->toBe('throttle-msg-1');
+        Http::assertSentCount(1);
+    });
+});
