@@ -104,6 +104,20 @@ class VertexSmsClient
             $lock->block($lockSeconds + 5);
         }
 
+        try {
+            return $this->doSendSms($to, $from, $message, $testMode);
+        } finally {
+            if (isset($lock)) {
+                $lock->release();
+            }
+        }
+    }
+
+    /**
+     * @return array{message_id: string}
+     */
+    private function doSendSms(string $to, string $from, string $message, bool $testMode): array
+    {
         $payload = [
             'to'      => $to,
             'from'    => $from,
@@ -193,6 +207,12 @@ class VertexSmsClient
     {
         $this->requireApiToken();
 
+        if ($messageId === '' || preg_match('/[^a-zA-Z0-9._-]/', $messageId)) {
+            Log::warning('VertexSMS: Invalid message ID for status query', ['message_id' => $messageId]);
+
+            return null;
+        }
+
         $response = $this->request()->get("{$this->baseUrl}/sms/status/{$messageId}");
 
         if (! $response->successful()) {
@@ -221,21 +241,22 @@ class VertexSmsClient
     /**
      * Verify a DLR webhook HMAC-SHA256 signature over the raw request body.
      *
-     * Returns true in non-production when the secret is unset so local/test
-     * webhooks can be exercised without signing.
+     * Returns true only in local/testing when the secret is unset so dev
+     * webhooks can be exercised without signing. All other environments
+     * (staging, uat, production) reject unsigned webhooks.
      */
     public function verifyWebhookSignature(string $payload, string $signature): bool
     {
         $secret = (string) config('sms.webhook.secret', '');
 
         if ($secret === '') {
-            if (app()->environment('production')) {
-                Log::error('VertexSMS: VERTEXSMS_WEBHOOK_SECRET not set in production');
-
-                return false;
+            if (app()->environment('local', 'testing')) {
+                return true;
             }
 
-            return true;
+            Log::error('VertexSMS: VERTEXSMS_WEBHOOK_SECRET not set — rejecting webhook');
+
+            return false;
         }
 
         return hash_equals(hash_hmac('sha256', $payload, $secret), $signature);

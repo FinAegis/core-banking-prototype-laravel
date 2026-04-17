@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Newsletter\Models;
 
 use App\Domain\Shared\Traits\UsesTenantConnection;
@@ -97,6 +99,24 @@ class Subscriber extends Model
     public const SOURCE_PARTNER = 'partner';
 
     public const SOURCE_LANDING = 'landing';
+
+    /**
+     * Human-readable labels for all source constants.
+     *
+     * @return array<string, string>
+     */
+    public static function sourceLabels(): array
+    {
+        return [
+            self::SOURCE_BLOG       => 'Blog',
+            self::SOURCE_CGO        => 'CGO Early Access',
+            self::SOURCE_INVESTMENT => 'Investment',
+            self::SOURCE_FOOTER     => 'Footer',
+            self::SOURCE_CONTACT    => 'Contact Form',
+            self::SOURCE_PARTNER    => 'Partner Application',
+            self::SOURCE_LANDING    => 'Landing Page',
+        ];
+    }
 
     public function scopeActive($query)
     {

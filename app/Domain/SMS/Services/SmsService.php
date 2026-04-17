@@ -38,7 +38,8 @@ class SmsService
         string $message,
         array $paymentMeta = [],
     ): array {
-        $dedupKey = 'sms:dedup:' . hash('sha256', $to . '|' . $from . '|' . $message);
+        $callerId = (string) (auth()->id() ?? 'system');
+        $dedupKey = 'sms:dedup:' . hash('sha256', $callerId . '|' . $to . '|' . $from . '|' . $message);
         if (! Cache::add($dedupKey, true, 60)) {
             Log::warning('SMS: Duplicate send blocked', ['to' => $to, 'from' => $from]);
             throw new RuntimeException('Duplicate SMS detected within 60-second window');
@@ -133,14 +134,15 @@ class SmsService
                 'delivered_at' => $dlr['delivered_at'] ?? ($newStatus === SmsMessage::STATUS_DELIVERED ? now() : null),
             ];
 
-            foreach (['error_code', 'mcc', 'mnc'] as $optional) {
+            // error_code handled separately: 0 is a valid value (= success)
+            if (array_key_exists('error_code', $dlr) && $dlr['error_code'] !== null) {
+                $updates['error_code'] = $dlr['error_code'];
+            }
+
+            foreach (['mcc', 'mnc'] as $optional) {
                 if (! empty($dlr[$optional])) {
                     $updates[$optional] = $dlr[$optional];
                 }
-            }
-            // Capture explicit zero error_code (= success) — `! empty(0)` would skip it.
-            if (array_key_exists('error_code', $dlr) && $dlr['error_code'] === 0) {
-                $updates['error_code'] = 0;
             }
 
             $sms->update($updates);

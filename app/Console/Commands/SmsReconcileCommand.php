@@ -34,6 +34,12 @@ class SmsReconcileCommand extends Command
         $limit = (int) $this->option('limit');
         $dryRun = (bool) $this->option('dry-run');
 
+        if ($limit <= 0) {
+            $this->error('--limit must be a positive integer.');
+
+            return self::FAILURE;
+        }
+
         $cutoff = now()->subSeconds($expireSeconds);
 
         $stale = SmsMessage::where('status', SmsMessage::STATUS_SENT)
@@ -93,6 +99,6 @@ class SmsReconcileCommand extends Command
 
         $this->info("Done. Reconciled: {$reconciled}, Errors: {$errors}");
 
-        return self::SUCCESS;
+        return $errors > 0 && $reconciled === 0 ? self::FAILURE : self::SUCCESS;
     }
 }
