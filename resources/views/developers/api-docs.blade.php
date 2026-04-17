@@ -42,6 +42,7 @@
                     <a href="#regtech" class="text-amber-600 hover:text-amber-800">RegTech</a>
                     <a href="#mobile-payment" class="text-violet-600 hover:text-violet-800">Mobile Payment</a>
                     <a href="#partner-baas" class="text-rose-600 hover:text-rose-800">Partner BaaS</a>
+                    <a href="#sms" class="text-orange-600 hover:text-orange-800">SMS</a>
                     <a href="#ai" class="text-gray-600 hover:text-gray-900">AI</a>
                     <a href="#graphql" class="text-sky-600 hover:text-sky-800">GraphQL</a>
                     <a href="#event-streaming" class="text-lime-600 hover:text-lime-800">Event Streaming</a>
@@ -1213,6 +1214,153 @@ curl -X PUT \
 curl -H "Authorization: Bearer your_api_key" \
      -H "X-Partner-Key: fpk_your_partner_key" \
      {{ config('app.url') }}/api/v2/partner/tenants
+                                </x-code-block>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SMS API -->
+                    <section id="sms" class="mb-16">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-8">SMS API</h2>
+
+                        <div class="prose prose-lg max-w-none mb-8">
+                            <p>Send SMS messages globally via VertexSMS with per-message payment gating through the Machine Payment Protocol (MPP). AI agents and applications pay per-SMS using USDC, Stripe, or Lightning — no prepaid credits, no invoicing.</p>
+                            <p class="text-sm text-gray-500">5 routes &middot; <a href="/api/documentation#/SMS" target="_blank" class="text-orange-600 hover:text-orange-800">View in Swagger UI</a></p>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Send SMS (Payment-Gated)</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">POST</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/sms/send</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">Send an SMS message to any phone number. This endpoint is gated by MPP — the first request returns <code>402 Payment Required</code> with available payment rails and pricing. After payment, the SMS is sent and a receipt is returned.</p>
+                                <x-code-block language="bash">
+# Step 1: Get payment challenge (returns 402)
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+37069912345",
+    "from": "Zelta",
+    "message": "Hello from Zelta!"
+  }' \
+  {{ config('app.url') }}/api/v1/sms/send
+
+# Step 2: Pay via chosen rail, then resend with payment proof
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Payment ..." \
+  -d '{
+    "to": "+37069912345",
+    "from": "Zelta",
+    "message": "Hello from Zelta!"
+  }' \
+  {{ config('app.url') }}/api/v1/sms/send
+
+# Response:
+# {
+#   "success": true,
+#   "data": {
+#     "message_id": "1281532560",
+#     "status": "sent",
+#     "parts": 1,
+#     "destination": "+37069912345",
+#     "price_usdc": "48000"
+#   }
+# }
+                                </x-code-block>
+                            </div>
+
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Check SMS Rates</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/sms/rates?country=LT</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">Returns per-message USDC pricing for a given ISO 3166-1 alpha-2 country code. Rates are sourced from VertexSMS and converted from EUR to atomic USDC (6 decimals, e.g. 48000 = $0.048).</p>
+                                <x-code-block language="bash">
+curl "{{ config('app.url') }}/api/v1/sms/rates?country=LT"
+
+# Response:
+# {
+#   "data": {
+#     "country": "Lithuania",
+#     "country_code": "LT",
+#     "rate_eur": "0.0390",
+#     "rate_usdc": "48438"
+#   }
+# }
+                                </x-code-block>
+                            </div>
+
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Check Delivery Status</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/sms/status/{messageId}</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">Returns the current delivery status of a previously sent SMS. Requires authentication. Statuses: <code>pending</code>, <code>sent</code>, <code>delivered</code>, <code>failed</code>.</p>
+                                <x-code-block language="bash">
+curl -H "Authorization: Bearer your_api_key" \
+     "{{ config('app.url') }}/api/v1/sms/status/1281532560"
+
+# Response:
+# {
+#   "success": true,
+#   "data": {
+#     "message_id": "1281532560",
+#     "status": "delivered",
+#     "delivered_at": "2026-04-17T12:01:05+00:00",
+#     "payment_status": "settled"
+#   }
+# }
+                                </x-code-block>
+                            </div>
+
+                            <div class="border rounded-lg p-6">
+                                <h3 class="text-xl font-semibold mb-4">Service Info</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">GET</span>
+                                        <span class="ml-2 font-mono text-sm">/v1/sms/info</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 mb-4">Returns SMS service status, active provider, test mode flag, and supported payment networks.</p>
+                                <x-code-block language="bash">
+curl "{{ config('app.url') }}/api/v1/sms/info"
+
+# Response:
+# {
+#   "data": {
+#     "provider": "vertexsms",
+#     "enabled": true,
+#     "test_mode": false,
+#     "networks": ["eip155:8453", "eip155:1"]
+#   }
+# }
+                                </x-code-block>
+                            </div>
+
+                            <div class="border rounded-lg p-6 bg-blue-50 border-blue-200">
+                                <h3 class="text-xl font-semibold mb-4">MCP Tool: send_sms</h3>
+                                <p class="text-gray-600 mb-4">AI agents can discover and use SMS through the Model Context Protocol. The <code>send_sms</code> tool is automatically available to any MCP-compatible client connected to {{ config('brand.name', 'Zelta') }}. Payment is handled transparently by the {{ config('brand.name', 'Zelta') }} SDK.</p>
+                                <x-code-block language="json">
+{
+  "tool": "send_sms",
+  "description": "Send SMS via VertexSMS. Pay per-message via USDC, Stripe, or Lightning.",
+  "input": {
+    "to": "+37069912345",
+    "from": "Zelta",
+    "message": "Hello from AI"
+  }
+}
                                 </x-code-block>
                             </div>
                         </div>
