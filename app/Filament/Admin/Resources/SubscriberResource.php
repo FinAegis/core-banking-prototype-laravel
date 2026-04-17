@@ -51,6 +51,7 @@ class SubscriberResource extends Resource
                                             Subscriber::SOURCE_FOOTER     => 'Footer',
                                             Subscriber::SOURCE_CONTACT    => 'Contact Form',
                                             Subscriber::SOURCE_PARTNER    => 'Partner Application',
+                                            Subscriber::SOURCE_LANDING    => 'Landing Page',
                                         ]
                                     ),
                                 Forms\Components\Select::make('status')
@@ -135,6 +136,7 @@ class SubscriberResource extends Resource
                                 Subscriber::SOURCE_FOOTER     => 'Footer',
                                 Subscriber::SOURCE_CONTACT    => 'Contact Form',
                                 Subscriber::SOURCE_PARTNER    => 'Partner Application',
+                                Subscriber::SOURCE_LANDING    => 'Landing Page',
                                 default                       => $state,
                             }
                         ),
@@ -185,6 +187,7 @@ class SubscriberResource extends Resource
                                 Subscriber::SOURCE_FOOTER     => 'Footer',
                                 Subscriber::SOURCE_CONTACT    => 'Contact Form',
                                 Subscriber::SOURCE_PARTNER    => 'Partner Application',
+                                Subscriber::SOURCE_LANDING    => 'Landing Page',
                             ]
                         ),
                     Tables\Filters\Filter::make('confirmed')

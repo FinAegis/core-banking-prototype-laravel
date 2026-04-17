@@ -96,6 +96,8 @@ class Subscriber extends Model
 
     public const SOURCE_PARTNER = 'partner';
 
+    public const SOURCE_LANDING = 'landing';
+
     public function scopeActive($query)
     {
         return $query->where('status', self::STATUS_ACTIVE);
