@@ -40707,8 +40707,8 @@
                 "tags": [
                     "SMS"
                 ],
-                "summary": "Send an SMS message",
-                "description": "Send an SMS message to a phone number. Protected by MPP payment gate — requires payment via x402, Stripe, or other configured rail.",
+                "summary": "Send an SMS message (payment-gated)",
+                "description": "Send an SMS to any phone number via VertexSMS. Protected by MPP payment gate — the first request without payment returns 402 with available rails and pricing. After paying via USDC (x402), Stripe, or Lightning, resend with the payment proof in the Authorization header. Rate limited to 60 requests/minute, 1 SMS/second outbound.",
                 "operationId": "smsSend",
                 "requestBody": {
                     "required": true,
@@ -40721,17 +40721,17 @@
                                 ],
                                 "properties": {
                                     "to": {
-                                        "description": "E.164 phone number",
+                                        "description": "E.164 phone number (international format with + prefix)",
                                         "type": "string",
                                         "example": "+37069912345"
                                     },
                                     "from": {
-                                        "description": "Sender ID (alphanumeric, max 20 chars)",
+                                        "description": "Sender ID — alphanumeric, max 20 chars. Defaults to configured sender ID if omitted.",
                                         "type": "string",
                                         "example": "Zelta"
                                     },
                                     "message": {
-                                        "description": "Message body (max 1600 chars)",
+                                        "description": "Message body, max 1600 chars. Long messages are automatically split into multiple parts and priced accordingly.",
                                         "type": "string",
                                         "example": "Hello from Zelta!"
                                     }
@@ -40755,20 +40755,30 @@
                                         "data": {
                                             "properties": {
                                                 "message_id": {
-                                                    "type": "string"
+                                                    "description": "VertexSMS message ID — use with GET /v1/sms/status/{id}",
+                                                    "type": "string",
+                                                    "example": "1281532560"
                                                 },
                                                 "status": {
                                                     "type": "string",
+                                                    "example": "sent",
                                                     "enum": [
-                                                        "pending",
                                                         "sent"
                                                     ]
                                                 },
-                                                "price_usdc": {
-                                                    "type": "string"
-                                                },
                                                 "parts": {
-                                                    "type": "integer"
+                                                    "description": "Number of SMS parts (long messages split automatically)",
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "destination": {
+                                                    "type": "string",
+                                                    "example": "+37069912345"
+                                                },
+                                                "price_usdc": {
+                                                    "description": "Charged amount in atomic USDC (6 decimals, e.g. 48438 = $0.048438)",
+                                                    "type": "string",
+                                                    "example": "48438"
                                                 }
                                             },
                                             "type": "object"
@@ -40780,13 +40790,34 @@
                         }
                     },
                     "402": {
-                        "description": "Payment required — MPP challenge issued"
+                        "description": "Payment required — MPP challenge with available rails and pricing",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "example": "urn:ietf:rfc:9457"
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "example": "Payment Required"
+                                        },
+                                        "detail": {
+                                            "type": "string",
+                                            "example": "This resource requires payment via the Machine Payment Protocol."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error — invalid phone number format, missing message, or message exceeds 1600 chars"
                     },
                     "503": {
-                        "description": "SMS service disabled"
+                        "description": "SMS service disabled — SMS_ENABLED is false"
                     }
                 }
             }
@@ -40797,12 +40828,13 @@
                     "SMS"
                 ],
                 "summary": "Get SMS rates for a country",
-                "description": "Returns per-message USDC pricing for a given ISO 3166-1 alpha-2 country code.",
+                "description": "Returns per-message pricing for a given ISO 3166-1 alpha-2 country code. Rates are sourced from VertexSMS in EUR and converted to atomic USDC with a configurable margin. Public endpoint — no authentication required.",
                 "operationId": "smsRates",
                 "parameters": [
                     {
                         "name": "country",
                         "in": "query",
+                        "description": "ISO 3166-1 alpha-2 country code (e.g. LT, DE, US)",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -40819,21 +40851,27 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
                                         "data": {
                                             "properties": {
-                                                "country_code": {
-                                                    "type": "string"
-                                                },
-                                                "price_usdc": {
-                                                    "type": "string"
-                                                },
-                                                "currency": {
+                                                "country": {
+                                                    "description": "Country name",
                                                     "type": "string",
-                                                    "example": "USDC"
+                                                    "example": "Lithuania"
+                                                },
+                                                "country_code": {
+                                                    "description": "ISO 3166-1 alpha-2",
+                                                    "type": "string",
+                                                    "example": "LT"
+                                                },
+                                                "rate_eur": {
+                                                    "description": "VertexSMS rate per SMS part in EUR",
+                                                    "type": "string",
+                                                    "example": "0.0390"
+                                                },
+                                                "rate_usdc": {
+                                                    "description": "Per-part price in atomic USDC (6 decimals, includes margin)",
+                                                    "type": "string",
+                                                    "example": "48438"
                                                 }
                                             },
                                             "type": "object"
@@ -40848,7 +40886,7 @@
                         "description": "No rate found for country"
                     },
                     "422": {
-                        "description": "Invalid country code"
+                        "description": "Invalid country code — must be exactly 2 alphabetic characters"
                     }
                 }
             }
@@ -40859,16 +40897,18 @@
                     "SMS"
                 ],
                 "summary": "Get message delivery status",
-                "description": "Returns the current delivery status of a previously sent SMS message. Requires authentication.",
+                "description": "Returns the current delivery status of a previously sent SMS. The message_id is the value returned from POST /v1/sms/send. Statuses progress: pending → sent → delivered (or failed). Delivery reports are received asynchronously from VertexSMS via webhook.",
                 "operationId": "smsStatus",
                 "parameters": [
                     {
                         "name": "messageId",
                         "in": "path",
+                        "description": "The message_id returned from POST /v1/sms/send",
                         "required": true,
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "example": "1281532560"
                     }
                 ],
                 "responses": {
@@ -40885,10 +40925,12 @@
                                         "data": {
                                             "properties": {
                                                 "message_id": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "1281532560"
                                                 },
                                                 "status": {
                                                     "type": "string",
+                                                    "example": "delivered",
                                                     "enum": [
                                                         "pending",
                                                         "sent",
@@ -40897,8 +40939,20 @@
                                                     ]
                                                 },
                                                 "delivered_at": {
+                                                    "description": "ISO 8601 timestamp when delivered, null if not yet delivered",
                                                     "type": "string",
+                                                    "example": "2026-04-17T12:01:05+00:00",
                                                     "nullable": true
+                                                },
+                                                "payment_status": {
+                                                    "description": "Payment settlement status",
+                                                    "type": "string",
+                                                    "example": "settled",
+                                                    "nullable": true,
+                                                    "enum": [
+                                                        "pending",
+                                                        "settled"
+                                                    ]
                                                 }
                                             },
                                             "type": "object"
@@ -40913,7 +40967,7 @@
                         "description": "Unauthenticated"
                     },
                     "404": {
-                        "description": "Message not found"
+                        "description": "Message not found — no message with this ID exists"
                     }
                 },
                 "security": [
@@ -40929,7 +40983,7 @@
                     "SMS"
                 ],
                 "summary": "Get SMS service info",
-                "description": "Returns provider information, enabled status, test mode flag, and supported networks.",
+                "description": "Returns the active SMS provider, enabled/disabled status, test mode flag, and supported payment networks (CAIP-2 format). Public endpoint — no authentication required.",
                 "operationId": "smsInfo",
                 "responses": {
                     "200": {
@@ -40938,26 +40992,30 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
                                         "data": {
                                             "properties": {
                                                 "provider": {
-                                                    "type": "string"
+                                                    "description": "Active SMS provider",
+                                                    "type": "string",
+                                                    "example": "vertexsms"
                                                 },
                                                 "enabled": {
-                                                    "type": "boolean"
+                                                    "description": "Whether SMS sending is enabled",
+                                                    "type": "boolean",
+                                                    "example": true
                                                 },
                                                 "test_mode": {
-                                                    "type": "boolean"
+                                                    "description": "When true, messages are accepted but not delivered",
+                                                    "type": "boolean",
+                                                    "example": false
                                                 },
                                                 "networks": {
+                                                    "description": "Supported payment networks in CAIP-2 format (Base, Ethereum)",
                                                     "type": "array",
                                                     "items": {
                                                         "type": "string"
-                                                    }
+                                                    },
+                                                    "example": "[\"eip155:8453\",\"eip155:1\"]"
                                                 }
                                             },
                                             "type": "object"
@@ -54786,7 +54844,7 @@
                     "SMS Webhooks"
                 ],
                 "summary": "VertexSMS delivery report webhook",
-                "description": "Receives SMS delivery status updates from VertexSMS. Verifies HMAC-SHA256 signature from X-VertexSMS-Signature header.",
+                "description": "Receives SMS delivery status updates from VertexSMS. Accepts either a URL-token (`?t=...`) or an HMAC-SHA256 signature (`X-VertexSMS-Signature` header) for authentication.",
                 "operationId": "vertexSmsDlr",
                 "requestBody": {
                     "required": true,
@@ -54794,22 +54852,35 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "message_id",
+                                    "id",
                                     "status"
                                 ],
                                 "properties": {
-                                    "message_id": {
+                                    "id": {
+                                        "description": "VertexSMS message ID (as returned from POST /sms)",
                                         "type": "string"
                                     },
                                     "status": {
-                                        "type": "string",
+                                        "description": "1=delivered, 2=undelivered, 3=Viber seen, 16=expired",
+                                        "type": "integer",
                                         "enum": [
-                                            "sent",
-                                            "delivered",
-                                            "failed"
+                                            1,
+                                            2,
+                                            3,
+                                            16
                                         ]
                                     },
-                                    "delivered_at": {
+                                    "error": {
+                                        "description": "0 when delivered, otherwise Vertex error code",
+                                        "type": "integer"
+                                    },
+                                    "mcc": {
+                                        "description": "Mobile Country Code",
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "mnc": {
+                                        "description": "Mobile Network Code",
                                         "type": "string",
                                         "nullable": true
                                     }
@@ -54824,10 +54895,10 @@
                         "description": "Delivery report accepted"
                     },
                     "401": {
-                        "description": "Invalid webhook signature"
+                        "description": "Invalid webhook signature or URL token"
                     },
                     "422": {
-                        "description": "Missing message_id"
+                        "description": "Missing or invalid message id"
                     }
                 }
             }
