@@ -4,6 +4,15 @@
     "type": "project",
     "license": "Apache-2.0",
     "keywords": ["cli", "payments", "x402", "mpp", "fintech"],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../zelta-sdk",
+            "options": {
+                "symlink": false
+            }
+        }
+    ],
     "require": {
         "php": "^8.4",
         "guzzlehttp/guzzle": "^7.0",

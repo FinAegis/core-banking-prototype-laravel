@@ -10,7 +10,7 @@ export interface FinAegisConfig {
 export interface ApiResponse<T> {
   data: T;
   meta?: Record<string, any>;
-  links?: Record<string, string>;
+  links?: Record<string, string | null>;
 }
 
 export interface PaginatedResponse<T> extends ApiResponse<T[]> {

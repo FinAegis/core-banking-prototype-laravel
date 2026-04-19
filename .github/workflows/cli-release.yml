@@ -12,6 +12,8 @@ jobs:
   build-phar:
     name: Build PHAR Binary
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +23,10 @@ jobs:
           php-version: '8.4'
           tools: composer
           extensions: json, mbstring, sodium
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/cli-v}" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
         working-directory: packages/zelta-cli
@@ -42,9 +48,12 @@ jobs:
         working-directory: packages/zelta-cli
         run: php builds/zelta.phar list
 
-      - name: Extract version
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/cli-v}" >> $GITHUB_OUTPUT
+      - name: Upload PHAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zelta-phar
+          path: packages/zelta-cli/builds/zelta.phar
+          retention-days: 7
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
@@ -55,6 +64,8 @@ jobs:
 
             ### Install
             ```bash
+            npm install -g @finaegis/cli
+            # or
             curl -fsSL https://cli.zelta.app/install.sh | bash
             ```
 
@@ -81,22 +92,32 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Download PHAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zelta-phar
+          path: packages/zelta-cli/npm-package
+
       - name: Create npm wrapper
         working-directory: packages/zelta-cli
+        env:
+          PKG_VERSION: ${{ needs.build-phar.outputs.version }}
         run: |
           mkdir -p npm-package/bin
-          cat > npm-package/package.json << 'NPMEOF'
+          cat > npm-package/package.json << NPMEOF
           {
             "name": "@finaegis/cli",
-            "version": "${{ github.ref_name }}",
+            "version": "${PKG_VERSION}",
             "description": "Zelta CLI — manage payments, SMS, wallets, and APIs from the terminal",
             "license": "Apache-2.0",
             "bin": {
               "zelta": "./bin/zelta"
             },
-            "scripts": {
-              "postinstall": "node install.js"
-            },
+            "files": [
+              "bin/",
+              "zelta.phar",
+              "README.md"
+            ],
             "repository": {
               "type": "git",
               "url": "https://github.com/FinAegis/core-banking-prototype-laravel.git"
@@ -111,13 +132,20 @@ jobs:
           #!/usr/bin/env node
           const { execFileSync } = require('child_process');
           const path = require('path');
+          const fs = require('fs');
+          const phar = path.join(__dirname, '..', 'zelta.phar');
+          if (!fs.existsSync(phar)) {
+            console.error('Error: zelta.phar not found in package — reinstall @finaegis/cli');
+            process.exit(1);
+          }
           try {
-            execFileSync('php', [path.join(__dirname, '..', 'zelta.phar'), ...process.argv.slice(2)], { stdio: 'inherit' });
+            execFileSync('php', [phar, ...process.argv.slice(2)], { stdio: 'inherit' });
           } catch (e) {
             process.exit(e.status || 1);
           }
           BINEOF
           chmod +x npm-package/bin/zelta
+          cp README.md npm-package/README.md 2>/dev/null || echo "# @finaegis/cli" > npm-package/README.md
 
       - name: Publish to npm
         working-directory: packages/zelta-cli/npm-package
@@ -133,5 +161,4 @@ jobs:
       - name: Trigger Homebrew tap update
         run: |
           echo "Homebrew tap update would be triggered here."
-          echo "Requires: zelta-app/homebrew-tap repository with Formula/zelta.rb"
-        continue-on-error: true
+          echo "Requires: finaegis/homebrew-tap repository with Formula/zelta.rb"
