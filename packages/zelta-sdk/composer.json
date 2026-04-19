@@ -1,7 +1,6 @@
 {
     "name": "finaegis/payment-sdk",
     "description": "Zelta Payment SDK — transparent x402 and MPP payment handling for PHP",
-    "version": "1.0.0",
     "type": "library",
     "license": "Apache-2.0",
     "homepage": "https://zelta.app",
