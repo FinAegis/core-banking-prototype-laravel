@@ -1,0 +1,82 @@
+name: Split Monorepo Subdirs into Mirror Repos
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'sdk-v*'
+      - 'cli-v*'
+      - 'php-sdk-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  split:
+    name: Split ${{ matrix.mirror }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - subdir: packages/zelta-sdk
+            mirror: payment-sdk
+            tag_prefix: sdk-v
+          - subdir: packages/zelta-cli
+            mirror: cli
+            tag_prefix: cli-v
+          - subdir: sdks/php
+            mirror: php-sdk
+            tag_prefix: php-sdk-v
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install splitsh/lite
+        run: |
+          curl -fsSL https://github.com/splitsh/lite/releases/download/v2.0.0/lite_linux_amd64.tar.gz | tar xz
+          sudo mv splitsh-lite /usr/local/bin/
+          splitsh-lite --version || true
+
+      - name: Split subdirectory
+        id: split
+        env:
+          SUBDIR: ${{ matrix.subdir }}
+          MIRROR: ${{ matrix.mirror }}
+        run: |
+          SHA=$(splitsh-lite --prefix="${SUBDIR}" --target="refs/heads/split-${MIRROR}")
+          if [ -z "$SHA" ]; then
+            echo "splitsh-lite produced no SHA — subdirectory may be empty or missing" >&2
+            exit 1
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Split produced SHA: $SHA"
+
+      - name: Push split main to mirror
+        env:
+          PAT: ${{ secrets.MIRROR_PAT }}
+          MIRROR: ${{ matrix.mirror }}
+          SPLIT_SHA: ${{ steps.split.outputs.sha }}
+        run: |
+          git push "https://x-access-token:${PAT}@github.com/FinAegis/${MIRROR}.git" \
+            "${SPLIT_SHA}:refs/heads/main" --force
+
+      - name: Push tag to mirror
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          PAT: ${{ secrets.MIRROR_PAT }}
+          MIRROR: ${{ matrix.mirror }}
+          TAG_PREFIX: ${{ matrix.tag_prefix }}
+          SPLIT_SHA: ${{ steps.split.outputs.sha }}
+        run: |
+          REF="${GITHUB_REF#refs/tags/}"
+          if [[ "$REF" == ${TAG_PREFIX}* ]]; then
+            MIRROR_TAG="v${REF#${TAG_PREFIX}}"
+            echo "Pushing tag ${MIRROR_TAG} to FinAegis/${MIRROR}"
+            git push "https://x-access-token:${PAT}@github.com/FinAegis/${MIRROR}.git" \
+              "${SPLIT_SHA}:refs/tags/${MIRROR_TAG}"
+          else
+            echo "Tag ${REF} does not match prefix ${TAG_PREFIX} — skipping tag push for this mirror"
+          fi

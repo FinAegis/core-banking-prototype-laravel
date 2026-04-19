@@ -98,7 +98,9 @@ Brand in UI stays "Zelta" — only distribution package identifiers use the `@fi
 | Packagist | `finaegis/php-sdk` | `php-sdk-v*` |
 | PyPI | `finaegis` | `py-sdk-v*` |
 
-Required repo secrets for release workflows: `NPM_TOKEN`, `PYPI_TOKEN`, `PACKAGIST_USERNAME`, `PACKAGIST_TOKEN`.
+Required repo secrets for release workflows: `NPM_TOKEN` (must be npm **Automation** token — classic tokens get 403 under 2FA), `PYPI_TOKEN`, `PACKAGIST_USERNAME`, `PACKAGIST_TOKEN`, `MIRROR_PAT` (fine-grained PAT with Contents:write on `FinAegis/payment-sdk`, `FinAegis/cli`, `FinAegis/php-sdk`).
+
+Packagist sources the three PHP packages from **split-mirror repos**, not the monorepo — Packagist only reads root `composer.json`. The `monorepo-split.yml` workflow auto-pushes `packages/zelta-sdk/`, `packages/zelta-cli/`, `sdks/php/` into their respective mirrors on every `main` push and release tag (via `splitsh/lite`). Mirror tags use a stripped prefix: `sdk-v1.0.1` → mirror tag `v1.0.1`.
 
 ## Notes
 
