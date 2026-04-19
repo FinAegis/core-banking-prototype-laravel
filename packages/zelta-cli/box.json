@@ -3,7 +3,8 @@
     "output": "builds/zelta.phar",
     "directories": [
         "app",
-        "config"
+        "config",
+        "vendor"
     ],
     "files": [
         "zelta"
