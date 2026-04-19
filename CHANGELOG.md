@@ -5,19 +5,42 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Package Distribution Naming
+## [7.10.8] - 2026-04-19
 
-### Changed
-- **npm scope migration** — Renamed npm package from `@zelta/cli` to `@finaegis/cli` (the `@zelta` npm scope was already taken; the `@finaegis` scope is used for distribution only)
-- **Packagist vendor migration** — Renamed PHP payment SDK from `zelta/payment-sdk` to `finaegis/payment-sdk`
-- Future SDKs follow the same pattern: `@finaegis/sdk`, `@finaegis/payment-sdk`, `finaegis/php-sdk`, PyPI `finaegis`
+**Public SDK distribution.** Every SDK and the CLI now install from public registries. Prior `@zelta/*` references were aspirational — the npm `@zelta` scope was owned by a third party, so nothing actually shipped. This release rebuilds distribution under the `@finaegis` scope we control and wires up the Symfony/Laravel-style split-mirror pattern so Packagist can read the three PHP packages out of the monorepo.
 
 ### Added
-- Release workflows for JS / Python / PHP SDKs under `sdks/` (tag-triggered publishing to npm / PyPI / Packagist)
+- **Public registry packages (first real releases):**
+  - `npm install -g @finaegis/cli` — PHAR bundled, requires PHP 8.4+
+  - `npm install @finaegis/sdk` — JavaScript/TypeScript SDK
+  - `pip install finaegis` — Python SDK
+  - `composer require finaegis/payment-sdk` — x402 + MPP payment SDK (PHP)
+  - `composer require finaegis/php-sdk` — banking API SDK (PHP)
+- `.github/workflows/monorepo-split.yml` — splitsh/lite-based auto-mirror of `packages/zelta-{sdk,cli}/` and `sdks/php/` into dedicated Packagist-readable repos on every `main` push and release tag
+- `.github/workflows/sdk-{javascript,python,php}-release.yml` — tag-triggered registry publishing for each SDK
+- Mirror repos created: `github.com/FinAegis/payment-sdk`, `github.com/FinAegis/cli`, `github.com/FinAegis/php-sdk`
+
+### Changed
+- **npm scope migration**: `@zelta/cli` → `@finaegis/cli`, `@zelta/sdk` → `@finaegis/sdk` (third-party owns `@zelta` on npm). Brand name "Zelta" unchanged in UI
+- **Packagist vendor migration**: `zelta/payment-sdk` → `finaegis/payment-sdk`, `zelta/cli` → `finaegis/cli`
+- Developer portal (examples, sdks pages) + partner docs now show real public install commands instead of monorepo path dependencies
+- `sdk-release.yml` / `sdk-php-release.yml` Packagist notifications target the split-mirror URLs
+
+### Fixed
+- `cli-release.yml` — replaced decade-old Box 2 installer with direct PHAR download from `box-project/box` (#937)
+- `cli-release.yml` — PHAR bundles `vendor/` (was only `app/` + `config/`; Symfony Console missing at runtime) (#939)
+- `cli-release.yml` — npm `version` field is valid semver (was raw tag name like `cli-v0.2.1`) (#936)
+- `cli-release.yml` — PHAR artifact is now uploaded from `build-phar` and downloaded in `publish-npm` so the published tarball actually contains the binary (#936)
+- `monorepo-split.yml` — pinned `splitsh/lite` to v1.0.1 (v2.0.0 shipped no binaries) (#940)
+- `monorepo-split.yml` — bypassed `actions/checkout`'s credential helper so URL-embedded PAT works for cross-repo push (#941)
+- `sdks/javascript/src/types.ts` — `PaginatedResponse<T>.links` no longer violates parent `ApiResponse<T[]>.links` type (#936)
+- `packages/zelta-sdk/composer.json` — dropped hardcoded `version: 1.0.0` field; Packagist reads from git tags (#942)
+- `packages/zelta-cli/composer.json` — `minimum-stability: dev` + `prefer-stable: true` so the path-repo `finaegis/payment-sdk` resolves when no stable tag is indexed yet (#943)
 
 ### Notes
-- No breaking changes to library APIs — PSR-4 namespaces (`Zelta\\`), CLI binary name (`zelta`), and user-facing brand ("Zelta CLI", "Zelta SDK") are unchanged
-- Only distribution package identifiers changed; `composer require` / `npm install` lines in partner docs updated accordingly
+- Zero breaking changes to library APIs. PSR-4 namespaces (`Zelta\\`, `FinAegis\\`), CLI binary name (`zelta`), and user-facing brand ("Zelta CLI", "Zelta SDK") are unchanged
+- New repo secret required for split workflow: `MIRROR_PAT` — fine-grained PAT with `Contents: write` on the three mirror repos
+- `NPM_TOKEN` must be an npm **Automation** token (classic tokens 403 under 2FA)
 
 ---
 
