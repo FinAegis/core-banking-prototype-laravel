@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.7.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.8.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,22 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.10.8',
+                        'date' => 'April 19, 2026',
+                        'label' => 'Public SDK Distribution',
+                        'label_color' => 'emerald',
+                        'badge_color' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                        'dot_color' => 'bg-emerald-500',
+                        'items' => [
+                            'Public registry packages — every SDK and the CLI now install from public registries for the first time: <code>npm install -g @finaegis/cli</code>, <code>npm install @finaegis/sdk</code>, <code>pip install finaegis</code>, <code>composer require finaegis/payment-sdk</code>, and <code>composer require finaegis/php-sdk</code>. Prior <code>@zelta/*</code> references were aspirational — the npm <code>@zelta</code> scope was owned by a third party, so nothing actually shipped.',
+                            'npm scope migration — <code>@zelta/cli</code> → <code>@finaegis/cli</code> and <code>@zelta/sdk</code> → <code>@finaegis/sdk</code>. The user-facing brand name "Zelta" is unchanged in the UI, PSR-4 namespaces (<code>Zelta\\</code>, <code>FinAegis\\</code>) are unchanged, and the CLI binary name <code>zelta</code> is unchanged — this is purely a distribution identifier change.',
+                            'Packagist vendor migration — <code>zelta/payment-sdk</code> → <code>finaegis/payment-sdk</code>, <code>zelta/cli</code> → <code>finaegis/cli</code>. Developer portal and partner docs now show the real public install commands instead of monorepo path-repository dependencies.',
+                            'Monorepo split-mirror workflow — new <code>.github/workflows/monorepo-split.yml</code> uses splitsh/lite to auto-mirror <code>packages/zelta-{sdk,cli}/</code> and <code>sdks/php/</code> into dedicated Packagist-readable repos (<code>github.com/FinAegis/{payment-sdk,cli,php-sdk}</code>) on every main push and release tag. Packagist only reads root composer.json, so the three PHP packages need their own repos to be installable.',
+                            'CLI release pipeline fixes — replaced the decade-old Box 2 installer with a direct PHAR download from box-project/box (#937); PHAR now bundles <code>vendor/</code> so Symfony Console is actually present at runtime (#939); npm <code>version</code> field is now valid semver instead of the raw tag name (#936); PHAR artifact is uploaded in <code>build-phar</code> and downloaded in <code>publish-npm</code> so the published tarball actually contains the binary (#936); splitsh/lite pinned to v1.0.1 (#940) and checkout credential helper bypassed so the cross-repo PAT push works (#941).',
+                            'Zero breaking API changes — no library method signatures, return types, or public interfaces changed. PSR-4 namespaces, the CLI binary, and all documented APIs are byte-compatible with v7.10.7.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.7',
                         'date' => 'April 15, 2026',

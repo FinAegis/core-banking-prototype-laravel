@@ -3187,6 +3187,21 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.10.8 — Public SDK Distribution (RELEASED)
+
+**Release Date**: April 19, 2026
+**Theme**: Every SDK and the CLI now install from public registries for the first time
+
+### Delivered Features
+- Public registry install commands (first real releases): `npm install -g @finaegis/cli`, `npm install @finaegis/sdk`, `pip install finaegis`, `composer require finaegis/payment-sdk`, `composer require finaegis/php-sdk`
+- npm scope migration `@zelta/*` → `@finaegis/*` (the `@zelta` scope was owned by a third party on npm, so prior references were aspirational). Brand name "Zelta" unchanged in UI; PSR-4 namespaces (`Zelta\\`, `FinAegis\\`) and CLI binary name (`zelta`) unchanged
+- Packagist vendor migration `zelta/*` → `finaegis/*` for the two PHP packages
+- New `.github/workflows/monorepo-split.yml` using splitsh/lite to auto-mirror `packages/zelta-{sdk,cli}/` and `sdks/php/` into dedicated Packagist-readable repos (`github.com/FinAegis/{payment-sdk,cli,php-sdk}`) on every main push and release tag
+- CLI release workflow hardened: Box 2 installer replaced with direct PHAR download from box-project/box (#937), PHAR now bundles `vendor/` so Symfony Console is present at runtime (#939), npm version field is valid semver (#936), PHAR artifact now plumbed correctly between `build-phar` and `publish-npm` so the npm tarball actually contains the binary (#936), splitsh/lite pinned to v1.0.1 (#940), cross-repo PAT push fixed (#941)
+- Zero breaking API changes — library method signatures, return types, and public interfaces unchanged
+
+---
+
 ## Version 7.10.7 — Safe-Major Composer Trio (RELEASED)
 
 **Release Date**: April 15, 2026
@@ -3221,5 +3236,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.10.7*
-*Updated: April 18, 2026 (added Future / Unscheduled section with MPP partner models)*
+*Document Version: 7.10.8*
+*Updated: April 19, 2026 (v7.10.8 public SDK distribution release)*

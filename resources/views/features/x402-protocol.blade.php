@@ -36,7 +36,7 @@
                 </div>
                 <div class="inline-flex items-center px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm text-slate-300 mb-6">
                     <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
-                    v7.10.7 &middot; Production Ready
+                    v7.10.8 &middot; Production Ready
                 </div>
                 <h1 class="font-display text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">x402 Protocol</h1>
                 <p class="text-lg text-slate-400 max-w-3xl mx-auto mb-8">

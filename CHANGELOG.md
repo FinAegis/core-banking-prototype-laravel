@@ -5,6 +5,16 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.10.9] - 2026-04-19
+
+### Changed
+- **Website + docs sync for v7.10.8** — Version badges, developer-portal "Released" banner, FAQ, changelog page, VERSION_ROADMAP, and per-feature docs now reference v7.10.8 and the newly public registry install commands
+
+### Notes
+- Pure documentation release — no runtime, API, or dependency changes
+
+---
+
 ## [7.10.8] - 2026-04-19
 
 **Public SDK distribution.** Every SDK and the CLI now install from public registries. Prior `@zelta/*` references were aspirational — the npm `@zelta` scope was owned by a third party, so nothing actually shipped. This release rebuilds distribution under the `@finaegis` scope we control and wires up the Symfony/Laravel-style split-mirror pattern so Packagist can read the three PHP packages out of the monorepo.
