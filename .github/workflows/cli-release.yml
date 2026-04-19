@@ -34,9 +34,9 @@ jobs:
 
       - name: Download Box
         run: |
-          curl -LSs https://box-project.github.io/box2/installer.php | php
-          mv box.phar /usr/local/bin/box
+          curl -fsSL https://github.com/box-project/box/releases/latest/download/box.phar -o /usr/local/bin/box
           chmod +x /usr/local/bin/box
+          box --version
 
       - name: Build PHAR
         working-directory: packages/zelta-cli
