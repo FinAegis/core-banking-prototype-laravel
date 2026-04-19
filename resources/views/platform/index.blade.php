@@ -82,13 +82,13 @@
                     const bank = new {{ config('brand.name', 'Zelta') }}();
                 </div>
                 <div class="code-font text-blue-400 text-sm opacity-20 absolute top-40 right-20 transform -rotate-12 hidden lg:block">
-                    $ npm install @zelta/sdk
+                    $ npm install @finaegis/sdk
                 </div>
                 <div class="code-font text-purple-400 text-sm opacity-20 absolute bottom-40 left-1/4 hidden lg:block">
-                    pip install zelta==latest
+                    pip install finaegis
                 </div>
                 <div class="code-font text-yellow-400 text-sm opacity-20 absolute bottom-20 right-1/3 transform rotate-6 hidden lg:block">
-                    composer require zelta/sdk
+                    composer require finaegis/payment-sdk
                 </div>
             </div>
             

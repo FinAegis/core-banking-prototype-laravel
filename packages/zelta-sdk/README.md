@@ -5,7 +5,7 @@ Transparent x402 and MPP payment handling for PHP applications.
 ## Installation
 
 ```bash
-composer require zelta/payment-sdk
+composer require finaegis/payment-sdk
 ```
 
 ## Quick Start

@@ -5,6 +5,22 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Package Distribution Naming
+
+### Changed
+- **npm scope migration** — Renamed npm package from `@zelta/cli` to `@finaegis/cli` (the `@zelta` npm scope was already taken; the `@finaegis` scope is used for distribution only)
+- **Packagist vendor migration** — Renamed PHP payment SDK from `zelta/payment-sdk` to `finaegis/payment-sdk`
+- Future SDKs follow the same pattern: `@finaegis/sdk`, `@finaegis/payment-sdk`, `finaegis/php-sdk`, PyPI `finaegis`
+
+### Added
+- Release workflows for JS / Python / PHP SDKs under `sdks/` (tag-triggered publishing to npm / PyPI / Packagist)
+
+### Notes
+- No breaking changes to library APIs — PSR-4 namespaces (`Zelta\\`), CLI binary name (`zelta`), and user-facing brand ("Zelta CLI", "Zelta SDK") are unchanged
+- Only distribution package identifiers changed; `composer require` / `npm install` lines in partner docs updated accordingly
+
+---
+
 ## [7.10.7] - 2026-04-15
 
 ### Changed

@@ -9,7 +9,7 @@ For technical details, see [Partner Integration Guide](PARTNER_INTEGRATION_GUIDE
 ## Phase 1: Technical Setup (Day 1-3)
 
 - [ ] Partner receives API credentials (test + production keys)
-- [ ] Partner installs Zelta SDK v1.0.0 (`composer require zelta/payment-sdk`)
+- [ ] Partner installs Zelta SDK v1.0.0 (`composer require finaegis/payment-sdk`)
 - [ ] Partner configures `PaymentConfig` with sandbox base URL and test API key
 - [ ] Partner configures webhook endpoint (HTTPS, publicly accessible)
 - [ ] Partner completes first sandbox test transaction (GET request with 402 auto-pay)

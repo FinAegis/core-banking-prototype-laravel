@@ -85,6 +85,21 @@ gh pr checks <PR_NUMBER>              # Check PR status
 gh run view <RUN_ID> --log-failed     # View failed logs
 ```
 
+## Distribution Packages
+
+Brand in UI stays "Zelta" — only distribution package identifiers use the `@finaegis` scope (the `@zelta` npm scope was already taken). PSR-4 namespaces (`Zelta\\`) and CLI bin name (`zelta`) are unchanged.
+
+| Registry | Package | Tag trigger |
+|---|---|---|
+| npm | `@finaegis/cli` | `cli-v*` |
+| npm | `@finaegis/sdk` | `js-sdk-v*` |
+| npm | `@finaegis/payment-sdk` | (future) |
+| Packagist | `finaegis/payment-sdk` | `sdk-v*` |
+| Packagist | `finaegis/php-sdk` | `php-sdk-v*` |
+| PyPI | `finaegis` | `py-sdk-v*` |
+
+Required repo secrets for release workflows: `NPM_TOKEN`, `PYPI_TOKEN`, `PACKAGIST_USERNAME`, `PACKAGIST_TOKEN`.
+
 ## Notes
 
 - Feature pages: only visible when `SHOW_PROMO_PAGES=true` (demo mode); production shows app landing page only

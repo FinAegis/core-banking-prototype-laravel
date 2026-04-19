@@ -135,7 +135,7 @@
                     <div class="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">1</div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-lg text-slate-900 mb-2">Install the CLI</h3>
-                        <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code><span class="text-emerald-400">$</span> npm install -g @zelta/cli
+                        <pre class="bg-slate-900 text-slate-300 rounded-lg p-4 text-sm overflow-x-auto"><code><span class="text-emerald-400">$</span> npm install -g @finaegis/cli
 
 <span class="text-slate-500"># Verify installation</span>
 <span class="text-emerald-400">$</span> zelta --version

@@ -1,0 +1,40 @@
+name: FinAegis Python SDK Release
+
+on:
+  push:
+    tags:
+      - 'py-sdk-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build distribution
+        working-directory: sdks/python
+        run: python -m build
+
+      - name: Publish to PyPI
+        working-directory: sdks/python
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## FinAegis Python SDK Published" >> $GITHUB_STEP_SUMMARY
+          echo "Install: \`pip install finaegis\`" >> $GITHUB_STEP_SUMMARY

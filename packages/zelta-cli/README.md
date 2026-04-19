@@ -9,13 +9,13 @@ Manage payments, SMS, wallets, and API monetization from the terminal. Built for
 curl -fsSL https://cli.zelta.app/install.sh | bash
 
 # npm
-npm install -g @zelta/cli
+npm install -g @finaegis/cli
 
 # Homebrew
-brew install zelta-app/tap/zelta
+brew install finaegis/tap/zelta
 
 # Composer
-composer global require zelta/cli
+composer global require finaegis/cli
 ```
 
 ## Quick Start

@@ -94,7 +94,7 @@ For partners who want the widget served from their own domain (`checkout.vertexs
 | Widget renders theme dynamically | M |
 | Webhook passthrough (reuse existing infra) | S |
 | Custom domain provisioning | M |
-| SDK update: `@zelta/checkout-js` npm package | M |
+| SDK update: `@finaegis/checkout-js` npm package | M |
 | Documentation: integration guide, code samples | M |
 | Partner onboarding: publishable key generation UI | S |
 

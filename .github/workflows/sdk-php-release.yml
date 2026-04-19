@@ -1,9 +1,9 @@
-name: Zelta SDK Release
+name: FinAegis PHP SDK Release
 
 on:
   push:
     tags:
-      - 'sdk-v*'
+      - 'php-sdk-v*'
 
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
           tools: composer
 
       - name: Install dependencies
-        working-directory: packages/zelta-sdk
+        working-directory: sdks/php
         run: composer install --no-dev
 
       - name: Notify Packagist
@@ -30,11 +30,7 @@ jobs:
           curl -X POST "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}" \
             -d '{"repository":{"url":"https://github.com/FinAegis/core-banking-prototype-laravel"}}'
 
-      - name: Extract version
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/sdk-v}" >> $GITHUB_OUTPUT
-
       - name: Summary
         run: |
-          echo "## Zelta SDK v${{ steps.version.outputs.version }} Published" >> $GITHUB_STEP_SUMMARY
-          echo "Install: \`composer require finaegis/payment-sdk\`" >> $GITHUB_STEP_SUMMARY
+          echo "## FinAegis PHP SDK Published" >> $GITHUB_STEP_SUMMARY
+          echo "Install: \`composer require finaegis/php-sdk\`" >> $GITHUB_STEP_SUMMARY

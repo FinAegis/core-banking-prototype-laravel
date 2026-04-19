@@ -1,6 +1,6 @@
 # Homebrew formula for Zelta CLI
-# Install: brew install zelta-app/tap/zelta
-# Or: brew tap zelta-app/tap && brew install zelta
+# Install: brew install finaegis/tap/zelta
+# Or: brew tap finaegis/tap && brew install zelta
 
 class Zelta < Formula
   desc "Manage payments, SMS, wallets, and API monetization from the terminal"

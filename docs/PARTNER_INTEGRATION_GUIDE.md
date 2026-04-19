@@ -23,7 +23,7 @@ What partners get:
 ### 1. Install SDK
 
 ```bash
-composer require zelta/payment-sdk
+composer require finaegis/payment-sdk
 ```
 
 For Laravel projects, the service provider auto-registers via `extra.laravel.providers`.

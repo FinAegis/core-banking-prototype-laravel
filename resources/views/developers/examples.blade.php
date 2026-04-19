@@ -240,8 +240,8 @@
                             <!-- JavaScript -->
                             <div id="create-js" class="tab-content active animate-fade-in">
                                 <x-code-block language="javascript">
-// Install: npm install ./sdks/javascript (from monorepo)
-import { {{ config('brand.name', 'Zelta') }} } from '@zelta/sdk';
+// Install: npm install @finaegis/sdk
+import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
 
 const client = new {{ config('brand.name', 'Zelta') }}({
   apiKey: process.env.ZELTA_API_KEY,
@@ -284,7 +284,7 @@ createAccountAndCheckBalance();
                             <!-- Python -->
                             <div id="create-py" class="tab-content animate-fade-in">
                                 <x-code-block language="python">
-# Install: pip install ./sdks/python (from monorepo)
+# Install: pip install finaegis
 from zelta import {{ config('brand.name', 'Zelta') }}
 import os
 
@@ -328,7 +328,7 @@ create_account_and_check_balance()
                                 <x-code-block language="php">
 {!! '<?php' !!}
 
-// Install: composer require zelta/payment-sdk --repository='{"type":"path","url":"packages/zelta-sdk"}'
+// Install: composer require finaegis/payment-sdk
 require_once 'vendor/autoload.php';
 
 use Zelta\PaymentSDK\Client;
@@ -926,8 +926,8 @@ async function testWebhook(webhookId) {
                             <!-- JavaScript -->
                             <div id="ai-chat-js" class="tab-content active animate-fade-in">
                                 <x-code-block language="javascript">
-// Install: npm install ./sdks/javascript (from monorepo)
-import { {{ config('brand.name', 'Zelta') }}AI } from '@zelta/sdk';
+// Install: npm install @finaegis/sdk
+import { {{ config('brand.name', 'Zelta') }}AI } from '@finaegis/sdk';
 
 const aiClient = new {{ config('brand.name', 'Zelta') }}AI({
   apiKey: process.env.ZELTA_API_KEY,
@@ -1013,7 +1013,7 @@ async function streamingChat() {
                             <!-- Python -->
                             <div id="ai-chat-py" class="tab-content animate-fade-in">
                                 <x-code-block language="python">
-# Install: pip install ./sdks/python (from monorepo)
+# Install: pip install finaegis
 from zelta import {{ config('brand.name', 'Zelta') }}AI
 import asyncio
 import os
@@ -1314,8 +1314,8 @@ handleCustomerRequest('cust_123',
                             <div id="mcp-register-js" class="tab-content active animate-fade-in">
                                 <x-code-block language="javascript">
 // Register custom MCP tools for banking operations
-// Install: npm install ./sdks/javascript (from monorepo)
-import { MCPServer } from '@zelta/sdk';
+// Install: npm install @finaegis/sdk
+import { MCPServer } from '@finaegis/sdk';
 
 const mcpServer = new MCPServer({
   name: 'banking-tools',
@@ -1873,8 +1873,8 @@ curl -X POST {{ config('app.url') }}/api/v1/crosschain/bridge/initiate \
                             <!-- JavaScript -->
                             <div id="bridge-js" class="tab-content animate-fade-in">
                                 <x-code-block language="javascript">
-// Install: npm install ./sdks/javascript (from monorepo)
-import { {{ config('brand.name', 'Zelta') }} } from '@zelta/sdk';
+// Install: npm install @finaegis/sdk
+import { {{ config('brand.name', 'Zelta') }} } from '@finaegis/sdk';
 
 const client = new {{ config('brand.name', 'Zelta') }}({
   apiKey: process.env.ZELTA_API_KEY,
@@ -1925,7 +1925,7 @@ bridgeTokens('ethereum', 'polygon', 'USDC', '1000.00');
                             <!-- Python -->
                             <div id="bridge-py" class="tab-content animate-fade-in">
                                 <x-code-block language="python">
-# Install: pip install ./sdks/python (from monorepo)
+# Install: pip install finaegis
 from zelta import {{ config('brand.name', 'Zelta') }}
 import os
 
@@ -2636,14 +2636,14 @@ onboard_partner({
       {
         "language": "typescript",
         "version": "3.0.0",
-        "package_name": "@zelta/sdk",
+        "package_name": "@finaegis/sdk",
         "download_url": "{{ config('app.url') }}/developers/sdks/packages/typescript/zelta-sdk-2.0.0.tgz",
         "docs_url": "{{ config('app.url') }}/developers/sdk/typescript"
       },
       {
         "language": "python",
         "version": "3.0.0",
-        "package_name": "zelta-sdk",
+        "package_name": "finaegis",
         "download_url": "{{ config('app.url') }}/developers/sdks/packages/python/zelta-sdk-2.0.0.tar.gz",
         "docs_url": "{{ config('app.url') }}/developers/sdk/python"
       }

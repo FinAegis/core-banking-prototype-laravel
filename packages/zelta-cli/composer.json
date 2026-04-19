@@ -1,5 +1,5 @@
 {
-    "name": "zelta/cli",
+    "name": "finaegis/cli",
     "description": "Zelta CLI — manage payments, SMS, wallets, and AI agents from the terminal",
     "type": "project",
     "license": "Apache-2.0",
@@ -8,7 +8,7 @@
         "php": "^8.4",
         "guzzlehttp/guzzle": "^7.0",
         "symfony/console": "^7.0",
-        "zelta/payment-sdk": "*"
+        "finaegis/payment-sdk": "*"
     },
     "autoload": {
         "psr-4": {
