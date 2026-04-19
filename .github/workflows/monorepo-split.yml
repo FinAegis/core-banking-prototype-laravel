@@ -62,8 +62,17 @@ jobs:
           MIRROR: ${{ matrix.mirror }}
           SPLIT_SHA: ${{ steps.split.outputs.sha }}
         run: |
-          git push "https://x-access-token:${PAT}@github.com/FinAegis/${MIRROR}.git" \
-            "${SPLIT_SHA}:refs/heads/main" --force
+          if [ -z "$PAT" ]; then
+            echo "::error::MIRROR_PAT secret is empty or missing"
+            exit 1
+          fi
+          echo "PAT present, length=${#PAT}"
+          # Disable any credential helper inherited from actions/checkout so
+          # our explicit URL credentials are the only ones used.
+          git -c credential.helper= \
+              -c http.https://github.com/FinAegis/${MIRROR}.git.extraheader= \
+              push "https://x-access-token:${PAT}@github.com/FinAegis/${MIRROR}.git" \
+              "${SPLIT_SHA}:refs/heads/main" --force
 
       - name: Push tag to mirror
         if: startsWith(github.ref, 'refs/tags/')
@@ -77,8 +86,10 @@ jobs:
           if [[ "$REF" == ${TAG_PREFIX}* ]]; then
             MIRROR_TAG="v${REF#${TAG_PREFIX}}"
             echo "Pushing tag ${MIRROR_TAG} to FinAegis/${MIRROR}"
-            git push "https://x-access-token:${PAT}@github.com/FinAegis/${MIRROR}.git" \
-              "${SPLIT_SHA}:refs/tags/${MIRROR_TAG}"
+            git -c credential.helper= \
+                -c http.https://github.com/FinAegis/${MIRROR}.git.extraheader= \
+                push "https://x-access-token:${PAT}@github.com/FinAegis/${MIRROR}.git" \
+                "${SPLIT_SHA}:refs/tags/${MIRROR_TAG}"
           else
             echo "Tag ${REF} does not match prefix ${TAG_PREFIX} — skipping tag push for this mirror"
           fi
