@@ -2,6 +2,8 @@
 
 Official PHP SDK for the FinAegis API.
 
+> **Mirror repo notice** — if you're viewing this at `github.com/FinAegis/php-sdk`, that repo is a read-only split of `sdks/php/` from the [FinAegis core banking monorepo](https://github.com/FinAegis/core-banking-prototype-laravel). Please file issues and PRs against the monorepo.
+
 ## Requirements
 
 - PHP 8.0 or higher

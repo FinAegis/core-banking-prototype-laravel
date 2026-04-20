@@ -1,7 +1,7 @@
 {
   "name": "@finaegis/sdk",
-  "version": "1.0.2",
-  "description": "Official FinAegis JavaScript/TypeScript SDK for interacting with the FinAegis API",
+  "version": "1.0.3",
+  "description": "Official FinAegis JavaScript/TypeScript SDK for the FinAegis API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -12,6 +12,7 @@
   },
   "keywords": [
     "finaegis",
+    "zelta",
     "api",
     "sdk",
     "banking",
@@ -23,7 +24,16 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/FinAegis/finaegis-js.git"
+    "url": "git+https://github.com/FinAegis/core-banking-prototype-laravel.git",
+    "directory": "sdks/javascript"
+  },
+  "homepage": "https://zelta.app/developers",
+  "bugs": {
+    "url": "https://github.com/FinAegis/core-banking-prototype-laravel/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "dependencies": {
     "axios": "^1.6.0",

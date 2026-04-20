@@ -4,20 +4,16 @@
     "type": "project",
     "license": "Apache-2.0",
     "keywords": ["cli", "payments", "x402", "mpp", "fintech"],
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../zelta-sdk",
-            "options": {
-                "symlink": false
-            }
-        }
-    ],
+    "homepage": "https://zelta.app",
+    "support": {
+        "issues": "https://github.com/FinAegis/core-banking-prototype-laravel/issues",
+        "source": "https://github.com/FinAegis/cli"
+    },
     "require": {
         "php": "^8.4",
         "guzzlehttp/guzzle": "^7.0",
         "symfony/console": "^7.0",
-        "finaegis/payment-sdk": "*"
+        "finaegis/payment-sdk": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -25,6 +21,5 @@
         }
     },
     "bin": ["zelta"],
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "minimum-stability": "stable"
 }

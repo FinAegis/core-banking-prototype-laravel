@@ -10,35 +10,20 @@ permissions:
 
 jobs:
   publish:
-    name: Publish to Packagist
+    name: Notify Packagist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          tools: composer
-
-      - name: Install dependencies
-        working-directory: packages/zelta-sdk
-        run: composer install --no-dev
-
       - name: Notify Packagist
         env:
           PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
           PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
         run: |
-          curl -X POST "https://packagist.org/api/update-package?username=${PACKAGIST_USERNAME}&apiToken=${PACKAGIST_TOKEN}" \
+          curl -fsS -X POST "https://packagist.org/api/update-package?username=${PACKAGIST_USERNAME}&apiToken=${PACKAGIST_TOKEN}" \
             -H "Content-Type: application/json" \
             -d '{"repository":{"url":"https://github.com/FinAegis/payment-sdk"}}'
 
-      - name: Extract version
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/sdk-v}" >> $GITHUB_OUTPUT
-
       - name: Summary
         run: |
-          echo "## Zelta SDK v${{ steps.version.outputs.version }} Published" >> $GITHUB_STEP_SUMMARY
-          echo "Install: \`composer require finaegis/payment-sdk\`" >> $GITHUB_STEP_SUMMARY
+          VERSION="${GITHUB_REF#refs/tags/sdk-v}"
+          echo "## Zelta SDK v${VERSION} Published" >> "$GITHUB_STEP_SUMMARY"
+          echo "Install: \`composer require finaegis/payment-sdk\`" >> "$GITHUB_STEP_SUMMARY"
