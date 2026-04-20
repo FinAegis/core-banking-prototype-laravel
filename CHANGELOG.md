@@ -5,6 +5,40 @@ All notable changes to the FinAegis Core Banking Platform will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.10.10] - 2026-04-20
+
+Post-release review of v7.10.8 surfaced dead code, supply-chain gaps, and wasted workflow steps that `continue-on-error: true` had been hiding. This release fixes them in a single sweep. Multi-agent review across code reuse, quality, efficiency, and packaging lenses.
+
+### Removed
+- **Homebrew formula** — `packages/zelta-cli/Formula/zelta.rb` had `sha256 "PLACEHOLDER_SHA256"` and pointed to a tap repo that never existed. `brew install finaegis/tap/zelta` could not work. Removed formula + stub `update-homebrew` job in `cli-release.yml` + the README install line.
+- **Shell installer** — `packages/zelta-cli/install.sh` downloaded `zelta-${OS}-${ARCH}` binaries the pipeline has never produced (only `zelta.phar`). `curl | bash` would 404. Canonical install is `npm install -g @finaegis/cli`.
+
+### Changed
+- `packages/zelta-cli/composer.json` — dropped the `type: path` repository override and `minimum-stability: dev`. `finaegis/payment-sdk` is now on Packagist with a stable tag (v1.0.1), so `^1.0` resolves cleanly. Consumers of the Packagist mirror no longer see a broken path-repo entry.
+- `sdks/javascript/package.json` — bumped to 1.0.3. Fixed stale repo URL (pointed at nonexistent `finaegis-js`), added `homepage`, `bugs`, `directory` subpath, and `publishConfig.provenance: true`.
+
+### Fixed (supply chain + correctness)
+- `cli-release.yml` — pinned Box to 4.7.0 with SHA-256 verification (was `releases/latest/download/box.phar`, mutable attack surface)
+- `monorepo-split.yml` — pinned `splitsh/lite` v1.0.1 with SHA-256 verification; `persist-credentials: false` on `actions/checkout` replaces the inline `-c credential.helper=` workaround from #941 and removes the debug `echo "length=${#PAT}"` line
+- `cli-release.yml` + `sdk-javascript-release.yml` — `npm publish --provenance` for sigstore attestation (requires `id-token: write`)
+- `@finaegis/cli` tarball — now ships LICENSE; `bin/zelta` preflight-checks for `php` on PATH with a friendly error; package.json declares `homepage`, `bugs`, `engines`, `os`, and a `directory` subpath within the monorepo
+- `sdks/javascript/LICENSE` — was listed in `files` whitelist but the file didn't exist; added
+
+### Improved (efficiency + polish)
+- `sdk-release.yml` + `sdk-php-release.yml` — these workflows only POST to Packagist. Dropped the wasted PHP setup + `composer install` steps (~45s per release). Curl now uses `-fsS` so HTTP failures surface.
+- `sdk-javascript-release.yml` — added `cache: 'npm'` + proper `npm ci` guard
+- `monorepo-split.yml` — added `paths:` filter so main-push splits only fire on actual distribution-subdir changes
+- Three mirror subdir READMEs — added "read-only mirror" notice so developers landing at `github.com/FinAegis/{payment-sdk,cli,php-sdk}` from Packagist know where to file issues
+
+### Deferred (tracked for later)
+- SHA-pinning every third-party GitHub Action
+- PyPI Trusted Publisher (OIDC) migration
+- `sdks/python/setup.py` → `pyproject.toml`
+- Collapsing `monorepo-split.yml` 3-way matrix into one job
+- Extracting a `notify-packagist` composite action
+
+---
+
 ## [7.10.9] - 2026-04-19
 
 ### Changed
