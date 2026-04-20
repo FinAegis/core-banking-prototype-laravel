@@ -51,10 +51,11 @@ jobs:
         run: |
           # splitsh/lite v2.0.0 ships no pre-built binaries; v1.0.1 is the last
           # tag with Linux amd64 artifacts and is what Symfony/Laravel still use.
-          curl -fsSL "https://github.com/splitsh/lite/releases/download/${SPLITSH_VERSION}/lite_linux_amd64.tar.gz" -o /tmp/splitsh.tar.gz
-          echo "${SPLITSH_SHA256}  /tmp/splitsh.tar.gz" | sha256sum -c -
-          tar xzf /tmp/splitsh.tar.gz -C /tmp
-          sudo mv /tmp/splitsh-lite /usr/local/bin/
+          mkdir -p /tmp/splitsh
+          curl -fsSL "https://github.com/splitsh/lite/releases/download/${SPLITSH_VERSION}/lite_linux_amd64.tar.gz" -o /tmp/splitsh/lite.tar.gz
+          echo "${SPLITSH_SHA256}  /tmp/splitsh/lite.tar.gz" | sha256sum -c -
+          tar xzf /tmp/splitsh/lite.tar.gz -C /tmp/splitsh
+          sudo mv /tmp/splitsh/splitsh-lite /usr/local/bin/
           splitsh-lite --version || true
 
       - name: Split subdirectory
