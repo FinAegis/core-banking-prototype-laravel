@@ -134,7 +134,7 @@ jobs:
               "url": "https://github.com/FinAegis/core-banking-prototype-laravel.git",
               "directory": "packages/zelta-cli"
             },
-            "homepage": "https://zelta.app/features/zelta-cli",
+            "homepage": "https://finaegis.org/features/zelta-cli",
             "bugs": {
               "url": "https://github.com/FinAegis/core-banking-prototype-laravel/issues"
             },
