@@ -3,7 +3,7 @@
     "description": "Official PHP SDK for the FinAegis API",
     "type": "library",
     "keywords": ["finaegis", "api", "sdk", "banking", "finance", "gcu"],
-    "homepage": "https://github.com/FinAegis/finaegis-php",
+    "homepage": "https://finaegis.org",
     "license": "MIT",
     "authors": [
         {
@@ -11,6 +11,11 @@
             "email": "sdk@finaegis.org"
         }
     ],
+    "support": {
+        "docs": "https://finaegis.org/developers",
+        "issues": "https://github.com/FinAegis/core-banking-prototype-laravel/issues",
+        "source": "https://github.com/FinAegis/php-sdk"
+    },
     "require": {
         "php": "^8.0",
         "guzzlehttp/guzzle": "^7.5",
