@@ -27,7 +27,7 @@
     "url": "git+https://github.com/FinAegis/core-banking-prototype-laravel.git",
     "directory": "sdks/javascript"
   },
-  "homepage": "https://zelta.app/developers",
+  "homepage": "https://finaegis.org/developers",
   "bugs": {
     "url": "https://github.com/FinAegis/core-banking-prototype-laravel/issues"
   },

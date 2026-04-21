@@ -813,6 +813,7 @@
             <p class="text-sm opacity-40">&copy; {{ date('Y') }} {{ $brand }}. All rights reserved.</p>
             <div class="flex gap-6">
                 <a href="mailto:{{ config('brand.support_email', 'info@zelta.app') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity">Contact</a>
+                <a href="{{ config('brand.docs_url') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity" rel="noopener">Developers</a>
                 <a href="{{ route('legal.privacy') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity">Privacy</a>
                 <a href="{{ route('legal.terms') }}" class="text-sm opacity-40 hover:opacity-100 transition-opacity">Terms</a>
             </div>

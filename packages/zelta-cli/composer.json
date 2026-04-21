@@ -4,8 +4,9 @@
     "type": "project",
     "license": "Apache-2.0",
     "keywords": ["cli", "payments", "x402", "mpp", "fintech"],
-    "homepage": "https://zelta.app",
+    "homepage": "https://finaegis.org",
     "support": {
+        "docs": "https://finaegis.org/developers",
         "issues": "https://github.com/FinAegis/core-banking-prototype-laravel/issues",
         "source": "https://github.com/FinAegis/cli"
     },

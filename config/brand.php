@@ -31,6 +31,8 @@ return [
 
     'github_url' => env('BRAND_GITHUB_URL', 'https://github.com/FinAegis/core-banking-prototype-laravel'),
 
+    'docs_url' => env('BRAND_DOCS_URL', 'https://finaegis.org/developers'),
+
     'ga_id' => env('GOOGLE_ANALYTICS_ID', 'G-X65KH9NFMY'),
 
     'google_site_verification' => env('GOOGLE_SITE_VERIFICATION', ''),

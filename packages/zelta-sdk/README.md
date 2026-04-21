@@ -38,7 +38,7 @@ echo $result->paid;       // true
 
 ## Documentation
 
-Full documentation is available at [zelta.app/developers](https://zelta.app/developers).
+Full documentation is available at [finaegis.org/developers](https://finaegis.org/developers).
 
 ## License
 

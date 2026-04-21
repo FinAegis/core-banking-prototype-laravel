@@ -3,16 +3,17 @@
     "description": "Zelta Payment SDK — transparent x402 and MPP payment handling for PHP",
     "type": "library",
     "license": "Apache-2.0",
-    "homepage": "https://zelta.app",
+    "homepage": "https://finaegis.org",
     "authors": [
         {
             "name": "FinAegis Contributors",
-            "email": "dev@zelta.app"
+            "email": "sdk@finaegis.org"
         }
     ],
     "support": {
-        "docs": "https://zelta.app/developers",
-        "issues": "https://github.com/FinAegis/core-banking-prototype-laravel/issues"
+        "docs": "https://finaegis.org/developers",
+        "issues": "https://github.com/FinAegis/core-banking-prototype-laravel/issues",
+        "source": "https://github.com/FinAegis/payment-sdk"
     },
     "require": {
         "php": "^8.4",

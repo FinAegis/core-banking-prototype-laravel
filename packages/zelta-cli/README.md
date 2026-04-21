@@ -48,9 +48,9 @@ zelta pay:stats --json --period day | jq -e '.failed == 0'
 
 ## Documentation
 
-- [Zelta CLI Feature Page](https://zelta.app/features/zelta-cli)
-- [Developer Docs](https://zelta.app/developers)
-- [x402 Protocol](https://zelta.app/features/x402-protocol)
+- [Zelta CLI Feature Page](https://finaegis.org/features/zelta-cli)
+- [Developer Docs](https://finaegis.org/developers)
+- [x402 Protocol](https://finaegis.org/features/x402-protocol)
 
 ## License
 
