@@ -23,13 +23,19 @@ php artisan user:create --admin      # Create user (--admin for admin role)
 php artisan user:promote user@email  # Promote existing user to admin
 php artisan user:demote user@email   # Remove admin role
 php artisan user:admins              # List all admin users
+
+# Reviewer / demo accounts (operator-only; requires admin role)
+php artisan account:provision-reviewer --email=appreview@... --operator-email=admin@...
+php artisan account:list-reviewers
+php artisan account:disable-reviewer --email=X          # or --all-expired
+php artisan account:purge-reviewer --email=X --confirm  # anonymizes email + disables
 ```
 
 ## Architecture
 
 - **Web3 Integration**: `app/Infrastructure/Web3/` (EthRpcClient, AbiEncoder) — also legacy `app/Domain/Relayer/Services/EthRpcClient.php`
 - **ZK Circuits**: `storage/app/circuits/` (Circom sources + Solidity verifiers)
-- **56 domains** in `app/Domain/` (DDD bounded contexts)
+- **57 domains** in `app/Domain/` (DDD bounded contexts)
 - **Payment Protocols**: x402 (Coinbase), MPP (Stripe/Tempo), AP2 (Google)
 - **Packages**: `packages/zelta-sdk/` (Payment SDK), `packages/zelta-cli/` (CLI binary)
 - **Event Sourcing**: Spatie v7.7+ with domain-specific tables
@@ -79,6 +85,7 @@ namespace App\Domain\Exchange\Services;
 | Solana addresses | Case-sensitive — never `strtolower()` (unlike EVM which lowercases) |
 | Helius API key | Must be query param `?api-key=` — does NOT support Authorization header |
 | Webhook metadata | Whitelist fields via `array_intersect_key()` — never store raw `$tx` payload |
+| Bypass flag missing test | Every new bypass flag in `account_flags` needs a matching feature test in `tests/Feature/AccountProvisioning/Bypasses/` asserting both sides (flag set = allow, flag unset = enforce) |
 
 ```bash
 gh pr checks <PR_NUMBER>              # Check PR status
@@ -126,3 +133,4 @@ Packagist sources the three PHP packages from **split-mirror repos**, not the mo
 - Alchemy webhook signing keys: stored in `webhook_endpoints` table (managed by `AlchemyWebhookManager`), not env vars
 - Test tables: use `Tests\Traits\CreatesSolanaTestTables` trait for in-memory SQLite schema in webhook/wallet tests
 - Parallel agent merges: always check for duplicate `use` imports after merging agent branches
+- Reviewer accounts: operator-only tool for app-store review submissions — see `docs/operations/reviewer-accounts.md`. Bypasses are scoped via `account_flags` table; the daily sweep runs at 00:10 UTC via `routes/console.php`.
