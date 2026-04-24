@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AccountProvisioning;
 
+use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
+use RuntimeException;
 
 it('registers account:disable-reviewer --all-expired on the daily schedule', function () {
     $schedule = app(Schedule::class);
@@ -12,6 +14,9 @@ it('registers account:disable-reviewer --all-expired on the daily schedule', fun
 
     $match = $events->first(fn ($e) => str_contains($e->command ?? '', 'account:disable-reviewer --all-expired'));
 
-    expect($match)->not->toBeNull();
+    if (! $match instanceof Event) {
+        throw new RuntimeException('Expected scheduled event for account:disable-reviewer --all-expired');
+    }
+
     expect($match->expression)->toBe('10 0 * * *');
 });

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\AccountProvisioning\Services\AccountFlagsService;
 use App\Http\Middleware\GraphQLQueryCostMiddleware;
 use App\Http\Middleware\GraphQLRateLimitMiddleware;
 use Illuminate\Cache\ArrayStore;
@@ -16,7 +17,7 @@ describe('GraphQLRateLimitMiddleware', function () {
     beforeEach(function () {
         $this->store = new Repository(new ArrayStore());
         $this->limiter = new RateLimiter($this->store);
-        $this->middleware = new GraphQLRateLimitMiddleware($this->limiter);
+        $this->middleware = new GraphQLRateLimitMiddleware($this->limiter, app(AccountFlagsService::class));
     });
 
     it('allows requests under the rate limit', function () {

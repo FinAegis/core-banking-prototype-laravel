@@ -55,7 +55,8 @@ it('provisions all content sub-seeders in one transaction', function () {
     expect(RewardProfile::where('user_id', $user->id)->count())->toBe(1);
 
     // Profile does NOT write the flag row — that's the orchestrator's job.
-    expect($user->fresh()->accountFlag)->toBeNull();
+    $fresh = User::findOrFail($user->id);
+    expect($fresh->accountFlag)->toBeNull();
 });
 
 it('is idempotent end-to-end', function () {

@@ -30,8 +30,7 @@ it('creates a reviewer user with flags and sub-seeded content (happy path)', fun
 
     expect($exit)->toBe(0);
 
-    $user = User::where('email', 'appreview@finaegis.com')->first();
-    expect($user)->not->toBeNull();
+    $user = User::where('email', 'appreview@finaegis.com')->firstOrFail();
 
     $flag = AccountFlag::where('user_id', $user->id)->first();
     expect($flag)->not->toBeNull();
@@ -53,7 +52,7 @@ it('is idempotent across repeated invocations', function () {
     $this->artisan('account:provision-reviewer', $args)->assertExitCode(0);
     $this->artisan('account:provision-reviewer', $args)->assertExitCode(0);
 
-    $user = User::where('email', 'appreview@finaegis.com')->first();
+    $user = User::where('email', 'appreview@finaegis.com')->firstOrFail();
     expect(AccountFlag::where('user_id', $user->id)->count())->toBe(1);
     expect(BlockchainAddress::where('user_uuid', $user->uuid)->count())->toBe(2);
 });

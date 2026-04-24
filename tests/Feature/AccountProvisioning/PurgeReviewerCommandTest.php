@@ -39,8 +39,7 @@ it('purges (anonymizes + disables) a review account with --confirm', function ()
     ])->assertExitCode(0);
 
     // Email anonymized
-    $user = User::find($reviewer->id);
-    expect($user)->not->toBeNull();
+    $user = User::findOrFail($reviewer->id);
     expect($user->email)->not->toBe('reviewer@finaegis.com');
     expect($user->email)->toStartWith('purged-')->toEndWith('@example.invalid');
 
