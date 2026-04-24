@@ -109,7 +109,8 @@ class LoginController extends Controller
 
         // Verify device attestation if provided and enabled
         if ($request->filled('device_attestation') && config('mobile.attestation.enabled')) {
-            $verified = $this->biometricJWTService->verifyDeviceAttestation(
+            $verified = $this->biometricJWTService->verifyDeviceAttestationForUser(
+                $user,
                 $request->input('device_attestation'),
                 $request->input('device_type', 'android')
             );

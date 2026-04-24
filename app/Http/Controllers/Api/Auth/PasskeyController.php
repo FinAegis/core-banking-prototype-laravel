@@ -345,10 +345,18 @@ class PasskeyController extends Controller
 
         // Verify device attestation if provided and enabled
         if ($request->filled('device_attestation') && config('mobile.attestation.enabled')) {
-            $verified = $this->biometricJWTService->verifyDeviceAttestation(
-                $request->input('device_attestation'),
-                $request->input('device_type', 'android')
-            );
+            /** @var \App\Models\User|null $user */
+            $user = $device->user;
+            $verified = $user !== null
+                ? $this->biometricJWTService->verifyDeviceAttestationForUser(
+                    $user,
+                    $request->input('device_attestation'),
+                    $request->input('device_type', 'android')
+                )
+                : $this->biometricJWTService->verifyDeviceAttestation(
+                    $request->input('device_attestation'),
+                    $request->input('device_type', 'android')
+                );
             if (! $verified) {
                 return response()->json([
                     'success' => false,

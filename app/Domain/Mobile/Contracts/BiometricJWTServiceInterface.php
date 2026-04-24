@@ -57,6 +57,20 @@ interface BiometricJWTServiceInterface
     public function verifyDeviceAttestation(string $attestation, string $deviceType): bool;
 
     /**
+     * Verify device attestation for a specific authenticated user.
+     *
+     * Short-circuits to true when the user has an active review-account flag
+     * with bypass_device_attestation=true. Otherwise delegates to
+     * verifyDeviceAttestation().
+     *
+     * @param  User  $user  The authenticated user
+     * @param  string  $attestation  The attestation data from the device
+     * @param  string  $deviceType  'ios' or 'android'
+     * @return bool True if attestation is valid or bypassed
+     */
+    public function verifyDeviceAttestationForUser(User $user, string $attestation, string $deviceType): bool;
+
+    /**
      * Revoke all tokens for a device.
      *
      * @param  MobileDevice  $device  The device to revoke tokens for
