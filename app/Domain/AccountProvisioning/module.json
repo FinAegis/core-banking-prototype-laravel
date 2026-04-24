@@ -1,0 +1,31 @@
+{
+    "$schema": "https://finaegis.io/schemas/module.json",
+    "name": "finaegis/account-provisioning",
+    "version": "1.0.0",
+    "description": "Operator-only provisioning of pre-seeded personas (reviewer/demo accounts) with scoped security bypasses",
+    "type": "core",
+    "dependencies": {
+        "required": {
+            "finaegis/shared": "^1.0",
+            "finaegis/user": "^1.3"
+        },
+        "optional": {
+            "finaegis/wallet": "*",
+            "finaegis/card-issuance": "*",
+            "finaegis/rewards": "*",
+            "finaegis/trust-cert": "*"
+        }
+    },
+    "provides": {
+        "interfaces": [
+            "App\\Domain\\AccountProvisioning\\Contracts\\AccountProfile"
+        ],
+        "events": [],
+        "commands": [
+            "account:provision-reviewer",
+            "account:list-reviewers",
+            "account:disable-reviewer",
+            "account:purge-reviewer"
+        ]
+    }
+}

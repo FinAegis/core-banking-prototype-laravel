@@ -187,6 +187,16 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Get the account flag row (reviewer/demo provisioning bypasses).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Domain\AccountProvisioning\Models\AccountFlag, $this>
+     */
+    public function accountFlag(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Domain\AccountProvisioning\Models\AccountFlag::class);
+    }
+
+    /**
      * Get the bank preferences for the user.
      *
      * @return HasMany<UserBankPreference, $this>
