@@ -45,6 +45,10 @@ class AppServiceProvider extends ServiceProvider
                 return null;
             }
         });
+
+        // Register AccountFlagsService as a singleton so the per-request cache persists
+        // across the lifecycle of a single HTTP request or console command.
+        $this->app->singleton(\App\Domain\AccountProvisioning\Services\AccountFlagsService::class);
     }
 
     /**
