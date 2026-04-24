@@ -3187,6 +3187,20 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.10.11 — Reviewer / Demo Account Provisioning (RELEASED)
+
+**Release Date**: April 24, 2026
+**Theme**: Scoped, audited account bypasses for app-store reviewers, partner demos, and internal QA personas
+
+### Delivered Features
+- New `app/Domain/AccountProvisioning/` domain with `account_flags` table, `AccountProfile` interface, and `ReviewerAccountProfile`.
+- Four operator-only CLI commands: `account:provision-reviewer`, `account:list-reviewers`, `account:disable-reviewer` (with `--all-expired` / `--re-enable`), `account:purge-reviewer`.
+- Scoped, audited security bypasses at five existing enforcement points (device attestation, rate limits, sanctions screening, notifications, KYC level). Each hit emits `bypass.fired` with user + bypass name.
+- Daily scheduled sweep at 00:10 UTC auto-disables expired reviewer accounts; 60-day default / 90-day hard cap.
+- Operator runbook at `docs/operations/reviewer-accounts.md`; security model at `docs/security/account-flags.md`.
+
+---
+
 ## Version 7.10.8 — Public SDK Distribution (RELEASED)
 
 **Release Date**: April 19, 2026
@@ -3236,5 +3250,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.10.8*
-*Updated: April 19, 2026 (v7.10.8 public SDK distribution release)*
+*Document Version: 7.10.11*
+*Updated: April 24, 2026 (v7.10.11 reviewer / demo account provisioning release)*
