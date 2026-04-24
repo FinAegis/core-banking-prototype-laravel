@@ -214,3 +214,9 @@ Schedule::command('trustcert:check-expired')
     ->onFailure(function () {
         Log::warning('TrustCert expiry check failed to run');
     });
+
+// Daily sweep: auto-disable expired reviewer/demo accounts.
+Schedule::command('account:disable-reviewer --all-expired')
+    ->dailyAt('00:10')
+    ->description('Auto-disable expired review accounts')
+    ->appendOutputTo(storage_path('logs/account-expiry-sweep.log'));
