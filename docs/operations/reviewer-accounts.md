@@ -23,28 +23,41 @@ This is **not** for customer-support impersonation, "login as user" debugging, o
 ```bash
 php artisan account:provision-reviewer \
   --email=appreview-2026-q2@example-reviewer.invalid \
-  --name="App Review 2026 Q2" \
   --operator-email=ops-admin@finaegis.com \
-  --expires-in-days=60 \
+  --expires-days=60 \
   --note="Apple App Review 2026-Q2 submission"
-# production only:
+# production only, append:
 #   --allow-production
 ```
+
+The account display name is hardcoded to `App Reviewer`. Additional flags: `--password=…` (rotate an existing account), `--region=US`, `--rotate-password`, `--force-convert` (blocked in production), `--dry-run`.
 
 Expected JSON output shape:
 
 ```json
 {
-  "status": "ok",
-  "user_id": 41234,
   "email": "appreview-2026-q2@example-reviewer.invalid",
   "password": "<GENERATED-ONCE-ONLY>",
+  "user_id": 41234,
+  "flags": {
+    "is_review_account": true,
+    "bypass_device_attestation": true,
+    "bypass_rate_limit": true,
+    "bypass_sanctions_screening": true,
+    "bypass_sms_otp": true,
+    "suppress_notifications": true,
+    "kyc_override_level": 2,
+    "note": "Apple App Review 2026-Q2 submission",
+    "expires_at": "2026-06-23T12:00:00Z",
+    "created_by": 7
+  },
   "expires_at": "2026-06-23T12:00:00Z",
-  "flag_id": 187,
-  "operator_email": "ops-admin@finaegis.com",
-  "profile": "reviewer"
+  "operator": "ops-admin@finaegis.com",
+  "dry_run": false
 }
 ```
+
+Re-running the command with the same `--email` is idempotent — `"password": "unchanged"` is emitted instead when no password rotation was requested.
 
 Copy the full JSON into a new 1Password item titled `reviewer:<email>`; share the vault entry with the mobile team. **Never paste the password into email, Slack, Linear, Jira, or commit logs.** The password is displayed once and not recoverable.
 
