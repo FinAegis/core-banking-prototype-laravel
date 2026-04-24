@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Domain\Account\Events\MoneyTransferred;
 use App\Domain\Account\Listeners\CreateAccountForNewUser;
+use App\Domain\AccountProvisioning\Support\SuppressNotificationsListener;
 use App\Domain\CardIssuance\Events\CardProvisioned;
 use App\Domain\Compliance\Events\KycVerificationCompleted;
 use App\Domain\Mobile\Listeners\LogMobileAuditEventListener;
@@ -20,6 +21,7 @@ use App\Domain\VisaCli\Listeners\SyncVisaCliCardToCardIssuance;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Notifications\Events\NotificationSending;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -50,6 +52,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         VisaCliCardEnrolled::class => [
             SyncVisaCliCardToCardIssuance::class,
+        ],
+        NotificationSending::class => [
+            SuppressNotificationsListener::class,
         ],
     ];
 
