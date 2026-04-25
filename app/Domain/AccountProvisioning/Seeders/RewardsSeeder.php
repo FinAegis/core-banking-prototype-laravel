@@ -55,10 +55,7 @@ class RewardsSeeder
     private function ensureQuest(): RewardQuest
     {
         /** @var RewardQuest|null $existing */
-        $existing = RewardQuest::where('slug', self::DEFAULT_QUEST_SLUG)
-            ->orWhere('is_active', true)
-            ->orderBy('sort_order')
-            ->first();
+        $existing = RewardQuest::where('slug', self::DEFAULT_QUEST_SLUG)->first();
 
         if ($existing instanceof RewardQuest) {
             return $existing;
