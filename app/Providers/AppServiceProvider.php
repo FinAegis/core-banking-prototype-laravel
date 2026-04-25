@@ -46,9 +46,10 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Register AccountFlagsService as a singleton so the per-request cache persists
-        // across the lifecycle of a single HTTP request or console command.
-        $this->app->singleton(\App\Domain\AccountProvisioning\Services\AccountFlagsService::class);
+        // Register AccountFlagsService as request-scoped so the per-request cache
+        // persists across a single HTTP request or console command, but is reset
+        // between requests / queue jobs / Octane workers (avoids stale state).
+        $this->app->scoped(\App\Domain\AccountProvisioning\Services\AccountFlagsService::class);
     }
 
     /**
