@@ -10,6 +10,7 @@ use App\Domain\AccountProvisioning\Services\AccountProvisioningService;
 use App\Domain\AccountProvisioning\ValueObjects\ProvisioningContext;
 use App\Domain\User\Values\UserRoles;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 
 class AccountDisableReviewerCommand extends Command
@@ -86,9 +87,11 @@ class AccountDisableReviewerCommand extends Command
                 email: $email,
                 name: 'App Reviewer',
                 region: 'US',
-                expiresAt: null,
+                expiresAt: $user->accountFlag->expires_at !== null
+                    ? CarbonImmutable::instance($user->accountFlag->expires_at)
+                    : null,
                 note: $user->accountFlag->note,
-                operatorId: (int) ($user->accountFlag->created_by ?? 0),
+                operatorId: (int) $operator->id,
             );
             $service->reEnable($user, $profile, $ctx);
             $this->info("re-enabled: {$email}");

@@ -95,6 +95,40 @@ it('--re-enable restores bypasses and clears disabled_at', function () {
     expect($flag->bypass_rate_limit)->toBeTrue();
 });
 
+it('--re-enable preserves the original expires_at', function () {
+    $originalExpiry = CarbonImmutable::now()->addDays(45);
+
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'                   => $reviewer->id,
+        'is_review_account'         => true,
+        'bypass_device_attestation' => true,
+        'expires_at'                => $originalExpiry,
+        'created_by'                => $this->operator->id,
+    ]);
+
+    // Disable
+    $this->artisan('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ])->assertExitCode(0);
+
+    $disabled = AccountFlag::where('user_id', $reviewer->id)->first();
+    expect($disabled->expires_at)->not->toBeNull();
+    expect($disabled->expires_at->toIso8601String())->toBe($originalExpiry->toIso8601String());
+
+    // Re-enable
+    $this->artisan('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+        '--re-enable'      => true,
+    ])->assertExitCode(0);
+
+    $reEnabled = AccountFlag::where('user_id', $reviewer->id)->first();
+    expect($reEnabled->expires_at)->not->toBeNull();
+    expect($reEnabled->expires_at->toIso8601String())->toBe($originalExpiry->toIso8601String());
+});
+
 it('exits 1 when --email is neither a review account nor --all-expired is passed', function () {
     User::factory()->create(['email' => 'normal@finaegis.com']);
 
