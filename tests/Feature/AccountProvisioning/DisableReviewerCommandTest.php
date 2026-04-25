@@ -32,8 +32,10 @@ it('disables a reviewer via --email, revokes bypasses, keeps is_review_account t
         'created_by'                => $this->operator->id,
     ]);
 
-    $this->artisan('account:disable-reviewer', ['--email' => 'reviewer@finaegis.com'])
-        ->assertExitCode(0);
+    $this->artisan('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ])->assertExitCode(0);
 
     $flag = AccountFlag::where('user_id', $reviewer->id)->first();
     expect($flag->is_review_account)->toBeTrue();
@@ -82,8 +84,9 @@ it('--re-enable restores bypasses and clears disabled_at', function () {
     ]);
 
     $this->artisan('account:disable-reviewer', [
-        '--email'     => 'reviewer@finaegis.com',
-        '--re-enable' => true,
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+        '--re-enable'      => true,
     ])->assertExitCode(0);
 
     $flag = AccountFlag::where('user_id', $reviewer->id)->first();
@@ -93,8 +96,63 @@ it('--re-enable restores bypasses and clears disabled_at', function () {
 });
 
 it('exits 1 when --email is neither a review account nor --all-expired is passed', function () {
-    $nonReview = User::factory()->create(['email' => 'normal@finaegis.com']);
+    User::factory()->create(['email' => 'normal@finaegis.com']);
 
-    $this->artisan('account:disable-reviewer', ['--email' => 'normal@finaegis.com'])
-        ->assertExitCode(1);
+    $this->artisan('account:disable-reviewer', [
+        '--email'          => 'normal@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ])->assertExitCode(1);
+});
+
+it('exits 1 in production without --allow-production', function () {
+    app()->detectEnvironment(fn () => 'production');
+
+    $this->artisan('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ])->assertExitCode(1);
+});
+
+it('exits 1 when --email is provided without --operator-email', function () {
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'           => $reviewer->id,
+        'is_review_account' => true,
+        'created_by'        => $this->operator->id,
+    ]);
+
+    $this->artisan('account:disable-reviewer', [
+        '--email' => 'reviewer@finaegis.com',
+    ])->assertExitCode(1);
+});
+
+it('exits 1 when --re-enable is invoked without --operator-email', function () {
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'           => $reviewer->id,
+        'is_review_account' => true,
+        'disabled_at'       => now(),
+        'created_by'        => $this->operator->id,
+    ]);
+
+    $this->artisan('account:disable-reviewer', [
+        '--email'     => 'reviewer@finaegis.com',
+        '--re-enable' => true,
+    ])->assertExitCode(1);
+});
+
+it('exits 1 when --operator-email resolves to a non-admin user', function () {
+    $nonAdmin = User::factory()->create(['email' => 'plain@finaegis.com']);
+
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'           => $reviewer->id,
+        'is_review_account' => true,
+        'created_by'        => $this->operator->id,
+    ]);
+
+    $this->artisan('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => $nonAdmin->email,
+    ])->assertExitCode(1);
 });

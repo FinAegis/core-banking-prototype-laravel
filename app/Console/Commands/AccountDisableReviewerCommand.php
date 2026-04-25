@@ -8,6 +8,7 @@ use App\Domain\AccountProvisioning\Models\AccountFlag;
 use App\Domain\AccountProvisioning\Profiles\ReviewerAccountProfile;
 use App\Domain\AccountProvisioning\Services\AccountProvisioningService;
 use App\Domain\AccountProvisioning\ValueObjects\ProvisioningContext;
+use App\Domain\User\Values\UserRoles;
 use App\Models\User;
 use Illuminate\Console\Command;
 
@@ -17,13 +18,21 @@ class AccountDisableReviewerCommand extends Command
     protected $signature = 'account:disable-reviewer
                             {--email=}
                             {--all-expired}
-                            {--re-enable}';
+                            {--re-enable}
+                            {--allow-production : Required when APP_ENV=production}
+                            {--operator-email= : Admin operator email (required for --email and --re-enable; not required for --all-expired)}';
 
     /** @var string */
     protected $description = 'Disable (revoke bypasses) or re-enable a reviewer account';
 
     public function handle(AccountProvisioningService $service, ReviewerAccountProfile $profile): int
     {
+        if (app()->environment('production') && ! $this->option('allow-production')) {
+            $this->error('Production guard: --allow-production is required when APP_ENV=production.');
+
+            return 1;
+        }
+
         $reEnable = (bool) $this->option('re-enable');
 
         if ($this->option('all-expired')) {
@@ -47,6 +56,20 @@ class AccountDisableReviewerCommand extends Command
         $email = (string) $this->option('email');
         if ($email === '') {
             $this->error('--email or --all-expired is required');
+
+            return 1;
+        }
+
+        $operatorEmail = (string) $this->option('operator-email');
+        if ($operatorEmail === '') {
+            $this->error('--operator-email is required');
+
+            return 1;
+        }
+
+        $operator = User::where('email', $operatorEmail)->first();
+        if ($operator === null || ! $operator->hasRole(UserRoles::ADMIN->value)) {
+            $this->error("Operator {$operatorEmail} not found or not an admin.");
 
             return 1;
         }
