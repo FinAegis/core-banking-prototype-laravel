@@ -54,6 +54,11 @@ class ApiRateLimitMiddleware
         ],
     ];
 
+    public function __construct(
+        private readonly AccountFlagsService $flags,
+    ) {
+    }
+
     /**
      * Handle an incoming request.
      */
@@ -71,11 +76,8 @@ class ApiRateLimitMiddleware
 
         // Short-circuit for review accounts with bypass_rate_limit=true.
         $user = $request->user();
-        if ($user !== null) {
-            $flags = app(AccountFlagsService::class);
-            if ($flags->hasReviewBypass($user, BypassType::RATE_LIMIT)) {
-                return $next($request);
-            }
+        if ($user !== null && $this->flags->hasReviewBypass($user, BypassType::RATE_LIMIT)) {
+            return $next($request);
         }
 
         // Check for BaaS partner and apply tier-based limits
