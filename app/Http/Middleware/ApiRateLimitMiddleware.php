@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\AccountProvisioning\Enums\BypassType;
 use App\Domain\AccountProvisioning\Services\AccountFlagsService;
 use App\Domain\FinancialInstitution\Models\FinancialInstitutionPartner;
 use App\Domain\FinancialInstitution\Services\PartnerUsageMeteringService;
@@ -72,7 +73,7 @@ class ApiRateLimitMiddleware
         $user = $request->user();
         if ($user !== null) {
             $flags = app(AccountFlagsService::class);
-            if ($flags->hasReviewBypass($user, 'rate_limit')) {
+            if ($flags->hasReviewBypass($user, BypassType::RATE_LIMIT)) {
                 return $next($request);
             }
         }

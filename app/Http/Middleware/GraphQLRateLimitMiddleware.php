@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\AccountProvisioning\Enums\BypassType;
 use App\Domain\AccountProvisioning\Services\AccountFlagsService;
 use Closure;
 use Illuminate\Cache\RateLimiter;
@@ -32,7 +33,7 @@ class GraphQLRateLimitMiddleware
     {
         // Short-circuit for review accounts with bypass_rate_limit=true.
         $user = $request->user();
-        if ($user !== null && $this->flags->hasReviewBypass($user, 'rate_limit')) {
+        if ($user !== null && $this->flags->hasReviewBypass($user, BypassType::RATE_LIMIT)) {
             return $next($request);
         }
 

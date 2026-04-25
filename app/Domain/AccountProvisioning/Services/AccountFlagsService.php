@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\AccountProvisioning\Services;
 
+use App\Domain\AccountProvisioning\Enums\BypassType;
 use App\Domain\AccountProvisioning\Models\AccountFlag;
 use App\Models\User;
 
@@ -25,7 +26,7 @@ class AccountFlagsService
         return $this->cache[$userId] = $flag;
     }
 
-    public function hasReviewBypass(User|int $user, string $bypass): bool
+    public function hasReviewBypass(User|int $user, BypassType|string $bypass): bool
     {
         $flag = $this->forUser($user);
 
@@ -33,23 +34,21 @@ class AccountFlagsService
             return false;
         }
 
-        $column = 'bypass_' . $bypass;
+        $bypassType = $bypass instanceof BypassType
+            ? $bypass
+            : BypassType::tryFrom($bypass);
 
-        if (! in_array($column, [
-            'bypass_device_attestation',
-            'bypass_rate_limit',
-            'bypass_sanctions_screening',
-            'bypass_sms_otp',
-        ], true)) {
+        if ($bypassType === null) {
             return false;
         }
 
+        $column = $bypassType->column();
         $hit = (bool) $flag->{$column};
 
         if ($hit) {
             logger()->info('bypass.fired', [
                 'user_id' => $flag->user_id,
-                'bypass'  => $bypass,
+                'bypass'  => $bypassType->value,
                 'reason'  => 'review_account',
             ]);
         }

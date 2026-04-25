@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Mobile\Services;
 
+use App\Domain\AccountProvisioning\Enums\BypassType;
 use App\Domain\AccountProvisioning\Services\AccountFlagsService;
 use App\Domain\Mobile\Contracts\BiometricJWTServiceInterface;
 use App\Domain\Mobile\Exceptions\BiometricJWTException;
@@ -230,7 +231,7 @@ class BiometricJWTService implements BiometricJWTServiceInterface
      */
     public function verifyDeviceAttestationForUser(User $user, string $attestation, string $deviceType): bool
     {
-        if ($this->flags->hasReviewBypass($user, 'device_attestation')) {
+        if ($this->flags->hasReviewBypass($user, BypassType::DEVICE_ATTESTATION)) {
             return true;
         }
 

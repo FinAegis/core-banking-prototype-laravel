@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\AgentProtocol\Workflows\Activities;
 
+use App\Domain\AccountProvisioning\Enums\BypassType;
 use App\Domain\AccountProvisioning\Services\AccountFlagsService;
 use App\Domain\Compliance\Services\ComplianceAlertService;
 use Exception;
@@ -22,7 +23,7 @@ class PerformAmlScreeningActivity extends Activity
     {
         if ($userId !== null) {
             $flags = app(AccountFlagsService::class);
-            if ($flags->hasReviewBypass($userId, 'sanctions_screening')) {
+            if ($flags->hasReviewBypass($userId, BypassType::SANCTIONS_SCREENING)) {
                 return [
                     'status'        => 'passed',
                     'hasAlerts'     => false,
