@@ -76,3 +76,26 @@ it('is idempotent — re-seeding sets to the target, not incremental', function 
     /** @var stdClass $unshielded */
     expect(bsNormalize($unshielded->balance))->toBe('50.0000');
 });
+
+it('preserves created_at audit timestamp across re-seeds', function (): void {
+    $user = User::factory()->create();
+    app(WalletSeeder::class)->seed($user);
+
+    app(BalanceSeeder::class)->seed($user, unshieldedUsdc: '25.00', shieldedUsdc: '10.00');
+
+    $first = DB::table('token_balances')->where('symbol', 'USDC')->first();
+    expect($first)->not->toBeNull();
+    /** @var stdClass $first */
+    $originalCreatedAt = $first->created_at;
+    expect($originalCreatedAt)->not->toBeNull();
+
+    // Sleep briefly so any erroneous overwrite produces a different timestamp.
+    sleep(1);
+
+    app(BalanceSeeder::class)->seed($user, unshieldedUsdc: '50.00', shieldedUsdc: '20.00');
+
+    $second = DB::table('token_balances')->where('symbol', 'USDC')->first();
+    expect($second)->not->toBeNull();
+    /** @var stdClass $second */
+    expect($second->created_at)->toBe($originalCreatedAt);
+});

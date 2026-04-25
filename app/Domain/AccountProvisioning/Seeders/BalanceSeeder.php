@@ -65,23 +65,36 @@ class BalanceSeeder
             '0x0000000000000000000000000000000000000000'
         );
 
-        DB::table('token_balances')->updateOrInsert(
-            [
+        $existing = DB::table('token_balances')
+            ->where('address', $wallet->address)
+            ->where('chain', $chain)
+            ->where('token_address', $tokenAddress)
+            ->first();
+
+        $payload = [
+            'wallet_id'  => 'review-' . $user->id,
+            'symbol'     => $symbol,
+            'name'       => $symbol,
+            'decimals'   => 6,
+            'balance'    => $normalized,
+            'value_usd'  => $normalized,
+            'updated_at' => now(),
+        ];
+
+        if ($existing === null) {
+            DB::table('token_balances')->insert(array_merge($payload, [
                 'address'       => $wallet->address,
                 'chain'         => $chain,
                 'token_address' => $tokenAddress,
-            ],
-            [
-                'wallet_id'  => 'review-' . $user->id,
-                'symbol'     => $symbol,
-                'name'       => $symbol,
-                'decimals'   => 6,
-                'balance'    => $normalized,
-                'value_usd'  => $normalized,
-                'updated_at' => now(),
-                'created_at' => now(),
-            ]
-        );
+                'created_at'    => now(),
+            ]));
+        } else {
+            DB::table('token_balances')
+                ->where('address', $wallet->address)
+                ->where('chain', $chain)
+                ->where('token_address', $tokenAddress)
+                ->update($payload);
+        }
     }
 
     /**
