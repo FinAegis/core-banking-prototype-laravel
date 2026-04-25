@@ -142,7 +142,6 @@ Symptom: alert fires on `bypass.fired` log volume spike (>100 events/min from on
 ## Limitations (v1)
 
 - `bypass_sms_otp` is **reserved** — this codebase has no dedicated SMS OTP flow (phone verification runs via Ondato KYC, already covered by `kyc_override_level`). The column exists so future SMS OTP work can plug in without a migration.
-- `bypass_sanctions_screening` is wired on the flag side but the `PerformAmlScreeningActivity` needs `$userId` threaded through the workflow DTO before the check fires — tracked as a follow-up.
 - No Filament admin UI in v1 — all operations are CLI.
 - Single-tenant provisioning only; multi-tenant reviewer accounts are out of scope for v1.
 - No automated 1Password delivery — operators copy/paste manually.

@@ -27,7 +27,7 @@ One row per `account_flags` column.
 | `is_review_account` | Master tag (no enforcement effect by itself). | `AccountFlagsService::isReviewAccount()`; audit query key. |
 | `bypass_device_attestation` | Apple App Attest / Google Play Integrity verification on login. | `BiometricJWTService::verifyDeviceAttestationForUser()` |
 | `bypass_rate_limit` | Per-user API rate limiting (default 60 req/min). | `ApiRateLimitMiddleware`, `GraphQLRateLimitMiddleware` |
-| `bypass_sanctions_screening` | ComplyAdvantage OFAC / PEP / sanctions list match during KYC workflow. | `PerformAmlScreeningActivity::execute()` *(pending DTO plumbing for `$userId` — follow-up)* |
+| `bypass_sanctions_screening` | ComplyAdvantage OFAC / PEP / sanctions list match during KYC workflow. | `PerformAmlScreeningActivity::execute()` |
 | `bypass_sms_otp` | **Reserved** — no consumer; kept so a future SMS OTP path can plug in without a migration. | *(none — this codebase has no dedicated SMS OTP flow; phone verification is via Ondato KYC, covered by `kyc_override_level`)* |
 | `suppress_notifications` | Outbound email / SMS / FCM push on system events. | `SuppressNotificationsListener` on the `NotificationSending` event |
 | `kyc_override_level` | Real KYC level resolution; returns the override (0–3) instead. `null` = use real KYC. | `User::effectiveKycLevel()` |

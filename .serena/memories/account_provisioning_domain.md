@@ -26,7 +26,7 @@ Audit / lifecycle: `note`, `expires_at`, `created_by` (FK users.id), `disabled_a
 
 1. `BiometricJWTService::verifyDeviceAttestationForUser()` — Apple App Attest / Google Play Integrity bypass.
 2. `ApiRateLimitMiddleware` + `GraphQLRateLimitMiddleware` — per-user rate limit bypass.
-3. `PerformAmlScreeningActivity::execute()` — sanctions screening bypass (requires `$userId` threaded through workflow DTO — follow-up).
+3. `PerformAmlScreeningActivity::execute()` — sanctions screening bypass (`$userId` is plumbed through `KycVerificationRequest` DTO and `AgentKycWorkflow` activity dispatch).
 4. `SuppressNotificationsListener` on `NotificationSending` — outbound email / SMS / push suppression.
 5. `User::effectiveKycLevel()` — override-or-real accessor.
 

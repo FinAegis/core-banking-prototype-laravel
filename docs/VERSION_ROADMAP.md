@@ -3196,6 +3196,7 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 - New `app/Domain/AccountProvisioning/` domain with `account_flags` table, `AccountProfile` interface, and `ReviewerAccountProfile`.
 - Four operator-only CLI commands: `account:provision-reviewer`, `account:list-reviewers`, `account:disable-reviewer` (with `--all-expired` / `--re-enable`), `account:purge-reviewer`.
 - Scoped, audited security bypasses at five existing enforcement points (device attestation, rate limits, sanctions screening, notifications, KYC level). Each hit emits `bypass.fired` with user + bypass name.
+- Sanctions screening bypass plumbing complete: `?int $userId` is now threaded from `KycVerificationRequest` through `AgentKycWorkflow` into `PerformAmlScreeningActivity::execute()`, so the `bypass_sanctions_screening` flag fires for reviewer accounts at runtime.
 - Daily scheduled sweep at 00:10 UTC auto-disables expired reviewer accounts; 60-day default / 90-day hard cap.
 - Operator runbook at `docs/operations/reviewer-accounts.md`; security model at `docs/security/account-flags.md`.
 
