@@ -34,8 +34,9 @@ it('purges (anonymizes + disables) a review account with --confirm', function ()
     ]);
 
     $this->artisan('account:purge-reviewer', [
-        '--email'   => 'reviewer@finaegis.com',
-        '--confirm' => true,
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+        '--confirm'        => true,
     ])->assertExitCode(0);
 
     // Email anonymized
@@ -49,7 +50,10 @@ it('purges (anonymizes + disables) a review account with --confirm', function ()
     expect($flag->disabled_at)->not->toBeNull();
     expect($flag->bypass_device_attestation)->toBeFalse();
 
-    Event::assertDispatched(AccountPurged::class, fn ($e) => $e->userId === (int) $reviewer->id);
+    Event::assertDispatched(
+        AccountPurged::class,
+        fn ($e) => $e->userId === (int) $reviewer->id && $e->operatorId === (int) $this->operator->id,
+    );
 });
 
 it('refuses without --confirm', function () {
@@ -60,16 +64,19 @@ it('refuses without --confirm', function () {
         'created_by'        => $this->operator->id,
     ]);
 
-    $this->artisan('account:purge-reviewer', ['--email' => 'reviewer@finaegis.com'])
-        ->assertExitCode(1);
+    $this->artisan('account:purge-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ])->assertExitCode(1);
 });
 
 it('refuses when user is not a review account', function () {
     User::factory()->create(['email' => 'normal@finaegis.com']);
 
     $this->artisan('account:purge-reviewer', [
-        '--email'   => 'normal@finaegis.com',
-        '--confirm' => true,
+        '--email'          => 'normal@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+        '--confirm'        => true,
     ])->assertExitCode(1);
 });
 
@@ -84,7 +91,39 @@ it('refuses in production without --allow-production', function () {
     ]);
 
     $this->artisan('account:purge-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+        '--confirm'        => true,
+    ])->assertExitCode(1);
+});
+
+it('refuses when --operator-email is missing', function () {
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'           => $reviewer->id,
+        'is_review_account' => true,
+        'created_by'        => $this->operator->id,
+    ]);
+
+    $this->artisan('account:purge-reviewer', [
         '--email'   => 'reviewer@finaegis.com',
         '--confirm' => true,
+    ])->assertExitCode(1);
+});
+
+it('refuses when --operator-email resolves to a non-admin user', function () {
+    $nonAdmin = User::factory()->create(['email' => 'plain@finaegis.com']);
+
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'           => $reviewer->id,
+        'is_review_account' => true,
+        'created_by'        => $this->operator->id,
+    ]);
+
+    $this->artisan('account:purge-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => $nonAdmin->email,
+        '--confirm'        => true,
     ])->assertExitCode(1);
 });
