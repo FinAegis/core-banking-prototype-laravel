@@ -59,7 +59,7 @@ class BiometricJWTService implements BiometricJWTServiceInterface
     private int $ttlSeconds;
 
     public function __construct(
-        private readonly AccountFlagsService $flags = new AccountFlagsService(),
+        private readonly AccountFlagsService $flags,
     ) {
         $this->secret = $this->getSecret();
         $this->ttlSeconds = (int) config('mobile.biometric_jwt.ttl_seconds', self::DEFAULT_TTL_SECONDS);

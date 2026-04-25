@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Mobile\Services;
 
+use App\Domain\AccountProvisioning\Services\AccountFlagsService;
 use App\Domain\Mobile\Exceptions\BiometricJWTException;
 use App\Domain\Mobile\Models\MobileDevice;
 use App\Domain\Mobile\Models\MobileDeviceSession;
@@ -28,7 +29,7 @@ class BiometricJWTServiceTest extends TestCase
 
         Cache::flush();
 
-        $this->service = new BiometricJWTService();
+        $this->service = new BiometricJWTService(new AccountFlagsService());
 
         $this->user = User::factory()->create();
 
