@@ -12,6 +12,14 @@ use Workflow\Activity;
 
 class PerformAmlScreeningActivity extends Activity
 {
+    // Workflow Activity ctor is rigid; lazy-resolve via app() once per instance.
+    private ?AccountFlagsService $flags = null;
+
+    private function flags(): AccountFlagsService
+    {
+        return $this->flags ??= app(AccountFlagsService::class);
+    }
+
     /**
      * Perform AML (Anti-Money Laundering) screening.
      *
@@ -22,8 +30,7 @@ class PerformAmlScreeningActivity extends Activity
     public function execute(string $agentId, string $agentName, string $countryCode, ?int $userId = null): array
     {
         if ($userId !== null) {
-            $flags = app(AccountFlagsService::class);
-            if ($flags->hasReviewBypass($userId, BypassType::SANCTIONS_SCREENING)) {
+            if ($this->flags()->hasReviewBypass($userId, BypassType::SANCTIONS_SCREENING)) {
                 return [
                     'status'        => 'passed',
                     'hasAlerts'     => false,
