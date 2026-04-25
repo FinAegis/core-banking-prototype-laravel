@@ -50,6 +50,21 @@ it('short-circuits when flag is disabled or expired', function () {
     expect($service->hasReviewBypass($user, 'device_attestation'))->toBeFalse();
 });
 
+it('refuses bypasses when is_review_account=false even with bypass columns set', function () {
+    $user = User::factory()->create();
+    AccountFlag::create([
+        'user_id'                   => $user->id,
+        'is_review_account'         => false,
+        'bypass_device_attestation' => true,
+        'bypass_rate_limit'         => true,
+    ]);
+
+    $service = new AccountFlagsService();
+
+    expect($service->hasReviewBypass($user, 'rate_limit'))->toBeFalse();
+    expect($service->hasReviewBypass($user, 'device_attestation'))->toBeFalse();
+});
+
 it('caches lookups per request', function () {
     $user = User::factory()->create();
     AccountFlag::create(['user_id' => $user->id, 'is_review_account' => true]);

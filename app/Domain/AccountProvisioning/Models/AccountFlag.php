@@ -49,6 +49,10 @@ class AccountFlag extends Model
 
     public function isActive(): bool
     {
+        if (! $this->is_review_account) {
+            return false;
+        }
+
         if ($this->disabled_at !== null) {
             return false;
         }
