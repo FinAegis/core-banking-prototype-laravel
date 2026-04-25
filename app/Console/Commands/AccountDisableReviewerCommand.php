@@ -12,6 +12,8 @@ use App\Domain\User\Values\UserRoles;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Collection;
+use Throwable;
 
 class AccountDisableReviewerCommand extends Command
 {
@@ -37,21 +39,33 @@ class AccountDisableReviewerCommand extends Command
         $reEnable = (bool) $this->option('re-enable');
 
         if ($this->option('all-expired')) {
-            $flags = AccountFlag::where('is_review_account', true)
+            $disabled = 0;
+            $failed = 0;
+
+            AccountFlag::where('is_review_account', true)
                 ->whereNotNull('expires_at')
                 ->where('expires_at', '<', now())
                 ->whereNull('disabled_at')
                 ->with('user')
-                ->get();
+                ->chunkById(100, function (Collection $chunk) use ($service, &$disabled, &$failed): void {
+                    foreach ($chunk as $flag) {
+                        if (! $flag->user instanceof User) {
+                            continue;
+                        }
+                        try {
+                            $service->disable($flag->user);
+                            $this->line("disabled: {$flag->user->email}");
+                            $disabled++;
+                        } catch (Throwable $e) {
+                            $this->error("failed: {$flag->user->email} ({$e->getMessage()})");
+                            $failed++;
+                        }
+                    }
+                });
 
-            foreach ($flags as $flag) {
-                if ($flag->user instanceof User) {
-                    $service->disable($flag->user);
-                    $this->line("disabled: {$flag->user->email}");
-                }
-            }
+            $this->info("Sweep complete. disabled={$disabled} failed={$failed}");
 
-            return 0;
+            return $failed > 0 ? 1 : 0;
         }
 
         $email = (string) $this->option('email');
