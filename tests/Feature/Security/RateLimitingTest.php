@@ -95,7 +95,7 @@ class RateLimitingTest extends TestCase
         // Test that different rate limit types have different configurations
         // by calling the middleware directly, since route-level middleware
         // uses the 'auth' type for all /api/auth/* endpoints.
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $user = User::factory()->create();
 
         // Override environment for direct middleware testing
@@ -172,7 +172,7 @@ class RateLimitingTest extends TestCase
         // Test rate limit headers by calling the middleware directly,
         // since the /api/monitoring/health endpoint does not have
         // rate limit middleware applied at the route level.
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $request = Request::create('/api/monitoring/health', 'GET');
 
         // Override environment for direct middleware testing
@@ -197,7 +197,7 @@ class RateLimitingTest extends TestCase
         // Test admin rate limiting by calling the middleware directly,
         // since route-level middleware on /api/auth/* uses 'auth' type (limit 5),
         // not 'admin' type (limit 200).
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $admin = User::factory()->create();
 
         // Override environment for direct middleware testing

@@ -42,7 +42,7 @@ class PartnerTierRateLimitTest extends TestCase
         $request = Request::create('/api/v1/accounts', 'GET');
         $request->attributes->set('partner', $partner);
 
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $response = $middleware->handle($request, fn ($req) => response()->json(['ok' => true]), 'query');
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -57,7 +57,7 @@ class PartnerTierRateLimitTest extends TestCase
         $request = Request::create('/api/v1/transfer', 'POST');
         $request->attributes->set('partner', $partner);
 
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $response = $middleware->handle($request, fn ($req) => response()->json(['ok' => true]), 'transaction');
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -69,7 +69,7 @@ class PartnerTierRateLimitTest extends TestCase
     {
         $request = Request::create('/api/v1/accounts', 'GET');
 
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $response = $middleware->handle($request, fn ($req) => response()->json(['ok' => true]), 'query');
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -95,7 +95,7 @@ class PartnerTierRateLimitTest extends TestCase
         $request = Request::create('/api/v1/accounts', 'GET');
         $request->attributes->set('partner', $partner);
 
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $response = $middleware->handle($request, fn ($req) => response()->json(['ok' => true]), 'query');
 
         $this->assertEquals(429, $response->getStatusCode());
@@ -115,7 +115,7 @@ class PartnerTierRateLimitTest extends TestCase
         $request = Request::create('/api/v1/accounts', 'GET');
         $request->attributes->set('partner', $partner);
 
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $response = $middleware->handle($request, fn ($req) => response()->json(['ok' => true]), 'query');
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -130,7 +130,7 @@ class PartnerTierRateLimitTest extends TestCase
         $request = Request::create('/api/v1/login', 'POST');
         $request->attributes->set('partner', $partner);
 
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $response = $middleware->handle($request, fn ($req) => response()->json(['ok' => true]), 'auth');
 
         $this->assertEquals(200, $response->getStatusCode());

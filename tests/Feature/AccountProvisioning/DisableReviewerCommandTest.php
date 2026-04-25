@@ -113,9 +113,12 @@ it('--re-enable preserves the original expires_at', function () {
         '--operator-email' => 'op@finaegis.com',
     ])->assertExitCode(0);
 
-    $disabled = AccountFlag::where('user_id', $reviewer->id)->first();
-    expect($disabled->expires_at)->not->toBeNull();
-    expect($disabled->expires_at->toIso8601String())->toBe($originalExpiry->toIso8601String());
+    $disabled = AccountFlag::where('user_id', $reviewer->id)->firstOrFail();
+    $disabledExpiry = $disabled->expires_at;
+    expect($disabledExpiry)->not->toBeNull();
+    if ($disabledExpiry !== null) {
+        expect($disabledExpiry->toIso8601String())->toBe($originalExpiry->toIso8601String());
+    }
 
     // Re-enable
     $this->artisan('account:disable-reviewer', [
@@ -124,9 +127,12 @@ it('--re-enable preserves the original expires_at', function () {
         '--re-enable'      => true,
     ])->assertExitCode(0);
 
-    $reEnabled = AccountFlag::where('user_id', $reviewer->id)->first();
-    expect($reEnabled->expires_at)->not->toBeNull();
-    expect($reEnabled->expires_at->toIso8601String())->toBe($originalExpiry->toIso8601String());
+    $reEnabled = AccountFlag::where('user_id', $reviewer->id)->firstOrFail();
+    $reEnabledExpiry = $reEnabled->expires_at;
+    expect($reEnabledExpiry)->not->toBeNull();
+    if ($reEnabledExpiry !== null) {
+        expect($reEnabledExpiry->toIso8601String())->toBe($originalExpiry->toIso8601String());
+    }
 });
 
 it('exits 1 when --email is neither a review account nor --all-expired is passed', function () {

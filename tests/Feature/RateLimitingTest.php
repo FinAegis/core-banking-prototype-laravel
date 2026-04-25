@@ -23,7 +23,7 @@ describe('API Rate Limiting System', function () {
 
     test('basic rate limiting middleware works', function () {
         // Test basic functionality by directly calling middleware (since it's disabled in tests)
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $request = Request::create('/api/workflows', 'GET');
         $request->setUserResolver(fn () => $this->user);
 
@@ -41,7 +41,7 @@ describe('API Rate Limiting System', function () {
 
     test('rate limit headers are present', function () {
         // Test headers by directly calling middleware (since it's disabled in tests)
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $request = Request::create('/api/workflows', 'GET');
         $request->setUserResolver(fn () => $this->user);
 
@@ -61,7 +61,7 @@ describe('API Rate Limiting System', function () {
 
     test('rate limit exceeded returns 429', function () {
         // Test that rate limiting middleware properly enforces limits
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $request = Request::create('/api/test', 'GET');
 
         // Override environment for direct middleware testing
@@ -95,7 +95,7 @@ describe('API Rate Limiting System', function () {
 
     test('rate limiting works per user', function () {
         // Test that rate limiting middleware handles users correctly
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $user1 = User::factory()->create();
 
         $request = Request::create('/api/test', 'GET');
@@ -274,7 +274,7 @@ describe('Rate Limiting Integration Tests', function () {
 
     test('public endpoints use public rate limiting', function () {
         // Test public rate limiting by directly calling middleware (since it's disabled in tests)
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $request = Request::create('/api/v1/assets', 'GET');
 
         // Override environment for direct middleware testing
@@ -291,7 +291,7 @@ describe('Rate Limiting Integration Tests', function () {
 
     test('rate limiting works across different IP addresses', function () {
         // Test that rate limiting correctly handles different IP addresses by direct middleware testing
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
 
         // Override environment for direct middleware testing
         app()->bind('env', fn () => 'production');
@@ -317,7 +317,7 @@ describe('Rate Limiting Integration Tests', function () {
 
     test('rate limiting respects cache expiration', function () {
         // Test cache behavior with simple verification
-        $middleware = new ApiRateLimitMiddleware();
+        $middleware = app(ApiRateLimitMiddleware::class);
         $request = Request::create('/api/test-cache', 'GET');
 
         // Override environment for direct middleware testing
