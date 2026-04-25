@@ -110,6 +110,7 @@ class AgentKycWorkflow extends Workflow
                     'agentId'     => $request->agentId,
                     'agentName'   => $request->agentName,
                     'countryCode' => $request->countryCode,
+                    'userId'      => $request->userId,
                 ]
             )->withTimeout(CarbonInterval::minutes(3));
 

@@ -18,7 +18,8 @@ class KycVerificationRequest extends Data
         public readonly string $countryCode,
         public readonly bool $enableBiometric = false,
         public readonly ?string $businessName = null,
-        public readonly array $metadata = []
+        public readonly array $metadata = [],
+        public readonly ?int $userId = null,
     ) {
     }
 
@@ -33,7 +34,8 @@ class KycVerificationRequest extends Data
             countryCode: $data['country_code'] ?? 'US',
             enableBiometric: $data['enable_biometric'] ?? false,
             businessName: $data['business_name'] ?? null,
-            metadata: $data['metadata'] ?? []
+            metadata: $data['metadata'] ?? [],
+            userId: $data['user_id'] ?? null,
         );
     }
 
@@ -49,6 +51,7 @@ class KycVerificationRequest extends Data
             'enable_biometric'   => $this->enableBiometric,
             'business_name'      => $this->businessName,
             'metadata'           => $this->metadata,
+            'user_id'            => $this->userId,
         ];
     }
 
