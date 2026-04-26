@@ -8,20 +8,22 @@ use App\Domain\AccountProvisioning\Contracts\AccountProfile;
 use App\Domain\AccountProvisioning\Models\AccountFlag;
 use App\Domain\AccountProvisioning\ValueObjects\ProvisioningContext;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
 /**
  * Top-level orchestrator for reviewer/demo account provisioning.
  *
- * Wraps three operations inside a single DB::transaction:
+ * Performs three operations:
  *   1. Find-or-create the user (with optional password rotation)
  *   2. Upsert the account_flags row from the profile's flag payload
  *   3. Delegate content seeding to the profile (unless $ctx->dryRun)
  *
- * Called by the CLI command in Task 18. Unit-test coverage for this service
- * is deferred to the CLI command feature tests.
+ * Atomicity is provided by per-seeder idempotency, NOT by a wrapping
+ * transaction — sub-seeders write across multiple Laravel connections
+ * (default + tenant) which are independent MySQL sessions and would
+ * deadlock against each other under a single-connection transaction.
+ * See `apply()` for the deadlock detail.
  */
 class AccountProvisioningService
 {
@@ -31,6 +33,19 @@ class AccountProvisioningService
     }
 
     /**
+     * Provision (or update) a reviewer/demo account.
+     *
+     * Deliberately NOT wrapped in a single DB::transaction. Sub-seeders write
+     * across multiple Laravel connections (default + tenant) — those are
+     * independent MySQL sessions even when they target the same database, and
+     * a single-connection transaction holding row-level locks (e.g. on the
+     * just-created `users` row) deadlocks against tenant-connection FK checks
+     * inside the same call.
+     *
+     * Atomicity is provided by the per-seeder idempotency contract: every
+     * sub-seeder uses firstOrCreate / updateOrCreate on natural keys, so a
+     * partial run can be safely retried by re-invoking the command.
+     *
      * @return array{user: User, password_action: 'created'|'rotated'|'unchanged'}
      */
     public function apply(
@@ -40,54 +55,52 @@ class AccountProvisioningService
         bool $rotatePassword,
         bool $forceConvert,
     ): array {
-        return DB::transaction(function () use ($profile, $ctx, $password, $rotatePassword, $forceConvert) {
-            $existing = User::where('email', $ctx->email)->first();
+        $existing = User::where('email', $ctx->email)->first();
 
-            if ($existing instanceof User) {
-                $flag = $existing->accountFlag;
+        if ($existing instanceof User) {
+            $flag = $existing->accountFlag;
 
-                if (($flag === null || ! $flag->is_review_account) && ! $forceConvert) {
-                    throw new RuntimeException(
-                        "Email {$ctx->email} belongs to a non-review user. Use --force-convert to override (blocked in production)."
-                    );
-                }
-
-                $user = $existing;
-                $action = 'unchanged';
-
-                if ($rotatePassword && $password !== null) {
-                    $user->password = Hash::make($password);
-                    $user->save();
-                    $this->flags->forget($user);
-                    $action = 'rotated';
-                }
-            } else {
-                if ($password === null) {
-                    throw new RuntimeException('Password must be provided or generated before calling apply().');
-                }
-
-                $user = User::create([
-                    'name'              => $ctx->name,
-                    'email'             => $ctx->email,
-                    'password'          => Hash::make($password),
-                    'email_verified_at' => now(),
-                ]);
-                $action = 'created';
+            if (($flag === null || ! $flag->is_review_account) && ! $forceConvert) {
+                throw new RuntimeException(
+                    "Email {$ctx->email} belongs to a non-review user. Use --force-convert to override (blocked in production)."
+                );
             }
 
-            AccountFlag::updateOrCreate(
-                ['user_id' => $user->id],
-                $profile->flags($ctx),
-            );
+            $user = $existing;
+            $action = 'unchanged';
 
-            $this->flags->forget($user);
-
-            if (! $ctx->dryRun) {
-                $profile->provision($user, $ctx);
+            if ($rotatePassword && $password !== null) {
+                $user->password = Hash::make($password);
+                $user->save();
+                $this->flags->forget($user);
+                $action = 'rotated';
+            }
+        } else {
+            if ($password === null) {
+                throw new RuntimeException('Password must be provided or generated before calling apply().');
             }
 
-            return ['user' => $user, 'password_action' => $action];
-        });
+            $user = User::create([
+                'name'              => $ctx->name,
+                'email'             => $ctx->email,
+                'password'          => Hash::make($password),
+                'email_verified_at' => now(),
+            ]);
+            $action = 'created';
+        }
+
+        AccountFlag::updateOrCreate(
+            ['user_id' => $user->id],
+            $profile->flags($ctx),
+        );
+
+        $this->flags->forget($user);
+
+        if (! $ctx->dryRun) {
+            $profile->provision($user, $ctx);
+        }
+
+        return ['user' => $user, 'password_action' => $action];
     }
 
     public function disable(User $user): void
