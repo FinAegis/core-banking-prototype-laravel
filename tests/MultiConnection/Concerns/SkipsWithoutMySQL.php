@@ -20,6 +20,10 @@ trait SkipsWithoutMySQL
      */
     protected function skipIfMySQLUnavailable(): void
     {
+        if (! Config::has('database.connections.tenant')) {
+            $this->markTestSkipped('Multi-connection tests require a "tenant" connection in database config.');
+        }
+
         $driver = Config::get('database.connections.' . Config::get('database.default') . '.driver');
 
         if (! in_array($driver, ['mysql', 'mariadb'], true)) {
