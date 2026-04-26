@@ -62,6 +62,7 @@ trait UsesTenantConnection
      */
     protected function shouldUseDefaultConnection(): bool
     {
+        // Strict === true: only programmatic boolean overrides count, never env strings.
         if (Config::get('database.force_real_tenant_connection') === true) {
             return false;
         }

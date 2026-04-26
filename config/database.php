@@ -275,6 +275,12 @@ return [
 
     ],
 
+    // Multi-connection test escape hatch. The UsesTenantConnection trait
+    // checks this with === true, so only test base classes setting a
+    // literal boolean override the testing-mode connection collapse.
+    // Never bind to env() — env strings would not satisfy === true.
+    'force_real_tenant_connection' => false,
+
     /*
     |--------------------------------------------------------------------------
     | Migration Repository Table
