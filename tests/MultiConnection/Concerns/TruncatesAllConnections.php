@@ -25,18 +25,27 @@ trait TruncatesAllConnections
     ];
 
     /**
-     * Truncate every non-preserved table on both default and tenant connections.
+     * Truncate every non-preserved, non-empty table on both default and tenant
+     * connections.
      *
      * MultiConnection tests cannot use RefreshDatabase (which wraps the default
      * connection in a single transaction the tenant connection cannot see).
      * We truncate instead, and since both connections target the same physical
      * database, we only need to truncate once via the default connection.
-     * The two connections still see the same on-disk state because they share
-     * the same DB.
+     *
+     * We only TRUNCATE tables that have rows. Empty tables are no-ops anyway,
+     * and the project has 200+ tables — issuing TRUNCATE on each of them every
+     * test setUp/tearDown serializes through MySQL's redo log writer and trips
+     * the per-statement timeout. Skipping empties keeps the cleanup proportional
+     * to what each test actually wrote.
      */
     protected function truncateAllConnections(): void
     {
         $tables = $this->resolveTablesToTruncate();
+
+        if ($tables === []) {
+            return;
+        }
 
         DB::connection()->statement('SET FOREIGN_KEY_CHECKS=0');
 
@@ -59,9 +68,14 @@ trait TruncatesAllConnections
             DB::connection()->select('SHOW TABLES')
         );
 
-        return array_values(array_filter(
+        $candidates = array_filter(
             $all,
             fn (string $table) => ! in_array($table, self::PRESERVED_TABLES, true)
+        );
+
+        return array_values(array_filter(
+            $candidates,
+            fn (string $table) => DB::connection()->table($table)->limit(1)->exists()
         ));
     }
 }
