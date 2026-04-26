@@ -55,7 +55,7 @@ trait TruncatesAllConnections
     private function resolveTablesToTruncate(): array
     {
         $all = array_map(
-            fn (array $row) => array_values((array) $row)[0],
+            fn (object $row) => array_values((array) $row)[0],
             DB::connection()->select('SHOW TABLES')
         );
 
