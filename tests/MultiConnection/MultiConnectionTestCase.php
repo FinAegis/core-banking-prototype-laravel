@@ -52,9 +52,22 @@ abstract class MultiConnectionTestCase extends BaseTestCase
     protected function tearDown(): void
     {
         if (Config::get('database.force_real_tenant_connection') === true) {
+            // A failing test may leave a transaction open on either connection.
+            // Open transactions hold metadata locks that block TRUNCATE for
+            // 10s+, cascading the failure into every subsequent test's setUp.
+            $this->rollBackOpenTransactions();
             $this->truncateAllConnections();
         }
 
         parent::tearDown();
+    }
+
+    private function rollBackOpenTransactions(): void
+    {
+        foreach ([(string) Config::get('database.default'), 'tenant'] as $connection) {
+            while (DB::connection($connection)->transactionLevel() > 0) {
+                DB::connection($connection)->rollBack();
+            }
+        }
     }
 }

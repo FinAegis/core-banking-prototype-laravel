@@ -7,6 +7,7 @@ namespace Tests\MultiConnection\Framework;
 use App\Domain\CardIssuance\Models\Cardholder;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 it('routes User writes to the default connection', function () {
     $user = new User();
@@ -30,21 +31,24 @@ it('does not see uncommitted writes from another connection', function () {
 
     DB::connection()->beginTransaction();
 
-    DB::connection()->table('users')->insert([
-        'name'              => 'Topology Test',
-        'email'             => $email,
-        'password'          => 'irrelevant',
-        'email_verified_at' => now(),
-        'created_at'        => now(),
-        'updated_at'        => now(),
-    ]);
+    try {
+        DB::connection()->table('users')->insert([
+            'uuid'              => (string) Str::uuid(),
+            'name'              => 'Topology Test',
+            'email'             => $email,
+            'password'          => 'irrelevant',
+            'email_verified_at' => now(),
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
 
-    // Same connection (same session) sees it.
-    $sameConn = DB::connection()->table('users')->where('email', $email)->exists();
-    // Different connection (different session) does NOT see it.
-    $tenantConn = DB::connection('tenant')->table('users')->where('email', $email)->exists();
-
-    DB::connection()->rollBack();
+        // Same connection (same session) sees it.
+        $sameConn = DB::connection()->table('users')->where('email', $email)->exists();
+        // Different connection (different session) does NOT see it.
+        $tenantConn = DB::connection('tenant')->table('users')->where('email', $email)->exists();
+    } finally {
+        DB::connection()->rollBack();
+    }
 
     expect($sameConn)->toBeTrue();
     expect($tenantConn)->toBeFalse();
