@@ -28,6 +28,9 @@
         <testsuite name="Security">
             <directory>tests/Security</directory>
         </testsuite>
+        <testsuite name="MultiConnection">
+            <directory>tests/MultiConnection</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
