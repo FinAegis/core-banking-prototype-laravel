@@ -86,6 +86,7 @@ namespace App\Domain\Exchange\Services;
 | Helius API key | Must be query param `?api-key=` — does NOT support Authorization header |
 | Webhook metadata | Whitelist fields via `array_intersect_key()` — never store raw `$tx` payload |
 | Bypass flag missing test | Every new bypass flag in `account_flags` needs a matching feature test in `tests/Feature/AccountProvisioning/Bypasses/` asserting both sides (flag set = allow, flag unset = enforce) |
+| Multi-connection deadlock under DB::transaction | Do not wrap flows that touch UsesTenantConnection models in `DB::transaction()` — those models run on a separate MySQL session and will self-deadlock against the wrapping connection's row locks. Add a regression test in `tests/MultiConnection/`. |
 
 ```bash
 gh pr checks <PR_NUMBER>              # Check PR status
@@ -132,5 +133,6 @@ Packagist sources the three PHP packages from **split-mirror repos**, not the mo
 - Webhook controllers: Helius handles Solana, Alchemy handles EVM — both send FCM push via `PushNotificationService`
 - Alchemy webhook signing keys: stored in `webhook_endpoints` table (managed by `AlchemyWebhookManager`), not env vars
 - Test tables: use `Tests\Traits\CreatesSolanaTestTables` trait for in-memory SQLite schema in webhook/wallet tests
+- Multi-connection tests: `tests/MultiConnection/` — runs against real MySQL with `database.force_real_tenant_connection=true` so models with `UsesTenantConnection` use a separate MySQL session. Required check on PRs. See `docs/superpowers/specs/2026-04-26-multi-connection-test-infrastructure-design.md`.
 - Parallel agent merges: always check for duplicate `use` imports after merging agent branches
 - Reviewer accounts: operator-only tool for app-store review submissions — see `docs/operations/reviewer-accounts.md`. Bypasses are scoped via `account_flags` table; the daily sweep runs at 00:10 UTC via `routes/console.php`.
