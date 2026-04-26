@@ -251,6 +251,10 @@ Route::get('/legal/cookies', function () {
     return view('legal.cookies');
 })->name('legal.cookies');
 
+Route::get('/legal/delete-account', function () {
+    return view('legal.delete-account');
+})->name('legal.delete-account');
+
 // Apple App Site Association — enables passkey AutoFill + Universal Links on iOS 16+
 Route::get('/.well-known/apple-app-site-association', function () {
     return response()->json([
