@@ -55,19 +55,17 @@ trait UsesTenantConnection
     /**
      * Determine if the model should use the default connection instead of tenant.
      *
-     * This returns true when APP_ENV is 'testing'. In testing environments,
-     * using a separate 'tenant' connection causes issues:
-     *
-     * - SQLite in-memory: Each connection has isolated database
-     * - MySQL: Separate connections can cause lock wait timeouts with transactions
-     *
-     * In production, stancl/tenancy properly configures the tenant connection
-     * to point to tenant-specific databases.
+     * Returns true when APP_ENV is 'testing'. The
+     * `database.force_real_tenant_connection` config flag overrides the
+     * carve-out — set it to true in test base classes that need the production
+     * multi-session topology (see tests/MultiConnection/).
      */
     protected function shouldUseDefaultConnection(): bool
     {
-        // In testing environment, always use the default connection
-        // to avoid isolation issues with separate database connections
+        if (Config::get('database.force_real_tenant_connection') === true) {
+            return false;
+        }
+
         return Config::get('app.env') === 'testing';
     }
 }
