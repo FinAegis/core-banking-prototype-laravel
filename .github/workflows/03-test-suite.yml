@@ -412,7 +412,99 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
         run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=Integration --configuration=phpunit.ci-optimized.xml --exclude-group=slow
-        
+
+  multi-connection-tests:
+    name: Multi-Connection Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, dom, fileinfo, mysql, redis, opcache, pcntl, gd, imagick, bcmath, intl, zip, soap, gmp
+          tools: composer:v2
+          coverage: none
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            vendor
+          key: ${{ runner.os }}-multiconn-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-multiconn-composer-
+
+      - name: Setup Environment
+        run: cp .env.testing .env
+
+      - name: Install Dependencies
+        run: |
+          for i in 1 2 3; do
+            if composer install --prefer-dist --no-progress --optimize-autoloader; then
+              break
+            fi
+            sleep 5
+            composer clear-cache
+          done
+
+      - name: Prepare Laravel Application
+        run: |
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=testing" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=root" >> .env
+
+          php artisan key:generate
+          php artisan config:clear
+          php artisan migrate --force
+
+      - name: Run Multi-Connection Tests
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          CI: true
+        run: php -d memory_limit=2G ./vendor/bin/pest --testsuite=MultiConnection
+
   behat-tests:
     name: Behat Tests
     runs-on: ubuntu-latest
