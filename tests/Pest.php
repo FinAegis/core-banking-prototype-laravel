@@ -21,6 +21,7 @@ use Tests\TestCase;
 uses(TestCase::class)->in('Feature');
 uses(TestCase::class)->in('Domain');
 uses(TestCase::class)->in('Console');
+uses(Tests\MultiConnection\MultiConnectionTestCase::class)->in('MultiConnection');
 
 // Use InteractsWithFilament trait for Filament tests
 uses(Tests\Traits\InteractsWithFilament::class)->in('Feature/Filament');
