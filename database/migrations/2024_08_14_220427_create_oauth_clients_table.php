@@ -11,14 +11,13 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::create('oauth_clients', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->uuid('id')->primary();
+            $table->nullableMorphs('owner');
             $table->string('name');
-            $table->string('secret', 100)->nullable();
+            $table->string('secret')->nullable();
             $table->string('provider')->nullable();
-            $table->text('redirect');
-            $table->boolean('personal_access_client');
-            $table->boolean('password_client');
+            $table->text('redirect_uris');
+            $table->text('grant_types');
             $table->boolean('revoked');
             $table->timestamps();
         });

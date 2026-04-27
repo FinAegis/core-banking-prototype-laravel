@@ -864,3 +864,7 @@ Route::get('/robots.txt', [App\Http\Controllers\SitemapController::class, 'robot
 
 Route::get('/.well-known/oauth-authorization-server', App\Domain\MCP\Discovery\AuthorizationServerMetadataController::class)
     ->name('mcp.discovery.authorization-server');
+
+Route::post('/oauth/register', App\Domain\MCP\Auth\DynamicClientRegistrationController::class)
+    ->middleware(['api', 'throttle:5,1'])
+    ->name('mcp.oauth.register');
