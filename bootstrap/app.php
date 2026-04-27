@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $host = request()->getHost();
             $isApiSubdomain = str_starts_with($host, 'api.');
             $isProtocolSubdomain = str_starts_with($host, 'x402.') || str_starts_with($host, 'mpp.');
+            $isMcpSubdomain = str_starts_with($host, 'mcp.');
 
             // Health check route — must be registered inside `using` callback
             // because Laravel skips buildRoutingCallback when `using` is provided
@@ -43,7 +44,11 @@ return Application::configure(basePath: dirname(__DIR__))
             // Always load console routes
             Route::group([], base_path('routes/console.php'));
 
-            if ($isProtocolSubdomain) {
+            if ($isMcpSubdomain) {
+                // MCP subdomain — minimal middleware stack (no CSRF, no Sanctum, no web session)
+                Route::middleware(['api'])
+                    ->group(base_path('app/Domain/MCP/Routes/api.php'));
+            } elseif ($isProtocolSubdomain) {
                 // For x402.* or mpp.* subdomains, load API routes without /api prefix
                 // and auto-apply the protocol payment gate middleware via ProtocolSubdomainMiddleware
                 Route::middleware(['api', 'protocol.subdomain'])
