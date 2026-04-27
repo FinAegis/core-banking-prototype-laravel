@@ -861,3 +861,6 @@ Route::prefix('foodo')->group(function () {
 // SEO routes - Sitemap and Robots.txt
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 Route::get('/robots.txt', [App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
+
+Route::get('/.well-known/oauth-authorization-server', App\Domain\MCP\Discovery\AuthorizationServerMetadataController::class)
+    ->name('mcp.discovery.authorization-server');
