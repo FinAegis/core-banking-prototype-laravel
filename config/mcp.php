@@ -67,7 +67,7 @@ return [
     */
     'spending' => [
         'default_daily_limit_minor'    => (int) env('MCP_DEFAULT_DAILY_LIMIT_MINOR', 50000),     // $500.00
-        'default_daily_limit_currency' => env('MCP_DEFAULT_DAILY_LIMIT_CURRENCY', 'USD'),
+        'default_daily_limit_currency' => (string) env('MCP_DEFAULT_DAILY_LIMIT_CURRENCY', 'USD'),
         'consent_options_minor'        => [5000, 50000, 200000, 1000000, null],                  // null = no limit
     ],
 
@@ -77,7 +77,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'idempotency' => [
-        'cache_store' => env('MCP_IDEMPOTENCY_STORE', 'redis'),
+        'cache_store' => (string) env('MCP_IDEMPOTENCY_STORE', 'redis'),
         'ttl_seconds' => 86400,
     ],
 
