@@ -132,7 +132,15 @@ return [
     */
 
     'attestation' => [
-        // Enable device attestation verification
+        // Enable device attestation verification.
+        //
+        // DO NOT FLIP TO TRUE WITHOUT FIRST WIRING THE MOBILE-SUPPLIED CHALLENGE.
+        // BiometricJWTService::verifyDeviceAttestation() currently passes empty
+        // string as challenge to AppleAttestationVerifier — iOS will always fail
+        // verification until controllers accept and plumb the device_challenge
+        // field through to the verifiers. See the FIXME at
+        // app/Domain/Mobile/Services/BiometricJWTService.php and coordinate with
+        // the mobile team before changing this default.
         'enabled' => env('MOBILE_ATTESTATION_ENABLED', false),
 
         // Apple App Attest settings

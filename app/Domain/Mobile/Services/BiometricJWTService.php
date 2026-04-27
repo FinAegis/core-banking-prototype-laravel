@@ -243,6 +243,28 @@ class BiometricJWTService implements BiometricJWTServiceInterface
      *
      * When MOBILE_ATTESTATION_ENABLED=true, delegates to the platform-specific
      * verifier. Falls back to demo mode (length check) when disabled.
+     *
+     * MUST FIX BEFORE FLIPPING MOBILE_ATTESTATION_ENABLED=true:
+     *   The iOS branch passes empty string as challenge to AppleAttestationVerifier.
+     *   AppleAttestationVerifier::verify() then looks for SHA-256("") inside the
+     *   attestation, which won't match anything mobile sends. iOS verification
+     *   will always fail until this is wired up.
+     *
+     *   The mobile client sends the challenge alongside the attestation
+     *   (32-byte random hex per call as of 2026-04-26). To fix:
+     *     1. Add `device_challenge` to LoginController / RegisterController /
+     *        MobileController / PasskeyController validation rules.
+     *     2. Plumb it through verifyDeviceAttestationForUser() →
+     *        verifyDeviceAttestation() (new $challenge param) →
+     *        AppleAttestationVerifier::verify($attestation, $challenge).
+     *     3. For Android, pass the challenge as the nonce to Play Integrity's
+     *        decrypt request inside GoogleIntegrityVerifier (currently no
+     *        challenge handling at all).
+     *
+     *   Coordinate with the mobile team before flipping — see the conversation
+     *   thread on PR #321 (FinAegis/finaegis-mobile) and the App Attest /
+     *   Play Integrity handshake design notes the mobile dev shared on
+     *   2026-04-26.
      */
     public function verifyDeviceAttestation(string $attestation, string $deviceType): bool
     {
@@ -253,6 +275,7 @@ class BiometricJWTService implements BiometricJWTServiceInterface
         // Production attestation when enabled
         if (config('mobile.attestation.enabled', false)) {
             return match ($deviceType) {
+                // FIXME: empty challenge — see method docblock; must wire mobile-supplied challenge before flag flip.
                 'ios'     => app(AppleAttestationVerifier::class)->verify($attestation, ''),
                 'android' => app(GoogleIntegrityVerifier::class)->verify($attestation),
                 default   => false,
