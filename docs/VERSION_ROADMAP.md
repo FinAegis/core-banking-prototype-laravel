@@ -3231,6 +3231,24 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.11.0 — Public MCP Server (April 2026)
+
+**Theme**: Anthropic-spec public Model Context Protocol server at `https://mcp.zelta.app/mcp`
+
+### Delivered Features
+- Public MCP server (protocol `2025-11-25`) over streamable HTTP, JSON-RPC 2.0
+- 12-tool v1 catalog + 4 read-context resources, all reusing the existing internal MCP tool framework via `McpToolAdapter`
+- 10 OAuth scopes with intentional `transactions:read` / `sms:send` splits for finer consent
+- OAuth 2.1 + RFC 7591 Dynamic Client Registration + RFC 9728 Protected Resource Metadata + RFC 8252 native-app loopback
+- Per-token daily spending limits ($500/24h default, slider on consent screen) enforced by a synchronous saga (reserve → exec → release-on-failure) with bcmath major→minor conversion
+- Atomic Redis SET-NX idempotency lock (300s default TTL) closes the TOCTOU double-charge race on concurrent retries
+- DCR redirect-uri allowlist (loopback IPs + reverse-DNS native schemes only — no `http://localhost`, no `javascript:` / `data:` / `file:`) and reserved client-name brand policy
+- `@finaegis/mcp` npm wrapper (TypeScript) so stdio-only clients (Claude Desktop, Cursor, Continue.dev) can talk to the remote server; OAuth flow + keytar persistence + transparent transport-error envelopes
+- Filament admin resources for OAuth clients, tool invocations, and active sessions (kill / revoke from the UI)
+- Audit log on `mcp_tool_invocations` with settlement attribution feeding the regulatory / AML pipeline
+
+---
+
 ## Future / Unscheduled
 
 Items below are designed but not yet scheduled. They await demand signals (typically a second partner asking for the same capability) before engineering commits.
@@ -3251,5 +3269,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.10.11*
-*Updated: April 24, 2026 (v7.10.11 reviewer / demo account provisioning release)*
+*Document Version: 7.11.0*
+*Updated: April 28, 2026 (v7.11.0 public MCP server release)*

@@ -377,6 +377,18 @@ See [Kubernetes Deployment Guide](docs/06-DEVELOPMENT/KUBERNETES.md) for details
 
 ---
 
+## MCP (Model Context Protocol)
+
+Connect Claude Desktop, Cursor, or Continue.dev to your Zelta account:
+
+```bash
+npx -y @finaegis/mcp
+```
+
+Or use the remote URL directly: `https://mcp.zelta.app/mcp`. See [docs/13-AI-FRAMEWORK/03-MCP-Quickstart.md](docs/13-AI-FRAMEWORK/03-MCP-Quickstart.md).
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |

@@ -108,7 +108,26 @@ Brand in UI stays "Zelta" — only distribution package identifiers use the `@fi
 
 Required repo secrets for release workflows: `NPM_TOKEN` (must be npm **Automation** token — classic tokens get 403 under 2FA), `PYPI_TOKEN`, `PACKAGIST_USERNAME`, `PACKAGIST_TOKEN`, `MIRROR_PAT` (fine-grained PAT with Contents:write on `FinAegis/payment-sdk`, `FinAegis/cli`, `FinAegis/php-sdk`).
 
-Packagist sources the three PHP packages from **split-mirror repos**, not the monorepo — Packagist only reads root `composer.json`. The `monorepo-split.yml` workflow auto-pushes `packages/zelta-sdk/`, `packages/zelta-cli/`, `sdks/php/` into their respective mirrors on every `main` push and release tag (via `splitsh/lite`). Mirror tags use a stripped prefix: `sdk-v1.0.1` → mirror tag `v1.0.1`.
+Packagist sources the three PHP packages from **split-mirror repos**, not the monorepo — Packagist only reads root `composer.json`. The `monorepo-split.yml` workflow auto-pushes `packages/zelta-sdk/`, `packages/zelta-cli/`, `sdks/php/`, and `packages/finaegis-mcp-stdio/` into their respective mirrors on every `main` push and release tag (via `splitsh/lite`). Mirror tags use a stripped prefix: `sdk-v1.0.1` → mirror tag `v1.0.1`.
+
+## MCP Server (v7.11.0+)
+
+- Public endpoint: `https://mcp.zelta.app/mcp` (subdomain handled in `bootstrap/app.php`)
+- Subdomain routes: `app/Domain/MCP/Routes/api.php` — minimal middleware (no CSRF, no Sanctum, no web session)
+- Tool catalog: `config/mcp.php` (`tools` key) — kill-switches per tool via `MCP_TOOL_*` env vars
+- OAuth AS: Laravel Passport (existing) extended with DCR at `/oauth/register`
+- Spec: `docs/superpowers/specs/2026-04-27-mcp-server-design.md`
+- npm wrapper: `packages/finaegis-mcp-stdio/` published as `@finaegis/mcp`, mirrored to `FinAegis/mcp` on `mcp-v*` tags
+
+| Pitfall | Fix |
+|---|---|
+| Scope names use snake_case + `:` separator (`accounts:read`, `payments:write`) | Match exactly — Passport's `Scope::can()` is case-sensitive |
+| Subdomain not resolving | Verify Cloudflare CNAME for `mcp.*` and the bootstrap branch ordering (mcp before protocol subdomains) |
+| 401 with no `WWW-Authenticate: Bearer resource_metadata=...` | `McpOAuthGuard` not applied — check route middleware list |
+| `Auth::user()` returns null inside a tool under MCP | Guard must call `Auth::shouldUse('api')` after token resolution; existing tools call `Auth::user()` against the default guard |
+| `http://localhost` rejected at DCR | Use `127.0.0.1` (RFC 8252 §7.3) — our validator is strict on the literal IP |
+| Float-money in catalog amounts | Saga converts major→minor via `bcmath`; never `(int)($amount * 100)` |
+| Stale tool count in dev portal | `developers/mcp-tools.blade.php` — keep in sync with `config('mcp.tools')` count |
 
 ## Notes
 

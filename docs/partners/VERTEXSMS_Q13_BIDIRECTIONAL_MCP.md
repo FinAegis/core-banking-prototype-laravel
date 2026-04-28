@@ -25,9 +25,31 @@ Bidirectional adds the reverse:
 
 ## What Zelta Builds (Already Done)
 
-- `SmsSendTool` MCP tool is registered and exposes `send_sms` with payment auto-handling
-- VertexSMS client is wired as the SMS provider behind this tool
-- Any MCP-compatible client (Claude, GPT, custom agents) can discover the tool via standard MCP manifest at `https://zelta.app/.well-known/mcp-manifest.json`
+- `SmsSendTool` MCP tool is registered and exposes `sms.send` with payment auto-handling (per-message x402 settlement).
+- VertexSMS client is wired as the SMS provider behind this tool.
+- Any spec-compliant MCP client (Claude Desktop, Cursor, Continue.dev, custom agents) can discover the tool via the public server at `https://mcp.zelta.app/mcp` and its RFC 9728 metadata at `https://mcp.zelta.app/.well-known/oauth-protected-resource`.
+
+## Connection (the real handshake)
+
+VertexSMS-style integrations use the **client-credentials** grant — the partner pre-registers a confidential client and is bound to its own funded sub-account, with the same per-token spending-limit policy as user-delegated tokens.
+
+```
+1. Partner → POST https://zelta.app/oauth/token
+              grant_type=client_credentials
+              scope=sms:send
+              client_id=<id> client_secret=<secret>
+              ← { access_token, expires_in, scope }
+
+2. Partner → POST https://mcp.zelta.app/mcp
+              Authorization: Bearer <access_token>
+              { "jsonrpc": "2.0", "method": "tools/call",
+                "params": { "name": "sms.send", "arguments": { ... } } }
+              ← JSON-RPC envelope with delivery receipt
+```
+
+The partner's confidential client is registered manually (not via DCR) so the operator can bind it to a specific sub-account. `client_credentials` tokens are NOT allowed for user-bound tools (they return `-32006 USER_CONTEXT_REQUIRED`); `sms.send` is callable in this mode because per-message settlement debits the partner sub-account, not a user.
+
+For the full OAuth contract see [13-AI-FRAMEWORK/04-MCP-OAuth-Reference.md](../13-AI-FRAMEWORK/04-MCP-OAuth-Reference.md).
 
 ## What "Discoverable" Means for VertexSMS
 
