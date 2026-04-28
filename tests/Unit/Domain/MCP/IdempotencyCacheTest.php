@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\MCP\Exceptions\IdempotencyKeyInFlightException;
 use App\Domain\MCP\Exceptions\IdempotencyKeyReusedException;
 use App\Domain\MCP\Policy\IdempotencyCache;
 use Illuminate\Support\Facades\Cache;
@@ -72,4 +73,66 @@ it('isolates cache entries by tool name', function () {
     $other = $cache->remember('tok_a', 'sms.send', 'idem-1', 'h', fn () => ['fn' => 'sms']);
 
     expect($other)->toBe(['fn' => 'sms']);
+});
+
+it('throws IN_FLIGHT when a concurrent first-call holds the lock', function () {
+    // Simulate a parallel request having already taken the in-flight lock by
+    // pre-seeding the lock key. The TOCTOU race that this protects against:
+    // request A and B both hit cache miss simultaneously; without the
+    // SET-NX lock, both would execute the payment.
+    Cache::store('array')->add(
+        'mcp:idem:tok_a:payment.transfer:idem-conflict:lock',
+        '1',
+        60,
+    );
+
+    $cache = new IdempotencyCache();
+
+    expect(fn () => $cache->remember(
+        'tok_a',
+        'payment.transfer',
+        'idem-conflict',
+        'h',
+        fn () => ['should_not_run' => true],
+    ))->toThrow(IdempotencyKeyInFlightException::class);
+});
+
+it('releases the lock after a successful first call', function () {
+    $cache = new IdempotencyCache();
+    $cache->remember('tok_a', 'payment.transfer', 'idem-release', 'h', fn () => ['ok' => true]);
+
+    // Lock should be gone — a second call with a different idempotency key
+    // wouldn't conflict, but a same-key replay must hit the cached result, not
+    // get IN_FLIGHT (which would be a deadlock condition).
+    $second = $cache->remember(
+        'tok_a',
+        'payment.transfer',
+        'idem-release',
+        'h',
+        fn () => ['this' => 'should-not-run'],
+    );
+    expect($second)->toBe(['ok' => true]);
+});
+
+it('releases the lock even when the callable throws', function () {
+    $cache = new IdempotencyCache();
+
+    try {
+        $cache->remember('tok_a', 'payment.transfer', 'idem-throws', 'h', function () {
+            throw new RuntimeException('downstream rail unavailable');
+        });
+    } catch (RuntimeException) {
+        // expected
+    }
+
+    // The lock from the failed call must be released; otherwise a legitimate
+    // retry after the failure would block for LOCK_TTL_SECONDS (60s).
+    $retry = $cache->remember(
+        'tok_a',
+        'payment.transfer',
+        'idem-throws',
+        'h',
+        fn () => ['ok' => true],
+    );
+    expect($retry)->toBe(['ok' => true]);
 });

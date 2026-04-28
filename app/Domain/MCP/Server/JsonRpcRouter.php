@@ -7,6 +7,7 @@ namespace App\Domain\MCP\Server;
 use App\Domain\AI\Exceptions\ToolNotFoundException;
 use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\MCP\Audit\ToolInvocationLogger;
+use App\Domain\MCP\Exceptions\IdempotencyKeyInFlightException;
 use App\Domain\MCP\Exceptions\IdempotencyKeyReusedException;
 use App\Domain\MCP\Exceptions\SpendingLimitExceededException;
 use App\Domain\MCP\Policy\IdempotencyCache;
@@ -211,6 +212,16 @@ final class JsonRpcRouter
             return $this->error($id, -32602, 'IDEMPOTENCY_KEY_REQUIRED', ['tool' => $name]);
         }
 
+        // Cap idempotency_key length so a malicious client can't blow up Redis
+        // key sizes or audit-log columns. 128 chars is generous (UUIDs are 36).
+        if ($idemKey !== null && strlen($idemKey) > 128) {
+            return $this->error($id, -32602, 'IDEMPOTENCY_KEY_TOO_LONG', [
+                'tool'       => $name,
+                'max_length' => 128,
+                'received'   => strlen($idemKey),
+            ]);
+        }
+
         $internalName = (string) ($entry['internal'] ?? '');
         try {
             $tool = $this->toolRegistry->get($internalName);
@@ -242,6 +253,13 @@ final class JsonRpcRouter
             $this->audit($ctx, $name, $argsHash, $idemKey, 'error', $started, errorCode: 'IDEMPOTENCY_KEY_REUSED');
 
             return $this->error($id, -32002, 'IDEMPOTENCY_KEY_REUSED', ['idempotency_key' => $idemKey]);
+        } catch (IdempotencyKeyInFlightException) {
+            $this->audit($ctx, $name, $argsHash, $idemKey, 'error', $started, errorCode: 'IDEMPOTENCY_KEY_IN_FLIGHT');
+
+            return $this->error($id, -32005, 'IDEMPOTENCY_KEY_IN_FLIGHT', [
+                'idempotency_key'     => $idemKey,
+                'retry_after_seconds' => 1,
+            ]);
         } catch (SpendingLimitExceededException $e) {
             $this->audit($ctx, $name, $argsHash, $idemKey, 'spending_limit', $started, errorCode: (string) ($e->data['error_code'] ?? 'LIMIT_EXCEEDED'));
 
@@ -263,6 +281,11 @@ final class JsonRpcRouter
      * unicode unescaped. Matches the same hash whether the client sends
      * {"a":1,"b":2} or {"b":2,"a":1} — required for idempotency to work for
      * arbitrary clients that may stringify their JSON differently on retry.
+     *
+     * Note: `idempotency_key` is intentionally hashed *with* the rest of the
+     * arguments. A retry must send the identical key (by definition), so this
+     * doesn't change behavior; including it just keeps the hash an opaque
+     * function of the entire envelope.
      *
      * @param array<string, mixed> $arguments
      */
