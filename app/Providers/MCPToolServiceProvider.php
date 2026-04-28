@@ -29,6 +29,8 @@ use App\Domain\AI\MCP\Tools\Transaction\TransactionQueryTool;
 use App\Domain\AI\MCP\Tools\VisaCli\VisaCliCardsTool;
 use App\Domain\AI\MCP\Tools\VisaCli\VisaCliPaymentTool;
 use App\Domain\AI\MCP\Tools\X402\X402PaymentTool;
+use App\Domain\MCP\Tools\Ramp\RampStartTool;
+use App\Domain\MCP\Tools\Ramp\RampStatusTool;
 use Exception;
 use Illuminate\Support\ServiceProvider;
 use Log;
@@ -92,6 +94,10 @@ class MCPToolServiceProvider extends ServiceProvider
 
         // SMS Tools
         SmsSendTool::class,
+
+        // Ramp Tools (on/off-ramp via Stripe Bridge)
+        RampStartTool::class,
+        RampStatusTool::class,
     ];
 
     /**
