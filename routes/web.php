@@ -92,7 +92,7 @@ if (config('brand.show_promo_pages')) {
     Route::get('/features/gcu', fn () => redirect()->route('gcu', [], 301))->name('features.gcu');
 
     Route::get('/features/{feature}', function ($feature) {
-        $validFeatures = ['multi-asset', 'settlements', 'governance', 'bank-integration', 'api', 'crosschain-defi', 'privacy-identity', 'mobile-payments', 'regtech-compliance', 'baas-platform', 'ai-framework', 'multi-tenancy', 'x402-protocol', 'visa-cli', 'virtuals-protocol', 'plugin-marketplace', 'machine-payments', 'agent-protocol', 'zelta-cli', 'iso20022', 'open-banking', 'payment-rails', 'interledger', 'ledger', 'microfinance', 'developer-experience'];
+        $validFeatures = ['multi-asset', 'settlements', 'governance', 'bank-integration', 'api', 'crosschain-defi', 'privacy-identity', 'mobile-payments', 'regtech-compliance', 'baas-platform', 'ai-framework', 'multi-tenancy', 'x402-protocol', 'visa-cli', 'virtuals-protocol', 'plugin-marketplace', 'machine-payments', 'agent-protocol', 'zelta-cli', 'iso20022', 'open-banking', 'payment-rails', 'interledger', 'ledger', 'microfinance', 'developer-experience', 'mcp'];
 
         if (! in_array($feature, $validFeatures)) {
             abort(404);
