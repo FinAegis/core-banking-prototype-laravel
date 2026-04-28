@@ -6,12 +6,14 @@ on:
     paths:
       - 'packages/zelta-sdk/**'
       - 'packages/zelta-cli/**'
+      - 'packages/finaegis-mcp-stdio/**'
       - 'sdks/php/**'
       - '.github/workflows/monorepo-split.yml'
     tags:
       - 'sdk-v*'
       - 'cli-v*'
       - 'php-sdk-v*'
+      - 'mcp-v*'
 
 permissions:
   contents: read
@@ -40,6 +42,10 @@ jobs:
             mirror: php-sdk
             tag_prefix: php-sdk-v
             description: 'FinAegis PHP SDK — official PHP client for the FinAegis API'
+          - subdir: packages/finaegis-mcp-stdio
+            mirror: mcp
+            tag_prefix: mcp-v
+            description: '@finaegis/mcp — stdio relay so Claude Desktop / Cursor / Continue.dev can talk to the Zelta MCP server'
     steps:
       - name: Checkout (full history, no default credentials)
         uses: actions/checkout@v4
