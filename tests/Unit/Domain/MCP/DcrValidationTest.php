@@ -19,7 +19,7 @@ it('rejects DCR with no redirect_uris', function () {
 it('rejects DCR with invalid grant_types', function () {
     $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
         'client_name'   => 'Test',
-        'redirect_uris' => ['http://localhost:1234/callback'],
+        'redirect_uris' => ['http://127.0.0.1:1234/callback'],
         'grant_types'   => ['password'],
     ]));
     $req->headers->set('Content-Type', 'application/json');
@@ -31,7 +31,7 @@ it('rejects DCR with invalid grant_types', function () {
 it('rejects DCR with non-https logo_uri', function () {
     $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
         'client_name'   => 'Test',
-        'redirect_uris' => ['http://localhost:1234/callback'],
+        'redirect_uris' => ['http://127.0.0.1:1234/callback'],
         'logo_uri'      => 'http://evil.example.com/spoof.png', // http, not https
     ]));
     $req->headers->set('Content-Type', 'application/json');
@@ -44,7 +44,7 @@ it('rejects DCR with non-https logo_uri', function () {
 it('rejects DCR with malformed tos_uri', function () {
     $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
         'client_name'   => 'Test',
-        'redirect_uris' => ['http://localhost:1234/callback'],
+        'redirect_uris' => ['http://127.0.0.1:1234/callback'],
         'tos_uri'       => 'not-a-url',
     ]));
     $req->headers->set('Content-Type', 'application/json');
@@ -57,7 +57,7 @@ it('rejects DCR with malformed tos_uri', function () {
 it('rejects DCR with non-https policy_uri', function () {
     $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
         'client_name'   => 'Test',
-        'redirect_uris' => ['http://localhost:1234/callback'],
+        'redirect_uris' => ['http://127.0.0.1:1234/callback'],
         'policy_uri'    => 'ftp://example.com/privacy',
     ]));
     $req->headers->set('Content-Type', 'application/json');
@@ -70,7 +70,7 @@ it('rejects DCR with non-https policy_uri', function () {
 it('rejects DCR with non-https client_uri', function () {
     $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
         'client_name'   => 'Test',
-        'redirect_uris' => ['http://localhost:1234/callback'],
+        'redirect_uris' => ['http://127.0.0.1:1234/callback'],
         'client_uri'    => 'http://example.com',
     ]));
     $req->headers->set('Content-Type', 'application/json');
@@ -127,4 +127,47 @@ it('allows DCR for a non-reserved client_name', function () {
     $response = (new DynamicClientRegistrationController())->__invoke($req);
     expect($response->getStatusCode())->toBe(201);
     expect($response->getData(true))->toHaveKey('client_id');
+});
+
+it('rejects DCR with non-https remote redirect_uri (auth-code interception risk)', function () {
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Test',
+        'redirect_uris' => ['http://attacker.example.com/cb'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(400);
+    expect($response->getData(true)['error'])->toBe('invalid_redirect_uri');
+    expect($response->getData(true)['error_description'])->toContain('https');
+});
+
+it('allows DCR for RFC 8252 loopback http redirect (native app pattern)', function () {
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Native App',
+        'redirect_uris' => ['http://127.0.0.1:54321/callback'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(201);
+});
+
+it('allows DCR for a custom-scheme native app redirect', function () {
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Native App',
+        'redirect_uris' => ['com.example.app://oauth/callback'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(201);
+});
+
+it('rejects DCR with http://localhost (must be 127.0.0.1 per RFC 8252)', function () {
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Test',
+        'redirect_uris' => ['http://localhost:1234/callback'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(400);
+    expect($response->getData(true)['error'])->toBe('invalid_redirect_uri');
 });

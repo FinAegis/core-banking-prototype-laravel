@@ -5,7 +5,7 @@ declare(strict_types=1);
 it('registers a DCR client and returns credentials', function () {
     $response = $this->postJson('/oauth/register', [
         'client_name'   => 'Test MCP Client',
-        'redirect_uris' => ['http://localhost:1234/callback', 'http://localhost:5678/callback'],
+        'redirect_uris' => ['http://127.0.0.1:1234/callback', 'http://127.0.0.1:5678/callback'],
         'grant_types'   => ['authorization_code', 'refresh_token'],
         'scope'         => 'accounts:read payments:write',
         'logo_uri'      => 'https://example.com/logo.png',
@@ -18,7 +18,7 @@ it('registers a DCR client and returns credentials', function () {
 
     expect($data)->toHaveKeys(['client_id', 'client_secret', 'client_name', 'redirect_uris', 'grant_types', 'token_endpoint_auth_method']);
     expect($data['client_name'])->toBe('Test MCP Client');
-    expect($data['redirect_uris'])->toBe(['http://localhost:1234/callback', 'http://localhost:5678/callback']);
+    expect($data['redirect_uris'])->toBe(['http://127.0.0.1:1234/callback', 'http://127.0.0.1:5678/callback']);
 
     $this->assertDatabaseHas('oauth_clients', [
         'id'                  => $data['client_id'],

@@ -32,6 +32,39 @@ final class DynamicClientRegistrationController
             if (! is_string($uri) || ! filter_var($uri, FILTER_VALIDATE_URL)) {
                 return $this->error('invalid_redirect_uri', "redirect_uri is not a valid URL: {$uri}");
             }
+
+            // OAuth 2.1 §4.1.3: redirect URIs MUST use https except for native
+            // app loopback (RFC 8252 §7.3 — http://127.0.0.1:port and
+            // http://[::1]:port) or non-http custom schemes (e.g. com.app://).
+            // FILTER_VALIDATE_URL accepts ftp://, http://example.com, etc., so
+            // we re-check the scheme here. Without this, a network attacker
+            // can intercept authorization codes for any registered http://
+            // client.
+            $scheme = parse_url($uri, PHP_URL_SCHEME);
+            if (! is_string($scheme)) {
+                return $this->error('invalid_redirect_uri', "redirect_uri is missing a scheme: {$uri}");
+            }
+
+            if ($scheme === 'https') {
+                continue;
+            }
+
+            if ($scheme === 'http' && $this->isLoopbackUri($uri)) {
+                continue;
+            }
+
+            // Custom/native app scheme (e.g. `com.example.app://callback`):
+            // accept anything that isn't an http(s) variant. Phishing risk is
+            // bounded because the OS routes the redirect to the registered
+            // app, not over the network.
+            if ($scheme !== 'http') {
+                continue;
+            }
+
+            return $this->error(
+                'invalid_redirect_uri',
+                "redirect_uri must use https (loopback http://127.0.0.1 or custom-scheme native callbacks accepted): {$uri}",
+            );
         }
 
         $grantTypes = $payload['grant_types'] ?? ['authorization_code'];
@@ -92,6 +125,18 @@ final class DynamicClientRegistrationController
             'policy_uri'                 => $client->client_privacy_url,
             'client_id_issued_at'        => now()->timestamp,
         ], 201);
+    }
+
+    /**
+     * RFC 8252 §7.3 loopback redirect: http://127.0.0.1[:port] or http://[::1][:port].
+     * Per the spec, the port may be ANY value (clients pick a free port at runtime).
+     * `localhost` is NOT a valid loopback redirect — only the literal IP forms.
+     */
+    private function isLoopbackUri(string $uri): bool
+    {
+        $host = parse_url($uri, PHP_URL_HOST);
+
+        return $host === '127.0.0.1' || $host === '[::1]' || $host === '::1';
     }
 
     private function error(string $code, string $description): JsonResponse
