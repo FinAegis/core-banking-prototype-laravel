@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\Cache;
 final class IdempotencyCache
 {
     /**
-     * TTL of the in-flight lock (seconds). Bounded so a crashed/timed-out call
-     * doesn't permanently block retries — slightly longer than the worst-case
-     * tool execution we'd accept (default 60s = covers slow rails like
-     * Lightning HTLCs but won't strand a stuck request forever).
+     * Default in-flight lock TTL when neither caller nor config specifies one.
+     * Conservative because the wrong-direction error is duplicate payment,
+     * not stuck retry: a too-short TTL on a slow rail (Lightning HTLC,
+     * congested chain) lets a second caller acquire the lock while the first
+     * call is still in flight = double-charge. Operators tune this via
+     * `mcp.idempotency.lock_ttl_seconds` (default 300s = 5 minutes — covers
+     * the slowest rails we currently care about).
      */
-    private const LOCK_TTL_SECONDS = 60;
+    private const DEFAULT_LOCK_TTL_SECONDS = 300;
 
     /**
      * Run $execute and cache its result keyed by (token, tool, idempotency_key).
@@ -60,7 +63,8 @@ final class IdempotencyCache
 
         // Atomic SET-NX. Whoever wins the lock executes; everyone else gets
         // told to retry, at which point the cached result will be present.
-        if (! $store->add($lockKey, '1', self::LOCK_TTL_SECONDS)) {
+        $lockTtl = (int) config('mcp.idempotency.lock_ttl_seconds', self::DEFAULT_LOCK_TTL_SECONDS);
+        if (! $store->add($lockKey, '1', $lockTtl)) {
             throw new IdempotencyKeyInFlightException(
                 "Idempotency key {$idempotencyKey} is currently being processed; retry after a short delay",
             );
