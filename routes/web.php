@@ -863,6 +863,7 @@ Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'inde
 Route::get('/robots.txt', [App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
 
 Route::get('/.well-known/oauth-authorization-server', App\Domain\MCP\Discovery\AuthorizationServerMetadataController::class)
+    ->middleware(['throttle:mcp.discovery'])
     ->name('mcp.discovery.authorization-server');
 
 Route::post('/oauth/register', App\Domain\MCP\Auth\DynamicClientRegistrationController::class)

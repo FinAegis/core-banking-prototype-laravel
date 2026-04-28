@@ -88,3 +88,13 @@ it('captures request metadata (ip, user_agent, request_id) from the current requ
     expect($row['user_agent'])->toBe('TestAgent/1.0');
     expect($row['request_id'])->toBe('req-abc-123');
 });
+
+it('throws InvalidArgumentException on an unknown result_status', function () {
+    expect(fn () => (new ToolInvocationLogger())->log([
+        'token_id'      => 'tok_x',
+        'client_id'     => 'c',
+        'tool_name'     => 'account.balance',
+        'args_hash'     => str_repeat('e', 64),
+        'result_status' => 'NOT_AN_ENUM_VALUE',
+    ]))->toThrow(InvalidArgumentException::class);
+});

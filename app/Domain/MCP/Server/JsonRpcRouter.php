@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\MCP\Server;
 
+use App\Domain\AI\Exceptions\ToolNotFoundException;
 use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\MCP\Audit\ToolInvocationLogger;
 use App\Domain\MCP\Exceptions\IdempotencyKeyReusedException;
 use App\Domain\MCP\Policy\IdempotencyCache;
 use stdClass;
-use Throwable;
 
 /**
  * JSON-RPC 2.0 dispatcher for the public MCP server.
@@ -21,11 +21,22 @@ use Throwable;
  *
  * Currently implemented methods: `initialize`, `tools/list`, `tools/call`, `ping`.
  * Unknown methods return -32601 METHOD_NOT_FOUND.
+ *
+ * Spending-limit gap (TODO Phase 3):
+ *   This router does NOT yet call SpendingLimitService::reserve() before write
+ *   tool execution, so the per-token daily cap captured at consent time is not
+ *   enforced. The hook point is in handleToolsCall() between the scope check
+ *   and the McpToolAdapter::execute() call. Wiring it requires standardising
+ *   how tools surface settlement amounts (arguments.amount_minor for explicit
+ *   payments, server-determined for sms.send, etc).
  */
 final class JsonRpcRouter
 {
     public function __construct(
         private readonly ToolRegistry $toolRegistry,
+        private readonly McpToolAdapter $adapter,
+        private readonly IdempotencyCache $idempotency,
+        private readonly ToolInvocationLogger $logger,
     ) {
     }
 
@@ -84,11 +95,7 @@ final class JsonRpcRouter
         $catalog = (array) config('mcp.tools');
 
         foreach ($catalog as $publicName => $entry) {
-            if (! is_array($entry)) {
-                continue;
-            }
-
-            if (! ($entry['enabled'] ?? false)) {
+            if (! is_array($entry) || ! ($entry['enabled'] ?? false)) {
                 continue;
             }
 
@@ -105,8 +112,9 @@ final class JsonRpcRouter
 
             try {
                 $internal = $this->toolRegistry->get($internalName);
-            } catch (Throwable) {
+            } catch (ToolNotFoundException) {
                 // Tool declared in catalog but not registered yet — skip silently.
+                // We narrowed from `Throwable` so OOM / DB / etc. still propagate.
                 continue;
             }
 
@@ -191,67 +199,106 @@ final class JsonRpcRouter
         }
 
         $isWrite = (bool) ($entry['is_write'] ?? false);
-        $idemKey = $arguments['idempotency_key'] ?? null;
+        $idemKeyRaw = $arguments['idempotency_key'] ?? null;
+        $idemKey = is_string($idemKeyRaw) && $idemKeyRaw !== '' ? $idemKeyRaw : null;
 
-        if ($isWrite && (! is_string($idemKey) || $idemKey === '')) {
+        if ($isWrite && $idemKey === null) {
             return $this->error($id, -32602, 'IDEMPOTENCY_KEY_REQUIRED', ['tool' => $name]);
         }
 
         $internalName = (string) ($entry['internal'] ?? '');
         try {
             $tool = $this->toolRegistry->get($internalName);
-        } catch (Throwable) {
+        } catch (ToolNotFoundException) {
             return $this->error($id, -32603, 'INTERNAL_TOOL_MISSING', ['internal' => $internalName]);
         }
 
-        $argsHash = hash('sha256', (string) json_encode($arguments, JSON_UNESCAPED_SLASHES));
-        $logger = app(ToolInvocationLogger::class);
-        $adapter = app(McpToolAdapter::class);
+        $argsHash = self::canonicalArgsHash($arguments);
         $started = hrtime(true);
 
         try {
             if ($isWrite) {
-                $cache = app(IdempotencyCache::class);
-                $callable = function () use ($adapter, $tool, $arguments, $ctx): array {
-                    return $adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
-                };
+                $callable = fn (): array => $this->adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
                 /** @var array<string, mixed> $result */
-                $result = $cache->remember($ctx->tokenId, $name, (string) $idemKey, $argsHash, $callable);
+                $result = $this->idempotency->remember($ctx->tokenId, $name, (string) $idemKey, $argsHash, $callable);
             } else {
-                $result = $adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
+                $result = $this->adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
             }
         } catch (IdempotencyKeyReusedException) {
-            $logger->log([
-                'token_id'        => $ctx->tokenId,
-                'client_id'       => $ctx->clientId,
-                'user_id'         => $ctx->userId,
-                'tool_name'       => $name,
-                'args_hash'       => $argsHash,
-                'idempotency_key' => (string) $idemKey,
-                'result_status'   => 'error',
-                'error_code'      => 'IDEMPOTENCY_KEY_REUSED',
-                'duration_ms'     => (int) ((hrtime(true) - $started) / 1_000_000),
-            ]);
+            $this->audit($ctx, $name, $argsHash, $idemKey, 'error', $started, errorCode: 'IDEMPOTENCY_KEY_REUSED');
 
             return $this->error($id, -32002, 'IDEMPOTENCY_KEY_REUSED', ['idempotency_key' => $idemKey]);
         }
 
-        $logger->log([
-            'token_id'        => $ctx->tokenId,
-            'client_id'       => $ctx->clientId,
-            'user_id'         => $ctx->userId,
-            'tool_name'       => $name,
-            'args_hash'       => $argsHash,
-            'idempotency_key' => is_string($idemKey) ? $idemKey : null,
-            'result_status'   => ($result['isError'] ?? false) ? 'error' : 'success',
-            'duration_ms'     => (int) ((hrtime(true) - $started) / 1_000_000),
-        ]);
+        $status = ($result['isError'] ?? false) ? 'error' : 'success';
+        $this->audit($ctx, $name, $argsHash, $idemKey, $status, $started);
 
         return [
             'jsonrpc' => '2.0',
             'id'      => $id,
             'result'  => $result,
         ];
+    }
+
+    /**
+     * Canonical sha256 of the arguments map: keys sorted recursively before encoding,
+     * unicode unescaped. Matches the same hash whether the client sends
+     * {"a":1,"b":2} or {"b":2,"a":1} — required for idempotency to work for
+     * arbitrary clients that may stringify their JSON differently on retry.
+     *
+     * @param array<string, mixed> $arguments
+     */
+    private static function canonicalArgsHash(array $arguments): string
+    {
+        $canonical = self::canonicalize($arguments);
+
+        return hash('sha256', (string) json_encode($canonical, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Recursively sort associative-array keys; preserve list ordering. Lists
+     * are arrays where keys are 0..n-1; everything else is treated as an
+     * associative map.
+     */
+    private static function canonicalize(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        $isList = array_is_list($value);
+        $out = [];
+        foreach ($value as $k => $v) {
+            $out[$k] = self::canonicalize($v);
+        }
+
+        if (! $isList) {
+            ksort($out);
+        }
+
+        return $out;
+    }
+
+    private function audit(
+        McpRequestContext $ctx,
+        string $toolName,
+        string $argsHash,
+        ?string $idemKey,
+        string $status,
+        int|float $startedHrtime,
+        ?string $errorCode = null,
+    ): void {
+        $this->logger->log([
+            'token_id'        => $ctx->tokenId,
+            'client_id'       => $ctx->clientId,
+            'user_id'         => $ctx->userId,
+            'tool_name'       => $toolName,
+            'args_hash'       => $argsHash,
+            'idempotency_key' => $idemKey,
+            'result_status'   => $status,
+            'error_code'      => $errorCode,
+            'duration_ms'     => (int) ((hrtime(true) - $startedHrtime) / 1_000_000),
+        ]);
     }
 
     /**

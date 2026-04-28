@@ -239,3 +239,33 @@ it('returns -32002 IDEMPOTENCY_KEY_REUSED when the same key is sent with differe
         'error_code'      => 'IDEMPOTENCY_KEY_REUSED',
     ]);
 });
+
+it('canonicalises args order when computing args_hash so reordered keys hit the cache', function () {
+    // Regression test for the original non-canonical hash bug: a client retrying
+    // the same write call but stringifying its arguments object with keys in a
+    // different order would have been rejected as IDEMPOTENCY_KEY_REUSED. After
+    // canonicalisation (recursive ksort before encoding), the second call must
+    // be served from the idempotency cache.
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
+
+    $first = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 100, 'method' => 'tools/call',
+        'params'  => [
+            'name'      => 'payment.transfer',
+            'arguments' => ['amount' => 100, 'currency' => 'USD', 'idempotency_key' => 'reorder-key'],
+        ],
+    ], $ctx);
+
+    $second = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 101, 'method' => 'tools/call',
+        'params'  => [
+            'name' => 'payment.transfer',
+            // Same logical args, different key order. Must match the cached entry.
+            'arguments' => ['idempotency_key' => 'reorder-key', 'currency' => 'USD', 'amount' => 100],
+        ],
+    ], $ctx);
+
+    expect($second)->not->toHaveKey('error');
+    expect($second['result']['structuredContent'])->toBe($first['result']['structuredContent']);
+});
