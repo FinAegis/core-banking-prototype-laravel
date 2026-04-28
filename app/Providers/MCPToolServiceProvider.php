@@ -24,6 +24,8 @@ use App\Domain\AI\MCP\Tools\MachinePay\MppPaymentTool;
 use App\Domain\AI\MCP\Tools\Payment\PaymentStatusTool;
 use App\Domain\AI\MCP\Tools\Payment\TransferTool;
 use App\Domain\AI\MCP\Tools\SMS\SmsSendTool;
+use App\Domain\AI\MCP\Tools\Transaction\SpendingAnalysisTool;
+use App\Domain\AI\MCP\Tools\Transaction\TransactionQueryTool;
 use App\Domain\AI\MCP\Tools\VisaCli\VisaCliCardsTool;
 use App\Domain\AI\MCP\Tools\VisaCli\VisaCliPaymentTool;
 use App\Domain\AI\MCP\Tools\X402\X402PaymentTool;
@@ -54,6 +56,10 @@ class MCPToolServiceProvider extends ServiceProvider
         // Payment Tools
         TransferTool::class,
         PaymentStatusTool::class,
+
+        // Transaction Tools
+        TransactionQueryTool::class,
+        SpendingAnalysisTool::class,
 
         // Exchange Tools
         QuoteTool::class,
