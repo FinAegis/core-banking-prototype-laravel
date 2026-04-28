@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\MCP\Server;
 
 use App\Domain\AI\MCP\ToolRegistry;
+use App\Domain\MCP\Audit\ToolInvocationLogger;
+use App\Domain\MCP\Exceptions\IdempotencyKeyReusedException;
+use App\Domain\MCP\Policy\IdempotencyCache;
 use stdClass;
 use Throwable;
 
@@ -16,7 +19,7 @@ use Throwable;
  * endpoint — it assumes the McpRequestContext has already been populated from
  * a verified bearer token.
  *
- * Currently implemented methods: `initialize`, `tools/list`, `ping`.
+ * Currently implemented methods: `initialize`, `tools/list`, `tools/call`, `ping`.
  * Unknown methods return -32601 METHOD_NOT_FOUND.
  */
 final class JsonRpcRouter
@@ -39,10 +42,13 @@ final class JsonRpcRouter
         }
 
         $method = (string) $envelope['method'];
+        /** @var array<string, mixed> $params */
+        $params = is_array($envelope['params'] ?? null) ? $envelope['params'] : [];
 
         return match ($method) {
             'initialize' => $this->handleInitialize($id),
             'tools/list' => $this->handleToolsList($id, $ctx),
+            'tools/call' => $this->handleToolsCall($id, $params, $ctx),
             'ping'       => ['jsonrpc' => '2.0', 'id' => $id, 'result' => new stdClass()],
             default      => $this->error($id, -32601, 'METHOD_NOT_FOUND', ['method' => $method]),
         };
@@ -145,6 +151,107 @@ final class JsonRpcRouter
         $schema['required'] = array_values(array_unique(array_merge($required, ['idempotency_key'])));
 
         return $schema;
+    }
+
+    /**
+     * Dispatch a `tools/call` invocation: resolve the public tool name to its
+     * internal MCPToolInterface, enforce scope + write-tool idempotency, execute
+     * via the adapter (wrapped in IdempotencyCache for write tools), and append
+     * an audit row to mcp_tool_invocations.
+     *
+     * @param  array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    private function handleToolsCall(mixed $id, array $params, McpRequestContext $ctx): array
+    {
+        $name = (string) ($params['name'] ?? '');
+        /** @var array<string, mixed> $arguments */
+        $arguments = is_array($params['arguments'] ?? null) ? $params['arguments'] : [];
+
+        /** @var array<string, mixed> $catalog */
+        $catalog = (array) config('mcp.tools');
+        if (! isset($catalog[$name]) || ! is_array($catalog[$name])) {
+            return $this->error($id, -32601, 'TOOL_NOT_FOUND', ['name' => $name]);
+        }
+
+        /** @var array<string, mixed> $entry */
+        $entry = $catalog[$name];
+
+        if (! ($entry['enabled'] ?? false)) {
+            return $this->error($id, -32004, 'TOOL_DISABLED', ['name' => $name]);
+        }
+
+        /** @var string|null $requiredScope */
+        $requiredScope = $entry['scope'] ?? null;
+        if (! $ctx->hasScope($requiredScope)) {
+            return $this->error($id, -32000, 'INSUFFICIENT_SCOPE', [
+                'required' => $requiredScope,
+                'granted'  => $ctx->scopes,
+            ]);
+        }
+
+        $isWrite = (bool) ($entry['is_write'] ?? false);
+        $idemKey = $arguments['idempotency_key'] ?? null;
+
+        if ($isWrite && (! is_string($idemKey) || $idemKey === '')) {
+            return $this->error($id, -32602, 'IDEMPOTENCY_KEY_REQUIRED', ['tool' => $name]);
+        }
+
+        $internalName = (string) ($entry['internal'] ?? '');
+        try {
+            $tool = $this->toolRegistry->get($internalName);
+        } catch (Throwable) {
+            return $this->error($id, -32603, 'INTERNAL_TOOL_MISSING', ['internal' => $internalName]);
+        }
+
+        $argsHash = hash('sha256', (string) json_encode($arguments, JSON_UNESCAPED_SLASHES));
+        $logger = app(ToolInvocationLogger::class);
+        $adapter = app(McpToolAdapter::class);
+        $started = hrtime(true);
+
+        try {
+            if ($isWrite) {
+                $cache = app(IdempotencyCache::class);
+                $callable = function () use ($adapter, $tool, $arguments, $ctx): array {
+                    return $adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
+                };
+                /** @var array<string, mixed> $result */
+                $result = $cache->remember($ctx->tokenId, $name, (string) $idemKey, $argsHash, $callable);
+            } else {
+                $result = $adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
+            }
+        } catch (IdempotencyKeyReusedException) {
+            $logger->log([
+                'token_id'        => $ctx->tokenId,
+                'client_id'       => $ctx->clientId,
+                'user_id'         => $ctx->userId,
+                'tool_name'       => $name,
+                'args_hash'       => $argsHash,
+                'idempotency_key' => (string) $idemKey,
+                'result_status'   => 'error',
+                'error_code'      => 'IDEMPOTENCY_KEY_REUSED',
+                'duration_ms'     => (int) ((hrtime(true) - $started) / 1_000_000),
+            ]);
+
+            return $this->error($id, -32002, 'IDEMPOTENCY_KEY_REUSED', ['idempotency_key' => $idemKey]);
+        }
+
+        $logger->log([
+            'token_id'        => $ctx->tokenId,
+            'client_id'       => $ctx->clientId,
+            'user_id'         => $ctx->userId,
+            'tool_name'       => $name,
+            'args_hash'       => $argsHash,
+            'idempotency_key' => is_string($idemKey) ? $idemKey : null,
+            'result_status'   => ($result['isError'] ?? false) ? 'error' : 'success',
+            'duration_ms'     => (int) ((hrtime(true) - $started) / 1_000_000),
+        ]);
+
+        return [
+            'jsonrpc' => '2.0',
+            'id'      => $id,
+            'result'  => $result,
+        ];
     }
 
     /**
