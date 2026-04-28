@@ -203,12 +203,12 @@ it('caches the result on a write tool retry with the same idempotency_key + args
 
     $first = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 6, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 100, 'idempotency_key' => 'idem-1']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'idem-1']],
     ], $ctx);
 
     $second = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 7, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 100, 'idempotency_key' => 'idem-1']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'idem-1']],
     ], $ctx);
 
     // Same result envelope (identical structuredContent).
@@ -221,12 +221,12 @@ it('returns -32002 IDEMPOTENCY_KEY_REUSED when the same key is sent with differe
 
     $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 8, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 100, 'idempotency_key' => 'idem-2']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'idem-2']],
     ], $ctx);
 
     $reuse = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 9, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 999, 'idempotency_key' => 'idem-2']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 999, 'currency' => 'USD', 'idempotency_key' => 'idem-2']],
     ], $ctx);
 
     expect($reuse['error']['code'])->toBe(-32002);
@@ -253,7 +253,7 @@ it('canonicalises args order when computing args_hash so reordered keys hit the 
         'jsonrpc' => '2.0', 'id' => 100, 'method' => 'tools/call',
         'params'  => [
             'name'      => 'payment.transfer',
-            'arguments' => ['amount' => 100, 'currency' => 'USD', 'idempotency_key' => 'reorder-key'],
+            'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'reorder-key'],
         ],
     ], $ctx);
 
@@ -262,10 +262,155 @@ it('canonicalises args order when computing args_hash so reordered keys hit the 
         'params'  => [
             'name' => 'payment.transfer',
             // Same logical args, different key order. Must match the cached entry.
-            'arguments' => ['idempotency_key' => 'reorder-key', 'currency' => 'USD', 'amount' => 100],
+            'arguments' => ['idempotency_key' => 'reorder-key', 'currency' => 'USD', 'amount_minor' => 100],
         ],
     ], $ctx);
 
     expect($second)->not->toHaveKey('error');
     expect($second['result']['structuredContent'])->toBe($first['result']['structuredContent']);
+});
+
+// -----------------------------------------------------------------------
+// Spending-saga path
+// -----------------------------------------------------------------------
+
+it('reserves the daily spend on a successful payment-tool call and persists the increment', function () {
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 200, 'method' => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => [
+            'amount_minor'    => 12000,
+            'currency'        => 'USD',
+            'idempotency_key' => 'pay-success',
+        ]],
+    ], $ctx);
+
+    expect($resp['result']['isError'])->toBeFalse();
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(12000);
+});
+
+it('returns -32003 SPENDING_LIMIT_EXCEEDED when the reservation would exceed the daily cap', function () {
+    DB::table('mcp_token_policies')->where('token_id', 'tok_test')->update(['daily_spend_minor' => 49000]);
+
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 201, 'method' => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => [
+            'amount_minor'    => 5000,
+            'currency'        => 'USD',
+            'idempotency_key' => 'pay-overlimit',
+        ]],
+    ], $ctx);
+
+    expect($resp['error']['code'])->toBe(-32003);
+    expect($resp['error']['message'])->toBe('SPENDING_LIMIT_EXCEEDED');
+    expect($resp['error']['data']['limit_remaining_minor'])->toBe(1000);
+    // Counter unchanged.
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(49000);
+
+    $this->assertDatabaseHas('mcp_tool_invocations', [
+        'token_id'      => 'tok_test',
+        'tool_name'     => 'payment.transfer',
+        'result_status' => 'spending_limit',
+    ]);
+});
+
+it('releases the reservation when the payment tool reports an error', function () {
+    // Stub a tool that always fails; replaces the success-stub from beforeEach.
+    /** @var ToolRegistry $registry */
+    $registry = app(ToolRegistry::class);
+    $registry->unregister('payment.transfer');
+    $registry->register(new class () implements MCPToolInterface {
+        public function getName(): string
+        {
+            return 'payment.transfer';
+        }
+
+        public function getCategory(): string
+        {
+            return 'test';
+        }
+
+        public function getDescription(): string
+        {
+            return 'failing transfer';
+        }
+
+        /** @return array<string, mixed> */
+        public function getInputSchema(): array
+        {
+            return ['type' => 'object'];
+        }
+
+        /** @return array<string, mixed> */
+        public function getOutputSchema(): array
+        {
+            return ['type' => 'object'];
+        }
+
+        /** @param array<string, mixed> $parameters */
+        public function execute(array $parameters, ?string $conversationId = null): ToolExecutionResult
+        {
+            return ToolExecutionResult::failure('upstream rail unavailable');
+        }
+
+        /** @return array<int|string, mixed> */
+        public function getCapabilities(): array
+        {
+            return [];
+        }
+
+        public function isCacheable(): bool
+        {
+            return false;
+        }
+
+        public function getCacheTtl(): int
+        {
+            return 0;
+        }
+
+        /** @param array<string, mixed> $parameters */
+        public function validateInput(array $parameters): bool
+        {
+            return true;
+        }
+
+        public function authorize(?string $userId): bool
+        {
+            return true;
+        }
+    });
+
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 202, 'method' => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => [
+            'amount_minor'    => 7500,
+            'currency'        => 'USD',
+            'idempotency_key' => 'pay-fails',
+        ]],
+    ], $ctx);
+
+    expect($resp['result']['isError'])->toBeTrue();
+    // Reservation rolled back — daily spend stays at 0.
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(0);
+});
+
+it('rejects a payment-tool call missing amount_minor with -32003 AMOUNT_INVALID', function () {
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 203, 'method' => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => [
+            'currency'        => 'USD',
+            'idempotency_key' => 'pay-no-amount',
+        ]],
+    ], $ctx);
+
+    expect($resp['error']['code'])->toBe(-32003);
+    expect($resp['error']['data']['error_code'])->toBe('AMOUNT_INVALID');
 });

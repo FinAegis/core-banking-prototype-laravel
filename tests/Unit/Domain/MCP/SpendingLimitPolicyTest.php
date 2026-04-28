@@ -75,3 +75,57 @@ it('allows spend exactly at the remaining limit', function () {
     expect($result['allowed'])->toBeTrue();
     expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_a')->value('daily_spend_minor'))->toBe(50000);
 });
+
+it('release() compensates a prior reserve by subtracting the amount', function () {
+    $svc = new SpendingLimitService();
+    $svc->reserve('tok_a', 10000, 'USD');
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_a')->value('daily_spend_minor'))->toBe(10000);
+
+    $svc->release('tok_a', 10000, 'USD');
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_a')->value('daily_spend_minor'))->toBe(0);
+});
+
+it('release() floors at 0 when amount exceeds current spend', function () {
+    DB::table('mcp_token_policies')->where('token_id', 'tok_a')->update(['daily_spend_minor' => 5000]);
+    $svc = new SpendingLimitService();
+    $svc->release('tok_a', 50000, 'USD');
+
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_a')->value('daily_spend_minor'))->toBe(0);
+});
+
+it('release() is a no-op when currency mismatches policy', function () {
+    DB::table('mcp_token_policies')->where('token_id', 'tok_a')->update(['daily_spend_minor' => 10000]);
+    $svc = new SpendingLimitService();
+    $svc->release('tok_a', 5000, 'EUR');
+
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_a')->value('daily_spend_minor'))->toBe(10000);
+});
+
+it('release() is a no-op when the daily window has already rolled', function () {
+    // Stale window: counter has already been (or would be) reset; releasing the
+    // old reservation would push the new fresh window below 0.
+    DB::table('mcp_token_policies')->where('token_id', 'tok_a')->update([
+        'daily_spend_minor'     => 0,
+        'daily_window_start_at' => now()->subHours(25),
+    ]);
+    $svc = new SpendingLimitService();
+    $svc->release('tok_a', 5000, 'USD');
+
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_a')->value('daily_spend_minor'))->toBe(0);
+});
+
+it('release() is a no-op when no policy row exists', function () {
+    $svc = new SpendingLimitService();
+    $svc->release('tok_unknown', 5000, 'USD');
+    // Nothing to assert — just shouldn't throw.
+    expect(true)->toBeTrue();
+});
+
+it('release() is a no-op for non-positive amounts', function () {
+    DB::table('mcp_token_policies')->where('token_id', 'tok_a')->update(['daily_spend_minor' => 5000]);
+    $svc = new SpendingLimitService();
+    $svc->release('tok_a', 0, 'USD');
+    $svc->release('tok_a', -100, 'USD');
+
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_a')->value('daily_spend_minor'))->toBe(5000);
+});

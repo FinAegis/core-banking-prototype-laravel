@@ -63,4 +63,50 @@ final class SpendingLimitService
             return ['allowed' => true];
         });
     }
+
+    /**
+     * Compensating action for a prior reserve(): subtract $amountMinor from the
+     * counter, floored at 0. No-op if the policy row is gone, the currency no
+     * longer matches, or the daily window has rolled (which already zeroed the
+     * counter — re-debiting would push us below 0 in spirit, and the original
+     * reservation is now meaningless).
+     *
+     * Used by the spending-saga path: reserve → execute tool → release on
+     * tool failure. Idempotency-cached replays don't re-reserve, so they don't
+     * call release either.
+     */
+    public function release(string $tokenId, int $amountMinor, string $currency): void
+    {
+        if ($amountMinor <= 0) {
+            return;
+        }
+
+        DB::transaction(function () use ($tokenId, $amountMinor, $currency): void {
+            $row = DB::table('mcp_token_policies')
+                ->where('token_id', $tokenId)
+                ->lockForUpdate()
+                ->first();
+
+            if ($row === null) {
+                return;
+            }
+
+            if ($currency !== $row->daily_limit_currency) {
+                return;
+            }
+
+            $windowStart = Carbon::parse((string) $row->daily_window_start_at);
+            if ($windowStart->lte(now()->subDay())) {
+                return;
+            }
+
+            $current = (int) $row->daily_spend_minor;
+            $next = max(0, $current - $amountMinor);
+
+            DB::table('mcp_token_policies')->where('token_id', $tokenId)->update([
+                'daily_spend_minor' => $next,
+                'updated_at'        => now(),
+            ]);
+        });
+    }
 }

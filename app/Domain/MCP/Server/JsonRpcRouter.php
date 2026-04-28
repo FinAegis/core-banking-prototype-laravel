@@ -8,7 +8,9 @@ use App\Domain\AI\Exceptions\ToolNotFoundException;
 use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\MCP\Audit\ToolInvocationLogger;
 use App\Domain\MCP\Exceptions\IdempotencyKeyReusedException;
+use App\Domain\MCP\Exceptions\SpendingLimitExceededException;
 use App\Domain\MCP\Policy\IdempotencyCache;
+use App\Domain\MCP\Sagas\SpendingEnforcedToolCallSaga;
 use stdClass;
 
 /**
@@ -22,13 +24,11 @@ use stdClass;
  * Currently implemented methods: `initialize`, `tools/list`, `tools/call`, `ping`.
  * Unknown methods return -32601 METHOD_NOT_FOUND.
  *
- * Spending-limit gap (TODO Phase 3):
- *   This router does NOT yet call SpendingLimitService::reserve() before write
- *   tool execution, so the per-token daily cap captured at consent time is not
- *   enforced. The hook point is in handleToolsCall() between the scope check
- *   and the McpToolAdapter::execute() call. Wiring it requires standardising
- *   how tools surface settlement amounts (arguments.amount_minor for explicit
- *   payments, server-determined for sms.send, etc).
+ * Spending limits: payment tools (catalog `is_payment: true`) are wrapped in
+ *   SpendingEnforcedToolCallSaga, which reserves the requested amount before
+ *   execution and releases the reservation if the tool reports failure. Tools
+ *   without explicit amounts (sms.send, ramp.start) are NOT yet covered — see
+ *   the catalog and Phase 3 follow-up for variable-cost rails.
  */
 final class JsonRpcRouter
 {
@@ -37,6 +37,7 @@ final class JsonRpcRouter
         private readonly McpToolAdapter $adapter,
         private readonly IdempotencyCache $idempotency,
         private readonly ToolInvocationLogger $logger,
+        private readonly SpendingEnforcedToolCallSaga $spendingSaga,
     ) {
     }
 
@@ -215,19 +216,32 @@ final class JsonRpcRouter
 
         $argsHash = self::canonicalArgsHash($arguments);
         $started = hrtime(true);
+        $isPayment = (bool) ($entry['is_payment'] ?? false);
 
         try {
+            $baseExec = fn (): array => $this->adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
+
+            // Saga wraps the bare execute, so an idempotent replay served from
+            // the cache below skips the reserve/release dance entirely (the
+            // first call already settled the spend).
+            $execWithSpending = $isPayment
+                ? fn (): array => $this->spendingSaga->run($ctx->tokenId, $arguments, $entry, $baseExec)
+                : $baseExec;
+
             if ($isWrite) {
-                $callable = fn (): array => $this->adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
                 /** @var array<string, mixed> $result */
-                $result = $this->idempotency->remember($ctx->tokenId, $name, (string) $idemKey, $argsHash, $callable);
+                $result = $this->idempotency->remember($ctx->tokenId, $name, (string) $idemKey, $argsHash, $execWithSpending);
             } else {
-                $result = $this->adapter->execute($tool, $arguments, 'mcp_' . $ctx->tokenId);
+                $result = $execWithSpending();
             }
         } catch (IdempotencyKeyReusedException) {
             $this->audit($ctx, $name, $argsHash, $idemKey, 'error', $started, errorCode: 'IDEMPOTENCY_KEY_REUSED');
 
             return $this->error($id, -32002, 'IDEMPOTENCY_KEY_REUSED', ['idempotency_key' => $idemKey]);
+        } catch (SpendingLimitExceededException $e) {
+            $this->audit($ctx, $name, $argsHash, $idemKey, 'spending_limit', $started, errorCode: (string) ($e->data['error_code'] ?? 'LIMIT_EXCEEDED'));
+
+            return $this->error($id, -32003, 'SPENDING_LIMIT_EXCEEDED', $e->data);
         }
 
         $status = ($result['isError'] ?? false) ? 'error' : 'success';
