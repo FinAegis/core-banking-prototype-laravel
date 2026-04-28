@@ -142,6 +142,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'ws.payment' => App\Http\Middleware\WebSocketPaymentGateMiddleware::class,
             // Protocol subdomain auto-detection (v6.5.0)
             'protocol.subdomain' => App\Http\Middleware\ProtocolSubdomainMiddleware::class,
+            // MCP OAuth bearer guard (v7.11.0)
+            'mcp.oauth' => App\Domain\MCP\Auth\McpOAuthGuard::class,
         ]);
 
         // Prepend CORS middleware to handle it before other middleware
