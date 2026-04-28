@@ -204,6 +204,20 @@ final class JsonRpcRouter
             ]);
         }
 
+        // User-context tools (anything that accesses a user's own accounts /
+        // payments / transactions) require a token bound to a user. A
+        // client_credentials grant has user_id=null on the token; without
+        // this guard, those tools would silently fall through to "Auth::user()
+        // returned null" inside the tool and return an opaque error. Surface
+        // the constraint at the dispatch layer instead.
+        $requiresUser = (bool) ($entry['requires_user'] ?? false);
+        if ($requiresUser && $ctx->userId === null) {
+            return $this->error($id, -32006, 'USER_CONTEXT_REQUIRED', [
+                'tool'   => $name,
+                'detail' => 'this tool requires a user-bound bearer token; client_credentials grants are not allowed',
+            ]);
+        }
+
         $isWrite = (bool) ($entry['is_write'] ?? false);
         $idemKeyRaw = $arguments['idempotency_key'] ?? null;
         $idemKey = is_string($idemKeyRaw) && $idemKeyRaw !== '' ? $idemKeyRaw : null;

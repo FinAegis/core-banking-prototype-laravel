@@ -420,6 +420,28 @@ it('releases the reservation when the payment tool reports an error', function (
     expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(0);
 });
 
+it('returns -32006 USER_CONTEXT_REQUIRED when a user-context tool is called without a user-bound token', function () {
+    // client_credentials grants set user_id=null on the Passport token; the
+    // McpRequestContext carries that null forward. payment.transfer is a
+    // user-context tool (`requires_user: true` in catalog), so dispatch
+    // should reject before ever invoking the tool.
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', null, ['payments:write']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 205, 'method' => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => [
+            'amount'          => 50,
+            'currency'        => 'USD',
+            'idempotency_key' => 'pay-no-user',
+        ]],
+    ], $ctx);
+
+    expect($resp['error']['code'])->toBe(-32006);
+    expect($resp['error']['data']['tool'])->toBe('payment.transfer');
+    // Counter must NOT have been touched.
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(0);
+});
+
 it('rejects a payment-tool call missing amount with -32003 AMOUNT_INVALID', function () {
     $router = app(JsonRpcRouter::class);
     $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
