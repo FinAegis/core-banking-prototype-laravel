@@ -1,0 +1,253 @@
+import { createServer, IncomingMessage, ServerResponse } from 'node:http';
+import { randomBytes, createHash } from 'node:crypto';
+import { fetch } from 'undici';
+import keytar from 'keytar';
+import open from 'open';
+import { RelayConfig } from './config.js';
+
+interface TokenSet {
+  access_token: string;
+  refresh_token?: string;
+  expires_at: number;
+  scope: string;
+}
+
+interface ClientCreds {
+  client_id: string;
+  client_secret: string;
+}
+
+const REDIRECT_PORT = 53682;
+// RFC 8252 §7.3: loopback redirects MUST use the literal IP, not "localhost".
+// Our own DCR validator rejects localhost for the same reason.
+const REDIRECT_HOST = '127.0.0.1';
+const REDIRECT_URI = `http://${REDIRECT_HOST}:${REDIRECT_PORT}/callback`;
+const CALLBACK_TIMEOUT_MS = 300_000;
+
+const REQUESTED_SCOPES = [
+  'accounts:read',
+  'accounts:write',
+  'payments:read',
+  'payments:write',
+  'transactions:read',
+  'exchange:read',
+  'exchange:write',
+  'ramp:read',
+  'ramp:write',
+  'sms:send',
+].join(' ');
+
+interface TokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  scope: string;
+}
+
+export class OAuthHelper {
+  constructor(private cfg: RelayConfig) {}
+
+  async getAccessToken(): Promise<string> {
+    const stored = await this.readToken();
+    if (stored && stored.expires_at > Date.now() + 30_000) {
+      return stored.access_token;
+    }
+    if (stored?.refresh_token) {
+      const refreshed = await this.refresh(stored.refresh_token);
+      if (refreshed) {
+        await this.writeToken(refreshed);
+        return refreshed.access_token;
+      }
+    }
+    const fresh = await this.interactiveFlow();
+    await this.writeToken(fresh);
+    return fresh.access_token;
+  }
+
+  async logout(): Promise<void> {
+    await keytar.deletePassword(this.cfg.keychainService, this.cfg.keychainAccount);
+    await keytar.deletePassword(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr');
+  }
+
+  private async readToken(): Promise<TokenSet | null> {
+    const raw = await keytar.getPassword(this.cfg.keychainService, this.cfg.keychainAccount);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as TokenSet;
+    } catch {
+      return null;
+    }
+  }
+
+  private async writeToken(t: TokenSet): Promise<void> {
+    await keytar.setPassword(this.cfg.keychainService, this.cfg.keychainAccount, JSON.stringify(t));
+  }
+
+  private async refresh(refreshToken: string): Promise<TokenSet | null> {
+    const dcr = await this.dcrIfNeeded();
+    const body = new URLSearchParams({
+      grant_type:    'refresh_token',
+      refresh_token: refreshToken,
+      client_id:     dcr.client_id,
+      client_secret: dcr.client_secret,
+    });
+    const res = await fetch(`${this.cfg.authServer}/oauth/token`, {
+      method:  'POST',
+      body,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as TokenResponse;
+    return {
+      access_token:  data.access_token,
+      refresh_token: data.refresh_token ?? refreshToken,
+      expires_at:    Date.now() + data.expires_in * 1000,
+      scope:         data.scope,
+    };
+  }
+
+  private async interactiveFlow(): Promise<TokenSet> {
+    const dcr = await this.dcrIfNeeded();
+
+    const verifier = randomBytes(32).toString('base64url');
+    const challenge = createHash('sha256').update(verifier).digest('base64url');
+    const state = randomBytes(16).toString('base64url');
+
+    const authUrl = `${this.cfg.authServer}/oauth/authorize?` + new URLSearchParams({
+      response_type:         'code',
+      client_id:             dcr.client_id,
+      redirect_uri:          REDIRECT_URI,
+      scope:                 REQUESTED_SCOPES,
+      state,
+      code_challenge:        challenge,
+      code_challenge_method: 'S256',
+    }).toString();
+
+    // Start the loopback server BEFORE opening the browser so we don't race
+    // a fast-clicking user against the bind. open() can throw on headless
+    // systems; if it does, fall back to printing the URL.
+    const codePromise = this.waitForCode(state);
+
+    if (this.cfg.oauthNoBrowser) {
+      process.stderr.write(`Open this URL to authorize:\n  ${authUrl}\n`);
+    } else {
+      try {
+        await open(authUrl);
+      } catch {
+        process.stderr.write(`Could not open browser. Open this URL manually:\n  ${authUrl}\n`);
+      }
+    }
+
+    const code = await codePromise;
+    const tokenBody = new URLSearchParams({
+      grant_type:    'authorization_code',
+      code,
+      redirect_uri:  REDIRECT_URI,
+      client_id:     dcr.client_id,
+      client_secret: dcr.client_secret,
+      code_verifier: verifier,
+    });
+    const tokenRes = await fetch(`${this.cfg.authServer}/oauth/token`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    tokenBody,
+    });
+    if (!tokenRes.ok) {
+      throw new Error(`token exchange failed: ${tokenRes.status} ${await tokenRes.text()}`);
+    }
+    const data = (await tokenRes.json()) as TokenResponse;
+
+    return {
+      access_token:  data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at:    Date.now() + data.expires_in * 1000,
+      scope:         data.scope,
+    };
+  }
+
+  private waitForCode(expectedState: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+        // Only GET on /callback. Anything else is either a probe or an
+        // attacker trying to fish at the loopback port.
+        if (req.method !== 'GET') {
+          res.writeHead(405).end();
+          return;
+        }
+        const url = new URL(req.url ?? '/', `http://${REDIRECT_HOST}:${REDIRECT_PORT}`);
+        if (url.pathname !== '/callback') {
+          res.writeHead(404).end();
+          return;
+        }
+        const got = url.searchParams.get('state');
+        if (got !== expectedState) {
+          res.writeHead(400).end('state mismatch');
+          cleanup();
+          reject(new Error('state mismatch'));
+          return;
+        }
+        const c = url.searchParams.get('code');
+        if (!c) {
+          res.writeHead(400).end('no code');
+          cleanup();
+          reject(new Error('authorization response missing code'));
+          return;
+        }
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end('<html><body><h2>Authorized — you can close this window.</h2></body></html>');
+        cleanup();
+        resolve(c);
+      });
+
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('timed out waiting for browser callback'));
+      }, CALLBACK_TIMEOUT_MS);
+
+      const cleanup = (): void => {
+        clearTimeout(timer);
+        server.close();
+      };
+
+      server.on('error', (err) => {
+        cleanup();
+        reject(err);
+      });
+
+      // Bind to 127.0.0.1 explicitly. Listening on 0.0.0.0 would expose the
+      // auth code endpoint to the LAN, which is the threat RFC 8252 closes.
+      server.listen(REDIRECT_PORT, REDIRECT_HOST);
+    });
+  }
+
+  /**
+   * Lazily DCR-register on first run; persist client_id+secret to keychain
+   * under a separate account.
+   */
+  private async dcrIfNeeded(): Promise<ClientCreds> {
+    const stored = await keytar.getPassword(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr');
+    if (stored) {
+      try {
+        return JSON.parse(stored) as ClientCreds;
+      } catch {
+        // Corrupted entry — fall through and re-register.
+      }
+    }
+
+    const res = await fetch(`${this.cfg.authServer}/oauth/register`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        client_name:   '@finaegis/mcp (stdio)',
+        redirect_uris: [REDIRECT_URI],
+        grant_types:   ['authorization_code', 'refresh_token'],
+      }),
+    });
+    if (!res.ok) {
+      throw new Error(`DCR failed: ${res.status} ${await res.text()}`);
+    }
+    const data = (await res.json()) as ClientCreds;
+    await keytar.setPassword(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr', JSON.stringify(data));
+    return data;
+  }
+}
