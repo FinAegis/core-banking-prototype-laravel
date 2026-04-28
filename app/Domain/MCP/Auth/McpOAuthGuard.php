@@ -53,6 +53,14 @@ final class McpOAuthGuard
 
         $request->attributes->set('mcp.token', $token);
 
+        // Existing internal tool implementations (TransferTool, AccountBalanceTool,
+        // RampStartTool, …) call Auth::user() with no guard argument — that
+        // resolves the *default* guard, which is `web` (session) and returns null
+        // under a stateless bearer-token request. Switch the default to `api` for
+        // the remainder of this request so those tools see the authenticated user
+        // without each having to know about the MCP-specific guard.
+        Auth::shouldUse('api');
+
         return $next($request);
     }
 

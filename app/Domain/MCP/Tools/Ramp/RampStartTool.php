@@ -120,6 +120,10 @@ final class RampStartTool implements MCPToolInterface
      */
     public function execute(array $parameters, ?string $conversationId = null): ToolExecutionResult
     {
+        // McpOAuthGuard switches the default guard to `api`, so Auth::user() now
+        // resolves to the bearer-token's owning user under MCP. Internal AI
+        // callers continue to work because they hit the same Auth facade with
+        // their own guard configuration.
         $user = $this->resolveUser(null);
         if ($user === null) {
             return ToolExecutionResult::failure('Unauthenticated: ramp.start requires a user-bound bearer token');

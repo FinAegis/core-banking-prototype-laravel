@@ -72,6 +72,9 @@ it('returns 401 when the resolved Passport token is revoked', function () {
     $apiGuard = Mockery::mock(Guard::class);
     $apiGuard->shouldReceive('user')->andReturn($user);
     Auth::shouldReceive('guard')->with('api')->andReturn($apiGuard);
+    // Once a user is resolved, the guard switches the default to `api` so
+    // existing tools' Auth::user() calls find the bearer-token user.
+    Auth::shouldReceive('shouldUse')->with('api');
 
     $guard = new McpOAuthGuard();
     $request = Request::create('/mcp', 'POST');
@@ -94,6 +97,9 @@ it('lets the request through with a valid token and attaches the token to the re
     $apiGuard = Mockery::mock(Guard::class);
     $apiGuard->shouldReceive('user')->andReturn($user);
     Auth::shouldReceive('guard')->with('api')->andReturn($apiGuard);
+    // Once a user is resolved, the guard switches the default to `api` so
+    // existing tools' Auth::user() calls find the bearer-token user.
+    Auth::shouldReceive('shouldUse')->with('api');
 
     $guard = new McpOAuthGuard();
     $request = Request::create('/mcp', 'POST');
@@ -122,6 +128,9 @@ it('lets the request through when a required scope is satisfied by the token', f
     $apiGuard = Mockery::mock(Guard::class);
     $apiGuard->shouldReceive('user')->andReturn($user);
     Auth::shouldReceive('guard')->with('api')->andReturn($apiGuard);
+    // Once a user is resolved, the guard switches the default to `api` so
+    // existing tools' Auth::user() calls find the bearer-token user.
+    Auth::shouldReceive('shouldUse')->with('api');
 
     $guard = new McpOAuthGuard();
     $request = Request::create('/mcp', 'POST');
@@ -158,6 +167,9 @@ it('returns 403 with INSUFFICIENT_SCOPE when the token lacks the required scope'
     $apiGuard = Mockery::mock(Guard::class);
     $apiGuard->shouldReceive('user')->andReturn($user);
     Auth::shouldReceive('guard')->with('api')->andReturn($apiGuard);
+    // Once a user is resolved, the guard switches the default to `api` so
+    // existing tools' Auth::user() calls find the bearer-token user.
+    Auth::shouldReceive('shouldUse')->with('api');
 
     $guard = new McpOAuthGuard();
     $request = Request::create('/mcp', 'POST');
