@@ -53,17 +53,18 @@ final class DynamicClientRegistrationController
                 continue;
             }
 
-            // Custom/native app scheme (e.g. `com.example.app://callback`):
-            // accept anything that isn't an http(s) variant. Phishing risk is
-            // bounded because the OS routes the redirect to the registered
-            // app, not over the network.
-            if ($scheme !== 'http') {
+            // Custom/native app scheme: accept ONLY reverse-DNS form (`com.example.app://...`).
+            // Bare schemes like `myapp://` are rejected because they collide with other apps.
+            // Dangerous schemes (`javascript:`, `data:`, `file:`, `vbscript:`, `blob:`) would
+            // execute in the user's browser if echoed back as an authorization redirect — an
+            // auth-code interception + stored-XSS chain.
+            if ($this->isAcceptableNativeScheme($scheme)) {
                 continue;
             }
 
             return $this->error(
                 'invalid_redirect_uri',
-                "redirect_uri must use https (loopback http://127.0.0.1 or custom-scheme native callbacks accepted): {$uri}",
+                "redirect_uri must be https, http://127.0.0.1 (RFC 8252 loopback), or a reverse-DNS native scheme (com.example.app://): {$uri}",
             );
         }
 
@@ -137,6 +138,24 @@ final class DynamicClientRegistrationController
         $host = parse_url($uri, PHP_URL_HOST);
 
         return $host === '127.0.0.1' || $host === '[::1]' || $host === '::1';
+    }
+
+    /**
+     * RFC 8252 §7.1 / §8.5: native-app custom schemes should be the reverse-DNS
+     * form of a domain the app developer controls (`com.example.app`). The
+     * pattern requires at least one dot and only [a-z0-9.-] characters, which
+     * rules out `javascript:`, `data:`, `file:`, `vbscript:`, `blob:`,
+     * `view-source:`, `chrome-extension:`, and bare app-name schemes that
+     * could collide with another installed app.
+     */
+    private function isAcceptableNativeScheme(string $scheme): bool
+    {
+        // Reject http/https — those are validated separately.
+        if ($scheme === 'http' || $scheme === 'https') {
+            return false;
+        }
+
+        return preg_match('/^[a-z0-9-]+(\.[a-z0-9-]+)+$/', $scheme) === 1;
     }
 
     private function error(string $code, string $description): JsonResponse

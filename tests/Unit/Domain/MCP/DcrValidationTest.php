@@ -161,6 +161,52 @@ it('allows DCR for a custom-scheme native app redirect', function () {
     expect($response->getStatusCode())->toBe(201);
 });
 
+it('rejects DCR with javascript: redirect_uri (XSS / auth-code exfil vector)', function () {
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Test',
+        'redirect_uris' => ['javascript:alert(document.cookie)'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(400);
+    expect($response->getData(true)['error'])->toBe('invalid_redirect_uri');
+});
+
+it('rejects DCR with data: redirect_uri', function () {
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Test',
+        'redirect_uris' => ['data:text/html,<script>fetch(location.search)</script>'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(400);
+    expect($response->getData(true)['error'])->toBe('invalid_redirect_uri');
+});
+
+it('rejects DCR with file:// redirect_uri', function () {
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Test',
+        'redirect_uris' => ['file:///etc/passwd'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(400);
+    expect($response->getData(true)['error'])->toBe('invalid_redirect_uri');
+});
+
+it('rejects DCR with bare app-name scheme (collision risk per RFC 8252)', function () {
+    // `myapp://` could be claimed by any app on the device — reverse-DNS form
+    // (`com.example.myapp://`) ties the scheme to a domain the developer owns.
+    $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
+        'client_name'   => 'Test',
+        'redirect_uris' => ['myapp://oauth/callback'],
+    ]));
+    $req->headers->set('Content-Type', 'application/json');
+    $response = (new DynamicClientRegistrationController())->__invoke($req);
+    expect($response->getStatusCode())->toBe(400);
+    expect($response->getData(true)['error'])->toBe('invalid_redirect_uri');
+});
+
 it('rejects DCR with http://localhost (must be 127.0.0.1 per RFC 8252)', function () {
     $req = Request::create('/oauth/register', 'POST', [], [], [], [], (string) json_encode([
         'client_name'   => 'Test',
