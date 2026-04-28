@@ -10,6 +10,7 @@ use App\Domain\MCP\Audit\ToolInvocationLogger;
 use App\Domain\MCP\Exceptions\IdempotencyKeyReusedException;
 use App\Domain\MCP\Exceptions\SpendingLimitExceededException;
 use App\Domain\MCP\Policy\IdempotencyCache;
+use App\Domain\MCP\Resources\ResourceRegistry;
 use App\Domain\MCP\Sagas\SpendingEnforcedToolCallSaga;
 use stdClass;
 
@@ -38,6 +39,7 @@ final class JsonRpcRouter
         private readonly IdempotencyCache $idempotency,
         private readonly ToolInvocationLogger $logger,
         private readonly SpendingEnforcedToolCallSaga $spendingSaga,
+        private readonly ResourceRegistry $resources,
     ) {
     }
 
@@ -58,11 +60,13 @@ final class JsonRpcRouter
         $params = is_array($envelope['params'] ?? null) ? $envelope['params'] : [];
 
         return match ($method) {
-            'initialize' => $this->handleInitialize($id),
-            'tools/list' => $this->handleToolsList($id, $ctx),
-            'tools/call' => $this->handleToolsCall($id, $params, $ctx),
-            'ping'       => ['jsonrpc' => '2.0', 'id' => $id, 'result' => new stdClass()],
-            default      => $this->error($id, -32601, 'METHOD_NOT_FOUND', ['method' => $method]),
+            'initialize'     => $this->handleInitialize($id),
+            'tools/list'     => $this->handleToolsList($id, $ctx),
+            'tools/call'     => $this->handleToolsCall($id, $params, $ctx),
+            'resources/list' => $this->handleResourcesList($id, $ctx),
+            'resources/read' => $this->handleResourcesRead($id, $params, $ctx),
+            'ping'           => ['jsonrpc' => '2.0', 'id' => $id, 'result' => new stdClass()],
+            default          => $this->error($id, -32601, 'METHOD_NOT_FOUND', ['method' => $method]),
         };
     }
 
@@ -291,6 +295,68 @@ final class JsonRpcRouter
         }
 
         return $out;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function handleResourcesList(mixed $id, McpRequestContext $ctx): array
+    {
+        $items = [];
+        foreach ($this->resources->all() as $res) {
+            if (! $ctx->hasScope($res->scope())) {
+                continue;
+            }
+
+            $items[] = [
+                'uri'         => $res->uriTemplate(),
+                'name'        => $res->name(),
+                'description' => $res->description(),
+                'mimeType'    => $res->mimeType(),
+            ];
+        }
+
+        return ['jsonrpc' => '2.0', 'id' => $id, 'result' => ['resources' => $items]];
+    }
+
+    /**
+     * @param  array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    private function handleResourcesRead(mixed $id, array $params, McpRequestContext $ctx): array
+    {
+        $uri = (string) ($params['uri'] ?? '');
+        if ($uri === '') {
+            return $this->error($id, -32602, 'URI_REQUIRED');
+        }
+
+        $hit = $this->resources->resolve($uri);
+        if ($hit === null) {
+            return $this->error($id, -32601, 'RESOURCE_NOT_FOUND', ['uri' => $uri]);
+        }
+
+        [$resource, $uriParams] = $hit;
+
+        if (! $ctx->hasScope($resource->scope())) {
+            return $this->error($id, -32000, 'INSUFFICIENT_SCOPE', [
+                'required' => $resource->scope(),
+                'granted'  => $ctx->scopes,
+            ]);
+        }
+
+        $body = $resource->read($uriParams, $ctx->userId);
+
+        return [
+            'jsonrpc' => '2.0',
+            'id'      => $id,
+            'result'  => [
+                'contents' => [[
+                    'uri'      => $uri,
+                    'mimeType' => $resource->mimeType(),
+                    'text'     => $body,
+                ]],
+            ],
+        ];
     }
 
     private function audit(

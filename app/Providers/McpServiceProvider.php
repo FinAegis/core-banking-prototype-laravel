@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\MCP\Resources\AccountBalanceResource;
+use App\Domain\MCP\Resources\AccountProfileResource;
+use App\Domain\MCP\Resources\RecentTransactionsResource;
+use App\Domain\MCP\Resources\ResourceRegistry;
+use App\Domain\MCP\Resources\SingleTransactionResource;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -11,6 +16,19 @@ use Illuminate\Support\ServiceProvider;
 
 class McpServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->singleton(ResourceRegistry::class, function ($app) {
+            $registry = new ResourceRegistry();
+            $registry->register($app->make(AccountProfileResource::class));
+            $registry->register($app->make(AccountBalanceResource::class));
+            $registry->register($app->make(RecentTransactionsResource::class));
+            $registry->register($app->make(SingleTransactionResource::class));
+
+            return $registry;
+        });
+    }
+
     public function boot(): void
     {
         $this->registerRateLimiters();
