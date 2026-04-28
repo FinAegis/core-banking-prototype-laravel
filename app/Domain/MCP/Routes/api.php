@@ -17,15 +17,18 @@ Route::domain(config('mcp.host'))
 // RFC 9728 Protected Resource Metadata — unauthenticated discovery endpoint.
 // Clients request this endpoint when they receive a 401 with WWW-Authenticate
 // containing resource_metadata URI. The response tells them which auth server to use.
+// Rate-limited per IP to prevent reconnaissance scanning.
 Route::domain((string) config('mcp.host'))
     ->get('/.well-known/oauth-protected-resource', ProtectedResourceMetadataController::class)
+    ->middleware(['throttle:mcp.discovery'])
     ->name('mcp.discovery.protected-resource');
 
 // MCP streamable-HTTP transport (spec 2025-11-25).
 //   POST /mcp — JSON-RPC envelope in/out (handled by JsonRpcRouter)
 //   GET  /mcp — long-lived SSE stream for server→client notifications (heartbeat only for now)
-// Both methods require a verified bearer token via `mcp.oauth`.
+// Both methods require a verified bearer token via `mcp.oauth` and are aggregate-rate-limited
+// per token (per-minute + per-hour windows from config('mcp.rate_limits.aggregate')).
 Route::domain((string) config('mcp.host'))
     ->match(['GET', 'POST'], '/mcp', [StreamableHttpController::class, 'handle'])
-    ->middleware(['mcp.oauth'])
+    ->middleware(['mcp.oauth', 'throttle:mcp.aggregate'])
     ->name('mcp.endpoint');

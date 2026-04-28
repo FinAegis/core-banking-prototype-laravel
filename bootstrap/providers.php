@@ -7,6 +7,7 @@ return [
     App\Providers\AgentServiceProvider::class,
     App\Providers\AIInfrastructureServiceProvider::class,
     App\Providers\MCPToolServiceProvider::class,
+    App\Providers\McpServiceProvider::class,
     App\Providers\AppServiceProvider::class,
     App\Providers\BankIntegrationServiceProvider::class,
     App\Providers\BlockchainServiceProvider::class,
