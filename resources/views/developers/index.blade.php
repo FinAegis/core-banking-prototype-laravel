@@ -137,7 +137,7 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>v7.10.8 Documentation — 56 Domains, 1,400+ Routes, GraphQL + REST + x402</span>
+                        <span>v7.10.8 Documentation — 57 Domains, 1,400+ Routes, GraphQL + REST + x402</span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
                         Build with 1,400+ API Routes
@@ -178,7 +178,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <span class="font-medium">v7.10.8 Released:</span>
-                    <span class="ml-2">Public SDK distribution — CLI, JS/TS, Python, and PHP SDKs now install from npm, PyPI, and Packagist in one command. 56 DDD domains, 1,400+ API routes, GraphQL (45 domains), ISO 20022, ISO 8583, x402 Protocol.</span>
+                    <span class="ml-2">Public SDK distribution — CLI, JS/TS, Python, and PHP SDKs now install from npm, PyPI, and Packagist in one command. 57 DDD domains, 1,400+ API routes, GraphQL (45 domains), ISO 20022, ISO 8583, x402 Protocol.</span>
                 </div>
             </div>
         </section>
@@ -444,7 +444,7 @@
                 <!-- Platform API Area Cards -->
                 <div class="mt-16">
                     <h3 class="text-2xl font-bold text-slate-900 mb-2 text-center">Platform API Areas</h3>
-                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 56 DDD domains</p>
+                    <p class="text-slate-500 text-center mb-8">Explore the full breadth of the {{ config('brand.name', 'Zelta') }} platform across 57 DDD domains</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                         <!-- CrossChain -->
@@ -776,7 +776,21 @@
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <a href="{{ route('developers.show', 'mcp-tools') }}" class="group">
+                        <div class="bg-white border border-emerald-200 rounded-xl p-8 hover:shadow-xl transition-all hover:-translate-y-2 h-full relative">
+                            <span class="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">New</span>
+                            <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">MCP &amp; AI Agent Tools</h3>
+                            <p class="text-slate-500 mb-4">12 tools, 4 resources, OAuth 2.1 — connect any spec-compliant client.</p>
+                            <span class="text-emerald-600 font-medium group-hover:text-emerald-700">Explore MCP →</span>
+                        </div>
+                    </a>
+
                     <a href="{{ route('developers.show', 'api-docs') }}" class="group">
                         <div class="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-xl transition-all hover:-translate-y-2 h-full">
                             <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -848,7 +862,7 @@
                         </p>
                     </div>
                     <div>
-                        <div class="text-4xl md:text-5xl font-bold mb-2">56</div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2">57</div>
                         <p class="text-indigo-200 flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>

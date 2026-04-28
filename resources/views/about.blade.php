@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'About ' . config('brand.name', 'Zelta') . ' — Open Source Core Banking Infrastructure',
-        'description' => 'Learn about Zelta, the open-source core banking platform with 56 modules for payments, lending, compliance, and DeFi. Apache-2.0 licensed, built with Laravel.',
+        'description' => 'Learn about Zelta, the open-source core banking platform with 57 modules for payments, lending, compliance, and DeFi. Apache-2.0 licensed, built with Laravel.',
         'keywords' => config('brand.name', 'Zelta') . ' about, open source banking, core banking platform, GCU, ISO 20022, PSD2, open banking, Interledger, microfinance, event sourcing, CQRS, Laravel banking, DDD, fintech infrastructure',
     ])
 
@@ -33,7 +33,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'About', 'url' => url('/about')]]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">About <span class="text-gradient">{{ config('brand.name', 'Zelta') }}</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    Open-source core banking infrastructure built with Laravel — 56 domain modules covering everything from democratic currency governance to AI agent commerce.
+                    Open-source core banking infrastructure built with Laravel — 57 domain modules covering everything from democratic currency governance to AI agent commerce.
                 </p>
             </div>
         </div>
@@ -47,7 +47,7 @@
                 <div class="animate-on-scroll">
                     <h2 class="font-display text-3xl lg:text-4xl font-bold text-slate-900 mb-6">What Is {{ config('brand.name', 'Zelta') }}?</h2>
                     <p class="text-lg text-slate-600 mb-4 leading-relaxed">
-                        {{ config('brand.name', 'Zelta') }} is a core banking platform built with Laravel, implementing event sourcing, CQRS, domain-driven design, and AI agent integration across 56 bounded contexts.
+                        {{ config('brand.name', 'Zelta') }} is a core banking platform built with Laravel, implementing event sourcing, CQRS, domain-driven design, and AI agent integration across 57 bounded contexts.
                     </p>
                     <p class="text-lg text-slate-600 mb-6 leading-relaxed">
                         At its heart is the <strong>Global Currency Unit (GCU)</strong>&mdash;a democratically governed basket currency where users vote on composition from six global reserve assets.
@@ -144,6 +144,7 @@
                     ['title' => 'Global Currency Unit (GCU)', 'desc' => 'A basket currency backed by USD, EUR, GBP, CHF, JPY, and gold. Users vote monthly on composition through stake-weighted governance with full event-sourced audit trails.'],
                     ['title' => 'Event-Sourced Ledger', 'desc' => "Every transaction is stored as an immutable event. Complete audit trails, point-in-time reconstruction, and replay capability\x{2014}built with Spatie Event Sourcing."],
                     ['title' => 'AI Agent Protocol', 'desc' => "Implementation of Google's A2A protocol for AI agent commerce. Agents can register, negotiate, and execute transactions with escrow services and reputation tracking."],
+                    ['title' => 'Model Context Protocol (MCP)', 'desc' => "Public OAuth-protected MCP server at mcp.zelta.app exposing 12 banking tools to Claude Desktop, Cursor, Continue.dev, and any spec-compliant agent. Per-token spending limits, atomic idempotency, and full audit attribution."],
                     ['title' => 'Banking API Patterns', 'desc' => 'Open Banking-compliant API adapters including Ondato KYC, Chainalysis sanctions screening, and Marqeta card issuing for real-world integration patterns.'],
                     ['title' => 'Cross-Chain & DeFi', 'desc' => 'Bridge protocols (Wormhole, LayerZero, Axelar), DEX aggregation via Uniswap/Aave/Curve/Lido, cross-chain swaps across EVM and Solana, and multi-chain portfolio management.'],
                     ['title' => 'Privacy & Identity', 'desc' => 'ZK-KYC proofs, Merkle tree commitments, soulbound tokens, W3C verifiable credentials, Shamir secret sharing, and delegated proof verification.'],
@@ -209,7 +210,7 @@
                 <div class="card-feature">
                     <h4 class="font-display text-base font-bold text-slate-900 mb-2">For Founders</h4>
                     <p class="text-sm text-slate-500 mb-3">
-                        Build your fintech product on battle-tested infrastructure. 56 domain modules, Apache-2.0 licensed, ready to customize.
+                        Build your fintech product on battle-tested infrastructure. 57 domain modules, Apache-2.0 licensed, ready to customize.
                     </p>
                     <a href="{{ route('developers') }}" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition">
                         View Documentation &rarr;

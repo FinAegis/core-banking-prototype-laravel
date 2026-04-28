@@ -58,11 +58,12 @@
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
                             <li class="list-check">Full source code access</li>
                             <li class="list-check">Apache-2.0 License</li>
-                            <li class="list-check">All 56 domain modules</li>
+                            <li class="list-check">All 57 domain modules</li>
                             <li class="list-check">ISO 20022, Open Banking, Payment Rails</li>
                             <li class="list-check">Ledger, Microfinance, Interledger</li>
                             <li class="list-check">Community support</li>
                             <li class="list-check">Self-hosted deployment</li>
+                            <li class="list-check">MCP server access (Claude Desktop, Cursor, any agent)</li>
                         </ul>
                         <a href="{{ config('brand.github_url') }}" target="_blank" class="btn-secondary w-full text-center">
                             Get Started on GitHub

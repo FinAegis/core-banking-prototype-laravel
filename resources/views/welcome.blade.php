@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' - Open Source Core Banking Infrastructure',
-        'description' => 'Open-source core banking platform with 56 modules: payments, lending, compliance, and DeFi. ISO 20022, PSD2, ACH, SEPA. Apache-2.0 licensed, built with Laravel.',
+        'description' => 'Open-source core banking platform with 57 modules: payments, lending, compliance, and DeFi. ISO 20022, PSD2, ACH, SEPA. Apache-2.0 licensed, built with Laravel.',
         'keywords' => config('brand.name', 'Zelta') . ', open source banking, core banking infrastructure, GCU, ISO 20022, PSD2, open banking, ACH, SEPA, Interledger, microfinance, event sourcing, DeFi, RegTech, banking API, Laravel fintech',
     ])
 
@@ -28,12 +28,18 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-28 lg:pt-28 lg:pb-36">
             <div class="text-center max-w-4xl mx-auto">
                 <!-- Badge -->
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-sm text-slate-400 mb-8 animate-fade-in-down">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-sm text-slate-400 mb-4 animate-fade-in-down">
                     <svg class="w-4 h-4 text-fa-teal" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
                     </svg>
-                    Open Source &middot; Apache-2.0 Licensed &middot; 56 Domains
+                    Open Source &middot; Apache-2.0 Licensed &middot; 57 Domains
                 </div>
+
+                <!-- MCP-compatible badge -->
+                <a href="{{ url('/features/mcp') }}" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-400/30 text-xs font-semibold mb-8 animate-fade-in-down hover:bg-emerald-500/15 transition-colors" style="animation-delay: 0.05s">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Now MCP-compatible — connect Claude Desktop, Cursor, or any agent
+                </a>
 
                 <!-- Heading -->
                 <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] mb-6 animate-fade-in-up">
@@ -43,7 +49,7 @@
 
                 <!-- Subheading -->
                 <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style="animation-delay: 0.15s">
-                    Ship compliant banking products in weeks, not years. 56 production-ready modules cover payments, lending, compliance, and cross-border transfers — so you build features, not infrastructure.
+                    Ship compliant banking products in weeks, not years. 57 production-ready modules cover payments, lending, compliance, and cross-border transfers — so you build features, not infrastructure.
                 </p>
 
                 <!-- CTA Buttons -->
@@ -87,7 +93,7 @@
                         What Is {{ config('brand.name', 'Zelta') }}?
                     </h2>
                     <p class="text-lg text-slate-600 leading-relaxed mb-6">
-                        A production-grade core banking platform built with Laravel and domain-driven design. 56 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
+                        A production-grade core banking platform built with Laravel and domain-driven design. 57 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
                     </p>
                     <div class="space-y-3 mb-8">
                         @foreach([
@@ -148,7 +154,7 @@
     <section id="features" class="py-24 bg-slate-50/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 animate-on-scroll">
-                <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">56 Production-Ready Modules</h2>
+                <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">57 Production-Ready Modules</h2>
                 <p class="text-lg text-slate-500 max-w-2xl mx-auto">
                     Every capability you need — payments, lending, compliance, DeFi, privacy, mobile wallets, AI analytics — all in one codebase.
                 </p>
@@ -195,7 +201,7 @@
 
             <div class="text-center mt-12 animate-on-scroll">
                 <a href="{{ route('features') }}" class="btn-primary !bg-slate-900 hover:!bg-slate-800 !rounded-lg group">
-                    See All 56 Domains
+                    See All 57 Domains
                     <svg class="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                 </a>
             </div>
@@ -213,7 +219,7 @@
             <div class="text-center mb-16 animate-on-scroll">
                 <h2 class="font-display text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">Platform Architecture</h2>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    56 bounded contexts built with DDD, event sourcing, and CQRS. Each module implements specific financial system patterns you can use independently.
+                    57 bounded contexts built with DDD, event sourcing, and CQRS. Each module implements specific financial system patterns you can use independently.
                 </p>
             </div>
 
