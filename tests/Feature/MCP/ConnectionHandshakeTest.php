@@ -8,24 +8,12 @@ use App\Domain\AI\MCP\ToolRegistry;
 use App\Domain\MCP\Server\JsonRpcRouter;
 use App\Domain\MCP\Server\McpRequestContext;
 
-/**
- * End-to-end conformance: a realistic JSON-RPC envelope passes through the
- * full dispatch stack (initialize → tools/list → resources/list) with scope
- * filtering applied. Exercises the integration between:
- *
- *   - `bootstrap/app.php` mcp subdomain branch (asserted by SubdomainRoutingTest)
- *   - `McpOAuthGuard`                          (asserted by StreamableHttpTest 401)
- *   - `StreamableHttpController`               (asserted by StreamableHttpTest)
- *   - `JsonRpcRouter` (this file)
- *   - `ToolRegistry`  (this file — public catalog ↔ getName() alignment)
- *   - `ResourceRegistry` (this file)
- *
- * We construct the McpRequestContext directly rather than going through HTTP +
- * Passport because Passport client_credentials in SQLite with no JWT signing
- * keys is its own integration test (DcrRegistrationTest + ConsentRoutingTest
- * cover the actual auth dance). This test is about *what the server returns*
- * once the middleware has produced a context.
- */
+// End-to-end conformance: a realistic JSON-RPC envelope passes through the
+// full dispatch stack (initialize -> tools/list -> resources/list) with scope
+// filtering applied. We construct the McpRequestContext directly rather than
+// going through HTTP + Passport because the Passport client_credentials dance
+// is covered by DcrRegistrationTest + ConsentRoutingTest. This test asserts
+// what the server returns once middleware has produced a context.
 beforeEach(function () {
     // Reset and re-register tools so the routing layer's tool registry is
     // populated even though Tests\TestCase normally suppresses it.

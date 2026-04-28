@@ -6,14 +6,11 @@ namespace Tests\Feature\MCP;
 
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 
-/**
- * Feature coverage for the MCP streamable-HTTP transport at `mcp.zelta.app/mcp`.
- *
- * The MCP subdomain branch in bootstrap/app.php is selected based on
- * `request()->getHost()` at boot time, so each test rebuilds the application
- * with `app.url=http://mcp.zelta.app` to activate the MCP route group — same
- * pattern used by SubdomainRoutingTest.
- */
+// Feature coverage for the MCP streamable-HTTP transport at mcp.zelta.app/mcp.
+// The MCP subdomain branch in bootstrap/app.php is selected based on
+// request()->getHost() at boot time, so each test rebuilds the application
+// with app.url=http://mcp.zelta.app to activate the MCP route group -- same
+// pattern used by SubdomainRoutingTest.
 it('returns 401 with WWW-Authenticate when no bearer token on POST /mcp', function () {
     $app = require base_path('bootstrap/app.php');
 
@@ -101,7 +98,7 @@ it('returns 406 directly from the controller when GET lacks Accept: text/event-s
     expect((string) $response->getContent())->toContain('event-stream');
 });
 
-it('opens an SSE stream with the correct headers when GET sends Accept: text/event-stream and SSE is enabled', function () {
+it('opens SSE stream with right headers on GET Accept: text/event-stream when enabled', function () {
     config(['mcp.sse.enabled' => true]);
     // Don't actually consume the stream body — just verify the headers.
     $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
