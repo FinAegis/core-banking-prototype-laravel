@@ -49,6 +49,7 @@
                     <li><a href="{{ route('developers') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Developer Hub</a></li>
                     <li><a href="/api/documentation" class="text-sm text-slate-500 hover:text-white transition-colors">API Reference</a></li>
                     <li><a href="{{ route('developers.show', 'sdks') }}" class="text-sm text-slate-500 hover:text-white transition-colors">SDKs</a></li>
+                    <li><a href="{{ route('developers.show', 'mcp-tools') }}" class="text-sm text-slate-500 hover:text-white transition-colors">MCP &amp; AI Agents</a></li>
                     <li><a href="{{ config('brand.github_url') }}" class="text-sm text-slate-500 hover:text-white transition-colors">GitHub</a></li>
                     <li><a href="{{ route('developers.show', 'webhooks') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Webhooks</a></li>
                 </ul>

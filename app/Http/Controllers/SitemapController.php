@@ -347,6 +347,12 @@ class SitemapController extends Controller
                 'priority'   => '0.7',
             ],
             [
+                'url'        => $baseUrl . '/features/mcp',
+                'lastmod'    => $now,
+                'changefreq' => 'monthly',
+                'priority'   => '0.8',
+            ],
+            [
                 'url'        => $baseUrl . '/security',
                 'lastmod'    => $now,
                 'changefreq' => 'monthly',

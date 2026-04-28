@@ -37,7 +37,7 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-slate-200">All Features</div>
-                                        <div class="text-xs text-slate-500">56 domain modules</div>
+                                        <div class="text-xs text-slate-500">57 domain modules</div>
                                     </div>
                                 </a>
                                 <a href="{{ route('gcu') }}" class="dropdown-link {{ request()->routeIs('gcu*') ? 'dropdown-link-active' : '' }}">
@@ -55,7 +55,16 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-slate-200">AI Framework</div>
-                                        <div class="text-xs text-slate-500">MCP, A2A, ML analytics</div>
+                                        <div class="text-xs text-slate-500">A2A, ML analytics</div>
+                                    </div>
+                                </a>
+                                <a href="{{ url('/features/mcp') }}" class="dropdown-link">
+                                    <div class="w-8 h-8 rounded-md bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-slate-200">MCP <span class="ml-1 text-[9px] font-bold text-emerald-300 align-middle">NEW</span></div>
+                                        <div class="text-xs text-slate-500">Connect Claude, Cursor, any agent</div>
                                     </div>
                                 </a>
                             </div>

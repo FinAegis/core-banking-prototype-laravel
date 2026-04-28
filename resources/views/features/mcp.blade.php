@@ -14,7 +14,7 @@
 @section('seo')
     @include('partials.seo', [
         'title'       => 'MCP-native banking — connect Claude, Cursor, or any agent',
-        'description' => 'Public Model Context Protocol server with ' . $toolCount . ' OAuth-protected banking tools. Move money, exchange, on/off-ramp, send SMS — all from inside Claude Desktop, Cursor, or any spec-compliant agent.',
+        'description' => 'Public OAuth-protected MCP server with ' . $toolCount . ' banking tools. Move money, exchange, ramp, send SMS from Claude Desktop, Cursor, or any agent.',
         'keywords'    => 'MCP, Model Context Protocol, AI banking, Claude Desktop, Cursor, agent banking, OAuth banking, AI payments, ' . $brand,
     ])
 
