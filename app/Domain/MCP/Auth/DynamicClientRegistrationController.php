@@ -56,6 +56,13 @@ final class DynamicClientRegistrationController
 
         $clientName = (string) ($payload['client_name'] ?? 'Unnamed MCP Client');
 
+        if ($reserved = $this->matchReservedSubstring($clientName)) {
+            return $this->error(
+                'invalid_client_metadata',
+                "client_name contains reserved keyword '{$reserved}' — use a name that doesn't impersonate a known brand",
+            );
+        }
+
         /** @var ClientRepository $repo */
         $repo = app(ClientRepository::class);
 
@@ -93,5 +100,26 @@ final class DynamicClientRegistrationController
             'error'             => $code,
             'error_description' => $description,
         ], 400);
+    }
+
+    /**
+     * Return the first reserved substring found in $clientName, or null if none match.
+     * Comparison is case-insensitive substring; a name like "ZeltaBot" matches "zelta".
+     */
+    private function matchReservedSubstring(string $clientName): ?string
+    {
+        $needle = strtolower($clientName);
+        $reserved = (array) config('mcp.dcr.reserved_name_substrings', []);
+
+        foreach ($reserved as $entry) {
+            if (! is_string($entry) || $entry === '') {
+                continue;
+            }
+            if (str_contains($needle, strtolower($entry))) {
+                return $entry;
+            }
+        }
+
+        return null;
     }
 }

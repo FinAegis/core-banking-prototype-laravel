@@ -109,4 +109,25 @@ return [
         'transactions://recent'        => ['scope' => 'transactions:read', 'enabled' => true],
         'transaction://{id}'           => ['scope' => 'transactions:read', 'enabled' => true],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dynamic Client Registration — branding policy
+    |--------------------------------------------------------------------------
+    | The DCR endpoint is open-by-throttle (RFC 7591 §1.1 allows this). To
+    | block the most obvious phishing path — registering a client_name like
+    | "Zelta Official" or "Stripe" to spoof a trusted brand on the consent
+    | screen — we reject any client_name whose lowercase form contains any
+    | of these reserved substrings. Operators can add brand keywords via
+    | MCP_DCR_RESERVED_NAMES (comma-separated, case-insensitive).
+    */
+    'dcr' => [
+        'reserved_name_substrings' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env(
+                'MCP_DCR_RESERVED_NAMES',
+                'zelta,finaegis,anthropic,claude,openai,gpt,stripe,paysera,visa,mastercard,official,admin,system,support,security',
+            )),
+        ))),
+    ],
 ];
