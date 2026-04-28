@@ -45,11 +45,16 @@ final class ResourceRegistry
     public function resolve(string $uri): ?array
     {
         foreach ($this->byTemplate as $tpl => $res) {
+            // The `i` flag makes the scheme part case-insensitive per RFC 3986
+            // §3.1 (URI schemes are normalized to lowercase, but clients may
+            // send `Account://profile`). The path portion is technically
+            // case-sensitive but tool authors should pick lowercase ids; case
+            // sensitivity for the captured `id` group is preserved by [^/]+.
             $regex = '#^' . preg_replace_callback(
                 '/\\\\\{(\w+)\\\\\}/',
                 static fn (array $m): string => '(?P<' . $m[1] . '>[^/]+)',
                 preg_quote($tpl, '#'),
-            ) . '$#';
+            ) . '$#i';
 
             if (preg_match($regex, $uri, $matches)) {
                 /** @var array<string, string> $params */
