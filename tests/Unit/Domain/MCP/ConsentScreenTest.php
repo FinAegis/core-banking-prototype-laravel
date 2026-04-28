@@ -11,36 +11,23 @@ use Tests\TestCase;
 
 uses(TestCase::class);
 
-/**
- * @return array{0: string, 1: Laravel\Passport\Client}
- */
-function seedConsentClient(string $name, ?string $logoUrl = null): array
-{
+it('renders the consent view with scope rows and write/read distinction', function () {
     $clientId = (string) Str::uuid();
     DB::table('oauth_clients')->insert([
         'id'                  => $clientId,
         'owner_type'          => null,
         'owner_id'            => null,
-        'name'                => $name,
+        'name'                => 'Acme MCP App',
         'secret'              => 'irrelevant',
         'provider'            => null,
         'redirect_uris'       => (string) json_encode(['http://localhost:1234/cb']),
         'grant_types'         => (string) json_encode(['authorization_code']),
         'revoked'             => false,
-        'client_logo_url'     => $logoUrl,
+        'client_logo_url'     => 'https://example.com/logo.png',
         'registration_method' => 'dcr',
         'created_at'          => now(),
         'updated_at'          => now(),
     ]);
-
-    /** @var Laravel\Passport\Client $client */
-    $client = Laravel\Passport\Client::query()->findOrFail($clientId);
-
-    return [$clientId, $client];
-}
-
-it('renders the consent view with scope rows and write/read distinction', function () {
-    [$clientId] = seedConsentClient('Acme MCP App', 'https://example.com/logo.png');
 
     $request = Request::create('/oauth/authorize', 'GET', [
         'client_id' => $clientId,
@@ -49,7 +36,7 @@ it('renders the consent view with scope rows and write/read distinction', functi
     ]);
     $request->setLaravelSession(app('session.store'));
 
-    $response = (new ConsentScreenController())($request);
+    $response = (new ConsentScreenController())($request, ['authToken' => 'passport-auth-token-fixture']);
 
     expect($response)->toBeInstanceOf(View::class);
 
@@ -66,6 +53,9 @@ it('renders the consent view with scope rows and write/read distinction', functi
     expect($data['authorize_url'])->toBeString()->not->toBe('');
     expect($data['deny_url'])->toBeString()->not->toBe('');
     expect($data['state'])->toBe('xyz123');
+    // auth_token is the value Passport stored under session key `authToken` —
+    // forwarded via the controller's $passportParameters arg, NOT the CSRF token.
+    expect($data['auth_token'])->toBe('passport-auth-token-fixture');
 
     // Scope rows: ordered as provided, descriptions resolved from config('mcp.scopes')
     expect($data['scopes'])->toHaveCount(2);
@@ -82,7 +72,22 @@ it('renders the consent view with scope rows and write/read distinction', functi
 });
 
 it('marks sms:send as a write-style scope', function () {
-    [$clientId] = seedConsentClient('SMS App');
+    $clientId = (string) Str::uuid();
+    DB::table('oauth_clients')->insert([
+        'id'                  => $clientId,
+        'owner_type'          => null,
+        'owner_id'            => null,
+        'name'                => 'SMS App',
+        'secret'              => 'irrelevant',
+        'provider'            => null,
+        'redirect_uris'       => (string) json_encode(['http://localhost:1234/cb']),
+        'grant_types'         => (string) json_encode(['authorization_code']),
+        'revoked'             => false,
+        'client_logo_url'     => null,
+        'registration_method' => 'dcr',
+        'created_at'          => now(),
+        'updated_at'          => now(),
+    ]);
 
     $request = Request::create('/oauth/authorize', 'GET', [
         'client_id' => $clientId,
@@ -108,4 +113,37 @@ it('aborts with 404 when the client_id is unknown', function () {
 
     expect(fn () => (new ConsentScreenController())($request))
         ->toThrow(Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
+});
+
+it('coerces an array-typed state query param to a string instead of leaking the array into the view', function () {
+    $clientId = (string) Str::uuid();
+    DB::table('oauth_clients')->insert([
+        'id'                  => $clientId,
+        'owner_type'          => null,
+        'owner_id'            => null,
+        'name'                => 'State Coercion App',
+        'secret'              => 'irrelevant',
+        'provider'            => null,
+        'redirect_uris'       => (string) json_encode(['http://localhost:1234/cb']),
+        'grant_types'         => (string) json_encode(['authorization_code']),
+        'revoked'             => false,
+        'client_logo_url'     => null,
+        'registration_method' => 'dcr',
+        'created_at'          => now(),
+        'updated_at'          => now(),
+    ]);
+
+    // Hostile caller passes ?state[]=foo — must not blow up Blade with an array.
+    $request = Request::create('/oauth/authorize', 'GET', [
+        'client_id' => $clientId,
+        'scope'     => 'accounts:read',
+        'state'     => ['foo'],
+    ]);
+    $request->setLaravelSession(app('session.store'));
+
+    $response = (new ConsentScreenController())($request);
+
+    /** @var array<string, mixed> $data */
+    $data = $response->getData();
+    expect($data['state'])->toBeString();
 });

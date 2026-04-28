@@ -12,6 +12,13 @@ final class DynamicClientRegistrationController
 {
     private const ALLOWED_GRANT_TYPES = ['authorization_code', 'client_credentials', 'refresh_token'];
 
+    /**
+     * Branding/legal metadata fields that must be HTTPS URLs when present.
+     * The consent screen renders `logo_uri` directly in an `<img src>`, so any
+     * unvalidated/non-HTTPS value would be a logo-spoofing phishing vector.
+     */
+    private const HTTPS_URL_FIELDS = ['logo_uri', 'tos_uri', 'policy_uri', 'client_uri'];
+
     public function __invoke(Request $request): JsonResponse
     {
         $payload = $request->json()->all();
@@ -31,6 +38,19 @@ final class DynamicClientRegistrationController
         foreach ($grantTypes as $gt) {
             if (! in_array($gt, self::ALLOWED_GRANT_TYPES, true)) {
                 return $this->error('invalid_client_metadata', "unsupported grant_type: {$gt}");
+            }
+        }
+
+        foreach (self::HTTPS_URL_FIELDS as $field) {
+            if (! array_key_exists($field, $payload) || $payload[$field] === null) {
+                continue;
+            }
+            $value = $payload[$field];
+            if (! is_string($value) || ! filter_var($value, FILTER_VALIDATE_URL)) {
+                return $this->error('invalid_client_metadata', "{$field} must be an https URL");
+            }
+            if (parse_url($value, PHP_URL_SCHEME) !== 'https') {
+                return $this->error('invalid_client_metadata', "{$field} must be an https URL");
             }
         }
 

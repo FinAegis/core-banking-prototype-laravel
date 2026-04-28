@@ -22,7 +22,7 @@ it('emits RFC 9728 protected resource metadata', function () {
 
 it('emits OAuth Authorization Server metadata', function () {
     $controller = new App\Domain\MCP\Discovery\AuthorizationServerMetadataController();
-    $body = $controller(Illuminate\Http\Request::create('/.well-known/oauth-authorization-server'))->getData(true);
+    $body = $controller(Request::create('/.well-known/oauth-authorization-server'))->getData(true);
 
     expect($body)->toHaveKeys([
         'issuer',

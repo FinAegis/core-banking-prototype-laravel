@@ -118,10 +118,15 @@ class AppServiceProvider extends ServiceProvider
 
         // Override Passport's default authorization view with the branded MCP consent
         // screen. The closure receives Passport's view parameters (client, user, scopes,
-        // request, authToken), but our controller derives everything it needs from the
-        // current Request's query string for parity with the OAuth spec.
-        \Laravel\Passport\Passport::authorizationView(function (array $parameters) {
-            return app(\App\Domain\MCP\Auth\ConsentScreenController::class)(request());
+        // request, authToken). We forward the parameter bag to our controller so it can
+        // emit Passport's `authToken` as the form's hidden `auth_token` field — without
+        // it the approve/deny POST is rejected with InvalidAuthTokenException.
+        \Laravel\Passport\Passport::authorizationView(function (array $parameters): \Symfony\Component\HttpFoundation\Response {
+            /** @var \App\Domain\MCP\Auth\ConsentScreenController $controller */
+            $controller = app(\App\Domain\MCP\Auth\ConsentScreenController::class);
+            $view = $controller(request(), $parameters);
+
+            return response($view->render());
         });
     }
 }
