@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\MCP\Discovery\ProtectedResourceMetadataController;
+use App\Domain\MCP\Server\StreamableHttpController;
 use Illuminate\Support\Facades\Route;
 
 // Health check on the MCP subdomain (no auth, no rate limit) — proves routing is wired.
@@ -19,3 +20,12 @@ Route::domain(config('mcp.host'))
 Route::domain((string) config('mcp.host'))
     ->get('/.well-known/oauth-protected-resource', ProtectedResourceMetadataController::class)
     ->name('mcp.discovery.protected-resource');
+
+// MCP streamable-HTTP transport (spec 2025-11-25).
+//   POST /mcp — JSON-RPC envelope in/out (handled by JsonRpcRouter)
+//   GET  /mcp — long-lived SSE stream for server→client notifications (heartbeat only for now)
+// Both methods require a verified bearer token via `mcp.oauth`.
+Route::domain((string) config('mcp.host'))
+    ->match(['GET', 'POST'], '/mcp', [StreamableHttpController::class, 'handle'])
+    ->middleware(['mcp.oauth'])
+    ->name('mcp.endpoint');
