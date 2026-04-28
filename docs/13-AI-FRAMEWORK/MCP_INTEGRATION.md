@@ -70,13 +70,13 @@ Every write tool requires `idempotency_key` (UUID, ≤128 chars). The server cac
 
 | Code | Meaning |
 |---|---|
-| `-32001` | `TOKEN_EXPIRED` — refresh and retry |
-| `-32002` | `IDEMPOTENCY_KEY_REUSED` — pick a fresh key |
-| `-32003` | `SPENDING_LIMIT_EXCEEDED` — wait for window reset |
-| `-32004` | `TOOL_DISABLED` — operator-disabled |
-| `-32005` | `IDEMPOTENCY_KEY_IN_FLIGHT` — retry after short delay |
-| `-32006` | `USER_CONTEXT_REQUIRED` — client_credentials grant cannot call user-bound tool |
-| `-32099` | `TRANSPORT_ERROR` — synthesized client-side by the npm relay |
+| `-32001` | `UNAUTHENTICATED` — missing / expired bearer; refresh and retry. Returned with 401 + `WWW-Authenticate: Bearer resource_metadata=...` |
+| `-32002` | `IDEMPOTENCY_KEY_REUSED` — same key sent with different args; pick a fresh key |
+| `-32003` | `SPENDING_LIMIT_EXCEEDED` — daily limit hit; wait for window reset (see `data.window_resets_at`) |
+| `-32004` | `TOOL_DISABLED` — operator-disabled via `MCP_TOOL_*` flag |
+| `-32005` | `IDEMPOTENCY_KEY_IN_FLIGHT` — concurrent retry of an in-progress write; retry after a short delay |
+| `-32006` | `USER_CONTEXT_REQUIRED` — client_credentials grant tried to call a user-bound tool |
+| `-32099` | `TRANSPORT_ERROR` — synthesized client-side by the npm relay on network / TLS failure |
 
 ## Internal use (still supported)
 
