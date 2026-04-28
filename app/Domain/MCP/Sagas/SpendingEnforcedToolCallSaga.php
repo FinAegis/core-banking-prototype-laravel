@@ -95,18 +95,28 @@ final class SpendingEnforcedToolCallSaga
         $rawAmount = $arguments[$amountField] ?? null;
         $rawCurrency = $arguments[$currencyField] ?? null;
 
-        if (! is_numeric($rawAmount)) {
+        // Reject anything other than int or string-of-digits-and-dot. JSON floats
+        // are tolerated for backward compatibility (catalog v1 tools use them)
+        // but rejected if they came in as scientific-notation strings — `(string)`
+        // of a float can produce "1.0E-5" which bcmath misreads. Accept:
+        //   - int (any size)
+        //   - string matching /^\d+(\.\d+)?$/
+        //   - float that round-trips through string→float without scientific notation
+        if (! $this->isAcceptableAmount($rawAmount)) {
             throw new SpendingLimitExceededException([
                 'error_code'   => 'AMOUNT_INVALID',
                 'amount_field' => $amountField,
             ]);
         }
 
-        // bcmul preserves precision through the major→minor conversion. We
-        // accept integer (already in minor units when decimals=0), int-as-major
-        // (decimals=2 → multiply), or float-as-major. Cast via string to avoid
-        // float-to-bcmath drift.
-        $amountMinor = (int) bcmul((string) $rawAmount, bcpow('10', (string) $decimals), 0);
+        // After isAcceptableAmount(), $rawAmount is int / finite-positive float
+        // without scientific notation / digits-and-dot string. The (string)
+        // cast on the numeric variants produces a bcmath-compatible representation.
+        /** @var numeric-string $amountString */
+        $amountString = is_string($rawAmount) ? $rawAmount : (string) $rawAmount;
+
+        // bcmul preserves precision through the major→minor conversion.
+        $amountMinor = (int) bcmul($amountString, bcpow('10', (string) $decimals), 0);
         if ($amountMinor <= 0) {
             throw new SpendingLimitExceededException([
                 'error_code'   => 'AMOUNT_INVALID',
@@ -122,5 +132,35 @@ final class SpendingEnforcedToolCallSaga
         }
 
         return [$amountMinor, $rawCurrency];
+    }
+
+    /**
+     * Whitelist amount inputs. We accept ints, plain decimal-string amounts
+     * (`"100.50"`), and floats that don't trip PHP's scientific-notation
+     * stringification. Rejects: scientific-notation strings (`"1e2"`),
+     * negative numbers, NaN/Inf casts, hex/octal numeric strings.
+     */
+    private function isAcceptableAmount(mixed $value): bool
+    {
+        if (is_int($value)) {
+            return $value > 0;
+        }
+
+        if (is_float($value)) {
+            if (! is_finite($value) || $value <= 0) {
+                return false;
+            }
+
+            // Round-trip via PHP's serialize_precision. If the resulting string
+            // contains 'e' or 'E', bcmath would misread it.
+            return ! str_contains((string) $value, 'e') && ! str_contains((string) $value, 'E');
+        }
+
+        if (is_string($value)) {
+            // Plain decimal: optional sign rejected, optional dot, no scientific.
+            return preg_match('/^\d+(\.\d+)?$/', $value) === 1;
+        }
+
+        return false;
     }
 }
