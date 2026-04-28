@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('oauth_clients', function (Blueprint $table) {
-            $table->string('client_logo_url', 512)->nullable()->after('redirect_uris');
+            $table->string('client_logo_url', 512)->nullable()->after('redirect');
             $table->string('client_terms_url', 512)->nullable()->after('client_logo_url');
             $table->string('client_privacy_url', 512)->nullable()->after('client_terms_url');
             $table->string('dcr_metadata_uri', 512)->nullable()->after('client_privacy_url');
