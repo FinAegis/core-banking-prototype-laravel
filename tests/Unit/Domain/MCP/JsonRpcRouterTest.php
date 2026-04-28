@@ -121,17 +121,17 @@ beforeEach(function () {
     // Register stub tools matching the `internal` names declared in config/mcp.php
     // so the router's tools/list lookup can resolve them.
     $registry->register(fakeMcpTool(
-        'get_account_balance',
+        'account.balance',
         'Read account balance',
         ['type' => 'object', 'properties' => ['account_uuid' => ['type' => 'string']], 'required' => ['account_uuid']],
     ));
     $registry->register(fakeMcpTool(
-        'transfer',
+        'payment.transfer',
         'Move money between accounts',
         ['type' => 'object', 'properties' => ['amount' => ['type' => 'integer']], 'required' => ['amount']],
     ));
     $registry->register(fakeMcpTool(
-        'mpp_discovery',
+        'mpp.discovery',
         'Discover MPP-capable rails',
         ['type' => 'object', 'properties' => []],
     ));

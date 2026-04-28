@@ -26,16 +26,16 @@ return [
     'resource_uri'         => env('MCP_RESOURCE_URI', 'https://mcp.zelta.app'),
 
     'scopes' => [
-        'accounts:read'      => 'Read account profile and balances',
-        'accounts:write'     => 'Create new accounts',
-        'payments:read'      => 'Read payment status',
-        'payments:write'     => 'Send payments (subject to spending limit)',
-        'transactions:read'  => 'Read transaction history and spending analysis',
-        'exchange:read'      => 'Get exchange rate quotes',
-        'exchange:write'     => 'Execute exchange trades (subject to spending limit)',
-        'ramp:read'          => 'Read on/offramp session status',
-        'ramp:write'         => 'Start on/offramp sessions (subject to spending limit)',
-        'sms:send'           => 'Send SMS messages (paid per-message via x402)',
+        'accounts:read'     => 'Read account profile and balances',
+        'accounts:write'    => 'Create new accounts',
+        'payments:read'     => 'Read payment status',
+        'payments:write'    => 'Send payments (subject to spending limit)',
+        'transactions:read' => 'Read transaction history and spending analysis',
+        'exchange:read'     => 'Get exchange rate quotes',
+        'exchange:write'    => 'Execute exchange trades (subject to spending limit)',
+        'ramp:read'         => 'Read on/offramp session status',
+        'ramp:write'        => 'Start on/offramp sessions (subject to spending limit)',
+        'sms:send'          => 'Send SMS messages (paid per-message via x402)',
     ],
 
     /*
@@ -46,18 +46,22 @@ return [
     | Disabled tools are omitted from tools/list AND return -32004 if invoked.
     */
     'tools' => [
-        'account.balance'      => ['internal' => 'get_account_balance',  'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_ACCOUNT_BALANCE', true),     'is_write' => false],
-        'account.create'       => ['internal' => 'create_account',       'scope' => 'accounts:write',    'enabled' => env('MCP_TOOL_ACCOUNT_CREATE', true),      'is_write' => true],
-        'payment.status'       => ['internal' => 'payment_status',       'scope' => 'payments:read',     'enabled' => env('MCP_TOOL_PAYMENT_STATUS', true),      'is_write' => false],
-        'payment.transfer'     => ['internal' => 'transfer',             'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', true),    'is_write' => true],
-        'transactions.query'   => ['internal' => 'transaction_query',    'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_TRANSACTIONS_QUERY', true),  'is_write' => false],
-        'spending.analysis'    => ['internal' => 'spending_analysis',    'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_SPENDING_ANALYSIS', true),   'is_write' => false],
-        'exchange.quote'       => ['internal' => 'exchange_quote',       'scope' => 'exchange:read',     'enabled' => env('MCP_TOOL_EXCHANGE_QUOTE', true),      'is_write' => false],
-        'exchange.trade'       => ['internal' => 'exchange_trade',       'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', true),      'is_write' => true],
-        'ramp.start'           => ['internal' => 'ramp_start',           'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true],
-        'ramp.status'          => ['internal' => 'ramp_status',          'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false],
-        'mpp.discovery'        => ['internal' => 'mpp_discovery',        'scope' => null,                'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
-        'sms.send'             => ['internal' => 'send_sms',             'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true],
+        // `internal` values must match the registered tool's getName() (dotted format).
+        // Ramp tools (ramp.start / ramp.status) are wired in Phase 2 Tasks 19-20; the
+        // catalog references the names they will register as so tools/list lights up
+        // automatically once those tools land.
+        'account.balance'    => ['internal' => 'account.balance',                'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_ACCOUNT_BALANCE', true),     'is_write' => false],
+        'account.create'     => ['internal' => 'account.create',                 'scope' => 'accounts:write',    'enabled' => env('MCP_TOOL_ACCOUNT_CREATE', true),      'is_write' => true],
+        'payment.status'     => ['internal' => 'payment.status',                 'scope' => 'payments:read',     'enabled' => env('MCP_TOOL_PAYMENT_STATUS', true),      'is_write' => false],
+        'payment.transfer'   => ['internal' => 'payment.transfer',               'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', true),    'is_write' => true],
+        'transactions.query' => ['internal' => 'transactions.query',             'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_TRANSACTIONS_QUERY', true),  'is_write' => false],
+        'spending.analysis'  => ['internal' => 'transactions.spending_analysis', 'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_SPENDING_ANALYSIS', true),   'is_write' => false],
+        'exchange.quote'     => ['internal' => 'exchange.quote',                 'scope' => 'exchange:read',     'enabled' => env('MCP_TOOL_EXCHANGE_QUOTE', true),      'is_write' => false],
+        'exchange.trade'     => ['internal' => 'exchange.trade',                 'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', true),      'is_write' => true],
+        'ramp.start'         => ['internal' => 'ramp.start',                     'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true],
+        'ramp.status'        => ['internal' => 'ramp.status',                    'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false],
+        'mpp.discovery'      => ['internal' => 'mpp.discovery',                  'scope' => null,                'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
+        'sms.send'           => ['internal' => 'sms.send',                       'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true],
     ],
 
     /*
@@ -87,10 +91,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'rate_limits' => [
-        'aggregate'        => ['per_minute' => 60, 'per_hour' => 600, 'per_day' => 5000],
-        'reads_per_minute' => 120,
-        'writes_per_minute' => 30,
-        'sms_per_minute'   => 10,
+        'aggregate'                   => ['per_minute' => 60, 'per_hour' => 600, 'per_day' => 5000],
+        'reads_per_minute'            => 120,
+        'writes_per_minute'           => 30,
+        'sms_per_minute'              => 10,
         'discovery_per_minute_per_ip' => 60,
     ],
 
@@ -100,9 +104,9 @@ return [
     |--------------------------------------------------------------------------
     */
     'resources' => [
-        'account://profile'              => ['scope' => 'accounts:read',     'enabled' => true],
-        'account://balance/{currency}'   => ['scope' => 'accounts:read',     'enabled' => true],
-        'transactions://recent'          => ['scope' => 'transactions:read', 'enabled' => true],
-        'transaction://{id}'             => ['scope' => 'transactions:read', 'enabled' => true],
+        'account://profile'            => ['scope' => 'accounts:read',     'enabled' => true],
+        'account://balance/{currency}' => ['scope' => 'accounts:read',     'enabled' => true],
+        'transactions://recent'        => ['scope' => 'transactions:read', 'enabled' => true],
+        'transaction://{id}'           => ['scope' => 'transactions:read', 'enabled' => true],
     ],
 ];
