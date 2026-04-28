@@ -73,7 +73,11 @@ final class SpendingEnforcedToolCallSaga
     }
 
     /**
-     * Pull the numeric amount + ISO currency code from the call arguments.
+     * Pull the numeric amount + ISO currency code from the call arguments and
+     * convert to minor units. Tools advertise amounts in major units as either
+     * integers or floats; the saga converts to integer minor units via bcmath
+     * to avoid IEEE-754 rounding (e.g. (int)(0.1 * 100) == 9 in PHP).
+     *
      * Throws SpendingLimitExceededException with a 400-equivalent code when
      * the payment-tool catalog entry is missing the configured fields — same
      * surface as a real over-limit so the router uses one error path.
@@ -86,11 +90,24 @@ final class SpendingEnforcedToolCallSaga
     {
         $amountField = (string) ($entry['amount_arg'] ?? 'amount_minor');
         $currencyField = (string) ($entry['currency_arg'] ?? 'currency');
+        $decimals = max(0, (int) ($entry['amount_decimals'] ?? 0));
 
         $rawAmount = $arguments[$amountField] ?? null;
         $rawCurrency = $arguments[$currencyField] ?? null;
 
-        if (! is_int($rawAmount) || $rawAmount <= 0) {
+        if (! is_numeric($rawAmount)) {
+            throw new SpendingLimitExceededException([
+                'error_code'   => 'AMOUNT_INVALID',
+                'amount_field' => $amountField,
+            ]);
+        }
+
+        // bcmul preserves precision through the major→minor conversion. We
+        // accept integer (already in minor units when decimals=0), int-as-major
+        // (decimals=2 → multiply), or float-as-major. Cast via string to avoid
+        // float-to-bcmath drift.
+        $amountMinor = (int) bcmul((string) $rawAmount, bcpow('10', (string) $decimals), 0);
+        if ($amountMinor <= 0) {
             throw new SpendingLimitExceededException([
                 'error_code'   => 'AMOUNT_INVALID',
                 'amount_field' => $amountField,
@@ -104,6 +121,6 @@ final class SpendingEnforcedToolCallSaga
             ]);
         }
 
-        return [$rawAmount, $rawCurrency];
+        return [$amountMinor, $rawCurrency];
     }
 }

@@ -203,12 +203,12 @@ it('caches the result on a write tool retry with the same idempotency_key + args
 
     $first = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 6, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'idem-1']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 1, 'currency' => 'USD', 'idempotency_key' => 'idem-1']],
     ], $ctx);
 
     $second = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 7, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'idem-1']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 1, 'currency' => 'USD', 'idempotency_key' => 'idem-1']],
     ], $ctx);
 
     // Same result envelope (identical structuredContent).
@@ -221,12 +221,12 @@ it('returns -32002 IDEMPOTENCY_KEY_REUSED when the same key is sent with differe
 
     $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 8, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'idem-2']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 1, 'currency' => 'USD', 'idempotency_key' => 'idem-2']],
     ], $ctx);
 
     $reuse = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 9, 'method' => 'tools/call',
-        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount_minor' => 999, 'currency' => 'USD', 'idempotency_key' => 'idem-2']],
+        'params'  => ['name' => 'payment.transfer', 'arguments' => ['amount' => 9.99, 'currency' => 'USD', 'idempotency_key' => 'idem-2']],
     ], $ctx);
 
     expect($reuse['error']['code'])->toBe(-32002);
@@ -253,7 +253,7 @@ it('canonicalises args order when computing args_hash so reordered keys hit the 
         'jsonrpc' => '2.0', 'id' => 100, 'method' => 'tools/call',
         'params'  => [
             'name'      => 'payment.transfer',
-            'arguments' => ['amount_minor' => 100, 'currency' => 'USD', 'idempotency_key' => 'reorder-key'],
+            'arguments' => ['amount' => 1, 'currency' => 'USD', 'idempotency_key' => 'reorder-key'],
         ],
     ], $ctx);
 
@@ -262,7 +262,7 @@ it('canonicalises args order when computing args_hash so reordered keys hit the 
         'params'  => [
             'name' => 'payment.transfer',
             // Same logical args, different key order. Must match the cached entry.
-            'arguments' => ['idempotency_key' => 'reorder-key', 'currency' => 'USD', 'amount_minor' => 100],
+            'arguments' => ['idempotency_key' => 'reorder-key', 'currency' => 'USD', 'amount' => 1],
         ],
     ], $ctx);
 
@@ -275,12 +275,13 @@ it('canonicalises args order when computing args_hash so reordered keys hit the 
 // -----------------------------------------------------------------------
 
 it('reserves the daily spend on a successful payment-tool call and persists the increment', function () {
+    // Catalog says payment.transfer.amount_decimals=2 → amount=120 → 12000 minor.
     $router = app(JsonRpcRouter::class);
     $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
     $resp = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 200, 'method' => 'tools/call',
         'params'  => ['name' => 'payment.transfer', 'arguments' => [
-            'amount_minor'    => 12000,
+            'amount'          => 120,
             'currency'        => 'USD',
             'idempotency_key' => 'pay-success',
         ]],
@@ -293,12 +294,13 @@ it('reserves the daily spend on a successful payment-tool call and persists the 
 it('returns -32003 SPENDING_LIMIT_EXCEEDED when the reservation would exceed the daily cap', function () {
     DB::table('mcp_token_policies')->where('token_id', 'tok_test')->update(['daily_spend_minor' => 49000]);
 
+    // amount=50 → 5000 minor. 49000 + 5000 = 54000 > 50000 limit → reject with 1000 remaining.
     $router = app(JsonRpcRouter::class);
     $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
     $resp = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 201, 'method' => 'tools/call',
         'params'  => ['name' => 'payment.transfer', 'arguments' => [
-            'amount_minor'    => 5000,
+            'amount'          => 50,
             'currency'        => 'USD',
             'idempotency_key' => 'pay-overlimit',
         ]],
@@ -307,7 +309,6 @@ it('returns -32003 SPENDING_LIMIT_EXCEEDED when the reservation would exceed the
     expect($resp['error']['code'])->toBe(-32003);
     expect($resp['error']['message'])->toBe('SPENDING_LIMIT_EXCEEDED');
     expect($resp['error']['data']['limit_remaining_minor'])->toBe(1000);
-    // Counter unchanged.
     expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(49000);
 
     $this->assertDatabaseHas('mcp_tool_invocations', [
@@ -315,6 +316,24 @@ it('returns -32003 SPENDING_LIMIT_EXCEEDED when the reservation would exceed the
         'tool_name'     => 'payment.transfer',
         'result_status' => 'spending_limit',
     ]);
+});
+
+it('handles fractional float amounts via bcmath without IEEE-754 drift', function () {
+    // amount=0.10 (USD 10¢) must round-trip to exactly 10 minor units.
+    // The naive path `(int)(0.10 * 100) == 9` is the bug bcmath prevents.
+    $router = app(JsonRpcRouter::class);
+    $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
+    $resp = $router->dispatch([
+        'jsonrpc' => '2.0', 'id' => 204, 'method' => 'tools/call',
+        'params'  => ['name' => 'payment.transfer', 'arguments' => [
+            'amount'          => 0.10,
+            'currency'        => 'USD',
+            'idempotency_key' => 'pay-cents',
+        ]],
+    ], $ctx);
+
+    expect($resp['result']['isError'])->toBeFalse();
+    expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(10);
 });
 
 it('releases the reservation when the payment tool reports an error', function () {
@@ -386,10 +405,11 @@ it('releases the reservation when the payment tool reports an error', function (
 
     $router = app(JsonRpcRouter::class);
     $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
+    // amount=75 → 7500 minor. Reservation succeeds, then tool fails → release.
     $resp = $router->dispatch([
         'jsonrpc' => '2.0', 'id' => 202, 'method' => 'tools/call',
         'params'  => ['name' => 'payment.transfer', 'arguments' => [
-            'amount_minor'    => 7500,
+            'amount'          => 75,
             'currency'        => 'USD',
             'idempotency_key' => 'pay-fails',
         ]],
@@ -400,7 +420,7 @@ it('releases the reservation when the payment tool reports an error', function (
     expect((int) DB::table('mcp_token_policies')->where('token_id', 'tok_test')->value('daily_spend_minor'))->toBe(0);
 });
 
-it('rejects a payment-tool call missing amount_minor with -32003 AMOUNT_INVALID', function () {
+it('rejects a payment-tool call missing amount with -32003 AMOUNT_INVALID', function () {
     $router = app(JsonRpcRouter::class);
     $ctx = new McpRequestContext('tok_test', 'cli', 1, ['payments:write']);
     $resp = $router->dispatch([

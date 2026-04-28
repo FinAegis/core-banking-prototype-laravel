@@ -53,15 +53,19 @@ return [
         'account.balance'    => ['internal' => 'account.balance',                'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_ACCOUNT_BALANCE', true),     'is_write' => false],
         'account.create'     => ['internal' => 'account.create',                 'scope' => 'accounts:write',    'enabled' => env('MCP_TOOL_ACCOUNT_CREATE', true),      'is_write' => true],
         'payment.status'     => ['internal' => 'payment.status',                 'scope' => 'payments:read',     'enabled' => env('MCP_TOOL_PAYMENT_STATUS', true),      'is_write' => false],
-        'payment.transfer'   => ['internal' => 'payment.transfer',               'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', true),    'is_write' => true,  'is_payment' => true,  'amount_arg' => 'amount_minor',  'currency_arg' => 'currency'],
+        'payment.transfer'   => ['internal' => 'payment.transfer',               'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', true),    'is_write' => true,  'is_payment' => true,  'amount_arg' => 'amount',  'currency_arg' => 'currency',  'amount_decimals' => 2],
         'transactions.query' => ['internal' => 'transactions.query',             'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_TRANSACTIONS_QUERY', true),  'is_write' => false],
         'spending.analysis'  => ['internal' => 'transactions.spending_analysis', 'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_SPENDING_ANALYSIS', true),   'is_write' => false],
         'exchange.quote'     => ['internal' => 'exchange.quote',                 'scope' => 'exchange:read',     'enabled' => env('MCP_TOOL_EXCHANGE_QUOTE', true),      'is_write' => false],
-        'exchange.trade'     => ['internal' => 'exchange.trade',                 'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', true),      'is_write' => true,  'is_payment' => true,  'amount_arg' => 'amount_minor',  'currency_arg' => 'from_currency'],
-        'ramp.start'         => ['internal' => 'ramp.start',                     'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true],
-        'ramp.status'        => ['internal' => 'ramp.status',                    'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false],
-        'mpp.discovery'      => ['internal' => 'mpp.discovery',                  'scope' => null,                'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
-        'sms.send'           => ['internal' => 'sms.send',                       'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true],
+        // exchange.trade is intentionally NOT is_payment: the spending-limit
+        // commitment is the QUOTE-currency cost (amount * market price), and
+        // market price isn't in the tool arguments. Wire saga coverage once
+        // the trade tool surfaces a settled fiat-equivalent in its result.
+        'exchange.trade' => ['internal' => 'exchange.trade',                 'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', true),      'is_write' => true],
+        'ramp.start'     => ['internal' => 'ramp.start',                     'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true],
+        'ramp.status'    => ['internal' => 'ramp.status',                    'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false],
+        'mpp.discovery'  => ['internal' => 'mpp.discovery',                  'scope' => null,                'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
+        'sms.send'       => ['internal' => 'sms.send',                       'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true],
     ],
 
     /*
