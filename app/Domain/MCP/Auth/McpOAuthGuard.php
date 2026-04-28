@@ -59,6 +59,9 @@ final class McpOAuthGuard
     private function unauthenticated(): JsonResponse
     {
         $resourceMetadata = rtrim((string) config('mcp.resource_uri'), '/') . '/.well-known/oauth-protected-resource';
+        // Strip header-injection / quote-break characters in case MCP_RESOURCE_URI
+        // is operator-misconfigured. RFC 9728 examples are bare https URLs anyway.
+        $resourceMetadata = str_replace(['"', "\r", "\n"], '', $resourceMetadata);
 
         $response = new JsonResponse([
             'jsonrpc' => '2.0',

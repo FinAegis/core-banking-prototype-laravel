@@ -110,6 +110,42 @@ it('lets the request through with a valid token and attaches the token to the re
     expect($request->attributes->get('mcp.token'))->toBe($token);
 });
 
+it('lets the request through when a required scope is satisfied by the token', function () {
+    $token = new Token();
+    $token->revoked = false;
+    $token->scopes = ['accounts:read', 'payments:write'];
+
+    $user = Mockery::mock();
+    $user->shouldReceive('token')->andReturn($token);
+
+    /** @var Guard&Mockery\MockInterface $apiGuard */
+    $apiGuard = Mockery::mock(Guard::class);
+    $apiGuard->shouldReceive('user')->andReturn($user);
+    Auth::shouldReceive('guard')->with('api')->andReturn($apiGuard);
+
+    $guard = new McpOAuthGuard();
+    $request = Request::create('/mcp', 'POST');
+    $request->headers->set('Authorization', 'Bearer scoped-token');
+
+    $response = $guard->handle($request, fn () => response('OK'), 'payments:write');
+
+    expect($response->getStatusCode())->toBe(200);
+    expect($request->attributes->get('mcp.token'))->toBe($token);
+});
+
+it('strips quote-break characters from the WWW-Authenticate resource_metadata URL', function () {
+    config(['mcp.resource_uri' => "https://mcp.zelta.app\"\r\n attacker"]);
+
+    $guard = new McpOAuthGuard();
+    $response = $guard->handle(Request::create('/mcp', 'POST'), fn () => response('OK'));
+
+    $header = (string) $response->headers->get('WWW-Authenticate');
+    expect($header)->not->toContain('"attacker');
+    expect($header)->not->toContain("\r");
+    expect($header)->not->toContain("\n");
+    expect($header)->toContain('Bearer resource_metadata="https://mcp.zelta.app');
+});
+
 it('returns 403 with INSUFFICIENT_SCOPE when the token lacks the required scope', function () {
     $token = new Token();
     $token->revoked = false;
