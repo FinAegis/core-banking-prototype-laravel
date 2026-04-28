@@ -68,10 +68,28 @@ it('returns 406 or 401 when GET /mcp lacks Accept: text/event-stream', function 
     expect($response->status())->toBeIn([401, 406]);
 });
 
-it('returns 406 directly from the controller when GET lacks Accept: text/event-stream', function () {
+it('returns 405 with Allow: POST when GET /mcp is called and SSE is disabled (default)', function () {
+    // SSE defaults to disabled because a long-lived SSE response inside PHP-FPM
+    // pins a worker for the entire connection lifetime. POST /mcp remains the
+    // primary transport; the MCP spec lets servers return 405 on GET.
+    config(['mcp.sse.enabled' => false]);
+    $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
+
+    $request = \Illuminate\Http\Request::create('/mcp', 'GET');
+    $request->headers->set('Accept', 'text/event-stream');
+
+    $response = $controller->handle($request);
+
+    expect($response->getStatusCode())->toBe(405);
+    expect((string) $response->headers->get('Allow'))->toBe('POST');
+    expect((string) $response->getContent())->toContain('not enabled');
+});
+
+it('returns 406 directly from the controller when GET lacks Accept: text/event-stream and SSE is enabled', function () {
     // Bypass OAuth entirely: drive the controller directly so we can prove the
     // 406 branch fires. The middleware-level coverage above asserts the route
     // is wired; this asserts the controller's content-negotiation logic.
+    config(['mcp.sse.enabled' => true]);
     $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
 
     $request = \Illuminate\Http\Request::create('/mcp', 'GET');
@@ -83,7 +101,8 @@ it('returns 406 directly from the controller when GET lacks Accept: text/event-s
     expect((string) $response->getContent())->toContain('event-stream');
 });
 
-it('opens an SSE stream with the correct headers when GET sends Accept: text/event-stream', function () {
+it('opens an SSE stream with the correct headers when GET sends Accept: text/event-stream and SSE is enabled', function () {
+    config(['mcp.sse.enabled' => true]);
     // Don't actually consume the stream body — just verify the headers.
     $controller = app(\App\Domain\MCP\Server\StreamableHttpController::class);
 

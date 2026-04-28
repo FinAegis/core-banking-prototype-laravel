@@ -112,6 +112,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Streamable HTTP transport
+    |--------------------------------------------------------------------------
+    | The MCP spec lets the server be POST-only and return 405 on GET when
+    | SSE is unsupported. We default to that posture because a long-lived SSE
+    | connection inside PHP-FPM pins a worker for the entire connection
+    | lifetime — under load that exhausts the pool. Set MCP_SSE_ENABLED=true
+    | only when running under Octane/Swoole or a dedicated SSE FPM pool.
+    */
+    'sse' => [
+        'enabled'           => (bool) env('MCP_SSE_ENABLED', false),
+        'heartbeat_seconds' => (int) env('MCP_SSE_HEARTBEAT_SECONDS', 25),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Dynamic Client Registration — branding policy
     |--------------------------------------------------------------------------
     | The DCR endpoint is open-by-throttle (RFC 7591 §1.1 allows this). To

@@ -39,6 +39,18 @@ final class StreamableHttpController
 
     private function handleGet(Request $request): Response
     {
+        // The MCP spec lets servers be POST-only and return 405 on GET.
+        // We default to POST-only (config('mcp.sse.enabled') = false) because a
+        // long-lived SSE response inside PHP-FPM pins a worker for the entire
+        // connection lifetime — under load that exhausts the pool. Enable only
+        // when running under Octane/Swoole or a dedicated SSE FPM pool.
+        if (! (bool) config('mcp.sse.enabled', false)) {
+            return new JsonResponse([
+                'error'             => 'method_not_allowed',
+                'error_description' => 'Server-sent events are not enabled. Use POST /mcp for the JSON-RPC envelope flow.',
+            ], 405, ['Allow' => 'POST']);
+        }
+
         $accept = (string) $request->header('Accept', '');
         if (! str_contains($accept, 'text/event-stream')) {
             return new JsonResponse([
@@ -46,7 +58,7 @@ final class StreamableHttpController
             ], 406);
         }
 
-        return $this->sse->open();
+        return $this->sse->open((int) config('mcp.sse.heartbeat_seconds', 25));
     }
 
     private function handlePost(Request $request): JsonResponse
