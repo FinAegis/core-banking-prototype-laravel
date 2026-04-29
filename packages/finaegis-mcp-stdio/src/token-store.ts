@@ -43,7 +43,13 @@ async function loadKeychainStore(): Promise<TokenStore> {
   // backend can `npm i -g keytar` and set FINAEGIS_MCP_TOKEN_STORE=keychain.
   let mod: { default?: KeytarLike } & KeytarLike;
   try {
-    mod = (await import('keytar')) as { default?: KeytarLike } & KeytarLike;
+    // keytar is intentionally not declared as a (optional)Dependency from
+    // 0.1.4 onward — its native build hangs `npx` installs on common
+    // environments. Users opt in by `npm i -g keytar`. The dynamic specifier
+    // hides the import from TS resolution, which would otherwise fail in CI
+    // where keytar isn't in node_modules at build time.
+    const specifier = 'keytar';
+    mod = (await import(specifier)) as { default?: KeytarLike } & KeytarLike;
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND' || (err as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
       throw new Error(
