@@ -9,7 +9,19 @@ async function main(): Promise<void> {
 
   if (process.argv.includes('--logout')) {
     await helper.logout();
-    process.stderr.write('Logged out — keychain entry deleted.\n');
+    process.stderr.write('Logged out — credentials deleted.\n');
+
+    return;
+  }
+
+  if (process.argv.includes('--login')) {
+    // Drive the OAuth flow standalone, without waiting for an MCP client to
+    // hand us a stdio request. Useful for first-time setup verification on
+    // WSL2/headless boxes where the user wants to confirm auth works before
+    // wiring the relay into Claude Desktop or another client.
+    process.stderr.write(`Logging in to ${cfg.authServer} for ${cfg.serverUrl}...\n`);
+    await helper.getAccessToken();
+    process.stderr.write('Logged in. You can now configure your MCP client to use this relay.\n');
 
     return;
   }

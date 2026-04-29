@@ -127,17 +127,20 @@ export class OAuthHelper {
     }).toString();
 
     // Start the loopback server BEFORE opening the browser so we don't race
-    // a fast-clicking user against the bind. open() can throw on headless
-    // systems; if it does, fall back to printing the URL.
+    // a fast-clicking user against the bind.
     const codePromise = this.waitForCode(state);
 
-    if (this.cfg.oauthNoBrowser) {
-      process.stderr.write(`Open this URL to authorize:\n  ${authUrl}\n`);
-    } else {
+    // Always print the URL — on WSL2, Docker, and bare SSH sessions, open()
+    // can return without throwing while no browser actually launches, leaving
+    // the user staring at a silent terminal. Printing first makes the URL
+    // available regardless of what the browser-open call does.
+    process.stderr.write(`Open this URL to authorize:\n  ${authUrl}\n`);
+
+    if (!this.cfg.oauthNoBrowser) {
       try {
         await open(authUrl);
       } catch {
-        process.stderr.write(`Could not open browser. Open this URL manually:\n  ${authUrl}\n`);
+        // Browser open failed — the URL is already printed above.
       }
     }
 
