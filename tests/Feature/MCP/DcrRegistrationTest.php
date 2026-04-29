@@ -27,3 +27,12 @@ it('registers a DCR client and returns credentials', function () {
         'registration_method' => 'dcr',
     ]);
 });
+
+it('excludes VerifyCsrfToken from the DCR route (RFC 7591 — clients have no session)', function () {
+    $route = collect(Illuminate\Support\Facades\Route::getRoutes()->getRoutes())
+        ->firstWhere(fn ($r) => $r->getName() === 'mcp.oauth.register');
+
+    expect($route)->not->toBeNull();
+    expect($route->excludedMiddleware())
+        ->toContain(App\Http\Middleware\VerifyCsrfToken::class);
+});

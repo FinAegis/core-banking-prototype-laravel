@@ -866,6 +866,11 @@ Route::get('/.well-known/oauth-authorization-server', App\Domain\MCP\Discovery\A
     ->middleware(['throttle:mcp.discovery'])
     ->name('mcp.discovery.authorization-server');
 
+// RFC 7591 DCR is by design unauthenticated and called by external clients
+// that have no Laravel session, so they cannot carry a CSRF token. Inheriting
+// the `web` group's VerifyCsrfToken middleware (because this route lives in
+// routes/web.php) returns 419 to every legitimate request. Strip CSRF here.
 Route::post('/oauth/register', App\Domain\MCP\Auth\DynamicClientRegistrationController::class)
     ->middleware(['api', 'throttle:5,1'])
+    ->withoutMiddleware([App\Http\Middleware\VerifyCsrfToken::class])
     ->name('mcp.oauth.register');
