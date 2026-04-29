@@ -18,6 +18,11 @@ class BackpressureHandlerTest extends TestCase
     {
         parent::setUp();
 
+        // Per-process in-memory cache so parallel runs can't wipe each other's
+        // pause keys (Cache::flush below + writes in the handler share the
+        // default driver across processes otherwise).
+        config()->set('cache.default', 'array');
+
         config()->set('event-streaming.prefix', 'test:events');
         config()->set('event-streaming.consumer_group', 'test-consumers');
         config()->set('event-streaming.backpressure.warning_threshold', 1000);
