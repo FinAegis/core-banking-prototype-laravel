@@ -1,0 +1,65 @@
+name: FinAegis MCP Stdio Wrapper Release
+
+on:
+  push:
+    tags:
+      - 'mcp-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish @finaegis/mcp to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # sigstore provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+          cache-dependency-path: packages/finaegis-mcp-stdio/package-lock.json
+
+      - name: Verify tag matches package.json version
+        working-directory: packages/finaegis-mcp-stdio
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          TAG_VERSION="${REF#refs/tags/mcp-v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag mcp-v${TAG_VERSION} does not match package.json version ${PKG_VERSION}"
+            exit 1
+          fi
+          echo "Publishing version ${TAG_VERSION}"
+
+      - name: Install dependencies (skip native builds)
+        working-directory: packages/finaegis-mcp-stdio
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        working-directory: packages/finaegis-mcp-stdio
+        run: npm run build
+
+      - name: Publish to npm (with provenance)
+        working-directory: packages/finaegis-mcp-stdio
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          VERSION="${REF#refs/tags/mcp-v}"
+          {
+            echo "## @finaegis/mcp v${VERSION} Published"
+            echo ""
+            echo "Install: \`npx -y @finaegis/mcp@${VERSION}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
