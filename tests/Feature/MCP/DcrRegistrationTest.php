@@ -32,7 +32,8 @@ it('excludes VerifyCsrfToken from the DCR route (RFC 7591 — clients have no se
     $route = collect(Illuminate\Support\Facades\Route::getRoutes()->getRoutes())
         ->firstWhere(fn ($r) => $r->getName() === 'mcp.oauth.register');
 
-    expect($route)->not->toBeNull();
+    expect($route)->toBeInstanceOf(Illuminate\Routing\Route::class);
+    /** @var Illuminate\Routing\Route $route */
     expect($route->excludedMiddleware())
         ->toContain(App\Http\Middleware\VerifyCsrfToken::class);
 });
