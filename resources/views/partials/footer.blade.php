@@ -32,13 +32,13 @@
             <div class="col-span-1 md:col-span-2">
                 <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Product</h4>
                 <ul class="space-y-2.5">
-                    <li><a href="{{ route('platform') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Platform</a></li>
-                    <li><a href="{{ route('features') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Features</a></li>
-                    <li><a href="{{ route('pricing') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Pricing</a></li>
-                    <li><a href="{{ route('security') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Security</a></li>
-                    <li><a href="{{ route('compliance') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Compliance</a></li>
-                    <li><a href="{{ route('changelog') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Changelog</a></li>
-                    <li><a href="{{ route('status') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Status</a></li>
+                    @if(Route::has('platform'))<li><a href="{{ route('platform') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Platform</a></li>@endif
+                    @if(Route::has('features'))<li><a href="{{ route('features') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Features</a></li>@endif
+                    @if(Route::has('pricing'))<li><a href="{{ route('pricing') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Pricing</a></li>@endif
+                    @if(Route::has('security'))<li><a href="{{ route('security') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Security</a></li>@endif
+                    @if(Route::has('compliance'))<li><a href="{{ route('compliance') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Compliance</a></li>@endif
+                    @if(Route::has('changelog'))<li><a href="{{ route('changelog') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Changelog</a></li>@endif
+                    @if(Route::has('status'))<li><a href="{{ route('status') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Status</a></li>@endif
                 </ul>
             </div>
 
@@ -46,12 +46,12 @@
             <div class="col-span-1 md:col-span-2">
                 <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Developers</h4>
                 <ul class="space-y-2.5">
-                    <li><a href="{{ route('developers') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Developer Hub</a></li>
+                    @if(Route::has('developers'))<li><a href="{{ route('developers') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Developer Hub</a></li>@endif
                     <li><a href="/api/documentation" class="text-sm text-slate-500 hover:text-white transition-colors">API Reference</a></li>
-                    <li><a href="{{ route('developers.show', 'sdks') }}" class="text-sm text-slate-500 hover:text-white transition-colors">SDKs</a></li>
-                    <li><a href="{{ route('developers.show', 'mcp-tools') }}" class="text-sm text-slate-500 hover:text-white transition-colors">MCP &amp; AI Agents</a></li>
+                    @if(Route::has('developers.show'))<li><a href="{{ route('developers.show', 'sdks') }}" class="text-sm text-slate-500 hover:text-white transition-colors">SDKs</a></li>@endif
+                    @if(Route::has('developers.show'))<li><a href="{{ route('developers.show', 'mcp-tools') }}" class="text-sm text-slate-500 hover:text-white transition-colors">MCP &amp; AI Agents</a></li>@endif
                     <li><a href="{{ config('brand.github_url') }}" class="text-sm text-slate-500 hover:text-white transition-colors">GitHub</a></li>
-                    <li><a href="{{ route('developers.show', 'webhooks') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Webhooks</a></li>
+                    @if(Route::has('developers.show'))<li><a href="{{ route('developers.show', 'webhooks') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Webhooks</a></li>@endif
                 </ul>
             </div>
 
@@ -59,11 +59,11 @@
             <div class="col-span-1 md:col-span-2">
                 <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Company</h4>
                 <ul class="space-y-2.5">
-                    <li><a href="{{ route('about') }}" class="text-sm text-slate-500 hover:text-white transition-colors">About</a></li>
-                    <li><a href="{{ route('blog') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Blog</a></li>
-                    <li><a href="{{ route('cgo') }}" class="text-sm text-slate-500 hover:text-white transition-colors">CGO Concept</a></li>
-                    <li><a href="{{ route('support.contact') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Contact</a></li>
-                    <li><a href="{{ route('support.faq') }}" class="text-sm text-slate-500 hover:text-white transition-colors">FAQ</a></li>
+                    @if(Route::has('about'))<li><a href="{{ route('about') }}" class="text-sm text-slate-500 hover:text-white transition-colors">About</a></li>@endif
+                    @if(Route::has('blog'))<li><a href="{{ route('blog') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Blog</a></li>@endif
+                    @if(Route::has('cgo'))<li><a href="{{ route('cgo') }}" class="text-sm text-slate-500 hover:text-white transition-colors">CGO Concept</a></li>@endif
+                    @if(Route::has('support.contact'))<li><a href="{{ route('support.contact') }}" class="text-sm text-slate-500 hover:text-white transition-colors">Contact</a></li>@endif
+                    @if(Route::has('support.faq'))<li><a href="{{ route('support.faq') }}" class="text-sm text-slate-500 hover:text-white transition-colors">FAQ</a></li>@endif
                 </ul>
             </div>
         </div>
@@ -82,9 +82,9 @@
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <p class="text-xs text-slate-600">&copy; {{ date('Y') }} {{ config('brand.legal_entity', config('brand.name', 'Zelta')) }}. All rights reserved.</p>
                 <div class="flex items-center gap-6">
-                    <a href="{{ route('legal.terms') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Terms</a>
-                    <a href="{{ route('legal.privacy') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Privacy</a>
-                    <a href="{{ route('legal.cookies') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Cookies</a>
+                    @if(Route::has('legal.terms'))<a href="{{ route('legal.terms') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Terms</a>@endif
+                    @if(Route::has('legal.privacy'))<a href="{{ route('legal.privacy') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Privacy</a>@endif
+                    @if(Route::has('legal.cookies'))<a href="{{ route('legal.cookies') }}" class="text-xs text-slate-600 hover:text-slate-400 transition-colors">Cookies</a>@endif
                 </div>
             </div>
         </div>
