@@ -34,7 +34,7 @@ it('round-trips a UUID client_id through oauth_auth_codes without truncation', f
 
     $row = DB::table('oauth_auth_codes')->first();
     expect($row)->not->toBeNull();
-    /** @var \stdClass $row */
+    /** @var stdClass $row */
     expect($row->client_id)->toBe($uuid);
 
     DB::table('oauth_auth_codes')->where('id', str_repeat('a', 80))->delete();
