@@ -244,8 +244,13 @@ export class OAuthHelper {
     const res = await fetch(`${this.cfg.authServer}/oauth/register`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
+      // RFC 7591 client metadata. client_name is what the user sees on the
+      // consent screen — kept generic so the AS's brand-impersonation
+      // blocklist accepts us. Brand identity is conveyed through client_uri,
+      // which the consent template can render as a verification link.
       body:    JSON.stringify({
-        client_name:   '@finaegis/mcp (stdio)',
+        client_name:   'MCP Stdio Relay',
+        client_uri:    'https://www.npmjs.com/package/@finaegis/mcp',
         redirect_uris: [REDIRECT_URI],
         grant_types:   ['authorization_code', 'refresh_token'],
       }),
