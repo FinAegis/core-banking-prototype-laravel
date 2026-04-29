@@ -10,12 +10,6 @@ npx -y @finaegis/mcp --login
 
 This prints an authorization URL to the terminal and (where possible) opens it in your browser. After you complete consent, the token is persisted and the wrapper exits. You can re-run `--login` at any time to refresh credentials.
 
-On Linux without `libsecret` (WSL2, Docker, Alpine, headless servers), set `NPM_CONFIG_OMIT=optional` to skip installing the native `keytar` dependency:
-
-```bash
-NPM_CONFIG_OMIT=optional npx -y @finaegis/mcp@0.1.2 --login
-```
-
 ## Configure (Claude Desktop)
 
 Once logged in, add to `claude_desktop_config.json`:
@@ -28,23 +22,18 @@ Once logged in, add to `claude_desktop_config.json`:
 }
 ```
 
-On Linux without `libsecret`, include the env var:
+## Token storage
 
-```json
-{
-  "mcpServers": {
-    "zelta": {
-      "command": "npx",
-      "args": ["-y", "@finaegis/mcp"],
-      "env": { "NPM_CONFIG_OMIT": "optional" }
-    }
-  }
-}
+By default, tokens are stored in `$XDG_CONFIG_HOME/finaegis-mcp/tokens.json` (typically `~/.config/finaegis-mcp/tokens.json`) with file permissions `0600` (read/write for the owning user only). The file is plain JSON, not encrypted at rest.
+
+**Optional: OS keychain backend.** If you prefer macOS Keychain / Windows Credential Manager / Linux libsecret, install `keytar` globally and opt in:
+
+```bash
+npm i -g keytar
+FINAEGIS_MCP_TOKEN_STORE=keychain npx -y @finaegis/mcp --login
 ```
 
-Tokens are stored in your OS keychain (macOS Keychain, Windows Credential Manager, or Linux libsecret/gnome-keyring) when available. Subsequent launches are silent.
-
-If the OS keychain is unavailable — common on **WSL2, Docker, Alpine, and headless Linux** — the relay automatically falls back to a file at `$XDG_CONFIG_HOME/finaegis-mcp/tokens.json` with permissions `0600` (read/write for the owning user only). The file is plain JSON, not encrypted at rest. A one-line warning is printed to stderr the first time this happens.
+`keytar` is **not** a dependency of this package — it's a native module that fails to install on common environments (WSL2, Docker, Alpine, CI). Keeping the default install pure JavaScript means `npx -y @finaegis/mcp` just works everywhere.
 
 ## Environment overrides
 
@@ -53,10 +42,10 @@ If the OS keychain is unavailable — common on **WSL2, Docker, Alpine, and head
 | `MCP_SERVER_URL` | `https://mcp.zelta.app/mcp` |
 | `MCP_AUTH_SERVER` | `https://zelta.app` |
 | `MCP_OAUTH_NO_BROWSER` | unset — set to `1` to print the auth URL instead of opening a browser |
-| `FINAEGIS_MCP_TOKEN_STORE` | auto — set to `file` to force the file store, or `keychain` to require the OS keychain (errors if missing) |
+| `FINAEGIS_MCP_TOKEN_STORE` | `file` (default) — set to `keychain` to use the OS keychain via `keytar` (must be installed separately) |
 
 ## Troubleshooting
 
 - **Browser does not open** — set `MCP_OAUTH_NO_BROWSER=1` and follow the URL printed to stderr.
 - **Token expired** — log out and re-auth: `npx @finaegis/mcp --logout`.
-- **`libsecret-1.so.0: cannot open shared object file`** — the keychain backend can't load. The relay handles this automatically and falls back to the file store; you can also force it with `FINAEGIS_MCP_TOKEN_STORE=file`.
+- **`libsecret-1.so.0: cannot open shared object file`** — only happens if you opted into `FINAEGIS_MCP_TOKEN_STORE=keychain` on a Linux system without `libsecret`. Unset the variable (the default file store needs no native deps) or install `libsecret-1-dev` + a keyring daemon.

@@ -39,9 +39,9 @@ jobs:
           fi
           echo "Publishing version ${TAG_VERSION}"
 
-      - name: Install dependencies (skip native builds)
+      - name: Install dependencies
         working-directory: packages/finaegis-mcp-stdio
-        run: npm ci --ignore-scripts
+        run: npm ci
 
       - name: Build
         working-directory: packages/finaegis-mcp-stdio

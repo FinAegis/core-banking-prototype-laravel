@@ -16,43 +16,17 @@ let cached: TokenStore | undefined;
 export async function getTokenStore(): Promise<TokenStore> {
   if (cached) return cached;
 
+  // Default to the file store: keytar is not a dependency from 0.1.4 onward
+  // because its native build broke `npx` installs on WSL2, Docker, Alpine,
+  // and CI. Users who want the OS keychain can `npm i -g keytar` and set
+  // FINAEGIS_MCP_TOKEN_STORE=keychain.
   const force = process.env.FINAEGIS_MCP_TOKEN_STORE;
-  if (force === 'file') {
-    cached = createFileStore();
-    return cached;
-  }
   if (force === 'keychain') {
-    cached = await tryKeychainOrThrow();
+    cached = await loadKeychainStore();
     return cached;
   }
-
-  // Default: prefer the OS keychain, fall back to a file if it's not viable
-  // (libsecret missing on WSL2 / Alpine / Docker, no D-Bus session, etc.).
-  const keychain = await tryKeychain();
-  if (keychain) {
-    cached = keychain;
-    return cached;
-  }
-
-  const fallback = createFileStore();
-  process.stderr.write(
-    `[@finaegis/mcp] OS keychain unavailable; falling back to file store at ${fallback.path}.\n` +
-      `[@finaegis/mcp] Set FINAEGIS_MCP_TOKEN_STORE=keychain to require the keychain (will error if missing).\n`,
-  );
-  cached = fallback;
+  cached = createFileStore();
   return cached;
-}
-
-async function tryKeychain(): Promise<TokenStore | null> {
-  try {
-    return await loadKeychainStore();
-  } catch {
-    return null;
-  }
-}
-
-async function tryKeychainOrThrow(): Promise<TokenStore> {
-  return loadKeychainStore();
 }
 
 interface KeytarLike {
@@ -63,9 +37,21 @@ interface KeytarLike {
 }
 
 async function loadKeychainStore(): Promise<TokenStore> {
-  // Dynamic import so a missing libsecret / D-Bus session surfaces as a
-  // catchable error here instead of crashing module load.
-  const mod = (await import('keytar')) as { default?: KeytarLike } & KeytarLike;
+  // Dynamic import so a missing keytar package (we ship without it from
+  // 0.1.4) or a missing libsecret / D-Bus session surfaces as a catchable
+  // error here instead of crashing module load. Users who want the keychain
+  // backend can `npm i -g keytar` and set FINAEGIS_MCP_TOKEN_STORE=keychain.
+  let mod: { default?: KeytarLike } & KeytarLike;
+  try {
+    mod = (await import('keytar')) as { default?: KeytarLike } & KeytarLike;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND' || (err as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
+      throw new Error(
+        '[@finaegis/mcp] keytar is not installed. Install it globally to use the OS keychain backend: `npm i -g keytar`. The default file store works on all platforms with no extra dependencies.',
+      );
+    }
+    throw err;
+  }
   const keytar: KeytarLike = mod.default ?? mod;
   // Round-trip a no-op call so libsecret/D-Bus problems surface here, not on
   // the first real getPassword later.
