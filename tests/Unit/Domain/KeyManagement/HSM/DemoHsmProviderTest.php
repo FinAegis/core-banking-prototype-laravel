@@ -9,6 +9,10 @@ uses(Tests\TestCase::class);
 
 describe('DemoHsmProvider', function () {
     beforeEach(function () {
+        // Per-process in-memory cache so parallel runs can't wipe each other's
+        // stored secrets (Cache::flush below + writes in the provider share
+        // the default driver across processes otherwise).
+        config()->set('cache.default', 'array');
         Cache::flush();
         $this->provider = new DemoHsmProvider();
     });
