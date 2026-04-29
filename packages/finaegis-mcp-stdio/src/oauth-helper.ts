@@ -1,9 +1,9 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { randomBytes, createHash } from 'node:crypto';
 import { fetch } from 'undici';
-import keytar from 'keytar';
 import open from 'open';
 import { RelayConfig } from './config.js';
+import { getTokenStore } from './token-store.js';
 
 interface TokenSet {
   access_token: string;
@@ -65,12 +65,14 @@ export class OAuthHelper {
   }
 
   async logout(): Promise<void> {
-    await keytar.deletePassword(this.cfg.keychainService, this.cfg.keychainAccount);
-    await keytar.deletePassword(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr');
+    const store = await getTokenStore();
+    await store.delete(this.cfg.keychainService, this.cfg.keychainAccount);
+    await store.delete(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr');
   }
 
   private async readToken(): Promise<TokenSet | null> {
-    const raw = await keytar.getPassword(this.cfg.keychainService, this.cfg.keychainAccount);
+    const store = await getTokenStore();
+    const raw = await store.get(this.cfg.keychainService, this.cfg.keychainAccount);
     if (!raw) return null;
     try {
       return JSON.parse(raw) as TokenSet;
@@ -80,7 +82,8 @@ export class OAuthHelper {
   }
 
   private async writeToken(t: TokenSet): Promise<void> {
-    await keytar.setPassword(this.cfg.keychainService, this.cfg.keychainAccount, JSON.stringify(t));
+    const store = await getTokenStore();
+    await store.set(this.cfg.keychainService, this.cfg.keychainAccount, JSON.stringify(t));
   }
 
   private async refresh(refreshToken: string): Promise<TokenSet | null> {
@@ -225,7 +228,8 @@ export class OAuthHelper {
    * under a separate account.
    */
   private async dcrIfNeeded(): Promise<ClientCreds> {
-    const stored = await keytar.getPassword(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr');
+    const store = await getTokenStore();
+    const stored = await store.get(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr');
     if (stored) {
       try {
         return JSON.parse(stored) as ClientCreds;
@@ -247,7 +251,7 @@ export class OAuthHelper {
       throw new Error(`DCR failed: ${res.status} ${await res.text()}`);
     }
     const data = (await res.json()) as ClientCreds;
-    await keytar.setPassword(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr', JSON.stringify(data));
+    await store.set(this.cfg.keychainService, this.cfg.keychainAccount + '.dcr', JSON.stringify(data));
     return data;
   }
 }

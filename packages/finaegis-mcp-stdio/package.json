@@ -1,6 +1,6 @@
 {
   "name": "@finaegis/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stdio-to-remote relay for the Zelta MCP server. Lets stdio-only MCP clients (Claude Desktop, Cursor, Continue.dev) connect to https://mcp.zelta.app/mcp.",
   "license": "Apache-2.0",
   "type": "module",
@@ -29,9 +29,11 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "keytar": "^7.9.0",
     "open": "^10.1.0",
     "undici": "^6.21.0"
+  },
+  "optionalDependencies": {
+    "keytar": "^7.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
