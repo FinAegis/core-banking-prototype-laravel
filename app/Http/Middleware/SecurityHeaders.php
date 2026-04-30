@@ -61,6 +61,26 @@ class SecurityHeaders
      */
     private function getContentSecurityPolicy(Request $request): string
     {
+        // OAuth authorization endpoints: the consent form posts to /oauth/authorize
+        // and the server then 302s to the client's registered redirect_uri. Modern
+        // browsers apply form-action to the entire redirect chain, so a strict
+        // 'self' policy blocks the loopback redirect that RFC 8252 native apps
+        // (Claude Desktop, Cursor, etc. via @finaegis/mcp) rely on. We trust
+        // Passport's own redirect_uri validation against oauth_clients here.
+        if ($request->is('oauth/*')) {
+            return implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline'",
+                "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
+                "img-src 'self' data: blob: https:",
+                "font-src 'self' https://fonts.bunny.net",
+                "connect-src 'self'",
+                "form-action 'self' http://127.0.0.1:* http://[::1]:* https:",
+                "base-uri 'self'",
+                "frame-ancestors 'none'",
+            ]);
+        }
+
         // Swagger UI requires relaxed CSP (CDN assets + unsafe-eval for JSON rendering)
         if ($request->is('api/documentation*') || $request->is('docs*')) {
             return implode('; ', [
