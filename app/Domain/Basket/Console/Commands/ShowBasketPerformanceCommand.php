@@ -33,7 +33,7 @@ class ShowBasketPerformanceCommand extends Command
         /** @var BasketAsset|null $basket */
         $basket = null;
         $basketCode = $this->argument('basket') ?? config('baskets.primary_code', 'GCU');
-        $period = $this->option('period');
+        $period = (string) ($this->option('period') ?? '30d');
         $detailed = $this->option('detailed');
 
         // Find the basket
