@@ -3247,6 +3247,14 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 - Filament admin resources for OAuth clients, tool invocations, and active sessions (kill / revoke from the UI)
 - Audit log on `mcp_tool_invocations` with settlement attribution feeding the regulatory / AML pipeline
 
+### Post-Launch Polish (April 30)
+- `@finaegis/mcp` v0.1.6 with styled Zelta-branded OAuth callback pages and file-based token storage (no keytar dependency)
+- Brand polish on auth surfaces — login page, application logo, and footer no longer hard-code "FinAegis"; production reads `config('brand.name')` end-to-end (PR #997)
+- Non-admin users hitting `/admin` redirect to `/dashboard` with a flash error instead of a bare 403 (`App\Filament\Http\Middleware\RedirectNonAdmins`, PR #998)
+- Module-aware widget visibility — Filament widgets gain `WidgetRespectsModuleVisibility` matching the existing resource gating; production scope via `ADMIN_MODULES` (PR #999)
+- Production env hygiene — `SHOW_PROMO_PAGES=false` and `ADMIN_MODULES` guidance default in `.env.production.example` and `.env.zelta.example`
+- Auto-discovery for `app/Domain/*/Console/Commands/` via `bootstrap/app.php` (fixes intermittent scheduled-command "namespace not found" errors)
+
 ---
 
 ## Future / Unscheduled
@@ -3270,4 +3278,4 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 ---
 
 *Document Version: 7.11.0*
-*Updated: April 28, 2026 (v7.11.0 public MCP server release)*
+*Updated: April 30, 2026 (v7.11.0 public MCP server + admin/brand polish)*
