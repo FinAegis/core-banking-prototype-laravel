@@ -1,5 +1,6 @@
-<a href="/">
-    <h1 class="text-4xl font-bold">
-        <span class="text-indigo-600">Fin</span><span class="text-purple-600">Aegis</span>
+@php($brandName = config('brand.name', 'Zelta'))
+<a href="/" class="inline-block">
+    <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+        {{ $brandName }}
     </h1>
 </a>

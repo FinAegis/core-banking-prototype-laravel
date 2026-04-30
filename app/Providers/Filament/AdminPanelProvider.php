@@ -80,6 +80,6 @@ class AdminPanelProvider extends PanelProvider
             return config('app.gcu_basket_name', 'Global Currency Unit');
         }
 
-        return config('brand.name', 'FinAegis') . ' Admin';
+        return config('brand.name', 'Zelta') . ' Admin';
     }
 }

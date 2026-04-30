@@ -9,7 +9,11 @@
                     <span class="text-xl font-display font-bold text-white tracking-tight">{{ config('brand.name', 'Zelta') }}</span>
                 </a>
                 <p class="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
-                    Open-source core banking infrastructure for the next generation of financial services. Apache-2.0 licensed.
+                    @if(app()->environment('demo') || config('brand.show_promo_pages'))
+                        Open-source core banking infrastructure for the next generation of financial services. Apache-2.0 licensed.
+                    @else
+                        {{ config('brand.tagline', 'Agentic Payments. Spend Anywhere.') }}
+                    @endif
                 </p>
                 <div class="flex items-center space-x-3">
                     <a href="{{ config('brand.github_url') }}" class="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-slate-500 hover:text-white hover:border-white/[0.12] transition-all" aria-label="GitHub">
