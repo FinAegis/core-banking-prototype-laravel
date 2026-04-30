@@ -65,7 +65,13 @@ trait WidgetRespectsModuleVisibility
 
         try {
             $reflection = new ReflectionProperty(static::class, 'adminModule');
-            $reflection->setAccessible(true);
+
+            // Bail loudly if a consumer ever declares $adminModule as a non-static
+            // property — the rest of the trait assumes class-level visibility.
+            if (! $reflection->isStatic()) {
+                return null;
+            }
+
             $value = $reflection->getValue();
         } catch (ReflectionException) {
             return null;

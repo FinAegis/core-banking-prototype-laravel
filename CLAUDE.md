@@ -110,6 +110,16 @@ Required repo secrets for release workflows: `NPM_TOKEN` (must be npm **Automati
 
 Packagist sources the three PHP packages from **split-mirror repos**, not the monorepo — Packagist only reads root `composer.json`. The `monorepo-split.yml` workflow auto-pushes `packages/zelta-sdk/`, `packages/zelta-cli/`, `sdks/php/`, and `packages/finaegis-mcp-stdio/` into their respective mirrors on every `main` push and release tag (via `splitsh/lite`). Mirror tags use a stripped prefix: `sdk-v1.0.1` → mirror tag `v1.0.1`.
 
+## Admin Panel — Brand & Module Visibility
+
+- Brand fallback in `AdminPanelProvider` is `Zelta` (production); demo deployments override with `BRAND_NAME`
+- Auth pages read `config('brand.name')` — never hardcode "FinAegis" in `authentication-card-logo.blade.php` or `application-logo.blade.php`
+- Footer "open-source" tagline only renders in demo mode or when `SHOW_PROMO_PAGES=true`
+- Non-admin users hitting `/admin` redirect to `/dashboard` with a flash error via `App\Filament\Http\Middleware\RedirectNonAdmins` (replaces Filament's bundled `Authenticate` so non-admins don't get a bare 403)
+- Resources gate by nav group via `App\Filament\Admin\Traits\RespectsModuleVisibility` (already on every Resource)
+- Widgets gate by `$adminModule` (matching a nav group) via `App\Filament\Admin\Traits\WidgetRespectsModuleVisibility` — set on every widget under `app/Filament/Admin/Widgets/`. Widgets with their own `canView()` AND the module check via `static::adminModuleAllowsView()`
+- Production envs default `SHOW_PROMO_PAGES=false`; Zelta also pins `ADMIN_MODULES` to the mobile-wallet scope in `.env.zelta.example`
+
 ## MCP Server (v7.11.0+)
 
 - Public endpoint: `https://mcp.zelta.app/mcp` (subdomain handled in `bootstrap/app.php`)
