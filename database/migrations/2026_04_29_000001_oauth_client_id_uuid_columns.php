@@ -15,36 +15,41 @@ use Illuminate\Support\Facades\Schema;
  * during the OAuth authorization-code grant. There are no in-flight rows to
  * preserve — OAuth was functionally inert prior to v13 (see the recreation
  * comment in 2026_04_28_000004).
+ *
+ * MariaDB rejects a direct ->change() from bigint unsigned to uuid
+ * ("Cannot cast 'bigint unsigned' as 'uuid'"), so we drop and recreate the
+ * column. None of the three columns carry an index in the original schema.
  */
 return new class () extends Migration {
+    /** @var list<string> */
+    private array $tables = [
+        'oauth_auth_codes',
+        'oauth_access_tokens',
+        'oauth_personal_access_clients',
+    ];
+
     public function up(): void
     {
-        Schema::table('oauth_auth_codes', function (Blueprint $table) {
-            $table->uuid('client_id')->change();
-        });
-
-        Schema::table('oauth_access_tokens', function (Blueprint $table) {
-            $table->uuid('client_id')->change();
-        });
-
-        Schema::table('oauth_personal_access_clients', function (Blueprint $table) {
-            $table->uuid('client_id')->change();
-        });
+        foreach ($this->tables as $name) {
+            Schema::table($name, function (Blueprint $table) {
+                $table->dropColumn('client_id');
+            });
+            Schema::table($name, function (Blueprint $table) {
+                $table->uuid('client_id')->after('id');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('oauth_auth_codes', function (Blueprint $table) {
-            $table->unsignedBigInteger('client_id')->change();
-        });
-
-        Schema::table('oauth_access_tokens', function (Blueprint $table) {
-            $table->unsignedBigInteger('client_id')->change();
-        });
-
-        Schema::table('oauth_personal_access_clients', function (Blueprint $table) {
-            $table->unsignedBigInteger('client_id')->change();
-        });
+        foreach ($this->tables as $name) {
+            Schema::table($name, function (Blueprint $table) {
+                $table->dropColumn('client_id');
+            });
+            Schema::table($name, function (Blueprint $table) {
+                $table->unsignedBigInteger('client_id')->after('id');
+            });
+        }
     }
 
     public function getConnection(): ?string
