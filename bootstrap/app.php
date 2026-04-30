@@ -11,7 +11,17 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 
+// Auto-discover Artisan commands from every domain's Console/Commands directory.
+// Without this, classes like banks:check-alerts and liquidity:update-market-making
+// are defined but never registered — the scheduler then logs "namespace not found"
+// every minute. Laravel's default discovery only scans app/Console/Commands.
+$domainCommandPaths = [];
+foreach (glob(__DIR__ . '/../app/Domain/*/Console/Commands', GLOB_ONLYDIR) ?: [] as $path) {
+    $domainCommandPaths[] = $path;
+}
+
 return Application::configure(basePath: dirname(__DIR__))
+    ->withCommands($domainCommandPaths)
     ->withRouting(
         using: function () {
             $host = request()->getHost();

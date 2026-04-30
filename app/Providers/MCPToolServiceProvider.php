@@ -122,8 +122,19 @@ class MCPToolServiceProvider extends ServiceProvider
         }
 
         $registry = $this->app->make(ToolRegistry::class);
+        $rampUnavailable = $this->isRampDisabledInProduction();
 
         foreach ($this->tools as $toolClass) {
+            // Ramp tools depend on a real provider; in prod the mock provider
+            // throws on construction. Skip registration silently rather than
+            // logging "Failed to register" warnings on every request boot.
+            if ($rampUnavailable && (
+                $toolClass === RampStartTool::class
+                || $toolClass === RampStatusTool::class
+            )) {
+                continue;
+            }
+
             try {
                 $tool = $this->app->make($toolClass);
                 $registry->register($tool);
@@ -134,5 +145,16 @@ class MCPToolServiceProvider extends ServiceProvider
                 ]);
             }
         }
+    }
+
+    /**
+     * True when Ramp tools cannot be instantiated under the current config.
+     * The mock provider is the default and refuses to load in production, so
+     * we treat that as "no real provider configured" and skip the tools.
+     */
+    private function isRampDisabledInProduction(): bool
+    {
+        return $this->app->environment('production')
+            && config('ramp.default_provider') === 'mock';
     }
 }
