@@ -287,7 +287,9 @@ class SubscriberResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status', Subscriber::STATUS_ACTIVE)->count();
+        $count = static::getModel()::where('status', Subscriber::STATUS_ACTIVE)->count();
+
+        return $count > 0 ? (string) $count : null;
     }
 
     public static function getNavigationBadgeColor(): ?string

@@ -33,7 +33,7 @@ class CgoInvestmentResource extends Resource
     {
         $pending = static::getModel()::where('status', 'pending')->count();
 
-        return $pending > 0 ? $pending : null;
+        return $pending > 0 ? (string) $pending : null;
     }
 
     public static function getNavigationBadgeColor(): ?string

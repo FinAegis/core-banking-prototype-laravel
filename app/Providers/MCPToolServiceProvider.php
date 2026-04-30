@@ -128,10 +128,8 @@ class MCPToolServiceProvider extends ServiceProvider
             // Ramp tools depend on a real provider; in prod the mock provider
             // throws on construction. Skip registration silently rather than
             // logging "Failed to register" warnings on every request boot.
-            if ($rampUnavailable && (
-                $toolClass === RampStartTool::class
-                || $toolClass === RampStatusTool::class
-            )) {
+            $isRampTool = $toolClass === RampStartTool::class || $toolClass === RampStatusTool::class;
+            if ($rampUnavailable && $isRampTool) {
                 continue;
             }
 

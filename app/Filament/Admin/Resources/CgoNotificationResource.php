@@ -89,7 +89,9 @@ class CgoNotificationResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::count();
+        $count = static::getModel()::count();
+
+        return $count > 0 ? (string) $count : null;
     }
 
     public static function getPages(): array
