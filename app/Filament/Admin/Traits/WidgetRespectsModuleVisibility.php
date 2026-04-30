@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Traits;
 
+use ReflectionException;
+use ReflectionProperty;
+
 /**
  * Provides a module-visibility check for Filament widgets.
  *
@@ -61,10 +64,10 @@ trait WidgetRespectsModuleVisibility
         }
 
         try {
-            $reflection = new \ReflectionProperty(static::class, 'adminModule');
+            $reflection = new ReflectionProperty(static::class, 'adminModule');
             $reflection->setAccessible(true);
             $value = $reflection->getValue();
-        } catch (\ReflectionException) {
+        } catch (ReflectionException) {
             return null;
         }
 
