@@ -2,35 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
-use Filament\Widgets\Widget;
+use Tests\Filament\Admin\Traits\Fixtures\FixtureBankingWidget;
+use Tests\Filament\Admin\Traits\Fixtures\FixtureSystemWidget;
+use Tests\Filament\Admin\Traits\Fixtures\FixtureUngroupedWidget;
 
 uses(Tests\TestCase::class);
-
-class FixtureBankingWidget extends Widget
-{
-    use WidgetRespectsModuleVisibility;
-
-    protected static ?string $adminModule = 'Banking';
-
-    protected static string $view = 'welcome';
-}
-
-class FixtureSystemWidget extends Widget
-{
-    use WidgetRespectsModuleVisibility;
-
-    protected static ?string $adminModule = 'System';
-
-    protected static string $view = 'welcome';
-}
-
-class FixtureUngroupedWidget extends Widget
-{
-    use WidgetRespectsModuleVisibility;
-
-    protected static string $view = 'welcome';
-}
 
 describe('WidgetRespectsModuleVisibility', function () {
     it('shows all widgets when ADMIN_MODULES is unset', function () {
