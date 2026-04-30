@@ -8,11 +8,16 @@ use App\Domain\Account\Models\Transfer;
 use App\Domain\Custodian\Models\CustodianAccount;
 use App\Domain\Custodian\Services\CustodianHealthMonitor;
 use App\Domain\Custodian\Services\DailyReconciliationService;
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class BankOperationsDashboard extends BaseWidget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'Banking';
+
     protected static ?int $sort = 1;
 
     protected function getStats(): array

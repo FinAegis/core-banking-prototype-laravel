@@ -2,12 +2,17 @@
 
 namespace App\Filament\Admin\Widgets;
 
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use App\Models\UserBankPreference;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Number;
 
 class BankAllocationWidget extends Widget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'Banking';
+
     protected static string $view = 'filament.admin.widgets.bank-allocation-widget';
 
     protected int|string|array $columnSpan = 'full';

@@ -3,12 +3,17 @@
 namespace App\Filament\Admin\Widgets;
 
 use App\Domain\Basket\Models\BasketAsset;
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 class BasketPerformanceChart extends ChartWidget
 {
+    use WidgetRespectsModuleVisibility;
+
     use InteractsWithPageFilters;
+
+    protected static ?string $adminModule = 'System';
 
     protected static ?string $heading = 'Basket Performance';
 
@@ -146,6 +151,10 @@ class BasketPerformanceChart extends ChartWidget
 
     public static function canView(): bool
     {
+        if (! static::adminModuleAllowsView()) {
+            return false;
+        }
+
         return auth()->user()?->can('view_basket_performance') ?? true;
     }
 }

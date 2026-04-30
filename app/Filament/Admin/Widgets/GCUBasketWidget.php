@@ -8,6 +8,10 @@ class GCUBasketWidget extends PrimaryBasketWidget
 
     public static function canView(): bool
     {
+        if (! static::adminModuleAllowsView()) {
+            return false;
+        }
+
         // Only show if GCU is configured as the primary basket
         return config('baskets.primary_code') === 'GCU';
     }

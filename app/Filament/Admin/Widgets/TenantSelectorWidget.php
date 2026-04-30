@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Widgets;
 
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use App\Models\Tenant;
 use Filament\Widgets\Widget;
 use Illuminate\Contracts\View\View;
@@ -16,6 +17,10 @@ use Illuminate\Contracts\View\View;
  */
 class TenantSelectorWidget extends Widget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'System';
+
     protected static string $view = 'filament.admin.widgets.tenant-selector-widget';
 
     protected int|string|array $columnSpan = 'full';
@@ -109,6 +114,10 @@ class TenantSelectorWidget extends Widget
      */
     public static function canView(): bool
     {
+        if (! static::adminModuleAllowsView()) {
+            return false;
+        }
+
         // Only show if tenancy is configured
         return class_exists(\Stancl\Tenancy\Tenancy::class);
     }

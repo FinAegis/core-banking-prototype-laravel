@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Widgets;
 
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use App\Infrastructure\Domain\DomainManager;
 use App\Infrastructure\Domain\Enums\DomainStatus;
 use App\Infrastructure\Domain\Enums\DomainType;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\File;
 
 class ModuleHealthWidget extends BaseWidget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'System';
+
     protected static ?string $pollingInterval = '60s';
 
     protected static ?int $sort = 3;

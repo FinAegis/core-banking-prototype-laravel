@@ -3,10 +3,15 @@
 namespace App\Filament\Admin\Widgets;
 
 use App\Domain\Basket\Models\BasketAsset;
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use Filament\Widgets\Widget;
 
 class PrimaryBasketWidget extends Widget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'System';
+
     protected static string $view = 'filament.admin.widgets.primary-basket-widget';
 
     protected int|string|array $columnSpan = 'full';

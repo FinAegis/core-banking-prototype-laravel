@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Widgets;
 
 use App\Domain\Monitoring\Services\EventStoreService;
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
 
 class EventStoreStatsWidget extends BaseWidget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'System';
+
     protected static ?string $pollingInterval = '30s';
 
     protected static ?int $sort = 1;

@@ -2,11 +2,16 @@
 
 namespace App\Filament\Admin\Widgets;
 
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use App\Models\UserBankPreference;
 use Filament\Widgets\Widget;
 
 class MultiBankDistributionWidget extends Widget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'Banking';
+
     protected static string $view = 'filament.admin.widgets.multi-bank-distribution-widget';
 
     protected int|string|array $columnSpan = 'full';
@@ -18,6 +23,10 @@ class MultiBankDistributionWidget extends Widget
      */
     public static function canView(): bool
     {
+        if (! static::adminModuleAllowsView()) {
+            return false;
+        }
+
         // Show this widget when GCU is enabled or when there are bank preferences
         return config('app.gcu_enabled', false) || UserBankPreference::exists();
     }

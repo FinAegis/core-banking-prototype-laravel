@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Widgets;
 
 use App\Domain\Monitoring\Services\EventStoreService;
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Cache;
 
 class EventStoreThroughputWidget extends ChartWidget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'System';
+
     protected static ?string $heading = 'Event Throughput (Events/Minute)';
 
     protected static ?string $pollingInterval = '10s';

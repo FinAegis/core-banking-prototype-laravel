@@ -4,12 +4,17 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Domain\Basket\Models\BasketAsset;
 use App\Domain\Basket\Services\BasketPerformanceService;
+use App\Filament\Admin\Traits\WidgetRespectsModuleVisibility;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
 
 class BasketPerformanceStats extends BaseWidget
 {
+    use WidgetRespectsModuleVisibility;
+
+    protected static ?string $adminModule = 'System';
+
     protected static ?string $pollingInterval = '60s';
 
     protected static ?int $sort = 2;
@@ -125,6 +130,10 @@ class BasketPerformanceStats extends BaseWidget
 
     public static function canView(): bool
     {
+        if (! static::adminModuleAllowsView()) {
+            return false;
+        }
+
         return auth()->user()?->can('view_basket_performance') ?? true;
     }
 }
