@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Developer Docs — REST, GraphQL & CLI Reference | ' . config('brand.name', 'Zelta'),
-        'description' => config('brand.name', 'Zelta') . ' developer docs: 1,400+ REST and GraphQL API routes, SDKs, CLI tools, and WebSocket integrations across 56 banking modules. Get started in minutes.',
+        'description' => config('brand.name', 'Zelta') . ' developer docs: 1,400+ REST and GraphQL API routes, public MCP server, SDKs, CLI tools, and WebSocket integrations across 59 banking modules. Get started in minutes.',
         'keywords' => config('brand.name', 'Zelta') . ', developer, API, documentation, SDK, CLI, REST API, GraphQL, WebSocket, Laravel, banking API, open source, integration',
     ])
 @endsection
@@ -137,7 +137,7 @@
                 <div class="text-center">
                     <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                         <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        <span>v7.10.8 Documentation — 57 Domains, 1,400+ Routes, GraphQL + REST + x402</span>
+                        <span>v7.11.0 Documentation — 59 Domains, 1,400+ Routes, GraphQL + REST + MCP + x402</span>
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
                         Build with 1,400+ API Routes
@@ -177,8 +177,8 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="font-medium">v7.10.8 Released:</span>
-                    <span class="ml-2">Public SDK distribution — CLI, JS/TS, Python, and PHP SDKs now install from npm, PyPI, and Packagist in one command. 57 DDD domains, 1,400+ API routes, GraphQL (45 domains), ISO 20022, ISO 8583, x402 Protocol.</span>
+                    <span class="font-medium">v7.11.0 Released:</span>
+                    <span class="ml-2">Public MCP server at <code class="code-font">mcp.zelta.app</code> — 12 OAuth-protected banking tools for Claude Desktop, Cursor, and any spec-compliant AI agent. <code class="code-font">@finaegis/mcp</code> on npm. 59 DDD domains, 1,400+ API routes, GraphQL (45 domains), ISO 20022, ISO 8583, x402 Protocol.</span>
                 </div>
             </div>
         </section>

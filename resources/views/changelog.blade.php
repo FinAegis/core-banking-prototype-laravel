@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Changelog | ' . config('brand.name', 'Zelta'),
-        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.10.8.',
+        'description' => 'Release history for the Zelta core banking platform. Track every feature shipped, bug fixed, and improvement made — v7.0 through v7.11.0.',
         'keywords' => 'changelog, release notes, updates, ' . config('brand.name', 'Zelta') . ', version history, core banking',
     ])
 
@@ -43,6 +43,22 @@
 
             @php
                 $releases = [
+                    [
+                        'version' => 'v7.11.0',
+                        'date' => 'April 30, 2026',
+                        'label' => 'Public MCP Server + Brand Polish',
+                        'label_color' => 'indigo',
+                        'badge_color' => 'bg-indigo-100 text-indigo-700 border-indigo-200',
+                        'dot_color' => 'bg-indigo-500',
+                        'items' => [
+                            'Public MCP server — <code>https://mcp.zelta.app/mcp</code> serves a 12-tool catalog (accounts, payments, exchange, baskets, mcp ramp) over OAuth 2.1 with RFC 7591 dynamic client registration and RFC 9728 protected resource metadata. Designed for Claude Desktop, Cursor, and any spec-compliant AI agent. Spec: <code>docs/superpowers/specs/2026-04-27-mcp-server-design.md</code>.',
+                            '<code>@finaegis/mcp</code> npm wrapper — published stdio bridge for MCP clients that don\'t speak HTTP+SSE directly. Styled OAuth callback pages, file-based token storage by default (no keytar dependency), and a published <code>FinAegis/mcp</code> mirror for clean install.',
+                            'Brand polish on auth surfaces — login page, application logo, and footer no longer hard-code "FinAegis"; production deployments now read <code>config(\'brand.name\')</code> end-to-end. Open-source / Apache-2.0 marketing copy is gated to demo environments.',
+                            'Admin panel hardening — non-admin users hitting <code>/admin</code> now redirect to <code>/dashboard</code> with a flash error instead of a bare 403. Filament widgets gain module-aware visibility (<code>WidgetRespectsModuleVisibility</code> trait), matching the existing resource gating; production deployments can scope the dashboard via <code>ADMIN_MODULES</code>.',
+                            'Production env hygiene — <code>SHOW_PROMO_PAGES=false</code> and <code>ADMIN_MODULES</code> guidance now ship in <code>.env.production.example</code> and <code>.env.zelta.example</code> so customer-facing deployments derived from these templates pick the right scope by default.',
+                            'Auto-discovery for domain console commands — <code>app/Domain/*/Console/Commands/</code> now register automatically via <code>bootstrap/app.php</code>, fixing intermittent "namespace not found" errors during scheduled runs. Ramp tools skip self-registration when only the mock provider is configured.',
+                        ],
+                    ],
                     [
                         'version' => 'v7.10.8',
                         'date' => 'April 19, 2026',
