@@ -4,6 +4,7 @@ import { fetch } from 'undici';
 import open from 'open';
 import { RelayConfig } from './config.js';
 import { getTokenStore } from './token-store.js';
+import { successPage, stateMismatchPage, missingCodePage } from './callback-pages.js';
 
 interface TokenSet {
   access_token: string;
@@ -187,20 +188,22 @@ export class OAuthHelper {
         }
         const got = url.searchParams.get('state');
         if (got !== expectedState) {
-          res.writeHead(400).end('state mismatch');
+          res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(stateMismatchPage());
           cleanup();
           reject(new Error('state mismatch'));
           return;
         }
         const c = url.searchParams.get('code');
         if (!c) {
-          res.writeHead(400).end('no code');
+          res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(missingCodePage());
           cleanup();
           reject(new Error('authorization response missing code'));
           return;
         }
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end('<html><body><h2>Authorized — you can close this window.</h2></body></html>');
+        res.end(successPage());
         cleanup();
         resolve(c);
       });
