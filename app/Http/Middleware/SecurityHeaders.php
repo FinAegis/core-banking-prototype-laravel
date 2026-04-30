@@ -107,6 +107,20 @@ class SecurityHeaders
         $apiEndpoint = config('security.csp.api_endpoint', '');
         $wsEndpoint = config('security.csp.ws_endpoint', '');
 
+        // Auto-inject GA-required hosts whenever a GA tag is configured. Operators
+        // shouldn't need to keep CSP_SCRIPT_SOURCES manually in sync with brand.ga_id
+        // — and forgetting to do so silently breaks pageview tracking on prod.
+        if (config('brand.ga_id')) {
+            $scriptSources = $this->mergeUnique($scriptSources, ['https://www.googletagmanager.com']);
+            $connectSources = $this->mergeUnique($connectSources, [
+                'https://www.google-analytics.com',
+                'https://*.google-analytics.com',
+                'https://www.googletagmanager.com',
+                'https://stats.g.doubleclick.net',
+                'https://*.doubleclick.net',
+            ]);
+        }
+
         // Build production policies (unsafe-eval only for admin panel / Alpine.js)
         $evalDirective = $needsUnsafeEval ? "'unsafe-eval' " : '';
         $policies = [
@@ -159,6 +173,26 @@ class SecurityHeaders
         }
 
         return implode('; ', $policies);
+    }
+
+    /**
+     * Merge two CSP source lists into a deduplicated, trimmed result.
+     *
+     * @param  list<string>  $existing
+     * @param  list<string>  $additions
+     * @return list<string>
+     */
+    private function mergeUnique(array $existing, array $additions): array
+    {
+        $merged = [];
+        foreach ([...$existing, ...$additions] as $value) {
+            $value = trim($value);
+            if ($value !== '' && ! in_array($value, $merged, true)) {
+                $merged[] = $value;
+            }
+        }
+
+        return $merged;
     }
 
     /**
