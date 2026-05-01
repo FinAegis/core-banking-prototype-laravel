@@ -35,8 +35,12 @@ afterEach(function (): void {
 function heliusWebhookConfig(): array
 {
     return [
-        'webhookID'        => 'test-webhook-id',
-        'wallet'           => 'project-wallet',
+        // Server-managed fields the GET returns but PUT rejects:
+        'webhookID'     => 'test-webhook-id',
+        'wallet'        => 'project-wallet',
+        'lastEnabledAt' => '2026-04-01T00:00:00Z',
+        'project'       => 'zelta-prod',
+        // PUT-allowed fields:
         'webhookURL'       => 'https://zelta.app/api/webhooks/helius/solana',
         'transactionTypes' => ['ANY'],
         'accountAddresses' => ['existing-address-from-helius'],
@@ -109,8 +113,11 @@ it('replays webhookURL, transactionTypes, webhookType and authHeader on PUT', fu
             && ($body['transactionTypes'] ?? null) === ['ANY']
             && ($body['webhookType'] ?? null) === 'enhanced'
             && ($body['authHeader'] ?? null) === 'shared-secret'
-            // server-managed fields must be stripped
-            && ! array_key_exists('webhookID', $body);
+            // server-managed fields the GET returns but PUT rejects must be stripped
+            && ! array_key_exists('webhookID', $body)
+            && ! array_key_exists('wallet', $body)
+            && ! array_key_exists('lastEnabledAt', $body)
+            && ! array_key_exists('project', $body);
     });
 });
 

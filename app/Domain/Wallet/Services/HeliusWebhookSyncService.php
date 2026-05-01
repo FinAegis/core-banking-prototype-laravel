@@ -30,6 +30,24 @@ class HeliusWebhookSyncService
 
     private const LOCK_TIMEOUT = 15;
 
+    /**
+     * Fields Helius accepts on PUT /v0/webhooks/{id}.
+     *
+     * The GET response includes server-managed fields (`webhookID`, `project`,
+     * `wallet`, `lastEnabledAt`, etc.) that Helius rejects with 400 on PUT.
+     * We whitelist instead of blacklist so future-added server fields don't
+     * silently break sync.
+     */
+    private const PUT_ALLOWED_FIELDS = [
+        'webhookURL',
+        'transactionTypes',
+        'accountAddresses',
+        'webhookType',
+        'authHeader',
+        'txnStatus',
+        'encoding',
+    ];
+
     /** @var array<string> Solana system/program addresses that must never be monitored */
     private const RESERVED_ADDRESSES = [
         '11111111111111111111111111111111',
@@ -195,10 +213,11 @@ class HeliusWebhookSyncService
 
         /** @var array<string, mixed> $config */
         $config = (array) $current->json();
-        $config['accountAddresses'] = $uniqueAddresses;
 
-        // Strip server-managed fields that Helius rejects on PUT.
-        unset($config['webhookID'], $config['project']);
+        // Helius rejects unknown/server-managed fields on PUT. Whitelist only
+        // the fields documented as accepted, plus our updated address list.
+        $config = array_intersect_key($config, array_flip(self::PUT_ALLOWED_FIELDS));
+        $config['accountAddresses'] = $uniqueAddresses;
 
         $response = Http::timeout(15)
             ->withQueryParameters(['api-key' => $apiKey])
