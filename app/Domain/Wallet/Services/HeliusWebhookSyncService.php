@@ -103,6 +103,8 @@ class HeliusWebhookSyncService
 
     /**
      * Sync all Solana addresses from the database to Helius.
+     *
+     * Returns the count of addresses pushed on success, 0 on failure.
      */
     public function syncAllAddresses(): int
     {
@@ -123,7 +125,9 @@ class HeliusWebhookSyncService
             ->values()
             ->all();
 
-        $this->updateWebhookAddresses($webhookId, $apiKey, $addresses);
+        if (! $this->updateWebhookAddresses($webhookId, $apiKey, $addresses)) {
+            return 0;
+        }
 
         Log::info('Helius: Synced all Solana addresses', ['count' => count($addresses)]);
 
@@ -161,6 +165,10 @@ class HeliusWebhookSyncService
     /**
      * Update the webhook with a new address list.
      *
+     * Helius requires `api-key` as a query parameter — it does not accept the
+     * key in the JSON body or in an Authorization header. Sending it in the
+     * body (Laravel's default for Http::put) fails with 401 missing api key.
+     *
      * @param array<string> $addresses
      */
     private function updateWebhookAddresses(string $webhookId, string $apiKey, array $addresses): bool
@@ -168,9 +176,9 @@ class HeliusWebhookSyncService
         $uniqueAddresses = array_values(array_unique($addresses));
 
         $response = Http::timeout(15)
+            ->withQueryParameters(['api-key' => $apiKey])
             ->put("https://api.helius.xyz/v0/webhooks/{$webhookId}", [
                 'accountAddresses' => $uniqueAddresses,
-                'api-key'          => $apiKey,
             ]);
 
         if (! $response->successful()) {
