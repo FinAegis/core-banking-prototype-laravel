@@ -25,6 +25,26 @@ afterEach(function (): void {
     $this->dropSolanaTestTables();
 });
 
+/**
+ * Realistic Helius `GET /v0/webhooks/{id}` response. The PUT must replay
+ * webhookURL / transactionTypes / webhookType / authHeader back to Helius
+ * or it 400s with "Webhook URL is required" etc.
+ *
+ * @return array<string, mixed>
+ */
+function heliusWebhookConfig(): array
+{
+    return [
+        'webhookID'        => 'test-webhook-id',
+        'wallet'           => 'project-wallet',
+        'webhookURL'       => 'https://zelta.app/api/webhooks/helius/solana',
+        'transactionTypes' => ['ANY'],
+        'accountAddresses' => ['existing-address-from-helius'],
+        'webhookType'      => 'enhanced',
+        'authHeader'       => 'shared-secret',
+    ];
+}
+
 it('sends api-key as a query parameter on the PUT request, not in the body', function (): void {
     $user = User::factory()->create();
     BlockchainAddress::create([
@@ -36,10 +56,7 @@ it('sends api-key as a query parameter on the PUT request, not in the body', fun
     ]);
 
     Http::fake([
-        'https://api.helius.xyz/v0/webhooks/test-webhook-id*' => Http::response([
-            'webhookID'        => 'test-webhook-id',
-            'accountAddresses' => ['9UYjpLnTu78B5kqNoKgghLTcRKsUUZNRGUfxEZiwpR7L'],
-        ], 200),
+        'https://api.helius.xyz/v0/webhooks/test-webhook-id*' => Http::response(heliusWebhookConfig(), 200),
     ]);
 
     $count = (new HeliusWebhookSyncService())->syncAllAddresses();
@@ -65,7 +82,60 @@ it('sends api-key as a query parameter on the PUT request, not in the body', fun
     });
 });
 
+it('replays webhookURL, transactionTypes, webhookType and authHeader on PUT', function (): void {
+    $user = User::factory()->create();
+    BlockchainAddress::create([
+        'user_uuid'  => $user->uuid,
+        'chain'      => 'solana',
+        'address'    => '9UYjpLnTu78B5kqNoKgghLTcRKsUUZNRGUfxEZiwpR7L',
+        'public_key' => '9UYjpLnTu78B5kqNoKgghLTcRKsUUZNRGUfxEZiwpR7L',
+        'is_active'  => true,
+    ]);
+
+    Http::fake([
+        'https://api.helius.xyz/v0/webhooks/test-webhook-id*' => Http::response(heliusWebhookConfig(), 200),
+    ]);
+
+    (new HeliusWebhookSyncService())->syncAllAddresses();
+
+    Http::assertSent(function (Request $request): bool {
+        if ($request->method() !== 'PUT') {
+            return false;
+        }
+
+        $body = $request->data();
+
+        return ($body['webhookURL'] ?? null) === 'https://zelta.app/api/webhooks/helius/solana'
+            && ($body['transactionTypes'] ?? null) === ['ANY']
+            && ($body['webhookType'] ?? null) === 'enhanced'
+            && ($body['authHeader'] ?? null) === 'shared-secret'
+            // server-managed fields must be stripped
+            && ! array_key_exists('webhookID', $body);
+    });
+});
+
 it('returns 0 when the upstream Helius PUT fails', function (): void {
+    $user = User::factory()->create();
+    BlockchainAddress::create([
+        'user_uuid'  => $user->uuid,
+        'chain'      => 'solana',
+        'address'    => '9UYjpLnTu78B5kqNoKgghLTcRKsUUZNRGUfxEZiwpR7L',
+        'public_key' => '9UYjpLnTu78B5kqNoKgghLTcRKsUUZNRGUfxEZiwpR7L',
+        'is_active'  => true,
+    ]);
+
+    Http::fake([
+        'https://api.helius.xyz/v0/webhooks/test-webhook-id*' => Http::sequence()
+            ->push(heliusWebhookConfig(), 200)        // GET succeeds
+            ->push(['error' => 'Bad Request'], 400),  // PUT rejects
+    ]);
+
+    $count = (new HeliusWebhookSyncService())->syncAllAddresses();
+
+    expect($count)->toBe(0);
+});
+
+it('returns 0 when the upstream Helius GET fails', function (): void {
     $user = User::factory()->create();
     BlockchainAddress::create([
         'user_uuid'  => $user->uuid,

@@ -165,9 +165,14 @@ class HeliusWebhookSyncService
     /**
      * Update the webhook with a new address list.
      *
-     * Helius requires `api-key` as a query parameter — it does not accept the
-     * key in the JSON body or in an Authorization header. Sending it in the
-     * body (Laravel's default for Http::put) fails with 401 missing api key.
+     * Helius's PUT /v0/webhooks/{id} replaces the entire webhook config — it
+     * does NOT support partial updates. Sending only accountAddresses fails
+     * with 400 ("Webhook URL is required", "Transaction types must be an
+     * array", etc.). So we GET the current config, swap accountAddresses,
+     * and PUT the whole object back.
+     *
+     * Helius requires `api-key` as a query parameter — it does not accept
+     * the key in the JSON body or in an Authorization header.
      *
      * @param array<string> $addresses
      */
@@ -175,11 +180,29 @@ class HeliusWebhookSyncService
     {
         $uniqueAddresses = array_values(array_unique($addresses));
 
+        $current = Http::timeout(15)
+            ->withQueryParameters(['api-key' => $apiKey])
+            ->get("https://api.helius.xyz/v0/webhooks/{$webhookId}");
+
+        if (! $current->successful()) {
+            Log::error('Helius: Failed to fetch current webhook config for update', [
+                'status' => $current->status(),
+                'body'   => $current->body(),
+            ]);
+
+            return false;
+        }
+
+        /** @var array<string, mixed> $config */
+        $config = (array) $current->json();
+        $config['accountAddresses'] = $uniqueAddresses;
+
+        // Strip server-managed fields that Helius rejects on PUT.
+        unset($config['webhookID'], $config['project']);
+
         $response = Http::timeout(15)
             ->withQueryParameters(['api-key' => $apiKey])
-            ->put("https://api.helius.xyz/v0/webhooks/{$webhookId}", [
-                'accountAddresses' => $uniqueAddresses,
-            ]);
+            ->put("https://api.helius.xyz/v0/webhooks/{$webhookId}", $config);
 
         if (! $response->successful()) {
             Log::error('Helius: Failed to update webhook addresses', [
