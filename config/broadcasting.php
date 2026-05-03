@@ -36,20 +36,26 @@ return [
             'key'     => env('PUSHER_APP_KEY'),
             'secret'  => env('PUSHER_APP_SECRET'),
             'app_id'  => env('PUSHER_APP_ID'),
-            'options' => array_filter([
-                'cluster' => env('PUSHER_APP_CLUSTER', 'eu'),
-                'useTLS'  => env('PUSHER_SCHEME', 'https') === 'https',
-                // Only set host/port for self-hosted Soketi.
-                // For Pusher cloud, leave PUSHER_HOST unset so the SDK resolves via cluster.
-                'host'         => env('PUSHER_HOST') ?: null,
-                'port'         => env('PUSHER_HOST') ? (int) env('PUSHER_PORT', 6001) : null,
-                'scheme'       => env('PUSHER_SCHEME', 'https'),
-                'encrypted'    => env('PUSHER_SCHEME', 'https') === 'https',
-                'curl_options' => [
-                    CURLOPT_SSL_VERIFYHOST => env('PUSHER_SCHEME', 'https') === 'https' ? 2 : 0,
-                    CURLOPT_SSL_VERIFYPEER => env('PUSHER_SCHEME', 'https') === 'https',
+            'options' => env('PUSHER_HOST')
+                // Self-hosted Soketi (or compatible). Need explicit host/port/scheme.
+                ? [
+                    'cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
+                    'host'    => env('PUSHER_HOST'),
+                    'port'    => (int) env('PUSHER_PORT', 6001),
+                    'scheme'  => env('PUSHER_SCHEME', 'http'),
+                    'useTLS'  => env('PUSHER_SCHEME', 'http') === 'https',
+                ]
+                // Pusher cloud. Just cluster + useTLS — the SDK resolves
+                // api-{cluster}.pusher.com:443 internally. Passing scheme,
+                // encrypted, host, or port alongside this triggers a
+                // longstanding bug in pusher/pusher-php-server 7.x where the
+                // SDK builds the URL with port 80 but does a TLS handshake,
+                // surfacing as "cURL error 35: SSL routines::packet length
+                // too long" on every broadcast.
+                : [
+                    'cluster' => env('PUSHER_APP_CLUSTER', 'eu'),
+                    'useTLS'  => true,
                 ],
-            ], fn ($v) => $v !== null),
             'client_options' => [
                 // Guzzle client options for webhook callbacks
             ],
