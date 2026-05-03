@@ -62,14 +62,18 @@ Route::prefix('v1/trustcert')->name('mobile.trustcert.')
             ->middleware('api.rate_limit:mutation')
             ->name('applications.cancel');
 
-        // Payment routes for paid KYC verification
+        // Payment routes for paid KYC verification.
+        // Idempotency middleware is mounted so a retried POST with the same
+        // Idempotency-Key header replays the original receipt without
+        // re-charging the wallet, re-creating a Stripe session, or
+        // re-consuming an IAP receipt.
         Route::post('/applications/{applicationId}/pay', [TrustCertPaymentController::class, 'payWallet'])
-            ->middleware('api.rate_limit:mutation')
+            ->middleware(['api.rate_limit:mutation', 'idempotency'])
             ->name('applications.pay.wallet');
         Route::post('/applications/{applicationId}/pay/card', [TrustCertPaymentController::class, 'payCard'])
-            ->middleware('api.rate_limit:mutation')
+            ->middleware(['api.rate_limit:mutation', 'idempotency'])
             ->name('applications.pay.card');
         Route::post('/applications/{applicationId}/pay/iap', [TrustCertPaymentController::class, 'payIap'])
-            ->middleware('api.rate_limit:mutation')
+            ->middleware(['api.rate_limit:mutation', 'idempotency'])
             ->name('applications.pay.iap');
     });
