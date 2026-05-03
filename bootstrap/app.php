@@ -51,9 +51,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 ), status: $exception ? 500 : 200);
             });
 
-            // Always load console routes
-            Route::group([], base_path('routes/console.php'));
-
             if ($isMcpSubdomain) {
                 // MCP subdomain — minimal middleware stack (no CSRF, no Sanctum, no web session)
                 Route::middleware(['api'])
