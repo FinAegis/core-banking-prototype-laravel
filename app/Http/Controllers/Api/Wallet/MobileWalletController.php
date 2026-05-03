@@ -546,13 +546,20 @@ class MobileWalletController extends Controller
         path: '/api/v1/wallet/transactions/send',
         operationId: 'walletSend',
         summary: 'Send a transaction',
-        description: 'Creates a payment intent and auto-submits it to send tokens to a recipient address.',
+        description: 'Creates a payment intent and auto-submits it to send tokens to a recipient address. ' .
+            'Amounts are in DECIMAL MAJOR UNITS — e.g. "1" or "1.5" for 1.5 USDC. ' .
+            'Do NOT pre-convert to atomic / on-chain integer units (e.g. "1500000" for 1.5 USDC at 6dp).',
         tags: ['Mobile Wallet'],
         security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['to', 'token', 'amount', 'network'], properties: [
         new OA\Property(property: 'to', type: 'string', example: '0x1234...abcd', description: 'Recipient address'),
         new OA\Property(property: 'token', type: 'string', enum: ['USDC', 'USDT', 'WETH', 'WBTC'], example: 'USDC', description: 'Token symbol'),
-        new OA\Property(property: 'amount', type: 'string', example: '100.00', description: 'Amount to send'),
+        new OA\Property(
+            property: 'amount',
+            type: 'string',
+            example: '1.50',
+            description: 'Amount in decimal major units (NOT atomic). For 1 USDC send "1" or "1.00", not "1000000".',
+        ),
         new OA\Property(property: 'network', type: 'string', example: 'polygon', description: 'Target network'),
         ]))
     )]

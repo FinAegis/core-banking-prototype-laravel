@@ -63,6 +63,28 @@ class TransactionRateLimitMiddleware
             'daily_window'      => 86400,
             'progressive_delay' => false,
         ],
+        // Mobile wallet payment intent submissions (P2P sends, merchant payments).
+        // Count-based only: amount is in token-native units that vary per token
+        // (USDC=6dp, SOL=9dp, ETH=18dp, fiat=2dp). Without a spot-price oracle in
+        // this layer, a single fiat-cents amount cap cannot be applied correctly
+        // — see app/Domain/MobilePayment/Services/PaymentIntentService.php for
+        // per-intent business validation. Do NOT add amount_limit here.
+        'payment_intent' => [
+            'limit'             => 30,    // 30 payment intents per hour
+            'window'            => 3600,
+            'daily_limit'       => 200,   // 200 payment intents per day
+            'daily_window'      => 86400,
+            'progressive_delay' => false,
+        ],
+        // Relayer-backed smart account operations (gasless EVM transactions).
+        // Count-based only for the same reason as payment_intent.
+        'relayer' => [
+            'limit'             => 30,
+            'window'            => 3600,
+            'daily_limit'       => 200,
+            'daily_window'      => 86400,
+            'progressive_delay' => false,
+        ],
     ];
 
     /**
@@ -81,6 +103,11 @@ class TransactionRateLimitMiddleware
         }
 
         // Get transaction rate limit configuration
+        if (! isset(self::TRANSACTION_LIMITS[$transactionType])) {
+            Log::warning('Transaction rate limit: unknown transaction type, falling back to transfer', [
+                'transaction_type' => $transactionType,
+            ]);
+        }
         $config = self::TRANSACTION_LIMITS[$transactionType] ?? self::TRANSACTION_LIMITS['transfer'];
 
         $userId = $request->user()?->id;
@@ -220,7 +247,13 @@ class TransactionRateLimitMiddleware
                     'retry_after'   => $retryAfter,
                     'limit_type'    => 'hourly_amount',
                     'limit_details' => [
+                        // All limit values are integers in minor units (e.g. cents
+                        // for USD/EUR-denominated routes). The middleware multiplies
+                        // a major-unit decimal request amount (e.g. "1.50" → 150) by
+                        // 100 — see extractAmount(). Clients can use limit_unit to
+                        // disambiguate when surfacing this to users.
                         'limit'            => $config['amount_limit'],
+                        'limit_unit'       => 'minor_units_x100',
                         'current_amount'   => $currentAmount,
                         'requested_amount' => $amount,
                         'remaining_amount' => max(0, $config['amount_limit'] - $currentAmount),

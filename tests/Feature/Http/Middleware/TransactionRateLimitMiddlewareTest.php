@@ -40,6 +40,11 @@ class TransactionRateLimitMiddlewareTest extends TestCase
             ->post('/test-transfer', function () {
                 return response()->json(['message' => 'transfer successful']);
             });
+
+        Route::middleware(['auth:sanctum', 'transaction.rate_limit:payment_intent'])
+            ->post('/test-payment-intent', function () {
+                return response()->json(['message' => 'payment_intent successful']);
+            });
     }
 
     #[Test]
@@ -270,5 +275,54 @@ class TransactionRateLimitMiddlewareTest extends TestCase
         $response = $this->postJson('/test-transfer', ['amount' => 10]);
         $response->assertStatus(429)
             ->assertJsonStructure(['security_notice']);
+    }
+
+    #[Test]
+    public function test_payment_intent_route_does_not_enforce_amount_limit(): void
+    {
+        // Crypto sends carry token amounts whose USD value is unknown to this
+        // middleware. Without a spot-price oracle, a fiat-cents amount cap can
+        // only produce false positives — see the comment on the payment_intent
+        // entry in TRANSACTION_LIMITS.
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        // An amount that would massively exceed transfer's $2000 cap should
+        // pass on payment_intent because amount_limit is intentionally absent.
+        $response = $this->postJson('/test-payment-intent', ['amount' => 1_000_000]);
+
+        $response->assertStatus(200)
+            ->assertJson(['message' => 'payment_intent successful']);
+    }
+
+    #[Test]
+    public function test_payment_intent_count_limit_still_applies(): void
+    {
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        // payment_intent allows 30 per hour
+        for ($i = 0; $i < 30; $i++) {
+            $this->postJson('/test-payment-intent', ['amount' => '1'])->assertStatus(200);
+        }
+
+        $response = $this->postJson('/test-payment-intent', ['amount' => '1']);
+        $response->assertStatus(429)
+            ->assertJsonPath('limit_type', 'hourly_count');
+    }
+
+    #[Test]
+    public function test_amount_limit_response_includes_unit_metadata(): void
+    {
+        // When the legacy fiat amount cap is enforced, the 429 response must
+        // declare its unit so clients can interpret limit/requested_amount
+        // unambiguously.
+        Sanctum::actingAs($this->user, ['read', 'write', 'delete']);
+
+        $response = $this->postJson('/test-deposit', ['amount' => 1500]); // exceeds $1000/hr cap
+
+        $response->assertStatus(429)
+            ->assertJsonPath('limit_type', 'hourly_amount')
+            ->assertJsonPath('limit_details.limit_unit', 'minor_units_x100')
+            ->assertJsonPath('limit_details.limit', 100000)
+            ->assertJsonPath('limit_details.requested_amount', 150000); // 1500 * 100
     }
 }
