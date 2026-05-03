@@ -211,6 +211,70 @@ describe('TrustCertPaymentController payCard', function (): void {
 
         expect($response->getStatusCode())->toBe(503);
     });
+
+    it('passes configured deep-link return URLs to Stripe', function (): void {
+        $applicationId = 'app_deeplinks';
+        storeTestApplication(1, $applicationId, 'basic');
+
+        config([
+            'services.stripe.secret'          => 'sk_test_fake',
+            'services.stripe.kyc_success_url' => 'zelta://trustcert/payment-return?status=success&session={CHECKOUT_SESSION_ID}',
+            'services.stripe.kyc_cancel_url'  => 'zelta://trustcert/payment-return?status=cancel',
+        ]);
+
+        Http::fake([
+            'api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id'         => 'cs_test_dl',
+                'url'        => 'https://checkout.stripe.com/pay/cs_test_dl',
+                'expires_at' => now()->addMinutes(30)->timestamp,
+            ], 200),
+        ]);
+
+        $controller = new TrustCertPaymentController();
+        $response = $controller->payCard($applicationId, makePaymentRequest('/pay/card'));
+        expect($response->getStatusCode())->toBe(200);
+
+        Http::assertSent(function ($request): bool {
+            $body = $request->body();
+            // Form-encoded body — assert decoded values match config.
+            parse_str($body, $parsed);
+
+            return ($parsed['success_url'] ?? '') === 'zelta://trustcert/payment-return?status=success&session={CHECKOUT_SESSION_ID}'
+                && ($parsed['cancel_url'] ?? '') === 'zelta://trustcert/payment-return?status=cancel';
+        });
+    });
+
+    it('honors env override for deep-link return URLs', function (): void {
+        $applicationId = 'app_deeplinks_override';
+        storeTestApplication(1, $applicationId, 'basic');
+
+        config([
+            'services.stripe.secret'          => 'sk_test_fake',
+            'services.stripe.kyc_success_url' => 'zelta-staging://trustcert/payment-return?status=success&session={CHECKOUT_SESSION_ID}',
+            'services.stripe.kyc_cancel_url'  => 'zelta-staging://trustcert/payment-return?status=cancel',
+        ]);
+
+        Http::fake([
+            'api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id'         => 'cs_test_dl2',
+                'url'        => 'https://checkout.stripe.com/pay/cs_test_dl2',
+                'expires_at' => now()->addMinutes(30)->timestamp,
+            ], 200),
+        ]);
+
+        $controller = new TrustCertPaymentController();
+        $response = $controller->payCard($applicationId, makePaymentRequest('/pay/card'));
+        expect($response->getStatusCode())->toBe(200);
+
+        Http::assertSent(function ($request): bool {
+            parse_str($request->body(), $parsed);
+            $success = $parsed['success_url'] ?? '';
+            $cancel = $parsed['cancel_url'] ?? '';
+
+            return is_string($success) && str_starts_with($success, 'zelta-staging://')
+                && is_string($cancel) && str_starts_with($cancel, 'zelta-staging://');
+        });
+    });
 });
 
 // ---------- IAP payment tests ----------

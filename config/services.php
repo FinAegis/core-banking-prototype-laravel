@@ -78,6 +78,19 @@ return [
         'webhook_secret'        => env('STRIPE_WEBHOOK_SECRET'),
         'kyc_webhook_secret'    => env('STRIPE_KYC_WEBHOOK_SECRET'),
         'bridge_webhook_secret' => env('STRIPE_BRIDGE_WEBHOOK_SECRET'),
+
+        // Mobile deep-link return URLs for KYC Checkout. Stripe substitutes
+        // {CHECKOUT_SESSION_ID} on the success URL. Both URLs share a single
+        // 'trustcert/payment-return' route on the mobile side that branches
+        // on the 'status' query param.
+        'kyc_success_url' => env(
+            'STRIPE_KYC_SUCCESS_URL',
+            'zelta://trustcert/payment-return?status=success&session={CHECKOUT_SESSION_ID}'
+        ),
+        'kyc_cancel_url' => env(
+            'STRIPE_KYC_CANCEL_URL',
+            'zelta://trustcert/payment-return?status=cancel'
+        ),
     ],
 
     /*

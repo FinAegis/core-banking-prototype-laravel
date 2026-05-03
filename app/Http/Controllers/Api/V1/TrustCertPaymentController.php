@@ -141,13 +141,16 @@ class TrustCertPaymentController extends Controller
             ], 503);
         }
 
+        $successUrl = (string) config('services.stripe.kyc_success_url');
+        $cancelUrl = (string) config('services.stripe.kyc_cancel_url');
+
         // Create Stripe Checkout Session
         $response = Http::withToken($stripeSecret)
             ->asForm()
             ->post('https://api.stripe.com/v1/checkout/sessions', [
                 'mode'                                          => 'payment',
-                'success_url'                                   => 'zelta://kyc-payment-success?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url'                                    => 'zelta://kyc-payment-cancel',
+                'success_url'                                   => $successUrl,
+                'cancel_url'                                    => $cancelUrl,
                 'line_items[0][price_data][currency]'           => 'usd',
                 'line_items[0][price_data][product_data][name]' => 'KYC Verification - Level ' . ucfirst($level),
                 'line_items[0][price_data][unit_amount]'        => (string) ((int) bcmul($fee, '100', 0)),
