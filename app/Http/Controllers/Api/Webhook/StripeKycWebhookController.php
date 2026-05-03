@@ -15,12 +15,13 @@ use Illuminate\Support\Facades\Log;
 /**
  * Handle Stripe webhook events for KYC verification payments.
  *
- * Listens for checkout.session.completed events to mark
- * trust certificate applications as paid after card payment.
- *
  * Setup in Stripe Dashboard:
  *   Endpoint URL: https://zelta.app/api/webhooks/stripe/kyc
- *   Events: checkout.session.completed
+ *   Events:
+ *     - checkout.session.completed              → mark application paid
+ *     - checkout.session.expired                → revert to payment_required
+ *     - checkout.session.async_payment_failed   → revert to payment_required
+ *     - charge.refunded                         → mark application refunded
  */
 class StripeKycWebhookController extends Controller
 {
@@ -40,11 +41,13 @@ class StripeKycWebhookController extends Controller
             'type' => $eventType,
         ]);
 
-        if ($eventType === 'checkout.session.completed') {
-            $this->handleCheckoutCompleted($request->all());
-        } else {
-            Log::debug('StripeKyc: Unhandled event type', ['type' => $eventType]);
-        }
+        match ($eventType) {
+            'checkout.session.completed' => $this->handleCheckoutCompleted($request->all()),
+            'checkout.session.expired',
+            'checkout.session.async_payment_failed' => $this->handleCheckoutFailed($request->all(), $eventType),
+            'charge.refunded'                       => $this->handleChargeRefunded($request->all()),
+            default                                 => Log::debug('StripeKyc: Unhandled event type', ['type' => $eventType]),
+        };
 
         return response()->json(['received' => true]);
     }
@@ -109,6 +112,158 @@ class StripeKycWebhookController extends Controller
             'amount'         => $amount,
             'session_id'     => $sessionId,
         ]);
+    }
+
+    /**
+     * Handle a failed/expired Stripe Checkout session.
+     *
+     * Reverts the application back to `payment_required` so mobile can
+     * re-attempt payment. Idempotent: skips if no completed payment exists
+     * for the session, or if the application is already in a non-paid state.
+     *
+     * @param array<string, mixed> $payload
+     */
+    private function handleCheckoutFailed(array $payload, string $eventType): void
+    {
+        $session = $payload['data']['object'] ?? [];
+        $applicationId = (string) ($session['metadata']['application_id'] ?? '');
+        $userId = (int) ($session['metadata']['user_id'] ?? 0);
+        $sessionId = (string) ($session['id'] ?? '');
+
+        if ($applicationId === '' || $userId === 0) {
+            Log::warning('StripeKyc: Missing metadata in failed/expired session', [
+                'event_type' => $eventType,
+                'session_id' => $sessionId,
+            ]);
+
+            return;
+        }
+
+        // If we already recorded this session as completed, it succeeded
+        // before the expiry/async-failed event. Don't unwind a real payment.
+        $alreadyCompleted = VerificationPayment::where('stripe_session_id', $sessionId)
+            ->where('status', 'completed')
+            ->exists();
+
+        if ($alreadyCompleted) {
+            Log::info('StripeKyc: Ignoring failure event — payment already completed', [
+                'event_type' => $eventType,
+                'session_id' => $sessionId,
+            ]);
+
+            return;
+        }
+
+        $this->updateApplicationStatus(
+            userId: $userId,
+            applicationId: $applicationId,
+            newStatus: 'payment_required',
+            metaUpdates: [
+                'last_payment_failure_reason' => $eventType,
+                'last_payment_session_id'     => $sessionId,
+                'last_payment_failed_at'      => now()->toIso8601String(),
+            ],
+        );
+
+        Log::info('StripeKyc: Application reverted to payment_required after failure', [
+            'event_type'     => $eventType,
+            'application_id' => $applicationId,
+            'session_id'     => $sessionId,
+        ]);
+    }
+
+    /**
+     * Handle a refunded Stripe charge.
+     *
+     * @param array<string, mixed> $payload
+     */
+    private function handleChargeRefunded(array $payload): void
+    {
+        $charge = $payload['data']['object'] ?? [];
+        $sessionId = (string) ($charge['metadata']['checkout_session_id'] ?? '');
+        $paymentIntentId = (string) ($charge['payment_intent'] ?? '');
+
+        // Find the original payment row. Stripe's charge.refunded event
+        // doesn't always carry the checkout session id, so fall back to
+        // payment_intent or charge id matching when possible.
+        $payment = VerificationPayment::query()
+            ->when($sessionId !== '', fn ($q) => $q->where('stripe_session_id', $sessionId))
+            ->where('status', 'completed')
+            ->first();
+
+        if ($payment === null && $paymentIntentId !== '') {
+            // Best-effort: log unmatched refund so finance can reconcile.
+            Log::warning('StripeKyc: charge.refunded without a matched local payment', [
+                'session_id'        => $sessionId,
+                'payment_intent_id' => $paymentIntentId,
+            ]);
+
+            return;
+        }
+
+        if ($payment === null) {
+            Log::warning('StripeKyc: charge.refunded with no metadata to match', [
+                'charge_id' => $charge['id'] ?? null,
+            ]);
+
+            return;
+        }
+
+        // Idempotent: skip if already refunded.
+        if ($payment->status === 'refunded') {
+            return;
+        }
+
+        DB::transaction(function () use ($payment, $charge): void {
+            $payment->update([
+                'status' => 'refunded',
+            ]);
+
+            $this->updateApplicationStatus(
+                userId: (int) $payment->user_id,
+                applicationId: (string) $payment->application_id,
+                newStatus: 'refunded',
+                metaUpdates: [
+                    'refunded_at'     => now()->toIso8601String(),
+                    'refund_amount'   => bcdiv((string) ($charge['amount_refunded'] ?? 0), '100', 2),
+                    'refund_currency' => strtoupper((string) ($charge['currency'] ?? 'usd')),
+                ],
+            );
+        });
+
+        Log::info('StripeKyc: Application marked as refunded', [
+            'application_id' => $payment->application_id,
+            'session_id'     => $payment->stripe_session_id,
+        ]);
+    }
+
+    /**
+     * Update the cached application status with optional metadata.
+     *
+     * @param array<string, mixed> $metaUpdates
+     */
+    private function updateApplicationStatus(int $userId, string $applicationId, string $newStatus, array $metaUpdates = []): void
+    {
+        /** @var array<string, mixed>|null $application */
+        $application = Cache::get("trustcert_application:{$userId}");
+
+        if (! is_array($application) || ($application['id'] ?? '') !== $applicationId) {
+            Log::warning('StripeKyc: Application not found in cache for status update', [
+                'user_id'        => $userId,
+                'application_id' => $applicationId,
+                'new_status'     => $newStatus,
+            ]);
+
+            return;
+        }
+
+        $application['status'] = $newStatus;
+        $application['updated_at'] = now()->toIso8601String();
+        foreach ($metaUpdates as $k => $v) {
+            $application[$k] = $v;
+        }
+
+        Cache::put("trustcert_application:{$userId}", $application, now()->addDays(30));
     }
 
     /**
