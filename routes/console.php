@@ -222,3 +222,16 @@ Schedule::command('account:disable-reviewer --all-expired --allow-production')
     ->dailyAt('00:10')
     ->description('Auto-disable expired review accounts')
     ->appendOutputTo(storage_path('logs/account-expiry-sweep.log'));
+
+// Hourly reconciliation: detect Helius webhook ↔ DB address drift.
+// Caught silent for 27 days during the April 2026 incident — never again.
+// --auto-sync runs `solana:sync` whenever drift is found, so the system
+// self-heals between manual operator visits.
+Schedule::command('solana:reconcile-helius --auto-sync')
+    ->hourly()
+    ->description('Reconcile Solana addresses between local DB and Helius webhook config')
+    ->appendOutputTo(storage_path('logs/solana-reconcile-helius.log'))
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        Log::error('Solana ↔ Helius reconciliation reported drift or failed');
+    });
