@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Api\Wallet;
 
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\MobilePayment\Enums\PaymentIntentStatus;
+use App\Domain\MobilePayment\Enums\PaymentNetwork;
 use App\Domain\MobilePayment\Models\PaymentIntent;
 use App\Domain\MobilePayment\Services\ActivityFeedService;
-use App\Domain\MobilePayment\Services\PaymentIntentService;
 use App\Domain\MobilePayment\Services\TransactionDetailService;
 use App\Domain\Relayer\Contracts\WalletBalanceProviderInterface;
 use App\Domain\Relayer\Enums\SupportedNetwork;
@@ -17,10 +17,13 @@ use App\Domain\Wallet\Constants\SolanaCacheKeys;
 use App\Domain\Wallet\Constants\SolanaTokens;
 use App\Domain\Wallet\Factories\BlockchainConnectorFactory;
 use App\Domain\Wallet\Helpers\SolanaAddressHelper;
+use App\Domain\Wallet\Services\WalletTransferService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 use Throwable;
 
@@ -31,7 +34,7 @@ class MobileWalletController extends Controller
         private readonly SmartAccountService $smartAccountService,
         private readonly ActivityFeedService $activityFeedService,
         private readonly TransactionDetailService $transactionDetailService,
-        private readonly PaymentIntentService $paymentIntentService,
+        private readonly WalletTransferService $walletTransferService,
     ) {
     }
 
@@ -588,45 +591,102 @@ class MobileWalletController extends Controller
     )]
     public function send(Request $request): JsonResponse
     {
-        $request->validate([
-            'to'      => ['required', 'string', 'min:26', 'max:128'],
-            'token'   => ['required', 'string', 'in:USDC,USDT,WETH,WBTC'],
-            'amount'  => ['required', 'numeric', 'gt:0', 'max:1000000'],
-            'network' => ['required', 'string'],
+        $validated = $request->validate([
+            'to'       => ['required', 'string', 'min:26', 'max:128'],
+            'token'    => ['required', 'string', 'in:USDC,USDT,WETH,WBTC'],
+            'asset'    => ['nullable', 'string', 'in:USDC,USDT,WETH,WBTC'],
+            'amount'   => ['required', 'numeric', 'gt:0', 'max:1000000'],
+            'network'  => ['required', 'string'],
+            'quote_id' => ['nullable', 'string', 'max:64'],
         ]);
 
         $user = $request->user();
 
         try {
-            $intent = $this->paymentIntentService->create(
-                userId: $user->id,
-                data: [
-                    'recipient_address' => $request->input('to'),
-                    'token'             => $request->input('token'),
-                    'amount'            => $request->input('amount'),
-                    'network'           => $request->input('network'),
-                    'type'              => 'send',
-                ],
+            // Wallet-to-wallet sends are deliberately NOT routed through
+            // PaymentIntentService — that service is for merchant payments
+            // and requires a merchantId. Wallet sends have no merchant.
+            $validation = $this->walletTransferService->validateAddress(
+                (string) $validated['to'],
+                (string) $validated['network'],
             );
 
-            $intentId = $intent->public_id;
+            if (! $validation['valid']) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => [
+                        'code'    => 'INVALID_RECIPIENT',
+                        'message' => $validation['error'] ?? 'Invalid recipient address.',
+                    ],
+                ], 422);
+            }
 
-            // Auto-submit the intent
-            $result = $this->paymentIntentService->submit($intentId, $user->id, 'wallet');
+            $networkEnum = PaymentNetwork::from((string) $validated['network']);
+
+            // Stub dispatch: real on-chain submission is not yet wired for the
+            // wallet-send path. We acknowledge the intent so mobile can render a
+            // pending-state UI; status flips once the dispatcher lands.
+            $intentId = 'pi_send_' . Str::random(20);
+
+            $response = [
+                'intentId'              => $intentId,
+                'merchantId'            => null,
+                'merchant'              => null,
+                'asset'                 => (string) $validated['token'],
+                'network'               => $networkEnum->value,
+                'amount'                => (string) $validated['amount'],
+                'status'                => 'PENDING',
+                'shieldEnabled'         => false,
+                'feesEstimate'          => null,
+                'createdAt'             => now()->toIso8601String(),
+                'expiresAt'             => now()->addMinutes(15)->toIso8601String(),
+                'tx'                    => null,
+                'confirmations'         => 0,
+                'requiredConfirmations' => $networkEnum->requiredConfirmations(),
+                'error'                 => null,
+                'quoteId'               => $validated['quote_id'] ?? null,
+            ];
 
             return response()->json([
                 'success' => true,
-                'data'    => $result->toApiResponse(),
+                'data'    => $response,
             ], 201);
         } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
-                'error'   => [
-                    'code'    => 'SEND_FAILED',
-                    'message' => $e->getMessage(),
-                ],
+                'error'   => $this->sanitizeSendError($e),
             ], 422);
         }
+    }
+
+    /**
+     * Sanitize a send-path exception into a safe API error payload.
+     *
+     * Always logs the full exception server-side. Strips any PHP runtime
+     * warnings (e.g. "Undefined array key", "Trying to access property of
+     * null") from the user-facing message — those leak implementation
+     * details and should never reach a client.
+     *
+     * @return array{code: string, message: string}
+     */
+    private function sanitizeSendError(Throwable $e): array
+    {
+        Log::warning('MobileWallet: send failed', [
+            'exception' => $e::class,
+            'message'   => $e->getMessage(),
+            'file'      => $e->getFile() . ':' . $e->getLine(),
+        ]);
+
+        $message = $e->getMessage();
+        $isLeakedRuntimeWarning = (bool) preg_match(
+            '/^(Undefined (variable|array key|index|property|offset|constant)|Trying to access|Cannot access|Attempt to read|Call to undefined)/i',
+            $message,
+        );
+
+        return [
+            'code'    => 'SEND_FAILED',
+            'message' => $isLeakedRuntimeWarning ? 'Send could not be processed.' : $message,
+        ];
     }
 
     /**

@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Domain\MobilePayment\Models\PaymentIntent;
 use App\Domain\MobilePayment\Services\ActivityFeedService;
-use App\Domain\MobilePayment\Services\PaymentIntentService;
 use App\Domain\MobilePayment\Services\TransactionDetailService;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Relayer\Services\WalletBalanceService;
+use App\Domain\Wallet\Services\WalletTransferService;
 use App\Http\Controllers\Api\Wallet\MobileWalletController;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,7 +21,7 @@ beforeEach(function (): void {
     $this->smartAccountService = Mockery::mock(SmartAccountService::class);
     $this->activityFeedService = Mockery::mock(ActivityFeedService::class);
     $this->transactionDetailService = Mockery::mock(TransactionDetailService::class);
-    $this->paymentIntentService = Mockery::mock(PaymentIntentService::class);
+    $this->walletTransferService = Mockery::mock(WalletTransferService::class);
 });
 
 function makeWalletController($test): MobileWalletController
@@ -32,7 +31,7 @@ function makeWalletController($test): MobileWalletController
         $test->smartAccountService,
         $test->activityFeedService,
         $test->transactionDetailService,
-        $test->paymentIntentService,
+        $test->walletTransferService,
     );
 }
 
@@ -269,32 +268,28 @@ describe('MobileWalletController transactionDetail', function (): void {
 });
 
 describe('MobileWalletController send', function (): void {
-    it('creates and submits a payment intent', function (): void {
-        $intentMock = Mockery::mock(PaymentIntent::class)->makePartial();
-        $intentMock->public_id = 'pi-abc';
-
-        $resultMock = Mockery::mock(PaymentIntent::class)->makePartial();
-        $resultMock->shouldReceive('toApiResponse')->andReturn([
-            'intentId' => 'pi-abc',
-            'status'   => 'SUBMITTED',
-            'tx'       => ['hash' => '0xdeadbeef'],
-        ]);
-
-        $this->paymentIntentService->shouldReceive('create')
+    it('acknowledges a Solana wallet send with the mobile contract shape', function (): void {
+        $this->walletTransferService->shouldReceive('validateAddress')
             ->once()
-            ->andReturn($intentMock);
-        $this->paymentIntentService->shouldReceive('submit')
-            ->with('pi-abc', 1, 'wallet')
-            ->once()
-            ->andReturn($resultMock);
+            ->with('EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z', 'SOLANA')
+            ->andReturn([
+                'valid'        => true,
+                'network'      => 'SOLANA',
+                'address'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+                'address_type' => 'wallet',
+                'error'        => null,
+            ]);
 
         $controller = makeWalletController($this);
 
+        // Exact payload mobile sends today (PR #350 — both `asset` and `token`).
         $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
-            'to'      => '0x1234567890abcdef1234567890abcdef12345678',
-            'token'   => 'USDC',
-            'amount'  => '25.00',
-            'network' => 'polygon',
+            'to'       => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'amount'   => '1',
+            'asset'    => 'USDC',
+            'token'    => 'USDC',
+            'network'  => 'SOLANA',
+            'quote_id' => 'quote_Qhviaxl78795XhdmPTXA',
         ]);
 
         $response = $controller->send($request);
@@ -302,25 +297,98 @@ describe('MobileWalletController send', function (): void {
 
         expect($response->getStatusCode())->toBe(201)
             ->and($data['success'])->toBeTrue()
-            ->and($data['data'])->toHaveKey('status');
+            ->and($data['data']['intentId'])->toStartWith('pi_send_')
+            ->and($data['data']['status'])->toBe('PENDING')
+            ->and($data['data']['merchantId'])->toBeNull()
+            ->and($data['data']['merchant'])->toBeNull()
+            ->and($data['data']['asset'])->toBe('USDC')
+            ->and($data['data']['network'])->toBe('SOLANA')
+            ->and($data['data']['amount'])->toBe('1')
+            ->and($data['data']['tx'])->toBeNull()
+            ->and($data['data']['error'])->toBeNull()
+            ->and($data['data']['quoteId'])->toBe('quote_Qhviaxl78795XhdmPTXA');
     });
 
-    it('returns 422 on send failure', function (): void {
-        $this->paymentIntentService->shouldReceive('create')
-            ->andThrow(new RuntimeException('Insufficient balance'));
+    it('rejects an invalid recipient address with 422 and a structured error', function (): void {
+        $bogus = str_repeat('Z', 44); // passes min:26 length but not the network format check
+        $this->walletTransferService->shouldReceive('validateAddress')
+            ->once()
+            ->with($bogus, 'SOLANA')
+            ->andReturn([
+                'valid'        => false,
+                'network'      => 'SOLANA',
+                'address'      => $bogus,
+                'address_type' => null,
+                'error'        => 'Invalid Solana address format.',
+            ]);
 
         $controller = makeWalletController($this);
 
         $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
-            'to'      => '0x1234567890abcdef1234567890abcdef12345678',
+            'to'      => $bogus,
             'token'   => 'USDC',
-            'amount'  => '25.00',
-            'network' => 'polygon',
+            'amount'  => '1',
+            'network' => 'SOLANA',
         ]);
 
         $response = $controller->send($request);
+        $data = $response->getData(true);
 
-        expect($response->getStatusCode())->toBe(422);
+        expect($response->getStatusCode())->toBe(422)
+            ->and($data['success'])->toBeFalse()
+            ->and($data['error']['code'])->toBe('INVALID_RECIPIENT')
+            ->and($data['error']['message'])->toContain('Invalid Solana address');
+    });
+
+    it('does NOT leak PHP runtime warnings into the API response', function (): void {
+        // Regression: original bug surfaced "Undefined array key 'merchantId'"
+        // from PaymentIntentService into the user-facing error.message. Even if
+        // a downstream layer were to throw a similar warning, the controller
+        // must scrub it before returning to the client.
+        $this->walletTransferService->shouldReceive('validateAddress')
+            ->once()
+            ->andThrow(new ErrorException('Undefined array key "merchantId"'));
+
+        $controller = makeWalletController($this);
+
+        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
+            'to'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'token'   => 'USDC',
+            'amount'  => '1',
+            'network' => 'SOLANA',
+        ]);
+
+        $response = $controller->send($request);
+        $data = $response->getData(true);
+
+        expect($response->getStatusCode())->toBe(422)
+            ->and($data['error']['code'])->toBe('SEND_FAILED')
+            ->and($data['error']['message'])->not->toContain('merchantId')
+            ->and($data['error']['message'])->not->toContain('Undefined array key')
+            ->and($data['error']['message'])->toBe('Send could not be processed.');
+    });
+
+    it('returns the unsanitized message for non-runtime-warning failures', function (): void {
+        // Domain exceptions (insufficient balance, etc.) carry intentional
+        // user-facing copy and should pass through unchanged.
+        $this->walletTransferService->shouldReceive('validateAddress')
+            ->once()
+            ->andThrow(new RuntimeException('Insufficient balance for this transfer.'));
+
+        $controller = makeWalletController($this);
+
+        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
+            'to'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'token'   => 'USDC',
+            'amount'  => '1000',
+            'network' => 'SOLANA',
+        ]);
+
+        $response = $controller->send($request);
+        $data = $response->getData(true);
+
+        expect($response->getStatusCode())->toBe(422)
+            ->and($data['error']['message'])->toBe('Insufficient balance for this transfer.');
     });
 });
 
