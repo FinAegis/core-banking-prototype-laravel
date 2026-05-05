@@ -39,7 +39,8 @@ class EvmUserOpSubmitter
     public function submit(WalletSendRecord $record, string $signature): WalletSendRecord
     {
         // Idempotent re-entry: anything past pending is returned as-is.
-        if ($record->status === WalletSendRecord::STATUS_SUBMITTED
+        if (
+            $record->status === WalletSendRecord::STATUS_SUBMITTED
             || $record->status === WalletSendRecord::STATUS_CONFIRMED
             || $record->status === WalletSendRecord::STATUS_FAILED
         ) {

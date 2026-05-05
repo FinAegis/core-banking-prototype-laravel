@@ -36,7 +36,8 @@ class SolanaSendSubmitter
     {
         // Idempotent re-entry: if the record already advanced past pending
         // we return as-is rather than double-submit.
-        if ($record->status === WalletSendRecord::STATUS_SUBMITTED
+        if (
+            $record->status === WalletSendRecord::STATUS_SUBMITTED
             || $record->status === WalletSendRecord::STATUS_CONFIRMED
             || $record->status === WalletSendRecord::STATUS_FAILED
         ) {

@@ -11,6 +11,11 @@ uses(Tests\TestCase::class);
 
 describe('MerkleTreeService', function () {
     beforeEach(function () {
+        // Use the in-memory array cache so parallel processes don't pollute
+        // each other's cache state — without this, one process's Cache::flush()
+        // races against another's Cache::put(...) and the production-fetch
+        // path is exercised unexpectedly. See CLAUDE.md "Parallel cache tests".
+        config(['cache.default' => 'array']);
         Cache::flush();
         $this->service = new MerkleTreeService();
     });

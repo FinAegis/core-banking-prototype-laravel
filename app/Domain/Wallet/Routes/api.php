@@ -151,4 +151,12 @@ Route::prefix('v1/wallet')->name('mobile.wallet.')
         Route::get('/recent-recipients', [MobileWalletController::class, 'recentRecipients'])
             ->middleware('api.rate_limit:query')
             ->name('recent-recipients');
+
+        // Alias: mobile expects POST /api/v1/wallet/create-account (ERC-4337
+        // smart-account deployment). Privy handles deployment via initCode in
+        // the bundler, so post-cutover this is rarely hit — kept for
+        // SmartAccountController consumers that still call it directly.
+        Route::post('/create-account', [App\Http\Controllers\Api\Relayer\SmartAccountController::class, 'createAccount'])
+            ->middleware(['transaction.rate_limit:relayer', 'idempotency'])
+            ->name('create-account');
     });
