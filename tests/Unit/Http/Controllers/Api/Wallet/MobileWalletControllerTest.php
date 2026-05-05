@@ -6,6 +6,7 @@ use App\Domain\MobilePayment\Services\ActivityFeedService;
 use App\Domain\MobilePayment\Services\TransactionDetailService;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Relayer\Services\WalletBalanceService;
+use App\Domain\Wallet\Services\Send\WalletSendDispatcher;
 use App\Domain\Wallet\Services\WalletTransferService;
 use App\Http\Controllers\Api\Wallet\MobileWalletController;
 use App\Models\User;
@@ -22,6 +23,7 @@ beforeEach(function (): void {
     $this->activityFeedService = Mockery::mock(ActivityFeedService::class);
     $this->transactionDetailService = Mockery::mock(TransactionDetailService::class);
     $this->walletTransferService = Mockery::mock(WalletTransferService::class);
+    $this->walletSendDispatcher = Mockery::mock(WalletSendDispatcher::class);
 });
 
 function makeWalletController($test): MobileWalletController
@@ -32,6 +34,7 @@ function makeWalletController($test): MobileWalletController
         $test->activityFeedService,
         $test->transactionDetailService,
         $test->walletTransferService,
+        $test->walletSendDispatcher,
     );
 }
 
@@ -366,6 +369,89 @@ describe('MobileWalletController send', function (): void {
             ->and($data['error']['message'])->not->toContain('merchantId')
             ->and($data['error']['message'])->not->toContain('Undefined array key')
             ->and($data['error']['message'])->toBe('Send could not be processed.');
+    });
+
+    it('routes through WalletSendDispatcher when real_dispatch_enabled is true', function (): void {
+        config(['wallet.real_dispatch_enabled' => true]);
+
+        $this->walletTransferService->shouldReceive('validateAddress')
+            ->once()
+            ->andReturn([
+                'valid'        => true,
+                'network'      => 'SOLANA',
+                'address'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+                'address_type' => 'wallet',
+                'error'        => null,
+            ]);
+
+        $record = Mockery::mock(App\Domain\Wallet\Models\WalletSendRecord::class)->makePartial();
+        $record->status = 'submitted';
+        $record->shouldReceive('toApiResponse')->andReturn([
+            'intentId' => 'pi_send_real_xyz',
+            'status'   => 'SUBMITTED',
+            'tx'       => ['hash' => '5xa...solSig', 'explorerUrl' => 'https://solscan.io/tx/5xa...solSig'],
+        ]);
+
+        $this->walletSendDispatcher->shouldReceive('dispatch')
+            ->once()
+            ->withArgs(function ($user, $recipient, $asset, $network, $amount, $idempotencyKey, $quoteId) {
+                return $recipient === 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z'
+                    && $asset === 'USDC'
+                    && $network === 'SOLANA'
+                    && $amount === '1';
+            })
+            ->andReturn($record);
+
+        $controller = makeWalletController($this);
+
+        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
+            'to'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'token'   => 'USDC',
+            'amount'  => '1',
+            'network' => 'SOLANA',
+        ]);
+
+        $response = $controller->send($request);
+        $data = $response->getData(true);
+
+        expect($response->getStatusCode())->toBe(201)
+            ->and($data['success'])->toBeTrue()
+            ->and($data['data']['intentId'])->toBe('pi_send_real_xyz')
+            ->and($data['data']['status'])->toBe('SUBMITTED');
+    });
+
+    it('returns 422 when dispatcher reports a failed record', function (): void {
+        config(['wallet.real_dispatch_enabled' => true]);
+
+        $this->walletTransferService->shouldReceive('validateAddress')
+            ->once()
+            ->andReturn(['valid' => true, 'network' => 'SOLANA', 'address' => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z', 'address_type' => 'wallet', 'error' => null]);
+
+        $record = Mockery::mock(App\Domain\Wallet\Models\WalletSendRecord::class)->makePartial();
+        $record->status = 'failed';
+        $record->shouldReceive('toApiResponse')->andReturn([
+            'intentId' => 'pi_send_x',
+            'status'   => 'FAILED',
+            'error'    => ['code' => 'SIMULATION_FAILED', 'message' => 'Insufficient lamports'],
+        ]);
+
+        $this->walletSendDispatcher->shouldReceive('dispatch')->andReturn($record);
+
+        $controller = makeWalletController($this);
+
+        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
+            'to'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'token'   => 'USDC',
+            'amount'  => '1',
+            'network' => 'SOLANA',
+        ]);
+
+        $response = $controller->send($request);
+        $data = $response->getData(true);
+
+        expect($response->getStatusCode())->toBe(422)
+            ->and($data['success'])->toBeFalse()
+            ->and($data['data']['error']['code'])->toBe('SIMULATION_FAILED');
     });
 
     it('returns the unsanitized message for non-runtime-warning failures', function (): void {

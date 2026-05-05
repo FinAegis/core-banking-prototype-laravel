@@ -215,6 +215,14 @@ Schedule::command('trustcert:check-expired')
         Log::warning('TrustCert expiry check failed to run');
     });
 
+// Wallet send (EVM) confirmation polling — every minute.
+// Solana confirmations come via the Helius webhook (HeliusTransactionProcessor),
+// not this job.
+Schedule::job(new App\Domain\Wallet\Jobs\PollEvmWalletSendConfirmations())
+    ->everyMinute()
+    ->description('Poll bundler for EVM wallet-send confirmations')
+    ->withoutOverlapping();
+
 // Daily sweep: auto-disable expired reviewer/demo accounts.
 // --allow-production is appended because the scheduled job runs as the system,
 // not a human operator — the production guard is only for manual invocation.

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Relayer;
 
 use App\Domain\Relayer\Exceptions\SmartAccountException;
 use App\Domain\Relayer\Services\SmartAccountService;
+use App\Domain\Wallet\Helpers\Crypto\EvmKeyHelper;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -390,17 +391,15 @@ class SmartAccountController extends Controller
     }
 
     /**
-     * Derive a deterministic EOA-like address from a user's identity.
+     * Derive the EIP-55 checksummed owner EOA address for a user.
      *
-     * Used during onboarding when the user has no external wallet.
-     * The address is computed as keccak256(user_id + app_key)[12:] to produce
-     * a valid 20-byte Ethereum address deterministically.
+     * Backed by a real secp256k1 keypair (see {@see EvmKeyHelper::deriveForUser()})
+     * so the smart account this address owns can actually be operated by the
+     * server-held key — replacing the previous phantom-address derivation that
+     * had no corresponding private key.
      */
     private function deriveOwnerAddress(User $user): string
     {
-        $seed = $user->id . ':' . config('app.key');
-        $hash = hash('sha3-256', $seed);
-
-        return '0x' . substr($hash, 24); // Last 20 bytes (40 hex chars)
+        return EvmKeyHelper::deriveAddressOnly((int) $user->id, (string) config('app.key'));
     }
 }

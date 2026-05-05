@@ -17,6 +17,7 @@ use App\Domain\Wallet\Constants\SolanaCacheKeys;
 use App\Domain\Wallet\Constants\SolanaTokens;
 use App\Domain\Wallet\Factories\BlockchainConnectorFactory;
 use App\Domain\Wallet\Helpers\SolanaAddressHelper;
+use App\Domain\Wallet\Services\Send\WalletSendDispatcher;
 use App\Domain\Wallet\Services\WalletTransferService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,7 @@ class MobileWalletController extends Controller
         private readonly ActivityFeedService $activityFeedService,
         private readonly TransactionDetailService $transactionDetailService,
         private readonly WalletTransferService $walletTransferService,
+        private readonly WalletSendDispatcher $walletSendDispatcher,
     ) {
     }
 
@@ -601,6 +603,12 @@ class MobileWalletController extends Controller
         ]);
 
         $user = $request->user();
+        if (! $user instanceof \App\Models\User) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'UNAUTHORIZED', 'message' => 'Not authenticated.'],
+            ], 401);
+        }
 
         try {
             // Wallet-to-wallet sends are deliberately NOT routed through
@@ -621,11 +629,32 @@ class MobileWalletController extends Controller
                 ], 422);
             }
 
+            // Real on-chain dispatch is gated behind config('wallet.real_dispatch_enabled')
+            // so the safe stub remains the default until staging signs off.
+            if ((bool) config('wallet.real_dispatch_enabled', false)) {
+                $idempotencyKey = $request->header('Idempotency-Key');
+                $record = $this->walletSendDispatcher->dispatch(
+                    user: $user,
+                    recipientAddress: (string) $validated['to'],
+                    assetSymbol: (string) $validated['token'],
+                    networkKey: (string) $validated['network'],
+                    amountMajor: (string) $validated['amount'],
+                    idempotencyKey: is_string($idempotencyKey) ? $idempotencyKey : null,
+                    quoteId: isset($validated['quote_id']) ? (string) $validated['quote_id'] : null,
+                );
+
+                $statusCode = $record->status === 'failed' ? 422 : 201;
+
+                return response()->json([
+                    'success' => $record->status !== 'failed',
+                    'data'    => $record->toApiResponse(),
+                ], $statusCode);
+            }
+
             $networkEnum = PaymentNetwork::from((string) $validated['network']);
 
-            // Stub dispatch: real on-chain submission is not yet wired for the
-            // wallet-send path. We acknowledge the intent so mobile can render a
-            // pending-state UI; status flips once the dispatcher lands.
+            // Stub dispatch (default): acknowledge with a pending response so
+            // mobile renders a pending-state UI without funds actually moving.
             $intentId = 'pi_send_' . Str::random(20);
 
             $response = [
