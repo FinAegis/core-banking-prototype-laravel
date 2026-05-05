@@ -118,11 +118,6 @@ Route::prefix('auth')->middleware('api.rate_limit:auth')->group(function () {
             Route::post('/recovery-codes', [TwoFactorAuthController::class, 'regenerateRecoveryCodes']);
         });
 
-        // UserOperation signing with auth shard (v2.6.0)
-        Route::post('/sign-userop', [App\Http\Controllers\Api\Auth\UserOpSigningController::class, 'sign'])
-            ->middleware('throttle:10,1')
-            ->name('api.auth.sign-userop');
-
         // Passkey registration (requires auth)
         Route::post('/passkey/register', [PasskeyController::class, 'register'])
             ->middleware('throttle:5,1')
@@ -228,12 +223,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'require.2fa.admin'])->group
     });
 });
 
-// UserOperation signing alias — mobile app expects /api/v1/auth/sign-userop (v7.1.0)
+// Privy login — exchange a Privy session JWT for a Sanctum token (public, no auth)
 Route::prefix('v1/auth')
-    ->middleware(['auth:sanctum', 'throttle:10,1'])
+    ->middleware('api.rate_limit:auth')
     ->group(function () {
-        Route::post('/sign-userop', [App\Http\Controllers\Api\Auth\UserOpSigningController::class, 'sign'])
-            ->name('api.v1.auth.sign-userop');
+        Route::post('/privy-login', [LoginController::class, 'privyLogin'])
+            ->name('api.v1.auth.privy-login');
     });
 
 // Passkey/WebAuthn Authentication (v2.7.0) - public assertion flow

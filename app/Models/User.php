@@ -65,6 +65,8 @@ class User extends Authenticatable implements FilamentUser
         'oauth_provider',
         'oauth_id',
         'avatar',
+        'privy_user_id',
+        'privy_linked_at',
         'kyc_status',
         'kyc_submitted_at',
         'kyc_approved_at',
@@ -120,6 +122,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at'          => 'datetime',
             'password'                   => 'hashed',
+            'privy_linked_at'            => 'datetime',
             'kyc_submitted_at'           => 'datetime',
             'kyc_approved_at'            => 'datetime',
             'kyc_expires_at'             => 'datetime',

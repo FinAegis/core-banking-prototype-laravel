@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Api\Wallet;
 
 use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\MobilePayment\Enums\PaymentIntentStatus;
-use App\Domain\MobilePayment\Enums\PaymentNetwork;
 use App\Domain\MobilePayment\Models\PaymentIntent;
 use App\Domain\MobilePayment\Services\ActivityFeedService;
 use App\Domain\MobilePayment\Services\TransactionDetailService;
@@ -15,15 +14,26 @@ use App\Domain\Relayer\Enums\SupportedNetwork;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Wallet\Constants\SolanaCacheKeys;
 use App\Domain\Wallet\Constants\SolanaTokens;
+use App\Domain\Wallet\Exceptions\IdempotencyConflictException;
+use App\Domain\Wallet\Exceptions\InvalidAddressException;
+use App\Domain\Wallet\Exceptions\InvalidAmountException;
+use App\Domain\Wallet\Exceptions\InvalidAssetException;
+use App\Domain\Wallet\Exceptions\InvalidSendStateException;
+use App\Domain\Wallet\Exceptions\InvalidSignatureException;
+use App\Domain\Wallet\Exceptions\NetworkDisabledException;
 use App\Domain\Wallet\Factories\BlockchainConnectorFactory;
-use App\Domain\Wallet\Helpers\SolanaAddressHelper;
-use App\Domain\Wallet\Services\WalletTransferService;
+use App\Domain\Wallet\Models\WalletSendRecord;
+use App\Domain\Wallet\Services\PrivyAddressRegistrar;
+use App\Domain\Wallet\Services\Send\EvmUserOpPreparer;
+use App\Domain\Wallet\Services\Send\EvmUserOpSubmitter;
+use App\Domain\Wallet\Services\Send\SolanaSendPreparer;
+use App\Domain\Wallet\Services\Send\SolanaSendSubmitter;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use InvalidArgumentException;
 use OpenApi\Attributes as OA;
 use Throwable;
 
@@ -34,7 +44,11 @@ class MobileWalletController extends Controller
         private readonly SmartAccountService $smartAccountService,
         private readonly ActivityFeedService $activityFeedService,
         private readonly TransactionDetailService $transactionDetailService,
-        private readonly WalletTransferService $walletTransferService,
+        private readonly PrivyAddressRegistrar $privyAddressRegistrar,
+        private readonly SolanaSendPreparer $solanaSendPreparer,
+        private readonly SolanaSendSubmitter $solanaSendSubmitter,
+        private readonly EvmUserOpPreparer $evmUserOpPreparer,
+        private readonly EvmUserOpSubmitter $evmUserOpSubmitter,
     ) {
     }
 
@@ -373,66 +387,94 @@ class MobileWalletController extends Controller
         if (! $user instanceof \App\Models\User) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-        $accounts = $this->smartAccountService->getUserAccounts($user);
 
-        $addresses = [];
-        foreach ($accounts as $account) {
-            $addresses[] = [
-                'address'    => $account->account_address,
-                'network'    => $account->network ?? 'polygon',
-                'type'       => 'smart_account',
-                'deployed'   => $account->is_deployed ?? false,
-                'created_at' => $account->created_at?->toIso8601String(),
+        $records = BlockchainAddress::where('user_uuid', $user->uuid)
+            ->where('is_active', true)
+            ->orderBy('chain')
+            ->get();
+
+        $addresses = $records->map(function (BlockchainAddress $record): array {
+            return [
+                'address'    => $record->address,
+                'network'    => $record->chain,
+                'type'       => $record->chain === 'solana' ? 'keypair' : 'smart_account',
+                'deployed'   => true, // Privy-managed; deployment is handled at first-tx time
+                'created_at' => $record->created_at?->toIso8601String(),
             ];
-        }
-
-        // If no smart accounts exist yet, return deterministic placeholder addresses
-        // so the mobile Receive screen can display a QR code before onboarding completes.
-        if (empty($addresses)) {
-            $supportedNetworks = $this->smartAccountService->getSupportedNetworks();
-            $seed = hash('sha256', "wallet:{$user->id}:" . config('app.key'));
-
-            foreach ($supportedNetworks as $network) {
-                $addresses[] = [
-                    'address'    => '0x' . substr(hash('sha256', "{$seed}:{$network}"), 0, 40),
-                    'network'    => $network,
-                    'type'       => 'pending',
-                    'deployed'   => false,
-                    'created_at' => null,
-                ];
-            }
-        }
-
-        // Always append Solana address (non-EVM, separate from ERC-4337 smart accounts)
-        $solanaAddress = SolanaAddressHelper::deriveForUser($user->id, (string) config('app.key'));
-
-        // Auto-register so BlockchainAddressObserver fires Helius webhook sync
-        $record = BlockchainAddress::firstOrCreate(
-            ['address' => $solanaAddress, 'chain' => 'solana'],
-            [
-                'user_uuid'       => $user->uuid,
-                'public_key'      => $solanaAddress,
-                'is_active'       => true,
-                'label'           => 'Primary Solana',
-                'derivation_path' => "m/44'/501'/0'/0'",
-            ]
-        );
-
-        // Warm known-address cache so send-path lookups don't miss newly registered addresses
-        Cache::put(SolanaCacheKeys::knownAddr($solanaAddress), true, 300);
-
-        $addresses[] = [
-            'address'    => $solanaAddress,
-            'network'    => 'solana',
-            'type'       => 'keypair',
-            'deployed'   => true,
-            'created_at' => $record->created_at?->toIso8601String(),
-        ];
+        })->values()->all();
 
         return response()->json([
             'success' => true,
             'data'    => $addresses,
         ]);
+    }
+
+    /**
+     * Register Privy-derived addresses for the authenticated user.
+     *
+     * Mobile derives addresses on-device via Privy (passkey-controlled smart
+     * account on EVM, embedded ed25519 on Solana) and POSTs them here so the
+     * backend can index balances, fire Helius webhook sync, etc. The backend
+     * stores public addresses only — keys never leave the device.
+     */
+    #[OA\Post(
+        path: '/api/v1/wallet/addresses',
+        operationId: 'walletRegisterAddresses',
+        summary: 'Register Privy-derived addresses',
+        description: 'Stores the user\'s on-device-derived EVM smart-account address (same across all 4 EVM chains) plus their Solana ed25519 pubkey. Idempotent — re-posting the same payload is a no-op.',
+        tags: ['Mobile Wallet'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['evm', 'solana'], properties: [
+        new OA\Property(property: 'evm', type: 'object', required: ['address'], properties: [
+        new OA\Property(property: 'address', type: 'string', example: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'),
+        new OA\Property(property: 'owner_passkey_credential_id', type: 'string', nullable: true, example: 'cred_abc123'),
+        ]),
+        new OA\Property(property: 'solana', type: 'object', required: ['address'], properties: [
+        new OA\Property(property: 'address', type: 'string', example: 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z'),
+        ]),
+        ]))
+    )]
+    #[OA\Response(response: 201, description: 'Addresses registered')]
+    #[OA\Response(response: 422, description: 'Invalid address or address already owned by a different user')]
+    #[OA\Response(response: 401, description: 'Unauthorized')]
+    public function registerAddresses(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user instanceof \App\Models\User) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validated = $request->validate([
+            'evm.address'                     => ['required', 'string', 'regex:/^0x[a-fA-F0-9]{40}$/'],
+            'evm.owner_passkey_credential_id' => ['nullable', 'string', 'max:512'],
+            'solana.address'                  => ['required', 'string', 'min:32', 'max:44'],
+        ]);
+
+        try {
+            $records = $this->privyAddressRegistrar->register(
+                user: $user,
+                evm: [
+                    'address'                     => (string) $validated['evm']['address'],
+                    'owner_passkey_credential_id' => $validated['evm']['owner_passkey_credential_id'] ?? null,
+                ],
+                solana: ['address' => (string) $validated['solana']['address']],
+            );
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'INVALID_ADDRESS', 'message' => $e->getMessage()],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'addresses' => collect($records)->map(fn (BlockchainAddress $r): array => [
+                    'address' => $r->address,
+                    'network' => $r->chain,
+                ])->values()->all(),
+            ],
+        ], 201);
     }
 
     /**
@@ -543,150 +585,218 @@ class MobileWalletController extends Controller
     }
 
     /**
-     * Create and auto-submit a payment intent (send transaction).
+     * Step 1 of a non-custodial send: build the unsigned payload for the
+     * device to sign.
+     *
+     * Mobile must read `Idempotency-Key` from a previous attempt to replay.
+     * Same key + same body → same `intentId` + same payload-to-sign.
+     * Same key + different body → 409 IDEMPOTENCY_CONFLICT.
      */
     #[OA\Post(
-        path: '/api/v1/wallet/transactions/send',
-        operationId: 'walletSend',
-        summary: 'Send a transaction',
-        description: 'Creates a payment intent and auto-submits it to send tokens to a recipient address. ' .
-            'Amounts are in DECIMAL MAJOR UNITS — e.g. "1" or "1.5" for 1.5 USDC. ' .
-            'Do NOT pre-convert to atomic / on-chain integer units (e.g. "1500000" for 1.5 USDC at 6dp).',
+        path: '/api/v1/wallet/transactions/prepare',
+        operationId: 'walletTransactionPrepare',
+        summary: 'Prepare an unsigned send payload',
+        description: 'Builds the unsigned Solana legacy-tx message bytes (ed25519) or ERC-4337 v0.6 UserOp hash (with Pimlico paymaster sponsorship) for the device to sign via Privy. Persists a `pending` wallet_send_record. Mobile signs and POSTs the signature to /transactions/submit.',
         tags: ['Mobile Wallet'],
         security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['to', 'token', 'amount', 'network'], properties: [
-        new OA\Property(property: 'to', type: 'string', example: '0x1234...abcd', description: 'Recipient address'),
-        new OA\Property(property: 'token', type: 'string', enum: ['USDC', 'USDT', 'WETH', 'WBTC'], example: 'USDC', description: 'Token symbol'),
-        new OA\Property(
-            property: 'amount',
-            type: 'string',
-            example: '1.50',
-            description: 'Amount in decimal major units (NOT atomic). For 1 USDC send "1" or "1.00", not "1000000".',
-        ),
-        new OA\Property(property: 'network', type: 'string', example: 'polygon', description: 'Target network'),
+        new OA\Property(property: 'to', type: 'string', example: '0x1234...abcd or base58 Solana pubkey'),
+        new OA\Property(property: 'token', type: 'string', enum: ['USDC', 'USDT'], example: 'USDC'),
+        new OA\Property(property: 'amount', type: 'string', example: '1.50', description: 'Decimal major units. Send "1" or "1.5"; not "1000000".'),
+        new OA\Property(property: 'network', type: 'string', example: 'polygon', description: 'solana | polygon | base | arbitrum | ethereum'),
+        new OA\Property(property: 'quote_id', type: 'string', nullable: true, example: 'q_abc123'),
         ]))
     )]
-    #[OA\Response(
-        response: 201,
-        description: 'Transaction submitted',
-        content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'success', type: 'boolean', example: true),
-        new OA\Property(property: 'data', type: 'object', description: 'Payment intent result'),
-        ])
-    )]
-    #[OA\Response(
-        response: 422,
-        description: 'Send failed',
-        content: new OA\JsonContent(properties: [
-        new OA\Property(property: 'success', type: 'boolean', example: false),
-        new OA\Property(property: 'error', type: 'object', properties: [
-        new OA\Property(property: 'code', type: 'string', example: 'SEND_FAILED'),
-        new OA\Property(property: 'message', type: 'string', example: 'Insufficient balance.'),
-        ]),
-        ])
-    )]
-    #[OA\Response(
-        response: 401,
-        description: 'Unauthorized'
-    )]
-    public function send(Request $request): JsonResponse
+    #[OA\Response(response: 201, description: 'Unsigned payload ready')]
+    #[OA\Response(response: 409, description: 'Idempotency conflict')]
+    #[OA\Response(response: 422, description: 'Validation / address / asset / amount / network error')]
+    #[OA\Response(response: 401, description: 'Unauthorized')]
+    public function prepareTransaction(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'to'       => ['required', 'string', 'min:26', 'max:128'],
-            'token'    => ['required', 'string', 'in:USDC,USDT,WETH,WBTC'],
-            'asset'    => ['nullable', 'string', 'in:USDC,USDT,WETH,WBTC'],
-            'amount'   => ['required', 'numeric', 'gt:0', 'max:1000000'],
-            'network'  => ['required', 'string'],
+            'token'    => ['required', 'string', 'in:USDC,USDT'],
+            'amount'   => ['required', 'string'],
+            'network'  => ['required', 'string', 'in:solana,polygon,base,arbitrum,ethereum'],
             'quote_id' => ['nullable', 'string', 'max:64'],
         ]);
 
         $user = $request->user();
+        if (! $user instanceof \App\Models\User) {
+            return response()->json(['success' => false, 'error' => ['code' => 'UNAUTHORIZED', 'message' => 'Not authenticated.']], 401);
+        }
 
-        try {
-            // Wallet-to-wallet sends are deliberately NOT routed through
-            // PaymentIntentService — that service is for merchant payments
-            // and requires a merchantId. Wallet sends have no merchant.
-            $validation = $this->walletTransferService->validateAddress(
-                (string) $validated['to'],
-                (string) $validated['network'],
-            );
+        $idempotencyKey = $request->header('Idempotency-Key');
+        $idempotencyKey = is_string($idempotencyKey) ? $idempotencyKey : null;
 
-            if (! $validation['valid']) {
-                return response()->json([
-                    'success' => false,
-                    'error'   => [
-                        'code'    => 'INVALID_RECIPIENT',
-                        'message' => $validation['error'] ?? 'Invalid recipient address.',
-                    ],
-                ], 422);
-            }
+        $networkKey = strtolower((string) $validated['network']);
+        $assetSymbol = strtoupper((string) $validated['token']);
+        $recipient = (string) $validated['to'];
+        $amount = (string) $validated['amount'];
+        $quoteId = isset($validated['quote_id']) ? (string) $validated['quote_id'] : null;
 
-            $networkEnum = PaymentNetwork::from((string) $validated['network']);
-
-            // Stub dispatch: real on-chain submission is not yet wired for the
-            // wallet-send path. We acknowledge the intent so mobile can render a
-            // pending-state UI; status flips once the dispatcher lands.
-            $intentId = 'pi_send_' . Str::random(20);
-
-            $response = [
-                'intentId'              => $intentId,
-                'merchantId'            => null,
-                'merchant'              => null,
-                'asset'                 => (string) $validated['token'],
-                'network'               => $networkEnum->value,
-                'amount'                => (string) $validated['amount'],
-                'status'                => 'PENDING',
-                'shieldEnabled'         => false,
-                'feesEstimate'          => null,
-                'createdAt'             => now()->toIso8601String(),
-                'expiresAt'             => now()->addMinutes(15)->toIso8601String(),
-                'tx'                    => null,
-                'confirmations'         => 0,
-                'requiredConfirmations' => $networkEnum->requiredConfirmations(),
-                'error'                 => null,
-                'quoteId'               => $validated['quote_id'] ?? null,
-            ];
-
-            return response()->json([
-                'success' => true,
-                'data'    => $response,
-            ], 201);
-        } catch (Throwable $e) {
+        $sender = $this->resolveSenderAddress($user, $networkKey);
+        if ($sender === null) {
             return response()->json([
                 'success' => false,
-                'error'   => $this->sanitizeSendError($e),
+                'error'   => ['code' => 'NO_SENDER_ADDRESS', 'message' => 'No registered address for this network. POST /api/v1/wallet/addresses first.'],
             ], 422);
         }
+
+        try {
+            if ($networkKey === 'solana') {
+                $result = $this->solanaSendPreparer->prepare(
+                    user: $user,
+                    senderAddressBase58: $sender,
+                    recipientAddressBase58: $recipient,
+                    assetSymbol: $assetSymbol,
+                    amountMajor: $amount,
+                    idempotencyKey: $idempotencyKey,
+                    quoteId: $quoteId,
+                );
+            } else {
+                $result = $this->evmUserOpPreparer->prepare(
+                    user: $user,
+                    senderSmartAccountAddress: $sender,
+                    recipientAddress: $recipient,
+                    assetSymbol: $assetSymbol,
+                    networkKey: $networkKey,
+                    amountMajor: $amount,
+                    idempotencyKey: $idempotencyKey,
+                    quoteId: $quoteId,
+                );
+            }
+        } catch (IdempotencyConflictException $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'IDEMPOTENCY_CONFLICT', 'message' => $e->getMessage()],
+            ], 409);
+        } catch (NetworkDisabledException | InvalidAssetException | InvalidAddressException | InvalidAmountException $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => $this->errorCodeFor($e), 'message' => $e->getMessage()],
+            ], 422);
+        } catch (Throwable $e) {
+            Log::warning('wallet.prepare failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'PREPARE_FAILED', 'message' => 'Could not prepare the transaction.'],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'intent_id' => $result['record']->public_id,
+                'payload'   => $result['payload'],
+                'record'    => $result['record']->toApiResponse(),
+            ],
+        ], 201);
     }
 
     /**
-     * Sanitize a send-path exception into a safe API error payload.
-     *
-     * Always logs the full exception server-side. Strips any PHP runtime
-     * warnings (e.g. "Undefined array key", "Trying to access property of
-     * null") from the user-facing message — those leak implementation
-     * details and should never reach a client.
-     *
-     * @return array{code: string, message: string}
+     * Step 2 of a non-custodial send: attach the device-produced signature
+     * and broadcast.
      */
-    private function sanitizeSendError(Throwable $e): array
+    #[OA\Post(
+        path: '/api/v1/wallet/transactions/submit',
+        operationId: 'walletTransactionSubmit',
+        summary: 'Submit a signed payload',
+        description: 'Attaches a Privy-produced signature (ed25519 for Solana, smart-wallet signature blob for EVM) to the matching prepared record and broadcasts via Helius / Pimlico.',
+        tags: ['Mobile Wallet'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['intent_id', 'signature'], properties: [
+        new OA\Property(property: 'intent_id', type: 'string', example: 'pi_send_abc123'),
+        new OA\Property(property: 'signature', type: 'string', example: '0x... or base64 ed25519', description: 'For Solana: 64-byte ed25519 signature, base64-encoded. For EVM: 0x-prefixed hex signature blob from Privy smart wallet.'),
+        ]))
+    )]
+    #[OA\Response(response: 200, description: 'Submitted (or already submitted)')]
+    #[OA\Response(response: 404, description: 'Intent not found for this user')]
+    #[OA\Response(response: 422, description: 'Bad signature / state')]
+    #[OA\Response(response: 401, description: 'Unauthorized')]
+    public function submitTransaction(Request $request): JsonResponse
     {
-        Log::warning('MobileWallet: send failed', [
-            'exception' => $e::class,
-            'message'   => $e->getMessage(),
-            'file'      => $e->getFile() . ':' . $e->getLine(),
+        $validated = $request->validate([
+            'intent_id' => ['required', 'string', 'max:64'],
+            'signature' => ['required', 'string', 'min:1', 'max:8192'],
         ]);
 
-        $message = $e->getMessage();
-        $isLeakedRuntimeWarning = (bool) preg_match(
-            '/^(Undefined (variable|array key|index|property|offset|constant)|Trying to access|Cannot access|Attempt to read|Call to undefined)/i',
-            $message,
-        );
+        $user = $request->user();
+        if (! $user instanceof \App\Models\User) {
+            return response()->json(['success' => false, 'error' => ['code' => 'UNAUTHORIZED', 'message' => 'Not authenticated.']], 401);
+        }
 
-        return [
-            'code'    => 'SEND_FAILED',
-            'message' => $isLeakedRuntimeWarning ? 'Send could not be processed.' : $message,
-        ];
+        $record = WalletSendRecord::query()
+            ->where('user_id', $user->id)
+            ->where('public_id', (string) $validated['intent_id'])
+            ->first();
+
+        if (! $record instanceof WalletSendRecord) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'INTENT_NOT_FOUND', 'message' => 'No prepared intent matches this id.'],
+            ], 404);
+        }
+
+        try {
+            if ($record->network === 'solana') {
+                $record = $this->solanaSendSubmitter->submit($record, (string) $validated['signature']);
+            } else {
+                $record = $this->evmUserOpSubmitter->submit($record, (string) $validated['signature']);
+            }
+        } catch (InvalidSignatureException | InvalidSendStateException $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => $this->errorCodeFor($e), 'message' => $e->getMessage()],
+            ], 422);
+        } catch (Throwable $e) {
+            Log::warning('wallet.submit failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'error'   => ['code' => 'SUBMIT_FAILED', 'message' => 'Could not submit the transaction.'],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $record->toApiResponse(),
+        ]);
+    }
+
+    /**
+     * Look up the user's registered Privy address for the given network.
+     *
+     * EVM smart accounts share an address across all four EVM chains (one
+     * row per chain in `blockchain_addresses` with the same `address` value).
+     */
+    private function resolveSenderAddress(\App\Models\User $user, string $networkKey): ?string
+    {
+        $row = BlockchainAddress::where('user_uuid', $user->uuid)
+            ->where('chain', $networkKey)
+            ->where('is_active', true)
+            ->first();
+
+        return $row?->address;
+    }
+
+    /**
+     * Map a Wallet domain exception to the canonical error code surfaced in
+     * API responses. Falls back to the class short name uppercased.
+     */
+    private function errorCodeFor(Throwable $e): string
+    {
+        return match (true) {
+            $e instanceof IdempotencyConflictException => 'IDEMPOTENCY_CONFLICT',
+            $e instanceof NetworkDisabledException     => 'NETWORK_DISABLED',
+            $e instanceof InvalidAssetException        => 'INVALID_ASSET',
+            $e instanceof InvalidAddressException      => 'INVALID_ADDRESS',
+            $e instanceof InvalidAmountException       => 'INVALID_AMOUNT',
+            $e instanceof InvalidSignatureException    => 'INVALID_SIGNATURE',
+            $e instanceof InvalidSendStateException    => 'INVALID_SEND_STATE',
+            default                                    => 'WALLET_SEND_ERROR',
+        };
     }
 
     /**

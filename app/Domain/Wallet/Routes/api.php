@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\BlockchainWalletController;
 use App\Http\Controllers\Api\HardwareWalletController;
 use App\Http\Controllers\Api\MultiSigWalletController;
 use App\Http\Controllers\Api\Wallet\MobileWalletController;
-use App\Http\Controllers\Api\Wallet\RecoveryShardController;
 use Illuminate\Support\Facades\Route;
 
 // Blockchain wallet endpoints
@@ -129,38 +128,27 @@ Route::prefix('v1/wallet')->name('mobile.wallet.')
         Route::get('/addresses', [MobileWalletController::class, 'addresses'])
             ->middleware('api.rate_limit:query')
             ->name('addresses');
+        Route::post('/addresses', [MobileWalletController::class, 'registerAddresses'])
+            ->middleware('idempotency')
+            ->name('addresses.register');
         Route::get('/transactions', [MobileWalletController::class, 'transactions'])
             ->middleware('api.rate_limit:query')
             ->name('transactions');
         Route::get('/transactions/{id}', [MobileWalletController::class, 'transactionDetail'])
             ->middleware('api.rate_limit:query')
             ->name('transactions.detail');
-        Route::post('/transactions/send', [MobileWalletController::class, 'send'])
+
+        // Non-custodial send: prepare unsigned payload → device signs via Privy
+        // → submit signed payload. Replaces the legacy /transactions/send.
+        Route::post('/transactions/prepare', [MobileWalletController::class, 'prepareTransaction'])
             ->middleware(['transaction.rate_limit:payment_intent', 'idempotency'])
-            ->name('transactions.send');
+            ->name('transactions.prepare');
+        Route::post('/transactions/submit', [MobileWalletController::class, 'submitTransaction'])
+            ->middleware('transaction.rate_limit:payment_intent')
+            ->name('transactions.submit');
 
         // Recent recipients (v5.6.0)
         Route::get('/recent-recipients', [MobileWalletController::class, 'recentRecipients'])
             ->middleware('api.rate_limit:query')
             ->name('recent-recipients');
-
-        // Alias: mobile expects POST /api/v1/wallet/create-account
-        Route::post('/create-account', [App\Http\Controllers\Api\Relayer\SmartAccountController::class, 'createAccount'])
-            ->middleware(['transaction.rate_limit:relayer', 'idempotency'])
-            ->name('create-account');
-
-        // Recovery shard cloud backup (v5.8.0)
-        Route::post('/recovery-shard-backup', [RecoveryShardController::class, 'store'])
-            ->name('recovery-shard-backup.store');
-        Route::get('/recovery-shard-backup', [RecoveryShardController::class, 'show'])
-            ->name('recovery-shard-backup.show');
-        Route::get('/recovery-shard-backup/retrieve', [RecoveryShardController::class, 'retrieve'])
-            ->name('recovery-shard-backup.retrieve');
-        Route::delete('/recovery-shard-backup', [RecoveryShardController::class, 'destroy'])
-            ->name('recovery-shard-backup.destroy');
-
-        // Recovery key reconstruction (v7.2.0)
-        Route::post('/recovery/reconstruct', [RecoveryShardController::class, 'reconstruct'])
-            ->middleware('transaction.rate_limit:blockchain')
-            ->name('recovery.reconstruct');
     });

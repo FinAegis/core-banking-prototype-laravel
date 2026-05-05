@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Domain\Account\Models\BlockchainAddress;
 use App\Domain\MobilePayment\Services\ActivityFeedService;
 use App\Domain\MobilePayment\Services\TransactionDetailService;
 use App\Domain\Relayer\Services\SmartAccountService;
 use App\Domain\Relayer\Services\WalletBalanceService;
-use App\Domain\Wallet\Services\WalletTransferService;
+use App\Domain\Wallet\Services\PrivyAddressRegistrar;
+use App\Domain\Wallet\Services\Send\EvmUserOpPreparer;
+use App\Domain\Wallet\Services\Send\EvmUserOpSubmitter;
+use App\Domain\Wallet\Services\Send\SolanaSendPreparer;
+use App\Domain\Wallet\Services\Send\SolanaSendSubmitter;
 use App\Http\Controllers\Api\Wallet\MobileWalletController;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -21,7 +26,11 @@ beforeEach(function (): void {
     $this->smartAccountService = Mockery::mock(SmartAccountService::class);
     $this->activityFeedService = Mockery::mock(ActivityFeedService::class);
     $this->transactionDetailService = Mockery::mock(TransactionDetailService::class);
-    $this->walletTransferService = Mockery::mock(WalletTransferService::class);
+    $this->privyAddressRegistrar = Mockery::mock(PrivyAddressRegistrar::class);
+    $this->solanaSendPreparer = Mockery::mock(SolanaSendPreparer::class);
+    $this->solanaSendSubmitter = Mockery::mock(SolanaSendSubmitter::class);
+    $this->evmUserOpPreparer = Mockery::mock(EvmUserOpPreparer::class);
+    $this->evmUserOpSubmitter = Mockery::mock(EvmUserOpSubmitter::class);
 });
 
 function makeWalletController($test): MobileWalletController
@@ -31,7 +40,11 @@ function makeWalletController($test): MobileWalletController
         $test->smartAccountService,
         $test->activityFeedService,
         $test->transactionDetailService,
-        $test->walletTransferService,
+        $test->privyAddressRegistrar,
+        $test->solanaSendPreparer,
+        $test->solanaSendSubmitter,
+        $test->evmUserOpPreparer,
+        $test->evmUserOpSubmitter,
     );
 }
 
@@ -195,24 +208,56 @@ describe('MobileWalletController addresses', function (): void {
         $this->dropSolanaTestTables();
     });
 
-    it('lists user addresses per network', function (): void {
-        $account = (object) [
-            'account_address' => '0xdef456',
-            'network'         => 'base',
-            'is_deployed'     => false,
-            'created_at'      => now(),
-        ];
-        $this->smartAccountService->shouldReceive('getUserAccounts')->andReturn(new Collection([$account]));
+    it('lists Privy-registered addresses for the user', function (): void {
+        // The test user_uuid must match what walletUserRequest generates per-call.
+        // We capture it by issuing the request first, then seeding rows for that uuid.
+        $request = walletUserRequest('/api/v1/wallet/addresses');
+        $user = $request->user();
+        if (! $user instanceof User) {
+            throw new RuntimeException('Test setup did not produce a user.');
+        }
+        $userUuid = $user->uuid;
 
+        BlockchainAddress::create([
+            'user_uuid'  => $userUuid,
+            'chain'      => 'polygon',
+            'address'    => '0x742d35cc6634c0532925a3b844bc454e4438f44e',
+            'public_key' => '0x742d35cc6634c0532925a3b844bc454e4438f44e',
+            'is_active'  => true,
+            'metadata'   => ['provider' => 'privy', 'wallet_kind' => 'privy_smart_account'],
+        ]);
+        BlockchainAddress::create([
+            'user_uuid'  => $userUuid,
+            'chain'      => 'solana',
+            'address'    => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'public_key' => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
+            'is_active'  => true,
+            'metadata'   => ['provider' => 'privy', 'wallet_kind' => 'privy_embedded_solana'],
+        ]);
+
+        $controller = makeWalletController($this);
+
+        $response = $controller->addresses($request);
+        $data = $response->getData(true);
+
+        expect($data['success'])->toBeTrue()
+            ->and($data['data'])->toHaveCount(2);
+
+        $byNetwork = collect($data['data'])->keyBy('network');
+        expect($byNetwork['polygon']['address'])->toBe('0x742d35cc6634c0532925a3b844bc454e4438f44e')
+            ->and($byNetwork['polygon']['type'])->toBe('smart_account')
+            ->and($byNetwork['solana']['address'])->toBe('EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z')
+            ->and($byNetwork['solana']['type'])->toBe('keypair');
+    });
+
+    it('returns an empty list when the user has registered no addresses yet', function (): void {
         $controller = makeWalletController($this);
 
         $response = $controller->addresses(walletUserRequest('/api/v1/wallet/addresses'));
         $data = $response->getData(true);
 
         expect($data['success'])->toBeTrue()
-            ->and($data['data'])->toBeArray()
-            ->and($data['data'][0])->toHaveKeys(['address', 'network', 'deployed', 'created_at'])
-            ->and($data['data'][0]['address'])->toBe('0xdef456');
+            ->and($data['data'])->toBe([]);
     });
 });
 
@@ -267,131 +312,6 @@ describe('MobileWalletController transactionDetail', function (): void {
     });
 });
 
-describe('MobileWalletController send', function (): void {
-    it('acknowledges a Solana wallet send with the mobile contract shape', function (): void {
-        $this->walletTransferService->shouldReceive('validateAddress')
-            ->once()
-            ->with('EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z', 'SOLANA')
-            ->andReturn([
-                'valid'        => true,
-                'network'      => 'SOLANA',
-                'address'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
-                'address_type' => 'wallet',
-                'error'        => null,
-            ]);
-
-        $controller = makeWalletController($this);
-
-        // Exact payload mobile sends today (PR #350 — both `asset` and `token`).
-        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
-            'to'       => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
-            'amount'   => '1',
-            'asset'    => 'USDC',
-            'token'    => 'USDC',
-            'network'  => 'SOLANA',
-            'quote_id' => 'quote_Qhviaxl78795XhdmPTXA',
-        ]);
-
-        $response = $controller->send($request);
-        $data = $response->getData(true);
-
-        expect($response->getStatusCode())->toBe(201)
-            ->and($data['success'])->toBeTrue()
-            ->and($data['data']['intentId'])->toStartWith('pi_send_')
-            ->and($data['data']['status'])->toBe('PENDING')
-            ->and($data['data']['merchantId'])->toBeNull()
-            ->and($data['data']['merchant'])->toBeNull()
-            ->and($data['data']['asset'])->toBe('USDC')
-            ->and($data['data']['network'])->toBe('SOLANA')
-            ->and($data['data']['amount'])->toBe('1')
-            ->and($data['data']['tx'])->toBeNull()
-            ->and($data['data']['error'])->toBeNull()
-            ->and($data['data']['quoteId'])->toBe('quote_Qhviaxl78795XhdmPTXA');
-    });
-
-    it('rejects an invalid recipient address with 422 and a structured error', function (): void {
-        $bogus = str_repeat('Z', 44); // passes min:26 length but not the network format check
-        $this->walletTransferService->shouldReceive('validateAddress')
-            ->once()
-            ->with($bogus, 'SOLANA')
-            ->andReturn([
-                'valid'        => false,
-                'network'      => 'SOLANA',
-                'address'      => $bogus,
-                'address_type' => null,
-                'error'        => 'Invalid Solana address format.',
-            ]);
-
-        $controller = makeWalletController($this);
-
-        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
-            'to'      => $bogus,
-            'token'   => 'USDC',
-            'amount'  => '1',
-            'network' => 'SOLANA',
-        ]);
-
-        $response = $controller->send($request);
-        $data = $response->getData(true);
-
-        expect($response->getStatusCode())->toBe(422)
-            ->and($data['success'])->toBeFalse()
-            ->and($data['error']['code'])->toBe('INVALID_RECIPIENT')
-            ->and($data['error']['message'])->toContain('Invalid Solana address');
-    });
-
-    it('does NOT leak PHP runtime warnings into the API response', function (): void {
-        // Regression: original bug surfaced "Undefined array key 'merchantId'"
-        // from PaymentIntentService into the user-facing error.message. Even if
-        // a downstream layer were to throw a similar warning, the controller
-        // must scrub it before returning to the client.
-        $this->walletTransferService->shouldReceive('validateAddress')
-            ->once()
-            ->andThrow(new ErrorException('Undefined array key "merchantId"'));
-
-        $controller = makeWalletController($this);
-
-        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
-            'to'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
-            'token'   => 'USDC',
-            'amount'  => '1',
-            'network' => 'SOLANA',
-        ]);
-
-        $response = $controller->send($request);
-        $data = $response->getData(true);
-
-        expect($response->getStatusCode())->toBe(422)
-            ->and($data['error']['code'])->toBe('SEND_FAILED')
-            ->and($data['error']['message'])->not->toContain('merchantId')
-            ->and($data['error']['message'])->not->toContain('Undefined array key')
-            ->and($data['error']['message'])->toBe('Send could not be processed.');
-    });
-
-    it('returns the unsanitized message for non-runtime-warning failures', function (): void {
-        // Domain exceptions (insufficient balance, etc.) carry intentional
-        // user-facing copy and should pass through unchanged.
-        $this->walletTransferService->shouldReceive('validateAddress')
-            ->once()
-            ->andThrow(new RuntimeException('Insufficient balance for this transfer.'));
-
-        $controller = makeWalletController($this);
-
-        $request = walletUserRequest('/api/v1/wallet/transactions/send', 'POST', [
-            'to'      => 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z',
-            'token'   => 'USDC',
-            'amount'  => '1000',
-            'network' => 'SOLANA',
-        ]);
-
-        $response = $controller->send($request);
-        $data = $response->getData(true);
-
-        expect($response->getStatusCode())->toBe(422)
-            ->and($data['error']['message'])->toBe('Insufficient balance for this transfer.');
-    });
-});
-
 describe('Wallet routes', function (): void {
     it('has wallet tokens route defined', function (): void {
         $route = app('router')->getRoutes()->getByName('mobile.wallet.tokens');
@@ -408,8 +328,18 @@ describe('Wallet routes', function (): void {
         expect($route)->not->toBeNull();
     });
 
-    it('has wallet transactions send route defined', function (): void {
-        $route = app('router')->getRoutes()->getByName('mobile.wallet.transactions.send');
+    it('has wallet transactions prepare route defined', function (): void {
+        $route = app('router')->getRoutes()->getByName('mobile.wallet.transactions.prepare');
+        expect($route)->not->toBeNull();
+    });
+
+    it('has wallet transactions submit route defined', function (): void {
+        $route = app('router')->getRoutes()->getByName('mobile.wallet.transactions.submit');
+        expect($route)->not->toBeNull();
+    });
+
+    it('has wallet addresses register route defined', function (): void {
+        $route = app('router')->getRoutes()->getByName('mobile.wallet.addresses.register');
         expect($route)->not->toBeNull();
     });
 });

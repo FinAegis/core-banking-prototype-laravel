@@ -42,6 +42,30 @@ interface PaymasterInterface
     ): array;
 
     /**
+     * Sponsor a UserOperation via the paymaster's verifying-paymaster endpoint
+     * (Pimlico's `pm_sponsorUserOperation`). Returns adjusted gas params + the
+     * `paymasterAndData` blob that the bundler will accept on submission.
+     *
+     * Implementations MAY throw an RpcException-shaped exception when the
+     * paymaster declines to sponsor; callers are expected to translate that
+     * into a record-level failure.
+     *
+     * @return array{
+     *   paymasterAndData: string,
+     *   callGasLimit: int,
+     *   verificationGasLimit: int,
+     *   preVerificationGas: int,
+     *   maxFeePerGas: int,
+     *   maxPriorityFeePerGas: int
+     * }
+     */
+    public function sponsor(
+        UserOperation $userOp,
+        SupportedNetwork $network,
+        string $entryPoint,
+    ): array;
+
+    /**
      * Get the paymaster contract address for a network.
      */
     public function getAddress(SupportedNetwork $network): string;

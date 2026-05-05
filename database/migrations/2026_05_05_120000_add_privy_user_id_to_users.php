@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class () extends Migration {
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table): void {
+            $table->string('privy_user_id', 64)->nullable()->after('oauth_id');
+            $table->timestamp('privy_linked_at')->nullable()->after('privy_user_id');
+
+            $table->unique('privy_user_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table): void {
+            $table->dropUnique(['privy_user_id']);
+            $table->dropColumn(['privy_user_id', 'privy_linked_at']);
+        });
+    }
+};

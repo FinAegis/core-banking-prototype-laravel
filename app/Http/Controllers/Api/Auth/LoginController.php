@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Domain\Auth\Exceptions\PrivyJwtException;
+use App\Domain\Auth\Services\PrivyJwtVerifier;
 use App\Domain\Mobile\Services\BiometricJWTService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -11,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 use OpenApi\Attributes as OA;
@@ -143,6 +146,105 @@ class LoginController extends Controller
                 ],
             ]
         );
+    }
+
+    /**
+     * Exchange a Privy session JWT for a Sanctum token.
+     *
+     * The mobile app authenticates with Privy (non-custodial wallet provider)
+     * and forwards the resulting JWT here. We verify the signature against
+     * Privy's JWKS, look up or create a backing User keyed on the Privy user
+     * id, and issue a standard Sanctum token so the rest of the API stack
+     * works unchanged.
+     */
+    #[OA\Post(
+        path: '/api/v1/auth/privy-login',
+        summary: 'Exchange a Privy session JWT for a Sanctum token',
+        description: 'Verifies the Privy-issued session JWT against Privy\'s JWKS, finds or creates the backing user, and returns a Sanctum bearer token with read/write/delete abilities.',
+        operationId: 'privyLogin',
+        tags: ['Authentication'],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['privy_token'], properties: [
+        new OA\Property(property: 'privy_token', type: 'string', description: 'Privy-issued session JWT (RS256)', example: 'eyJhbGciOiJSUzI1NiIs...'),
+        ]))
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Privy login successful',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: true),
+        new OA\Property(property: 'data', type: 'object', properties: [
+        new OA\Property(property: 'user', type: 'object', properties: [
+        new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'email', type: 'string', example: 'privy_abcdef1234567890@placeholder.zelta.app'),
+        new OA\Property(property: 'privy_user_id', type: 'string', example: 'did:privy:cl9...'),
+        ]),
+        new OA\Property(property: 'token', type: 'string', example: '7|VVGVrIVokPBXkWLOi2yK...'),
+        new OA\Property(property: 'token_type', type: 'string', example: 'Bearer'),
+        ]),
+        ])
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Invalid or expired Privy token',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'INVALID_PRIVY_TOKEN'),
+        new OA\Property(property: 'message', type: 'string', example: 'Privy JWT signature is invalid.'),
+        ]),
+        ])
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Validation failed',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'message', type: 'string', example: 'The privy token field is required.'),
+        new OA\Property(property: 'errors', type: 'object'),
+        ])
+    )]
+    public function privyLogin(Request $request, PrivyJwtVerifier $verifier): JsonResponse
+    {
+        $validated = $request->validate([
+            'privy_token' => ['required', 'string'],
+        ]);
+
+        try {
+            $claims = $verifier->verify($validated['privy_token']);
+        } catch (PrivyJwtException $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'INVALID_PRIVY_TOKEN',
+                    'message' => $e->getMessage(),
+                ],
+            ], 401);
+        }
+
+        $user = User::where('privy_user_id', $claims->privyUserId)->first();
+
+        if (! $user instanceof User) {
+            $placeholderEmail = 'privy_' . substr($claims->privyUserId, -16) . '@placeholder.zelta.app';
+
+            $user = User::create([
+                'name'              => 'Privy User',
+                'email'             => $placeholderEmail,
+                'password'          => Str::random(64),
+                'email_verified_at' => now(),
+                'privy_user_id'     => $claims->privyUserId,
+                'privy_linked_at'   => now(),
+            ]);
+        }
+
+        $token = $user->createToken('privy', ['read', 'write', 'delete'])->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'user'       => $user,
+                'token'      => $token,
+                'token_type' => 'Bearer',
+            ],
+        ]);
     }
 
     /**

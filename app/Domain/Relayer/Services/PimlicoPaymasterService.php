@@ -128,6 +128,69 @@ class PimlicoPaymasterService implements PaymasterInterface
     }
 
     /**
+     * Sponsor a UserOperation via Pimlico's pm_sponsorUserOperation endpoint.
+     *
+     * Returns the full sponsorship response (paymasterAndData + adjusted gas
+     * params), letting callers attach the result to the UserOp before
+     * computing the v0.6 userOpHash.
+     *
+     * @return array{
+     *   paymasterAndData: string,
+     *   callGasLimit: int,
+     *   verificationGasLimit: int,
+     *   preVerificationGas: int,
+     *   maxFeePerGas: int,
+     *   maxPriorityFeePerGas: int
+     * }
+     *
+     * @throws RpcException
+     */
+    public function sponsor(
+        UserOperation $userOp,
+        SupportedNetwork $network,
+        string $entryPoint,
+    ): array {
+        /** @var array<string, mixed> $result */
+        $result = (array) $this->rpcClient->bundlerCall(
+            $network,
+            'pm_sponsorUserOperation',
+            [$userOp->toArray(), $entryPoint],
+        );
+
+        // Pimlico's v2 sponsorship response is a flat object with hex-encoded
+        // gas params. Older shapes may nest under 'paymasterAndData' only;
+        // handle both defensively.
+        $paymasterAndData = isset($result['paymasterAndData']) && is_string($result['paymasterAndData'])
+            ? $result['paymasterAndData']
+            : '0x';
+
+        return [
+            'paymasterAndData'     => $paymasterAndData,
+            'callGasLimit'         => self::hexToIntOr($result['callGasLimit'] ?? null, $userOp->callGasLimit),
+            'verificationGasLimit' => self::hexToIntOr($result['verificationGasLimit'] ?? null, $userOp->verificationGasLimit),
+            'preVerificationGas'   => self::hexToIntOr($result['preVerificationGas'] ?? null, $userOp->preVerificationGas),
+            'maxFeePerGas'         => self::hexToIntOr($result['maxFeePerGas'] ?? null, $userOp->maxFeePerGas),
+            'maxPriorityFeePerGas' => self::hexToIntOr($result['maxPriorityFeePerGas'] ?? null, $userOp->maxPriorityFeePerGas),
+        ];
+    }
+
+    /**
+     * Decode a JSON-RPC hex-encoded integer with a fallback when missing.
+     */
+    private static function hexToIntOr(mixed $value, int $fallback): int
+    {
+        if (is_string($value) && $value !== '') {
+            return (int) hexdec($value);
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        return $fallback;
+    }
+
+    /**
      * Get approximate native token price in USD.
      *
      * In a full production system, this would query a price oracle.

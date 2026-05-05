@@ -64,4 +64,32 @@ class DemoPaymasterService implements PaymasterInterface
     {
         return self::PAYMASTER_ADDRESSES[$network->value] ?? self::PAYMASTER_ADDRESSES['polygon'];
     }
+
+    /**
+     * Demo sponsorship: returns a fixed paymasterAndData blob and conservative
+     * gas defaults. Useful for local testing without hitting Pimlico.
+     *
+     * @return array{
+     *   paymasterAndData: string,
+     *   callGasLimit: int,
+     *   verificationGasLimit: int,
+     *   preVerificationGas: int,
+     *   maxFeePerGas: int,
+     *   maxPriorityFeePerGas: int
+     * }
+     */
+    public function sponsor(
+        UserOperation $userOp,
+        SupportedNetwork $network,
+        string $entryPoint,
+    ): array {
+        return [
+            'paymasterAndData'     => $this->getAddress($network) . str_repeat('0', 80), // address + 40-byte padding
+            'callGasLimit'         => 100_000,
+            'verificationGasLimit' => 150_000,
+            'preVerificationGas'   => 50_000,
+            'maxFeePerGas'         => 30_000_000_000,        // 30 gwei
+            'maxPriorityFeePerGas' => 1_000_000_000,         // 1 gwei
+        ];
+    }
 }
