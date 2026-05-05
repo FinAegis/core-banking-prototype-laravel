@@ -427,7 +427,7 @@ class MobileWalletController extends Controller
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['evm', 'solana'], properties: [
         new OA\Property(property: 'evm', type: 'object', required: ['address'], properties: [
         new OA\Property(property: 'address', type: 'string', example: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'),
-        new OA\Property(property: 'owner_passkey_credential_id', type: 'string', nullable: true, example: 'cred_abc123'),
+        new OA\Property(property: 'ownerPasskeyCredentialId', type: 'string', nullable: true, example: 'cred_abc123'),
         ]),
         new OA\Property(property: 'solana', type: 'object', required: ['address'], properties: [
         new OA\Property(property: 'address', type: 'string', example: 'EfkncjQTojTB6m9DqoyBqizLLwZgLu1uwg3Y3FqE6f7Z'),
@@ -445,9 +445,9 @@ class MobileWalletController extends Controller
         }
 
         $validated = $request->validate([
-            'evm.address'                     => ['required', 'string', 'regex:/^0x[a-fA-F0-9]{40}$/'],
-            'evm.owner_passkey_credential_id' => ['nullable', 'string', 'max:512'],
-            'solana.address'                  => ['required', 'string', 'min:32', 'max:44'],
+            'evm.address'                  => ['required', 'string', 'regex:/^0x[a-fA-F0-9]{40}$/'],
+            'evm.ownerPasskeyCredentialId' => ['nullable', 'string', 'max:512'],
+            'solana.address'               => ['required', 'string', 'min:32', 'max:44'],
         ]);
 
         try {
@@ -455,7 +455,7 @@ class MobileWalletController extends Controller
                 user: $user,
                 evm: [
                     'address'                     => (string) $validated['evm']['address'],
-                    'owner_passkey_credential_id' => $validated['evm']['owner_passkey_credential_id'] ?? null,
+                    'owner_passkey_credential_id' => $validated['evm']['ownerPasskeyCredentialId'] ?? null,
                 ],
                 solana: ['address' => (string) $validated['solana']['address']],
             );
@@ -599,12 +599,12 @@ class MobileWalletController extends Controller
         description: 'Builds the unsigned Solana legacy-tx message bytes (ed25519) or ERC-4337 v0.6 UserOp hash (with Pimlico paymaster sponsorship) for the device to sign via Privy. Persists a `pending` wallet_send_record. Mobile signs and POSTs the signature to /transactions/submit.',
         tags: ['Mobile Wallet'],
         security: [['sanctum' => []]],
-        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['to', 'token', 'amount', 'network'], properties: [
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['to', 'token', 'amount', 'network', 'quoteId'], properties: [
         new OA\Property(property: 'to', type: 'string', example: '0x1234...abcd or base58 Solana pubkey'),
         new OA\Property(property: 'token', type: 'string', enum: ['USDC', 'USDT'], example: 'USDC'),
         new OA\Property(property: 'amount', type: 'string', example: '1.50', description: 'Decimal major units. Send "1" or "1.5"; not "1000000".'),
         new OA\Property(property: 'network', type: 'string', example: 'polygon', description: 'solana | polygon | base | arbitrum | ethereum'),
-        new OA\Property(property: 'quote_id', type: 'string', nullable: true, example: 'q_abc123'),
+        new OA\Property(property: 'quoteId', type: 'string', example: 'q_abc123'),
         ]))
     )]
     #[OA\Response(response: 201, description: 'Unsigned payload ready')]
@@ -614,11 +614,11 @@ class MobileWalletController extends Controller
     public function prepareTransaction(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'to'       => ['required', 'string', 'min:26', 'max:128'],
-            'token'    => ['required', 'string', 'in:USDC,USDT'],
-            'amount'   => ['required', 'string'],
-            'network'  => ['required', 'string', 'in:solana,polygon,base,arbitrum,ethereum'],
-            'quote_id' => ['nullable', 'string', 'max:64'],
+            'to'      => ['required', 'string', 'min:26', 'max:128'],
+            'token'   => ['required', 'string', 'in:USDC,USDT'],
+            'amount'  => ['required', 'string'],
+            'network' => ['required', 'string', 'in:solana,polygon,base,arbitrum,ethereum'],
+            'quoteId' => ['required', 'string', 'max:64'],
         ]);
 
         $user = $request->user();
@@ -633,7 +633,7 @@ class MobileWalletController extends Controller
         $assetSymbol = strtoupper((string) $validated['token']);
         $recipient = (string) $validated['to'];
         $amount = (string) $validated['amount'];
-        $quoteId = isset($validated['quote_id']) ? (string) $validated['quote_id'] : null;
+        $quoteId = (string) $validated['quoteId'];
 
         $sender = $this->resolveSenderAddress($user, $networkKey);
         if ($sender === null) {
@@ -688,9 +688,9 @@ class MobileWalletController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'intent_id' => $result['record']->public_id,
-                'payload'   => $result['payload'],
-                'record'    => $result['record']->toApiResponse(),
+                'intentId' => $result['record']->public_id,
+                'payload'  => $result['payload'],
+                'record'   => $result['record']->toApiResponse(),
             ],
         ], 201);
     }
@@ -706,8 +706,8 @@ class MobileWalletController extends Controller
         description: 'Attaches a Privy-produced signature (ed25519 for Solana, smart-wallet signature blob for EVM) to the matching prepared record and broadcasts via Helius / Pimlico.',
         tags: ['Mobile Wallet'],
         security: [['sanctum' => []]],
-        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['intent_id', 'signature'], properties: [
-        new OA\Property(property: 'intent_id', type: 'string', example: 'pi_send_abc123'),
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['intentId', 'signature'], properties: [
+        new OA\Property(property: 'intentId', type: 'string', example: 'pi_send_abc123'),
         new OA\Property(property: 'signature', type: 'string', example: '0x... or base64 ed25519', description: 'For Solana: 64-byte ed25519 signature, base64-encoded. For EVM: 0x-prefixed hex signature blob from Privy smart wallet.'),
         ]))
     )]
@@ -718,7 +718,7 @@ class MobileWalletController extends Controller
     public function submitTransaction(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'intent_id' => ['required', 'string', 'max:64'],
+            'intentId'  => ['required', 'string', 'max:64'],
             'signature' => ['required', 'string', 'min:1', 'max:8192'],
         ]);
 
@@ -729,7 +729,7 @@ class MobileWalletController extends Controller
 
         $record = WalletSendRecord::query()
             ->where('user_id', $user->id)
-            ->where('public_id', (string) $validated['intent_id'])
+            ->where('public_id', (string) $validated['intentId'])
             ->first();
 
         if (! $record instanceof WalletSendRecord) {
