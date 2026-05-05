@@ -140,6 +140,21 @@ class HeliusTransactionProcessor
                 ]
             );
 
+            // Outbound wallet send confirmation: if a wallet_send_records row
+            // is awaiting this signature, flip it to confirmed. This is the
+            // production confirmation path for Solana sends — the EVM side
+            // uses a polling job against bundler getUserOperationByHash.
+            if (! $isIncoming) {
+                \App\Domain\Wallet\Models\WalletSendRecord::query()
+                    ->where('tx_hash', $signature)
+                    ->where('network', 'solana')
+                    ->whereIn('status', ['pending', 'submitted'])
+                    ->update([
+                        'status'       => 'confirmed',
+                        'confirmed_at' => now(),
+                    ]);
+            }
+
             $wasCreated = $btx->wasRecentlyCreated;
         });
 
