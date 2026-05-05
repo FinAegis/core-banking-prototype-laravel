@@ -50,6 +50,11 @@ class AppServiceProvider extends ServiceProvider
         // persists across a single HTTP request or console command, but is reset
         // between requests / queue jobs / Octane workers (avoids stale state).
         $this->app->scoped(\App\Domain\AccountProvisioning\Services\AccountFlagsService::class);
+
+        // Default Guzzle client for outbound HTTP from domain services that
+        // type-hint the PSR/Guzzle ClientInterface (e.g. PrivyJwtVerifier).
+        // Tests bind their own mock via the container.
+        $this->app->bind(\GuzzleHttp\ClientInterface::class, \GuzzleHttp\Client::class);
     }
 
     /**
