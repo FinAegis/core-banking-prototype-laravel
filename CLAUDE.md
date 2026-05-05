@@ -139,6 +139,26 @@ Packagist sources the three PHP packages from **split-mirror repos**, not the mo
 | Float-money in catalog amounts | Saga converts major→minor via `bcmath`; never `(int)($amount * 100)` |
 | Stale tool count in dev portal | `developers/mcp-tools.blade.php` — keep in sync with `config('mcp.tools')` count |
 
+## Wallet Send (v7.12.0+)
+
+Non-custodial flow. Privy holds the keys (passkey-controlled smart accounts on EVM, device-bound ed25519 on Solana); the device signs every transaction. Backend never sees private key material.
+
+- Auth bridge: `POST /api/v1/auth/privy-login` — JWT verified via JWKS (firebase/php-jwt), exchanged for a Sanctum token
+- Address registration: `POST /api/v1/wallet/addresses` — mirrors EVM smart-account address across polygon/base/arbitrum/ethereum, plus one Solana ed25519 row in `blockchain_addresses`
+- Send: `POST /api/v1/wallet/transactions/prepare` returns unsigned payload, `POST /api/v1/wallet/transactions/submit` accepts the signed blob
+- Wire contract is camelCase: `quoteId`, `intentId`, `evm.ownerPasskeyCredentialId`. `Idempotency-Key` is an HTTP header, not a body field.
+- Confirmation: `HeliusTransactionProcessor` for Solana (existing webhook), `PollEvmWalletSendConfirmations` for EVM (cron, every minute)
+- Operator commands: `php artisan privy:verify-jwt <token>`, `php artisan wallet:inspect-user <email>`
+- Spec: `docs/superpowers/specs/2026-05-05-wallet-privy-noncustodial-design.md` (if present); see PR #1017
+
+| Pitfall | Fix |
+|---|---|
+| `GuzzleHttp\ClientInterface` unbound | Bind to `Client::class` in `AppServiceProvider::register` — without it, `PrivyJwtVerifier` fails to resolve and `/privy-login` 500s |
+| EVM address case | Always `strtolower()` for storage (matches our existing EVM convention) — Solana stays case-sensitive |
+| Float-money amounts | Preparers validate `amount` against numeric-string + bcmath; never `(float)` for money |
+| Idempotency key on the wrong field | It's an HTTP header (`Idempotency-Key`), not a body field — matches `/pay`/`/pay/card` |
+| `quote_id` vs `quoteId` | Wire contract is camelCase across the board (matches mobile RN/TS request types) |
+
 ## Notes
 
 - Feature pages: only visible when `SHOW_PROMO_PAGES=true` (demo mode); production shows app landing page only

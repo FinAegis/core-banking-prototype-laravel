@@ -137,11 +137,11 @@ In Settings > About/Legal, display:
 
 > Zelta is a technology platform that provides a user interface enabling access to services offered by independent third-party providers. Zelta does not offer, hold, or transmit funds, crypto-assets, or provide any financial, custodial, or regulated services.
 >
-> All wallet functionality is powered by non-custodial wallet infrastructure. Wallets are created and controlled solely by users. All private keys remain under the exclusive control of the user.
+> All wallet functionality is powered by Privy embedded wallets — a passkey-controlled smart account on EVM (Polygon, Base, Arbitrum, Ethereum) and a device-bound ed25519 keypair on Solana. Wallets are created and controlled solely by users. Private keys never leave the device or Privy's secure infrastructure; the backend only ever sees public addresses and pre-signed payloads.
 >
 > Any financial or payment-related services are provided solely by third-party licensed financial service providers operating under their own regulatory authorizations.
 >
-> The user is responsible for storing their own recovery phrase. If the recovery phrase is lost, the user might not be able to retrieve their private keys.
+> The user is responsible for safeguarding their passkeys and any device-bound credentials used to authorize transactions. If passkey enrollments are lost across all of the user's devices, account access may not be recoverable.
 >
 > All forms of investments carry risks, including the risk of losing all of the invested amount.
 

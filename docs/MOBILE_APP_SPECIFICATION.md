@@ -7,6 +7,14 @@
 > Commerce, TrustCert, Privacy, KeyManagement) have all received further enhancements in
 > subsequent releases. See [CLAUDE.md](../CLAUDE.md) for the current version status and
 > full domain listing.
+>
+> **v7.12.0 Supersession (May 2026):** Mobile key management was migrated to Privy
+> embedded wallets — passkey-controlled smart accounts on EVM and device-bound ed25519 on
+> Solana. Sections referencing "Shamir's Secret Sharing", "2-of-3 threshold", or
+> "ShamirService.php" describe the legacy custodial architecture and no longer apply to
+> the mobile app. See the v7.12.0 entry in `docs/VERSION_ROADMAP.md` and the
+> `## Wallet Send` section in `CLAUDE.md` for the current flow. The KeyManagement domain
+> still ships Shamir for non-mobile use cases (institutional custody).
 
 **Version**: 1.4
 **Date**: February 2, 2026
@@ -17,7 +25,7 @@
 
 ## Executive Summary
 
-FinAegis Mobile is a next-generation embedded wallet application combining traditional banking convenience with blockchain-native privacy and compliance features. Inspired by Privy and Turnkey, it provides non-custodial key management with enterprise-grade security.
+FinAegis Mobile is a next-generation embedded wallet application combining traditional banking convenience with blockchain-native privacy and compliance features. Powered by Privy embedded wallets — passkey-controlled smart accounts on EVM and device-bound ed25519 on Solana — it provides non-custodial key management with enterprise-grade security. Backend never sees private key material; the device signs every transaction.
 
 ### Unique Value Propositions
 

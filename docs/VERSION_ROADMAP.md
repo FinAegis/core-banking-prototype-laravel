@@ -3257,6 +3257,30 @@ Findings #1-2 fixed in v7.1.1, findings #3-15 fixed in this release:
 
 ---
 
+## Version 7.12.0 — Non-Custodial Wallet Send (May 2026)
+
+**Theme**: Replace server-side signing with Privy embedded wallets — passkey-controlled smart accounts on EVM, device-bound ed25519 on Solana, device signs every transaction.
+
+### Delivered Features
+- `POST /api/v1/auth/privy-login` exchanges a Privy JWT (verified via JWKS with `iss`/`aud`/`exp` checks) for a Sanctum token; auto-creates the user on first login
+- `POST /api/v1/wallet/addresses` registers Privy-derived addresses — EVM smart-account address mirrored across polygon/base/arbitrum/ethereum, plus one Solana ed25519 row in `blockchain_addresses` so existing webhook sync, balance lookups, and tx indexers continue to work unchanged
+- `POST /api/v1/wallet/transactions/prepare` returns an unsigned payload (Solana legacy tx message bytes; EVM ERC-4337 v0.6 UserOperation with Pimlico paymaster sponsorship), persists a `wallet_send_records` row in `pending` state, honors the `Idempotency-Key` HTTP header
+- `POST /api/v1/wallet/transactions/submit` accepts the device-signed payload and broadcasts via Helius (Solana) or Pimlico bundler (EVM)
+- Confirmation tracking: `HeliusTransactionProcessor` flips Solana records to `confirmed` from the existing webhook; `PollEvmWalletSendConfirmations` polls the bundler for in-flight EVM UserOps
+- Wire contract is camelCase end-to-end (`quoteId`, `intentId`, `evm.ownerPasskeyCredentialId`) to match mobile RN/TS request types
+- Operator commands: `php artisan privy:verify-jwt <token>` (verify a Privy JWT against the live issuer and dump claims), `php artisan wallet:inspect-user <email>` (Privy linkage + addresses + recent send records, read-only)
+
+### Stripped Surface (hard cutover, project not yet live)
+- `POST /api/v1/auth/sign-userop` — custodial UserOp signing
+- `POST /api/v1/wallet/transactions/send` — custodial dispatch
+- All `/api/v1/wallet/recovery-shard-backup/*` endpoints — Shamir-based recovery shards no longer needed under Privy
+
+### Required Configuration
+- `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_JWKS_URL` in production env
+- `php artisan migrate` adds `users.privy_user_id` (unique nullable) and `users.privy_linked_at`
+
+---
+
 ## Future / Unscheduled
 
 Items below are designed but not yet scheduled. They await demand signals (typically a second partner asking for the same capability) before engineering commits.
@@ -3277,5 +3301,5 @@ Embeddable JS widget that renders Zelta's 402 payment flow inside the partner's 
 
 ---
 
-*Document Version: 7.11.0*
-*Updated: April 30, 2026 (v7.11.0 public MCP server + admin/brand polish)*
+*Document Version: 7.12.0*
+*Updated: May 5, 2026 (v7.12.0 non-custodial wallet send — Privy embedded wallets)*
