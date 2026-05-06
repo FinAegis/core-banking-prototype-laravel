@@ -208,7 +208,7 @@ class ComplianceAlertAggregate extends AggregateRoot
             'note'        => $event->note,
             'added_by'    => $event->addedBy,
             'attachments' => $event->attachments,
-            'added_at'    => $event->occurredAt ?? now(),
+            'added_at'    => $event->occurredAt,
         ];
     }
 

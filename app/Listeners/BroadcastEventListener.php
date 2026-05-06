@@ -60,8 +60,8 @@ class BroadcastEventListener implements ShouldQueue
                 total: bcmul($event->price, $event->quantity, 8),
                 makerOrderId: $event->makerOrderId,
                 takerOrderId: $event->takerOrderId,
-                makerFee: $event->makerFee ?? '0',
-                takerFee: $event->takerFee ?? '0',
+                makerFee: $event->makerFee,
+                takerFee: $event->takerFee,
             );
 
             Log::debug('Broadcast trade executed', [

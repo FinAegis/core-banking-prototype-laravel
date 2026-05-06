@@ -503,8 +503,8 @@ class TrezorSignerService implements ExternalSignerInterface
             $this->toTrezorHex((string) ($transaction->nonce ?? 0)),
             $this->toTrezorHex($transaction->gasPrice ?? '0'),
             $this->toTrezorHex($transaction->gasLimit ?? '21000'),
-            $transaction->to ?? '',
-            $this->toTrezorHex($transaction->value ?? '0'),
+            $transaction->to,
+            $this->toTrezorHex($transaction->value),
             $transaction->data ?? '',
         ];
 

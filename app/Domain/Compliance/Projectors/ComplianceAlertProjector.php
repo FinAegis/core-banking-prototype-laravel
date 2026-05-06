@@ -29,11 +29,11 @@ class ComplianceAlertProjector extends Projector
             'description' => $event->description,
             'metadata'    => $event->details,  // Store details in metadata field
             'details'     => $event->details,  // Also store in details field for compatibility
-            'detected_at' => $event->occurredAt ?? now(),  // Add detected_at field
+            'detected_at' => now(),  // Add detected_at field
             'user_id'     => $event->metadata['user_id'] ?? null,
             'title'       => $this->generateTitle($event->type, $event->severity),
-            'created_at'  => $event->occurredAt ?? now(),
-            'updated_at'  => $event->occurredAt ?? now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
         ]);
     }
 
@@ -65,8 +65,8 @@ class ComplianceAlertProjector extends Projector
             $alert->update([
                 'assigned_to' => $event->assignedTo,
                 'assigned_by' => $event->assignedBy,
-                'assigned_at' => $event->assignedAt ?? now(),
-                'updated_at'  => $event->assignedAt ?? now(),
+                'assigned_at' => $event->assignedAt,
+                'updated_at'  => $event->assignedAt,
             ]);
 
             // Store notes in investigation_notes array field if provided
@@ -75,7 +75,7 @@ class ComplianceAlertProjector extends Projector
                 $notes[] = [
                     'content'    => $event->metadata['notes'],
                     'created_by' => $event->assignedBy,
-                    'created_at' => ($event->assignedAt ?? now())->format('c'),
+                    'created_at' => ($event->assignedAt)->format('c'),
                 ];
                 $alert->update(['investigation_notes' => $notes]);
             }
@@ -117,12 +117,12 @@ class ComplianceAlertProjector extends Projector
                 'note'        => $event->note,  // Changed from 'content' to 'note'
                 'user_id'     => $event->addedBy,  // Changed from 'created_by' to 'user_id'
                 'attachments' => $event->attachments,
-                'created_at'  => ($event->occurredAt ?? now())->format('c'),
+                'created_at'  => ($event->occurredAt)->format('c'),
             ];
 
             $alert->update([
                 'investigation_notes' => $notes,
-                'updated_at'          => $event->occurredAt ?? now(),
+                'updated_at'          => $event->occurredAt,
             ]);
         }
     }
@@ -135,8 +135,8 @@ class ComplianceAlertProjector extends Projector
                 'status'           => 'resolved',
                 'resolution_notes' => $event->resolution,
                 'resolved_by'      => $event->resolvedBy,
-                'resolved_at'      => $event->occurredAt ?? now(),
-                'updated_at'       => $event->occurredAt ?? now(),
+                'resolved_at'      => now(),
+                'updated_at'       => now(),
             ]);
 
             // Add resolution notes to investigation_notes if provided
@@ -146,7 +146,7 @@ class ComplianceAlertProjector extends Projector
                     'type'       => 'resolution',
                     'content'    => $event->notes,
                     'created_by' => $event->resolvedBy,
-                    'created_at' => ($event->occurredAt ?? now())->format('c'),
+                    'created_at' => now()->format('c'),
                 ];
                 $alert->update(['investigation_notes' => $notes]);
             }
@@ -164,13 +164,13 @@ class ComplianceAlertProjector extends Projector
                     'alert_id'  => $linkedAlertId,
                     'link_type' => $event->linkType,
                     'linked_by' => $event->linkedBy,
-                    'linked_at' => ($event->linkedAt ?? now())->format('c'),
+                    'linked_at' => ($event->linkedAt)->format('c'),
                 ];
             }
 
             $alert->update([
                 'linked_alerts' => $linkedAlerts,
-                'updated_at'    => $event->linkedAt ?? now(),
+                'updated_at'    => $event->linkedAt,
             ]);
         }
     }
@@ -186,16 +186,16 @@ class ComplianceAlertProjector extends Projector
                 'case_id'      => $event->caseId,
                 'escalated_by' => $event->escalatedBy,
                 'reason'       => $event->reason,
-                'escalated_at' => ($event->occurredAt ?? now())->format('c'),
+                'escalated_at' => now()->format('c'),
             ];
 
             $alert->update([
                 'status'            => 'escalated',
                 'case_id'           => $event->caseId,
-                'escalated_at'      => $event->occurredAt ?? now(),
+                'escalated_at'      => now(),
                 'escalation_reason' => $event->reason,
                 'history'           => $history,
-                'updated_at'        => $event->occurredAt ?? now(),
+                'updated_at'        => now(),
             ]);
         }
     }

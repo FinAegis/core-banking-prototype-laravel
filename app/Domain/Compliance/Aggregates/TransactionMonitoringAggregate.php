@@ -208,7 +208,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
     protected function applyTransactionFlagged(TransactionFlagged $event): void
     {
         $this->status = 'flagged';
-        $this->flagReason = $event->reason ?? null;
+        $this->flagReason = $event->reason;
         if (isset($event->details['risk_score'])) {
             $this->riskScore = $event->details['risk_score'];
         }
@@ -220,7 +220,7 @@ class TransactionMonitoringAggregate extends AggregateRoot
     protected function applyTransactionCleared(TransactionCleared $event): void
     {
         $this->status = 'cleared';
-        $this->clearReason = $event->reason ?? null;
+        $this->clearReason = $event->reason;
         $this->riskLevel = 'low';
     }
 

@@ -317,7 +317,7 @@ class EnhancedDueDiligenceService
             $totalWeight += $weight;
         }
 
-        $overallScore = $totalWeight > 0 ? $weightedSum / $totalWeight : $baseScore;
+        $overallScore = $weightedSum / $totalWeight;
         $riskLevel = $this->determineRiskLevel($overallScore);
         $recommendation = $this->generateRecommendation($overallScore, $workflow);
 

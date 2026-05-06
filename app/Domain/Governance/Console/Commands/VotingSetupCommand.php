@@ -38,7 +38,7 @@ class VotingSetupCommand extends Command
         } elseif ($monthOption === 'next') {
             $targetMonth = $now->copy()->addMonth();
         } elseif (is_numeric($monthOption)) {
-            $targetMonth = Carbon::create($now->year, $monthOption, 1);
+            $targetMonth = Carbon::create($now->year, (int) $monthOption, 1);
             if ($targetMonth->lt($now)) {
                 $targetMonth->addYear();
             }

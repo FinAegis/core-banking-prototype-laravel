@@ -6,6 +6,7 @@ namespace App\Domain\Banking\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class IntelligentRoutingService
 {
@@ -166,13 +167,21 @@ class IntelligentRoutingService
 
         uasort($scores, static fn (array $a, array $b): int => $b['score'] <=> $a['score']);
 
-        $rails = array_keys($scores);
-        $recommended = $rails[0];
+        // The fallback above guarantees $scores has at least one entry, but the
+        // shape is all-optional-keys so PHPStan can't infer that. Pull the first
+        // key via array_key_first and bail defensively if it really is empty.
+        $recommended = array_key_first($scores);
+        if ($recommended === null) {
+            throw new RuntimeException('No payment rail available — scoring map is empty.');
+        }
         $recommendedData = $scores[$recommended];
 
         $alternatives = [];
-        foreach (array_slice($rails, 1) as $rail) {
-            $alternatives[] = ['rail' => $rail, 'score' => $scores[$rail]['score']];
+        foreach ($scores as $rail => $data) {
+            if ($rail === $recommended) {
+                continue;
+            }
+            $alternatives[] = ['rail' => $rail, 'score' => $data['score']];
         }
 
         $decisionFactors = [

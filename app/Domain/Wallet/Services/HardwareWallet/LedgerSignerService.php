@@ -488,8 +488,8 @@ class LedgerSignerService implements ExternalSignerInterface
             $this->toHex((string) ($transaction->nonce ?? 0)),
             $this->toHex($transaction->gasPrice ?? '0'),
             $this->toHex($transaction->gasLimit ?? '21000'),
-            $transaction->to ?? '',
-            $this->toHex($transaction->value ?? '0'),
+            $transaction->to,
+            $this->toHex($transaction->value),
             $transaction->data ?? '',
         ];
 

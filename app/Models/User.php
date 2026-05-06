@@ -35,12 +35,18 @@ class User extends Authenticatable implements FilamentUser
     use HasApiTokens;
     use HasFactory;
     use HasProfilePhoto;
-    use HasTeams;
     use HasUuids;
     use Notifiable;
     use TwoFactorAuthenticatable;
-    use HasRoles;
     use Billable;
+
+    // spatie/laravel-permission 7.4+ added a `teams()` method on HasRoles that
+    // collides with Jetstream's HasTeams::teams. Spatie's team-aware permission
+    // mode is disabled in config/permission.php, so Jetstream wins the method
+    // name and the unused Spatie variant is hidden.
+    use HasTeams, HasRoles {
+        HasTeams::teams insteadof HasRoles;
+    }
 
     /**
      * Get the columns that should receive a unique identifier.
