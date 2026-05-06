@@ -70,7 +70,15 @@ final class PrivyClaims
         }
 
         $linked = $payload['linked_accounts'] ?? [];
-        if (! is_array($linked)) {
+        // JWT::decode emits nested JSON objects as stdClass, not arrays — so an
+        // array of objects comes through as `[stdClass, stdClass, ...]`.
+        // Round-trip through json to flatten everything to associative arrays
+        // matching the documented shape.
+        if (is_array($linked) || is_object($linked)) {
+            $encoded = json_encode($linked);
+            $decoded = $encoded !== false ? json_decode($encoded, true) : null;
+            $linked = is_array($decoded) ? $decoded : [];
+        } else {
             $linked = [];
         }
 
@@ -83,5 +91,23 @@ final class PrivyClaims
             expiresAt: (new DateTimeImmutable())->setTimestamp((int) $exp),
             linkedAccounts: $linked,
         );
+    }
+
+    /**
+     * First linked-account address whose `type` is `email`. The JWT may omit
+     * `linked_accounts` for some users — callers should fall back to
+     * `PrivyJwtVerifier::fetchUserEmail()` in that case.
+     */
+    public function email(): ?string
+    {
+        foreach ($this->linkedAccounts as $account) {
+            $type = $account['type'] ?? null;
+            $address = $account['address'] ?? null;
+            if ($type === 'email' && is_string($address) && $address !== '') {
+                return strtolower($address);
+            }
+        }
+
+        return null;
     }
 }

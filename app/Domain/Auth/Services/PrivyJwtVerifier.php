@@ -122,4 +122,56 @@ final class PrivyJwtVerifier
             throw PrivyJwtException::malformed('JWKS could not be parsed: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Fallback when the JWT did not embed `linked_accounts`: pull the user
+     * record from the Privy server-side API and return the first linked email.
+     * Authenticates with `PRIVY_APP_ID:PRIVY_APP_SECRET` Basic auth.
+     *
+     * Returns `null` on any failure (bad config, network error, no email
+     * linked) so the caller can decide whether to fail closed or proceed
+     * without an email.
+     */
+    public function fetchUserEmail(string $privyUserId): ?string
+    {
+        $appId = (string) config('privy.app_id');
+        $appSecret = (string) config('privy.app_secret');
+        if ($appId === '' || $appSecret === '' || $privyUserId === '') {
+            return null;
+        }
+
+        $url = 'https://auth.privy.io/api/v1/users/' . rawurlencode($privyUserId);
+
+        try {
+            $response = $this->httpClient->request('GET', $url, [
+                'auth'    => [$appId, $appSecret],
+                'timeout' => 5,
+                'headers' => ['privy-app-id' => $appId],
+            ]);
+        } catch (GuzzleException) {
+            return null;
+        }
+
+        if ($response->getStatusCode() !== 200) {
+            return null;
+        }
+
+        $body = json_decode((string) $response->getBody(), true);
+        if (! is_array($body) || ! isset($body['linked_accounts']) || ! is_array($body['linked_accounts'])) {
+            return null;
+        }
+
+        foreach ($body['linked_accounts'] as $account) {
+            if (! is_array($account)) {
+                continue;
+            }
+            $type = $account['type'] ?? null;
+            $address = $account['address'] ?? null;
+            if ($type === 'email' && is_string($address) && $address !== '') {
+                return strtolower($address);
+            }
+        }
+
+        return null;
+    }
 }

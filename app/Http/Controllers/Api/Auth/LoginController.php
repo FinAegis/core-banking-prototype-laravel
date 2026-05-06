@@ -160,11 +160,12 @@ class LoginController extends Controller
     #[OA\Post(
         path: '/api/v1/auth/privy-login',
         summary: 'Exchange a Privy session JWT for a Sanctum token',
-        description: 'Verifies the Privy-issued session JWT against Privy\'s JWKS, finds or creates the backing user, and returns a Sanctum bearer token with read/write/delete abilities.',
+        description: 'Verifies the Privy-issued session JWT against Privy\'s JWKS, extracts the linked email (or fetches it from the Privy users API as fallback), finds or creates the backing user with the real email, and returns a Sanctum bearer token with read/write/delete abilities.',
         operationId: 'privyLogin',
         tags: ['Authentication'],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['privy_token'], properties: [
         new OA\Property(property: 'privy_token', type: 'string', description: 'Privy-issued session JWT (RS256)', example: 'eyJhbGciOiJSUzI1NiIs...'),
+        new OA\Property(property: 'name', type: 'string', nullable: true, description: 'Optional display name captured during signup. Used only for new-user creation; ignored on returning logins.', example: 'Jane Doe'),
         ]))
     )]
     #[OA\Response(
@@ -175,11 +176,12 @@ class LoginController extends Controller
         new OA\Property(property: 'data', type: 'object', properties: [
         new OA\Property(property: 'user', type: 'object', properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
-        new OA\Property(property: 'email', type: 'string', example: 'privy_abcdef1234567890@placeholder.zelta.app'),
+        new OA\Property(property: 'email', type: 'string', example: 'jane@example.com'),
         new OA\Property(property: 'privy_user_id', type: 'string', example: 'did:privy:cl9...'),
         ]),
         new OA\Property(property: 'token', type: 'string', example: '7|VVGVrIVokPBXkWLOi2yK...'),
         new OA\Property(property: 'token_type', type: 'string', example: 'Bearer'),
+        new OA\Property(property: 'is_new_user', type: 'boolean', example: true, description: 'True on first login (user record was just created); false on returning logins.'),
         ]),
         ])
     )]
@@ -195,8 +197,19 @@ class LoginController extends Controller
         ])
     )]
     #[OA\Response(
+        response: 409,
+        description: 'Email already in use by a non-Privy user',
+        content: new OA\JsonContent(properties: [
+        new OA\Property(property: 'success', type: 'boolean', example: false),
+        new OA\Property(property: 'error', type: 'object', properties: [
+        new OA\Property(property: 'code', type: 'string', example: 'EMAIL_ALREADY_EXISTS'),
+        new OA\Property(property: 'message', type: 'string', example: 'An account with this email already exists. Use a different Privy email or sign in with the existing credentials.'),
+        ]),
+        ])
+    )]
+    #[OA\Response(
         response: 422,
-        description: 'Validation failed',
+        description: 'Validation failed or no email linked to Privy account',
         content: new OA\JsonContent(properties: [
         new OA\Property(property: 'message', type: 'string', example: 'The privy token field is required.'),
         new OA\Property(property: 'errors', type: 'object'),
@@ -206,6 +219,7 @@ class LoginController extends Controller
     {
         $validated = $request->validate([
             'privy_token' => ['required', 'string'],
+            'name'        => ['nullable', 'string', 'max:120'],
         ]);
 
         try {
@@ -220,16 +234,41 @@ class LoginController extends Controller
             ], 401);
         }
 
+        $email = $claims->email() ?? $verifier->fetchUserEmail($claims->privyUserId);
+        if ($email === null) {
+            return response()->json([
+                'success' => false,
+                'error'   => [
+                    'code'    => 'NO_EMAIL_LINKED',
+                    'message' => 'Privy session is missing a linked email. Complete email verification in the app and try again.',
+                ],
+            ], 422);
+        }
+
         $user = User::where('privy_user_id', $claims->privyUserId)->first();
 
         if (! $user instanceof User) {
-            $placeholderEmail = 'privy_' . substr($claims->privyUserId, -16) . '@placeholder.zelta.app';
+            // A non-Privy user may already own this email. Refuse to silently
+            // attach the Privy identity to that account — that's account-takeover-
+            // shaped. Surface a clear conflict so mobile can prompt the user.
+            $existing = User::where('email', $email)->first();
+            if ($existing instanceof User) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => [
+                        'code'    => 'EMAIL_ALREADY_EXISTS',
+                        'message' => 'An account with this email already exists. Use a different Privy email or sign in with the existing credentials.',
+                    ],
+                ], 409);
+            }
+
+            $name = is_string($validated['name'] ?? null) ? trim((string) $validated['name']) : '';
 
             $user = User::create([
-                'name'              => 'Privy User',
-                'email'             => $placeholderEmail,
-                'password'          => Str::random(64),
-                'email_verified_at' => now(),
+                'name'              => $name !== '' ? $name : 'New User',
+                'email'             => $email,
+                'password'          => Str::random(64),  // unusable; auth gated by Privy
+                'email_verified_at' => now(),  // Privy already verified
                 'privy_user_id'     => $claims->privyUserId,
                 'privy_linked_at'   => now(),
             ]);
@@ -240,9 +279,10 @@ class LoginController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'user'       => $user,
-                'token'      => $token,
-                'token_type' => 'Bearer',
+                'user'        => $user,
+                'token'       => $token,
+                'token_type'  => 'Bearer',
+                'is_new_user' => $user->wasRecentlyCreated,
             ],
         ]);
     }
