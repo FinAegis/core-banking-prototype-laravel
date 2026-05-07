@@ -73,6 +73,7 @@ class User extends Authenticatable implements FilamentUser
         'avatar',
         'privy_user_id',
         'privy_linked_at',
+        'timezone',
         'kyc_status',
         'kyc_submitted_at',
         'kyc_approved_at',

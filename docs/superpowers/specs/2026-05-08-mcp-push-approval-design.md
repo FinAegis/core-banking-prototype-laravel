@@ -1,6 +1,6 @@
 # High-value MCP push approval — design
 
-**Status:** Draft for review with mobile dev. Loose answers from PR #1024 review thread are folded in.
+**Status:** Reviewed with mobile-side agent (2026-05-08). Four open questions resolved (see "Resolved decisions" section). Ready for implementation tickets.
 
 **Goal:** When a Claude/Cursor/etc. agent connected to Zelta via MCP attempts a write tool whose financial impact crosses a threshold, hold the operation, push a confirmation request to the user's mobile app, and resume only after the user biometric-approves it. Reject after a configurable window, returning a deterministic terminal state to the agent.
 
@@ -233,12 +233,39 @@ Behind feature flag `MCP_PUSH_APPROVAL_ENABLED` (default false). Phases:
 3. Open beta: enable for all users with `approval_threshold_minor` defaulting to `null` (no threshold) — users opt in via Profile → Connections settings.
 4. General availability: flip default threshold to `$50` for new grants. Existing grants keep `null` (no threshold) until user opts in.
 
-## Open questions for review
+## Resolved decisions (after mobile dev review)
 
-- **Threshold UI on consent screen:** slider vs three-tier picker (none/standard/strict)? Picker is less powerful but harder to misset.
-- **Push category permission:** the OS-level "do you allow notifications" prompt is one toggle. We can't separately gate "balance updates" vs "approval requests." If a user has push off, fall back to WebSocket (works on app-open, doesn't work background) — and if neither delivers within `expires_at`, auto-reject. Mobile dev: confirm WebSocket fallback in foreground is wired.
-- **Concurrent-request edge case:** Claude calls 5 tools in parallel, all over threshold. Mobile shows 5 modals (FIFO queue). Is there a UX where the user batches them ("approve all 5")? Probably out of scope for v1.
-- **Web UI for approvals:** if the user is on web at the time of the request, do we route the approval to web (in-page modal) instead of mobile push? Cleaner UX but doubles the build cost. Probably v2.
+The four open questions from the original draft have been resolved in dialogue with the mobile-side agent. Decisions are normative for v1.
+
+### Threshold UI on consent screen — three-tier picker
+
+**Not a slider.** Slider rewards misuse: too easy to set $0.01 (tap fatigue) or $10000 (effective bypass). Three labelled tiers + an "Advanced" affordance for custom amounts:
+
+- **None** — no approval gating, full discretion of the daily spending cap
+- **Standard** — $50 default
+- **Strict** — $10 default
+- **Advanced** — custom integer in user's preferred currency
+
+Matches the Apple Pay / Google Pay pattern for analogous limits. Stored on `oauth_access_tokens.approval_threshold_minor` as before; the picker UI just selects from three named presets.
+
+### Push permission interaction — foreground-only WebSocket fallback, auto-reject otherwise
+
+Mobile already has a `private-user.{userId}` channel; adding `onApprovalEvent` is a one-liner when the implementation lands. **Foreground only** — RN has no background WebSocket, so when push permissions are off AND the app is backgrounded, neither path delivers. The auto-reject-on-`expires_at` sweep is the only honest answer for that combination.
+
+To reduce surprise:
+
+- **Inline banner on the consent screen** when the user is selecting a non-`None` threshold and their OS push permission is off — "Approval-gated tools won't work in the background unless you allow notifications."
+- **Inline banner on the Connections screen** for any active grant whose threshold is non-`None` and whose owning user has notifications disabled.
+
+### Concurrent-request batching — defer to v2
+
+v1 ships FIFO single modal with a "N pending" badge. **No batch-approve.** A user with five pending approvals could rubber-stamp without reading; that's the exact attack vector this feature defends against. When v2 ships, each approval still needs its own biometric attestation regardless.
+
+### Web UI for approvals — defer to v2
+
+Most MCP traffic today comes from desktop apps that hold their own browser session (Claude Desktop, Cursor, Continue.dev). MVP delivery: **mobile push only**. Web-on-the-same-machine users with an active mobile session still get the push delivered to their phone. Mobile-app-less web users set their threshold to `None` on consent if they want to bypass entirely.
+
+Revisit at adoption ≥ X% (X TBD — pick when we have telemetry on the rate of "web-only user hits a threshold and times out").
 
 ## Build sequence
 

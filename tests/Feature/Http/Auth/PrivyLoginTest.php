@@ -248,3 +248,67 @@ it('returns 422 when privy_token field is missing', function (): void {
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['privy_token']);
 });
+
+it('persists timezone on signup when supplied by mobile', function (): void {
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:tzsignup',
+        'linked_accounts' => [['type' => 'email', 'address' => 'tzsignup@example.com']],
+    ], $this);
+
+    $response = $this->postJson('/api/v1/auth/privy-login', [
+        'privy_token' => $token,
+        'timezone'    => 'Europe/Vilnius',
+    ]);
+
+    $response->assertOk();
+    expect(User::where('privy_user_id', 'did:privy:tzsignup')->value('timezone'))
+        ->toBe('Europe/Vilnius');
+});
+
+it('updates timezone on returning login when device tz changes', function (): void {
+    $existing = User::factory()->create([
+        'email'           => 'tzupdate@example.com',
+        'privy_user_id'   => 'did:privy:tzupdate',
+        'privy_linked_at' => now(),
+        'timezone'        => 'America/Los_Angeles',
+    ]);
+
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:tzupdate',
+        'linked_accounts' => [['type' => 'email', 'address' => 'tzupdate@example.com']],
+    ], $this);
+
+    $this->postJson('/api/v1/auth/privy-login', [
+        'privy_token' => $token,
+        'timezone'    => 'Europe/Vilnius',
+    ])->assertOk();
+
+    expect($existing->fresh()->timezone)->toBe('Europe/Vilnius');
+});
+
+it('silently drops a malformed timezone string rather than failing the login', function (): void {
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:bogustz',
+        'linked_accounts' => [['type' => 'email', 'address' => 'bogus@example.com']],
+    ], $this);
+
+    $response = $this->postJson('/api/v1/auth/privy-login', [
+        'privy_token' => $token,
+        'timezone'    => 'Mars/Olympus_Mons',
+    ]);
+
+    $response->assertOk();
+    expect(User::where('privy_user_id', 'did:privy:bogustz')->value('timezone'))->toBeNull();
+});
+
+it('treats a missing timezone field as a no-op (backwards compat)', function (): void {
+    $token = privy_login_jwt([
+        'sub'             => 'did:privy:notzfield',
+        'linked_accounts' => [['type' => 'email', 'address' => 'notz@example.com']],
+    ], $this);
+
+    $this->postJson('/api/v1/auth/privy-login', ['privy_token' => $token])
+        ->assertOk();
+
+    expect(User::where('privy_user_id', 'did:privy:notzfield')->value('timezone'))->toBeNull();
+});

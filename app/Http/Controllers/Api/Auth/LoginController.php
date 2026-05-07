@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\IpBlockingService;
 use App\Traits\HasApiScopes;
 use Carbon\Carbon;
+use DateTimeZone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 class LoginController extends Controller
 {
@@ -220,6 +222,12 @@ class LoginController extends Controller
         $validated = $request->validate([
             'privy_token' => ['required', 'string'],
             'name'        => ['nullable', 'string', 'max:120'],
+            // IANA TZ name from Intl.DateTimeFormat().resolvedOptions().timeZone.
+            // Drives server-side daily resets (spending limits, MCP grant
+            // projections) so they match what the user sees in their wallet.
+            // Backwards-compat: missing field is a no-op; unrecognised tz is
+            // silently dropped rather than failing the login.
+            'timezone' => ['nullable', 'string', 'max:64'],
         ]);
 
         try {
@@ -244,6 +252,8 @@ class LoginController extends Controller
                 ],
             ], 422);
         }
+
+        $timezone = $this->resolveTimezone($validated['timezone'] ?? null);
 
         $user = User::where('privy_user_id', $claims->privyUserId)->first();
 
@@ -271,7 +281,13 @@ class LoginController extends Controller
                 'email_verified_at' => now(),  // Privy already verified
                 'privy_user_id'     => $claims->privyUserId,
                 'privy_linked_at'   => now(),
+                'timezone'          => $timezone,
             ]);
+        } elseif ($timezone !== null && $user->timezone !== $timezone) {
+            // Returning user with a new device tz — update silently. The user
+            // explicitly setting tz from the profile screen takes precedence
+            // until they sign in from a device with a different tz.
+            $user->forceFill(['timezone' => $timezone])->save();
         }
 
         $token = $user->createToken('privy', ['read', 'write', 'delete'])->plainTextToken;
@@ -285,6 +301,25 @@ class LoginController extends Controller
                 'is_new_user' => $user->wasRecentlyCreated,
             ],
         ]);
+    }
+
+    /**
+     * Validate the IANA timezone string (silently drops anything PHP doesn't
+     * recognise). Returns null for empty or invalid input — callers treat
+     * null as "no update" which preserves the existing column value.
+     */
+    private function resolveTimezone(?string $candidate): ?string
+    {
+        if (! is_string($candidate) || $candidate === '') {
+            return null;
+        }
+        try {
+            new DateTimeZone($candidate);
+
+            return $candidate;
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**
