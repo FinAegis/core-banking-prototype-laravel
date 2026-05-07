@@ -9,6 +9,24 @@ use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
 
+/**
+ * Bind a Mockery mock for PrivyEmailOtpClient into the container.
+ *
+ * Using app()->instance() instead of $this->mock() so PHPStan resolves
+ * cleanly — Pest test files have no class declaration, so PHPStan sees
+ * $this as the bare PHPUnit\Framework\TestCase rather than our
+ * Tests\TestCase (where the mock() helper lives).
+ *
+ * @param  callable(MockInterface): void $configure
+ */
+function mock_privy_otp_client(callable $configure): void
+{
+    /** @var PrivyEmailOtpClient&MockInterface $mock */
+    $mock = Mockery::mock(PrivyEmailOtpClient::class);
+    $configure($mock);
+    app()->instance(PrivyEmailOtpClient::class, $mock);
+}
+
 beforeEach(function (): void {
     config([
         'privy.app_id'            => 'test-app-id',
@@ -20,7 +38,7 @@ beforeEach(function (): void {
 });
 
 it('sends an OTP and redirects to the verify step on POST /login/privy/send', function (): void {
-    $this->mock(PrivyEmailOtpClient::class, function (MockInterface $m): void {
+    mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('sendCode')->once()->with('jane@example.com');
     });
 
@@ -33,7 +51,7 @@ it('sends an OTP and redirects to the verify step on POST /login/privy/send', fu
 });
 
 it('rejects an invalid email with a validation error', function (): void {
-    $this->mock(PrivyEmailOtpClient::class, function (MockInterface $m): void {
+    mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('sendCode')->never();
     });
 
@@ -46,7 +64,7 @@ it('rejects an invalid email with a validation error', function (): void {
 });
 
 it('signs up a new user when verifyCode resolves a Privy DID with no existing record', function (): void {
-    $this->mock(PrivyEmailOtpClient::class, function (MockInterface $m): void {
+    mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('loginWithCode')
             ->once()
             ->with('jane@example.com', '123456')
@@ -74,7 +92,7 @@ it('signs in an existing Privy user without creating a duplicate row', function 
         'privy_linked_at' => now(),
     ]);
 
-    $this->mock(PrivyEmailOtpClient::class, function (MockInterface $m): void {
+    mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('loginWithCode')
             ->once()
             ->with('returning@example.com', '999999')
@@ -98,7 +116,7 @@ it('refuses verifyCode when the email is already owned by a non-Privy account', 
         'privy_user_id' => null,
     ]);
 
-    $this->mock(PrivyEmailOtpClient::class, function (MockInterface $m): void {
+    mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('loginWithCode')
             ->once()
             ->andReturn(['id' => 'did:privy:tryingtotakeover', 'email' => 'taken@example.com']);
@@ -116,7 +134,7 @@ it('refuses verifyCode when the email is already owned by a non-Privy account', 
 });
 
 it('returns to verify step with an error when the OTP code is wrong', function (): void {
-    $this->mock(PrivyEmailOtpClient::class, function (MockInterface $m): void {
+    mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('loginWithCode')
             ->once()
             ->andThrow(new App\Domain\Auth\Exceptions\PrivyEmailOtpException('Privy /api/v1/passwordless/authenticate returned 400: Invalid code'));
@@ -142,7 +160,7 @@ it('serves the Privy OTP login view at GET /login when the feature flag is on', 
 });
 
 it('preserves intended URL across the OTP flow (signup-during-OAuth)', function (): void {
-    $this->mock(PrivyEmailOtpClient::class, function (MockInterface $m): void {
+    mock_privy_otp_client(function (MockInterface $m): void {
         $m->shouldReceive('loginWithCode')
             ->once()
             ->andReturn(['id' => 'did:privy:intended', 'email' => 'i@example.com']);
