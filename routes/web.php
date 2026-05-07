@@ -19,6 +19,13 @@ Route::get('/app', function () {
     return view('app');
 })->name('app.landing');
 
+// Public consumer-facing MCP onboarding flow. Available on production
+// (zelta.app) and demo alike — the agentic-payments brand voice fits
+// both surfaces and we want a single canonical "connect to AI" page.
+Route::get('/connect', function () {
+    return view('connect');
+})->name('connect');
+
 // WebSocket endpoint with origin validation
 Route::get('/ws', function (Request $request) {
     $origin = $request->header('Origin');

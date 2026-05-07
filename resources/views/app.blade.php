@@ -159,7 +159,7 @@
     <a href="#main-content" class="skip-to-content">Skip to content</a>
 
     @php
-    $navLinks = ['Features' => '#features', 'Security' => '#security', 'FAQ' => '#faq'];
+    $navLinks = ['Features' => '#features', 'AI' => '#agentic', 'Security' => '#security', 'FAQ' => '#faq'];
     @endphp
 
     {{-- ═══════════════════════════════════════════════════════════════
@@ -692,6 +692,105 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════
+         AGENTIC — USE ZELTA FROM YOUR AI
+    ═══════════════════════════════════════════════════════════════ --}}
+    <section id="agentic" class="px-5 py-20 md:py-28 bg-white relative overflow-hidden">
+
+        {{-- Decorative blob --}}
+        <div class="absolute pointer-events-none select-none" style="top: 10%; right: -10%; width: 28rem; height: 28rem; background: radial-gradient(circle, rgba(204,255,0,0.18) 0%, transparent 70%); filter: blur(40px);" aria-hidden="true"></div>
+
+        <div class="relative z-10 mx-auto max-w-6xl">
+
+            {{-- Header --}}
+            <div class="text-center mb-12 md:mb-16">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-acid bru-border text-sm font-bold mb-6" style="transform: rotate(-1deg);">
+                    <span class="w-2 h-2 rounded-full bg-obsidian animate-pulse"></span>
+                    NEW · v7.11
+                </div>
+                <h2 class="text-4xl sm:text-5xl md:text-6xl font-black mb-5 font-heading tracking-tighter">
+                    Use {{ $brand }} from <span class="text-z-purple">your AI</span>
+                </h2>
+                <p class="text-lg md:text-xl max-w-2xl mx-auto text-text-sec font-medium">
+                    Connect Claude, Cursor, ChatGPT — any MCP-compatible agent — to your wallet. Send payments, check balances, get spending analysis with a prompt. You set the daily cap; you confirm every move.
+                </p>
+            </div>
+
+            {{-- Three steps --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+
+                {{-- Step 1 --}}
+                <div class="relative bg-mint bru-card-lg rounded-3xl p-7">
+                    <div class="absolute -top-5 -left-3 w-14 h-14 rounded-2xl bg-obsidian text-white font-black flex items-center justify-center text-3xl bru-border" style="transform: rotate(-6deg);">
+                        1
+                    </div>
+                    <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Sign in</h3>
+                    <p class="text-base font-medium text-text-sec mb-5">
+                        Email-only, passwordless. One minute, no credit card.
+                    </p>
+                    <div class="bg-white rounded-2xl bru-border p-3 font-mono text-xs text-text-sec">
+                        you@example.com
+                    </div>
+                </div>
+
+                {{-- Step 2 --}}
+                <div class="relative bg-bg-tertiary bru-card-lg rounded-3xl p-7" style="transform: translateY(8px);">
+                    <div class="absolute -top-5 -left-3 w-14 h-14 rounded-2xl bg-z-purple text-obsidian font-black flex items-center justify-center text-3xl bru-border" style="transform: rotate(4deg);">
+                        2
+                    </div>
+                    <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Add to your AI</h3>
+                    <p class="text-base font-medium text-text-sec mb-5">
+                        Three lines of config in Claude Desktop, Cursor, or Continue.dev.
+                    </p>
+                    <div class="bg-obsidian rounded-2xl p-3 font-mono text-xs text-acid">
+                        url: mcp.zelta.app/mcp
+                    </div>
+                </div>
+
+                {{-- Step 3 --}}
+                <div class="relative bg-acid bru-card-lg rounded-3xl p-7">
+                    <div class="absolute -top-5 -left-3 w-14 h-14 rounded-2xl bg-white text-obsidian font-black flex items-center justify-center text-3xl bru-border" style="transform: rotate(-3deg);">
+                        3
+                    </div>
+                    <h3 class="font-black font-heading tracking-tight text-2xl mt-3 mb-3">Authorize</h3>
+                    <p class="text-base font-medium text-text-sec mb-5">
+                        Pick scopes, set a daily cap, you're done. Token persists per client.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs font-bold text-text-sec">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        DONE — TRY A PROMPT
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- CTA + reassurance --}}
+            <div class="flex flex-col items-center gap-6">
+                <a href="{{ url('/connect') }}" class="btn-hover rounded-full px-10 py-4 text-lg font-black bg-obsidian text-white bru-card font-heading tracking-tight">
+                    Connect to Claude →
+                </a>
+                <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm font-medium text-text-sec">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-z-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        OAuth 2.1 — you approve scopes
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-z-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Daily spending cap
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-z-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Revoke any time
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    {{-- ═══════════════════════════════════════════════════════════════
          FAQ
     ═══════════════════════════════════════════════════════════════ --}}
     <section id="faq" class="px-5 py-20 md:py-28 bg-bg-tertiary">
@@ -707,6 +806,7 @@
                     ['q' => 'Do I pay gas fees?', 'a' => 'No. ' . $brand . ' uses ERC-4337 Account Abstraction so you never need to hold ETH. Gas fees are either sponsored or paid in the stablecoin you\'re spending. You think in dollars, not in gwei.'],
                     ['q' => 'What is TrustCert?', 'a' => 'TrustCert is ' . $brand . '\'s identity verification system, issued as non-transferable Soulbound Tokens on-chain. Three tiers: Basic (email + phone), Verified (ID + address), Enhanced (full KYB + source of funds). Higher tiers unlock larger spending limits and fiat off-ramps. Certificates are verifiable by third parties without exposing your personal data.'],
                     ['q' => 'Can AI agents use ' . $brand . '?', 'a' => 'Yes. ' . $brand . ' supports three payment protocols: x402 (USDC micropayments), MPP (Stripe, Lightning, stablecoins), and AP2 mandates (Google\'s agent authorization). Agents pay for APIs, SMS, cloud services, and datasets autonomously — constrained by daily budgets and per-transaction caps that you control.'],
+                    ['q' => 'How do I connect Claude or another AI to my ' . $brand . ' wallet?', 'a' => $brand . ' runs a public Model Context Protocol (MCP) server at mcp.zelta.app — that\'s the open standard Claude, Cursor, ChatGPT, Continue.dev and other agents use to talk to external tools. Sign in to ' . $brand . ', click Connect to Claude (or paste the URL into your client\'s MCP settings), pick the scopes you want, and set a daily spending cap. The agent gets a token bound to those limits — it can never exceed them, and you can revoke at any time. 12 tools cover account balances, payments, exchange, on/off-ramp, transaction history, and SMS.'],
                     ['q' => 'Which networks are supported?', 'a' => $brand . ' supports Base, Polygon, Arbitrum, Ethereum, and Solana. EVM networks share a single wallet address with sub-cent transaction fees. Solana offers the fastest settlement (~400ms). Switch networks anytime.'],
                 ];
                 @endphp
