@@ -124,14 +124,22 @@ final class JsonRpcRouter
                 continue;
             }
 
-            $tools[] = [
+            $isWrite = (bool) ($entry['is_write'] ?? false);
+
+            $tool = [
                 'name'        => (string) $publicName,
                 'description' => $internal->getDescription(),
-                'inputSchema' => $this->withIdempotencyField(
-                    $internal->getInputSchema(),
-                    (bool) ($entry['is_write'] ?? false),
-                ),
+                'inputSchema' => $this->withIdempotencyField($internal->getInputSchema(), $isWrite),
+                'annotations' => [
+                    'title'           => (string) ($entry['title'] ?? $publicName),
+                    'readOnlyHint'    => ! $isWrite,
+                    'destructiveHint' => $isWrite,
+                    'idempotentHint'  => $isWrite,
+                    'openWorldHint'   => true,
+                ],
             ];
+
+            $tools[] = $tool;
         }
 
         return [

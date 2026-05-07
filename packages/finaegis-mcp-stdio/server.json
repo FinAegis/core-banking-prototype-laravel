@@ -1,0 +1,81 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "app.zelta/mcp",
+  "title": "Zelta",
+  "description": "Public MCP server for Zelta — a multi-rail payments and wallet platform. Exposes 12 tools across accounts, payments, transactions, exchange, on/offramp, and SMS, gated by OAuth 2.1 with per-token spending limits.",
+  "version": "0.1.6",
+  "websiteUrl": "https://finaegis.org/features/mcp",
+  "repository": {
+    "url": "https://github.com/FinAegis/core-banking-prototype-laravel",
+    "source": "github",
+    "subfolder": "packages/finaegis-mcp-stdio"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.zelta.app/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@finaegis/mcp",
+      "version": "0.1.6",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MCP_SERVER_URL",
+          "description": "Override the remote MCP endpoint. Defaults to https://mcp.zelta.app/mcp.",
+          "isRequired": false,
+          "default": "https://mcp.zelta.app/mcp"
+        },
+        {
+          "name": "MCP_AUTH_SERVER",
+          "description": "Override the OAuth authorization server. Defaults to https://zelta.app.",
+          "isRequired": false,
+          "default": "https://zelta.app"
+        },
+        {
+          "name": "MCP_OAUTH_NO_BROWSER",
+          "description": "Set to 1 to print the auth URL instead of opening a browser (useful in headless environments).",
+          "isRequired": false
+        },
+        {
+          "name": "FINAEGIS_MCP_TOKEN_STORE",
+          "description": "Token storage backend: 'file' (default, ~/.config/finaegis-mcp/tokens.json) or 'keychain' (requires keytar installed separately).",
+          "isRequired": false,
+          "default": "file",
+          "choices": ["file", "keychain"]
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "io.github.FinAegis": {
+        "publisher": "FinAegis",
+        "brand": "Zelta",
+        "supportEmail": "support@zelta.app",
+        "privacyPolicyUrl": "https://zelta.app/legal/privacy",
+        "termsOfServiceUrl": "https://zelta.app/legal/terms",
+        "scopes": [
+          "accounts:read",
+          "accounts:write",
+          "payments:read",
+          "payments:write",
+          "transactions:read",
+          "exchange:read",
+          "exchange:write",
+          "ramp:read",
+          "ramp:write",
+          "sms:send"
+        ],
+        "categories": ["finance", "payments", "wallet"]
+      }
+    }
+  }
+}

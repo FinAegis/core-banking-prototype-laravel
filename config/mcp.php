@@ -51,22 +51,24 @@ return [
         // client_credentials grants (user_id=null) are rejected at dispatch.
         // mpp.discovery is the only tool that works without a user since it's
         // a public-rail catalog lookup.
-        'account.balance'    => ['internal' => 'account.balance',                'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_ACCOUNT_BALANCE', true),     'is_write' => false, 'requires_user' => true],
-        'account.create'     => ['internal' => 'account.create',                 'scope' => 'accounts:write',    'enabled' => env('MCP_TOOL_ACCOUNT_CREATE', true),      'is_write' => true,  'requires_user' => true],
-        'payment.status'     => ['internal' => 'payment.status',                 'scope' => 'payments:read',     'enabled' => env('MCP_TOOL_PAYMENT_STATUS', true),      'is_write' => false, 'requires_user' => true],
-        'payment.transfer'   => ['internal' => 'payment.transfer',               'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', true),    'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'amount_arg' => 'amount',  'currency_arg' => 'currency',  'amount_decimals' => 2],
-        'transactions.query' => ['internal' => 'transactions.query',             'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_TRANSACTIONS_QUERY', true),  'is_write' => false, 'requires_user' => true],
-        'spending.analysis'  => ['internal' => 'transactions.spending_analysis', 'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_SPENDING_ANALYSIS', true),   'is_write' => false, 'requires_user' => true],
-        'exchange.quote'     => ['internal' => 'exchange.quote',                 'scope' => 'exchange:read',     'enabled' => env('MCP_TOOL_EXCHANGE_QUOTE', true),      'is_write' => false, 'requires_user' => true],
+        // `title` is the human-readable display label exposed via tools/list
+        // annotations — required by the Anthropic Connectors Directory.
+        'account.balance'    => ['internal' => 'account.balance',                'title' => 'Get account balance',              'scope' => 'accounts:read',     'enabled' => env('MCP_TOOL_ACCOUNT_BALANCE', true),     'is_write' => false, 'requires_user' => true],
+        'account.create'     => ['internal' => 'account.create',                 'title' => 'Create a new account',             'scope' => 'accounts:write',    'enabled' => env('MCP_TOOL_ACCOUNT_CREATE', true),      'is_write' => true,  'requires_user' => true],
+        'payment.status'     => ['internal' => 'payment.status',                 'title' => 'Look up payment status',           'scope' => 'payments:read',     'enabled' => env('MCP_TOOL_PAYMENT_STATUS', true),      'is_write' => false, 'requires_user' => true],
+        'payment.transfer'   => ['internal' => 'payment.transfer',               'title' => 'Send a payment',                   'scope' => 'payments:write',    'enabled' => env('MCP_TOOL_PAYMENT_TRANSFER', true),    'is_write' => true,  'requires_user' => true, 'is_payment' => true,  'amount_arg' => 'amount',  'currency_arg' => 'currency',  'amount_decimals' => 2],
+        'transactions.query' => ['internal' => 'transactions.query',             'title' => 'Query transaction history',        'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_TRANSACTIONS_QUERY', true),  'is_write' => false, 'requires_user' => true],
+        'spending.analysis'  => ['internal' => 'transactions.spending_analysis', 'title' => 'Spending analysis by category',    'scope' => 'transactions:read', 'enabled' => env('MCP_TOOL_SPENDING_ANALYSIS', true),   'is_write' => false, 'requires_user' => true],
+        'exchange.quote'     => ['internal' => 'exchange.quote',                 'title' => 'Get an exchange rate quote',       'scope' => 'exchange:read',     'enabled' => env('MCP_TOOL_EXCHANGE_QUOTE', true),      'is_write' => false, 'requires_user' => true],
         // exchange.trade is intentionally NOT is_payment: the spending-limit
         // commitment is the QUOTE-currency cost (amount * market price), and
         // market price isn't in the tool arguments. Wire saga coverage once
         // the trade tool surfaces a settled fiat-equivalent in its result.
-        'exchange.trade' => ['internal' => 'exchange.trade',                 'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', true),      'is_write' => true,  'requires_user' => true],
-        'ramp.start'     => ['internal' => 'ramp.start',                     'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true,  'requires_user' => true],
-        'ramp.status'    => ['internal' => 'ramp.status',                    'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false, 'requires_user' => true],
-        'mpp.discovery'  => ['internal' => 'mpp.discovery',                  'scope' => null,                'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
-        'sms.send'       => ['internal' => 'sms.send',                       'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true,  'requires_user' => true],
+        'exchange.trade' => ['internal' => 'exchange.trade',                 'title' => 'Execute an exchange trade',        'scope' => 'exchange:write',    'enabled' => env('MCP_TOOL_EXCHANGE_TRADE', true),      'is_write' => true,  'requires_user' => true],
+        'ramp.start'     => ['internal' => 'ramp.start',                     'title' => 'Start an on/offramp session',      'scope' => 'ramp:write',        'enabled' => env('MCP_TOOL_RAMP_START', true),          'is_write' => true,  'requires_user' => true],
+        'ramp.status'    => ['internal' => 'ramp.status',                    'title' => 'Check on/offramp session status',  'scope' => 'ramp:read',         'enabled' => env('MCP_TOOL_RAMP_STATUS', true),         'is_write' => false, 'requires_user' => true],
+        'mpp.discovery'  => ['internal' => 'mpp.discovery',                  'title' => 'Discover multi-rail payment routes', 'scope' => null,              'enabled' => env('MCP_TOOL_MPP_DISCOVERY', true),       'is_write' => false],
+        'sms.send'       => ['internal' => 'sms.send',                       'title' => 'Send an SMS (paid via x402)',      'scope' => 'sms:send',          'enabled' => env('MCP_TOOL_SMS_SEND', true),            'is_write' => true,  'requires_user' => true],
     ],
 
     /*

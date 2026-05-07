@@ -232,3 +232,33 @@ it('augments write tool input schemas with a required idempotency_key field', fu
     // Read tool: no idempotency_key.
     expect($byName['account.balance']['inputSchema']['properties'] ?? [])->not->toHaveKey('idempotency_key');
 });
+
+it('emits MCP tool annotations (title + read/destructive/idempotent hints) on every tool', function () {
+    /** @var JsonRpcRouter $router */
+    $router = app(JsonRpcRouter::class);
+
+    $ctx = fakeMcpContext(['scopes' => ['*']]);
+    $envelope = ['jsonrpc' => '2.0', 'id' => 4, 'method' => 'tools/list', 'params' => new stdClass()];
+    $response = $router->dispatch($envelope, $ctx);
+
+    $byName = [];
+    foreach ($response['result']['tools'] as $tool) {
+        $byName[$tool['name']] = $tool;
+    }
+
+    // Read tool — readOnlyHint=true, destructiveHint=false.
+    $readAnnotations = $byName['account.balance']['annotations'] ?? null;
+    expect($readAnnotations)->not->toBeNull();
+    expect($readAnnotations['title'])->toBe('Get account balance');
+    expect($readAnnotations['readOnlyHint'])->toBeTrue();
+    expect($readAnnotations['destructiveHint'])->toBeFalse();
+    expect($readAnnotations['idempotentHint'])->toBeFalse();
+
+    // Write tool — destructiveHint=true, readOnlyHint=false, idempotentHint=true (we add idempotency_key).
+    $writeAnnotations = $byName['payment.transfer']['annotations'] ?? null;
+    expect($writeAnnotations)->not->toBeNull();
+    expect($writeAnnotations['title'])->toBe('Send a payment');
+    expect($writeAnnotations['readOnlyHint'])->toBeFalse();
+    expect($writeAnnotations['destructiveHint'])->toBeTrue();
+    expect($writeAnnotations['idempotentHint'])->toBeTrue();
+});

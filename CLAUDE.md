@@ -128,6 +128,7 @@ Packagist sources the three PHP packages from **split-mirror repos**, not the mo
 - OAuth AS: Laravel Passport (existing) extended with DCR at `/oauth/register`
 - Spec: `docs/superpowers/specs/2026-04-27-mcp-server-design.md`
 - npm wrapper: `packages/finaegis-mcp-stdio/` published as `@finaegis/mcp`, mirrored to `FinAegis/mcp` on `mcp-v*` tags
+- Public-directory submissions: `packages/finaegis-mcp-stdio/server.json` (Official MCP Registry, namespace `app.zelta/mcp`) + `smithery.yaml`. Runbook: `docs/operations/mcp-directory-submissions.md` — DNS verification, publish CLI, Connectors form values, status tracking
 
 | Pitfall | Fix |
 |---|---|
@@ -138,6 +139,7 @@ Packagist sources the three PHP packages from **split-mirror repos**, not the mo
 | `http://localhost` rejected at DCR | Use `127.0.0.1` (RFC 8252 §7.3) — our validator is strict on the literal IP |
 | Float-money in catalog amounts | Saga converts major→minor via `bcmath`; never `(int)($amount * 100)` |
 | Stale tool count in dev portal | `developers/mcp-tools.blade.php` — keep in sync with `config('mcp.tools')` count |
+| Connectors Directory rejects "missing tool annotations" | Every catalog entry needs a `title`; `tools/list` derives `readOnlyHint`/`destructiveHint`/`idempotentHint` from `is_write` automatically (`JsonRpcRouter::handleToolsList`) |
 
 ## Wallet Send (v7.12.0+)
 
