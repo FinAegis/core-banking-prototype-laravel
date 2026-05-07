@@ -86,7 +86,16 @@
 <section class="bg-white py-16" id="connect">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold mb-2">Connect in 30 seconds</h2>
-        <p class="text-slate-600 mb-8">First launch opens a browser for OAuth consent. Token persists per-client; subsequent launches are silent.</p>
+        <p class="text-slate-600 mb-6">First launch opens a browser for OAuth consent. Token persists per-client; subsequent launches are silent.</p>
+
+        <div class="mb-8 p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-3">
+            <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="text-sm text-emerald-900">
+                <strong>Prerequisite:</strong> a {{ $brand }} account. Sign up free at <a href="https://zelta.app" target="_blank" rel="noopener" class="font-semibold underline hover:no-underline">zelta.app</a> — passwordless email-OTP, takes under a minute. Then come back here.
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="border border-slate-200 rounded-xl p-6">

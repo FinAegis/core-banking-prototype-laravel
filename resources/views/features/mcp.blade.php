@@ -67,6 +67,39 @@
         <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
     </section>
 
+    <!-- Get started in 3 steps -->
+    <section class="py-20 bg-slate-50" id="get-started">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-3">Get started in 3 steps</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">From zero to "Claude paid my supplier" in about four minutes. Free to try — no credit card.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="border border-slate-200 rounded-xl p-6 relative">
+                    <div class="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-lg shadow-md">1</div>
+                    <h3 class="font-bold text-lg mb-2 mt-2">Create your {{ $brand }} account</h3>
+                    <p class="text-sm text-slate-600 mb-4">Sign in with email — passwordless, OTP-only. You're live in under a minute.</p>
+                    <a href="https://zelta.app" target="_blank" rel="noopener" class="btn-primary !px-4 !py-2 text-sm inline-flex">Open zelta.app →</a>
+                </div>
+                <div class="border border-slate-200 rounded-xl p-6 relative">
+                    <div class="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-lg shadow-md">2</div>
+                    <h3 class="font-bold text-lg mb-2 mt-2">Add the connector to your AI</h3>
+                    <p class="text-sm text-slate-600 mb-4">Claude Desktop, Claude.ai, Cursor, Continue.dev — copy-paste setup, three lines.</p>
+                    <a href="{{ url('/developers/mcp-tools#connect') }}" class="btn-outline !px-4 !py-2 text-sm inline-flex">See connector setup →</a>
+                </div>
+                <div class="border border-slate-200 rounded-xl p-6 relative">
+                    <div class="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-lg shadow-md">3</div>
+                    <h3 class="font-bold text-lg mb-2 mt-2">Authorize and go</h3>
+                    <p class="text-sm text-slate-600 mb-4">First call opens a consent screen. You pick scopes, set a daily spending cap, and you're done. Token persists per client.</p>
+                    <span class="text-sm text-slate-500 italic">No further steps — try a prompt.</span>
+                </div>
+            </div>
+            <p class="text-center text-sm text-slate-500 mt-10">
+                Looking for the technical details? See the <a href="{{ url('/developers/mcp-tools') }}" class="text-emerald-600 hover:underline font-medium">developer reference</a> for tool schemas, OAuth scopes, and error codes.
+            </p>
+        </div>
+    </section>
+
     <!-- What MCP is -->
     <section class="py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
