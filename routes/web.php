@@ -26,6 +26,18 @@ Route::get('/connect', function () {
     return view('connect');
 })->name('connect');
 
+// Privy email-OTP web login (gated by MCP_WEB_PRIVY_LOGIN). The matching
+// GET /login view is registered by Fortify::loginView() in the service
+// provider when the flag is on. POST routes are always registered so the
+// URLs are stable across envs; if the feature flag is off the legacy
+// Jetstream login form continues to work and these endpoints are unused.
+Route::post('/login/privy/send', [App\Http\Controllers\Web\PrivyWebAuthController::class, 'sendCode'])
+    ->middleware('throttle:6,1')
+    ->name('login.privy.send');
+Route::post('/login/privy/verify', [App\Http\Controllers\Web\PrivyWebAuthController::class, 'verifyCode'])
+    ->middleware('throttle:10,1')
+    ->name('login.privy.verify');
+
 // WebSocket endpoint with origin validation
 Route::get('/ws', function (Request $request) {
     $origin = $request->header('Origin');

@@ -146,6 +146,7 @@ Packagist sources the three PHP packages from **split-mirror repos**, not the mo
 Non-custodial flow. Privy holds the keys (passkey-controlled smart accounts on EVM, device-bound ed25519 on Solana); the device signs every transaction. Backend never sees private key material.
 
 - Auth bridge: `POST /api/v1/auth/privy-login` — JWT verified via JWKS (firebase/php-jwt), exchanged for a Sanctum token
+- Web `/login` Privy email-OTP (gated by `MCP_WEB_PRIVY_LOGIN=true`): server-side REST proxy to `POST /api/v1/passwordless/{init,authenticate}` on `auth.privy.io`. Issues a Laravel session via `Auth::login()` and redirects to `intended()`. Replaces legacy Jetstream email+password when the flag is on. Same `User` table + `firstOrCreate(privy_user_id)` lookup as mobile, so cross-client account merging Just Works. See `app/Http/Controllers/Web/PrivyWebAuthController.php`
 - Address registration: `POST /api/v1/wallet/addresses` — mirrors EVM smart-account address across polygon/base/arbitrum/ethereum, plus one Solana ed25519 row in `blockchain_addresses`
 - Send: `POST /api/v1/wallet/transactions/prepare` returns unsigned payload, `POST /api/v1/wallet/transactions/submit` accepts the signed blob
 - Wire contract is camelCase: `quoteId`, `intentId`, `evm.ownerPasskeyCredentialId`. `Idempotency-Key` is an HTTP header, not a body field.

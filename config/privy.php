@@ -53,4 +53,30 @@ return [
     */
 
     'jwks_cache_ttl_seconds' => 3600,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Privy REST API base URL
+    |--------------------------------------------------------------------------
+    |
+    | The host for server-to-server REST calls (email OTP, user lookup, wallet
+    | provisioning). Defaults to the production endpoint.
+    |
+    */
+
+    'api_base_url' => env('PRIVY_API_BASE_URL', 'https://auth.privy.io'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Web login feature flag
+    |--------------------------------------------------------------------------
+    |
+    | When true, the public web /login surface uses Privy email-OTP via the
+    | server-side REST API. Off by default while we ramp; flip on per
+    | environment to migrate web auth off the legacy email+password Jetstream
+    | flow. No effect on the existing mobile flow at /api/v1/auth/privy-login.
+    |
+    */
+
+    'web_login_enabled' => (bool) env('MCP_WEB_PRIVY_LOGIN', false),
 ];

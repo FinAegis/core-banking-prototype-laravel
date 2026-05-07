@@ -33,6 +33,19 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
+        // Replace Jetstream's email+password login view with our Privy
+        // email-OTP flow when the feature flag is on. The matching POST
+        // routes live in routes/web.php under the login.privy.* names.
+        // Evaluate the flag inside the closure so tests can flip the config
+        // after boot — and so a future env reload picks it up without a
+        // process restart.
+        Fortify::loginView(fn () => view(
+            (bool) config('privy.web_login_enabled', false) ? 'auth.privy-login' : 'auth.login'
+        ));
+        Fortify::registerView(fn () => view(
+            (bool) config('privy.web_login_enabled', false) ? 'auth.privy-login' : 'auth.register'
+        ));
+
         RateLimiter::for(
             'login',
             function (Request $request) {
