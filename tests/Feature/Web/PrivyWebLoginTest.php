@@ -128,7 +128,9 @@ it('refuses verifyCode when the email is already owned by a non-Privy account', 
     ]);
 
     $response->assertRedirect(route('login'))
-        ->assertSessionHasErrors('email');
+        ->assertSessionHasErrors('email')
+        // Mirror the mobile transport: error.code is parseable for support diagnosis.
+        ->assertSessionHas('error_code', 'EMAIL_ALREADY_EXISTS');
     $this->assertGuest();
     expect(User::where('privy_user_id', 'did:privy:tryingtotakeover')->count())->toBe(0);
 });
