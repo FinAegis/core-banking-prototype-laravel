@@ -266,7 +266,7 @@ it('persists timezone on signup when supplied by mobile', function (): void {
 });
 
 it('updates timezone on returning login when device tz changes', function (): void {
-    $existing = User::factory()->create([
+    User::factory()->create([
         'email'           => 'tzupdate@example.com',
         'privy_user_id'   => 'did:privy:tzupdate',
         'privy_linked_at' => now(),
@@ -283,7 +283,8 @@ it('updates timezone on returning login when device tz changes', function (): vo
         'timezone'    => 'Europe/Vilnius',
     ])->assertOk();
 
-    expect($existing->fresh()->timezone)->toBe('Europe/Vilnius');
+    expect(User::where('privy_user_id', 'did:privy:tzupdate')->value('timezone'))
+        ->toBe('Europe/Vilnius');
 });
 
 it('silently drops a malformed timezone string rather than failing the login', function (): void {
