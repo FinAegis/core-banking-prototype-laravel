@@ -1,8 +1,6 @@
-# Linear ticket draft: Connected AI agents screen
+# Spec: Connected AI agents screen
 
-Copy-paste this into Linear when ready to scope. Title as `[wallet] Connected AI agents — list, view, revoke MCP grants`.
-
----
+**Status:** Ready for implementation. Draft scoped to backend + mobile work; web UI is a follow-up.
 
 ## Context
 
