@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="Zelta">
+  <title>Zelta</title>
+  <!-- Brutalist drop shadow -->
+  <rect x="40" y="40" width="448" height="448" rx="96" fill="#0a0a0a"/>
+  <!-- Mint card -->
+  <rect x="16" y="16" width="448" height="448" rx="96" fill="#a8f0c4" stroke="#0a0a0a" stroke-width="24"/>
+  <!-- Letter Z (brutalist, slab) -->
+  <path d="M132 132h216v68L218 348h130v68H132v-68l130-148H132z" fill="#0a0a0a"/>
+</svg>
