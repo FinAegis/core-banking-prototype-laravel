@@ -10,6 +10,7 @@ use App\Domain\AccountProvisioning\ValueObjects\ProvisioningContext;
 use App\Domain\User\Values\UserRoles;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -27,6 +28,7 @@ class AccountProvisionReviewerCommand extends Command
                             {--allow-production : Required when APP_ENV=production}
                             {--rotate-password : Rotate password only, skip reseed}
                             {--force-convert : Convert a non-review user (blocked in production)}
+                            {--issue-mobile-token : Also issue a long-lived Sanctum token for app-store reviewer paste-to-login (shown once, treat like the password)}
                             {--dry-run : Print intended changes, write nothing}';
 
     /** @var string */
@@ -108,7 +110,7 @@ class AccountProvisionReviewerCommand extends Command
             return 1;
         }
 
-        $this->line((string) json_encode([
+        $output = [
             'email'    => $email,
             'password' => $result['password_action'] === 'unchanged' ? 'unchanged' : $password,
             'user_id'  => $result['user']->id,
@@ -119,7 +121,31 @@ class AccountProvisionReviewerCommand extends Command
             'expires_at' => $ctx->expiresAt?->toIso8601String(),
             'operator'   => $operator->email,
             'dry_run'    => $ctx->dryRun,
-        ], JSON_PRETTY_PRINT));
+        ];
+
+        if ((bool) $this->option('issue-mobile-token')) {
+            // Token expiry tracks the reviewer flag's expiry when set, otherwise
+            // hard-caps at 90 days so a stale token cannot outlive the review cycle.
+            $tokenExpiresAt = $ctx->expiresAt instanceof DateTimeInterface
+                ? $ctx->expiresAt
+                : CarbonImmutable::now()->addDays(90);
+
+            if ($ctx->dryRun) {
+                // Preview only — keep `dry_run: true` honest, never write a token row.
+                $output['mobile_token'] = '(would-be-issued)';
+            } else {
+                $newToken = $result['user']->createToken(
+                    'reviewer-mobile',
+                    ['read', 'write', 'delete'],
+                    $tokenExpiresAt,
+                );
+                // plainTextToken is shown ONCE; store in 1Password immediately,
+                // never log/Slack/email it. Disable revokes via name='reviewer-mobile'.
+                $output['mobile_token'] = $newToken->plainTextToken;
+            }
+        }
+
+        $this->line((string) json_encode($output, JSON_PRETTY_PRINT));
 
         return 0;
     }

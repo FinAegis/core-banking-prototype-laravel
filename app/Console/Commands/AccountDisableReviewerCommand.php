@@ -41,19 +41,28 @@ class AccountDisableReviewerCommand extends Command
         if ($this->option('all-expired')) {
             $disabled = 0;
             $failed = 0;
+            $tokensRevoked = 0;
 
             AccountFlag::where('is_review_account', true)
                 ->whereNotNull('expires_at')
                 ->where('expires_at', '<', now())
                 ->whereNull('disabled_at')
                 ->with('user')
-                ->chunkById(100, function (Collection $chunk) use ($service, &$disabled, &$failed): void {
+                ->chunkById(100, function (Collection $chunk) use ($service, &$disabled, &$failed, &$tokensRevoked): void {
                     foreach ($chunk as $flag) {
                         if (! $flag->user instanceof User) {
                             continue;
                         }
                         try {
+                            // Count BEFORE delegating: the service's disable()
+                            // wipes the user's tokens table-wide, so a post-call
+                            // count would always be 0. Tally for the summary line.
+                            $preTokens = (int) $flag->user->tokens()
+                                ->where('name', 'reviewer-mobile')
+                                ->count();
                             $service->disable($flag->user);
+                            $flag->user->tokens()->where('name', 'reviewer-mobile')->delete();
+                            $tokensRevoked += $preTokens;
                             $this->line("disabled: {$flag->user->email}");
                             $disabled++;
                         } catch (Throwable $e) {
@@ -63,7 +72,7 @@ class AccountDisableReviewerCommand extends Command
                     }
                 });
 
-            $this->info("Sweep complete. disabled={$disabled} failed={$failed}");
+            $this->info("Sweep complete. disabled={$disabled} failed={$failed} tokens-revoked={$tokensRevoked}");
 
             return $failed > 0 ? 1 : 0;
         }
@@ -113,8 +122,16 @@ class AccountDisableReviewerCommand extends Command
             return 0;
         }
 
+        // Count paste-to-login tokens BEFORE delegating to the service: the
+        // service's disable() already wipes the user's tokens table-wide, so
+        // counting after would always be 0. We surface the count for operators
+        // so they have a clear "what got revoked" line in the output. 0 is fine
+        // — the operator may not have issued a token.
+        $revoked = (int) $user->tokens()->where('name', 'reviewer-mobile')->count();
         $service->disable($user);
+        $user->tokens()->where('name', 'reviewer-mobile')->delete();
         $this->info("disabled: {$email}");
+        $this->line("revoked-tokens: {$revoked}");
 
         return 0;
     }

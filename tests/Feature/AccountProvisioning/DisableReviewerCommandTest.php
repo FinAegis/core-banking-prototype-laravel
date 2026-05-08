@@ -8,6 +8,8 @@ use App\Domain\AccountProvisioning\Models\AccountFlag;
 use App\Domain\User\Values\UserRoles;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -195,4 +197,110 @@ it('exits 1 when --operator-email resolves to a non-admin user', function () {
         '--email'          => 'reviewer@finaegis.com',
         '--operator-email' => $nonAdmin->email,
     ])->assertExitCode(1);
+});
+
+it('revokes the reviewer-mobile token on disable and reports the count', function () {
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'                   => $reviewer->id,
+        'is_review_account'         => true,
+        'bypass_device_attestation' => true,
+        'created_by'                => $this->operator->id,
+    ]);
+    $reviewer->createToken('reviewer-mobile', ['read', 'write', 'delete'], CarbonImmutable::now()->addDays(60));
+
+    expect(DB::table('personal_access_tokens')->count())->toBe(1);
+
+    $exit = Artisan::call('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ]);
+
+    expect($exit)->toBe(0);
+    expect(DB::table('personal_access_tokens')->count())->toBe(0);
+    expect(Artisan::output())->toContain('revoked-tokens: 1');
+});
+
+it('reports zero revoked when no reviewer-mobile token was issued', function () {
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'                   => $reviewer->id,
+        'is_review_account'         => true,
+        'bypass_device_attestation' => true,
+        'created_by'                => $this->operator->id,
+    ]);
+
+    $exit = Artisan::call('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ]);
+
+    expect($exit)->toBe(0);
+    expect(Artisan::output())->toContain('revoked-tokens: 0');
+});
+
+it('revokes only expired reviewer tokens during the --all-expired sweep', function () {
+    // Expired reviewer with token
+    $expired = User::factory()->create(['email' => 'expired@finaegis.com']);
+    AccountFlag::create([
+        'user_id'                   => $expired->id,
+        'is_review_account'         => true,
+        'bypass_device_attestation' => true,
+        'expires_at'                => CarbonImmutable::now()->subDay(),
+        'created_by'                => $this->operator->id,
+    ]);
+    $expired->createToken('reviewer-mobile', ['read', 'write', 'delete'], CarbonImmutable::now()->addDays(60));
+
+    // Active reviewer with token (should survive)
+    $active = User::factory()->create(['email' => 'active@finaegis.com']);
+    AccountFlag::create([
+        'user_id'                   => $active->id,
+        'is_review_account'         => true,
+        'bypass_device_attestation' => true,
+        'expires_at'                => CarbonImmutable::now()->addDays(30),
+        'created_by'                => $this->operator->id,
+    ]);
+    $active->createToken('reviewer-mobile', ['read', 'write', 'delete'], CarbonImmutable::now()->addDays(30));
+
+    expect(DB::table('personal_access_tokens')->count())->toBe(2);
+
+    $exit = Artisan::call('account:disable-reviewer', ['--all-expired' => true]);
+
+    expect($exit)->toBe(0);
+
+    // Expired reviewer's token is gone, active reviewer's token preserved.
+    expect(DB::table('personal_access_tokens')->where('tokenable_id', $expired->id)->count())->toBe(0);
+    expect(DB::table('personal_access_tokens')->where('tokenable_id', $active->id)->count())->toBe(1);
+
+    // Sweep summary surfaces the tokens-revoked tally.
+    expect(Artisan::output())->toContain('tokens-revoked=1');
+});
+
+it('does NOT issue a new token on --re-enable', function () {
+    $reviewer = User::factory()->create(['email' => 'reviewer@finaegis.com']);
+    AccountFlag::create([
+        'user_id'                   => $reviewer->id,
+        'is_review_account'         => true,
+        'bypass_device_attestation' => true,
+        'created_by'                => $this->operator->id,
+    ]);
+    $reviewer->createToken('reviewer-mobile', ['read', 'write', 'delete'], CarbonImmutable::now()->addDays(60));
+
+    // Disable wipes the token (asserted separately).
+    Artisan::call('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+    ]);
+    expect(DB::table('personal_access_tokens')->count())->toBe(0);
+
+    // Re-enable must not silently mint a new token; operator runs
+    // provision-reviewer --rotate-password --issue-mobile-token if they need one.
+    $exit = Artisan::call('account:disable-reviewer', [
+        '--email'          => 'reviewer@finaegis.com',
+        '--operator-email' => 'op@finaegis.com',
+        '--re-enable'      => true,
+    ]);
+
+    expect($exit)->toBe(0);
+    expect(DB::table('personal_access_tokens')->count())->toBe(0);
 });

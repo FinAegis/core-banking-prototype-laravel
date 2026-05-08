@@ -53,13 +53,80 @@ Expected JSON output shape:
   },
   "expires_at": "2026-06-23T12:00:00Z",
   "operator": "ops-admin@finaegis.com",
-  "dry_run": false
+  "dry_run": false,
+  "mobile_token": "<PLAINTEXT-SANCTUM-TOKEN-ONCE-ONLY>"
 }
 ```
 
+The `mobile_token` field is only present when `--issue-mobile-token` is passed (see "Issuing a mobile reviewer token" below). Without that flag, the key is omitted entirely.
+
 Re-running the command with the same `--email` is idempotent — `"password": "unchanged"` is emitted instead when no password rotation was requested.
 
-Copy the full JSON into a new 1Password item titled `reviewer:<email>`; share the vault entry with the mobile team. **Never paste the password into email, Slack, Linear, Jira, or commit logs.** The password is displayed once and not recoverable.
+Copy the full JSON into a new 1Password item titled `reviewer:<email>`; share the vault entry with the mobile team. **Never paste the password (or `mobile_token`) into email, Slack, Linear, Jira, or commit logs.** Both are displayed once and not recoverable.
+
+## Issuing a mobile reviewer token
+
+### Why this exists
+
+Mobile went Privy-OTP-only on the login screen in v7.12.0. Email + password login is no longer reachable in shipped builds — Privy delivers the OTP, but reviewer emails use the RFC 2606 `.invalid` TLD by policy and never receive mail. App-store reviewers (Apple App Review, Google Play review) therefore cannot complete sign-in unless we hand them a long-lived credential that bypasses OTP.
+
+### How it works
+
+The `--issue-mobile-token` flag mints a Sanctum personal-access token (`reviewer-mobile`, abilities `read,write,delete`) with an expiry equal to the reviewer flag's `expires_at`, hard-capped at 90 days. The reviewer pastes the token into a hidden "Reviewer access" gesture on the mobile login screen; the app stores it like any other access token. Mobile owns the gesture; ops owns the token issuance and revocation.
+
+### Command
+
+```bash
+php artisan account:provision-reviewer \
+  --email=appreview-2026-q2@example-reviewer.invalid \
+  --operator-email=ops-admin@finaegis.com \
+  --expires-days=60 \
+  --note="Apple App Review 2026-Q2 submission" \
+  --issue-mobile-token
+# production only, append:
+#   --allow-production
+```
+
+The output adds a `mobile_token` field:
+
+```json
+{
+  "email": "appreview-2026-q2@example-reviewer.invalid",
+  "password": "<GENERATED-ONCE-ONLY>",
+  "user_id": 41234,
+  "expires_at": "2026-07-07T12:00:00Z",
+  "operator": "ops-admin@finaegis.com",
+  "dry_run": false,
+  "mobile_token": "12|abcDEF...token-shown-once...XYZ987"
+}
+```
+
+Use `--dry-run --issue-mobile-token` to preview without writing — the field renders as `"mobile_token": "(would-be-issued)"`.
+
+### Storage rule
+
+Same as the password: paste into the 1Password item titled `reviewer:<email>`, share the vault entry with the mobile team, never log/Slack/email/commit it. The plaintext token is displayed once and not recoverable.
+
+### Revoking the token
+
+`account:disable-reviewer --email=<email>` revokes the `reviewer-mobile` token alongside the bypasses, atomically. Confirm the line `revoked-tokens: 1` in the output.
+
+```bash
+php artisan account:disable-reviewer \
+  --email=appreview-2026-q2@example-reviewer.invalid \
+  --operator-email=ops-admin@finaegis.com
+# disabled: appreview-2026-q2@example-reviewer.invalid
+# revoked-tokens: 1
+```
+
+The `--all-expired` sweep does the same per row and reports a total: `Sweep complete. disabled={n} failed={m} tokens-revoked={k}`.
+
+`--re-enable` deliberately does NOT mint a new token. If the cycle re-opens, run `account:provision-reviewer --rotate-password --issue-mobile-token` to issue a fresh one.
+
+### Limitations
+
+- The token lives in `personal_access_tokens` and is **not** bound to a device. If it leaks before the cycle ends, run `account:disable-reviewer --email=<email>` immediately to revoke.
+- The reviewer email uses the RFC 2606 `.invalid` TLD — operators do **not** need a real mailbox for the reviewer. The token is the only credential the reviewer ever needs.
 
 ## Listing and audit
 
@@ -145,3 +212,4 @@ Symptom: alert fires on `bypass.fired` log volume spike (>100 events/min from on
 - No Filament admin UI in v1 — all operations are CLI.
 - Single-tenant provisioning only; multi-tenant reviewer accounts are out of scope for v1.
 - No automated 1Password delivery — operators copy/paste manually.
+- Reviewer emails use RFC 2606 reserved TLDs (`.invalid`, `.example`, `.test`) by policy — operators do **not** need a real mailbox; the password and (when issued) `mobile_token` are the only credentials needed.
