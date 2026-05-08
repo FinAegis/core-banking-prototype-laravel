@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\GCUController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\Web\InvestorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,17 @@ Route::get('/app', function () {
 Route::get('/connect', function () {
     return view('connect');
 })->name('connect');
+
+// Public investor lead-capture page for the FinAegis legal-entity raise.
+// Brand exception: the page itself reads "FinAegis" because investors
+// invest in the entity, not the Zelta product. Header/footer/nav stay
+// Zelta — only the body copy here is FinAegis-branded.
+Route::get('/invest', [InvestorController::class, 'show'])->name('invest.show');
+Route::post('/invest', [InvestorController::class, 'submit'])
+    ->middleware('throttle:5,1440')   // 5 submissions per 24h per IP
+    ->name('invest.submit');
+Route::get('/invest/thanks', [InvestorController::class, 'thanks'])->name('invest.thanks');
+Route::get('/invest/data-room', [InvestorController::class, 'dataRoom'])->name('invest.data-room');
 
 // Privy email-OTP web login (gated by MCP_WEB_PRIVY_LOGIN). The matching
 // GET /login view is registered by Fortify::loginView() in the service

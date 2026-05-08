@@ -223,6 +223,13 @@ Schedule::job(new App\Domain\Wallet\Jobs\PollEvmWalletSendConfirmations())
     ->description('Poll bundler for EVM wallet-send confirmations')
     ->withoutOverlapping();
 
+// Daily retention sweep for the public investor lead-capture form.
+// Drops investor_inquiries rows older than 24 months. Idempotent.
+Schedule::command('investor:purge-old-inquiries')
+    ->dailyAt('03:00')
+    ->description('Purge investor inquiries older than 24 months (GDPR retention)')
+    ->appendOutputTo(storage_path('logs/investor-purge.log'));
+
 // Daily sweep: auto-disable expired reviewer/demo accounts.
 // --allow-production is appended because the scheduled job runs as the system,
 // not a human operator — the production guard is only for manual invocation.
