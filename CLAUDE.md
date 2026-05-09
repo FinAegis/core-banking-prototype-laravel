@@ -35,7 +35,7 @@ php artisan account:purge-reviewer --email=X --confirm  # anonymizes email + dis
 
 - **Web3 Integration**: `app/Infrastructure/Web3/` (EthRpcClient, AbiEncoder) — also legacy `app/Domain/Relayer/Services/EthRpcClient.php`
 - **ZK Circuits**: `storage/app/circuits/` (Circom sources + Solidity verifiers)
-- **57 domains** in `app/Domain/` (DDD bounded contexts)
+- **58 domains** in `app/Domain/` (DDD bounded contexts)
 - **Payment Protocols**: x402 (Coinbase), MPP (Stripe/Tempo), AP2 (Google)
 - **Packages**: `packages/zelta-sdk/` (Payment SDK), `packages/zelta-cli/` (CLI binary)
 - **Event Sourcing**: Spatie v7.7+ with domain-specific tables

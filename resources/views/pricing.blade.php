@@ -58,7 +58,7 @@
                         <ul class="space-y-3 mb-8 text-sm text-slate-600">
                             <li class="list-check">Full source code access</li>
                             <li class="list-check">Apache-2.0 License</li>
-                            <li class="list-check">All 59 domain modules</li>
+                            <li class="list-check">All 60 domain modules</li>
                             <li class="list-check">ISO 20022, Open Banking, Payment Rails</li>
                             <li class="list-check">Ledger, Microfinance, Interledger</li>
                             <li class="list-check">Community support</li>

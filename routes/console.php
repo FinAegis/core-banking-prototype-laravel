@@ -247,6 +247,16 @@ Schedule::command('idempotency:purge')
     ->appendOutputTo(storage_path('logs/idempotency-purge.log'))
     ->withoutOverlapping();
 
+// Daily purge of expired trial_card_fingerprints rows (Plan B Backend-Q5).
+// 12-month retry window means anything older is eligible again — drop the
+// row so the gate stops carrying it. Offset from idempotency:purge to
+// avoid concurrent DELETE contention.
+Schedule::command('trial:purge-fingerprints')
+    ->dailyAt('02:30')
+    ->description('Purge trial_card_fingerprints older than 12 months (Plan B trial-abuse gate)')
+    ->appendOutputTo(storage_path('logs/trial-fingerprints-purge.log'))
+    ->withoutOverlapping();
+
 // Hourly reconciliation: detect Helius webhook ↔ DB address drift.
 // Caught silent for 27 days during the April 2026 incident — never again.
 // --auto-sync runs `solana:sync` whenever drift is found, so the system
