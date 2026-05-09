@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Support\ErrorResponse;
-
 /**
  * Contract test for the Plan B error code registry. Ships with v1.3.0
  * foundations and is a hard merge gate going forward — every new code
@@ -12,6 +8,11 @@ use App\Support\ErrorResponse;
  * @see config/error_codes.php
  * @see docs/BACKEND_HANDOVER_PLAN_B_REVIEW_DELTAS.md Q15.3
  */
+
+declare(strict_types=1);
+
+use App\Support\ErrorResponse;
+
 const PLAN_B_ERROR_CODE_REGEX = '/^ERR_[A-Z]+_\d{3}$/';
 
 it('every registered error code matches /^ERR_[A-Z]+_\d{3}$/', function (): void {
@@ -95,7 +96,7 @@ it('the registry contains the deltas Q15.3 mandatory codes', function (): void {
     $registry = config('error_codes', []);
 
     // Spot-check that the codes the spec calls out are present.
-    foreach ([
+    $mandatoryCodes = [
         'ERR_VALIDATION_001',
         'ERR_VALIDATION_002',
         'ERR_VALIDATION_003',
@@ -106,7 +107,9 @@ it('the registry contains the deltas Q15.3 mandatory codes', function (): void {
         'ERR_QUOTE_002',
         'ERR_FEE_001',
         'ERR_EXP_001',
-    ] as $code) {
+    ];
+
+    foreach ($mandatoryCodes as $code) {
         expect($registry)->toHaveKey($code);
     }
 });
