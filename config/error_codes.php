@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Plan B Commercial v1.3.0 error code registry.
  *
@@ -17,6 +15,9 @@ declare(strict_types=1);
  *
  * @return array<string, array{http: int, description: string}>
  */
+
+declare(strict_types=1);
+
 return [
     // ─── Cross-cutting (validation, idempotency, currency) ─────────────────
     'ERR_VALIDATION_001'  => ['http' => 422, 'description' => 'Idempotency-Key header is required for this endpoint.'],
