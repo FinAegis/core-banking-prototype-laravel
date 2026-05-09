@@ -180,7 +180,7 @@
                     INVESTOR PAGE &middot; FINAEGIS LTD.
                 </div>
                 <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 font-heading max-w-5xl mx-auto" style="line-height: 0.95;">
-                    FinAegis. <span class="block sm:inline">Two ways to invest.</span> <span class="block text-z-purple">One operator who&rsquo;s done this before.</span>
+                    FinAegis. <span class="block sm:inline">Two ways to invest.</span> <span class="block">One <span class="bg-z-purple px-2 inline-block" style="box-decoration-break: clone; -webkit-box-decoration-break: clone;">operator</span> who&rsquo;s done this before.</span>
                 </h1>
                 <p class="text-lg md:text-xl max-w-2xl mx-auto text-text-sec font-medium mb-8">
                     Choose the path that matches your thesis: regulated EU banking infrastructure, or non-custodial software margins without a licence.
@@ -201,7 +201,7 @@
             {{-- ═══════════════════════════════════════
                  TWO-PATHS COMPARISON TABLE
                  ═══════════════════════════════════════ --}}
-            <section class="mb-20">
+            <section class="mb-16">
                 <h2 class="text-3xl md:text-4xl font-black font-heading mb-6 text-center">Side by side.</h2>
                 <p class="text-center text-text-sec font-medium max-w-2xl mx-auto mb-10">
                     Two paths, one company. Same engineering team, same founder, very different capital and regulatory profiles.
@@ -303,7 +303,7 @@
             {{-- ═══════════════════════════════════════
                  PATH A — LICENSED
                  ═══════════════════════════════════════ --}}
-            <section id="licensed" class="mb-20 scroll-mt-24">
+            <section id="licensed" class="mb-16 scroll-mt-24">
                 <div class="bg-acid bru-card-lg p-6 md:p-10">
                     <div class="inline-block px-3 py-1 bg-obsidian text-acid font-black text-xs tracking-widest mb-4 bru-border" style="transform: rotate(-1deg);">PATH A</div>
                     <h2 class="text-3xl md:text-5xl font-black font-heading mb-4">Licensed banking. <span class="block">€1.0M raise.</span></h2>
@@ -333,17 +333,69 @@
                     </div>
                     <p class="text-xs text-text-sec font-mono mb-8">€250k + €160k + €450k + €140k = €1.0M</p>
 
-                    {{-- 18-month plan ASCII chart --}}
+                    {{-- 18-month cumulative cash chart (SVG, brutalist styled) --}}
                     <h3 class="font-black font-heading text-xl mb-3">18-month plan</h3>
-<pre class="bg-obsidian text-acid font-mono text-xs sm:text-sm p-4 sm:p-6 bru-border overflow-x-auto whitespace-pre" aria-label="Cumulative cash position over 18 months, breaking even at month 17">
-Month  Cumulative cash position
-M0    ████ -€1.0M
-M3    ████████ -€800k  (revenue starts)
-M6    ████████████ -€600k
-M12   ████████████████ -€400k
-M17   ████████████████████ €0  ← break-even
-M18   ███████████████████████ +€80k
-</pre>
+                    <div class="bru-border bg-obsidian p-4 md:p-6">
+                        <svg viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg"
+                             class="w-full h-auto"
+                             role="img"
+                             aria-label="Cumulative cash position over 18 months: starts at minus 1.0 million euros at month 0, reaches break-even at month 17, ends at plus 80 thousand euros at month 18.">
+                            <defs>
+                                <pattern id="grid-licensed" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1f1f1f" stroke-width="1"/>
+                                </pattern>
+                            </defs>
+                            <rect width="600" height="320" fill="url(#grid-licensed)"/>
+
+                            {{-- Burn area below the curve, filled with acid green --}}
+                            <path d="M 80 280 L 160 236 L 240 193 L 400 149 L 533 62 L 560 44 L 560 280 Z"
+                                  fill="#ccff00" fill-opacity="0.15" stroke="none"/>
+
+                            {{-- Break-even (zero) line --}}
+                            <line x1="80" y1="62" x2="560" y2="62" stroke="#a8f0c4" stroke-width="2" stroke-dasharray="6,4"/>
+                            <text x="84" y="58" fill="#a8f0c4" font-size="10" font-weight="700"
+                                  font-family="JetBrains Mono, monospace">BREAK-EVEN €0</text>
+
+                            {{-- Y-axis --}}
+                            <line x1="80" y1="40" x2="80" y2="280" stroke="#ccff00" stroke-width="2"/>
+                            {{-- X-axis --}}
+                            <line x1="80" y1="280" x2="560" y2="280" stroke="#ccff00" stroke-width="2"/>
+
+                            {{-- Y-axis labels --}}
+                            <text x="74" y="48" fill="#737373" font-size="10" text-anchor="end"
+                                  font-family="JetBrains Mono, monospace">+€80k</text>
+                            <text x="74" y="195" fill="#737373" font-size="10" text-anchor="end"
+                                  font-family="JetBrains Mono, monospace">-€600k</text>
+                            <text x="74" y="284" fill="#737373" font-size="10" text-anchor="end"
+                                  font-family="JetBrains Mono, monospace">-€1.0M</text>
+
+                            {{-- X-axis labels --}}
+                            <text x="80"  y="298" fill="#737373" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">M0</text>
+                            <text x="160" y="298" fill="#737373" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">M3</text>
+                            <text x="240" y="298" fill="#737373" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">M6</text>
+                            <text x="400" y="298" fill="#737373" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">M12</text>
+                            <text x="533" y="298" fill="#a8f0c4" font-size="10" text-anchor="middle" font-weight="700" font-family="JetBrains Mono, monospace">M17</text>
+                            <text x="560" y="298" fill="#737373" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">M18</text>
+
+                            {{-- Connecting line --}}
+                            <polyline points="80,280 160,236 240,193 400,149 533,62 560,44"
+                                      fill="none" stroke="#ccff00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+                            {{-- Data points --}}
+                            <circle cx="80"  cy="280" r="5" fill="#ccff00" stroke="#0a0a0a" stroke-width="2"/>
+                            <circle cx="160" cy="236" r="5" fill="#ccff00" stroke="#0a0a0a" stroke-width="2"/>
+                            <circle cx="240" cy="193" r="5" fill="#ccff00" stroke="#0a0a0a" stroke-width="2"/>
+                            <circle cx="400" cy="149" r="5" fill="#ccff00" stroke="#0a0a0a" stroke-width="2"/>
+                            <circle cx="533" cy="62"  r="6" fill="#a8f0c4" stroke="#0a0a0a" stroke-width="2"/>
+                            <circle cx="560" cy="44"  r="5" fill="#a8f0c4" stroke="#0a0a0a" stroke-width="2"/>
+
+                            {{-- Annotation: revenue starts at M3 --}}
+                            <g font-family="JetBrains Mono, monospace" font-size="9" fill="#ccff00">
+                                <text x="172" y="228" font-weight="700">revenue starts</text>
+                                <line x1="160" y1="232" x2="170" y2="226" stroke="#ccff00" stroke-width="1"/>
+                            </g>
+                        </svg>
+                    </div>
                     <p class="text-xs text-text-sec font-medium mt-2 mb-8">Full month-by-month detail in data room.</p>
 
                     {{-- Why MiCA + EMI --}}
@@ -366,7 +418,7 @@ M18   ███████████████████████ +€
             {{-- ═══════════════════════════════════════
                  PATH B — NON-CUSTODIAL
                  ═══════════════════════════════════════ --}}
-            <section id="non-custodial" class="mb-20 scroll-mt-24">
+            <section id="non-custodial" class="mb-16 scroll-mt-24">
                 <div class="bg-z-purple bru-card-lg p-6 md:p-10">
                     <div class="inline-block px-3 py-1 bg-obsidian text-acid font-black text-xs tracking-widest mb-4 bru-border" style="transform: rotate(1deg);">PATH B</div>
                     <h2 class="text-3xl md:text-5xl font-black font-heading mb-4">Non-custodial SaaS. <span class="block">€300&ndash;500k raise.</span></h2>
@@ -374,22 +426,23 @@ M18   ███████████████████████ +€
                         Smart wallets, software margins, no licence. Already shipping. Range tracks GTM ambition: <span class="font-mono">€300k</span> for an organic launch, <span class="font-mono">€500k</span> for paid acquisition.
                     </p>
 
-                    {{-- Use of funds bar --}}
+                    {{-- Use of funds bar — anchored at mid-range €400k --}}
                     <h3 class="font-black font-heading text-xl mb-3">Use of funds</h3>
-                    <div class="uof-bar mb-8" aria-label="Use of funds breakdown">
-                        <div class="bg-acid" style="flex: 1;">
-                            <div class="font-mono font-black text-base">~40%</div>
+                    <div class="uof-bar mb-2" aria-label="Use of funds breakdown at mid-range €400k">
+                        <div class="bg-acid" style="flex: 160;">
+                            <div class="font-mono font-black text-base">&euro;160k</div>
                             <div class="text-xs">Engineering buildout</div>
                         </div>
-                        <div class="bg-mint" style="flex: 1;">
-                            <div class="font-mono font-black text-base">~30%</div>
+                        <div class="bg-mint" style="flex: 120;">
+                            <div class="font-mono font-black text-base">&euro;120k</div>
                             <div class="text-xs">GTM / paid acquisition</div>
                         </div>
-                        <div class="bg-white" style="flex: 1;">
-                            <div class="font-mono font-black text-base">~30%</div>
+                        <div class="bg-white" style="flex: 120;">
+                            <div class="font-mono font-black text-base">&euro;120k</div>
                             <div class="text-xs">12-month runway</div>
                         </div>
                     </div>
+                    <p class="text-xs text-text-sec font-mono mb-8">Anchored at mid-range €400k. Lower bound (€300k) cuts GTM; upper bound (€500k) extends runway to 18 months.</p>
 
                     {{-- Pricing cards --}}
                     <h3 class="font-black font-heading text-xl mb-3">Unit economics &mdash; pricing tiers</h3>
@@ -439,7 +492,7 @@ M18   ███████████████████████ +€
             {{-- ═══════════════════════════════════════
                  FOUNDER CREDIBILITY
                  ═══════════════════════════════════════ --}}
-            <section class="mb-20">
+            <section class="mb-16">
                 <div class="bg-white bru-card-lg p-6 md:p-10">
                     <div class="inline-block px-3 py-1 bg-mint text-obsidian font-black text-xs tracking-widest mb-4 bru-border">FOUNDER</div>
                     <h2 class="text-3xl md:text-4xl font-black font-heading mb-6">Operator credibility.</h2>
@@ -470,7 +523,7 @@ M18   ███████████████████████ +€
             {{-- ═══════════════════════════════════════
                  ENGINEERING RIGOR
                  ═══════════════════════════════════════ --}}
-            <section class="mb-20">
+            <section class="mb-16">
                 <h2 class="text-3xl md:text-4xl font-black font-heading mb-3">Engineering rigor.</h2>
                 <p class="text-text-sec font-medium max-w-2xl mb-8">Three claims, each backed by something a technical diligence partner can read.</p>
 
@@ -482,7 +535,10 @@ M18   ███████████████████████ +€
                         <p class="text-sm font-medium text-text-sec mb-3">
                             Backend on Laravel 12 / PHP 8.4 with 57 bounded contexts, event-sourced, multi-tenant. Mobile on Expo SDK 54 / React Native New Architecture. Both repos auditable.
                         </p>
-                        <span class="inline-block text-xs font-mono font-bold bg-bg-tertiary bru-border px-2 py-0.5">[in data room]</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-mono font-bold bg-bg-tertiary text-text-sec border-2 border-text-muted/40 px-2 py-0.5" title="Available in data room after inquiry submission">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 6V4.5a3 3 0 0 1 6 0V6h.5A1.5 1.5 0 0 1 13 7.5v6A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-6A1.5 1.5 0 0 1 4.5 6H5zm1.5 0h3V4.5a1.5 1.5 0 0 0-3 0V6z"/></svg>
+                            data room
+                        </span>
                     </div>
 
                     {{-- 2 --}}
@@ -492,7 +548,10 @@ M18   ███████████████████████ +€
                         <p class="text-sm font-medium text-text-sec mb-3">
                             16 architectural decisions documented across subscription, quote pipeline, entitlements, reconciliation, GDPR compliance, App Store / Google Play submission readiness.
                         </p>
-                        <span class="inline-block text-xs font-mono font-bold bg-bg-tertiary bru-border px-2 py-0.5">[engineering handover doc in data room]</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-mono font-bold bg-bg-tertiary text-text-sec border-2 border-text-muted/40 px-2 py-0.5" title="Available in data room after inquiry submission">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 6V4.5a3 3 0 0 1 6 0V6h.5A1.5 1.5 0 0 1 13 7.5v6A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-6A1.5 1.5 0 0 1 4.5 6H5zm1.5 0h3V4.5a1.5 1.5 0 0 0-3 0V6z"/></svg>
+                            engineering handover doc
+                        </span>
                     </div>
 
                     {{-- 3 --}}
@@ -502,7 +561,10 @@ M18   ███████████████████████ +€
                         <p class="text-sm font-medium text-text-sec mb-3">
                             Ship date for v1.3.0 (commercial pricing) is <span class="font-mono">~7.25</span> calendar weeks from kickoff. EU localization (v1.3.1) adds <span class="font-mono">~3&ndash;4</span> weeks. No vapor.
                         </p>
-                        <span class="inline-block text-xs font-mono font-bold bg-bg-tertiary bru-border px-2 py-0.5">[plan + commit log in data room]</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-mono font-bold bg-bg-tertiary text-text-sec border-2 border-text-muted/40 px-2 py-0.5" title="Available in data room after inquiry submission">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 6V4.5a3 3 0 0 1 6 0V6h.5A1.5 1.5 0 0 1 13 7.5v6A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-6A1.5 1.5 0 0 1 4.5 6H5zm1.5 0h3V4.5a1.5 1.5 0 0 0-3 0V6z"/></svg>
+                            plan + commit log
+                        </span>
                     </div>
                 </div>
             </section>
@@ -624,12 +686,43 @@ M18   ███████████████████████ +€
                 </div>
             </section>
 
-            {{-- Footer note --}}
-            <p class="text-center text-sm text-text-muted">
-                FinAegis Ltd. is the legal entity behind {{ $brand }}. This page is for accredited investors only.
-            </p>
         </div>
     </main>
+
+    {{-- ═══════════════════════════════════════
+         FOOTER
+         ═══════════════════════════════════════ --}}
+    <footer class="px-5 mt-8 pb-12">
+        <div class="mx-auto max-w-6xl bg-white bru-card p-6 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <div class="font-black font-heading text-base mb-2">FinAegis Ltd.</div>
+                    <p class="text-sm text-text-sec font-medium">Legal entity behind {{ $brand }}. Registered in Lithuania.</p>
+                </div>
+                <div>
+                    <div class="font-black font-heading text-base mb-2">Contact</div>
+                    <p class="text-sm text-text-sec font-medium">
+                        <a href="mailto:invest@finaegis.com" class="font-bold underline hover:no-underline">invest@finaegis.com</a><br>
+                        Replies within 48 hours.
+                    </p>
+                </div>
+                <div>
+                    <div class="font-black font-heading text-base mb-2">Legal</div>
+                    <ul class="text-sm text-text-sec font-medium space-y-1">
+                        <li><a href="{{ route('legal.privacy') }}" class="font-bold underline hover:no-underline">Privacy Policy</a></li>
+                        <li><a href="{{ route('legal.terms') }}" class="font-bold underline hover:no-underline">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t-2 border-obsidian/10 pt-4 text-xs text-text-muted leading-relaxed">
+                <p class="mb-2">
+                    <strong class="text-text-sec">For accredited investors only.</strong>
+                    This page is provided for informational purposes and does not constitute an offer to sell or a solicitation to buy any securities. Any investment in FinAegis Ltd. requires a separately executed subscription agreement and is subject to applicable securities laws in your jurisdiction. Past performance is not indicative of future results.
+                </p>
+                <p class="font-mono">© {{ date('Y') }} FinAegis Ltd. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
 </body>
 </html>
