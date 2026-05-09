@@ -112,13 +112,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.apikey'            => App\Http\Middleware\AuthenticateApiKey::class,
             'auth.api_or_sanctum'    => App\Http\Middleware\AuthenticateApiOrSanctum::class,
             'idempotency'            => App\Http\Middleware\IdempotencyMiddleware::class,
-            'webhook.signature'      => App\Http\Middleware\ValidateWebhookSignature::class,
-            'validate.key.access'    => App\Http\Middleware\ValidateKeyAccess::class,
-            'demo'                   => App\Http\Middleware\DemoMode::class,
-            'scope'                  => App\Http\Middleware\CheckApiScope::class,
-            'check.blocked.ip'       => App\Http\Middleware\CheckBlockedIp::class,
-            'ip.blocking'            => App\Http\Middleware\IpBlocking::class,
-            'require.2fa.admin'      => App\Http\Middleware\RequireTwoFactorForAdmin::class,
+            // Plan B v1.3.0: required-header, DB-backed idempotency. Distinct
+            // from the legacy `idempotency` alias above (cache-backed, optional
+            // header). New Plan B mutating endpoints opt in via this alias.
+            'idempotency.required' => App\Http\Middleware\IdempotencyKey::class,
+            'webhook.signature'    => App\Http\Middleware\ValidateWebhookSignature::class,
+            'validate.key.access'  => App\Http\Middleware\ValidateKeyAccess::class,
+            'demo'                 => App\Http\Middleware\DemoMode::class,
+            'scope'                => App\Http\Middleware\CheckApiScope::class,
+            'check.blocked.ip'     => App\Http\Middleware\CheckBlockedIp::class,
+            'ip.blocking'          => App\Http\Middleware\IpBlocking::class,
+            'require.2fa.admin'    => App\Http\Middleware\RequireTwoFactorForAdmin::class,
             // Agent Protocol authentication middleware
             'auth.agent'       => App\Http\Middleware\AuthenticateAgentDID::class,
             'agent.scope'      => App\Http\Middleware\CheckAgentScope::class,

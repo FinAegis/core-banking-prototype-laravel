@@ -238,6 +238,15 @@ Schedule::command('account:disable-reviewer --all-expired --allow-production')
     ->description('Auto-disable expired review accounts')
     ->appendOutputTo(storage_path('logs/account-expiry-sweep.log'));
 
+// Daily purge of expired Plan B idempotency rows. 24h TTL means anything
+// older is irrelevant — keeping the table small lets the (user_id, key)
+// composite primary key stay hot in InnoDB's buffer pool.
+Schedule::command('idempotency:purge')
+    ->dailyAt('02:00')
+    ->description('Purge expired rows from idempotency_keys (Plan B 24h TTL)')
+    ->appendOutputTo(storage_path('logs/idempotency-purge.log'))
+    ->withoutOverlapping();
+
 // Hourly reconciliation: detect Helius webhook ↔ DB address drift.
 // Caught silent for 27 days during the April 2026 incident — never again.
 // --auto-sync runs `solana:sync` whenever drift is found, so the system
