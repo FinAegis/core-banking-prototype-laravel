@@ -62,6 +62,30 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Plan B Backend-Q1: pin the Stripe API version in a single config key
+        // (config/services.php:stripe.api_version, env STRIPE_API_VERSION) so
+        // Cashier (subscription path) and any future Stripe Bridge clients use
+        // the same version. Override the StripeClient container binding so
+        // any caller that resolves it via the container honours the pinned
+        // version unless they explicitly override.
+        $stripeApiVersion = (string) config('services.stripe.api_version');
+        if ($stripeApiVersion !== '') {
+            $this->app->bind(\Stripe\StripeClient::class, function ($app, array $parameters = []) use ($stripeApiVersion) {
+                /** @var array<string, mixed> $config */
+                $config = isset($parameters['config']) && is_array($parameters['config']) ? $parameters['config'] : [];
+
+                if (! isset($config['stripe_version'])) {
+                    $config['stripe_version'] = $stripeApiVersion;
+                }
+
+                if (! isset($config['api_key'])) {
+                    $config['api_key'] = (string) config('cashier.secret');
+                }
+
+                return new \Stripe\StripeClient($config);
+            });
+        }
+
         // L5-Swagger: inject the analyser at generation time (not in config) so
         // config:cache / optimize works. Object instances are not serializable.
         $this->app->resolving(\L5Swagger\GeneratorFactory::class, function () {
