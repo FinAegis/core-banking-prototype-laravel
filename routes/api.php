@@ -187,6 +187,32 @@ Route::post('webhooks/stripe/kyc', [App\Http\Controllers\Api\Webhook\StripeKycWe
     ->middleware('api.rate_limit:webhook')
     ->name('api.webhooks.stripe.kyc');
 
+// Plan B Slice 1 — Stripe subscription webhook (separate from /stripe/webhook
+// which handles CGO + KYC). Signature verified inside the controller. Dedup
+// via processed_webhook_events on Stripe `event.id`.
+Route::post('webhooks/stripe/subscriptions', [App\Domain\Subscription\Webhooks\SubscriptionWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.stripe.subscriptions');
+
+// Plan B Slice 1 — Subscription module endpoints (Stripe-only).
+Route::prefix('v1/subscription')->name('api.v1.subscription.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/me', [App\Domain\Subscription\Http\Controllers\SubscriptionController::class, 'me'])
+            ->name('me');
+
+        Route::middleware(['idempotency.required'])->group(function () {
+            Route::post('/checkout', [App\Domain\Subscription\Http\Controllers\SubscriptionController::class, 'checkout'])
+                ->name('checkout');
+            Route::post('/change-plan', [App\Domain\Subscription\Http\Controllers\SubscriptionController::class, 'changePlan'])
+                ->name('change-plan');
+            Route::post('/cancel', [App\Domain\Subscription\Http\Controllers\SubscriptionController::class, 'cancel'])
+                ->name('cancel');
+            Route::post('/reactivate', [App\Domain\Subscription\Http\Controllers\SubscriptionController::class, 'reactivate'])
+                ->name('reactivate');
+        });
+    });
+
 // Extended monitoring endpoints with authentication
 Route::prefix('monitoring')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/metrics-json', [App\Http\Controllers\Api\MonitoringController::class, 'metrics']);
