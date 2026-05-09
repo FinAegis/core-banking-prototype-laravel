@@ -79,6 +79,21 @@ return [
         'kyc_webhook_secret'    => env('STRIPE_KYC_WEBHOOK_SECRET'),
         'bridge_webhook_secret' => env('STRIPE_BRIDGE_WEBHOOK_SECRET'),
 
+        // Backend-Q1: single config key consumed by both Cashier and any future
+        // Stripe Bridge clients. Cashier wires it up via Cashier::useStripeApiVersion()
+        // in App\Providers\AppServiceProvider::boot.
+        'api_version' => env('STRIPE_API_VERSION', '2025-04-30.basil'),
+        // Backend-Q5: HMAC-SHA256 pepper for trial-card fingerprint hashing.
+        // Single env-var, event-triggered rotation only (rotation = re-hash all
+        // trial_card_fingerprints rows in one transaction). See deltas Q5.
+        'trial_fingerprint_pepper' => env('TRIAL_FINGERPRINT_PEPPER'),
+
+        // Subscription Stripe Price IDs (Plan B §1).
+        'subscription_prices' => [
+            'monthly_pro' => env('STRIPE_PRICE_MONTHLY_PRO'),
+            'annual_pro'  => env('STRIPE_PRICE_ANNUAL_PRO'),
+        ],
+
         // Mobile deep-link return URLs for KYC Checkout. Stripe substitutes
         // {CHECKOUT_SESSION_ID} on the success URL. Both URLs share a single
         // 'trustcert/payment-return' route on the mobile side that branches

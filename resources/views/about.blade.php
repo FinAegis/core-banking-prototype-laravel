@@ -33,7 +33,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'About', 'url' => url('/about')]]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">About <span class="text-gradient">{{ config('brand.name', 'Zelta') }}</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    Open-source core banking infrastructure built with Laravel — 59 domain modules covering everything from democratic currency governance to AI agent commerce.
+                    Open-source core banking infrastructure built with Laravel — 60 domain modules covering everything from democratic currency governance to AI agent commerce.
                 </p>
             </div>
         </div>
@@ -210,7 +210,7 @@
                 <div class="card-feature">
                     <h4 class="font-display text-base font-bold text-slate-900 mb-2">For Founders</h4>
                     <p class="text-sm text-slate-500 mb-3">
-                        Build your fintech product on battle-tested infrastructure. 59 domain modules, Apache-2.0 licensed, ready to customize.
+                        Build your fintech product on battle-tested infrastructure. 60 domain modules, Apache-2.0 licensed, ready to customize.
                     </p>
                     <a href="{{ route('developers') }}" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition">
                         View Documentation &rarr;

@@ -112,6 +112,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.apikey'            => App\Http\Middleware\AuthenticateApiKey::class,
             'auth.api_or_sanctum'    => App\Http\Middleware\AuthenticateApiOrSanctum::class,
             'idempotency'            => App\Http\Middleware\IdempotencyMiddleware::class,
+            'idempotency.required'   => App\Http\Middleware\IdempotencyKey::class,
             'webhook.signature'      => App\Http\Middleware\ValidateWebhookSignature::class,
             'validate.key.access'    => App\Http\Middleware\ValidateKeyAccess::class,
             'demo'                   => App\Http\Middleware\DemoMode::class,
