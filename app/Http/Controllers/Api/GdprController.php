@@ -11,8 +11,10 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 #[OA\Tag(
     name: 'GDPR',
@@ -349,6 +351,12 @@ class GdprController extends Controller
                 ]
             );
 
+            // Plan B Backend-Q1 #6 — explicit Stripe customer delete.
+            // Cashier doesn't auto-cascade on User::delete(), so we must call
+            // `asStripeCustomer()->delete()` here to satisfy GDPR Article 17
+            // for the Stripe-side personal data we control.
+            $this->purgeStripeCustomerData($user);
+
             return response()->json(
                 [
                     'message' => 'Account deletion request processed. Your account will be deleted within 30 days.',
@@ -362,6 +370,33 @@ class GdprController extends Controller
                 500
             );
         }
+    }
+
+    /**
+     * Cascade GDPR erasure to Stripe per Plan B Backend-Q1 #6. Best-effort:
+     * a Stripe outage or already-deleted-customer must NOT block the local
+     * deletion flow — we log and continue.
+     */
+    private function purgeStripeCustomerData(User $user): void
+    {
+        if (empty($user->stripe_id)) {
+            return;
+        }
+
+        try {
+            $user->asStripeCustomer()->delete();
+        } catch (Throwable $e) {
+            Log::warning('gdpr.stripe_customer_delete_failed', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+
+        $user->forceFill([
+            'stripe_id'    => null,
+            'pm_type'      => null,
+            'pm_last_four' => null,
+        ])->save();
     }
 
         #[OA\Get(
