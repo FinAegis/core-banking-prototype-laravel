@@ -24,6 +24,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -65,80 +66,82 @@ final class ProjectRevenueOutbox implements ShouldQueue
 
     private function processRow(int $rowId): void
     {
-        /** @var RevenueOutboxEvent|null $row */
-        $row = RevenueOutboxEvent::query()->lockForUpdate()->find($rowId);
+        DB::transaction(function () use ($rowId): void {
+            /** @var RevenueOutboxEvent|null $row */
+            $row = RevenueOutboxEvent::query()->lockForUpdate()->find($rowId);
 
-        if ($row === null || $row->status === RevenueOutboxEvent::STATUS_DELIVERED) {
-            return;
-        }
+            if ($row === null || $row->status === RevenueOutboxEvent::STATUS_DELIVERED) {
+                return;
+            }
 
-        $row->forceFill(['attempts' => $row->attempts + 1])->save();
+            $row->forceFill(['attempts' => $row->attempts + 1])->save();
 
-        try {
-            $eventType = $this->mapOutboxKindToRevenueEvent($row->source_type, $row->event_kind);
+            try {
+                $eventType = $this->mapOutboxKindToRevenueEvent($row->source_type, $row->event_kind);
 
-            if ($eventType === null) {
-                Log::info('revenue_outbox.unmapped_event', [
-                    'source_type' => $row->source_type,
-                    'event_kind'  => $row->event_kind,
-                ]);
+                if ($eventType === null) {
+                    Log::info('revenue_outbox.unmapped_event', [
+                        'source_type' => $row->source_type,
+                        'event_kind'  => $row->event_kind,
+                    ]);
+
+                    $row->forceFill([
+                        'status'       => RevenueOutboxEvent::STATUS_DELIVERED,
+                        'delivered_at' => now(),
+                    ])->save();
+
+                    return;
+                }
+
+                $payload = $row->payload;
+                $userId = isset($payload['userId']) && is_int($payload['userId']) ? $payload['userId'] : null;
+                $aggregateId = isset($payload['aggregateId']) ? (string) $payload['aggregateId'] : null;
+                $amount = isset($payload['amount']) ? (int) $payload['amount'] : 0;
+                $decimals = isset($payload['decimals']) ? (int) $payload['decimals'] : 2;
+                $denomination = isset($payload['denomination']) ? (string) $payload['denomination'] : 'EUR';
+                $emittedAt = isset($payload['emittedAt']) ? (string) $payload['emittedAt'] : now()->toIso8601String();
+
+                // Idempotent insert. uniq_revenue_event_source covers
+                // (source_type, source_event_id, event_type).
+                RevenueEvent::query()->updateOrCreate(
+                    [
+                        'source_type'     => $row->source_type,
+                        'source_event_id' => $row->source_event_id,
+                        'event_type'      => $eventType,
+                    ],
+                    [
+                        'user_id'      => $userId,
+                        'user_id_hash' => $userId !== null
+                            ? hash_hmac('sha256', (string) $userId, (string) config('app.key'))
+                            : null,
+                        'aggregate_id'        => $aggregateId,
+                        'amount'              => $amount,
+                        'amount_decimals'     => $decimals,
+                        'amount_denomination' => $denomination,
+                        'payload'             => $payload,
+                        'emitted_at'          => $emittedAt,
+                    ]
+                );
 
                 $row->forceFill([
                     'status'       => RevenueOutboxEvent::STATUS_DELIVERED,
                     'delivered_at' => now(),
                 ])->save();
+            } catch (Throwable $e) {
+                Log::error('revenue_outbox.project_failed', [
+                    'row_id'   => $rowId,
+                    'error'    => $e->getMessage(),
+                    'attempts' => $row->attempts,
+                ]);
 
-                return;
+                if ($row->attempts >= (int) config('subscription.outbox.max_attempts', 5)) {
+                    $row->forceFill([
+                        'status'        => RevenueOutboxEvent::STATUS_FAILED,
+                        'failed_reason' => $e->getMessage(),
+                    ])->save();
+                }
             }
-
-            $payload = $row->payload;
-            $userId = isset($payload['userId']) && is_int($payload['userId']) ? $payload['userId'] : null;
-            $aggregateId = isset($payload['aggregateId']) ? (string) $payload['aggregateId'] : null;
-            $amount = isset($payload['amount']) ? (int) $payload['amount'] : 0;
-            $decimals = isset($payload['decimals']) ? (int) $payload['decimals'] : 2;
-            $denomination = isset($payload['denomination']) ? (string) $payload['denomination'] : 'EUR';
-            $emittedAt = isset($payload['emittedAt']) ? (string) $payload['emittedAt'] : now()->toIso8601String();
-
-            // Idempotent insert. uniq_revenue_event_source covers
-            // (source_type, source_event_id, event_type).
-            RevenueEvent::query()->updateOrCreate(
-                [
-                    'source_type'     => $row->source_type,
-                    'source_event_id' => $row->source_event_id,
-                    'event_type'      => $eventType,
-                ],
-                [
-                    'user_id'      => $userId,
-                    'user_id_hash' => $userId !== null
-                        ? hash_hmac('sha256', (string) $userId, (string) config('app.key'))
-                        : null,
-                    'aggregate_id'        => $aggregateId,
-                    'amount'              => $amount,
-                    'amount_decimals'     => $decimals,
-                    'amount_denomination' => $denomination,
-                    'payload'             => $payload,
-                    'emitted_at'          => $emittedAt,
-                ]
-            );
-
-            $row->forceFill([
-                'status'       => RevenueOutboxEvent::STATUS_DELIVERED,
-                'delivered_at' => now(),
-            ])->save();
-        } catch (Throwable $e) {
-            Log::error('revenue_outbox.project_failed', [
-                'row_id'   => $rowId,
-                'error'    => $e->getMessage(),
-                'attempts' => $row->attempts,
-            ]);
-
-            if ($row->attempts >= (int) config('subscription.outbox.max_attempts', 5)) {
-                $row->forceFill([
-                    'status'        => RevenueOutboxEvent::STATUS_FAILED,
-                    'failed_reason' => $e->getMessage(),
-                ])->save();
-            }
-        }
+        });
     }
 
     private function mapOutboxKindToRevenueEvent(string $sourceType, string $eventKind): ?string

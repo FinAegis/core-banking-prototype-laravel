@@ -74,17 +74,21 @@ final class SubscriptionWebhookController
             return response()->json(['code' => 'invalid_event'], 400);
         }
 
-        // Phase 1 — atomic dedup claim. Only the (provider, event_id) row write
-        // and a few side-effects that MUST be transactional with it (consent
-        // log + outbox row writes) are inside this transaction. Side-effects
-        // that may call live Stripe APIs (Subscription create on
-        // checkout.session.completed) run after commit so a Stripe failure
-        // doesn't roll back the dedup row — otherwise Stripe would redeliver
-        // forever.
-        $alreadyProcessed = false;
+        // Phase 1 — atomic dedup claim. The (provider, event_id) dedup row write
+        // AND side-effects that must be atomic with it (consent log + outbox row
+        // writes from dispatchEvent) are inside a single transaction. If
+        // dispatchEvent throws, the dedup row is rolled back so Stripe's
+        // redeliver retries successfully instead of silently losing data.
+        //
+        // Note: onCheckoutSessionCompleted calls live Stripe APIs internally and
+        // catches all Throwable — it will not bubble exceptions that would roll
+        // back the dedup row unintentionally.
+        /** @var array<string, mixed> $result */
+        $result = ['replayed' => false];
 
         try {
-            DB::transaction(function () use ($eventId, $eventType, &$alreadyProcessed): void {
+            /** @var array{replayed: bool} $txResult */
+            $txResult = DB::transaction(function () use ($event, $eventId, $eventType): array {
                 $existing = ProcessedWebhookEvent::query()
                     ->where('provider', 'stripe')
                     ->where('event_id', $eventId)
@@ -92,9 +96,7 @@ final class SubscriptionWebhookController
                     ->first();
 
                 if ($existing !== null) {
-                    $alreadyProcessed = true;
-
-                    return;
+                    return ['replayed' => true];
                 }
 
                 ProcessedWebhookEvent::query()->create([
@@ -103,13 +105,15 @@ final class SubscriptionWebhookController
                     'event_type'   => $eventType,
                     'processed_at' => now(),
                 ]);
-            });
 
-            if (! $alreadyProcessed) {
                 /** @var array<string, mixed> $object */
                 $object = (array) ($event['data']['object'] ?? []);
                 $this->dispatchEvent($eventType, $object, $eventId);
-            }
+
+                return ['replayed' => false];
+            });
+
+            $result = $txResult;
         } catch (Throwable $e) {
             Log::error('subscription.webhook.failed', [
                 'event_id'   => $eventId,
@@ -122,7 +126,7 @@ final class SubscriptionWebhookController
 
         return response()->json([
             'received' => true,
-            'replayed' => $alreadyProcessed,
+            'replayed' => $result['replayed'],
             'event_id' => $eventId,
         ]);
     }

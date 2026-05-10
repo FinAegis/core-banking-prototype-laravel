@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'About ' . config('brand.name', 'Zelta') . ' — Open Source Core Banking Infrastructure',
-        'description' => 'Learn about Zelta, the open-source core banking platform — 59 modules covering payments, lending, compliance, DeFi, and a public MCP server for AI agents. Apache-2.0, built with Laravel.',
+        'description' => 'Learn about Zelta, the open-source core banking platform — 60 modules covering payments, lending, compliance, DeFi, and a public MCP server for AI agents. Apache-2.0, built with Laravel.',
         'keywords' => config('brand.name', 'Zelta') . ' about, open source banking, core banking platform, GCU, ISO 20022, PSD2, open banking, Interledger, microfinance, event sourcing, CQRS, Laravel banking, DDD, fintech infrastructure',
     ])
 
@@ -47,7 +47,7 @@
                 <div class="animate-on-scroll">
                     <h2 class="font-display text-3xl lg:text-4xl font-bold text-slate-900 mb-6">What Is {{ config('brand.name', 'Zelta') }}?</h2>
                     <p class="text-lg text-slate-600 mb-4 leading-relaxed">
-                        {{ config('brand.name', 'Zelta') }} is a core banking platform built with Laravel, implementing event sourcing, CQRS, domain-driven design, and AI agent integration across 59 bounded contexts.
+                        {{ config('brand.name', 'Zelta') }} is a core banking platform built with Laravel, implementing event sourcing, CQRS, domain-driven design, and AI agent integration across 60 bounded contexts.
                     </p>
                     <p class="text-lg text-slate-600 mb-6 leading-relaxed">
                         At its heart is the <strong>Global Currency Unit (GCU)</strong>&mdash;a democratically governed basket currency where users vote on composition from six global reserve assets.

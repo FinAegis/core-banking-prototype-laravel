@@ -83,14 +83,14 @@ function bindStripeClientWithFingerprint(string $fingerprint, string $pmId = 'pm
 {
     $pm = fakeStripePaymentMethod($fingerprint, $pmId);
 
-    /** @var \Stripe\Service\PaymentMethodService&\Mockery\MockInterface $pmService */
+    /** @var PaymentMethodService&Mockery\MockInterface $pmService */
     $pmService = Mockery::mock(PaymentMethodService::class);
     $pmService->shouldReceive('retrieve')
         ->with($pmId)
         ->andReturn($pm);
     $pmService->shouldReceive('detach')->andReturn($pm);
 
-    /** @var \Stripe\StripeClient&\Mockery\MockInterface $stripe */
+    /** @var StripeClient&Mockery\MockInterface $stripe */
     $stripe = Mockery::mock(StripeClient::class);
     $stripe->paymentMethods = $pmService;
 
