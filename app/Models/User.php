@@ -96,6 +96,10 @@ class User extends Authenticatable implements FilamentUser
         'sponsored_tx_limit',
         'referral_code',
         'referred_by',
+        // Plan B Slice 4 — cue queue columns (Backend-Q8)
+        'pro_marketing_opt_out',
+        'lifetime_spend_cents',
+        'kyc_completed_at',
     ];
 
     /**
@@ -145,6 +149,10 @@ class User extends Authenticatable implements FilamentUser
             'free_tx_until'              => 'datetime',
             'sponsored_tx_used'          => 'integer',
             'sponsored_tx_limit'         => 'integer',
+            // Plan B Slice 4 — cue queue columns (Backend-Q8)
+            'pro_marketing_opt_out' => 'boolean',
+            'lifetime_spend_cents'  => 'integer',
+            'kyc_completed_at'      => 'datetime',
         ];
     }
 
