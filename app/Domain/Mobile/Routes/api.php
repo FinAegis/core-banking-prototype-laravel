@@ -114,6 +114,8 @@ Route::prefix('v1/notifications')->name('api.v1.notifications.device.')
     ->group(function () {
         Route::post('/register-device', [MobileController::class, 'registerDevice'])->name('register');
         Route::delete('/unregister-device', [MobileController::class, 'unregisterDevice'])->name('unregister');
+        // Alias: mobile sign-out calls DELETE /api/v1/notifications/register-device/{deviceId} (v7.12.1)
+        Route::delete('/register-device/{id}', [MobileController::class, 'unregisterDevice'])->name('unregister-alias');
     });
 
 // User preferences (v3.3.4) + data export alias (v5.6.0)
