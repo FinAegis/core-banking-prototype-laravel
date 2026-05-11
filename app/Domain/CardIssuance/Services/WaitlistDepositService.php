@@ -265,6 +265,22 @@ final class WaitlistDepositService
             $this->unredeemQuote($quote->id);
 
             return ErrorResponse::make('ERR_CARDS_002');
+        } catch (Throwable $e) {
+            // Non-race transaction failure (DB connection drop, unexpected
+            // constraint, OOM). Without compensation the quote stays consumed
+            // and the Stripe session stays alive — the user could pay via the
+            // live link but /entry would never reflect it. Roll both sides
+            // back before letting the 500 propagate.
+            Log::error('cards.deposit.start.persist_failed', [
+                'user_id'    => $user->id,
+                'quote_id'   => $quote->id,
+                'session_id' => $sessionId,
+                'error'      => $e->getMessage(),
+            ]);
+            $this->expireStripeSessionSafely($sessionId);
+            $this->unredeemQuote($quote->id);
+
+            throw $e;
         }
 
         return response()->json([
@@ -557,11 +573,19 @@ final class WaitlistDepositService
             ]);
 
         if ($affected === 0) {
+            // Either this is a webhook retry (processed_webhook_events would
+            // have caught it, so this branch only fires when the cron-replay
+            // races a webhook that already landed) or the deposit moved on
+            // (refunded, etc.) before this event arrived. Either way, the
+            // outbox row was already written by the first caller — adding a
+            // second row keyed by a different event_id would double-count the
+            // €5 deposit in revenue_events.
             Log::info('cards.deposit.webhook.checkout_completed.no_pending_row', [
                 'event_id'   => $eventId,
                 'session_id' => $sessionId,
             ]);
-            // Still write the outbox row so reconciliation has the signal.
+
+            return;
         }
 
         $this->enqueueOutbox($eventId, 'checkout.session.completed', [

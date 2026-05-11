@@ -104,13 +104,16 @@ final class PurgeExpiredDepositsCommand extends Command
                         'cron_purge:' . $sessionId,
                     );
                     $delayedCompletion++;
-                } elseif ($status === 'expired' || $status === 'open') {
+                } elseif ($status === 'expired') {
                     $deposit->update([
                         'status'     => CardWaitlistDeposit::STATUS_EXPIRED,
                         'expired_at' => now(),
                     ]);
                     $expired++;
                 } else {
+                    // 'open' (still alive) or any unexpected status — leave
+                    // the deposit alone; Stripe will auto-expire on its next
+                    // tick and the following cron run will pick it up.
                     $stillAlive++;
                 }
             } catch (Throwable $e) {
