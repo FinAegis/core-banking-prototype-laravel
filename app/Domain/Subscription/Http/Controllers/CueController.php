@@ -20,6 +20,7 @@ use App\Domain\Subscription\Models\Cue;
 use App\Domain\Subscription\Services\CuePreconditionInterface;
 use App\Domain\Subscription\Services\CueRepository;
 use App\Models\User;
+use App\Support\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -109,7 +110,7 @@ final class CueController
             ->first();
 
         if ($cue === null) {
-            return response()->json(['code' => 'ERR_NOT_FOUND', 'message' => 'Cue not found.'], 404);
+            return ErrorResponse::make('ERR_CUE_001');
         }
 
         // Already dismissed — idempotent 200.

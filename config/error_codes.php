@@ -48,4 +48,7 @@ return [
     'ERR_EXP_001' => ['http' => 429, 'description' => 'Export rate limit exceeded.'],
     'ERR_EXP_002' => ['http' => 410, 'description' => 'Export artifact has been purged.'],
     'ERR_EXP_003' => ['http' => 500, 'description' => 'Export job failed.'],
+
+    // ─── Cue queue (slice 4) ──────────────────────────────────────────────
+    'ERR_CUE_001' => ['http' => 404, 'description' => 'Cue not found or does not belong to the authenticated user.'],
 ];
