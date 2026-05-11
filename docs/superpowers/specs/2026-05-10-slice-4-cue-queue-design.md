@@ -9,6 +9,14 @@
 
 ---
 
+> **Revision 1 — 2026-05-11** — Doc-grounded grilling pass + controller decision baked in.
+>
+> Controller decision: slice 4 owns **BOTH sources** of `grace_period_started` (Stripe `customer.subscription.updated status='past_due'` + Apple `DID_FAIL_TO_RENEW`). Previously unresolved mutual deferral between slices 2 and 4 — now resolved.
+>
+> Fixes applied: F-20 (`grace_period_started` unified ownership in §5.4, §6, Appendix A), F-21 (event classes `SubscriptionTrialStarted` + `OnboardingCompleted` added to scope, §5.5/§12), F-22 (`users.lifetime_spend_cents` + `kyc_completed_at` migration added as §5.6a + §12/§13), F-23 (`EntitlementsService` resolved → use `SubscriptionProjection` + `TrialFingerprintService`, §5.5), F-24 (`dismissedAction` camelCase, §5.3), F-25 (`trial_will_end` distinct event handler added, §5.7), F-26 (deltas Q5.1 is source for cue endpoint contracts, §3), F-27 (`app/Domain/Shared/EventSourcing/` path corrected, §6), F-28 (`ProjectRevenueOutbox` docblock interpretation clarified, §2), F-29 (`Metric::increment` → `Log::info` pragmatic note, §5.10), F-30 (`cues.user_id BIGINT` Q5.1 DDL error noted, §5.1). **Slice 4 now implements 9 of 11 active cue kinds (was 8).**
+
+---
+
 ## 1. Working directory and authorisation
 
 You are in a git worktree branched off `main` (which already includes slice 1 from PR #1037, and by the time this spec is implemented, also slice 2 IAP from PR #1038 and slice 3 Pricing from PR #1039).
@@ -41,7 +49,7 @@ You are in a git worktree branched off `main` (which already includes slice 1 fr
 Slice 1 (PR #1037) delivered the **Stripe-only subscription lifecycle** plus:
 
 - `POST /webhooks/stripe/subscriptions` — Stripe webhook handler. Its `Cashier event → cue event bridge` (described in the deltas' Backend-Q1 §5 table) emits side-effect signals. In slice 1, the cue-insertion side of that bridge is a **stub** — event types `trial_will_end`, `invoice.payment_failed`, and `customer.subscription.deleted` are received correctly, but the `cues` table does not yet exist and no cue rows are inserted.
-- `ProjectRevenueOutbox` job — the off-chain revenue projection worker (ADR-0002). Its docblock says "Slice 4 fans out via per-row dispatch on top of the cue infrastructure." That note refers to the outbox worker eventually being triggered from within slice 4's dispatch layer, but is NOT the architectural centre of slice 4. The cue queue infrastructure (slice 4) is the `cues` table + dispatch jobs + API endpoints; the outbox stays as-is per ADR-0002.
+- `ProjectRevenueOutbox` job — the off-chain revenue projection worker (ADR-0002). The `ProjectRevenueOutbox` docblock notes slice 4 wires the full delayed-job infrastructure per Backend-Q8. This refers to the cue dispatch layer being added — the outbox worker itself remains unchanged in this slice (slice 4 simply adds its missing schedule entry). The cue queue infrastructure (slice 4) is the `cues` table + dispatch jobs + API endpoints; the outbox stays as-is per ADR-0002.
 
 ### What Backend-Q8 decided
 
@@ -64,11 +72,13 @@ This decision is **closed**. The architecture is committed in the review-deltas 
 3. **`POST /api/v1/me/cues/{cue_id}/dismissed`** — idempotent dismiss action (Q5.1).
 4. **`CueRepository`** — the idempotent-write service used by all dispatch paths (Q5.4 dedup on `idempotency_key`).
 5. **Four delayed-job classes** (`EnqueueProTrialReminderD1`, `EnqueueTrialEnding2d`, `EnqueueTrialEnding1d`, `EnqueueTrialEnding1h`) dispatched from source-event listeners (Q8 time-from-event pattern).
-6. **One aggregate-condition cron command** (`DispatchKycRequiredCues`) for the `kyc_required` cue kind (Q8 aggregate-condition pattern).
-7. **Webhook-driven cue inserts** in the Stripe webhook handler — filling in the stub left by slice 1 for `trial_will_end`, `invoice.payment_failed`, `customer.subscription.deleted`/`cancelled_external`, and `grace_period_started` (webhook-driven pattern).
-8. **Filament admin** — `CueEventResource` and `CueDispatchHealthWidget` for operator visibility.
-9. **`users.pro_marketing_opt_out` column** — the `pro_trial_reminder_d1` opt-out per Q11.2.
-10. **Outbox worker promotion**: the `ProjectRevenueOutbox` stub now has per-row dispatch hooked from the webhook handler (the docblock's "Slice 4 fans out" comment). This is a minor addendum — the outbox architecture is unchanged; slice 4 simply ensures the worker is scheduled properly (see §15).
+6. **Two new event classes** — `App\Domain\Subscription\Events\SubscriptionTrialStarted` (fires on Stripe trial subscription created) and `App\Domain\Onboarding\Events\OnboardingCompleted` (fires on user onboarding completion). Both are new; they do not exist in slice 1.
+7. **One aggregate-condition cron command** (`DispatchKycRequiredCues`) for the `kyc_required` cue kind (Q8 aggregate-condition pattern).
+8. **Webhook-driven cue inserts** — filling in the Stripe webhook stubs left by slice 1 for `invoice.payment_failed`, `customer.subscription.deleted`/`cancelled_external`, `charge.refunded`; adding the `customer.subscription.trial_will_end` handler (new — slice 1 does not handle this event); and adding **`grace_period_started`** cue from Stripe `customer.subscription.updated status='past_due'` (Stripe source) and Apple `DID_FAIL_TO_RENEW` (Apple source). **Slice 4 owns BOTH sources of `grace_period_started`** (controller decision 2026-05-11).
+9. **Filament admin** — `CueResource` and `CueDispatchHealthWidget` for operator visibility.
+10. **`users.pro_marketing_opt_out` column** — the `pro_trial_reminder_d1` opt-out per Q11.2.
+11. **`users.lifetime_spend_cents` + `users.kyc_completed_at` columns** — required by `DispatchKycRequiredCues`; new migration (§5.6a). Write-path hooks in `ProjectRevenueOutbox` (spend) and KYC level-transition code (kyc_completed_at).
+12. **Outbox worker schedule entry** — the missing `routes/console.php` line from slice 1. Outbox architecture unchanged; slice 4 simply ensures the worker is scheduled properly (see §15).
 
 ### Where slice 4 plugs in
 
@@ -88,7 +98,7 @@ These files are the canonical source of truth. Read them in this order.
    - `### Q13.6 — Cue export_ready` — when and how `export_ready` cue is created (not in slice 4 scope; see §6)
    - `### Cashier event → cue event bridge` (in the Backend-Q1 section) — the table of which Cashier-handled Stripe events trigger which cues
 
-2. **`docs/BACKEND_HANDOVER_PLAN_B_COMMERCIAL.md`** — original subscription surface area. §1.2 defines the cue endpoint contracts; §1.4 onboarding flow (source event for `pro_trial_reminder_d1`); §1.5 multi-store conflict (source of `family_sharing_unsupported` cue — but that cue's dispatch belongs to slice 2 IAP, not slice 4; see §6).
+2. **`docs/BACKEND_HANDOVER_PLAN_B_COMMERCIAL.md`** — original subscription surface area. §1.4 onboarding flow (source event for `pro_trial_reminder_d1`); §1.5 multi-store conflict (source of `family_sharing_unsupported` cue — but that cue's dispatch belongs to slice 2 IAP, not slice 4; see §6). **Cue endpoint contracts** (`GET /pending-cues`, `POST /cues/{id}/dismissed`) are defined in the deltas at Q5.1 — not commercial §1.2 (which covers subscription endpoints).
 
 3. **`docs/adr/0002-revenue-projection-dual-upstream.md`** — ADR-0002's "saga rule" governs why the `ProjectRevenueOutbox` worker (slice 1) is NOT wrapped in a new slice-4 cue layer. The outbox is a separate concern (off-chain revenue projection); the cue queue is for user-facing modal triggers. They share the global DB connection but are architecturally orthogonal.
 
@@ -124,12 +134,22 @@ These files are the canonical source of truth. Read them in this order.
 |---|---|
 | `cues` | Per-user cue rows (Q5.1 DDL — see §5.1) |
 
+### Columns NOT yet in `main` — slice 4 must add
+
+| Column | Table | Purpose |
+|---|---|---|
+| `pro_marketing_opt_out` | `users` | Q11.2 opt-out flag (§5.8) |
+| `lifetime_spend_cents` | `users` | AMLD5 threshold check for `DispatchKycRequiredCues` (§5.6a) |
+| `kyc_completed_at` | `users` | Replaces `kyc_level` enum check for cron candidate query (§5.6a) |
+
 ### Services / classes already in `main`
 
 | Class | Location | Slice 4 relationship |
 |---|---|---|
-| `SubscriptionWebhookController` | `app/Domain/Subscription/Webhooks/` | Slice 4 fills in the cue-insert stubs |
-| `ProjectRevenueOutbox` job | `app/Domain/Subscription/Jobs/` | Slice 4 adds the cron schedule entry; no code changes |
+| `SubscriptionWebhookController` | `app/Domain/Subscription/Webhooks/` | Slice 4 fills in the cue-insert stubs + adds `trial_will_end` handler |
+| `ProjectRevenueOutbox` job | `app/Domain/Subscription/Jobs/` | Slice 4 adds the cron schedule entry + `lifetime_spend_cents` increment call |
+| `SubscriptionProjection` | `app/Domain/Subscription/` | Used by delayed jobs for tier checks (replaces `EntitlementsService`) |
+| `TrialFingerprintService` | `app/Domain/Subscription/` | Used by `EnqueueProTrialReminderD1` for trial-eligibility checks |
 | `RevenueOutboxEvent` model | `app/Domain/Subscription/Models/` | Unchanged |
 | `ProcessedWebhookEvent` model | `app/Domain/Subscription/Models/` | Unchanged |
 | `TrialCardFingerprintResource` | `app/Filament/Admin/Resources/` | Convention template for Filament admin style |
@@ -150,7 +170,7 @@ Create `database/migrations/2026_05_10_000001_create_cues_table.php`:
 | Column | Type | Notes |
 |---|---|---|
 | `id` | `CHAR(36) PRIMARY KEY` | UUID v4 |
-| `user_id` | `BIGINT UNSIGNED NOT NULL` | FK to `users.id`; `foreignId()` not `foreignUuid()` (users.id is BIGINT per CLAUDE.md) |
+| `user_id` | `BIGINT UNSIGNED NOT NULL` | FK to `users.id`; `foreignId()` not `foreignUuid()` (users.id is BIGINT per CLAUDE.md). **Note:** Q5.1 source DDL specifies `user_id CHAR(36)` — that is a source-doc error. `users.id` is `BIGINT UNSIGNED` per project convention; corrected here. A future deltas amendment should fix Q5.1's DDL. |
 | `kind` | `VARCHAR(64) NOT NULL` | One of the 11 kinds in Q5.5 (see §5.4) |
 | `priority` | `ENUM('critical','high','normal') NOT NULL` | Rendering order per Q5.3 |
 | `due_at` | `TIMESTAMP NOT NULL` | When the cue becomes available; UTC |
@@ -166,7 +186,7 @@ Indexes:
 - `UNIQUE KEY uniq_cues_idempotency (user_id, idempotency_key)` — backend-side dedup (Q5.4)
 
 Additional indexes for aggregate-condition cron:
-- `users(lifetime_spend_cents, kyc_completed_at)` — composite; needs to be verified/added in the users table migration if absent
+- `users(lifetime_spend_cents, kyc_completed_at)` — composite; needs to be added in the users table migration (see §5.6a below)
 - `cues(user_id, kind, dismissed_at)` — already covered by `idx_cues_user_pending`
 
 No `updated_at` column — cues are append-only except for `dismissed_at`/`dismissed_action` updates. Use `timestamps()` without `updated_at` (or add both and accept the minor overhead).
@@ -246,13 +266,13 @@ Processing:
 
 1. Find `Cue` by `cue_id` where `user_id = auth()->id()`. Return 404 if not found or belongs to another user.
 2. If `dismissed_at` is already set: return 200 with the existing cue row (idempotent).
-3. Validate `dismissed_action` body field (`cancelled` | `kept` | `dismissed`). Default to `dismissed` if absent.
-4. Set `dismissed_at = now()`, `dismissed_action = $request->input('dismissed_action', 'dismissed')`. Save.
+3. Validate `dismissedAction` body field (`cancelled` | `kept` | `dismissed`). Default to `dismissed` if absent. (Wire convention is camelCase per ADR-0004 and §7; read via `$request->input('dismissedAction', 'dismissed')`.)
+4. Set `dismissed_at = now()`, `dismissed_action = $request->input('dismissedAction', 'dismissed')`. Save.
 5. Return 200.
 
 ### 5.4 The eleven cue kinds (v1.3.0 complete list)
 
-The Q5.5 table from the deltas defines all 11 kinds with their priorities, render windows, precondition reaping logic, triggers, and dispatch patterns. Slice 4 implements **10 of the 11**:
+The Q5.5 table from the deltas defines all 11 kinds with their priorities, render windows, precondition reaping logic, triggers, and dispatch patterns. Slice 4 implements **9 of the 11**:
 
 | Kind | Dispatch pattern | Implemented in |
 |---|---|---|
@@ -262,13 +282,13 @@ The Q5.5 table from the deltas defines all 11 kinds with their priorities, rende
 | `payment_failed` | Direct webhook insert | Slice 4 (fills Stripe stub; IAP path fills separately in slice 2) |
 | `subscription_canceled_external` | Direct webhook insert | Slice 4 (fills Stripe stub; IAP path in slice 2) |
 | `refund_processed` | Direct webhook insert | Slice 4 (fills Stripe stub; IAP path in slice 2) |
-| `grace_period_started` | Direct webhook insert | **Slice 2** (Apple IAP retry window event) |
+| `grace_period_started` | Direct webhook insert — **TWO sources, both owned by slice 4** | Slice 4. Source 1: Stripe `customer.subscription.updated status='past_due'` webhook (via `SubscriptionWebhookController`). Source 2: Apple `DID_FAIL_TO_RENEW` notification (via slice 4's Apple webhook handler stub — to be wired similarly to the Stripe stub). Both insert a `grace_period_started` cue via `CueRepository::createIdempotent()`. (Previously this was deferred to slice 2 — mutual deferral caught and resolved per controller decision 2026-05-11.) |
 | `kyc_required` | Aggregate-condition hourly cron | Slice 4 |
 | `family_sharing_unsupported` | Direct webhook insert during IAP verify | **Slice 2** |
 | `export_ready` | Direct event insert on export job completion | **Deferred** — depends on export feature; not in v1.3.0 slice 4 scope |
 | `pro_trial_reminder_d1` | Delayed job (`EnqueueProTrialReminderD1`) | Slice 4 |
 
-Slice 4 implements 8 of the 11 active kinds. The 3 deferred to their owning slices are noted explicitly.
+Slice 4 implements 9 of the 11 active kinds (increased from 8 — `grace_period_started` transferred from slice 2). The 2 remaining kinds deferred to their owning slices are noted explicitly.
 
 ### 5.5 Time-from-event delayed jobs
 
@@ -281,11 +301,13 @@ Job handle logic:
 ```
 1. User::find($userId) → if null (user erased): log cue.job.skipped reason=user_erased, return
 2. $user->pro_marketing_opt_out → if true: log cue.job.skipped reason=opted_out, return
-3. EntitlementsService::for($user)->tier → if not 'free': log cue.job.skipped reason=tier_changed, return
-4. EntitlementsService::for($user)->trialEligible → if false: log cue.job.skipped reason=trial_used, return
+3. SubscriptionProjection::for($user)['tier'] → if not 'free': log cue.job.skipped reason=tier_changed, return
+4. TrialFingerprintService::isEligibleForCard($user) → if false: log cue.job.skipped reason=trial_used, return
 5. $cueRepository->createIdempotent($user, 'pro_trial_reminder_d1', payload, occurrence_window_start)
 6. Log cue.job.success kind=pro_trial_reminder_d1
 ```
+
+**Note on `EntitlementsService`** (F-23): There is no pre-existing `EntitlementsService` class. The spec formerly treated it as pre-existing. **Resolution:** Use slice 1's `SubscriptionProjection::for($user)` (returns `tier` and `status`) for tier checks, and `TrialFingerprintService::isEligibleForCard($user)` for trial-eligibility checks (both exist from slice 1). No new `EntitlementsService` class is needed or in scope for slice 4.
 
 The occurrence window for `pro_trial_reminder_d1` is lifetime per Q5.4 (a user gets at most one), so `occurrence_window_start_iso8601 = '1970-01-01T00:00:00Z'` (epoch as the stable window identifier).
 
@@ -311,6 +333,13 @@ The occurrence window for `trial_ending_*` is the trial period itself, keyed by 
 **Self-cancel pattern:** If the user converts mid-trial, all three queued jobs fire and self-cancel via steps 2. At ~30% trial-cancel rate, that's ~0.9 wasted job-runs per trialing user. Marginal at v1.3.0 traffic. No proactive `Bus::findBatch()` cancellation — simpler, correct under retry.
 
 **`tries` and `backoff`:** Inherit from `ProjectRevenueOutbox` convention: `public int $tries = 5; public int $backoff = 30;` (5 attempts, 30s backoff). Permanent failures land in `failed_jobs` for ops review.
+
+**Event class scope (F-21):** The two source events driving these listeners do NOT exist yet and must be created as part of slice 4:
+
+- `App\Domain\Subscription\Events\SubscriptionTrialStarted` — fired by the `SubscriptionWebhookController` (or a dedicated listener on `WebhookReceived`) when a Stripe `customer.subscription.created` event arrives and the subscription has `trial_ends_at IS NOT NULL`. This is the trigger for `SubscriptionTrialStartedListener`.
+- `App\Domain\Onboarding\Events\OnboardingCompleted` (or `App\Domain\Subscription\Events\OnboardingCompleted` if an Onboarding domain does not exist — check `app/Domain/` for an existing `Onboarding` or `User` domain that signals onboarding completion). Wire from wherever the platform currently dispatches the user `welcome` completion signal (the user registration + profile-completion flow). This is the trigger for `OnboardingCompletedListener`.
+
+Both event classes must be added to slice 4 deliverables and are reflected in the commit topology (§12 commit 4).
 
 ### 5.6 Aggregate-condition cron: `DispatchKycRequiredCues`
 
@@ -340,6 +369,28 @@ Emit `cue.cron.aggregate.kyc_required.candidates` (gauge) and `cue.cron.aggregat
 
 **Cron cadence:** Hourly at `:15` past the hour (offset from the busy `:00` slot). The AMLD5 €1,000 threshold is not second-sensitive.
 
+### 5.6a New `users` columns: `lifetime_spend_cents` + `kyc_completed_at` (F-22)
+
+The `DispatchKycRequiredCues` query (§5.6) filters on `users.lifetime_spend_cents` and `users.kyc_completed_at`. Neither column exists in the current schema:
+
+- `users.lifetime_spend_cents` does not exist (no such column in slice 1).
+- `users.kyc_completed_at` does not exist — the current column is `users.kyc_level` (enum).
+
+**Decision (column-add approach):** Add both columns via a new migration `2026_05_10_000003_add_lifetime_spend_and_kyc_completed_at_to_users_table.php`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `lifetime_spend_cents` | `BIGINT UNSIGNED NOT NULL DEFAULT 0` | Updated by the revenue write path. See write-path note below. |
+| `kyc_completed_at` | `TIMESTAMP NULL DEFAULT NULL` | Set when `kyc_level` transitions to a completed value (check `app/Domain/Compliance/` or `app/Domain/KYC/` for the existing transition point). |
+
+**`lifetime_spend_cents` write path:** The column is maintained by the `ProjectRevenueOutbox` worker (slice 1's off-chain projection job) — add an `User::where('id', $userId)->increment('lifetime_spend_cents', $amountCents)` call after a `revenue_events` row is written (in the same transaction, or immediately after). Using a column rather than computing on-the-fly (`SUM(revenue_events.amount_cents)`) is the preferred approach because it enables an efficient composite index on `(lifetime_spend_cents, kyc_completed_at)` for the hourly cron query. A computed `SUM` on `revenue_events` at cron time would require a full index scan at 100k+ MAU scale.
+
+**`kyc_completed_at` write path:** When `users.kyc_level` transitions to a fully-verified state (the exact enum value — likely `'verified'` or `'full'` — confirm in the existing KYC flow), set `kyc_completed_at = now()`. Add this to the same code path that currently updates `kyc_level`.
+
+Add composite index: `INDEX idx_users_kyc_spend (lifetime_spend_cents, kyc_completed_at)` (see §5.6 required indexes).
+
+This migration and its associated write-path changes are slice 4 deliverables. Update §12 commit topology and §13 status format to include this migration.
+
 ### 5.7 Webhook-driven cue inserts (filling slice 1 stubs)
 
 In `SubscriptionWebhookController`, the following Cashier-handled Stripe events get cue-insert code added inside the existing per-event `DB::transaction()` block (same transaction as the dedup row write):
@@ -349,10 +400,11 @@ In `SubscriptionWebhookController`, the following Cashier-handled Stripe events 
 | `invoice.payment_failed` | `payment_failed` | Occurrence window = billing cycle start (`subscription_period_start` from Stripe payload) |
 | `invoice.payment_succeeded` (after failure) | Suppress active `payment_failed` cue | Set `dismissed_at = now()` on any un-dismissed `payment_failed` cue for this user |
 | `customer.subscription.deleted` | `subscription_canceled_external` | Only if `cancellation_details.reason` is `'cancellation_requested'` (user-initiated) |
-| `customer.subscription.updated` (trial end webhook) | Triggers the three `trial_ending_*` delayed jobs | Cashier fires `customer.subscription.trial_will_end` 3 days before end; we fan out by re-dispatching the delayed jobs for 2d/1d/1h from *current* trial end time |
+| `customer.subscription.trial_will_end` | Triggers the three `trial_ending_*` delayed jobs | **Note:** This is `customer.subscription.trial_will_end` — a distinct event from `customer.subscription.updated`. Stripe fires this ~3 days before trial end. Slice 1's `SubscriptionWebhookController::dispatchEvent()` does NOT currently handle `trial_will_end` (it handles `updated` and `deleted`). **Slice 4 must add a handler for `trial_will_end`** alongside the existing event cases. On receipt, fan out by dispatching `EnqueueTrialEnding{2d,1d,1h}` from the subscription's current `trial_end` timestamp. |
+| `customer.subscription.updated` (status=`'past_due'`) | `grace_period_started` | The Stripe source for the `grace_period_started` cue. Occurrence window = subscription period start. (Second source: Apple `DID_FAIL_TO_RENEW` — see §5.4.) |
 | `charge.refunded` | `refund_processed` | Occurrence window = refund `created` timestamp |
 
-**Important:** The `trial_will_end` Stripe event (via Cashier) fires once at ~3 days before trial end. Rather than trusting Cashier's timing entirely, the `SubscriptionTrialStartedListener` (dispatched when a Cashier trial subscription is created) also dispatches the three delayed jobs from the trial start time. Both paths are present; `cues.uniq_cues_idempotency` prevents double-creation if both fire.
+**Important:** The `trial_will_end` Stripe event fires once at ~3 days before trial end. Rather than trusting Cashier's timing entirely, the `SubscriptionTrialStartedListener` (dispatched when a Cashier trial subscription is created) also dispatches the three delayed jobs from the trial start time. Both paths are present; `cues.uniq_cues_idempotency` prevents double-creation if both fire.
 
 ### 5.8 `users.pro_marketing_opt_out` column
 
@@ -416,6 +468,8 @@ Location: `app/Filament/Admin/Widgets/CueDispatchHealthWidget.php`
 
 All metrics emitted via `Log::info()` structured log channels (consistent with existing `revenue_outbox.project_failed` log usage in slice 1). No Prometheus dependency introduced in this slice.
 
+**Note on Q8 metric references (F-29):** The Backend-Q8 source doc references `Metric::increment()` emitted to Sentry and a "Sentry + Filament dashboard." The codebase has no Sentry SDK and no `Metric` facade. `Log::info()` to structured channels — matching slice 1's `revenue_outbox.project_failed` pattern — is the implementable equivalent. Adding a proper metrics emission layer (Sentry, Prometheus, or similar) is out of slice 4 scope; a future infrastructure slice could swap `Log::info()` calls for real metric emission without changing the call sites.
+
 Per Backend-Q8 observability table:
 
 | Metric | Source |
@@ -441,12 +495,12 @@ Per Backend-Q8 observability table:
 ## 6. Out of scope — slice 4 does NOT
 
 - **`export_ready` cue** — depends on the export feature (not yet in v1.3.0 scope). Add when the export job ships.
-- **`grace_period_started` cue** — triggered by Apple IAP's `DID_FAIL_TO_RENEW` notification. Belongs to slice 2 IAP webhook handler.
 - **`family_sharing_unsupported` cue** — triggered during `POST /api/v1/subscription/iap/verify`. Belongs to slice 2.
+- **`grace_period_started` (Apple-only path that goes beyond slice 4's scope)** — slice 4 owns BOTH sources of `grace_period_started` (Stripe `past_due` webhook AND Apple `DID_FAIL_TO_RENEW`). The Apple-side stub requires coordination with slice 2's IAP webhook infrastructure, but the `grace_period_started` cue insertion for both sources is owned by slice 4. Slice 2 does NOT own this cue kind. (Previous spec had mutual deferral — resolved per controller decision 2026-05-11.)
 - **IAP `payment_failed` cue** — IAP-side billing failure cues are slice 2's responsibility; slice 4 covers only Stripe-side `payment_failed`.
 - **Replace `revenue_outbox_events` table** — the outbox pattern (ADR-0002) is architecturally separate from the cue queue. The outbox is for off-chain revenue projection; the `cues` table is for user-facing modal triggers. Do NOT attempt to generalise the outbox into the cue system or vice versa. See §8 OD-1 for why this is an explicit non-decision.
 - **Refactor Spatie event sourcing** — event sourcing is the write-model; cue queue is for outbound side-effects triggered by those writes. They are orthogonal layers.
-- **Redis Streams migration** — `app/Domain/EventStreaming/` (Redis Streams publisher/consumer with DLQ + backpressure) is NOT the right foundation for the cue dispatch system. Backend-Q8 explicitly chose the Laravel `database` queue driver for v1.3.0 because durability > latency at this scale. The EventStreaming domain is for intra-service event fan-out (existing use cases); the cue queue needs durable per-row persistence per kind per user. Do not route delayed jobs through Redis Streams.
+- **Redis Streams migration** — `app/Domain/Shared/EventSourcing/` (Redis Streams publisher/consumer with DLQ + backpressure) is NOT the right foundation for the cue dispatch system. Backend-Q8 explicitly chose the Laravel `database` queue driver for v1.3.0 because durability > latency at this scale. The EventSourcing/EventStreaming domain is for intra-service event fan-out (existing use cases); the cue queue needs durable per-row persistence per kind per user. Do not route delayed jobs through Redis Streams.
 - **New observability infrastructure** — Prometheus/Grafana metrics are a separate stream. Slice 4 uses structured log channels (`Log::info()`), consistent with existing patterns.
 - **GDPR erasure walk** — slice 4 adds `pro_marketing_opt_out` to the users table; a full GDPR walk extension is a coordination item (§15), not a code deliverable in this slice.
 - **Legacy-user `pro_trial_reminder_d1` backfill** — users who onboarded before v1.3.0 rollout don't have a delayed job dispatched at their onboarding event. Per Backend-Q8: acceptable; the cue is for net-new acquisition. If the founder wants a retroactive backfill, ship a one-shot backfill cron in v1.3.1. Do NOT add it here.
@@ -592,8 +646,13 @@ This was never an open question in Backend-Q8 — it is noted here to pre-empt a
 
 - [ ] Migration `create_cues_table` creates the table with all columns, `idx_cues_user_pending` index, and `uniq_cues_idempotency` unique key
 - [ ] Migration `add_pro_marketing_opt_out_to_users` adds the boolean column with `default(false)`
+- [ ] Migration `add_lifetime_spend_cents_and_kyc_completed_at_to_users` adds both columns with correct types and composite index (§5.6a)
 - [ ] `php artisan migrate` runs without error on a clean database (migrations are idempotent)
 - [ ] `cues` table is global (no `UsesTenantConnection` on the model); confirmed by checking the model has no such trait
+- [ ] `SubscriptionTrialStarted` event class exists at `App\Domain\Subscription\Events\SubscriptionTrialStarted`
+- [ ] `OnboardingCompleted` event class exists (verify domain namespace)
+- [ ] `SubscriptionWebhookController` has a handler for `customer.subscription.trial_will_end` (new in slice 4)
+- [ ] `grace_period_started` cue is inserted by both the Stripe `past_due` webhook path and the Apple `DID_FAIL_TO_RENEW` path
 
 ### API endpoints
 
@@ -638,6 +697,9 @@ This was never an open question in Backend-Q8 — it is noted here to pre-empt a
 - [ ] `invoice.payment_succeeded` (after failure) sets `dismissed_at` on any pending `payment_failed` cue
 - [ ] `customer.subscription.deleted` inserts `subscription_canceled_external` cue (user-initiated cancel only)
 - [ ] `charge.refunded` inserts `refund_processed` cue
+- [ ] `customer.subscription.trial_will_end` Stripe event triggers all three `trial_ending_*` delayed jobs (new handler in slice 4 — slice 1 does not handle this event)
+- [ ] `customer.subscription.updated status='past_due'` inserts `grace_period_started` cue (Stripe source)
+- [ ] Apple `DID_FAIL_TO_RENEW` notification inserts `grace_period_started` cue (Apple source)
 - [ ] Cue insert is in the same `DB::transaction()` as the `processed_webhook_events` dedup write
 - [ ] Replaying the same Stripe event (dedup hit) does NOT re-insert the cue
 
@@ -662,7 +724,7 @@ This was never an open question in Backend-Q8 — it is noted here to pre-empt a
 
 | Concern | Convention |
 |---|---|
-| Constructor injection | Never `app()` inside job `handle()`, cron command, or the pending-cues controller. Inject `CueRepository`, `EntitlementsService`, etc. via constructor. The worker and controller are latency-sensitive paths. |
+| Constructor injection | Never `app()` inside job `handle()`, cron command, or the pending-cues controller. Inject `CueRepository`, `SubscriptionProjection`, `TrialFingerprintService`, etc. via constructor. The worker and controller are latency-sensitive paths. (`EntitlementsService` does not exist — use `SubscriptionProjection` and `TrialFingerprintService` from slice 1 instead; see §5.5.) |
 | Multi-connection | `cues` is a global table. No `UsesTenantConnection` anywhere in this slice. Standard `DB::transaction()` is safe. |
 | `users.id` FK | `cues.user_id` is `BIGINT UNSIGNED`. Use `$table->foreignId('user_id')`, NOT `foreignUuid()`. Per CLAUDE.md: `users.$table->id()` is BIGINT. |
 | `assert()` as auth guard | Never use `assert()` for auth checks — compiled out with `zend.assertions=-1`. Guard: `if ($cue->user_id !== $request->user()->id) { return response()->json(['code' => 'ERR_NOT_FOUND'], 404); }` |
@@ -704,11 +766,12 @@ Follow the same topology as slice 2/3 specs. Suggested sequence (each commit is 
 1. **`feat(subscription): create cues table migration + Cue model + CueRepository`** — the foundation; all dispatch strategies depend on this
 2. **`feat(subscription): pending-cues endpoint (GET + POST dismissed)`** — API surface; test with empty cues first
 3. **`feat(subscription): marketing-opt-out endpoint + users.pro_marketing_opt_out migration`** — the opt-out column and endpoint
-4. **`feat(subscription): time-from-event delayed job classes (4 jobs + 2 listeners)`** — `EnqueueProTrialReminderD1`, `EnqueueTrialEnding{2d,1d,1h}`, `OnboardingCompletedListener`, `SubscriptionTrialStartedListener`
-5. **`feat(subscription): aggregate-condition cron — DispatchKycRequiredCues`** — `kyc_required` cron command + schedule entry
-6. **`feat(subscription): webhook-driven cue inserts — fill Stripe stubs`** — `SubscriptionWebhookController` cue inserts for `payment_failed`, `refund_processed`, `subscription_canceled_external`
-7. **`feat(subscription): Filament admin — CueResource + CueDispatchHealthWidget`** — admin visibility
-8. **`feat(subscription): ProjectRevenueOutbox cron schedule entry`** — the missing `routes/console.php` line from slice 1 (see §15)
+4. **`feat(subscription): add SubscriptionTrialStarted + OnboardingCompleted events + users.lifetime_spend_cents + kyc_completed_at migration`** — new event classes (`App\Domain\Subscription\Events\SubscriptionTrialStarted`, `App\Domain\Onboarding\Events\OnboardingCompleted`); new `users` columns migration (§5.6a); write-path hooks in `ProjectRevenueOutbox` and the KYC level-transition code
+5. **`feat(subscription): time-from-event delayed job classes (4 jobs + 2 listeners)`** — `EnqueueProTrialReminderD1`, `EnqueueTrialEnding{2d,1d,1h}`, `OnboardingCompletedListener`, `SubscriptionTrialStartedListener` (depends on commit 4 event classes)
+6. **`feat(subscription): aggregate-condition cron — DispatchKycRequiredCues`** — `kyc_required` cron command + schedule entry (depends on commit 4 users columns)
+7. **`feat(subscription): webhook-driven cue inserts — fill Stripe stubs (+ trial_will_end handler + grace_period_started)`** — `SubscriptionWebhookController` cue inserts for `payment_failed`, `refund_processed`, `subscription_canceled_external`, `grace_period_started` (Stripe `past_due` path); add `trial_will_end` handler (missing from slice 1); Apple `grace_period_started` path via Apple webhook handler stub (for `DID_FAIL_TO_RENEW`)
+8. **`feat(subscription): Filament admin — CueResource + CueDispatchHealthWidget`** — admin visibility
+9. **`feat(subscription): ProjectRevenueOutbox cron schedule entry`** — the missing `routes/console.php` line from slice 1 (see §15)
 
 ---
 
@@ -720,10 +783,12 @@ When all commits are clean and the PR is open, report:
 STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED
 BRANCH: feat/plan-b-slice-4-cue-queue
 PR_URL: https://github.com/FinAegis/core-banking-prototype-laravel/pull/XXXX
-MIGRATIONS: 2 new (create_cues_table, add_pro_marketing_opt_out_to_users)
+MIGRATIONS: 3 new (create_cues_table, add_pro_marketing_opt_out_to_users, add_lifetime_spend_cents_and_kyc_completed_at_to_users)
 ROUTES: 3 new (GET /api/v1/me/pending-cues, POST /api/v1/me/cues/{id}/dismissed, POST /api/v1/me/marketing-opt-out)
 JOBS: 4 new (EnqueueProTrialReminderD1, EnqueueTrialEnding{2d,1d,1h})
 COMMANDS: 1 new (DispatchKycRequiredCues)
+EVENTS_CREATED: 2 new (SubscriptionTrialStarted, OnboardingCompleted)
+CUE_KINDS_IMPLEMENTED: 9 of 11 (grace_period_started Stripe+Apple sources unified under slice 4)
 CONCERNS: [list any] | none
 OPEN_ITEMS: [list any unresolved ODs] | none
 ```
@@ -812,7 +877,7 @@ For quick reference, the decided architecture (γ) per `docs/BACKEND_HANDOVER_PL
 |---|---|---|
 | **Laravel delayed job** dispatched at source event | `trial_ending_2d`, `trial_ending_1d`, `trial_ending_1h`, `pro_trial_reminder_d1` | Deterministic offset from a known event; structural failure recovery via `failed_jobs`; no cohort loss on cron miss |
 | **Windowed cron with `LEFT JOIN` candidate query** | `kyc_required` (and any future aggregate-condition cue) | Evolving condition without a natural source-event hook; query is idempotent; hourly cadence acceptable for AMLD5 threshold |
-| **Direct insert from webhook handler** | `payment_failed`, `subscription_canceled_external`, `refund_processed`, `grace_period_started` (slice 2), `family_sharing_unsupported` (slice 2), `export_ready` (deferred) | External event arrival is the trigger; no intermediate dispatch step needed |
+| **Direct insert from webhook handler** | `payment_failed`, `subscription_canceled_external`, `refund_processed`, `grace_period_started` (**slice 4** — both Stripe `past_due` + Apple `DID_FAIL_TO_RENEW` sources), `family_sharing_unsupported` (slice 2), `export_ready` (deferred) | External event arrival is the trigger; no intermediate dispatch step needed |
 
 **What was rejected:**
 - **(α) Windowed-cohort cron for everything** — a single cron miss permanently loses the cohort (1–2k cues/day at v1.3.0 traffic); unrecoverable.
