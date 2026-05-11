@@ -33,7 +33,11 @@ beforeEach(function (): void {
     Queue::fake();
 });
 
-/** Build a minimal Stripe event payload for testing. */
+/**
+ * Build a minimal Stripe event payload for testing.
+ *
+ * @param array<string, mixed> $object
+ */
 function stripeEvent(string $type, array $object): string
 {
     return (string) json_encode([

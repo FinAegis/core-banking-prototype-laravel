@@ -40,5 +40,6 @@ it('dry-run reports without resetting', function () {
 
     // The stuck row should still be reserved (not reset).
     $row = Illuminate\Support\Facades\DB::table('jobs')->first();
+    assert($row !== null);
     expect($row->reserved_at)->not()->toBeNull();
 });
