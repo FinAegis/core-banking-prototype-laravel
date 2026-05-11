@@ -113,4 +113,13 @@ return [
         'name'    => env('MAIL_FROM_NAME', env('APP_NAME', 'FinAegis')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Mail Address
+    |--------------------------------------------------------------------------
+    | Used for operator alert emails (e.g. Plan B cue DLQ digest, Backend-Q8).
+    | If empty, digest falls back to log-only mode (OD-3 fallback).
+    */
+    'admin_address' => env('MAIL_ADMIN_ADDRESS', ''),
+
 ];

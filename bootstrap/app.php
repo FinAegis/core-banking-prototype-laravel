@@ -20,7 +20,11 @@ foreach (glob(__DIR__ . '/../app/Domain/*/Console/Commands', GLOB_ONLYDIR) ?: []
     $domainCommandPaths[] = $path;
 }
 
-return Application::configure(basePath: dirname(__DIR__))
+// Allow worktree test environments to override the base path via APP_BASE_PATH env var.
+// This is a no-op in production (env var not set); worktree shimmed vendor/autoload.php sets it.
+$_appBasePath = $_ENV['APP_BASE_PATH'] ?? $_SERVER['APP_BASE_PATH'] ?? null;
+
+return Application::configure(basePath: is_string($_appBasePath) ? $_appBasePath : dirname(__DIR__))
     ->withCommands($domainCommandPaths)
     ->withRouting(
         using: function () {
