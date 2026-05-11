@@ -213,6 +213,22 @@ Route::prefix('v1/subscription')->name('api.v1.subscription.')
         });
     });
 
+// Plan B Slice 3 — Pricing quote endpoints.
+// POST /api/v1/pricing/quote — idempotency.required is DECIDED (OD-1): both
+//   the idempotency.required middleware and the entity-key dedup coexist per Q2.1.
+// GET  /api/v1/pricing/quote/{quoteId} — read-only; no idempotency middleware.
+Route::prefix('v1/pricing')->name('api.v1.pricing.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::middleware(['idempotency.required'])->group(function () {
+            Route::post('/quote', [App\Domain\Pricing\Http\Controllers\PricingController::class, 'quote'])
+                ->name('quote');
+        });
+
+        Route::get('/quote/{quoteId}', [App\Domain\Pricing\Http\Controllers\PricingController::class, 'show'])
+            ->name('quote.show');
+    });
+
 // Extended monitoring endpoints with authentication
 Route::prefix('monitoring')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/metrics-json', [App\Http\Controllers\Api\MonitoringController::class, 'metrics']);

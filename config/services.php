@@ -302,4 +302,23 @@ return [
         'notify_token' => env('ALCHEMY_NOTIFY_TOKEN'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Plan B Slice 3 — Pricing quote signing
+    |--------------------------------------------------------------------------
+    |
+    | PRICING_QUOTE_PEPPER is used by QuoteSigner (HMAC-SHA256) to provide
+    | tamper-evidence for price_quotes rows. Generate with:
+    |   openssl rand -hex 32
+    |
+    | ROTATION WARNING: rotating this pepper invalidates all live price_quotes
+    | rows. Coordinate rotation with a pricing:purge-quotes --force-all run
+    | or a full quote-TTL drain window.
+    |
+    */
+
+    'pricing' => [
+        'quote_pepper' => env('PRICING_QUOTE_PEPPER', ''),
+    ],
+
 ];

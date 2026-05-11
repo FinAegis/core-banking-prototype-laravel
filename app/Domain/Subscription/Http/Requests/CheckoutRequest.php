@@ -37,6 +37,11 @@ final class CheckoutRequest extends FormRequest
             'withdrawalConsent.version'     => ['required', 'integer', 'min:1'],
             'successUrl'                    => ['nullable', 'url'],
             'cancelUrl'                     => ['nullable', 'url'],
+            // Slice 3 expansion: optional quoteId to lock displayed price at checkout.
+            // Nullable + uuid format. quoteId absent = proceed without a locked quote
+            // (back-compat, v1.3.0). Will be required in v1.3.1 (OD-6 decision: keep
+            // optional to avoid deploy-ordering dependency on slice 3).
+            'quoteId' => ['nullable', 'string', 'uuid'],
         ];
     }
 }

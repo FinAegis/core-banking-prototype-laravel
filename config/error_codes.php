@@ -37,9 +37,18 @@ return [
     'ERR_SUB_010' => ['http' => 409, 'description' => 'Cancellation must occur at originating store (Apple/Google).'],
 
     // ─── Quote / Pricing (deltas Q2, Q3 — codes stay ERR_QUOTE_* per Backend-Q4) ──
+    // ERR_QUOTE_* codes: used at redemption time (consumed by submit/checkout/deposit).
+    // ERR_QUO_*   codes: used at quote issuance / lookup time.
     'ERR_QUOTE_001' => ['http' => 410, 'description' => 'Quote expired.'],
     'ERR_QUOTE_002' => ['http' => 409, 'description' => 'Submitted payload does not match quoted userOp hash.'],
-    'ERR_QUO_002'   => ['http' => 409, 'description' => 'Quote already consumed.'],
+    // Registered in companion hotfix PR fix(plan-b): error code registry #1041
+    'ERR_QUO_002' => ['http' => 409, 'description' => 'Quote already consumed.'],
+    // Registered in slice 3 (Pricing quote endpoint)
+    'ERR_QUO_001' => ['http' => 404, 'description' => 'Quote not found.'],
+    'ERR_QUO_005' => ['http' => 429, 'description' => 'Quote rate limit exceeded. Try again shortly.'],
+    'ERR_QUO_006' => ['http' => 403, 'description' => 'KYC level insufficient for ramp operations.'],
+    'ERR_QUO_007' => ['http' => 403, 'description' => 'Destination address is blocked.'],
+    'ERR_QUO_008' => ['http' => 400, 'description' => 'Insufficient balance for swap source asset.'],
 
     // ─── Fee resolver ──────────────────────────────────────────────────────
     'ERR_FEE_001' => ['http' => 500, 'description' => 'Fee tier could not be resolved.'],

@@ -257,6 +257,17 @@ Schedule::command('trial:purge-fingerprints')
     ->appendOutputTo(storage_path('logs/trial-fingerprints-purge.log'))
     ->withoutOverlapping();
 
+// Daily purge of expired price_quotes rows (Plan B Slice 3).
+// 7-day grace period: rows are deleted after expires_at + 7 days, allowing
+// post-expiry forensics (chain ingestor may reference user_op_hash after a
+// slow confirmation). Offset from trial:purge-fingerprints (02:30) to avoid
+// concurrent DELETE contention on global-connection tables.
+Schedule::command('pricing:purge-quotes')
+    ->dailyAt('03:10')
+    ->description('Purge expired price_quotes rows older than 7 days (Plan B Slice 3)')
+    ->appendOutputTo(storage_path('logs/pricing-quotes-purge.log'))
+    ->withoutOverlapping();
+
 // Hourly reconciliation: detect Helius webhook ↔ DB address drift.
 // Caught silent for 27 days during the April 2026 incident — never again.
 // --auto-sync runs `solana:sync` whenever drift is found, so the system
