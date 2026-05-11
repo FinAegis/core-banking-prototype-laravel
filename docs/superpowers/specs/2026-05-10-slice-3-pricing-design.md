@@ -6,7 +6,7 @@
 **Slice predecessors:**
   - Slice 1 (Cashier Stripe subscription path) — merged to `main` as commit `957ea3d8` via PR #1037
   - Slice 2 (Apple/Google IAP path) — spec open at PR #1038 (implementation pending)
-**Estimated implementation effort:** 3–4 engineer-days
+**Estimated implementation effort:** 4–5 engineer-days (revised from 3–4d — CheckoutRequest expansion adds 0.5d)
 **Mobile target:** Zelta v1.3.0
 **Mobile priority:** P1 — blocks dynamic price display and card waitlist deposit (slice 5)
 
@@ -35,7 +35,7 @@ You are in a git worktree branched off `main` (which already includes slice 1 fr
 - Subscription lifecycle endpoints (`/change-plan`, `/cancel`, `/reactivate`)
 - `POST /webhooks/stripe/subscriptions` — webhook handler writing to `revenue_outbox_events`
 - `processed_webhook_events`, `trial_card_fingerprints`, `subscription_consent_log`, `revenue_outbox_events`, `revenue_events` tables
-- The `checkout` endpoint currently accepts `quoteId` as **optional** — it does nothing with it in slice 1 but the field is accepted without error (forward-compat stub)
+- Slice 1's `CheckoutRequest` does **not** currently accept `quoteId` — the field is absent from `CheckoutRequest::rules()`. Slice 3 expands `CheckoutRequest::rules()` to add `quoteId` as a nullable string, AND adds the `QuoteService::redeem()` call to `SubscriptionService::startCheckout()`. Both expansions are slice 3 scope (see §5.4).
 
 **Slice 2 (PR #1038)** delivers the Apple + Google IAP path: `POST /api/v1/subscription/iap/verify`, IAP webhook receivers, `iap_subscriptions` + `iap_receipts` tables, and the `SubscriptionProjection` IAP join.
 
@@ -109,7 +109,7 @@ These files are the canonical source of truth. Read them in this order; the late
 
 6. **`app/Domain/Pricing/ValueObjects/Money.php`** — already implemented. Understand `Money::fiat()`, `Money::asset()`, `jsonSerialize()`. Slice 3's quote response serialises all money fields through this VO.
 
-7. **`app/Http/Middleware/IdempotencyKey.php`** — understand the idempotency implementation. `POST /api/v1/pricing/quote` uses `idempotency.required` middleware **only if** the controller decides POST is idempotency-keyed (see §8 open question on Q2.1 entity-key dedup vs caller-supplied idempotency). Read the middleware's 24h replay logic and body-hash mismatch detection.
+7. **`app/Http/Middleware/IdempotencyKey.php`** — understand the idempotency implementation. `POST /api/v1/pricing/quote` applies `idempotency.required` middleware (**DECIDED** — both middleware and entity-key dedup coexist per Q2.1; see §8 OD-1). Read the middleware's 24h replay logic and body-hash mismatch detection.
 
 8. **`app/Domain/Subscription/Http/Requests/CheckoutRequest.php`**, **`app/Domain/Subscription/Services/SubscriptionService.php`**, **`app/Domain/Subscription/Http/Controllers/SubscriptionController.php`** — structural templates for the Pricing controller, service, and request classes. Mirror the patterns: constructor-injected services, `if (! $user instanceof User)` auth guard (never `assert()`), `ErrorResponse::make($code)` for errors, `response()->json(...)` for success.
 
@@ -152,12 +152,18 @@ The following is already in `main` after slice 1 (PR #1033 foundations + PR #103
 | Code | HTTP | Purpose |
 |---|---|---|
 | `ERR_QUOTE_001` | 410 | Quote expired |
-| `ERR_QUOTE_002` | 409 | Submitted payload hash doesn't match stored quote |
+| `ERR_QUOTE_002` | 409 | Submitted payload hash doesn't match stored quote (payload mismatch on redemption) |
 | `ERR_FEE_001` | 500 | Fee tier could not be resolved |
 | `ERR_VALIDATION_001` | 422 | Missing `Idempotency-Key` header |
 | `ERR_VALIDATION_002` | 422 | Money field malformed |
 | `ERR_VALIDATION_003` | 422 | Idempotency-Key invalid format |
 | `ERR_CUR_001` | 400 | Currency must be EUR in v1.3.0 |
+
+**Registered in companion hotfix PR `fix(plan-b): error code registry` (available before slice 3 implementation):**
+
+| Code | HTTP | Purpose |
+|---|---|---|
+| `ERR_QUO_002` | 409 | Quote already consumed (consumed-replay path — distinct from `ERR_QUOTE_002` payload mismatch) |
 
 ### Routes (already registered in `routes/api.php` by slice 1)
 
@@ -182,7 +188,7 @@ Slice 3 must add:
 
 **Idempotency:** The Q2.1 delta mandates **backend-computed idempotency** for this endpoint — the backend computes the entity-key dedup rather than relying on a caller-supplied `Idempotency-Key`. The rationale: caller-supplied keys are too easy to mis-key on a double-tap, producing two distinct quotes for one user intent. See §8 open design decision on whether to additionally apply `idempotency.required` middleware.
 
-**Rate limiting:** 60 quotes / minute / user; 600 quotes / minute / IP. Implemented via Redis sliding-window using `Cache::add($key, 0, $ttl)` + `Cache::increment()` per CLAUDE.md (never read-then-write counters). Returns `429` with `Retry-After` header on breach (no dedicated `ERR_QUO_005` code was registered in #1033 — see §5.7 on new codes).
+**Rate limiting:** 60 quotes / minute / user; 600 quotes / minute / IP. Implemented via Redis sliding-window using `Cache::add($key, 0, $ttl)` + `Cache::increment()` per CLAUDE.md (never read-then-write counters). Returns `429` with `Retry-After` header and `ERR_QUO_005` on breach (registered by this slice — see §5.1 new codes table).
 
 #### Request body shape
 
@@ -215,7 +221,7 @@ Slice 3 must add:
 | `to` | `{asset, network}` | yes for `send`/`swap`/`ramp_buy` | Destination asset + chain. |
 | `recipient` | string | yes for `send` | Destination address. Screened by GoPlus / Chainalysis. Blocked address → `ERR_QUO_007`. |
 | `currency` | `"EUR"` | yes | Must be `"EUR"` in v1.3.0 — `ERR_CUR_001` otherwise. Present on all kinds so the fee's EUR equivalent is always calculable. |
-| `dryRun` | boolean | no | Optional. If `true`, assembles the quote without persisting or consuming upstream rate limits. Useful for price-preview without commitment. Returns the same shape without a `quoteId` in dry-run mode (see §5.3). |
+| `dryRun` | — | — | **Query parameter** (`?dryRun=true`), NOT a body field. Per commercial spec §3.5. If present and `true`, assembles the quote without persisting or consuming upstream rate limits. Useful for price-preview without commitment. Returns the same shape without a `quoteId` (see §5.3). |
 
 **Entity-key computation (Q2.1):** backend computes `SHA256(user_id || kind || canonical_amount || recipient || from_json || to_json)` as the dedup key. If a live (unexpired, unconsumed) quote exists for this entity-key in `price_quotes`, the existing row is returned without creating a new one. This is the backend-side dedup that replaces caller-supplied idempotency on quote issuance.
 
@@ -251,9 +257,8 @@ The shape differs by `kind`. All money fields are Money VO triples per ADR-0004.
     }
   },
   "feeTier": {
-    "id": "free",
     "txFlat": { "amount": "1000000", "decimals": 6, "asset": "USDC" },
-    "swapMarginBps": 20,
+    "swapMarginBps": 50,
     "rampMarginBps": 100
   },
   "userOpHash": "0x...",
@@ -265,6 +270,8 @@ The shape differs by `kind`. All money fields are Money VO triples per ADR-0004.
   }
 }
 ```
+
+> **`feeTier` in quote response — spec-author addition:** The `feeTier` object echoed in the quote response is not present in the Q3.1 wire shape (which only includes `feeTier` in the entitlements endpoint). It is provided here as a mobile convenience — allows the app to display the user's fee tier alongside the quote without a separate entitlements call. This field is removable without a contract break if mobile does not need it. **Verify with mobile-dev before implementation.** If removed, also remove `swapMarginBps`/`rampMarginBps`/`txFlat` from the `feeTier` key in the response shape.
 
 `userOpHash` is `keccak256(canonicalize(userOp))` stored in `price_quotes.user_op_hash`. Required for `send`/`swap`; `null` for `ramp_*`/`subscription_initial`/`card_waitlist_deposit`.
 
@@ -292,9 +299,8 @@ The shape differs by `kind`. All money fields are Money VO triples per ADR-0004.
   ],
   "rates": {},
   "feeTier": {
-    "id": "free",
     "txFlat": null,
-    "swapMarginBps": 20,
+    "swapMarginBps": 50,
     "rampMarginBps": 100
   },
   "userOpHash": null,
@@ -325,9 +331,8 @@ The shape differs by `kind`. All money fields are Money VO triples per ADR-0004.
   ],
   "rates": {},
   "feeTier": {
-    "id": "free",
     "txFlat": null,
-    "swapMarginBps": 20,
+    "swapMarginBps": 50,
     "rampMarginBps": 100
   },
   "userOpHash": null,
@@ -344,7 +349,7 @@ The shape differs by `kind`. All money fields are Money VO triples per ADR-0004.
 
 | Code | HTTP | Condition |
 |---|---|---|
-| `ERR_VALIDATION_001` | 422 | Missing `Idempotency-Key` header (if `idempotency.required` middleware is applied — see §8) |
+| `ERR_VALIDATION_001` | 422 | Missing `Idempotency-Key` header (`idempotency.required` middleware is applied — **DECIDED**: both middleware and entity-key dedup coexist per Q2.1; see §8 OD-1) |
 | `ERR_VALIDATION_002` | 422 | Money field malformed (decimal point in `amount`, missing denomination, both `currency` and `asset`) |
 | `ERR_VALIDATION_003` | 422 | `Idempotency-Key` invalid format |
 | `ERR_CUR_001` | 400 | `currency` field is not `"EUR"` |
@@ -354,12 +359,12 @@ The shape differs by `kind`. All money fields are Money VO triples per ADR-0004.
 
 | Code | HTTP | Condition | Notes |
 |---|---|---|---|
+| `ERR_QUO_005` | 429 | Quote rate limit exceeded (60/min/user) | Per commercial spec §3.4 + Appendix B convention — **DECIDED: ERR_QUO_005** (see §8 OD-5) |
 | `ERR_QUO_006` | 403 | `kind: ramp_buy\|ramp_sell` requires KYC level ≥ Basic | Per commercial spec §3.5 |
 | `ERR_QUO_007` | 403 | Destination address (`recipient`) blocked by screening | Per commercial spec §3.5 |
 | `ERR_QUO_008` | 400 | Source asset balance insufficient for swap | Per commercial spec §3.5 |
-| `ERR_QUO_429` | 429 | Quote rate limit exceeded (60/min/user) | Per commercial spec §3.4; use `ERR_QUO_429` not `ERR_QUO_005` to avoid HTTP-code-in-name confusion |
 
-Note: `ERR_QUO_429` is intentionally named with the HTTP status suffix only for human readability — the registry maps it to `http: 429`. It does not violate the "NNN is domain-local, not HTTP status" rule from §0.2 of the commercial spec since `429` as a three-digit code happens to equal the HTTP status. If the controller prefers strict sequential codes, use `ERR_QUO_005` instead — this is an open question (see §8).
+Note: `ERR_QUO_002` (409, quote already consumed) is registered in the companion hotfix PR `fix(plan-b): error code registry`. Do not re-register it here. Use `ERR_QUO_002` for the consumed-replay path in `QuoteService::redeem()` (see §5.4).
 
 ### 5.2 Optional read endpoint: `GET /api/v1/pricing/quote/{quoteId}`
 
@@ -387,7 +392,7 @@ Note: `ERR_QUO_429` is intentionally named with the HTTP status suffix only for 
 
 ### 5.3 Dry-run mode
 
-When `dryRun: true` is included in the request body, the endpoint:
+When `?dryRun=true` is appended as a **query parameter** (per commercial spec §3.5), the endpoint:
 - Resolves the fee tier and upstream quotes
 - Assembles the `PriceQuote` VO and computes the signature
 - Does NOT persist a row to `price_quotes`
@@ -397,18 +402,27 @@ When `dryRun: true` is included in the request body, the endpoint:
 
 Dry-run requests bypass the entity-key dedup logic (no row to deduplicate against).
 
+The `QuoteRequest` FormRequest validates `$request->boolean('dryRun')` from the query string — not from the request body. The route declaration does not change; the query parameter is read directly in the request class or controller.
+
+> **Extended `kind` enum note:** This slice introduces `subscription_initial` and
+> `card_waitlist_deposit` `kind` values beyond the deltas Q3.1 enumeration
+> (`send`/`swap`/`ramp_buy`/`ramp_sell`). These are required to enable slice 1's checkout
+> redemption and slice 5's card-waitlist deposit. **A deltas Q3.1 amendment is
+> needed to ratify these `kind` values formally** — tracked as open coordination
+> item in §15. The implementation lands them in v1.3.0 with this caveat documented.
+
 ### 5.4 Quote consumption by downstream endpoints
 
 Slice 3 defines the `QuoteService::redeem()` method that slice 1 and slice 5 call. The redemption contract:
 
 1. `price_quotes.id = quoteId AND price_quotes.user_id = currentUserId` — else `ERR_QUO_001` (404)
-2. `consumed_at IS NULL` — else `ERR_QUOTE_002` (409) with `"consumed"` in context
+2. `consumed_at IS NULL` — else `ERR_QUO_002` (409) with `"consumed"` in context. (`ERR_QUO_002` = "Quote already consumed" per Appendix B; registered in the companion hotfix PR `fix(plan-b): error code registry`.)
 3. `expires_at > NOW()` — else `ERR_QUOTE_001` (410 expired)
-4. For `send`/`swap`: `keccak256(canonicalize(signedUserOp.message))` must equal `price_quotes.user_op_hash` — else `ERR_QUOTE_002` (409 payload mismatch). This is the Q2.2 invariant.
+4. For `send`/`swap`: `keccak256(canonicalize(signedUserOp.message))` must equal `price_quotes.user_op_hash` — else `ERR_QUOTE_002` (409 payload mismatch). This is the Q2.2 invariant. (`ERR_QUOTE_002` = "Submitted payload does not match quote" — distinct from `ERR_QUO_002`: the consumed-replay and payload-mismatch paths are different user-facing situations.)
 5. `DB::transaction()` + `lockForUpdate()` on the `price_quotes` row — prevents concurrent redemption races
 6. Set `consumed_at = NOW()`, `consumed_by = <ref>` (tx_hash | subscription_id | deposit_id)
 
-**Slice 1 (`POST /subscription/checkout`) integration:** Currently `quoteId` is accepted but ignored. After slice 3, when a `quoteId` is present, slice 1's checkout action calls `QuoteService::redeem()` before creating the Stripe session. The subscription plan + price in the Checkout session is validated against the quote's `feeBreakdown`. This is quote-optional in v1.3.0 — `quoteId` absent means proceed without a locked quote (back-compat preserved).
+**Slice 1 (`POST /subscription/checkout`) integration (slice 3 scope expansion):** Slice 1's `CheckoutRequest` does not currently accept `quoteId`. Slice 3 adds `'quoteId' => 'nullable|string'` to `CheckoutRequest::rules()` AND adds the `QuoteService::redeem()` call inside `SubscriptionService::startCheckout()`. When a `quoteId` is present, the checkout action calls `QuoteService::redeem()` before creating the Stripe session; the subscription plan + price in the Checkout session is validated against the quote's `feeBreakdown`. This is quote-optional in v1.3.0 — `quoteId` absent means proceed without a locked quote (back-compat preserved). Both the `CheckoutRequest` extension and the service integration are explicitly slice 3 commits (see §12 commit topology).
 
 **Note on multi-connection safety:** `price_quotes` is a global-connection table. Slice 1's Stripe checkout also touches `trial_card_fingerprints` (global) and potentially Cashier tables (global via Stripe). No `UsesTenantConnection` models are involved in the quote redemption flow. `DB::transaction()` is safe here.
 
@@ -517,6 +531,8 @@ Entry points:
 
 This pattern mirrors `TrialFingerprintService`'s use of `TRIAL_FINGERPRINT_PEPPER` from slice 1.
 
+> **Note — quote signature scheme (spec-author addition):** HMAC-SHA256 with `PRICING_QUOTE_PEPPER` is a spec-author addition. Source docs (Q2.2 + ADR-0003) define `userOpHash` as the chain-integrity check and `DB::transaction + lockForUpdate` as the race-protection mechanism. The HMAC adds a third layer protecting against DB-write-side abuse (a direct DB write could fabricate a `price_quotes` row without the HMAC passing verification at redemption time). Implementation may proceed with the HMAC **OR** drop it (using just `userOpHash` + DB locking) — this is a controller decision (see §8 OD-4). Recommend keeping for defense-in-depth but flagging in PR review.
+
 #### `App\Domain\Pricing\Services\QuoteService` (public facade)
 
 Exposes `create()`, `retrieve()`, and `redeem()` to the outside world (controllers, downstream slices). Wraps `PriceQuoteIssuer` for create, direct DB lookup for retrieve, and the redemption logic for redeem. Downstream slices (slice 1 checkout, slice 5 deposit) inject `QuoteService`.
@@ -535,7 +551,9 @@ Implements `JsonSerializable` — returns the camelCase wire shape.
 
 Final readonly VO. Carries fee-tier data resolved by `FeeResolverService`.
 
-Key properties: `id` (string: `'free'` | `'pro'`), `txFlat` (?Money), `swapMarginBps` (int), `rampMarginBps` (int).
+Key properties: `txFlat` (?Money), `swapMarginBps` (int), `rampMarginBps` (int).
+
+> **Note (F-17):** No `id` property on the wire-facing `feeTier` object — neither commercial §1.2 nor deltas §Q1.2 amendment include `id` in the `feeTier` shape. The free/pro distinction is available from the `tier` field at the response root (if added) or from `swapMarginBps` value. The VO may carry `id` internally for logging, but it is NOT serialised into the quote response.
 
 ### 5.8 Quote refresh (Q2.3)
 
@@ -600,7 +618,7 @@ The new config file (renamed from `config/fees.php` per ADR-0003). Sample shape:
 return [
     'tiers' => [
         'free' => [
-            'tx_flat_eur_cents'    => 100,            // €1.00
+            'tx_flat_eur_cents'    => 20,              // €0.20  ← verify against commercial agreement before bake
             'tx_flat_asset_amount' => '1000000',       // 1.0 USDC (6 decimals)
             'swap_margin_bps'      => 20,
             'ramp_margin_bps'      => 100,
@@ -638,12 +656,14 @@ return [
 
 `Domain/Subscription` reads tiers via the `ResolveFeeTier` query handler — never via `config('pricing.tiers')` directly. The query handler is the only path.
 
+> **Important:** The `tx_flat_eur_cents: 20` (€0.20) value above is sourced from commercial §10.2 + deltas Q4 sample. **Verify against the commercial agreement before baking into production.** The `pricing.php` config is the runtime source of truth — if the agreed rate differs, update the config without touching any migration or code.
+
 ### 5.12 Route registration
 
 In `routes/api.php`, add under `auth:sanctum` middleware group:
 
 ```
-POST   /api/v1/pricing/quote                   → PricingController@quote         (+ idempotency.required if decided, see §8)
+POST   /api/v1/pricing/quote                   → PricingController@quote         (+ idempotency.required — DECIDED: apply per Q2.1; see §8 OD-1)
 GET    /api/v1/pricing/quote/{quoteId}          → PricingController@show          (read-only; no idempotency middleware)
 ```
 
@@ -674,7 +694,7 @@ The following are explicitly NOT part of this slice:
 POST /api/v1/pricing/quote HTTP/1.1
 Authorization: Bearer <sanctum_token>
 Content-Type: application/json
-Idempotency-Key: <optional — see §8 open question>
+Idempotency-Key: <required — enforced by idempotency.required middleware per Q2.1 decision; see §8 OD-1>
 
 {
   "kind": "send",
@@ -717,9 +737,8 @@ Content-Type: application/json
     }
   },
   "feeTier": {
-    "id": "free",
     "txFlat": { "amount": "1000000", "decimals": 6, "asset": "USDC" },
-    "swapMarginBps": 20,
+    "swapMarginBps": 50,
     "rampMarginBps": 100
   },
   "userOpHash": "0x1a2b3c...",
@@ -748,9 +767,8 @@ Content-Type: application/json
   ],
   "rates": {},
   "feeTier": {
-    "id": "free",
     "txFlat": null,
-    "swapMarginBps": 20,
+    "swapMarginBps": 50,
     "rampMarginBps": 100
   },
   "userOpHash": null,
@@ -828,12 +846,12 @@ HTTP/1.1 400 Bad Request
   }
 }
 
-// ERR_QUO_429 (or ERR_QUO_005) — rate limit
+// ERR_QUO_005 — rate limit (DECIDED: ERR_QUO_005 per Appendix B convention)
 HTTP/1.1 429 Too Many Requests
 Retry-After: 12
 {
   "error": {
-    "code": "ERR_QUO_429",
+    "code": "ERR_QUO_005",
     "message": "Quote rate limit exceeded. Try again shortly."
   }
 }
@@ -875,17 +893,23 @@ HTTP/1.1 400 Bad Request
 
 ## 8. Open design decisions
 
-### OD-1 — Caller-supplied `Idempotency-Key` on `POST /pricing/quote`
+### OD-1 — Caller-supplied `Idempotency-Key` on `POST /pricing/quote` — **DECIDED**
 
-**Context:** Q2.1 mandates backend-computed entity-key dedup for quote issuance, replacing caller-supplied idempotency keys. But the `idempotency.required` middleware is already built for mutating endpoints.
+**Context:** Q2.1 mandates backend-computed entity-key dedup for quote issuance. Q2.1 also states "Backend computes **BOTH** keys: HTTP-layer idempotency from header (mobile provides; standard pattern), and entity-layer dedup (backend-computed SHA256). Both coexist." Additionally, the acceptance criterion from Q2.1 requires "Every POST/PATCH/DELETE mutating endpoint in routes/api.php enforces Idempotency-Key header presence."
 
-**Options:**
-- **(α) No `Idempotency-Key` header on `/pricing/quote`** (recommended). Entity-key dedup covers the "double-tap creates duplicate quote" case. The `idempotency.required` middleware is not applied. Endpoint does not return `ERR_VALIDATION_001` for missing key.
-- **(β) Apply `idempotency.required` in addition to entity-key dedup.** Belt-and-braces. Caller supplies the key; backend deduplicates on both entity-key and idempotency-key. Extra complexity; two separate dedup mechanisms for one endpoint.
+**Decision: APPLY `idempotency.required` middleware AND compute entity-key dedup. Both layers coexist per Q2.1.**
 
-**Recommended:** (α). Q2.1 explicitly says "backend computes both keys" and "Caller-supplied keys are too easy to mis-key." The entity-key mechanism is the purpose-built replacement.
+The two mechanisms serve different purposes:
+- `idempotency.required` middleware: enforces header presence and 24h HTTP-layer replay protection
+- Entity-key dedup: backend-computed SHA256 that deduplicates same-intent quotes regardless of the Idempotency-Key value
 
-**Controller decision required before implementation starts.**
+Processing order in the request lifecycle:
+1. `idempotency.required` middleware checks `Idempotency-Key` header presence and format — returns `ERR_VALIDATION_001` / `ERR_VALIDATION_003` if absent or malformed
+2. Controller invokes `PriceQuoteIssuer::issue()` which computes the entity-key and checks for a live matching quote
+3. If entity-key match found: return existing quote (idempotency at the business-logic layer)
+4. If no match: create new quote, persist, return
+
+This means mobile must send an `Idempotency-Key` header on every `POST /pricing/quote` request, consistent with other mutating endpoints.
 
 ### OD-2 — TTL: single default or per-kind
 
@@ -913,27 +937,21 @@ HTTP/1.1 400 Bad Request
 
 ### OD-4 — Quote signature scheme
 
-**Context:** The `signature` column in `price_quotes` provides tamper-evidence if a DB row is modified directly.
+**Context:** The `signature` column in `price_quotes` provides tamper-evidence if a DB row is modified directly. This is a spec-author addition (see §5.6 note). Source docs (Q2.2 + ADR-0003) define `userOpHash` as the chain-integrity check and `DB::transaction + lockForUpdate` as the race-protection mechanism. The HMAC is a third layer.
 
 **Options:**
-- **(α) HMAC-SHA256 over canonical form using `PRICING_QUOTE_PEPPER`** (recommended). Matches `TrialFingerprintService`'s `TRIAL_FINGERPRINT_PEPPER` pattern from slice 1. Prevents a compromised DB write from fabricating a valid quote. One new env var required.
-- **(β) No signature; integrity from DB constraints alone.** Simpler. Relies entirely on DB access controls. A compromised DB write (or internal bad actor with DB write access) can fabricate a quote row.
+- **(α) HMAC-SHA256 over canonical form using `PRICING_QUOTE_PEPPER`** (recommended). Matches `TrialFingerprintService`'s `TRIAL_FINGERPRINT_PEPPER` pattern from slice 1. Prevents a compromised DB write from fabricating a valid quote without the pepper. One new env var required.
+- **(β) Drop the HMAC; rely on `userOpHash` + DB locking.** Simpler. Source docs only require `userOpHash` (Q2.2) and `lockForUpdate` (Q2.1). If DB access is fully controlled, the HMAC adds overhead for little gain. No `PRICING_QUOTE_PEPPER` env var needed; remove `signature` column from migration.
 
-**Recommended:** (α). The `PRICING_QUOTE_PEPPER`-based HMAC is the same pattern as `TRIAL_FINGERPRINT_PEPPER` and has precedent in the codebase. The env-var overhead is minimal. ERR_QUOTE_002 (payload hash mismatch) on submission verification is the downstream enforcement point.
+**Recommended:** (α) for defense-in-depth. The env-var overhead is minimal, the pattern has precedent in the codebase, and it protects against the insider-threat vector. Flagging in PR review is recommended regardless.
 
-**This is a recommend-only decision — (α) is the default implementation path.**
+**This is a recommend-only decision — (α) is the default implementation path. Controller may select (β) to simplify.**
 
-### OD-5 — Rate limit error code: `ERR_QUO_429` vs `ERR_QUO_005`
+### OD-5 — Rate limit error code: `ERR_QUO_429` vs `ERR_QUO_005` — **DECIDED**
 
-**Context:** The commercial spec §3.4 / Appendix B uses `ERR_QUO_005` for rate-limit exceeded. This spec uses `ERR_QUO_429` to make the HTTP status obvious in the code name. The strict §0.2 convention says "NNN is domain-local, not HTTP status" — but `429` as a three-digit domain-local ID is technically valid (it just happens to equal the HTTP status).
+**Decision: `ERR_QUO_005`** per Appendix B convention.
 
-**Options:**
-- **(α) `ERR_QUO_005`** — matches the commercial spec Appendix B exactly. Consistent with the convention.
-- **(β) `ERR_QUO_429`** — self-documenting for engineers who haven't memorised the registry.
-
-**Recommended:** (α) `ERR_QUO_005` for consistency with the commercial spec and the ERR-code naming convention. The registry entry's `http: 429` communicates the HTTP status.
-
-**Controller decision required; determines what gets registered in `config/error_codes.php`.**
+`ERR_QUO_005` matches the commercial spec Appendix B exactly and is consistent with the ERR-code naming convention (sequential domain-local IDs, not HTTP statuses). The registry entry's `http: 429` field communicates the HTTP status to consumers. All references to `ERR_QUO_429` in this spec are replaced with `ERR_QUO_005`.
 
 ### OD-6 — `quoteId` required vs optional on `POST /subscription/checkout` in v1.3.0
 
@@ -966,7 +984,8 @@ An implementation is complete when every item below passes.
 - [ ] Entity-key dedup: expired quote for same intent creates a new quote row with `superseded_by` populated on the expired row
 - [ ] `termsChanged: true` returned on refresh when fee delta > €0.10 or > 5%
 - [ ] `termsChanged: false` returned when fee delta is within threshold
-- [ ] `dryRun: true` request returns `quoteId: null`, does not create a `price_quotes` row
+- [ ] `?dryRun=true` query parameter request returns `quoteId: null`, does not create a `price_quotes` row
+- [ ] `idempotency.required` middleware is applied to `POST /api/v1/pricing/quote` — missing `Idempotency-Key` header returns `ERR_VALIDATION_001` (422)
 - [ ] Rate limit: 61st request from same user within 60s returns `429` with `Retry-After` header and `ERR_QUO_005`
 - [ ] Returns `ERR_FEE_001` when `ResolveFeeTier` query handler throws
 - [ ] Returns `ERR_VALIDATION_002` when `amount.amount` contains a decimal point
@@ -993,9 +1012,10 @@ An implementation is complete when every item below passes.
 ### Quote redemption
 
 - [ ] `QuoteService::redeem()` marks `consumed_at` and `consumed_by` inside `DB::transaction()` with `lockForUpdate()`
-- [ ] Concurrent redemption calls (same `quoteId`, two racing requests): only one succeeds; the other receives `ERR_QUOTE_002` (409)
+- [ ] Consumed-quote re-submission returns `ERR_QUO_002` (409) — "Quote already consumed" (NOT `ERR_QUOTE_002`)
+- [ ] `POST /api/v1/wallet/transactions/submit` with mismatched `userOp` hash returns `ERR_QUOTE_002` (409) — "Submitted payload does not match quote" (NOT `ERR_QUO_002`)
+- [ ] Concurrent redemption calls (same `quoteId`, two racing requests): only one succeeds; the other receives `ERR_QUO_002` (409)
 - [ ] Expired-quote redemption returns `ERR_QUOTE_001` (410)
-- [ ] `POST /api/v1/wallet/transactions/submit` with mismatched `userOp` hash returns `ERR_QUOTE_002` (409)
 - [ ] `POST /api/v1/subscription/checkout` with a valid `quoteId` succeeds (quote is consumed)
 - [ ] `POST /api/v1/subscription/checkout` without `quoteId` continues to succeed (back-compat)
 
@@ -1019,7 +1039,7 @@ An implementation is complete when every item below passes.
 
 ### Error code registry
 
-- [ ] `config/error_codes.php` contains `ERR_QUO_001` (404, quote not found), `ERR_QUO_005` or `ERR_QUO_429` (429, rate limit), `ERR_QUO_006` (403, KYC required), `ERR_QUO_007` (403, address blocked), `ERR_QUO_008` (400, insufficient balance)
+- [ ] `config/error_codes.php` contains `ERR_QUO_001` (404, quote not found), `ERR_QUO_005` (429, rate limit — **DECIDED**), `ERR_QUO_006` (403, KYC required), `ERR_QUO_007` (403, address blocked), `ERR_QUO_008` (400, insufficient balance). `ERR_QUO_002` (409, already consumed) is registered in the companion hotfix PR — do not re-register here.
 
 ### Revenue boundary
 
@@ -1173,6 +1193,7 @@ feat(pricing): PricingController + QuoteRequest + GET/POST routes
 feat(pricing): pricing:purge-quotes command + daily cron at 03:10
 feat(pricing): ERR_QUO_001/005/006/007/008 registered in config/error_codes.php
 feat(pricing): PRICING_QUOTE_PEPPER in .env.production.example + .env.zelta.example
+feat(pricing): CheckoutRequest::rules() — add quoteId nullable string (slice 3 scope)
 feat(pricing): slice 1 checkout QuoteService::redeem() integration (quoteId optional)
 test(pricing): feature tests for /pricing/quote — entity-key dedup, TTLs, rate limit
 test(pricing): feature tests for redemption — lockForUpdate race, expiry, hash mismatch
@@ -1202,7 +1223,8 @@ Quality gates:
 Files changed: <list>
 New migrations: <list>
 New error codes registered: <list>
-Open questions resolved by controller before start: OD-1, OD-3, OD-5
+Open questions resolved pre-implementation: OD-1 (DECIDED: apply idempotency middleware), OD-5 (DECIDED: ERR_QUO_005)
+Open questions requiring controller decision before start: OD-3
 Open questions unresolved: <any from §8 not yet answered>
 Concerns: <any design compromise made under time pressure>
 Revenue boundary verified: yes/no (no revenue_* rows written)
@@ -1212,7 +1234,7 @@ Revenue boundary verified: yes/no (no revenue_* rows written)
 
 ## 14. Estimated effort
 
-**3–4 engineer-days.**
+**4–5 engineer-days** (revised from 3–4d — `CheckoutRequest` expansion adds 0.5d).
 
 Breakdown:
 
@@ -1228,9 +1250,10 @@ Breakdown:
 | `pricing:purge-quotes` command + cron | 0.25 |
 | Error codes in `config/error_codes.php` | 0.1 |
 | Env vars in `.env.production.example` + `.env.zelta.example` | 0.1 |
-| Slice 1 `checkout` `quoteId` integration (optional redemption call) | 0.25 |
+| `CheckoutRequest::rules()` extension — add `quoteId` nullable string (slice 3 scope) | 0.25 |
+| Slice 1 `checkout` `QuoteService::redeem()` integration (optional redemption call) | 0.25 |
 | Feature + unit tests (§9 acceptance criteria coverage) | 0.75 |
-| **Total** | **~4.2d** |
+| **Total** | **~4.7d** |
 
 Compared to slice 2 (5–7d, two store SDKs + pseudonymisation), slice 3 is smaller because:
 - The `Money` VO, `ErrorResponse`, and `IdempotencyKey` middleware are already built
@@ -1249,9 +1272,13 @@ These are actions the human controller must complete before or during implementa
 
 ### Before implementation starts (controller decisions required)
 
-- [ ] **OD-1 — Idempotency-Key on `/pricing/quote`:** Confirm whether to apply `idempotency.required` middleware in addition to entity-key dedup (recommend: no — see §8 OD-1).
+- [x] **OD-1 — Idempotency-Key on `/pricing/quote`:** **DECIDED** — apply `idempotency.required` middleware AND entity-key dedup (both coexist per Q2.1). See §8 OD-1.
 - [ ] **OD-3 — `GET /pricing/quote/{quoteId}` in slice 3:** Confirm whether to include the read endpoint in slice 3 (recommend: yes — see §8 OD-3).
-- [ ] **OD-5 — Rate limit error code:** Confirm `ERR_QUO_005` vs `ERR_QUO_429` (recommend: `ERR_QUO_005` — see §8 OD-5).
+- [x] **OD-5 — Rate limit error code:** **DECIDED** — `ERR_QUO_005` per Appendix B convention. See §8 OD-5.
+
+### Open coordination items
+
+- [ ] **Deltas Q3.1 amendment — ratify `subscription_initial` + `card_waitlist_deposit` `kind` values:** This slice introduces two `kind` values beyond the Q3.1 enumeration. Coordinate with the deltas-doc maintainer before v1.3.1 to formally ratify these values in the deltas document. Implementation proceeds in v1.3.0 with this caveat documented. See §5.3 extended kind note.
 
 ### Before staging deploy (controller must action)
 
