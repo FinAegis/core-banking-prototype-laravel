@@ -213,6 +213,22 @@ Route::prefix('v1/subscription')->name('api.v1.subscription.')
         });
     });
 
+// Plan B Slice 3 — Pricing quote endpoints.
+// POST /api/v1/pricing/quote — idempotency.required is DECIDED (OD-1): both
+//   the idempotency.required middleware and the entity-key dedup coexist per Q2.1.
+// GET  /api/v1/pricing/quote/{quoteId} — read-only; no idempotency middleware.
+Route::prefix('v1/pricing')->name('api.v1.pricing.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::middleware(['idempotency.required'])->group(function () {
+            Route::post('/quote', [App\Domain\Pricing\Http\Controllers\PricingController::class, 'quote'])
+                ->name('quote');
+        });
+
+        Route::get('/quote/{quoteId}', [App\Domain\Pricing\Http\Controllers\PricingController::class, 'show'])
+            ->name('quote.show');
+    });
+
 // Plan B Slice 4 — Cue queue endpoints.
 // GET  /api/v1/me/pending-cues            — list pending cues for authenticated user
 // POST /api/v1/me/cues/{cueId}/dismissed  — dismiss a cue (idempotent, requires Idempotency-Key)

@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Subscription\Services;
 
+use App\Domain\Pricing\Exceptions\QuoteRedemptionException;
+use App\Domain\Pricing\Services\QuoteService;
 use App\Domain\Subscription\Models\RevenueOutboxEvent;
 use App\Domain\Subscription\Projections\SubscriptionProjection;
 use App\Models\User;
@@ -28,6 +30,7 @@ final class SubscriptionService
     public function __construct(
         private readonly SubscriptionProjection $projection,
         private readonly ConsentLogWriter $consent,
+        private readonly QuoteService $quoteService,
     ) {
     }
 
@@ -49,6 +52,10 @@ final class SubscriptionService
      *  - Multi-store conflict gate (Backend-Q1 #8): ERR_SUB_007 if IAP active.
      *  - Live-incomplete-session 409 (deltas Q7.2): ERR_SUB_005 + recoveryUrl.
      *
+     * Slice 3 integration: if a quoteId is present, QuoteService::redeem() is called
+     * before creating the Stripe session to lock the displayed price. quoteId is
+     * optional in v1.3.0 (back-compat). Will be required in v1.3.1 (OD-6 decision).
+     *
      * Trial-fingerprint check (Backend-Q5) runs in the webhook on
      * `checkout.session.completed` once Stripe gives us the captured PM
      * fingerprint — see SubscriptionWebhookController::onCheckoutSessionCompleted.
@@ -60,7 +67,8 @@ final class SubscriptionService
      *         consentText: string, version: int
      *     },
      *     successUrl?: string|null,
-     *     cancelUrl?: string|null
+     *     cancelUrl?: string|null,
+     *     quoteId?: string|null
      * } $input
      *
      * @return array{code?: string, context?: array<string, mixed>, success?: array<string, mixed>}
@@ -112,6 +120,24 @@ final class SubscriptionService
                     'recoveryUrl' => $live,
                 ],
             ];
+        }
+
+        // Slice 3 quote redemption: if a quoteId is provided, redeem it before
+        // creating the Stripe session to lock the displayed price (OD-6: optional
+        // in v1.3.0 for back-compat; will be required in v1.3.1).
+        // ERR_QUOTE_001 (expired), ERR_QUO_002 (consumed), ERR_QUOTE_002 (mismatch).
+        $quoteId = isset($input['quoteId']) && is_string($input['quoteId']) ? $input['quoteId'] : null;
+        if ($quoteId !== null) {
+            try {
+                $this->quoteService->redeem(
+                    quoteId: $quoteId,
+                    user: $user,
+                    consumedBy: 'subscription_checkout',
+                    userOpHash: null, // subscription_initial kind has no userOp
+                );
+            } catch (QuoteRedemptionException $e) {
+                return ['code' => $e->errorCode];
+            }
         }
 
         // Build the Checkout session in Setup mode.
