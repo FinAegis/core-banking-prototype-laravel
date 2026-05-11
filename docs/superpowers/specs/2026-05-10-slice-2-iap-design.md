@@ -2,9 +2,9 @@
 
 **Date:** 2026-05-10
 **Author:** Backend Architect
-**Status:** Spec — implementation not started
+**Status:** Spec — revised with mobile-dev answers (Revision 1, 2026-05-11)
 **Slice predecessor:** Slice 1 (Cashier Stripe subscription path) — merged to `main` as commit `957ea3d8` via PR #1037
-**Estimated implementation effort:** 5–7 engineer-days
+**Estimated implementation effort:** 6–7 engineer-days
 **Mobile target:** Zelta v1.3.0
 
 ---
@@ -150,12 +150,26 @@ Slice 2 must register:
 
 **Request body:**
 
+Mobile sends the fields below. The wire shape is confirmed by mobile-dev (expo-iap 4.2.3 / Expo SDK 54, iOS 15.1+ minimum — StoreKit 2 always; no legacy receipt blob path):
+
 ```json
 {
-  "store": "apple",
-  "receipt": "<JWS-signed-transaction-string for StoreKit 2, OR base64 receipt for legacy>",
+  "platform": "apple_iap",
+  "receipt": "<JWS signed transaction string>",
+  "originalTransactionId": "<StoreKit 2 stable id>",
   "productId": "zelta_pro_monthly",
-  "platform": "ios",
+  "appVersion": "1.3.0",
+  "currency": "EUR"
+}
+```
+
+For Google Play:
+
+```json
+{
+  "platform": "google_play",
+  "receipt": "<purchaseToken verbatim>",
+  "productId": "zelta_pro_monthly",
   "appVersion": "1.3.0",
   "currency": "EUR"
 }
@@ -163,12 +177,13 @@ Slice 2 must register:
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `store` | `"apple"` \| `"google"` | yes | Determines which verification path runs |
-| `receipt` | string | yes | Apple: JWS-signed transaction string (StoreKit 2) OR base64 receipt data (legacy). Google: `purchaseToken` |
-| `productId` | string | yes | Must be in the IAP product ID config map (see §5.6). Unknown product ID → `ERR_SUB_001`. |
-| `platform` | `"ios"` \| `"android"` | yes | Must match `store` (ios → apple, android → google) or return `ERR_VALIDATION_002`. |
+| `platform` | `"apple_iap"` \| `"google_play"` | yes | Determines which verification path runs. Replaces `store` + `platform` split from earlier draft — mobile uses this single field. |
+| `receipt` | string | yes | Apple: JWS-signed transaction string from StoreKit 2 (starts with `ey`). Google: raw `purchaseToken`. |
+| `originalTransactionId` | string | Apple only | StoreKit 2 stable transaction id — used as the iOS-side stable PK for `iap_subscriptions` (see §5.2). Not sent for Google. |
+| `productId` | string | yes | Must be in the IAP product ID config map (see §5.6). Allowed values: `zelta_pro_monthly`, `zelta_pro_annual`. Unknown product ID → `ERR_SUB_001`. |
 | `appVersion` | string | yes | Logged for diagnostics; not validated. |
 | `currency` | `"EUR"` | yes | Must be `"EUR"` in v1.3.0 per ADR-0004 / `ERR_CUR_001`. |
+| `withdrawalConsent` | object | no | Optional in v1.3.0 — not populated by native mobile. Required from v1.3.1 (see §8.6). |
 
 **Success response (200):** Same shape as `GET /api/v1/subscription/me` (the `SubscriptionProjection::for($user)` array serialised). Plus one extra field on first-verification:
 
@@ -205,11 +220,11 @@ Slice 2 must register:
 
 1. Validate request shape.
 2. Acquire Redis lock `lock:subscription:{userId}` (TTL 30s) — matches slice 1's pattern.
-3. Run `ProcessedWebhookEvent` dedup on a synthetic event ID derived from `(store, productId, originalTransactionId_or_purchaseToken)` — prevents double-processing a receipt submitted twice before the async verification completes.
-4. Verify receipt against the store's server API (Apple verifyReceipt V2 / Google Subscriptions API — see §8 for the open design question on StoreKit 2 local verification).
+3. Run `ProcessedWebhookEvent` dedup on a synthetic event ID derived from `(platform, productId, originalTransactionId_or_purchaseToken)` — prevents double-processing a receipt submitted twice before the async verification completes. For Apple, use the mobile-provided `originalTransactionId` field as the stable part of the dedup key. For Google, use the raw `purchaseToken` (backend will obtain the stable `play_subscription_resource_id` from the Play Developer API in step 4).
+4. Verify receipt against the store: Apple path — JWS local verification using Apple's certificate chain (see §8.1 — DECIDED: StoreKit 2 JWS, no legacy `verifyReceipt` call). Google path — call Play Developer API `purchases.subscriptionsv2.get` with the `purchaseToken` (see §8.7 — DECIDED: Play Developer API introspection).
 5. Check multi-store conflict via `SubscriptionProjection::hasActiveProSubscription($user, source: 'stripe')` and `hasActiveProSubscription($user, source: opposing_iap_store)`. If conflict: return `ERR_SUB_002` with the `conflict.kind` field per §5.3.
 6. Check `appAccountToken` (Apple) / `obfuscatedAccountId` (Google) matches `user->id`. If mismatch: return `ERR_SUB_008`.
-7. Check if receipt maps to an existing `iap_subscriptions` row (by `original_transaction_id`). If existing row is `cancelled_at_period_end = true` and not yet expired: reactivate (clear `cancelled_at_period_end`, return `reactivated: true`). If existing row is fully expired: return `ERR_SUB_009`.
+7. Check if receipt maps to an existing `iap_subscriptions` row. Apple: look up by `original_transaction_id` (from the mobile-provided `originalTransactionId` field — the StoreKit 2 stable id). Google: look up by `play_subscription_resource_id` (extracted from the Play Developer API response). If existing row is `cancelled_at_period_end = true` and not yet expired: reactivate (clear `cancelled_at_period_end`, return `reactivated: true`). If existing row is fully expired: return `ERR_SUB_009`.
 8. Create `iap_subscriptions` row and `iap_receipts` row in the same transaction.
 9. Write `subscription_consent_log` row (if consent payload present in request; note: withdrawal-consent flow for IAP is mobile-side pre-purchase; see §8 open question).
 10. Write `revenue_outbox_events` row (event kind `iap_subscription_initial`).
@@ -225,31 +240,33 @@ All of steps 8–12 are inside a single `DB::transaction()`. The lock is release
 
 ```sql
 CREATE TABLE iap_subscriptions (
-    id                          CHAR(36) PRIMARY KEY,
-    user_id                     CHAR(36) NOT NULL,
-    store                       ENUM('apple', 'google') NOT NULL,
-    tier                        VARCHAR(32) NOT NULL,
-    status                      VARCHAR(32) NOT NULL,
-    original_transaction_id     VARCHAR(255) NULL,
-    google_purchase_token_hash  CHAR(64) NULL,
-    apple_app_account_token     CHAR(36) NULL,
-    google_obfuscated_account_id VARCHAR(255) NULL,
-    trial_started_at            TIMESTAMP NULL,
-    trial_ends_at               TIMESTAMP NULL,
-    current_period_starts_at    TIMESTAMP NULL,
-    current_period_ends_at      TIMESTAMP NULL,
-    cancel_at_period_end        BOOLEAN NOT NULL DEFAULT FALSE,
-    paused_at                   TIMESTAMP NULL,
-    paused_until                TIMESTAMP NULL,
-    cancelled_at                TIMESTAMP NULL,
-    expired_at                  TIMESTAMP NULL,
-    refunded_at                 TIMESTAMP NULL,
-    last_notification_type      VARCHAR(64) NULL,
-    last_event_id               CHAR(36) NULL,
-    created_at                  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at                  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id                              CHAR(36) PRIMARY KEY,
+    user_id                         CHAR(36) NOT NULL,
+    store                           ENUM('apple', 'google') NOT NULL,
+    tier                            VARCHAR(32) NOT NULL,
+    status                          VARCHAR(32) NOT NULL,
+    original_transaction_id         VARCHAR(255) NULL,
+    play_subscription_resource_id   VARCHAR(255) NULL,
+    google_purchase_token_hash      CHAR(64) NULL,
+    apple_app_account_token         CHAR(36) NULL,
+    google_obfuscated_account_id    VARCHAR(255) NULL,
+    trial_started_at                TIMESTAMP NULL,
+    trial_ends_at                   TIMESTAMP NULL,
+    current_period_starts_at        TIMESTAMP NULL,
+    current_period_ends_at          TIMESTAMP NULL,
+    cancel_at_period_end            BOOLEAN NOT NULL DEFAULT FALSE,
+    paused_at                       TIMESTAMP NULL,
+    paused_until                    TIMESTAMP NULL,
+    cancelled_at                    TIMESTAMP NULL,
+    expired_at                      TIMESTAMP NULL,
+    refunded_at                     TIMESTAMP NULL,
+    last_notification_type          VARCHAR(64) NULL,
+    last_event_id                   CHAR(36) NULL,
+    created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_iap_sub_user (user_id),
     UNIQUE KEY uniq_iap_sub_apple (original_transaction_id),
+    UNIQUE KEY uniq_iap_sub_play_resource (play_subscription_resource_id),
     KEY idx_iap_sub_google_hash (google_purchase_token_hash),
     KEY idx_iap_sub_period_end (current_period_ends_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -264,8 +281,9 @@ ALTER TABLE iap_subscriptions
 ```
 
 Notes:
-- `original_transaction_id` is the Apple identifier; for Google the stable identifier is the `purchaseToken` but it changes on resubscription — use `subscriptionId` (the product SKU) + `orderId`'s base prefix as the stable key, stored separately. See §8 open question on Google stable ID.
-- `google_purchase_token_hash`: SHA-256 of the raw `purchaseToken` (same pattern as `subscriptions.google_purchase_token_hash` from the commercial spec §1.7); indexable without storing the full token.
+- `original_transaction_id`: Apple stable PK. The StoreKit 2 `originalTransactionId` sent by mobile is the stable identifier across renewals, cancellations, and resubscriptions. Mobile supplies this directly in the `originalTransactionId` request field. The `UNIQUE` constraint prevents double-insert.
+- `play_subscription_resource_id`: Google stable PK. **NOT** derived from `orderId` — see §8.7 (DECIDED). Backend calls Play Developer API `purchases.subscriptionsv2.get` on the raw `purchaseToken`; the canonical subscription resource id returned from that response is stored here. This is stable across the `linkedPurchaseToken` chain (renewal/cancel/resubscribe). The `UNIQUE` constraint is on this column.
+- `google_purchase_token_hash`: SHA-256 of the most recent `purchaseToken` (updated on each renewal notification). Same pattern as `subscriptions.google_purchase_token_hash` from the commercial spec §1.7; indexable without storing the full token.
 - `paused_until` lives here only — Apple's pause feature has no Stripe equivalent (Backend-Q1 #3).
 - `status` ∈ `active | trialing | past_due | grace_period | paused | cancelled | expired | refunded`.
 
@@ -321,11 +339,11 @@ CREATE TABLE iap_receipts (
 ```
 
 Notes:
-- `original_transaction_id` is NULL after erasure pseudonymisation (Backend-Q7 α). The `UNIQUE` constraint only applies to non-null values — MySQL unique indexes skip NULL values, so pseudonymised rows don't conflict.
+- `original_transaction_id` is NULL after erasure pseudonymisation (Backend-Q7 α). The `UNIQUE` constraint only applies to non-null values — MySQL unique indexes skip NULL values, so pseudonymised rows don't conflict. For Apple rows this is the StoreKit 2 `originalTransactionId`. For Google rows this field is unused (NULL); the stable lookup key is `google_purchase_token_hash` pointing back to the `iap_subscriptions.play_subscription_resource_id`.
 - `original_transaction_id_hash = HMAC-SHA256(original_transaction_id, IAP_RECEIPT_PEPPER)`. NULL until pseudonymisation; raw `original_transaction_id` is the lookup key before that.
 - `scrubbed_renewal_count`: incremented each time a RENEWAL webhook arrives for a scrubbed receipt (ops alerting at first occurrence). See §5.9.
-- `receipt_blob`: the raw JWS / base64 receipt string. Stored for audit, nulled at erasure.
-- Money fields use the ADR-0004 triple: `amount_smallest_unit` (integer string via BIGINT), `amount_decimals`, `amount_currency`. Apple micros: store as-is with `decimals: 2` once converted to EUR cents. Google `priceAmountMicros`: `decimals: 6`.
+- `receipt_blob`: the raw JWS string (Apple) or `purchaseToken` (Google). Stored for audit, nulled at erasure. Never expose in API responses.
+- Money fields use the ADR-0004 triple: `amount_smallest_unit` (integer string via BIGINT), `amount_decimals`, `amount_currency`. Apple `signedTransactionInfo.price`: store in storefront currency with `decimals: 2`, convert to EUR at projection time. Google `priceAmountMicros`: `decimals: 6`.
 
 ### 5.3 Multi-store conflict gate
 
@@ -421,7 +439,7 @@ Google's RTDN message body carries a `subscriptionNotification.purchaseToken` an
 | 12 | `SUBSCRIPTION_REVOKED` | Set `status = expired`; broadcast. |
 | 13 | `SUBSCRIPTION_EXPIRED` | Set `status = expired`; broadcast; write outbox (zero amount, for reconciliation). |
 
-After fetching subscription details from Google Play API, write `iap_receipts` row with `google_purchase_token_hash = SHA256(purchaseToken)`. Never store the raw `purchaseToken` in `iap_receipts`.
+After fetching subscription details from Google Play API via `purchases.subscriptionsv2.get`, extract the subscription resource id and store it as `iap_subscriptions.play_subscription_resource_id`. Write `iap_receipts` row with `google_purchase_token_hash = SHA256(purchaseToken)`. Never store the raw `purchaseToken` in `iap_receipts`. Update `play_subscription_resource_id` on the `iap_subscriptions` row if a `linkedPurchaseToken` chain yields a new canonical resource id.
 
 ### 5.6 IAP product ID config
 
@@ -465,7 +483,11 @@ Single responsibility: take the raw receipt or JWS string and return a typed `Ap
 
 #### `GooglePlayReceiptVerifier` (`app/Domain/Subscription/Iap/GooglePlayReceiptVerifier.php`)
 
-Single responsibility: take the `purchaseToken` + `productId` and return a typed `GoogleVerifiedSubscription` value object, fetched via Google Play Developer API. Requires a service-account credential (env key `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`).
+Single responsibility: take the `purchaseToken` + `productId` and return a typed `GoogleVerifiedSubscription` value object by calling Play Developer API `purchases.subscriptionsv2.get` server-side. The response provides the canonical subscription record including `linkedPurchaseToken` chains and the stable subscription resource id used as `play_subscription_resource_id` in `iap_subscriptions`.
+
+Requires a Google Cloud service account credential. Recommended env key: `GOOGLE_PLAY_SERVICE_ACCOUNT_PATH` (filesystem path to the JSON key file — preferred for production; 12-factor keeps credentials in files, not env values). `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` (raw or base64-encoded JSON content) is also supported for environments where file mounts are not practical. See §15 for setup instructions.
+
+PHP library: `google/apiclient` with `Google\Service\AndroidPublisher`. Check if `google/apiclient` is already in `composer.json` before adding it as a new dependency; it is used widely across Google-integrated Laravel projects.
 
 #### `IapReceiptPseudonymiser` (`app/Domain/Subscription/Iap/IapReceiptPseudonymiser.php`)
 
@@ -589,9 +611,11 @@ The following are explicitly deferred and must NOT be implemented in slice 2:
 
 ## 7. Mobile contract
 
+Mobile is on **expo-iap 4.2.3 + Expo SDK 54, iOS 15.1+ minimum** → StoreKit 2 is always used. The wire shapes below are confirmed by mobile-dev.
+
 ### `POST /api/v1/subscription/iap/verify`
 
-**Request:**
+**Request (iOS — Apple IAP):**
 
 ```json
 POST /api/v1/subscription/iap/verify
@@ -600,14 +624,37 @@ Content-Type: application/json
 Idempotency-Key: <uuid-v4-generated-by-mobile>
 
 {
-  "store": "apple",
-  "receipt": "<JWS-signed-transaction-string-from-StoreKit-2>",
+  "platform": "apple_iap",
+  "receipt": "<JWS signed transaction string from StoreKit 2>",
+  "originalTransactionId": "<StoreKit 2 stable transaction id>",
   "productId": "zelta_pro_monthly",
-  "platform": "ios",
   "appVersion": "1.3.0",
   "currency": "EUR"
 }
 ```
+
+**Request (Android — Google Play):**
+
+```json
+POST /api/v1/subscription/iap/verify
+Authorization: Bearer <sanctum-token>
+Content-Type: application/json
+Idempotency-Key: <uuid-v4-generated-by-mobile>
+
+{
+  "platform": "google_play",
+  "receipt": "<purchaseToken verbatim>",
+  "productId": "zelta_pro_monthly",
+  "appVersion": "1.3.0",
+  "currency": "EUR"
+}
+```
+
+**Product ID values** (confirmed — must match App Store Connect + Google Play Console exactly):
+- `zelta_pro_monthly`
+- `zelta_pro_annual`
+
+Mobile reads these via Expo env vars: `EXPO_PUBLIC_PRO_MONTHLY_SKU` and `EXPO_PUBLIC_PRO_ANNUAL_SKU`. These must equal what is configured in ASC and Play Console — see §15.
 
 **Success (200):**
 
@@ -700,6 +747,14 @@ Idempotency-Key: <uuid-v4-generated-by-mobile>
 
 When `source` is `apple_iap` or `google_play`, this endpoint returns `ERR_SUB_010` (409) with deep-link management URLs — already wired in slice 1's `SubscriptionService::cancel()`. Mobile should route the user to the store's subscription management screen.
 
+### Money-safety: `finishTransaction` timing (mobile-confirmed)
+
+Mobile's `purchaseSubscriptionAsync` → `reconciler.verifyPendingPurchase` chain calls `finishTransaction()` only on `POST /iap/verify` 2xx. Any backend non-2xx response (webhook signature failure, transient error, validation rejection) leaves the purchase as "pending" on the device — mobile retries the verify call automatically. This means:
+
+- **Slice 2 does NOT need backend-side retry queues for the `/iap/verify` path itself.** Mobile's retry loop is the reliability mechanism for the verify step.
+- Post-verify side-effects — entitlements projection write, `revenue_outbox_events` — still require durable delivery per ADR-0002. That is slice 4's territory.
+- Backend should return a clear non-2xx status (not a silent 200 with an error body) on any rejection so mobile knows the purchase is still pending.
+
 ---
 
 ## 8. Open design decisions
@@ -710,16 +765,15 @@ The following decisions require explicit controller input **before implementatio
 
 ### 8.1 Apple StoreKit 2 local JWS verification vs server-side `verifyReceipt` (deprecated)
 
-**Context:** Apple deprecated the server-side `verifyReceipt` endpoint in January 2023, but it still works. StoreKit 2 delivers transactions as signed JWS strings (`signedTransactionInfo`), which can be verified locally using Apple's root certificate without a server API call, or via the App Store Server API's `GET /inApps/v2/transactions/{transactionId}`.
+**STATUS: DECIDED — StoreKit 2 JWS local verification.**
 
-**Options:**
-- **(α) StoreKit 2 JWS local verification:** Verify the JWS chain in PHP using the Apple WWDR G6 intermediate cert + Apple Root CA G3. Fast (no network call). Requires bundling or fetching Apple's certificates. `firebase/php-jwt` or `web-token/jwt-framework` can handle the JWS parsing. Recommended for production.
-- **(β) App Store Server API `GET /transactions/{transactionId}`:** Round-trip to Apple's server. Slower but gives a "canonical" server-side response. Requires an App Store Connect API key.
-- **(γ) Legacy `verifyReceipt` (`POST https://buy.itunes.apple.com/verifyReceipt`):** Deprecated. Still functional. Simplest to implement. Migration to (α) will be required eventually.
+Mobile-dev confirmed: expo-iap 4.2.3 + Expo SDK 54, iOS 15.1+ minimum → StoreKit 2 is always in effect. Mobile sends a JWS-signed transaction string. The legacy `SKPaymentQueue` receipt blob path (`appStoreReceiptURL`, base64 blob) is **not used and must not be implemented**.
 
-**Recommendation:** (α) StoreKit 2 local verification with the WWDR G6/G3 cert chain. This is Apple's recommended path for new implementations and avoids a network round-trip on every verification call.
+**Decision:** (α) StoreKit 2 JWS local verification — verify the JWS chain in PHP using Apple WWDR G6 intermediate cert + Apple Root CA G3. Fast (no network call on the hot verify path). Apple's recommended path for new implementations.
 
-**Open question — needs mobile-dev input:** Is the iOS app already using StoreKit 2 APIs to generate signed JWS transaction strings? Or is it still using the older `SKPaymentQueue` receipt (`appStoreReceiptURL`), which produces a base64 receipt blob? The backend `receipt` field in the request body handles both (JWS string starts with `ey`; base64 blob is detected otherwise), but the verification library differs. This must be confirmed before implementation.
+**PHP library recommendation:** `readdle/app-store-server-api` — actively maintained, supports StoreKit 2 JWS verification natively. Alternatives if needed: `kobotn/app-store-server-library-php` (also StoreKit 2 aware), or roll-your-own with `web-token/jwt-framework` (handles the JWS parsing with the WWDR G6/G3 cert chain). Do not use `firebase/php-jwt` alone — it lacks Apple-cert-chain validation out of the box.
+
+The deprecated `POST https://buy.itunes.apple.com/verifyReceipt` endpoint must NOT be called anywhere in the implementation.
 
 ---
 
@@ -774,6 +828,9 @@ APPLE_PRODUCT_ANNUAL_PRO=zelta_pro_annual
 GOOGLE_PACKAGE_NAME=app.zelta
 GOOGLE_PRODUCT_MONTHLY_PRO=zelta_pro_monthly
 GOOGLE_PRODUCT_ANNUAL_PRO=zelta_pro_annual
+# Recommended for production: path to the service account JSON key file (keep outside webroot)
+GOOGLE_PLAY_SERVICE_ACCOUNT_PATH=
+# Alternative: raw or base64-encoded JSON key content (use if file mount not available)
 GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=
 GOOGLE_PLAY_WEBHOOK_AUDIENCE=https://api.zelta.app
 IAP_RECEIPT_PEPPER=
@@ -783,31 +840,40 @@ IAP_RECEIPT_PEPPER=
 
 ### 8.6 Withdrawal consent for IAP purchases
 
-**Context:** Slice 1's Stripe path collects explicit 14-day right-of-withdrawal consent before the checkout session (`withdrawalConsent` in the request body, stored in `subscription_consent_log`). Apple and Google's own checkout UIs do not allow us to inject a consent form — the purchase is completed before our backend is called.
+**STATUS: DECIDED — optional in v1.3.0; required from v1.3.1.**
 
-**Options:**
-- **(α) Pre-purchase consent screen in mobile:** Mobile shows the EU withdrawal consent screen before calling `requestSubscriptionPlanChange` / `BillingClient.launchBillingFlow`. The `iap/verify` request body carries a `withdrawalConsent` sub-object (same shape as checkout). Backend stores it in `subscription_consent_log` as usual.
-- **(β) Post-purchase consent capture:** `iap/verify` returns a flag `requiresConsentCapture: true`; mobile shows the consent modal after verification. User must tap "I agree" before Pro features are unlocked. Consent is then stored via a separate `POST /api/v1/subscription/iap/consent` endpoint.
-- **(γ) In-app T&C wording at account creation covers it:** Rely on the account-creation consent (already stored) as EU CRD Article 16 digital content immediate-delivery consent. No separate consent per purchase.
+Mobile-dev confirmed (per Q14 of the review deltas): native IAP does not need a withdrawal-consent line in the `iap/verify` call for v1.3.0. Apple's standard refund flow (`reportaproblem.apple.com`) covers the EU 14-day right of withdrawal, and App Review has accepted this approach. The `withdrawalConsent` field is **OPTIONAL** on `POST /iap/verify` in v1.3.0 — mobile does not populate it.
 
-**Recommendation:** (α) — pre-purchase consent captured on the `iap/verify` call as an optional sub-object. The `subscription_consent_log` FK for `iap_subscriptions.id` can be populated post-creation. The `withdrawalConsent` field is optional in slice 2 (so existing mobile versions without it don't break); the spec logs a warning if absent; explicit consent becomes required in the v1.3.1 release when mobile has been updated.
+Slice 1's web Stripe Checkout consent flow (the `subscription_consent_log` writer + 5-min staleness window from `ERR_SUB_004`) is unchanged and flows through the checkout path, NOT through `/iap/verify`.
 
-**Open question — needs mobile-dev input:** Will the iOS/Android client be updated to show the consent screen pre-purchase in the same release window as slice 2 backend lands?
+In v1.3.1, mobile's mid-flight Q10 paywall expansion will ship a unified consent UX and start populating `withdrawalConsent` in `iap/verify`. At that point flip it to required. The backend field must be wired and stored even in v1.3.0 so the v1.3.1 mobile update is a non-breaking change.
+
+**Implementation in v1.3.0:**
+- Accept `withdrawalConsent` as an optional request field (same object shape as slice 1's checkout path).
+- If present: write `subscription_consent_log` row linking to `iap_subscriptions.id` (the FK is already nullable — see §4).
+- If absent: skip the `subscription_consent_log` write; no warning, no error.
+- Log a `DEBUG` entry when absent so it is visible in staging but does not pollute production logs.
 
 ---
 
 ### 8.7 Google Play stable subscription identifier
 
-**Context:** Google's `purchaseToken` changes on every resubscription. The `linkedPurchaseToken` field links a new token to its predecessor. For the `UNIQUE` constraint in `iap_subscriptions`, we need a stable identifier.
+**STATUS: DECIDED — Play Developer API `purchases.subscriptionsv2.get` introspection.**
 
-**Options:**
-- **(α) Use `orderId` base prefix:** Google's `orderId` for the initial purchase is a fixed prefix (e.g. `GPA.xxxx.xxxx.xxxx`); renewals append `.1`, `.2`, etc. Strip the suffix to get the stable subscription ID.
-- **(β) Follow `linkedPurchaseToken` chain:** On every RENEWAL, the new token's `linkedPurchaseToken` points to the previous one. Walk the chain to find the original token. More accurate but requires a chain-walk.
-- **(γ) Store `subscriptionId` (product SKU) + `obfuscatedAccountId` as composite key.** Stable per user per product, but not unique if a user cancels and re-subscribes.
+Mobile-dev confirmed: do NOT rely on `orderId` base-prefix stripping. Sandbox `orderId` values can be null or non-conformant on mock paths, making option (α) unreliable across environments.
 
-**Recommendation:** (α) `orderId` base prefix as the stable subscription identifier, stored in a `google_order_id_base VARCHAR(128)` column on `iap_subscriptions`. The `UNIQUE` constraint is on this column (plus `store`). The `google_purchase_token_hash` is updated on each renewal notification.
+**Decision:** Backend calls Play Developer API `purchases.subscriptionsv2.get` on the raw `purchaseToken` server-side. That response returns the canonical subscription record including `linkedPurchaseToken` chains across renewal/cancel/resubscribe. The subscription resource id from that response is the stable PK for `iap_subscriptions`, stored in the new `play_subscription_resource_id VARCHAR(255)` column (see §5.2 schema).
 
-**Open question — controller confirmation:** The Google `orderId` format may differ across Play billing environments (sandbox vs production). Confirm with mobile-dev whether sandbox `orderId` values follow the same `.1/.2` suffix convention before relying on prefix-strip.
+Mobile sends `purchaseToken` verbatim — backend owns the introspection step.
+
+**Backend implications:**
+- New PHP dependency: `google/apiclient` with `Google\Service\AndroidPublisher`. Check `composer.json` before adding — it may already be present.
+- New env requirement: Google Cloud Service Account credentials. Two env options are supported (see §5.7 `GooglePlayReceiptVerifier` and §15):
+  - `GOOGLE_PLAY_SERVICE_ACCOUNT_PATH` — filesystem path to the JSON key file (recommended for production).
+  - `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` — raw or base64-encoded JSON key content (for environments without file mount capability).
+- Schema: `iap_subscriptions` has `play_subscription_resource_id` as the stable Google PK (replaces the `google_order_id_base` column from the earlier (α) option). The `UNIQUE KEY uniq_iap_sub_play_resource (play_subscription_resource_id)` prevents double-insert.
+
+The discarded `orderId`-based approach and the `google_order_id_base` column do not appear anywhere in the final schema.
 
 ---
 
@@ -865,7 +931,7 @@ An implementation is complete when every item below passes.
 
 - [ ] `config/subscription.php` `iap.apple.product_ids` maps `zelta_pro_monthly` → `monthly_pro`
 - [ ] `config/subscription.php` `iap.google.product_ids` maps `zelta_pro_monthly` → `monthly_pro`
-- [ ] `IAP_RECEIPT_PEPPER`, `APPLE_BUNDLE_ID`, `GOOGLE_PACKAGE_NAME`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`, `GOOGLE_PLAY_WEBHOOK_AUDIENCE` are documented in `.env.production.example` and `.env.zelta.example`
+- [ ] `IAP_RECEIPT_PEPPER`, `APPLE_BUNDLE_ID`, `GOOGLE_PACKAGE_NAME`, `GOOGLE_PLAY_SERVICE_ACCOUNT_PATH`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`, `GOOGLE_PLAY_WEBHOOK_AUDIENCE` are documented in `.env.production.example` and `.env.zelta.example`
 - [ ] Code comment in `.env.production.example` explicitly states `IAP_RECEIPT_PEPPER` one-way rotation caveat
 
 ### Error code registry
@@ -1013,26 +1079,26 @@ Concerns: <any design compromise made under time pressure>
 
 ## 14. Estimated effort
 
-**5–7 engineer-days.**
+**6–7 engineer-days.** (Revised from 5–7d — Play Developer API client integration adds scope vs the original `orderId`-parsing assumption; see §8.7.)
 
 Breakdown:
 
 | Task | Days |
 |---|---|
 | `iap_subscriptions` + `iap_receipts` + `iap_subscription_events` migrations | 0.25 |
-| `IapSubscriptionService` + `AppleReceiptVerifier` + `GooglePlayReceiptVerifier` service layer | 1.0 |
+| `IapSubscriptionService` + `AppleReceiptVerifier` + `GooglePlayReceiptVerifier` service layer | 1.25 |
 | `POST /api/v1/subscription/iap/verify` controller + request validation + idempotency | 0.75 |
 | `SubscriptionProjection` IAP join + `for()` union | 0.5 |
 | Apple webhook handler (`AppleNotificationsWebhookController`) + JWS verification | 1.0 |
-| Google Play webhook handler (`GooglePlayWebhookController`) + Pub/Sub JWT auth + Play API re-fetch | 1.0 |
+| Google Play webhook handler (`GooglePlayWebhookController`) + Pub/Sub JWT auth + Play Developer API re-fetch | 1.25 |
 | `IapReceiptPseudonymiser` + erasure walk integration + `GdprController` extension | 0.75 |
 | Config additions (`config/subscription.php`, `.env.production.example`, `.env.zelta.example`) + error codes | 0.25 |
 | Filament `IapSubscriptionResource` (read-only) | 0.25 |
 | Feature tests (coverage of §9 acceptance criteria) | 1.0 |
 
-**Total: ~6.75d.** The main variability is in the Apple JWS verification library integration (depends on open question §8.1) and the Google Play service account setup (depends on §8.7).
+**Total: ~7.25d, rounded to 6–7d.** The main variability is in the `google/apiclient` + `AndroidPublisher` integration and getting Google Play service account credentials provisioned for staging.
 
-Comparison to slice 1: slice 1 was sized 3–5d and covered one PSP. Slice 2 covers two store SDKs with distinct verification protocols plus the erasure pseudonymisation layer, explaining the larger estimate.
+Comparison to slice 1: slice 1 was sized 3–5d and covered one PSP. Slice 2 covers two store SDKs with distinct verification protocols, a server-side Play Developer API introspection step for Google, plus the erasure pseudonymisation layer, explaining the larger estimate.
 
 ---
 
@@ -1040,33 +1106,39 @@ Comparison to slice 1: slice 1 was sized 3–5d and covered one PSP. Slice 2 cov
 
 These are actions the human controller must complete **before or during** implementation. They are not engineering tasks.
 
-### Before implementation starts (controller must confirm)
+### Before implementation starts — open items now resolved (mobile-dev confirmed)
 
-- [ ] **§8.1 — StoreKit version:** Confirm with mobile-dev whether iOS app uses StoreKit 2 (signed JWS string) or older `SKPaymentQueue` receipt blob. Determines which Apple verification library to use.
-- [ ] **§8.6 — Withdrawal consent timing:** Confirm with mobile-dev whether the pre-purchase consent screen will be in the same release as slice 2 backend.
-- [ ] **§8.7 — Google `orderId` format:** Confirm with mobile-dev whether sandbox `orderId` values use the same `.1/.2` suffix convention as production.
+The three original open questions from §8 are now closed:
+
+- [x] **§8.1 — StoreKit 2 JWS confirmed.** expo-iap 4.2.3 / Expo SDK 54 / iOS 15.1+. No legacy receipt blob.
+- [x] **§8.6 — Withdrawal consent optional in v1.3.0.** Required from v1.3.1 when mobile ships unified consent UX.
+- [x] **§8.7 — Google stable id via Play Developer API `subscriptionsv2.get`.** Not `orderId` base-prefix.
 
 ### Before implementation starts (founder must action)
 
-- [ ] **Apple Developer Program:** Confirm the App Store Connect app is set up with in-app purchase products `zelta_pro_monthly` and `zelta_pro_annual` (or the actual product IDs used by mobile-dev). These must match `config/subscription.php`.
-- [ ] **App Store Server Notifications V2 registration:** Register the `POST /webhooks/apple/notifications` URL in App Store Connect → App Information → App Store Server Notifications. Provide the URL to the implementation agent.
-- [ ] **Google Play Console:** Confirm the Play Console merchant account is linked and the Android app has subscription products registered.
-- [ ] **Google Play RTDN registration:** Create a Google Cloud Pub/Sub topic + push subscription pointing to `POST /webhooks/google/play`. Set `GOOGLE_PLAY_WEBHOOK_AUDIENCE` env var.
-- [ ] **Google Play service account:** Create a service account in Google Cloud Console with `Android Publisher` read access; download the JSON credentials; add as `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` env var.
+- [ ] **App Store Connect — product IDs:** Set up in-app purchase subscription products with EXACTLY these IDs: `zelta_pro_monthly` and `zelta_pro_annual`. These must match `config/subscription.php` (`APPLE_PRODUCT_MONTHLY_PRO` / `APPLE_PRODUCT_ANNUAL_PRO`) and match what mobile reads from `EXPO_PUBLIC_PRO_MONTHLY_SKU` / `EXPO_PUBLIC_PRO_ANNUAL_SKU`. Any mismatch causes `ERR_SUB_001` on the first verify call.
+- [ ] **App Store Server Notifications V2:** Register `https://zelta.app/webhooks/apple/notifications` in App Store Connect → App Information → App Store Server Notifications (V2 endpoint). Use the sandbox URL `https://staging.zelta.app/webhooks/apple/notifications` for the sandbox environment.
+- [ ] **Google Play Console — product IDs:** Register subscription products with EXACTLY the same IDs: `zelta_pro_monthly` and `zelta_pro_annual`. Must match `GOOGLE_PRODUCT_MONTHLY_PRO` / `GOOGLE_PRODUCT_ANNUAL_PRO` and `EXPO_PUBLIC_PRO_*_SKU`.
+- [ ] **Google Play RTDN — Pub/Sub setup:** Create a Google Cloud Pub/Sub topic + push subscription pointing to `https://zelta.app/webhooks/google/play`. Set `GOOGLE_PLAY_WEBHOOK_AUDIENCE=https://api.zelta.app` (the expected `aud` claim in Google's push JWT).
+- [ ] **Google Play service account:** Create a service account in Google Cloud Console with `Android Publisher` API read access. Grant the service account access in Play Console (Setup → API access → Grant access). Download the JSON key file. Recommended deployment: store the file at a path outside the webroot and set `GOOGLE_PLAY_SERVICE_ACCOUNT_PATH=/path/to/key.json`. Alternatively, base64-encode the JSON and set `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=<base64>`.
+- [ ] **Mobile env match-up:** Confirm `EXPO_PUBLIC_PRO_MONTHLY_SKU=zelta_pro_monthly` and `EXPO_PUBLIC_PRO_ANNUAL_SKU=zelta_pro_annual` are set in the mobile Expo project and match ASC + Play Console exactly. Any discrepancy will cause receipt verification to return `ERR_SUB_001`.
 
 ### Env vars to add (controller actions after merge)
 
 Set in production and staging environments:
 
 ```
-APPLE_BUNDLE_ID=
-APPLE_PRODUCT_MONTHLY_PRO=
-APPLE_PRODUCT_ANNUAL_PRO=
-GOOGLE_PACKAGE_NAME=
-GOOGLE_PRODUCT_MONTHLY_PRO=
-GOOGLE_PRODUCT_ANNUAL_PRO=
+APPLE_BUNDLE_ID=app.zelta
+APPLE_PRODUCT_MONTHLY_PRO=zelta_pro_monthly
+APPLE_PRODUCT_ANNUAL_PRO=zelta_pro_annual
+GOOGLE_PACKAGE_NAME=app.zelta
+GOOGLE_PRODUCT_MONTHLY_PRO=zelta_pro_monthly
+GOOGLE_PRODUCT_ANNUAL_PRO=zelta_pro_annual
+# Recommended: path to the service account JSON key file
+GOOGLE_PLAY_SERVICE_ACCOUNT_PATH=
+# Alternative: raw or base64-encoded JSON key content (use if file mount not available)
 GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=
-GOOGLE_PLAY_WEBHOOK_AUDIENCE=
+GOOGLE_PLAY_WEBHOOK_AUDIENCE=https://api.zelta.app
 IAP_RECEIPT_PEPPER=
 ```
 
@@ -1078,6 +1150,7 @@ IAP_RECEIPT_PEPPER=
 - [ ] Configure staging App Store Server Notification URL and test with Sandbox receipt
 - [ ] Configure staging Google Play RTDN push subscription and test with test purchaseToken
 - [ ] Verify `GET /api/v1/subscription/me` returns the IAP source for a test user who purchases via the App Store sandbox
+- [ ] **Mobile smoke test:** Once `/iap/verify` is live in staging, mobile runs a real end-to-end subscribe on the next preview-debug build. This is the post-implementation smoke milestone — confirm with mobile-dev team before sign-off.
 
 ### Next step
 
