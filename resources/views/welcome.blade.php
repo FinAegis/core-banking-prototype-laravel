@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' - Open Source Core Banking Infrastructure',
-        'description' => 'Open-source core banking platform with 60 modules: payments, lending, compliance, DeFi, and a public MCP server for AI agents. ISO 20022, PSD2, ACH, SEPA. Apache-2.0 licensed, built with Laravel.',
+        'description' => 'Open-source core banking platform with 61 modules: payments, lending, compliance, DeFi, and a public MCP server for AI agents. ISO 20022, PSD2, ACH, SEPA. Apache-2.0 licensed, built with Laravel.',
         'keywords' => config('brand.name', 'Zelta') . ', open source banking, core banking infrastructure, GCU, ISO 20022, PSD2, open banking, ACH, SEPA, Interledger, microfinance, event sourcing, DeFi, RegTech, banking API, Laravel fintech',
     ])
 
@@ -32,7 +32,7 @@
                     <svg class="w-4 h-4 text-fa-teal" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
                     </svg>
-                    Open Source &middot; Apache-2.0 Licensed &middot; 60 Domains
+                    Open Source &middot; Apache-2.0 Licensed &middot; 61 Domains
                 </div>
 
                 <!-- MCP-compatible badge -->
@@ -49,7 +49,7 @@
 
                 <!-- Subheading -->
                 <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style="animation-delay: 0.15s">
-                    Ship compliant banking products in weeks, not years. 60 production-ready modules cover payments, lending, compliance, and cross-border transfers — so you build features, not infrastructure.
+                    Ship compliant banking products in weeks, not years. 61 production-ready modules cover payments, lending, compliance, and cross-border transfers — so you build features, not infrastructure.
                 </p>
 
                 <!-- CTA Buttons -->
@@ -93,7 +93,7 @@
                         What Is {{ config('brand.name', 'Zelta') }}?
                     </h2>
                     <p class="text-lg text-slate-600 leading-relaxed mb-6">
-                        A production-grade core banking platform built with Laravel and domain-driven design. 57 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
+                        A production-grade core banking platform built with Laravel and domain-driven design. 61 bounded contexts, event sourcing, CQRS, and every integration pattern a modern fintech needs.
                     </p>
                     <div class="space-y-3 mb-8">
                         @foreach([
@@ -154,7 +154,7 @@
     <section id="features" class="py-24 bg-slate-50/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 animate-on-scroll">
-                <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">57 Production-Ready Modules</h2>
+                <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight mb-4">61 Production-Ready Modules</h2>
                 <p class="text-lg text-slate-500 max-w-2xl mx-auto">
                     Every capability you need — payments, lending, compliance, DeFi, privacy, mobile wallets, AI analytics — all in one codebase.
                 </p>
@@ -202,7 +202,7 @@
 
             <div class="text-center mt-12 animate-on-scroll">
                 <a href="{{ route('features') }}" class="btn-primary !bg-slate-900 hover:!bg-slate-800 !rounded-lg group">
-                    See All 60 Domains
+                    See All 61 Domains
                     <svg class="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                 </a>
             </div>
@@ -220,7 +220,7 @@
             <div class="text-center mb-16 animate-on-scroll">
                 <h2 class="font-display text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">Platform Architecture</h2>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    57 bounded contexts built with DDD, event sourcing, and CQRS. Each module implements specific financial system patterns you can use independently.
+                    61 bounded contexts built with DDD, event sourcing, and CQRS. Each module implements specific financial system patterns you can use independently.
                 </p>
             </div>
 
@@ -331,7 +331,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 animate-on-scroll">
                 @foreach([
-                    ['value' => '56', 'label' => 'Domain Modules'],
+                    ['value' => '61', 'label' => 'Domain Modules'],
                     ['value' => '45', 'label' => 'GraphQL Schemas'],
                     ['value' => '1,400+', 'label' => 'API Routes'],
                     ['value' => 'Apache-2.0', 'label' => 'Licensed'],
