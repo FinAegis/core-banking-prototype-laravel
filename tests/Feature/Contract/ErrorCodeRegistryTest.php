@@ -102,9 +102,11 @@ it('the registry contains the deltas Q15.3 mandatory codes', function (): void {
         'ERR_VALIDATION_003',
         'ERR_IDEMPOTENCY_409',
         'ERR_CUR_001',
+        'ERR_SUB_001',
         'ERR_SUB_002',
         'ERR_QUOTE_001',
         'ERR_QUOTE_002',
+        'ERR_QUO_002',
         'ERR_FEE_001',
         'ERR_EXP_001',
     ];

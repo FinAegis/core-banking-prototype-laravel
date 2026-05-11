@@ -24,7 +24,7 @@ return [
     'ERR_VALIDATION_002'  => ['http' => 422, 'description' => 'Money field is malformed.'],
     'ERR_VALIDATION_003'  => ['http' => 422, 'description' => 'Idempotency-Key has invalid format.'],
     'ERR_IDEMPOTENCY_409' => ['http' => 409, 'description' => 'Same Idempotency-Key presented with a different request body.'],
-    'ERR_CUR_001'         => ['http' => 400, 'description' => 'Currency must be EUR in v1.3.0.'],
+    'ERR_CUR_001'         => ['http' => 400, 'description' => 'Currency must be EUR in v1.3.x.'],
 
     // ─── Subscription (deltas Q14, Q17) ────────────────────────────────────
     'ERR_SUB_001' => ['http' => 422, 'description' => 'Invalid receipt.'],
@@ -39,6 +39,7 @@ return [
     // ─── Quote / Pricing (deltas Q2, Q3 — codes stay ERR_QUOTE_* per Backend-Q4) ──
     'ERR_QUOTE_001' => ['http' => 410, 'description' => 'Quote expired.'],
     'ERR_QUOTE_002' => ['http' => 409, 'description' => 'Submitted payload does not match quoted userOp hash.'],
+    'ERR_QUO_002'   => ['http' => 409, 'description' => 'Quote already consumed.'],
 
     // ─── Fee resolver ──────────────────────────────────────────────────────
     'ERR_FEE_001' => ['http' => 500, 'description' => 'Fee tier could not be resolved.'],
