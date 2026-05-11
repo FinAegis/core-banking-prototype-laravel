@@ -135,6 +135,8 @@ final class CueController
             return $result;
         }
 
+        assert($result->dismissed_at !== null);
+
         return response()->json([
             'id'          => $result->id,
             'dismissedAt' => $result->dismissed_at->toIso8601ZuluString(),
