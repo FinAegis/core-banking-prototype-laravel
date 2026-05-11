@@ -280,3 +280,12 @@ Schedule::command('solana:reconcile-helius --auto-sync')
     ->onFailure(function () {
         Log::error('Solana ↔ Helius reconciliation reported drift or failed');
     });
+
+// Plan B Slice 5 — daily purge of 24h-old pending_payment Checkout sessions.
+// Verifies session status with Stripe; transitions to expired (no payment)
+// or paid (delayed webhook). Cap defaults to 1000 rows/run.
+Schedule::command('cards:purge-expired-deposits')
+    ->dailyAt('03:30')
+    ->description('Purge expired card waitlist deposit Checkout sessions (24h TTL)')
+    ->appendOutputTo(storage_path('logs/cards-deposits-purge.log'))
+    ->withoutOverlapping();

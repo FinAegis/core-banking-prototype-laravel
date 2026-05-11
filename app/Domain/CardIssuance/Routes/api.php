@@ -2,11 +2,31 @@
 
 declare(strict_types=1);
 
+use App\Domain\CardIssuance\Http\Controllers\WaitlistDepositController;
+use App\Domain\CardIssuance\Webhooks\CardWaitlistWebhookController;
 use App\Http\Controllers\Api\CardIssuance\CardController;
 use App\Http\Controllers\Api\CardIssuance\CardholderController;
 use App\Http\Controllers\Api\CardIssuance\CardTransactionWebhookController;
 use App\Http\Controllers\Api\CardIssuance\JitFundingWebhookController;
 use Illuminate\Support\Facades\Route;
+
+// Plan B Slice 5 — Card waitlist deposit endpoints.
+// /waitlist/deposit + /waitlist/deposit/cancel are protected by Sanctum +
+// idempotency.required (Idempotency-Key header). /waitlist/entry is a
+// read-only Sanctum endpoint (no idempotency).
+Route::prefix('v1/cards/waitlist')->name('api.cards.waitlist.')
+    ->middleware(['auth:sanctum'])
+    ->group(function (): void {
+        Route::middleware(['idempotency.required'])->group(function (): void {
+            Route::post('/deposit', [WaitlistDepositController::class, 'start'])
+                ->name('deposit.start');
+            Route::post('/deposit/cancel', [WaitlistDepositController::class, 'cancel'])
+                ->name('deposit.cancel');
+        });
+
+        Route::get('/entry', [WaitlistDepositController::class, 'entry'])
+            ->name('entry');
+    });
 
 Route::prefix('v1/cards')->name('api.cards.')->group(function () {
     // Authenticated endpoints
@@ -26,6 +46,14 @@ Route::prefix('v1/cards')->name('api.cards.')->group(function () {
         Route::delete('/{cardId}', [CardController::class, 'cancel'])->name('cancel');
     });
 });
+
+// Plan B Slice 5 — Stripe Checkout webhook for card deposits. Signature
+// verified inside the controller via STRIPE_CARDS_WEBHOOK_SECRET (distinct
+// from /webhooks/stripe/subscriptions). Dedup via processed_webhook_events
+// (provider='stripe_cards').
+Route::post('webhooks/stripe/cards', [CardWaitlistWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.stripe.cards');
 
 // Cardholder management
 Route::prefix('v1/cardholders')->name('api.cardholders.')->middleware(['auth:sanctum'])->group(function () {
