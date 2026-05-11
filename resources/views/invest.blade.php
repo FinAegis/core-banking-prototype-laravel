@@ -533,7 +533,7 @@
                         <div class="font-mono text-xs font-black bg-acid bru-border inline-block px-2 py-0.5 mb-3">01</div>
                         <h3 class="font-black font-heading text-lg mb-2">Production codebase live</h3>
                         <p class="text-sm font-medium text-text-sec mb-3">
-                            Backend on Laravel 12 / PHP 8.4 with 57 bounded contexts, event-sourced, multi-tenant. Mobile on Expo SDK 54 / React Native New Architecture. Both repos auditable.
+                            Backend on Laravel 12 / PHP 8.4 with 61 bounded contexts, event-sourced, multi-tenant. Mobile on Expo SDK 54 / React Native New Architecture. Both repos auditable.
                         </p>
                         <span class="inline-flex items-center gap-1.5 text-xs font-mono font-bold bg-bg-tertiary text-text-sec border-2 border-text-muted/40 px-2 py-0.5" title="Available in data room after inquiry submission">
                             <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 6V4.5a3 3 0 0 1 6 0V6h.5A1.5 1.5 0 0 1 13 7.5v6A1.5 1.5 0 0 1 11.5 15h-7A1.5 1.5 0 0 1 3 13.5v-6A1.5 1.5 0 0 1 4.5 6H5zm1.5 0h3V4.5a1.5 1.5 0 0 0-3 0V6z"/></svg>

@@ -157,5 +157,18 @@ class AppServiceProvider extends ServiceProvider
 
             return response($view->render());
         });
+
+        // Plan B Slice 4 — Cue queue event listeners (Backend-Q8).
+        // OnboardingCompleted → EnqueueProTrialReminderD1 (24h delay)
+        // SubscriptionTrialStarted → three trial-ending delayed jobs
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Domain\Subscription\Events\OnboardingCompleted::class,
+            \App\Domain\Subscription\Listeners\OnboardingCompletedListener::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Domain\Subscription\Events\SubscriptionTrialStarted::class,
+            \App\Domain\Subscription\Listeners\SubscriptionTrialStartedListener::class,
+        );
     }
 }

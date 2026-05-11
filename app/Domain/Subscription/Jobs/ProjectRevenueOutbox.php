@@ -19,6 +19,7 @@ namespace App\Domain\Subscription\Jobs;
 
 use App\Domain\Subscription\Models\RevenueEvent;
 use App\Domain\Subscription\Models\RevenueOutboxEvent;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -127,6 +128,13 @@ final class ProjectRevenueOutbox implements ShouldQueue
                     'status'       => RevenueOutboxEvent::STATUS_DELIVERED,
                     'delivered_at' => now(),
                 ])->save();
+
+                // Slice 4 — F-22: increment lifetime_spend_cents for AMLD5 threshold tracking.
+                // Only positive amounts (subscriptions, renewals) count; refunds are negative
+                // and should not decrement (lifetime gross spend per AMLD5 is unidirectional).
+                if ($userId !== null && $amount > 0) {
+                    User::where('id', $userId)->increment('lifetime_spend_cents', $amount);
+                }
             } catch (Throwable $e) {
                 Log::error('revenue_outbox.project_failed', [
                     'row_id'   => $rowId,

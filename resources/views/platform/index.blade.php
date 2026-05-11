@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => config('brand.name', 'Zelta') . ' Platform - Open Banking for Developers',
-        'description' => 'Zelta Platform: open-source core banking with 59 DDD domains, ISO 20022, PSD2, multi-rail payments, cross-chain DeFi, and a public MCP server. Apache-2.0 licensed, built for developers.',
+        'description' => 'Zelta Platform: open-source core banking with 61 DDD domains, ISO 20022, PSD2, multi-rail payments, cross-chain DeFi, and a public MCP server. Apache-2.0 licensed, built for developers.',
         'keywords' => config('brand.name', 'Zelta') . ' platform, banking infrastructure, open source banking, developer API, ISO 20022, PSD2, payment rails, Interledger, microfinance, ledger, Apache-2.0 license, core banking API, fintech development, DDD, event sourcing',
     ])
 
@@ -177,7 +177,7 @@
                                 <div class="text-sm text-gray-500">License</div>
                             </div>
                             <div>
-                                <div class="text-2xl font-bold text-blue-400 code-font">59</div>
+                                <div class="text-2xl font-bold text-blue-400 code-font">61</div>
                                 <div class="text-sm text-gray-500">Domains</div>
                             </div>
                             <div>
@@ -390,7 +390,7 @@
 
                 <!-- Available Modules -->
                 <div class="text-center py-12">
-                    <h2 class="text-3xl font-bold text-slate-900 mb-4">59 Domain Modules</h2>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">61 Domain Modules</h2>
                     <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
                         From ISO 20022 messaging to microfinance lending — every banking capability in one codebase.
                     </p>

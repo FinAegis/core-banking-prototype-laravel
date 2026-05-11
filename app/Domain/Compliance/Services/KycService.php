@@ -80,14 +80,20 @@ class KycService
                 $oldStatus = $user->kyc_status;
 
                 // Update user status
+                $kycLevel = $options['level'] ?? 'enhanced';
+                // Slice 4 (F-22): set kyc_completed_at when kyc_level transitions to 'full'.
+                // This enables the efficient DispatchKycRequiredCues LEFT JOIN query.
+                $kycCompletedAt = $kycLevel === 'full' ? now() : null;
+
                 $user->update(
                     [
-                        'kyc_status'      => 'approved',
-                        'kyc_approved_at' => now(),
-                        'kyc_expires_at'  => $options['expires_at'] ?? now()->addYears(2),
-                        'kyc_level'       => $options['level'] ?? 'enhanced',
-                        'risk_rating'     => $options['risk_rating'] ?? 'low',
-                        'pep_status'      => $options['pep_status'] ?? false,
+                        'kyc_status'       => 'approved',
+                        'kyc_approved_at'  => now(),
+                        'kyc_expires_at'   => $options['expires_at'] ?? now()->addYears(2),
+                        'kyc_level'        => $kycLevel,
+                        'risk_rating'      => $options['risk_rating'] ?? 'low',
+                        'pep_status'       => $options['pep_status'] ?? false,
+                        'kyc_completed_at' => $kycCompletedAt,
                     ]
                 );
 

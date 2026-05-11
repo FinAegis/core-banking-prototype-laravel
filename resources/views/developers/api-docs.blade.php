@@ -83,7 +83,7 @@
                         <h2 class="text-3xl font-bold text-gray-900 mb-8">Getting Started</h2>
                         
                         <div class="prose prose-lg max-w-none">
-                            <p>The {{ config('brand.name', 'Zelta') }} API provides programmatic access to our multi-asset banking platform spanning 56 DDD domains with over 1,400 routes. Our API is organized around REST principles with predictable, resource-oriented URLs. Domains include core banking, CrossChain bridging, DeFi protocols, RegTech compliance, Mobile Payment, Partner BaaS, ISO 20022, Open Banking, US Payment Rails, and AI-powered queries.</p>
+                            <p>The {{ config('brand.name', 'Zelta') }} API provides programmatic access to our multi-asset banking platform spanning 61 DDD domains with over 1,400 routes. Our API is organized around REST principles with predictable, resource-oriented URLs. Domains include core banking, CrossChain bridging, DeFi protocols, RegTech compliance, Mobile Payment, Partner BaaS, ISO 20022, Open Banking, US Payment Rails, and AI-powered queries.</p>
                             
                             <h3>Base URL</h3>
                             <x-code-block language="plaintext">

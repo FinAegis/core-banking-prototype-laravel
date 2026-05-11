@@ -229,6 +229,25 @@ Route::prefix('v1/pricing')->name('api.v1.pricing.')
             ->name('quote.show');
     });
 
+// Plan B Slice 4 — Cue queue endpoints.
+// GET  /api/v1/me/pending-cues            — list pending cues for authenticated user
+// POST /api/v1/me/cues/{cueId}/dismissed  — dismiss a cue (idempotent, requires Idempotency-Key)
+// POST /api/v1/me/marketing-opt-out       — set pro_marketing_opt_out (PECR compliance)
+Route::prefix('v1/me')->name('api.v1.me.')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/pending-cues', [App\Domain\Subscription\Http\Controllers\CueController::class, 'pendingCues'])
+            ->name('pending-cues');
+
+        Route::middleware(['idempotency.required'])->group(function () {
+            Route::post('/cues/{cueId}/dismissed', [App\Domain\Subscription\Http\Controllers\CueController::class, 'dismiss'])
+                ->name('cues.dismiss');
+        });
+
+        Route::post('/marketing-opt-out', [App\Domain\Subscription\Http\Controllers\MarketingOptOutController::class, 'store'])
+            ->name('marketing-opt-out');
+    });
+
 // Extended monitoring endpoints with authentication
 Route::prefix('monitoring')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/metrics-json', [App\Http\Controllers\Api\MonitoringController::class, 'metrics']);

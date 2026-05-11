@@ -58,11 +58,14 @@ return [
     'ERR_EXP_002' => ['http' => 410, 'description' => 'Export artifact has been purged.'],
     'ERR_EXP_003' => ['http' => 500, 'description' => 'Export job failed.'],
 
+    // ─── Cue queue (slice 4) ──────────────────────────────────────────────
+    'ERR_CUE_001' => ['http' => 404, 'description' => 'Cue not found or does not belong to the authenticated user.'],
+
     // ─── Card waitlist deposit (slice 5) ───────────────────────────────────
     'ERR_CARDS_001' => ['http' => 404, 'description' => 'User is not on the card waitlist.'],
     'ERR_CARDS_002' => ['http' => 409, 'description' => 'User already has an active card waitlist deposit.'],
     'ERR_CARDS_003' => ['http' => 404, 'description' => 'No active card waitlist deposit found to cancel.'],
     'ERR_CARDS_004' => ['http' => 409, 'description' => 'Deposit state conflict — already shipped or cancellation already in progress.'],
     'ERR_CARDS_005' => ['http' => 422, 'description' => 'Invalid return URL — not in the configured allow-list.'],
-    'ERR_CARDS_006' => ['http' => 409, 'description' => 'Quote kind is not card_waitlist_deposit.'],
+    'ERR_CARDS_006' => ['http' => 409, 'description' => 'Quote kind is not card_waitlist_deposit.']
 ];

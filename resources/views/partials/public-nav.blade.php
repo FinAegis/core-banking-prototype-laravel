@@ -37,7 +37,7 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-slate-200">All Features</div>
-                                        <div class="text-xs text-slate-500">60 domain modules</div>
+                                        <div class="text-xs text-slate-500">61 domain modules</div>
                                     </div>
                                 </a>
                                 <a href="{{ route('gcu') }}" class="dropdown-link {{ request()->routeIs('gcu*') ? 'dropdown-link-active' : '' }}">

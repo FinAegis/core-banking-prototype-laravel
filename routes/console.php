@@ -268,6 +268,40 @@ Schedule::command('pricing:purge-quotes')
     ->appendOutputTo(storage_path('logs/pricing-quotes-purge.log'))
     ->withoutOverlapping();
 
+// Plan B Slice 4 — ProjectRevenueOutbox sweep (missing from slice 1 deploy).
+// The outbox worker was deployed in slice 1 without a cron entry.
+// First run will drain any pending rows accumulated since slice 1 deploy.
+// Operator: monitor the first sweep and confirm rows move to 'delivered'.
+// @see docs/superpowers/specs/2026-05-10-slice-4-cue-queue-design.md §15 OD-2
+Schedule::job(new App\Domain\Subscription\Jobs\ProjectRevenueOutbox())
+    ->everyFiveMinutes()
+    ->description('Project pending revenue outbox rows into revenue_events (ADR-0002 off-chain projection)')
+    ->withoutOverlapping();
+
+// Plan B Slice 4 — Hourly: dispatch kyc_required cues for users approaching AMLD5 threshold.
+// Offset to :15 to avoid the busy :00 slot. Backend-Q8 aggregate-condition cron.
+Schedule::command('cue:dispatch-kyc-required')
+    ->hourlyAt(15)
+    ->description('Dispatch kyc_required cues for users approaching €1,000 lifetime spend (Backend-Q8 aggregate-condition cron)')
+    ->appendOutputTo(storage_path('logs/cue-dispatch-kyc-required.log'))
+    ->withoutOverlapping();
+
+// Plan B Slice 4 — Daily DLQ digest email (Backend-Q8 OD-3).
+// Sends a summary of cue job failures to MAIL_ADMIN_ADDRESS if >0 failures.
+// Falls back to log-only if MAIL_ADMIN_ADDRESS is not configured.
+Schedule::command('cue:dlq-digest')
+    ->dailyAt('03:15')
+    ->description('Daily email digest of cue job DLQ failures (Backend-Q8)')
+    ->appendOutputTo(storage_path('logs/cue-dlq-digest.log'));
+
+// Plan B Slice 4 — Daily recovery: reset stuck cue jobs in the database queue.
+// Safety net for crashed workers; Laravel queue:work --timeout handles most cases.
+Schedule::command('cue:reconcile')
+    ->dailyAt('04:00')
+    ->description('Reset stuck cue jobs in the database queue (Backend-Q8 recovery)')
+    ->appendOutputTo(storage_path('logs/cue-reconcile.log'))
+    ->withoutOverlapping();
+
 // Hourly reconciliation: detect Helius webhook ↔ DB address drift.
 // Caught silent for 27 days during the April 2026 incident — never again.
 // --auto-sync runs `solana:sync` whenever drift is found, so the system

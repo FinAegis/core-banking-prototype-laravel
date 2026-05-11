@@ -30,15 +30,23 @@ declare(strict_types=1);
 
 namespace App\Domain\Subscription\Webhooks;
 
+use App\Domain\Subscription\Events\SubscriptionTrialStarted;
+use App\Domain\Subscription\Jobs\Cue\EnqueueTrialEnding1d;
+use App\Domain\Subscription\Jobs\Cue\EnqueueTrialEnding1h;
+use App\Domain\Subscription\Jobs\Cue\EnqueueTrialEnding2d;
+use App\Domain\Subscription\Models\Cue;
 use App\Domain\Subscription\Models\ProcessedWebhookEvent;
 use App\Domain\Subscription\Models\RevenueOutboxEvent;
 use App\Domain\Subscription\Models\SubscriptionConsentLog;
+use App\Domain\Subscription\Services\CueRepository;
 use App\Domain\Subscription\Services\SubscriptionService;
 use App\Domain\Subscription\Services\TrialFingerprintService;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Stripe\StripeClient;
 use Stripe\Webhook;
@@ -49,6 +57,7 @@ final class SubscriptionWebhookController
     public function __construct(
         private readonly SubscriptionService $service,
         private readonly TrialFingerprintService $trialFingerprints,
+        private readonly CueRepository $cueRepository,
     ) {
     }
 
@@ -137,14 +146,15 @@ final class SubscriptionWebhookController
     private function dispatchEvent(string $eventType, array $object, string $eventId): void
     {
         match ($eventType) {
-            'customer.subscription.created' => $this->onSubscriptionCreated($object, $eventId),
-            'invoice.payment_succeeded'     => $this->onInvoicePaymentSucceeded($object, $eventId),
-            'invoice.payment_failed'        => $this->onInvoicePaymentFailed($object, $eventId),
-            'customer.subscription.updated',
-            'customer.subscription.deleted' => $this->onSubscriptionLifecycle($object, $eventId, $eventType),
-            'charge.refunded'               => $this->onChargeRefunded($object, $eventId),
-            'checkout.session.completed'    => $this->onCheckoutSessionCompleted($object, $eventId),
-            default                         => Log::info('subscription.webhook.unhandled', [
+            'customer.subscription.created'        => $this->onSubscriptionCreated($object, $eventId),
+            'invoice.payment_succeeded'            => $this->onInvoicePaymentSucceeded($object, $eventId),
+            'invoice.payment_failed'               => $this->onInvoicePaymentFailed($object, $eventId),
+            'customer.subscription.trial_will_end' => $this->onSubscriptionTrialWillEnd($object, $eventId),
+            'customer.subscription.updated'        => $this->onSubscriptionUpdated($object, $eventId),
+            'customer.subscription.deleted'        => $this->onSubscriptionDeleted($object, $eventId),
+            'charge.refunded'                      => $this->onChargeRefunded($object, $eventId),
+            'checkout.session.completed'           => $this->onCheckoutSessionCompleted($object, $eventId),
+            default                                => Log::info('subscription.webhook.unhandled', [
                 'event_id'   => $eventId,
                 'event_type' => $eventType,
             ]),
@@ -153,6 +163,7 @@ final class SubscriptionWebhookController
 
     /**
      * customer.subscription.created — write consent log + outbox row.
+     * Slice 4: also dispatch SubscriptionTrialStarted if trial is present.
      *
      * @param array<string, mixed> $subscription
      */
@@ -181,6 +192,22 @@ final class SubscriptionWebhookController
             eventKind: 'customer.subscription.created',
             payload: $payload,
         );
+
+        // Slice 4: dispatch SubscriptionTrialStarted for trial subscriptions.
+        // SubscriptionTrialStartedListener will queue the three trial_ending_* delayed jobs.
+        if ($user instanceof User) {
+            $trialEnd = $subscription['trial_end'] ?? null;
+            if ($trialEnd !== null && is_int($trialEnd) && $trialEnd > 0) {
+                $trialEndsAt = Carbon::createFromTimestamp($trialEnd);
+                // Use subscription created timestamp as trial started at.
+                $trialStartedAt = Carbon::createFromTimestamp((int) ($subscription['created'] ?? time()));
+                Event::dispatch(new SubscriptionTrialStarted(
+                    userId: $user->id,
+                    trialStartedAt: $trialStartedAt,
+                    trialEndsAt: $trialEndsAt,
+                ));
+            }
+        }
     }
 
     /**
@@ -207,6 +234,18 @@ final class SubscriptionWebhookController
             eventKind: 'invoice.payment_succeeded',
             payload: $payload,
         );
+
+        // Slice 4: suppress any active payment_failed cue — payment recovered.
+        if ($user instanceof User) {
+            Cue::query()
+                ->where('user_id', $user->id)
+                ->where('kind', 'payment_failed')
+                ->whereNull('dismissed_at')
+                ->update([
+                    'dismissed_at'     => now(),
+                    'dismissed_action' => 'dismissed',
+                ]);
+        }
     }
 
     /**
@@ -214,27 +253,208 @@ final class SubscriptionWebhookController
      */
     private function onInvoicePaymentFailed(array $invoice, string $eventId): void
     {
-        // Cue dispatch is slice-4 territory (Backend-Q8). For slice 1 we just log.
         Log::info('subscription.invoice_payment_failed', [
             'event_id' => $eventId,
             'invoice'  => $invoice['id'] ?? null,
         ]);
+
+        // Slice 4: insert payment_failed cue. Occurrence window = billing cycle start.
+        $stripeCustomerId = (string) ($invoice['customer'] ?? '');
+        $user = $stripeCustomerId !== '' ? $this->resolveUserByStripeCustomer($stripeCustomerId) : null;
+
+        if (! $user instanceof User) {
+            return;
+        }
+
+        $periodStart = $invoice['period_start'] ?? null;
+        $occurrenceWindow = $periodStart !== null && is_int($periodStart)
+            ? Carbon::createFromTimestamp($periodStart)->toIso8601ZuluString()
+            : now()->toIso8601ZuluString();
+
+        $this->cueRepository->createIdempotent(
+            user: $user,
+            kind: 'payment_failed',
+            payload: [
+                'invoiceId' => (string) ($invoice['id'] ?? ''),
+                'amountDue' => (int) ($invoice['amount_due'] ?? 0),
+                'currency'  => strtoupper((string) ($invoice['currency'] ?? 'eur')),
+                'nextRetry' => $invoice['next_payment_attempt'] ?? null,
+            ],
+            occurrenceWindowStartIso8601: $occurrenceWindow,
+        );
     }
 
     /**
+     * customer.subscription.trial_will_end — Stripe fires ~3 days before trial end.
+     * Slice 4: fan out by dispatching EnqueueTrialEnding{2d,1d,1h} from the subscription's
+     * current trial_end timestamp. Idempotency prevents double-creation if both this handler
+     * and SubscriptionTrialStartedListener fire for the same trial.
+     *
      * @param array<string, mixed> $subscription
      */
-    private function onSubscriptionLifecycle(array $subscription, string $eventId, string $eventType): void
+    private function onSubscriptionTrialWillEnd(array $subscription, string $eventId): void
+    {
+        Log::info('subscription.trial_will_end', [
+            'event_id' => $eventId,
+            'sub'      => $subscription['id'] ?? null,
+        ]);
+
+        $stripeCustomerId = (string) ($subscription['customer'] ?? '');
+        $user = $stripeCustomerId !== '' ? $this->resolveUserByStripeCustomer($stripeCustomerId) : null;
+
+        if (! $user instanceof User) {
+            return;
+        }
+
+        $trialEnd = $subscription['trial_end'] ?? null;
+        if ($trialEnd === null || ! is_int($trialEnd) || $trialEnd <= 0) {
+            return;
+        }
+
+        $trialEndsAt = Carbon::createFromTimestamp($trialEnd);
+        $trialStart = $subscription['start_date'] ?? $subscription['created'] ?? null;
+        $trialStartedAt = $trialStart !== null && is_int($trialStart)
+            ? Carbon::createFromTimestamp($trialStart)
+            : now();
+
+        EnqueueTrialEnding2d::dispatch($user->id, $trialEndsAt, $trialStartedAt)
+            ->delay($trialEndsAt->copy()->subDays(2));
+
+        EnqueueTrialEnding1d::dispatch($user->id, $trialEndsAt, $trialStartedAt)
+            ->delay($trialEndsAt->copy()->subDay());
+
+        EnqueueTrialEnding1h::dispatch($user->id, $trialEndsAt, $trialStartedAt)
+            ->delay($trialEndsAt->copy()->subHour());
+    }
+
+    /**
+     * customer.subscription.updated — log lifecycle + insert grace_period_started cue
+     * when status transitions to past_due (Stripe source; Apple source is a stub in slice 4).
+     *
+     * @param array<string, mixed> $subscription
+     */
+    private function onSubscriptionUpdated(array $subscription, string $eventId): void
+    {
+        $status = (string) ($subscription['status'] ?? '');
+
+        Log::info('subscription.lifecycle', [
+            'event_id'   => $eventId,
+            'event_type' => 'customer.subscription.updated',
+            'sub'        => $subscription['id'] ?? null,
+            'status'     => $status,
+        ]);
+
+        // Cashier already keeps subscriptions/items rows in sync via its own webhook listener.
+
+        // Slice 4: insert grace_period_started cue when subscription becomes past_due.
+        if ($status === 'past_due') {
+            $stripeCustomerId = (string) ($subscription['customer'] ?? '');
+            $user = $stripeCustomerId !== '' ? $this->resolveUserByStripeCustomer($stripeCustomerId) : null;
+
+            if ($user instanceof User) {
+                $periodStart = $subscription['current_period_start'] ?? null;
+                $occurrenceWindow = $periodStart !== null && is_int($periodStart)
+                    ? Carbon::createFromTimestamp($periodStart)->toIso8601ZuluString()
+                    : now()->toIso8601ZuluString();
+
+                $this->cueRepository->createIdempotent(
+                    user: $user,
+                    kind: 'grace_period_started',
+                    payload: [
+                        'source'         => 'stripe',
+                        'subscriptionId' => (string) ($subscription['id'] ?? ''),
+                    ],
+                    occurrenceWindowStartIso8601: $occurrenceWindow,
+                );
+            }
+        }
+    }
+
+    /**
+     * customer.subscription.deleted — insert subscription_canceled_external cue
+     * for user-initiated cancellations only.
+     *
+     * @param array<string, mixed> $subscription
+     */
+    private function onSubscriptionDeleted(array $subscription, string $eventId): void
     {
         Log::info('subscription.lifecycle', [
             'event_id'   => $eventId,
-            'event_type' => $eventType,
+            'event_type' => 'customer.subscription.deleted',
             'sub'        => $subscription['id'] ?? null,
             'status'     => $subscription['status'] ?? null,
         ]);
 
-        // Cashier already keeps subscriptions/items rows in sync via its own webhook
-        // listener — we don't double-write. Slice 4 wires the cue side-effects.
+        // Cashier already keeps subscriptions/items rows in sync.
+
+        // Slice 4: insert subscription_canceled_external cue for user-initiated cancels only.
+        $cancellationDetails = (array) ($subscription['cancellation_details'] ?? []);
+        $reason = (string) ($cancellationDetails['reason'] ?? '');
+
+        if ($reason !== 'cancellation_requested') {
+            return;
+        }
+
+        $stripeCustomerId = (string) ($subscription['customer'] ?? '');
+        $user = $stripeCustomerId !== '' ? $this->resolveUserByStripeCustomer($stripeCustomerId) : null;
+
+        if (! $user instanceof User) {
+            return;
+        }
+
+        $canceledAt = $subscription['canceled_at'] ?? null;
+        $occurrenceWindow = $canceledAt !== null && is_int($canceledAt)
+            ? Carbon::createFromTimestamp($canceledAt)->toIso8601ZuluString()
+            : now()->toIso8601ZuluString();
+
+        $this->cueRepository->createIdempotent(
+            user: $user,
+            kind: 'subscription_canceled_external',
+            payload: [
+                'subscriptionId' => (string) ($subscription['id'] ?? ''),
+                'reason'         => $reason,
+            ],
+            occurrenceWindowStartIso8601: $occurrenceWindow,
+        );
+    }
+
+    /**
+     * Apple DID_FAIL_TO_RENEW handler stub — grace_period_started (Apple source).
+     *
+     * STUB: Slice 4 owns the grace_period_started cue from BOTH Stripe and Apple sources
+     * (controller decision 2026-05-11). The Apple DID_FAIL_TO_RENEW notification arrives
+     * via the Apple IAP webhook infrastructure owned by slice 2. Slice 4 provides this
+     * stub so slice 2 can wire up the Apple webhook and call this method when
+     * DID_FAIL_TO_RENEW is received.
+     *
+     * Slice 2 implementer: call $this->onAppleDidFailToRenew($notification, $userId)
+     * from the Apple webhook handler after extracting the user_id.
+     *
+     * @param array<string, mixed> $notification  Apple App Store Server Notification payload
+     */
+    public function onAppleDidFailToRenew(array $notification, int $userId): void
+    {
+        $user = User::find($userId);
+        if (! $user instanceof User) {
+            return;
+        }
+
+        $renewalInfo = (array) ($notification['data']['renewalInfo'] ?? []);
+        $originalTransactionId = (string) ($renewalInfo['originalTransactionId'] ?? (string) now()->timestamp);
+
+        $this->cueRepository->createIdempotent(
+            user: $user,
+            kind: 'grace_period_started',
+            payload: [
+                'source'                => 'apple',
+                'originalTransactionId' => $originalTransactionId,
+            ],
+            occurrenceWindowStartIso8601: now()->startOfDay()->toIso8601ZuluString(),
+        );
+
+        Log::info('subscription.apple.did_fail_to_renew.grace_period_cue_inserted', [
+            'user_id' => $userId,
+        ]);
     }
 
     /**
@@ -245,7 +465,7 @@ final class SubscriptionWebhookController
         $stripeCustomerId = (string) ($charge['customer'] ?? '');
         $user = $stripeCustomerId !== '' ? $this->resolveUserByStripeCustomer($stripeCustomerId) : null;
 
-        $payload = [
+        $outboxPayload = [
             'userId'      => $user?->id,
             'aggregateId' => (string) ($charge['id'] ?? ''),
             // Negative for refunds per ADR-0004 sign-prefix rule.
@@ -260,8 +480,27 @@ final class SubscriptionWebhookController
             sourceType: RevenueOutboxEvent::SOURCE_STRIPE,
             eventId: $eventId,
             eventKind: 'charge.refunded',
-            payload: $payload,
+            payload: $outboxPayload,
         );
+
+        // Slice 4: insert refund_processed cue. Occurrence window = refund created timestamp.
+        if ($user instanceof User) {
+            $refundCreated = $charge['created'] ?? null;
+            $occurrenceWindow = $refundCreated !== null && is_int($refundCreated)
+                ? Carbon::createFromTimestamp($refundCreated)->toIso8601ZuluString()
+                : now()->toIso8601ZuluString();
+
+            $this->cueRepository->createIdempotent(
+                user: $user,
+                kind: 'refund_processed',
+                payload: [
+                    'chargeId'       => (string) ($charge['id'] ?? ''),
+                    'amountRefunded' => (int) ($charge['amount_refunded'] ?? 0),
+                    'currency'       => strtoupper((string) ($charge['currency'] ?? 'eur')),
+                ],
+                occurrenceWindowStartIso8601: $occurrenceWindow,
+            );
+        }
     }
 
     /**

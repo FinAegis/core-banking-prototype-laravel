@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use App\Domain\Subscription\Events\OnboardingCompleted;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -33,6 +37,12 @@ class OnboardingController extends Controller
         $user = $request->user();
         $user->completeOnboarding();
 
+        // Dispatch OnboardingCompleted for Plan B cue dispatch (Slice 4).
+        // EnqueueProTrialReminderD1 listens and fires after 24h for eligible free-tier users.
+        if ($user !== null) {
+            Event::dispatch(new OnboardingCompleted((int) $user->getKey()));
+        }
+
         return response()->json(
             [
                 'message'  => 'Onboarding completed successfully',
@@ -61,6 +71,11 @@ class OnboardingController extends Controller
     {
         $user = $request->user();
         $user->completeOnboarding();
+
+        // Treat skip as onboarding completion for cue dispatch purposes.
+        if ($user !== null) {
+            Event::dispatch(new OnboardingCompleted((int) $user->getKey()));
+        }
 
         return response()->json(
             [

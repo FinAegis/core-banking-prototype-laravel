@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'Features - Modern Banking Platform | ' . config('brand.name', 'Zelta'),
-        'description' => 'Explore ' . config('brand.name', 'Zelta') . '\'s 56 banking modules: GCU governance, ISO 20022, PSD2 Open Banking, multi-rail payments, DeFi, ledger, microfinance, and developer tools.',
+        'description' => 'Explore ' . config('brand.name', 'Zelta') . '\'s 61 banking modules: GCU governance, ISO 20022, PSD2 Open Banking, multi-rail payments, DeFi, ledger, microfinance, and developer tools.',
         'keywords' => config('brand.name', 'Zelta') . ' features, GCU, ISO 20022, PSD2, open banking, payment rails, ACH, SEPA, Interledger, ledger, microfinance, cross-chain, DeFi, privacy, x402, RegTech, BaaS',
     ])
 
@@ -40,7 +40,7 @@
                 @include('partials.breadcrumb', ['items' => [['name' => 'Features', 'url' => url('/features')]]])
                 <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">Every Banking Capability. <span class="text-gradient">One Codebase.</span></h1>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto">
-                    57 production-ready modules spanning payments, lending, compliance, DeFi, AI, and developer tools — so you ship products, not infrastructure.
+                    61 production-ready modules spanning payments, lending, compliance, DeFi, AI, and developer tools — so you ship products, not infrastructure.
                 </p>
             </div>
         </div>
