@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-10
 **Author:** Backend Architect
-**Status:** Spec — revised with mobile-dev answers (Revision 1, 2026-05-11)
+**Status:** Spec — revised with grilling pass corrections (Revision 2, 2026-05-11)
 **Slice predecessor:** Slice 1 (Cashier Stripe subscription path) — merged to `main` as commit `957ea3d8` via PR #1037
 **Estimated implementation effort:** 6–7 engineer-days
 **Mobile target:** Zelta v1.3.0
@@ -82,7 +82,9 @@ These files are the canonical source of truth. Read them in this order; the late
 
 8. **`app/Domain/Subscription/Webhooks/SubscriptionWebhookController.php`** — the Stripe webhook handler is the structural template for the Apple and Google webhook controllers. Mirror the dedup + outbox write transaction pattern exactly.
 
-9. **`config/error_codes.php`** — the current registered codes. `ERR_SUB_001` through `ERR_SUB_007` and `ERR_SUB_010` are taken. `ERR_SUB_008` and `ERR_SUB_009` are free. Use `ERR_SUB_008` for family-sharing receipt rejection and `ERR_SUB_009` for stale/expired receipt (see §5).
+   > **Exception to "mirror exactly":** The Stripe handler returns HTTP 500 on `Throwable` in its `catch` block. Apple ASN V2 and Google RTDN handlers MUST return 200 even on processing errors (log the exception; never propagate a 5xx to the store). Stripe permits 500-retry semantics because Stripe will retry on 5xx; App Store and Play Store treat any non-2xx as a failed delivery and retry indefinitely, which can cause duplicate-processing storms. Acceptance criterion §9 (line 912) makes this explicit.
+
+9. **`config/error_codes.php`** — the current registered codes after the companion `fix(plan-b): error code registry` hotfix PR: `ERR_SUB_001` through `ERR_SUB_007` and `ERR_SUB_010` are taken. `ERR_SUB_001` + `ERR_CUR_001` + `ERR_QUO_002` were added by that companion hotfix; `ERR_SUB_010` HTTP code was corrected from 422 → 409 there too. `ERR_SUB_008` and `ERR_SUB_009` remain free. Use `ERR_SUB_008` for family-sharing receipt rejection and `ERR_SUB_009` for stale/expired receipt (see §5).
 
 10. **`CLAUDE.md`** — project conventions. Especially: `assert()` as auth guard (don't), webhook auth bypass pattern (`app()->environment('local', 'testing')` gated), `Idempotency-Key` is a header not a body field, BCMath for all money arithmetic.
 
@@ -277,8 +279,10 @@ ALTER TABLE iap_subscriptions
         AS (CASE WHEN status IN ('active','trialing','past_due','grace_period','paused')
                  THEN user_id END)
         STORED,
-    ADD UNIQUE KEY uniq_iap_active_per_user (store, active_user_id);
+    ADD UNIQUE KEY uniq_iap_active_per_user (active_user_id);
 ```
+
+> **One-active-sub invariant:** The unique key is single-column `(active_user_id)`, not `(store, active_user_id)`. The `(store, active_user_id)` composite would permit one Apple sub AND one Google sub simultaneously for the same user, violating the commercial spec §1.5 ("A user can only have one active subscription at a time") and the conflict gate in §5.3. The single-column key matches the `subscriptions` table's single-active invariant; a cross-store conflict surfaces as `ERR_SUB_002` at `/iap/verify` time.
 
 Notes:
 - `original_transaction_id`: Apple stable PK. The StoreKit 2 `originalTransactionId` sent by mobile is the stable identifier across renewals, cancellations, and resubscriptions. Mobile supplies this directly in the `originalTransactionId` request field. The `UNIQUE` constraint prevents double-insert.
@@ -341,7 +345,7 @@ CREATE TABLE iap_receipts (
 Notes:
 - `original_transaction_id` is NULL after erasure pseudonymisation (Backend-Q7 α). The `UNIQUE` constraint only applies to non-null values — MySQL unique indexes skip NULL values, so pseudonymised rows don't conflict. For Apple rows this is the StoreKit 2 `originalTransactionId`. For Google rows this field is unused (NULL); the stable lookup key is `google_purchase_token_hash` pointing back to the `iap_subscriptions.play_subscription_resource_id`.
 - `original_transaction_id_hash = HMAC-SHA256(original_transaction_id, IAP_RECEIPT_PEPPER)`. NULL until pseudonymisation; raw `original_transaction_id` is the lookup key before that.
-- `scrubbed_renewal_count`: incremented each time a RENEWAL webhook arrives for a scrubbed receipt (ops alerting at first occurrence). See §5.9.
+- `scrubbed_renewal_count`: incremented each time a RENEWAL webhook arrives for a scrubbed receipt (ops alerting at first occurrence). See §5.9. Column type is `SMALLINT UNSIGNED` (capacity 0–65535), tightened from `INT` used in the deltas Q7 source DDL — capacity is more than sufficient for renewal counts; deviation is deliberate.
 - `receipt_blob`: the raw JWS string (Apple) or `purchaseToken` (Google). Stored for audit, nulled at erasure. Never expose in API responses.
 - Money fields use the ADR-0004 triple: `amount_smallest_unit` (integer string via BIGINT), `amount_decimals`, `amount_currency`. Apple `signedTransactionInfo.price`: store in storefront currency with `decimals: 2`, convert to EUR at projection time. Google `priceAmountMicros`: `decimals: 6`.
 
@@ -385,7 +389,7 @@ Slice 1's existing calls `hasActiveProSubscription($user, source: 'iap')` automa
 
 **Signature verification:** Apple delivers a signed JSON Web Signature (JWS) in the request body. Verify the JWS chain against Apple's root CA certificate (`AppleRootCA-G3.cer`) using a JWT library. In `local`/`testing` environments with an empty verification key, fall through to JSON decode (matches the CLAUDE.md bypass pattern).
 
-**Dedup key:** `notificationUUID` (present in the decoded `data.signedTransactionInfo` payload). Store as `(provider: 'apple', event_id: notificationUUID)` in `processed_webhook_events`.
+**Dedup key:** `notificationUUID` (present in the outer decoded `responseBodyV2DecodedPayload`, NOT inside `data.signedTransactionInfo` — that nested JWS contains transaction details only). Store as `(provider: 'apple', event_id: notificationUUID)` in `processed_webhook_events`.
 
 **Handled notification types** (from `App Store Server Notifications V2` event list — commercial spec §1.3):
 
@@ -408,7 +412,7 @@ Slice 1's existing calls `hasActiveProSubscription($user, source: 'iap')` automa
 
 All state mutations happen inside a DB transaction that atomically writes the `processed_webhook_events` dedup row and any `iap_subscriptions` / `revenue_outbox_events` row.
 
-**Pattern:** Mirror `SubscriptionWebhookController::handle()` exactly — dedup check + lock + dispatch + outbox write in one transaction.
+**Pattern:** Mirror `SubscriptionWebhookController::handle()` exactly — dedup check + lock + dispatch + outbox write in one transaction. **Exception:** Unlike the Stripe handler, this controller MUST return HTTP 200 even on `Throwable` — catch all exceptions, log them, and return 200. App Store treats any non-2xx as a failed delivery and retries indefinitely. See §3 callout and §9 acceptance criterion.
 
 ### 5.5 Webhook receiver: Google Play (Real-Time Developer Notifications)
 
@@ -419,7 +423,7 @@ All state mutations happen inside a DB transaction that atomically writes the `p
 **Dedup key:** Pub/Sub `messageId` (present in the outer `message.messageId` field). Store as `(provider: 'google', event_id: messageId)`.
 
 **Processing:**
-Google's RTDN message body carries a `subscriptionNotification.purchaseToken` and `subscriptionNotification.notificationType` (integer 1–13). Because the Pub/Sub message contains only the token, the handler must **re-fetch the subscription state** via the Google Play Developer API (`purchases.subscriptions.get`) before applying any state mutation. This is different from Apple's self-contained JWS approach.
+Google's RTDN message body carries a `subscriptionNotification.purchaseToken` and `subscriptionNotification.notificationType` (integer 1–13). Because the Pub/Sub message contains only the token, the handler must **re-fetch the subscription state** via the Google Play Developer API (`purchases.subscriptionsv2.get`) before applying any state mutation. This is different from Apple's self-contained JWS approach.
 
 **Handled notification types** (integer codes from Play Billing Library):
 
@@ -439,7 +443,9 @@ Google's RTDN message body carries a `subscriptionNotification.purchaseToken` an
 | 12 | `SUBSCRIPTION_REVOKED` | Set `status = expired`; broadcast. |
 | 13 | `SUBSCRIPTION_EXPIRED` | Set `status = expired`; broadcast; write outbox (zero amount, for reconciliation). |
 
-After fetching subscription details from Google Play API via `purchases.subscriptionsv2.get`, extract the subscription resource id and store it as `iap_subscriptions.play_subscription_resource_id`. Write `iap_receipts` row with `google_purchase_token_hash = SHA256(purchaseToken)`. Never store the raw `purchaseToken` in `iap_receipts`. Update `play_subscription_resource_id` on the `iap_subscriptions` row if a `linkedPurchaseToken` chain yields a new canonical resource id.
+After fetching subscription details from Google Play API via `purchases.subscriptionsv2.get`, extract the subscription resource id and store it as `iap_subscriptions.play_subscription_resource_id`. Write an `iap_receipts` row with `receipt_blob = $purchaseToken` and `google_purchase_token_hash = SHA256(purchaseToken, IAP_RECEIPT_PEPPER)`. The raw `purchaseToken` IS stored in `receipt_blob` for audit (matching §5.2 notes and Backend-Q7 α); on erasure the row's `receipt_blob` is nulled but `google_purchase_token_hash` is retained for post-erasure webhook matching. Update `play_subscription_resource_id` on the `iap_subscriptions` row if a `linkedPurchaseToken` chain yields a new canonical resource id.
+
+**Pattern:** Mirror `SubscriptionWebhookController::handle()` exactly — dedup check + lock + dispatch + outbox write in one transaction. **Exception:** Unlike the Stripe handler, this controller MUST return HTTP 200 even on `Throwable` — catch all exceptions, log them, and return 200. Google Play treats any non-2xx as a failed delivery and retries indefinitely. See §3 callout and §9 acceptance criterion.
 
 ### 5.6 IAP product ID config
 
@@ -563,15 +569,17 @@ For Google `priceAmountMicros`: divide by 10^6 then convert to EUR cents. Store 
 
 **Open question:** See §8 — the EUR conversion source for Apple/Google prices at subscription-creation time may need controller input.
 
-### 5.11 Error codes to register in `config/error_codes.php`
+### 5.11 Error codes
 
-Add:
-```php
-'ERR_SUB_008' => ['http' => 409, 'description' => 'Family Sharing receipt — purchase was made by a different Apple ID. Manage subscription from the original purchasing account.'],
-'ERR_SUB_009' => ['http' => 422, 'description' => 'Receipt is expired or subscription has already ended.'],
-```
+All ERR codes used in this slice are registered upstream — see the `fix(plan-b): error code registry` companion PR.
 
-`ERR_SUB_008` and `ERR_SUB_009` are currently free in `config/error_codes.php`.
+- `ERR_SUB_001`, `ERR_CUR_001`, `ERR_QUO_002` — added by that companion hotfix PR (already registered post #1037+hotfix).
+- `ERR_SUB_010` HTTP code corrected from 422 → 409 by the same hotfix.
+- `ERR_SUB_008` and `ERR_SUB_009` — slice 2 registers these as part of its own implementation work (they remain free in `config/error_codes.php` until slice 2 merges):
+  ```php
+  'ERR_SUB_008' => ['http' => 409, 'description' => 'Family Sharing receipt — purchase was made by a different Apple ID. Manage subscription from the original purchasing account.'],
+  'ERR_SUB_009' => ['http' => 422, 'description' => 'Receipt is expired or subscription has already ended.'],
+  ```
 
 ### 5.12 Filament admin (read-only IAP subscription view)
 
@@ -612,6 +620,8 @@ The following are explicitly deferred and must NOT be implemented in slice 2:
 ## 7. Mobile contract
 
 Mobile is on **expo-iap 4.2.3 + Expo SDK 54, iOS 15.1+ minimum** → StoreKit 2 is always used. The wire shapes below are confirmed by mobile-dev.
+
+> **Wire field name:** All response shapes below use `currentPeriodEnd` (matching slice 1's `SubscriptionProjection.php` reality). The deltas Q6.1 document and commercial spec §1.2 used `currentPeriodEndsAt` — treat those references as out-of-date. A future deltas amendment should align the docs. Do not use `currentPeriodEndsAt` in any new code.
 
 ### `POST /api/v1/subscription/iap/verify`
 
