@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Support\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 final class CueController
 {
@@ -103,36 +104,40 @@ final class CueController
         /** @var User $user */
         $user = $request->user();
 
-        /** @var Cue|null $cue */
-        $cue = Cue::query()
-            ->where('id', $cueId)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if ($cue === null) {
-            return ErrorResponse::make('ERR_CUE_001');
-        }
-
-        // Already dismissed — idempotent 200.
-        if ($cue->dismissed_at !== null) {
-            return response()->json([
-                'id'          => $cue->id,
-                'dismissedAt' => $cue->dismissed_at->toIso8601ZuluString(),
-            ]);
-        }
-
         $dismissedAction = $request->input('dismissedAction', 'dismissed');
         if (! in_array($dismissedAction, ['cancelled', 'kept', 'dismissed'], true)) {
             $dismissedAction = 'dismissed';
         }
 
-        $cue->dismissed_at = now();
-        $cue->dismissed_action = $dismissedAction;
-        $cue->save();
+        /** @var Cue|JsonResponse $result */
+        $result = DB::transaction(function () use ($cueId, $user, $dismissedAction): Cue|JsonResponse {
+            /** @var Cue|null $cue */
+            $cue = Cue::query()
+                ->where('id', $cueId)
+                ->where('user_id', $user->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($cue === null) {
+                return ErrorResponse::make('ERR_CUE_001');
+            }
+
+            if ($cue->dismissed_at === null) {
+                $cue->dismissed_at = now();
+                $cue->dismissed_action = $dismissedAction;
+                $cue->save();
+            }
+
+            return $cue;
+        });
+
+        if ($result instanceof JsonResponse) {
+            return $result;
+        }
 
         return response()->json([
-            'id'          => $cue->id,
-            'dismissedAt' => $cue->dismissed_at->toIso8601ZuluString(),
+            'id'          => $result->id,
+            'dismissedAt' => $result->dismissed_at->toIso8601ZuluString(),
         ]);
     }
 }
