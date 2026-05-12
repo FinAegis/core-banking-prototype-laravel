@@ -15,7 +15,7 @@
     },
     "dependencies": {
         "@ledgerhq/hw-app-eth": "^6.35.0",
-        "@ledgerhq/hw-transport-webusb": "^6.34.0",
+        "@ledgerhq/hw-transport-webusb": "^6.34.2",
         "@trezor/connect-web": "^9.7.2",
         "chart.js": "^4.5.1"
     },
