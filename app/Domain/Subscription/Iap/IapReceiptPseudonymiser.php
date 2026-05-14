@@ -25,6 +25,7 @@ use App\Domain\Subscription\Models\IapReceipt;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Throwable;
 
 final class IapReceiptPseudonymiser
@@ -50,7 +51,7 @@ final class IapReceiptPseudonymiser
                     'request_id' => $requestId,
                 ]);
 
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     'IAP_RECEIPT_PEPPER must be configured before GDPR erasure runs. '
                     . 'Pseudonymising with an empty pepper permanently breaks '
                     . 'post-erasure webhook lookups (Backend-Q7 α).',
