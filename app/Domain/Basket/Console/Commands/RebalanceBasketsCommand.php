@@ -32,7 +32,10 @@ class RebalanceBasketsCommand extends Command
     {
         /** @var BasketAsset|null $basket */
         $basket = null;
-        $basketCode = $this->option('basket');
+        // Symfony Console's option() return type is wide for PHPStan; --basket
+        // is a value option so the runtime value is string|null.
+        $basketCodeOpt = $this->option('basket');
+        $basketCode = is_string($basketCodeOpt) ? $basketCodeOpt : null;
         $force = $this->option('force');
         $dryRun = $this->option('dry-run');
 
