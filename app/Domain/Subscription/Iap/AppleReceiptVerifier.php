@@ -173,24 +173,31 @@ final class AppleReceiptVerifier
             throw new IapVerificationException('Apple JWS payload is not a JSON object.');
         }
 
-        // Signature verification path: in production we would validate the
-        // x5c certificate chain against Apple Root CA G3 here. For slice 2
-        // the verifier is structurally pluggable — the production hardening
-        // is tracked in a follow-up. In local/testing we deliberately skip
-        // signature validation (CLAUDE.md bypass pattern).
+        // Signature verification path: in production we MUST validate the x5c
+        // certificate chain against Apple Root CA G3. In local/testing we
+        // deliberately skip (CLAUDE.md bypass pattern). In every other
+        // environment, the verifier must FAIL CLOSED — accepting an unverified
+        // JWS in prod would allow any authenticated user to forge an
+        // originalTransactionId / productId / expiresDate and grant themselves
+        // a Pro subscription. The real chain-validation implementation is a
+        // tracked follow-up; until it lands, the explicit operator escape hatch
+        // is APPLE_JWS_VERIFICATION_BYPASS=true (intended for staging only).
         if (app()->environment('local', 'testing')) {
             /** @var array<string, mixed> $decoded */
             return $decoded;
         }
 
-        try {
+        $bypass = (bool) config('subscription.iap.apple_jws_verification_bypass', false);
+        if (! $bypass) {
             $this->verifyJwsChain($parts[0], $parts[1], $parts[2]);
-        } catch (Throwable $e) {
-            Log::warning('iap.apple.jws.signature_verify_skipped', [
-                'reason' => $e->getMessage(),
+        } else {
+            // Bypass flag is set — operator has explicitly accepted the risk
+            // (typically for a staging environment without provisioned certs).
+            // We log every bypass so it's visible in audit logs.
+            Log::warning('iap.apple.jws.signature_verify_bypassed', [
+                'environment' => app()->environment(),
+                'reason'      => 'APPLE_JWS_VERIFICATION_BYPASS=true',
             ]);
-            // We log but do not reject — see the structural-pluggable note above.
-            // When the production chain is wired this becomes a hard throw.
         }
 
         /** @var array<string, mixed> $decoded */
@@ -198,23 +205,29 @@ final class AppleReceiptVerifier
     }
 
     /**
-     * Production JWS-chain verification stub. Implementations should:
+     * Production JWS-chain verification. Implementations should:
      *   1. Base64url-decode the header to read the x5c array
      *   2. Chain-validate x5c[2] → Apple Root CA G3 (pinned fingerprint)
      *   3. Verify the ES256 signature against the leaf public key (x5c[0])
      *
-     * For slice 2 this logs the bypass and returns. Production cert
-     * provisioning is tracked in a follow-up PR; once shipped, this method
-     * throws on invalid chains. Logging is the side effect that keeps PHPStan
-     * happy about the void return.
+     * Until the real implementation lands, this throws so the verifier fails
+     * closed in production. The explicit operator opt-out is
+     * APPLE_JWS_VERIFICATION_BYPASS=true (see decodeJwsPayload above), intended
+     * for staging environments without provisioned certs — never production.
      */
     private function verifyJwsChain(string $headerB64, string $payloadB64, string $signatureB64): void
     {
-        Log::debug('iap.apple.jws.chain_validation.deferred', [
+        Log::error('iap.apple.jws.chain_validation.not_implemented', [
             'header_bytes'    => strlen($headerB64),
             'payload_bytes'   => strlen($payloadB64),
             'signature_bytes' => strlen($signatureB64),
         ]);
+
+        throw new IapVerificationException(
+            'Apple JWS chain validation is not yet implemented. '
+            . 'Set APPLE_JWS_VERIFICATION_BYPASS=true to explicitly accept '
+            . 'unverified JWS payloads (non-production only).',
+        );
     }
 
     /**

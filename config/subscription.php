@@ -58,6 +58,14 @@ return [
     'iap' => [
         'receipt_pepper' => (string) env('IAP_RECEIPT_PEPPER', ''),
 
+        // SECURITY: when true, the Apple JWS verifier accepts payloads without
+        // validating the x5c certificate chain. Intended for staging only;
+        // setting this in production allows any authenticated user to forge a
+        // receipt with arbitrary originalTransactionId / expiresDate and
+        // unlock Pro. Defaults to false so production fails closed until the
+        // real chain-validation implementation lands (tracked follow-up).
+        'apple_jws_verification_bypass' => (bool) env('APPLE_JWS_VERIFICATION_BYPASS', false),
+
         'apple' => [
             'bundle_id' => (string) env('APPLE_BUNDLE_ID', 'app.zelta'),
             // Apple App Store Server Notifications V2 are JWS-signed; the

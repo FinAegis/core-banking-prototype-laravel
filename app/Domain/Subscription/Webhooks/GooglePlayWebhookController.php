@@ -40,6 +40,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -379,8 +380,22 @@ final class GooglePlayWebhookController
         $jwt = substr($auth, 7);
 
         try {
-            $jwks = Http::timeout(5)->get(self::GOOGLE_CERTS_URL)->json();
-            if (! is_array($jwks)) {
+            // Cache the JWKS for 1 hour — Google rotates keys rarely. Without
+            // this, every webhook delivery fetches Google's certs URL; if the
+            // call ever fails (network blip, Google rate-limit, DNS), the
+            // webhook silently returns 200 and the notification is dropped
+            // because Google won't retry on a 2xx.
+            /** @var array<string, mixed>|null $jwks */
+            $jwks = Cache::remember(
+                'iap.google.webhook.jwks',
+                3600,
+                function (): ?array {
+                    $response = Http::timeout(5)->get(self::GOOGLE_CERTS_URL)->json();
+
+                    return is_array($response) ? $response : null;
+                },
+            );
+            if ($jwks === null) {
                 return false;
             }
 

@@ -615,9 +615,18 @@ final class IapSubscriptionService
      */
     private function appendEvent(IapSubscription $aggregate, string $eventClass, array $payload): void
     {
+        // Two concurrent webhook deliveries for the same aggregate (e.g.
+        // SUBSCRIBED + DID_RENEW arriving simultaneously) used to both read the
+        // same max(aggregate_version) and race to insert maxVersion+1 — one
+        // would commit, the other would hit the unique constraint on
+        // (aggregate_uuid, aggregate_version) and be lost via the outer
+        // Throwable catch in the webhook controllers. Hold the aggregate's
+        // event rows under lockForUpdate so the max read + insert is atomic
+        // for the duration of the enclosing DB::transaction().
         /** @var int $maxVersion */
         $maxVersion = (int) IapSubscriptionEvent::query()
             ->where('aggregate_uuid', $aggregate->id)
+            ->lockForUpdate()
             ->max('aggregate_version');
 
         IapSubscriptionEvent::query()->create([

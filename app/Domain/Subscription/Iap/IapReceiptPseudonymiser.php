@@ -38,9 +38,29 @@ final class IapReceiptPseudonymiser
     {
         $pepper = (string) config('subscription.iap.receipt_pepper', '');
         if ($pepper === '') {
+            // In production / staging an empty pepper would permanently destroy
+            // the receipt linkage: pseudonymise() nulls the raw
+            // originalTransactionId and stores a NULL hash, while fingerprint()
+            // (called from post-erasure webhooks) hashes against an empty key —
+            // the two never match. We refuse to proceed so the operator catches
+            // the missing config before any user data is wiped.
+            if (app()->environment('production', 'staging')) {
+                Log::error('iap.pseudonymise.pepper_missing', [
+                    'user_id'    => $user->id,
+                    'request_id' => $requestId,
+                ]);
+
+                throw new \RuntimeException(
+                    'IAP_RECEIPT_PEPPER must be configured before GDPR erasure runs. '
+                    . 'Pseudonymising with an empty pepper permanently breaks '
+                    . 'post-erasure webhook lookups (Backend-Q7 α).',
+                );
+            }
+
             Log::warning('iap.pseudonymise.pepper_missing', [
                 'user_id'    => $user->id,
                 'request_id' => $requestId,
+                'env'        => app()->environment(),
             ]);
         }
 

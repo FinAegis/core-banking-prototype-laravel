@@ -274,3 +274,55 @@ it('appends an event to iap_subscription_events on first verify', function () {
     expect($events->first()->event_class)->toBe('AppleSubscriptionVerified');
     expect($events->first()->aggregate_version)->toBe(1);
 });
+
+/**
+ * Regression: in production (no local/testing bypass), the Apple verifier must
+ * throw IapVerificationException when JWS chain validation is not implemented
+ * and the explicit operator bypass flag is unset. The fail-closed behaviour
+ * was added in the slice 2 code-review pass after the verifier was found to
+ * silently accept unverified JWS payloads in non-local environments.
+ */
+it('Apple verifier fails closed in production when JWS bypass is unset', function (): void {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    // Pretend we are in production but leave APPLE_JWS_VERIFICATION_BYPASS unset
+    // (config default is false → verifier must throw on the JWS path).
+    $this->app['env'] = 'production';
+    config(['subscription.iap.apple_jws_verification_bypass' => false]);
+
+    $jws = makeAppleJws();
+
+    $response = $this->postJson('/api/v1/subscription/iap/verify', [
+        'store'   => 'apple',
+        'receipt' => $jws,
+    ], [
+        'Idempotency-Key' => 'idem-fail-closed-aaaaaaaaaaaaaaaa',
+    ]);
+
+    $response->assertStatus(422);
+    expect($response->json('code'))->toBe('ERR_SUB_001');
+    expect(IapSubscription::query()->count())->toBe(0);
+    expect(IapReceipt::query()->count())->toBe(0);
+});
+
+it('Apple verifier accepts JWS in production when bypass flag is explicitly set', function (): void {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user, ['read', 'write', 'delete']);
+
+    // Operator explicitly accepted the risk (staging environment without certs).
+    $this->app['env'] = 'production';
+    config(['subscription.iap.apple_jws_verification_bypass' => true]);
+
+    $jws = makeAppleJws();
+
+    $response = $this->postJson('/api/v1/subscription/iap/verify', [
+        'store'   => 'apple',
+        'receipt' => $jws,
+    ], [
+        'Idempotency-Key' => 'idem-bypass-set-bbbbbbbbbbbbbbbbb',
+    ]);
+
+    $response->assertStatus(200);
+    expect(IapSubscription::query()->count())->toBe(1);
+});
