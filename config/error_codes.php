@@ -34,6 +34,9 @@ return [
     'ERR_SUB_005' => ['http' => 409, 'description' => 'Live incomplete checkout session for user; recovery URL provided.'],
     'ERR_SUB_006' => ['http' => 422, 'description' => 'Annual to monthly downgrade is not offered.'],
     'ERR_SUB_007' => ['http' => 409, 'description' => 'Cross-source subscription conflict — another store already has an active subscription for this user.'],
+    // Slice 2 — IAP-specific subscription error codes.
+    'ERR_SUB_008' => ['http' => 409, 'description' => 'Family Sharing receipt — purchase was made by a different Apple ID. Manage subscription from the original purchasing account.'],
+    'ERR_SUB_009' => ['http' => 422, 'description' => 'Receipt is expired or subscription has already ended.'],
     'ERR_SUB_010' => ['http' => 409, 'description' => 'Cancellation must occur at originating store (Apple/Google).'],
 
     // ─── Quote / Pricing (deltas Q2, Q3 — codes stay ERR_QUOTE_* per Backend-Q4) ──

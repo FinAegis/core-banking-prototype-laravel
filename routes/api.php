@@ -194,7 +194,21 @@ Route::post('webhooks/stripe/subscriptions', [App\Domain\Subscription\Webhooks\S
     ->middleware('api.rate_limit:webhook')
     ->name('api.webhooks.stripe.subscriptions');
 
-// Plan B Slice 1 — Subscription module endpoints (Stripe-only).
+// Plan B Slice 2 — IAP webhook receivers (Apple App Store Server Notifications V2
+// + Google Play Real-Time Developer Notifications). No Sanctum auth — the
+// controllers verify Apple JWS / Google Pub/Sub bearer JWT internally. Both
+// MUST return 200 even on processing errors (the stores retry non-2xx
+// indefinitely; the controllers log and acknowledge).
+Route::post('webhooks/apple/notifications', [App\Domain\Subscription\Webhooks\AppleNotificationsWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.apple.notifications');
+
+Route::post('webhooks/google/play', [App\Domain\Subscription\Webhooks\GooglePlayWebhookController::class, 'handle'])
+    ->middleware('api.rate_limit:webhook')
+    ->name('api.webhooks.google.play');
+
+// Plan B Slice 1 — Subscription module endpoints (Stripe-only); Slice 2 adds
+// the IAP /verify endpoint under the same prefix.
 Route::prefix('v1/subscription')->name('api.v1.subscription.')
     ->middleware(['auth:sanctum'])
     ->group(function () {
@@ -210,6 +224,11 @@ Route::prefix('v1/subscription')->name('api.v1.subscription.')
                 ->name('cancel');
             Route::post('/reactivate', [App\Domain\Subscription\Http\Controllers\SubscriptionController::class, 'reactivate'])
                 ->name('reactivate');
+
+            // Slice 2 — mobile P0 endpoint: server-side validate Apple/Google
+            // store receipts and create / update the iap_subscriptions row.
+            Route::post('/iap/verify', [App\Domain\Subscription\Http\Controllers\IapVerifyController::class, 'verify'])
+                ->name('iap.verify');
         });
     });
 
