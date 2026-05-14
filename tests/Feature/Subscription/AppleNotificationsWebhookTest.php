@@ -120,6 +120,7 @@ it('processes DID_RENEW and updates current_period_ends_at + writes outbox', fun
 
     $response->assertStatus(200);
     $sub->refresh();
+    assert($sub->current_period_ends_at !== null);
     expect($sub->current_period_ends_at->timestamp)->toBe(1_720_000_000);
     expect($sub->last_notification_type)->toBe('DID_RENEW');
 
