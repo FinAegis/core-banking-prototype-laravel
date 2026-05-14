@@ -116,13 +116,39 @@ final class IapSubscriptionService
         }
 
         // 4. Family Sharing rejection (Apple only — Google has no equivalent).
+        // Emitted as ERR_SUB_002 + kind=family_sharing_unsupported per mobile
+        // contract (subscriptionConflict.ts:14 enum). Existing-subscription
+        // payload is derived from the receipt itself because there's no row
+        // on file yet — mobile hard-requires a non-null existingSubscription
+        // object (subscriptionConflict.ts:21–25).
         if ($verified instanceof AppleVerifiedTransaction && $verified->isFamilyShared) {
-            return ['code' => 'ERR_SUB_008'];
+            return [
+                'code'    => 'ERR_SUB_002',
+                'context' => [
+                    'conflict' => [
+                        'kind'                 => 'family_sharing_unsupported',
+                        'attemptedSource'      => $platform,
+                        'existingSubscription' => $this->existingSubscriptionFromVerified($verified, $platform),
+                    ],
+                ],
+            ];
         }
 
         // 5. appAccountToken / obfuscatedAccountId binding check.
+        // Receipt's account token doesn't match the authenticated user — the
+        // transaction was bound to someone else's account. Mobile maps this
+        // to kind=different_zelta_user.
         if (! $this->matchesAuthenticatedUser($verified, $user)) {
-            return ['code' => 'ERR_SUB_008'];
+            return [
+                'code'    => 'ERR_SUB_002',
+                'context' => [
+                    'conflict' => [
+                        'kind'                 => 'different_zelta_user',
+                        'attemptedSource'      => $platform,
+                        'existingSubscription' => $this->existingSubscriptionFromVerified($verified, $platform),
+                    ],
+                ],
+            ];
         }
 
         // 6. Multi-store conflict gate (deltas Q6).
@@ -272,8 +298,13 @@ final class IapSubscriptionService
                     'code'    => 'ERR_SUB_002',
                     'context' => [
                         'conflict' => [
-                            'kind'            => 'different_zelta_user',
-                            'attemptedSource' => 'apple_iap',
+                            'kind'                 => 'different_zelta_user',
+                            'attemptedSource'      => 'apple_iap',
+                            'existingSubscription' => [
+                                'source'              => 'apple_iap',
+                                'currentPeriodEndsAt' => $existing->current_period_ends_at?->toIso8601String()
+                                    ?? $verified->expiresDate?->toIso8601String(),
+                            ],
                         ],
                     ],
                 ];
@@ -288,7 +319,20 @@ final class IapSubscriptionService
             $isTerminal = in_array($existing->status, $terminalStatuses, true);
             $expiryPast = $verified->expiresDate?->isPast() ?? true;
             if ($isTerminal && $expiryPast) {
-                return ['code' => 'ERR_SUB_009'];
+                return [
+                    'code'    => 'ERR_SUB_002',
+                    'context' => [
+                        'conflict' => [
+                            'kind'                 => 'stale_receipt',
+                            'attemptedSource'      => 'apple_iap',
+                            'existingSubscription' => [
+                                'source'              => 'apple_iap',
+                                'currentPeriodEndsAt' => $existing->current_period_ends_at?->toIso8601String()
+                                    ?? $verified->expiresDate?->toIso8601String(),
+                            ],
+                        ],
+                    ],
+                ];
             }
 
             // Within-grace reactivation (cancel_at_period_end = true, not yet expired).
@@ -412,8 +456,13 @@ final class IapSubscriptionService
                     'code'    => 'ERR_SUB_002',
                     'context' => [
                         'conflict' => [
-                            'kind'            => 'different_zelta_user',
-                            'attemptedSource' => 'google_play',
+                            'kind'                 => 'different_zelta_user',
+                            'attemptedSource'      => 'google_play',
+                            'existingSubscription' => [
+                                'source'              => 'google_play',
+                                'currentPeriodEndsAt' => $existing->current_period_ends_at?->toIso8601String()
+                                    ?? $verified->expiryTime?->toIso8601String(),
+                            ],
                         ],
                     ],
                 ];
@@ -426,7 +475,20 @@ final class IapSubscriptionService
                 'SUBSCRIPTION_STATE_CANCELED',
             ], true);
             if ($googleTerminal && ($verified->expiryTime?->isPast() ?? true)) {
-                return ['code' => 'ERR_SUB_009'];
+                return [
+                    'code'    => 'ERR_SUB_002',
+                    'context' => [
+                        'conflict' => [
+                            'kind'                 => 'stale_receipt',
+                            'attemptedSource'      => 'google_play',
+                            'existingSubscription' => [
+                                'source'              => 'google_play',
+                                'currentPeriodEndsAt' => $existing->current_period_ends_at?->toIso8601String()
+                                    ?? $verified->expiryTime?->toIso8601String(),
+                            ],
+                        ],
+                    ],
+                ];
             }
 
             if ($existing->cancel_at_period_end && $verified->expiryTime?->isFuture() === true) {
@@ -547,6 +609,28 @@ final class IapSubscriptionService
         $expected = hash('sha256', (string) $user->uuid);
 
         return hash_equals($expected, $token);
+    }
+
+    /**
+     * Build the `existingSubscription` conflict payload when there's no
+     * matching iap_subscriptions row yet (family sharing, binding mismatch).
+     * Mobile (subscriptionConflict.ts:21–25) hard-requires a non-null object —
+     * the receipt's reported source + expiry is what we have to work with.
+     *
+     * @return array{source: string, currentPeriodEndsAt: string|null}
+     */
+    private function existingSubscriptionFromVerified(
+        AppleVerifiedTransaction|GoogleVerifiedSubscription $verified,
+        string $source,
+    ): array {
+        $endsAt = $verified instanceof AppleVerifiedTransaction
+            ? $verified->expiresDate
+            : $verified->expiryTime;
+
+        return [
+            'source'              => $source,
+            'currentPeriodEndsAt' => $endsAt?->toIso8601String(),
+        ];
     }
 
     /**

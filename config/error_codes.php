@@ -34,9 +34,11 @@ return [
     'ERR_SUB_005' => ['http' => 409, 'description' => 'Live incomplete checkout session for user; recovery URL provided.'],
     'ERR_SUB_006' => ['http' => 422, 'description' => 'Annual to monthly downgrade is not offered.'],
     'ERR_SUB_007' => ['http' => 409, 'description' => 'Cross-source subscription conflict — another store already has an active subscription for this user.'],
-    // Slice 2 — IAP-specific subscription error codes.
-    'ERR_SUB_008' => ['http' => 409, 'description' => 'Family Sharing receipt — purchase was made by a different Apple ID. Manage subscription from the original purchasing account.'],
-    'ERR_SUB_009' => ['http' => 422, 'description' => 'Receipt is expired or subscription has already ended.'],
+    // Slice 2 — IAP family-sharing + stale-receipt cases are emitted as
+    // ERR_SUB_002 with a `conflict.kind` discriminator (family_sharing_unsupported,
+    // stale_receipt) so mobile can switch on a single field. The dedicated
+    // ERR_SUB_008 / ERR_SUB_009 codes were dropped 2026-05-14 after the mobile
+    // contract review (subscriptionConflict.ts:14 enum is the source of truth).
     'ERR_SUB_010' => ['http' => 409, 'description' => 'Cancellation must occur at originating store (Apple/Google).'],
 
     // ─── Quote / Pricing (deltas Q2, Q3 — codes stay ERR_QUOTE_* per Backend-Q4) ──

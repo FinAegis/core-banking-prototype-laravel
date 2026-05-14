@@ -167,7 +167,7 @@ it('returns ERR_CUR_001 for a non-EUR currency', function () {
     $response->assertJsonPath('error.code', 'ERR_CUR_001');
 });
 
-it('returns ERR_SUB_008 for an Apple Family Sharing receipt', function () {
+it('returns ERR_SUB_002 kind=family_sharing_unsupported for an Apple Family Sharing receipt', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user, ['read', 'write', 'delete']);
 
@@ -187,7 +187,11 @@ it('returns ERR_SUB_008 for an Apple Family Sharing receipt', function () {
     ]);
 
     $response->assertStatus(409);
-    $response->assertJsonPath('error.code', 'ERR_SUB_008');
+    $response->assertJsonPath('error.code', 'ERR_SUB_002');
+    $response->assertJsonPath('error.conflict.kind', 'family_sharing_unsupported');
+    $response->assertJsonPath('error.conflict.attemptedSource', 'apple_iap');
+    $response->assertJsonPath('error.conflict.existingSubscription.source', 'apple_iap');
+    expect($response->json('error.conflict.existingSubscription.currentPeriodEndsAt'))->not->toBeNull();
 });
 
 it('returns ERR_SUB_001 when the request bundleId does not match Apple JWS', function () {

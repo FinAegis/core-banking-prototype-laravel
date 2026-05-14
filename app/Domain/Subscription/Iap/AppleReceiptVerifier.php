@@ -90,7 +90,7 @@ final class AppleReceiptVerifier
         $expiresDate = $this->parseAppleEpochMillis($payload['expiresDate'] ?? null);
 
         // Apple sets `inAppOwnershipType` = `FAMILY_SHARED` for sharing-derived
-        // receipts (we reject these at the verify endpoint with ERR_SUB_008).
+        // receipts (we reject these at the verify endpoint with ERR_SUB_002 kind=family_sharing_unsupported).
         $ownershipType = (string) ($payload['inAppOwnershipType'] ?? 'PURCHASED');
         $isFamilyShared = $ownershipType === 'FAMILY_SHARED';
 
