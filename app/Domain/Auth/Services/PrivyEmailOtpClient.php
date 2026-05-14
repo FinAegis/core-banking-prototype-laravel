@@ -97,6 +97,13 @@ class PrivyEmailOtpClient
                 'Accept'        => 'application/json',
                 'privy-app-id'  => $appId,
                 'Authorization' => 'Basic ' . base64_encode($appId . ':' . $appSecret),
+                // Privy's REST API rejects requests without an Origin matching
+                // the dashboard allowlist (403 "Must specify origin"). We send
+                // the canonical app origin server-side rather than echoing the
+                // browser's Origin header — the request is server-to-server,
+                // and trusting a client-supplied Origin would defeat the
+                // allowlist's purpose.
+                'Origin' => $this->resolveOrigin(),
             ],
             (string) json_encode($body, JSON_THROW_ON_ERROR),
         );
@@ -153,6 +160,31 @@ class PrivyEmailOtpClient
         }
 
         return $fallback;
+    }
+
+    /**
+     * Privy validates the Origin header against the dashboard allowlist.
+     * Prefer an explicit privy.web_origin (so operators can decouple it from
+     * the API host), fall back to app.url. We strip path/query so we send
+     * only scheme://host[:port], which is what Privy compares against.
+     */
+    private function resolveOrigin(): string
+    {
+        $raw = (string) (config('privy.web_origin') ?: config('app.url', ''));
+        $raw = trim($raw);
+        if ($raw === '') {
+            return '';
+        }
+        $parts = parse_url($raw);
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
+            return rtrim($raw, '/');
+        }
+        $origin = $parts['scheme'] . '://' . $parts['host'];
+        if (isset($parts['port'])) {
+            $origin .= ':' . $parts['port'];
+        }
+
+        return $origin;
     }
 
     private function extractErrorMessage(string $body): ?string

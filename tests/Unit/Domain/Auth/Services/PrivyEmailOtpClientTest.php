@@ -16,6 +16,8 @@ beforeEach(function (): void {
         'privy.app_id'       => 'test-app-id',
         'privy.app_secret'   => 'test-app-secret',
         'privy.api_base_url' => 'https://auth.privy.io',
+        'privy.web_origin'   => null,
+        'app.url'            => 'https://app.test',
     ]);
 });
 
@@ -100,6 +102,41 @@ it('throws malformedResponse when login response has no user.id', function (): v
     $client = new PrivyEmailOtpClient($http);
     expect(fn () => $client->loginWithCode('jane@example.com', '123456'))
         ->toThrow(PrivyEmailOtpException::class, 'missing user.id');
+});
+
+it('sends Origin header derived from app.url so Privy allowlist accepts the request', function (): void {
+    /** @var ClientInterface&MockInterface $http */
+    $http = Mockery::mock(ClientInterface::class);
+    /** @var Mockery\Expectation $expect */
+    $expect = $http->shouldReceive('send');
+    $expect->once()->andReturnUsing(function (RequestInterface $request) {
+        expect($request->getHeaderLine('Origin'))->toBe('https://app.test');
+
+        return new PsrResponse(200, [], '{"success":true}');
+    });
+
+    $client = new PrivyEmailOtpClient($http);
+    $client->sendCode('jane@example.com');
+});
+
+it('prefers privy.web_origin over app.url and strips path/query when sending the Origin header', function (): void {
+    config([
+        'privy.web_origin' => 'https://zelta.app/some/path?x=1',
+        'app.url'          => 'https://api.zelta.app',
+    ]);
+
+    /** @var ClientInterface&MockInterface $http */
+    $http = Mockery::mock(ClientInterface::class);
+    /** @var Mockery\Expectation $expect */
+    $expect = $http->shouldReceive('send');
+    $expect->once()->andReturnUsing(function (RequestInterface $request) {
+        expect($request->getHeaderLine('Origin'))->toBe('https://zelta.app');
+
+        return new PsrResponse(200, [], '{"success":true}');
+    });
+
+    $client = new PrivyEmailOtpClient($http);
+    $client->sendCode('jane@example.com');
 });
 
 it('throws misconfigured when app_id or app_secret is empty', function (): void {

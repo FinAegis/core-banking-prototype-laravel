@@ -68,6 +68,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Web Origin (for Privy REST allowlist)
+    |--------------------------------------------------------------------------
+    |
+    | Privy's REST API rejects requests with `403 Must specify origin` unless
+    | an Origin header is sent that matches an entry in the dashboard
+    | allowlist. When the web /login surface lives on a different host than
+    | APP_URL (e.g. APP_URL is api.zelta.app but the web is zelta.app), set
+    | PRIVY_WEB_ORIGIN explicitly. Falls back to APP_URL when unset.
+    |
+    */
+
+    'web_origin' => env('PRIVY_WEB_ORIGIN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Web login feature flag
     |--------------------------------------------------------------------------
     |
