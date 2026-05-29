@@ -508,9 +508,9 @@
          CSS, so cache drift on app-landing.css can't break the section.
     ═══════════════════════════════════════════════════════════════ --}}
     @php
-        $androidUtm = '?utm_source=zelta_landing&utm_medium=cta&utm_campaign=android_open_test';
-        $androidOptInUrl = 'https://play.google.com/apps/testing/com.zelta.wallet' . $androidUtm;
-        $androidInstallUrl = 'https://play.google.com/store/apps/details?id=com.zelta.wallet' . $androidUtm;
+        $androidUtm = 'utm_source=zelta_landing&utm_medium=cta&utm_campaign=android_open_test';
+        $androidOptInUrl = 'https://play.google.com/apps/testing/com.zelta.wallet?' . $androidUtm;
+        $androidInstallUrl = 'https://play.google.com/store/apps/details?id=com.zelta.wallet&' . $androidUtm;
     @endphp
 
     <style>
