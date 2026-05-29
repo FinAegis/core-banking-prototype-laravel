@@ -7,14 +7,14 @@
 
     @php $brand = config('brand.name'); @endphp
 
-    <title>{{ $brand }} — Agentic Payments | Get Your Card to Spend Anywhere</title>
+    <title>{{ $brand }} — Non-custodial stablecoin wallet · Virtual cards · Passkey sign-in</title>
 
     @include('partials.favicon')
 
     @include('partials.seo', [
-        'title' => $brand . ' — Agentic Payments',
-        'description' => 'Agentic payments — stablecoin-powered virtual cards for you and your AI agents. Non-custodial security, tap-to-pay crypto, and privacy built in.',
-        'keywords' => $brand . ', agentic payments, AI agent card, stablecoin card, virtual card, crypto payments, non-custodial wallet, tap to pay crypto, privacy payments',
+        'title' => $brand . ' — Stablecoins. Tap to pay. No seed phrase.',
+        'description' => 'Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). Open testing on Android.',
+        'keywords' => $brand . ', stablecoin wallet, virtual card, USDC card, passkey wallet, non-custodial wallet, tap to pay, agentic payments, MCP wallet',
     ])
 
     {{-- Fonts: Space Grotesk, JetBrains Mono, DM Sans --}}
@@ -359,7 +359,7 @@
                                                 <span class="font-body text-sm font-medium text-text-sec">Total Balance</span>
                                                 <div class="flex items-center rounded-full bg-mint bru-border" style="gap: 4px; padding: 3px 8px;">
                                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="#0a0a0a" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 7v5c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5Z"/></svg>
-                                                    <span class="font-mono text-[11px] font-bold">PROTECTED</span>
+                                                    <span class="font-mono text-[11px] font-bold">PASSKEY</span>
                                                 </div>
                                             </div>
                                             <div class="flex items-baseline gap-1">
@@ -396,7 +396,7 @@
                                 <div class="flex flex-col" style="gap: 12px;">
                                     <span class="font-heading tracking-tighter text-xl font-bold">Security Status</span>
                                     <div class="flex" style="gap: 12px;">
-                                        @foreach([['icon' => '/icons/shield.svg', 'title' => 'Shielded', 'sub' => 'Privacy Active'], ['icon' => '/icons/shield-check.svg', 'title' => 'Verified', 'sub' => 'On-chain Identity']] as $card)
+                                        @foreach([['icon' => '/icons/fingerprint.svg', 'title' => 'Passkey', 'sub' => 'Face ID Active'], ['icon' => '/icons/shield-check.svg', 'title' => 'Verified', 'sub' => 'On-chain Identity']] as $card)
                                         <div class="flex items-center flex-1 bg-white bru-card" style="gap: 12px; padding: 14px; border-radius: 14px;">
                                             <div class="overflow-hidden bru-border flex-shrink-0" style="width: 44px; height: 44px; border-radius: 10px;">
                                                 <img src="{{ $card['icon'] }}" alt="{{ $card['title'] }}" class="w-full h-full">
@@ -420,10 +420,10 @@
                                     <div class="overflow-hidden bg-white bru-card" style="border-radius: 16px;">
                                         @php
                                         $transactions = [
-                                            ['svg' => '/icons/credit-card.svg', 'name' => 'Merchant Payment', 'date' => 'Today 3:41 PM', 'amount' => '-$42.50', 'pos' => false, 'shielded' => true],
-                                            ['svg' => '/icons/arrow-up-right.svg', 'name' => 'Transfer to Wallet', 'date' => 'Yesterday 2:15 PM', 'amount' => '-$14.99', 'pos' => false, 'shielded' => false],
-                                            ['svg' => '/icons/arrow-down-left.svg', 'name' => 'USDC Received', 'date' => 'Yesterday 11:30 AM', 'amount' => '+$500.00', 'pos' => true, 'shielded' => false],
-                                            ['svg' => '/icons/credit-card.svg', 'name' => 'Starbolt Coffee', 'date' => 'Mar 5 9:20 AM', 'amount' => '-$12.00', 'pos' => false, 'shielded' => true],
+                                            ['svg' => '/icons/credit-card.svg', 'name' => 'Merchant Payment', 'date' => 'Today 3:41 PM', 'amount' => '-$42.50', 'pos' => false, 'network' => 'Solana'],
+                                            ['svg' => '/icons/arrow-up-right.svg', 'name' => 'Transfer to Wallet', 'date' => 'Yesterday 2:15 PM', 'amount' => '-$14.99', 'pos' => false, 'network' => 'Polygon'],
+                                            ['svg' => '/icons/arrow-down-left.svg', 'name' => 'USDC Received', 'date' => 'Yesterday 11:30 AM', 'amount' => '+$500.00', 'pos' => true, 'network' => 'Base'],
+                                            ['svg' => '/icons/credit-card.svg', 'name' => 'Starbolt Coffee', 'date' => 'Mar 5 9:20 AM', 'amount' => '-$12.00', 'pos' => false, 'network' => 'Arbitrum'],
                                         ];
                                         @endphp
                                         @foreach($transactions as $i => $tx)
@@ -442,12 +442,7 @@
                                                 </div>
                                                 <div class="flex flex-col items-end flex-shrink-0 gap-0.5">
                                                     <span class="text-sm font-semibold {{ $tx['pos'] ? 'text-z-green' : 'text-obsidian' }}" style="font-variant-numeric: tabular-nums;">{{ $tx['amount'] }}</span>
-                                                    @if($tx['shielded'])
-                                                    <div class="flex items-center gap-0.5">
-                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#10b981" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 7v5c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5Z"/></svg>
-                                                        <span class="font-mono text-[10px] text-z-green">Protected</span>
-                                                    </div>
-                                                    @endif
+                                                    <span class="font-mono text-[10px] text-text-muted">{{ $tx['network'] }}</span>
                                                 </div>
                                             </div>
                                             @if($i < count($transactions) - 1)
