@@ -86,8 +86,10 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals('https://schema.org', $schema['@context']);
         $this->assertEquals('MobileApplication', $schema['@type']);
         $this->assertEquals($brand, $schema['name']);
-        $this->assertEquals('iOS, Android', $schema['operatingSystem']);
+        $this->assertEquals('Android', $schema['operatingSystem']);
         $this->assertEquals('FinanceApplication', $schema['applicationCategory']);
+        $this->assertArrayHasKey('installUrl', $schema);
+        $this->assertStringContainsString('play.google.com', $schema['installUrl']);
         $this->assertArrayHasKey('offers', $schema);
         $this->assertIsArray($schema['offers']);
         $this->assertCount(1, $schema['offers']);

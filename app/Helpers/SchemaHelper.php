@@ -67,8 +67,9 @@ class SchemaHelper
             '@context'            => 'https://schema.org',
             '@type'               => 'MobileApplication',
             'name'                => $brand,
-            'operatingSystem'     => 'iOS, Android',
+            'operatingSystem'     => 'Android',
             'applicationCategory' => 'FinanceApplication',
+            'installUrl'          => 'https://play.google.com/store/apps/details?id=com.zelta.wallet',
             'offers'              => [
                 [
                     '@type'         => 'Offer',
@@ -76,7 +77,7 @@ class SchemaHelper
                     'priceCurrency' => 'USD',
                 ],
             ],
-            'description' => 'Agentic payments — get your personal card or your AI agent a card to spend anywhere. Stablecoin-powered, non-custodial.',
+            'description' => 'Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable MCP API. Six networks (Solana, Tron, Polygon, Base, Arbitrum, Ethereum). In open testing on Android.',
             'developer'   => [
                 '@type' => 'Organization',
                 'name'  => $brand,
