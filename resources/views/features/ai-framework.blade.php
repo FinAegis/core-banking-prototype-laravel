@@ -5,7 +5,7 @@
 @section('seo')
     @include('partials.seo', [
         'title' => 'AI Framework — Multi-Agent Intelligence for Banking',
-        'description' => '6 specialized AI agents, 24 MCP tools, ML anomaly detection, natural language queries, and Temporal workflow orchestration. Intelligence woven into every layer of banking.',
+        'description' => '6 specialized AI agents, 12 OAuth-scoped MCP tools, ML anomaly detection, natural language queries, and Temporal workflow orchestration. Intelligence woven into every layer of banking.',
         'keywords' => 'AI framework, MCP tools, multi-agent, anomaly detection, NLP banking, agent orchestration, Temporal workflows, AI banking, ' . config('brand.name', 'Zelta'),
     ])
 
@@ -44,7 +44,7 @@
                     AI Framework
                 </h1>
                 <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-8">
-                    Intelligence woven into every layer of banking. Six specialized agents, 24 MCP tools, ML anomaly detection, and Temporal workflow orchestration &mdash; all coordinated through a multi-agent consensus engine.
+                    Intelligence woven into every layer of banking. Six specialized agents, 12 OAuth-scoped MCP tools, ML anomaly detection, and Temporal workflow orchestration &mdash; all coordinated through a multi-agent consensus engine.
                 </p>
                 <div class="flex flex-wrap justify-center gap-4">
                     <a href="{{ route('features.show', 'agent-protocol') }}" class="btn-primary px-8 py-4 text-lg">Agent Protocol (AP2)</a>
@@ -167,7 +167,7 @@
     <!-- MCP Tool Registry -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">24 MCP Tools</h2>
+            <h2 class="font-display text-3xl md:text-4xl font-bold text-center text-slate-900 mb-4">12 MCP Tools</h2>
             <p class="text-lg text-slate-500 text-center max-w-3xl mx-auto mb-12">
                 The Model Context Protocol (MCP) tool registry lets external AI agents securely perform banking operations. Each tool is sandboxed, rate-limited, and audit-logged.
             </p>

@@ -269,8 +269,8 @@
                 </div>
             </div>
 
-            {{-- Right — phone mockup --}}
-            <div class="relative flex justify-center anim-fade-in-right" aria-hidden="true" role="img" aria-label="{{ $brand }} mobile app preview showing wallet balance, transactions, and security status">
+            {{-- Right — phone mockup. aria-hidden because the hero copy already conveys what the app does; the mockup is decorative reinforcement. --}}
+            <div class="relative flex justify-center anim-fade-in-right" aria-hidden="true">
 
                 {{-- Floating stickers (desktop only) --}}
                 @php
@@ -783,7 +783,7 @@
                     <div class="flex gap-4 justify-center">
                         @foreach($panel['icons'] as $src)
                         <div class="w-[72px] h-[72px] md:w-[88px] md:h-[88px] rounded-full overflow-hidden bru-border hs-4">
-                            <img src="{{ $src }}" alt="" class="h-full w-full" loading="lazy">
+                            <img src="{{ $src }}" alt="" class="h-full w-full" loading="lazy" aria-hidden="true">
                         </div>
                         @endforeach
                     </div>
@@ -802,7 +802,7 @@
                 ] as $subCard)
                 <div class="p-8 bg-white bru-card rounded-[2rem]">
                     <div class="rounded-full overflow-hidden mb-4 bru-card-sm" style="width: 56px; height: 56px;">
-                        <img src="{{ $subCard['icon'] }}" alt="" class="h-full w-full" loading="lazy">
+                        <img src="{{ $subCard['icon'] }}" alt="" class="h-full w-full" loading="lazy" aria-hidden="true">
                     </div>
                     @if(!empty($subCard['badge']))
                     <span class="inline-block mb-3 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono rounded-full bru-border bg-acid text-obsidian">{{ $subCard['badge'] }}</span>

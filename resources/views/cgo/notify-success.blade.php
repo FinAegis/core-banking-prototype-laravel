@@ -2,6 +2,15 @@
 
 @section('title', 'Thank You - CGO Interest Registered')
 
+@section('seo')
+    @include('partials.seo', [
+        'title' => 'You\'re on the list — ' . config('brand.name', 'Zelta'),
+        'description' => 'Thanks for registering interest in the ' . config('brand.name', 'Zelta') . ' Continuous Growth Offering. We\'ll be in touch when allocations open.',
+        'keywords' => config('brand.name', 'Zelta') . ', CGO, Continuous Growth Offering, investor interest',
+        'robots' => 'noindex, nofollow',
+    ])
+@endsection
+
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
     <!-- Success Message Section -->

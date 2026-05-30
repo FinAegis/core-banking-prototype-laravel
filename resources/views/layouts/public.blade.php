@@ -12,8 +12,8 @@
     @section('seo')
         @include('partials.seo', [
             'title' => config('brand.name', 'Zelta'),
-            'description' => config('brand.name', 'Zelta') . ' — Agentic payments with stablecoin-powered virtual cards. Non-custodial security and privacy built in.',
-            'keywords' => config('brand.name', 'Zelta') . ', agentic payments, stablecoin card, virtual card, crypto payments, non-custodial wallet',
+            'description' => config('brand.name', 'Zelta') . ' — Non-custodial stablecoin wallet with passkey sign-in, virtual Visa & Mastercard cards, bank-rail deposits, and an agent-callable MCP API. Six networks.',
+            'keywords' => config('brand.name', 'Zelta') . ', non-custodial wallet, stablecoin wallet, virtual card, passkey, USDC, Solana, Polygon, Base, Arbitrum, MCP server, agent-callable API',
         ])
     @show
 

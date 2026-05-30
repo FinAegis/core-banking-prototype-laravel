@@ -12,7 +12,7 @@
                     @if(app()->environment('demo') || config('brand.show_promo_pages'))
                         Open-source core banking infrastructure for the next generation of financial services. Apache-2.0 licensed.
                     @else
-                        {{ config('brand.tagline', 'Agentic Payments. Spend Anywhere.') }}
+                        {{ config('brand.tagline', 'No seed phrase. Tap to pay. Truly yours.') }}
                     @endif
                 </p>
                 <div class="flex items-center space-x-3">

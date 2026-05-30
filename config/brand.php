@@ -17,7 +17,7 @@ return [
 
     'name' => env('APP_BRAND', env('APP_NAME', 'Zelta')),
 
-    'tagline' => env('BRAND_TAGLINE', 'Agentic Payments. Spend Anywhere.'),
+    'tagline' => env('BRAND_TAGLINE', 'No seed phrase. Tap to pay. Truly yours.'),
 
     'support_email' => env('BRAND_SUPPORT_EMAIL', 'support@zelta.app'),
 

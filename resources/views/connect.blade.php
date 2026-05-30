@@ -19,9 +19,8 @@
         'title'       => 'Connect ' . $brand . ' to your AI',
         'description' => 'Connect Claude Desktop, Claude.ai, Cursor, or Continue.dev to your ' . $brand . ' wallet through one OAuth-protected MCP endpoint. Set a daily spending cap, pick scopes, and go.',
         'keywords'    => $brand . ', MCP, Claude, Cursor, AI wallet, agentic payments',
+        'robots'      => 'noindex',
     ])
-
-    <meta name="robots" content="noindex">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=space-grotesk:400,500,600,700&dm-sans:400,500,600,700&jetbrains-mono:400,500,700&display=swap" rel="stylesheet" />

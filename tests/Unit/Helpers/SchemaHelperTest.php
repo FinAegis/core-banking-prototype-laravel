@@ -57,7 +57,9 @@ class SchemaHelperTest extends TestCase
         $this->assertArrayHasKey('contactPoint', $schema);
         $this->assertEquals('ContactPoint', $schema['contactPoint']['@type']);
         $this->assertArrayHasKey('knowsAbout', $schema);
-        $this->assertContains('Agentic Payments', $schema['knowsAbout']);
+        $this->assertContains('Non-Custodial Wallets', $schema['knowsAbout']);
+        $this->assertContains('Agent-Callable Payment API', $schema['knowsAbout']);
+        $this->assertEquals('Non-Custodial Wallets', $schema['knowsAbout'][0]);
     }
 
     #[Test]
@@ -112,8 +114,6 @@ class SchemaHelperTest extends TestCase
         $this->assertEquals('Digital Currency', $schema['category']);
         $this->assertArrayHasKey('offers', $schema);
         $this->assertEquals('1.00', $schema['offers']['price']);
-        $this->assertArrayHasKey('aggregateRating', $schema);
-        $this->assertEquals('4.8', $schema['aggregateRating']['ratingValue']);
     }
 
     #[Test]
