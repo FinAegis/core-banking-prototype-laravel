@@ -2,6 +2,14 @@
 
 @section('title', 'Authorize ' . ($client->name ?? 'application'))
 
+@section('seo')
+    @include('partials.seo', [
+        'title'       => 'Authorize ' . ($client->name ?? 'application') . ' — ' . config('brand.name', 'Zelta'),
+        'description' => 'Review and approve the permissions ' . ($client->name ?? 'this application') . ' is requesting on your ' . config('brand.name', 'Zelta') . ' account.',
+        'robots'      => 'noindex, nofollow',
+    ])
+@endsection
+
 @section('content')
 <div class="max-w-xl mx-auto py-12 px-4">
   <div class="bg-white rounded-2xl shadow border border-slate-200 p-8">
@@ -18,7 +26,7 @@
     </div>
 
     <p class="text-slate-700 mb-6">
-      <strong>{{ $client->name }}</strong> wants to connect to your Zelta account. Review the permissions below before approving.
+      <strong>{{ $client->name }}</strong> wants to connect to your {{ config('brand.name', 'Zelta') }} account. Review the permissions below before approving.
     </p>
 
     <ul class="space-y-3 mb-6">
