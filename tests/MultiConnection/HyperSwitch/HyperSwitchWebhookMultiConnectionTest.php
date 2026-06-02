@@ -10,7 +10,9 @@ use App\Domain\Payment\Aggregates\PaymentDepositAggregate;
 use App\Domain\Payment\DataObjects\StripeDeposit;
 use App\Domain\Payment\Models\HyperSwitchDepositIntent;
 use App\Domain\Payment\Models\PaymentDeposit;
+use App\Http\Controllers\Api\Webhook\HyperSwitchWebhookController;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 // The HyperSwitch webhook does its idempotency bookkeeping
@@ -49,7 +51,13 @@ it('completes a HyperSwitch deposit (credit + aggregate) without deadlock under 
         'status'                 => HyperSwitchDepositIntent::STATUS_PENDING,
     ]);
 
-    $this->postJson('/api/webhooks/hyperswitch', [
+    // Invoke the controller DIRECTLY (not via $this->postJson) — like the
+    // AccountProvisioning multi-connection test calls its service directly. The
+    // test HTTP kernel re-juggles the harness's purged, separately-pooled
+    // connections, which masks the very thing under test; a direct call
+    // exercises the real claim + tenant-credit + aggregate-persist path on the
+    // live two-session topology.
+    $body = (string) json_encode([
         'event_type' => 'payment_succeeded',
         'event_id'   => 'evt_mc_' . uniqid(),
         'content'    => ['object' => [
@@ -57,7 +65,11 @@ it('completes a HyperSwitch deposit (credit + aggregate) without deadlock under 
             'amount'     => 30_000,
             'currency'   => 'USD',
         ]],
-    ])->assertOk();
+    ]);
+    $request = Request::create('/api/webhooks/hyperswitch', 'POST', [], [], [], ['CONTENT_TYPE' => 'application/json'], $body);
+    $response = app(HyperSwitchWebhookController::class)->handle($request);
+
+    expect($response->getStatusCode())->toBe(200);
 
     expect(AccountBalance::where('account_uuid', $account->uuid)->where('asset_code', 'USD')->value('balance'))
         ->toBe(30_000)
