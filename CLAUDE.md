@@ -42,6 +42,7 @@ php artisan bridge:sync-dev-fee --all --dry-run          # batch backfill (previ
 - **ZK Circuits**: `storage/app/circuits/` (Circom sources + Solidity verifiers)
 - **61 domains** in `app/Domain/` (DDD bounded contexts)
 - **Payment Protocols**: x402 (Coinbase), MPP (Stripe/Tempo), AP2 (Google)
+- **HyperSwitch** (`app/Domain/Payment/Services/HyperSwitch/`): EXPERIMENTAL scaffolding — real client + HMAC-verified webhook, but NOT wired into the deposit flow (webhook only logs, no service binding, `HYPERSWITCH_ENABLED=false`, no tests). Don't describe it as production. Wire-up plan + pre-existing pipeline bugs (corrupted `CreditAccountActivity`, tenant-connection deadlock risk) tracked for a dedicated PR; discussion #346 stays open until then
 - **Packages**: `packages/zelta-sdk/` (Payment SDK), `packages/zelta-cli/` (CLI binary)
 - **Event Sourcing**: Spatie v7.7+ with domain-specific tables
 - **CQRS**: Command/Query Bus in `app/Infrastructure/`
