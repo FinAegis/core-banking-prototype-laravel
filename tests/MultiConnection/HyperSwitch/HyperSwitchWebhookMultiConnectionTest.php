@@ -9,6 +9,7 @@ use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Payment\Aggregates\PaymentDepositAggregate;
 use App\Domain\Payment\DataObjects\StripeDeposit;
 use App\Domain\Payment\Models\HyperSwitchDepositIntent;
+use App\Domain\Payment\Models\PaymentDeposit;
 use App\Models\User;
 use Illuminate\Support\Str;
 
@@ -61,5 +62,7 @@ it('completes a HyperSwitch deposit (credit + aggregate) without deadlock under 
     expect(AccountBalance::where('account_uuid', $account->uuid)->where('asset_code', 'USD')->value('balance'))
         ->toBe(30_000)
         ->and(HyperSwitchDepositIntent::where('hyperswitch_payment_id', $paymentId)->value('status'))
-        ->toBe(HyperSwitchDepositIntent::STATUS_COMPLETED);
+        ->toBe(HyperSwitchDepositIntent::STATUS_COMPLETED)
+        ->and(PaymentDeposit::where('aggregate_uuid', $depositUuid)->where('event_class', 'deposit_completed')->exists())
+        ->toBeTrue();
 });

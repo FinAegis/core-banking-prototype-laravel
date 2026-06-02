@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Webhook;
 
-use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Services\AccountCreditService;
 use App\Domain\Payment\Aggregates\PaymentDepositAggregate;
 use App\Domain\Payment\Models\HyperSwitchDepositIntent;
@@ -123,20 +122,21 @@ class HyperSwitchWebhookController extends Controller
             return;
         }
 
-        // Credit + audit run on the TENANT connection, in their own transaction
-        // — separate from the default-connection claim above (the claim has
-        // already committed). Never one transaction spanning both connections:
-        // that self-deadlocks (CLAUDE.md). Wrapping both tenant writes together
-        // makes them atomic, so a failure leaves neither the credit nor the
-        // event applied (no credited-without-audit-event state); the committed
-        // claim is then logged for operator reconciliation.
+        // Credit + audit run on the TENANT connection, AFTER the default-conn
+        // claim above committed — never one transaction spanning both
+        // connections (that self-deadlocks; CLAUDE.md). They are kept as
+        // separate, sequential operations (NOT co-wrapped in one transaction):
+        // the aggregate persist + its projectors don't compose with the credit's
+        // own row-lock transaction under the real multi-session topology, and
+        // co-wrapping rolls the credit back on a persist hiccup. Credit-first is
+        // deliberate — the user receives funds; a persist failure leaves a
+        // reconcilable audit gap (logged), never money lost. Matches the shipped
+        // Bridge ramp webhook.
         try {
-            DB::connection((new AccountBalance())->getConnectionName())->transaction(function () use ($claim): void {
-                $this->creditService->credit($claim['account_uuid'], $claim['amount_cents'], $claim['currency']);
-                PaymentDepositAggregate::retrieve($claim['deposit_uuid'])
-                    ->completeDeposit('hs_' . $claim['payment_id'])
-                    ->persist();
-            });
+            $this->creditService->credit($claim['account_uuid'], $claim['amount_cents'], $claim['currency']);
+            PaymentDepositAggregate::retrieve($claim['deposit_uuid'])
+                ->completeDeposit('hs_' . $claim['payment_id'])
+                ->persist();
         } catch (Throwable $e) {
             // The dedupe row is already committed, so retries won't re-run this;
             // surface for operator reconciliation instead of failing the webhook.
