@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Payment\Contracts\PaymentServiceInterface;
+use App\Domain\Payment\Services\HyperSwitch\HyperSwitchPaymentService;
 use App\Domain\Payment\Services\PaymentGatewayService;
 use App\Models\User;
 use Exception;
@@ -94,9 +95,27 @@ class DepositController extends Controller
 
         $user = Auth::user();
         /** @var User $user */
-        $amountInCents = (int) ($request->amount * 100);
+        // Integer minor units via bcmath — never (float) for money.
+        $amountInput = (string) $request->input('amount');
+        $amountInCents = is_numeric($amountInput) ? (int) bcmul($amountInput, '100', 0) : 0;
 
         try {
+            // HyperSwitch orchestration path (opt-in via HYPERSWITCH_ENABLED).
+            // Returns the same JSON shape as the Stripe path so the client flow
+            // is unchanged; the deposit is credited later by the webhook.
+            if (config('hyperswitch.enabled')) {
+                $deposit = app(HyperSwitchPaymentService::class)
+                    ->startDeposit($user, $amountInCents, $request->currency);
+
+                return response()->json([
+                    'client_secret' => $deposit['client_secret'],
+                    'payment_id'    => $deposit['payment_id'],
+                    'processor'     => 'hyperswitch',
+                    'amount'        => $amountInCents,
+                    'currency'      => $request->currency,
+                ]);
+            }
+
             $intent = $this->paymentGateway->createDepositIntent(
                 $user,
                 $amountInCents,
@@ -146,6 +165,13 @@ class DepositController extends Controller
                 'payment_intent_id' => 'required|string',
             ]
         );
+
+        // HyperSwitch deposits complete asynchronously via the webhook — there
+        // is nothing to confirm server-side here.
+        if (config('hyperswitch.enabled')) {
+            return redirect()->route('wallet.index')
+                ->with('info', 'Your deposit is processing and will be credited once confirmed.');
+        }
 
         try {
             $result = $this->paymentGateway->processDeposit($request->payment_intent_id);

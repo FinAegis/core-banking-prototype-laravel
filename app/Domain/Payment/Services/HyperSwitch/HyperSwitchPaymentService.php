@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Payment\Services\HyperSwitch;
 
+use App\Domain\Payment\Aggregates\PaymentDepositAggregate;
+use App\Domain\Payment\DataObjects\StripeDeposit;
+use App\Domain\Payment\Models\HyperSwitchDepositIntent;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -35,6 +39,7 @@ class HyperSwitchPaymentService
         string $userUuid,
         string $userEmail,
         string $returnUrl,
+        string $depositUuid,
         ?string $description = null,
     ): array {
         $customerId = $this->ensureCustomer($userUuid, $userEmail);
@@ -47,9 +52,10 @@ class HyperSwitchPaymentService
             'confirm'     => false, // Two-step: create then confirm with payment method
             'description' => $description ?? 'Deposit',
             'metadata'    => [
-                'user_uuid'  => $userUuid,
-                'source'     => 'finaegis',
-                'created_at' => gmdate('c'),
+                'user_uuid'    => $userUuid,
+                'deposit_uuid' => $depositUuid, // round-trips so the webhook can correlate the credit
+                'source'       => 'finaegis',
+                'created_at'   => gmdate('c'),
             ],
             'statement_descriptor_name' => config('brand.name', 'Zelta'),
         ]);
@@ -66,6 +72,69 @@ class HyperSwitchPaymentService
             'client_secret' => (string) ($response['client_secret'] ?? ''),
             'status'        => (string) ($response['status'] ?? 'unknown'),
             'connector'     => $response['connector'] ?? null,
+        ];
+    }
+
+    /**
+     * Begin a deposit through HyperSwitch end-to-end: create the payment,
+     * initiate the deposit aggregate, and record the intent the webhook will
+     * later complete + credit.
+     *
+     * The payment is created FIRST so a HyperSwitch API failure leaves no
+     * dangling aggregate or intent behind. The aggregate is initiated and the
+     * intent written synchronously before returning — both well before the
+     * client can complete payment and trigger the webhook.
+     *
+     * @return array{client_secret: string, payment_id: string, deposit_uuid: string}
+     */
+    public function startDeposit(User $user, int $amountCents, string $currency): array
+    {
+        $account = $user->accounts()->first();
+        if ($account === null) {
+            throw new RuntimeException('User has no account to deposit into');
+        }
+
+        $currency = strtoupper($currency);
+        $depositUuid = (string) Str::uuid();
+        $returnUrl = (string) (config('hyperswitch.defaults.return_url') ?: url('/wallet'));
+
+        $payment = $this->initiateDeposit(
+            amountCents: $amountCents,
+            currency: $currency,
+            userUuid: (string) $user->uuid,
+            userEmail: (string) $user->email,
+            returnUrl: $returnUrl,
+            depositUuid: $depositUuid,
+            description: 'Deposit',
+        );
+
+        PaymentDepositAggregate::retrieve($depositUuid)
+            ->initiateDeposit(new StripeDeposit(
+                accountUuid: (string) $account->uuid,
+                amount: $amountCents,
+                currency: $currency,
+                reference: 'DEP-' . strtoupper(Str::random(12)),
+                externalReference: $payment['payment_id'],
+                paymentMethod: 'hyperswitch',
+                paymentMethodType: 'card',
+                metadata: ['processor' => 'hyperswitch'],
+            ))
+            ->persist();
+
+        HyperSwitchDepositIntent::create([
+            'hyperswitch_payment_id' => $payment['payment_id'],
+            'deposit_uuid'           => $depositUuid,
+            'account_uuid'           => (string) $account->uuid,
+            'user_uuid'              => (string) $user->uuid,
+            'amount_cents'           => $amountCents,
+            'currency'               => $currency,
+            'status'                 => HyperSwitchDepositIntent::STATUS_PENDING,
+        ]);
+
+        return [
+            'client_secret' => $payment['client_secret'],
+            'payment_id'    => $payment['payment_id'],
+            'deposit_uuid'  => $depositUuid,
         ];
     }
 
