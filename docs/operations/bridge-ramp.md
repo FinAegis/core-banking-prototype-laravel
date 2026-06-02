@@ -16,9 +16,10 @@ Required `.env` keys (see also `.env.production.example`):
 
 ```ini
 RAMP_PROVIDER=bridge                       # canonical; deprecated alias `stripe_bridge` still resolved
-BRIDGE_API_KEY=<from Bridge dashboard>
-BRIDGE_WEBHOOK_SECRET=<from Bridge dashboard>
-BRIDGE_API_BASE_URL=https://api.bridge.xyz # or sandbox URL when set up
+BRIDGE_API_KEY=<scoped production key from Bridge dashboard>
+BRIDGE_WEBHOOK_PUBLIC_KEY=<per-endpoint RSA public key from the dashboard webhook; PEM or base64-of-PEM — NOT a secret>
+BRIDGE_WEBHOOK_SECRET=                      # legacy HMAC only; leave blank on the current "Bridge by Stripe" platform
+BRIDGE_API_BASE_URL=https://api.bridge.xyz # or https://api.sandbox.bridge.xyz when testing
 BRIDGE_DEFAULT_DEV_FEE_BPS=75              # Free tier; Pro is 0 (per ADR-0006)
 ```
 
@@ -26,15 +27,15 @@ BRIDGE_DEFAULT_DEV_FEE_BPS=75              # Free tier; Pro is 0 (per ADR-0006)
 
 ## Bridge dashboard configuration
 
-Configure the Bridge dashboard to POST all webhook events to:
+Create ONE webhook endpoint pointing at (on the `api.` subdomain the `/api` prefix is dropped):
 
 ```
-https://<your-domain>/api/v1/webhooks/bridge
+https://api.zelta.app/v1/webhooks/bridge      # or https://<your-domain>/api/v1/webhooks/bridge on the bare domain
 ```
 
-The single endpoint handles both KYC events (`customer.kyc_link_*`) and ramp events (`virtual_account.activity`, `transfer.*`). Event-level dedupe via `processed_webhook_events (provider='bridge', event_id)`.
+Subscribe these `event_categories`: `customer`, `kyc_link`, `virtual_account`, `virtual_account.activity`, `transfer`. The single endpoint handles both KYC events (`customer.kyc_link_*`) and ramp events (`virtual_account.activity`, `transfer.*`). Event-level dedupe via `processed_webhook_events (provider='bridge', event_id)`. **New webhooks start `disabled` — PUT them to `active` or they deliver nothing.** Copy the per-endpoint public key shown in the dashboard into `BRIDGE_WEBHOOK_PUBLIC_KEY`.
 
-**Critical TODO before production**: `BridgeWebhookVerifier` currently assumes a Stripe-style `t=<ts>,v1=<hex_hmac>` signature header format. **Verify against a real Bridge sandbox webhook payload before first prod deploy.** If Bridge's actual scheme differs, update `BridgeWebhookVerifier::verify`. The file has an inline `TODO` marker.
+**Signature verification**: `BridgeWebhookVerifier` verifies Bridge's current asymmetric scheme — `X-Webhook-Signature: t=<unix_ms>,v0=<base64>`, RSA-SHA256 over `<t>.<body>` against `BRIDGE_WEBHOOK_PUBLIC_KEY` (the dashboard exposes only this public key, no shared secret). Legacy HMAC (`v1` + `BRIDGE_WEBHOOK_SECRET`) is auto-detected as a fallback. **Still confirm against one real sandbox event before first prod deploy** — fire a dashboard test event and expect 200, not 401. If it 401s, the likely variance is timestamp units or RSA padding; adjust `BridgeWebhookVerifier` (tests in `tests/Feature/Api/Bridge/BridgeWebhookVerifierTest.php`).
 
 ## Inspecting a single user
 
@@ -77,7 +78,7 @@ Resolution paths (in order of preference):
 Check, in order:
 
 1. **Did Bridge fire the webhook?** Grep logs for the user's `bridge_customer_id` or `virtual_account_id`. If no webhook, check Bridge dashboard delivery logs.
-2. **Did our endpoint reject it?** Look for `Bridge webhook: invalid signature` (401) or `Bridge webhook: invalid JSON body` (400). The former means signature scheme drift (see TODO above) or a rotated secret.
+2. **Did our endpoint reject it?** Look for `Bridge webhook: invalid signature` (401) or `Bridge webhook: invalid JSON body` (400). The former means a signature mismatch — a wrong/stale `BRIDGE_WEBHOOK_PUBLIC_KEY`, or scheme drift (see signature note above).
 3. **Was the event deduped?** A `Bridge webhook: duplicate event ignored` log means we already processed an event with that `id`. If the deposit really didn't land, Bridge may have reused an `id` — open a ticket.
 4. **Was the session not found?** `Bridge ramp webhook: session not found` means the `virtual_account_id` in the payload doesn't match any of our `bridge_customers` rows. Confirm the user's `virtual_account_id` matches the one in the webhook payload via `bridge:inspect-user`.
 5. **For unsolicited deposits** (user wired fiat without going through `POST /api/v1/ramp/session`): the handler auto-creates a retroactive `ramp_sessions` row with `source: 'bridge_initiated'`. If this didn't happen, the bridge_customers lookup by `virtual_account_id` failed — check the inspect output for VA mismatch.
@@ -100,14 +101,16 @@ The auto-trigger is wired via `SubscriptionTierChanged` event → `SyncBridgeDev
    php artisan bridge:sync-dev-fee --all              # apply
    ```
 
-### Webhook secret rotation
+### Webhook public key rotation
 
-1. Generate the new secret in the Bridge dashboard. **Do not yet remove the old secret.**
-2. Set `BRIDGE_WEBHOOK_SECRET` in the deployed `.env` to the new value.
-3. Smoke-test: trigger a webhook from Bridge sandbox or wait for the next live event. Expect `Bridge webhook: invalid signature` in logs if the new secret is wrong → roll back to old secret.
-4. Once the new secret verifies cleanly, remove the old secret from Bridge dashboard.
+On the current platform the verification credential is a per-endpoint RSA **public key**, not a shared secret, and Bridge does not expose a self-serve key-rotation flow — you rotate by recreating the webhook.
 
-`BridgeWebhookVerifier::verify` returns `true` for empty secret in non-production environments only (dev convenience). Production with an empty secret returns `false` → 401 on every webhook. **Confirm the secret is set before going live on a new deployment.**
+1. Create a NEW webhook endpoint in the Bridge dashboard (same URL + categories). **Leave the old one active.** It mints a fresh per-endpoint public key.
+2. Set `BRIDGE_WEBHOOK_PUBLIC_KEY` in the deployed `.env` to the new key (PEM or base64-of-PEM); restart workers.
+3. Smoke-test: fire a test event from the new endpoint. Expect 200; a `Bridge webhook: invalid signature` (401) means the key is wrong → roll back to the old key.
+4. Once the new endpoint verifies cleanly, delete the old endpoint in the dashboard.
+
+`BridgeWebhookVerifier::verify` falls back to a permissive dev passthrough only when BOTH `BRIDGE_WEBHOOK_PUBLIC_KEY` and `BRIDGE_WEBHOOK_SECRET` are empty, and only in non-production. Production with no credentials returns `false` → 401 on every webhook. **Confirm `BRIDGE_WEBHOOK_PUBLIC_KEY` is set before going live on a new deployment.**
 
 ## Provider rename ops note
 
@@ -123,8 +126,8 @@ Update deployed `.env` files to the canonical names at your leisure; alias remov
 
 ```bash
 # 1. Update .env
-BRIDGE_API_KEY=<new key>
-BRIDGE_WEBHOOK_SECRET=<new webhook secret>
+BRIDGE_API_KEY=<new scoped key>
+BRIDGE_WEBHOOK_PUBLIC_KEY=<new per-endpoint public key>
 
 # 2. Restart workers (so the queued SyncBridgeDevFeeOnTierChange listener picks up the new BridgeClient)
 php artisan queue:restart
@@ -140,7 +143,7 @@ php artisan bridge:inspect-user <some staging user>
 ## Escalation
 
 - **Bridge integration silently broken for >5 min on prod**: check the auto-VA path log line `BridgePostKycHandler: VA provisioning failed` — if it's the cause, page Bridge support with the failed `bridge_customer_id` list (pull from `bridge_customers WHERE kyc_status='approved' AND virtual_account_id IS NULL ORDER BY updated_at DESC`).
-- **Signature scheme mismatch suspected**: do NOT toggle the empty-secret bypass in production. Capture a real failing payload (raw body + signature header) and verify against Bridge's documented signature format. Update `BridgeWebhookVerifier::verify` in code.
+- **Signature scheme mismatch suspected**: do NOT clear `BRIDGE_WEBHOOK_PUBLIC_KEY` to trip the empty-credentials bypass in production. Capture a real failing payload (raw body + `X-Webhook-Signature` header) and verify against Bridge's documented signature format. Update `BridgeWebhookVerifier::verify` in code (timestamp units / RSA padding are the usual suspects).
 - **Pro user complaining about markup persisting**: run `bridge:sync-dev-fee --email=<addr>` first; if the dev fee was already 0 then the issue is in the quote-display layer (`RampService::getQuotes`), not Bridge.
 
 ## Files referenced
@@ -153,7 +156,7 @@ php artisan bridge:inspect-user <some staging user>
 - `app/Http/Controllers/Api/V1/BridgeWebhookController.php` — webhook dispatcher
 - `app/Http/Controllers/Api/V1/BridgeSetupController.php` — mobile-facing setup endpoints
 - `app/Infrastructure/Bridge/BridgeClient.php` — HTTP wrapper
-- `app/Infrastructure/Bridge/BridgeWebhookVerifier.php` — signature verification (TODO marker inside)
+- `app/Infrastructure/Bridge/BridgeWebhookVerifier.php` — signature verification (asymmetric `X-Webhook-Signature` v0 + legacy HMAC fallback)
 - `app/Console/Commands/BridgeInspectUserCommand.php`
 - `app/Console/Commands/BridgeSyncDevFeeCommand.php`
 - `docs/adr/0005-bridge-xyz-over-stripe-crypto-onramp.md`

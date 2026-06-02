@@ -33,8 +33,8 @@ it('reports its name as "bridge"', function () {
     expect(makeBridgeKycProvider()->getName())->toBe('bridge');
 });
 
-it('reports Bridge-Signature as the webhook signature header', function () {
-    expect(makeBridgeKycProvider()->getWebhookSignatureHeader())->toBe('Bridge-Signature');
+it('reports X-Webhook-Signature as the webhook signature header', function () {
+    expect(makeBridgeKycProvider()->getWebhookSignatureHeader())->toBe('X-Webhook-Signature');
 });
 
 it('returns not_started status when no bridge_customers row exists', function () {

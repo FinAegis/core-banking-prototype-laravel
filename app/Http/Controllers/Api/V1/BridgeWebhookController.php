@@ -50,7 +50,7 @@ class BridgeWebhookController extends Controller
         operationId: 'v1BridgeWebhook',
         tags: ['Bridge Webhooks'],
         summary: 'Bridge.xyz event webhook (both KYC and ramp events)',
-        description: 'HMAC-verified via Bridge-Signature header. Dispatches by event_type to either KYC or ramp handlers.',
+        description: 'Signature-verified via the X-Webhook-Signature header (RSA-SHA256 against Bridge\'s per-endpoint public key; legacy HMAC Bridge-Signature accepted as fallback). Dispatches by event_type to either KYC or ramp handlers.',
     )]
     #[OA\Response(response: 200, description: 'Event accepted (or ignored as no-op)')]
     #[OA\Response(response: 401, description: 'Invalid signature')]
@@ -58,7 +58,13 @@ class BridgeWebhookController extends Controller
     public function handle(Request $request): JsonResponse
     {
         $rawBody = $request->getContent();
-        $signature = (string) $request->header('Bridge-Signature', '');
+        // Bridge's current platform signs with X-Webhook-Signature (RSA, v0).
+        // Fall back to the legacy Bridge-Signature header (HMAC, v1) so older
+        // tenants / fixtures keep working; the verifier auto-detects the scheme.
+        $signature = (string) $request->header('X-Webhook-Signature', '');
+        if ($signature === '') {
+            $signature = (string) $request->header('Bridge-Signature', '');
+        }
 
         // Use the verifier through the ramp provider (same instance as
         // BridgeKycProvider since both pull BridgeWebhookVerifier via the

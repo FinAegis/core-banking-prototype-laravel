@@ -152,6 +152,73 @@ it('is idempotent on duplicate event_id (returns duplicate, applies no side effe
         ->toBe(BridgeCustomer::KYC_PENDING);
 });
 
+it('accepts a real Bridge asymmetric X-Webhook-Signature (RSA, v0)', function () {
+    // Bridge's current platform signs with an RSA key and delivers the
+    // signature in X-Webhook-Signature: t=<ms>,v0=<base64>. Configure the
+    // matching public key and prove the end-to-end controller path verifies it.
+    $res = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+    openssl_pkey_export($res, $privatePem);
+    $publicPem = openssl_pkey_get_details($res)['key'];
+
+    config(['kyc.providers.bridge.webhook_public_key' => $publicPem]);
+
+    $user = User::factory()->create();
+    BridgeCustomer::create([
+        'user_id'            => $user->id,
+        'bridge_customer_id' => 'cust_rsa',
+        'kyc_status'         => BridgeCustomer::KYC_PENDING,
+        'developer_fee_bps'  => 75,
+    ]);
+
+    $body = (string) json_encode([
+        'id'   => 'evt_rsa_1',
+        'type' => 'customer.kyc_link_completed',
+        'data' => ['object' => ['customer_id' => 'cust_rsa']],
+    ]);
+
+    $tsMs = time() * 1000;
+    openssl_sign($tsMs . '.' . $body, $rawSig, $privatePem, OPENSSL_ALGO_SHA256);
+    $header = 't=' . $tsMs . ',v0=' . base64_encode($rawSig);
+
+    $this->call(
+        'POST',
+        '/api/v1/webhooks/bridge',
+        [],
+        [],
+        [],
+        ['HTTP_X_WEBHOOK_SIGNATURE' => $header, 'CONTENT_TYPE' => 'application/json'],
+        $body,
+    )->assertOk();
+
+    expect(BridgeCustomer::where('user_id', $user->id)->value('kyc_status'))
+        ->toBe(BridgeCustomer::KYC_APPROVED);
+});
+
+it('rejects an asymmetric signature signed by an attacker key', function () {
+    $real = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+    $publicPem = openssl_pkey_get_details($real)['key'];
+
+    $attacker = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+    openssl_pkey_export($attacker, $attackerPriv);
+
+    config(['kyc.providers.bridge.webhook_public_key' => $publicPem]);
+
+    $body = (string) json_encode(['id' => 'evt_rsa_bad', 'type' => 'customer.kyc_link_completed', 'data' => []]);
+    $tsMs = time() * 1000;
+    openssl_sign($tsMs . '.' . $body, $rawSig, $attackerPriv, OPENSSL_ALGO_SHA256);
+    $header = 't=' . $tsMs . ',v0=' . base64_encode($rawSig);
+
+    $this->call(
+        'POST',
+        '/api/v1/webhooks/bridge',
+        [],
+        [],
+        [],
+        ['HTTP_X_WEBHOOK_SIGNATURE' => $header, 'CONTENT_TYPE' => 'application/json'],
+        $body,
+    )->assertStatus(401);
+});
+
 it('auto-creates a retroactive ramp_session for unsolicited virtual_account.activity', function () {
     $user = User::factory()->create();
     BridgeCustomer::create([

@@ -246,7 +246,7 @@ class BridgeProvider implements RampProviderInterface
 
     public function getWebhookSignatureHeader(): string
     {
-        return 'Bridge-Signature';
+        return 'X-Webhook-Signature';
     }
 
     public function normalizeWebhookPayload(array $payload): ?array

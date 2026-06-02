@@ -41,9 +41,15 @@ return [
         ],
 
         'bridge' => [
-            'api_key'        => env('BRIDGE_API_KEY'),
+            'api_key' => env('BRIDGE_API_KEY'),
+            // Legacy shared-secret HMAC scheme (kept for tests / older tenants).
             'webhook_secret' => env('BRIDGE_WEBHOOK_SECRET'),
-            'base_url'       => env('BRIDGE_API_BASE_URL', 'https://api.bridge.xyz'),
+            // Current "Bridge by Stripe" platform: per-endpoint RSA public key
+            // (PEM, or base64-encoded PEM) used to verify X-Webhook-Signature.
+            // This is NOT a secret — it is the public half Bridge exposes in
+            // the dashboard webhook detail view.
+            'webhook_public_key' => env('BRIDGE_WEBHOOK_PUBLIC_KEY', ''),
+            'base_url'           => env('BRIDGE_API_BASE_URL', 'https://api.bridge.xyz'),
             // Default per-customer developer fee (Free tier). Pro upgrade
             // PATCHes the customer to 0. See ADR-0006.
             'default_developer_fee_bps' => (int) env('BRIDGE_DEFAULT_DEV_FEE_BPS', 75),

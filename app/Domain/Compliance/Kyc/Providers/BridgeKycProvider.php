@@ -166,7 +166,7 @@ final class BridgeKycProvider implements KycProviderInterface
 
     public function getWebhookSignatureHeader(): string
     {
-        return 'Bridge-Signature';
+        return 'X-Webhook-Signature';
     }
 
     public function normalizeWebhookPayload(array $payload): ?array

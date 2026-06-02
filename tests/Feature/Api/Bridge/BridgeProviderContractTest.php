@@ -55,8 +55,8 @@ it('reports its name as "bridge"', function () {
     expect(makeBridgeProvider()->getName())->toBe('bridge');
 });
 
-it('reports Bridge-Signature as the webhook signature header', function () {
-    expect(makeBridgeProvider()->getWebhookSignatureHeader())->toBe('Bridge-Signature');
+it('reports X-Webhook-Signature as the webhook signature header', function () {
+    expect(makeBridgeProvider()->getWebhookSignatureHeader())->toBe('X-Webhook-Signature');
 });
 
 it('reports v1 supported capabilities (USDC, USD/EUR/GBP, buy-only)', function () {
