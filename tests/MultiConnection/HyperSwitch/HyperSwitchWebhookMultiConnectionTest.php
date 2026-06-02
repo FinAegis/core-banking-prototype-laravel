@@ -7,6 +7,7 @@ namespace Tests\MultiConnection\HyperSwitch;
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Services\AccountCreditService;
+use App\Domain\Asset\Models\Asset;
 use App\Domain\Payment\Aggregates\PaymentDepositAggregate;
 use App\Domain\Payment\DataObjects\StripeDeposit;
 use App\Domain\Payment\Models\PaymentDeposit;
@@ -25,6 +26,10 @@ use Illuminate\Support\Str;
 // (see the CLAUDE.md multi-connection pitfall). The full webhook path (signature,
 // claim, idempotency) is covered by tests/Feature/HyperSwitch.
 it('credits + completes a deposit on the tenant connection without deadlock under real multi-session topology', function () {
+    // account_balances.asset_code FKs to assets.code; the harness truncates
+    // assets, so seed the currency the credit will reference.
+    Asset::factory()->create(['code' => 'USD', 'name' => 'US Dollar', 'type' => 'fiat', 'precision' => 2, 'is_active' => true]);
+
     $account = Account::factory()->create();
     $depositUuid = (string) Str::uuid();
     $paymentId = 'pay_mc_' . uniqid();
