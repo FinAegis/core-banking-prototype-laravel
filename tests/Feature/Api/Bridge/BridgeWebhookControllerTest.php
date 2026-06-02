@@ -30,6 +30,27 @@ function signBridge(string $body, string $secret = 'whsec_test', ?int $ts = null
     return "t={$ts},v1={$sig}";
 }
 
+/**
+ * Generate an RSA keypair for signing asymmetric (v0) test webhooks.
+ *
+ * @return array{0: string, 1: string} [privatePem, publicPem]
+ */
+function bridgeRsaKeypair(): array
+{
+    $res = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+    if ($res === false) {
+        throw new RuntimeException('openssl_pkey_new failed: ' . openssl_error_string());
+    }
+
+    openssl_pkey_export($res, $privatePem);
+    $details = openssl_pkey_get_details($res);
+    if ($details === false) {
+        throw new RuntimeException('openssl_pkey_get_details failed');
+    }
+
+    return [(string) $privatePem, (string) $details['key']];
+}
+
 it('rejects a missing signature header', function () {
     $this->postJson('/api/v1/webhooks/bridge', ['type' => 'customer.kyc_link_completed'])
         ->assertStatus(401);
@@ -156,9 +177,7 @@ it('accepts a real Bridge asymmetric X-Webhook-Signature (RSA, v0)', function ()
     // Bridge's current platform signs with an RSA key and delivers the
     // signature in X-Webhook-Signature: t=<ms>,v0=<base64>. Configure the
     // matching public key and prove the end-to-end controller path verifies it.
-    $res = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
-    openssl_pkey_export($res, $privatePem);
-    $publicPem = openssl_pkey_get_details($res)['key'];
+    [$privatePem, $publicPem] = bridgeRsaKeypair();
 
     config(['kyc.providers.bridge.webhook_public_key' => $publicPem]);
 
@@ -195,11 +214,8 @@ it('accepts a real Bridge asymmetric X-Webhook-Signature (RSA, v0)', function ()
 });
 
 it('rejects an asymmetric signature signed by an attacker key', function () {
-    $real = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
-    $publicPem = openssl_pkey_get_details($real)['key'];
-
-    $attacker = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
-    openssl_pkey_export($attacker, $attackerPriv);
+    [, $publicPem] = bridgeRsaKeypair();
+    [$attackerPriv] = bridgeRsaKeypair();
 
     config(['kyc.providers.bridge.webhook_public_key' => $publicPem]);
 

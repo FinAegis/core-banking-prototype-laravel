@@ -28,10 +28,12 @@ function bridgeTestKeypair(): array
     }
 
     openssl_pkey_export($res, $privatePem);
-    /** @var array{key: string} $details */
     $details = openssl_pkey_get_details($res);
+    if ($details === false) {
+        throw new RuntimeException('openssl_pkey_get_details failed');
+    }
 
-    return [(string) $privatePem, $details['key']];
+    return [(string) $privatePem, (string) $details['key']];
 }
 
 /** Produce a valid asymmetric `X-Webhook-Signature` header value. */
