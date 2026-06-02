@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Webhook;
 
+use App\Domain\Account\Models\AccountBalance;
 use App\Domain\Account\Services\AccountCreditService;
 use App\Domain\Payment\Aggregates\PaymentDepositAggregate;
 use App\Domain\Payment\Models\HyperSwitchDepositIntent;
@@ -122,14 +123,20 @@ class HyperSwitchWebhookController extends Controller
             return;
         }
 
-        // Money + audit work on the tenant connection, OUTSIDE the transaction
-        // above — those models use UsesTenantConnection and wrapping them in the
-        // default-connection transaction would self-deadlock (see CLAUDE.md).
+        // Credit + audit run on the TENANT connection, in their own transaction
+        // — separate from the default-connection claim above (the claim has
+        // already committed). Never one transaction spanning both connections:
+        // that self-deadlocks (CLAUDE.md). Wrapping both tenant writes together
+        // makes them atomic, so a failure leaves neither the credit nor the
+        // event applied (no credited-without-audit-event state); the committed
+        // claim is then logged for operator reconciliation.
         try {
-            $this->creditService->credit($claim['account_uuid'], $claim['amount_cents'], $claim['currency']);
-            PaymentDepositAggregate::retrieve($claim['deposit_uuid'])
-                ->completeDeposit('hs_' . $claim['payment_id'])
-                ->persist();
+            DB::connection((new AccountBalance())->getConnectionName())->transaction(function () use ($claim): void {
+                $this->creditService->credit($claim['account_uuid'], $claim['amount_cents'], $claim['currency']);
+                PaymentDepositAggregate::retrieve($claim['deposit_uuid'])
+                    ->completeDeposit('hs_' . $claim['payment_id'])
+                    ->persist();
+            });
         } catch (Throwable $e) {
             // The dedupe row is already committed, so retries won't re-run this;
             // surface for operator reconciliation instead of failing the webhook.

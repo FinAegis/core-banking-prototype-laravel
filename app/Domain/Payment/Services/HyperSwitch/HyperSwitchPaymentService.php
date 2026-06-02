@@ -94,6 +94,10 @@ class HyperSwitchPaymentService
             throw new RuntimeException('User has no account to deposit into');
         }
 
+        if ($amountCents <= 0) {
+            throw new RuntimeException('Deposit amount must be a positive integer minor-unit value');
+        }
+
         $currency = strtoupper($currency);
         $depositUuid = (string) Str::uuid();
         $returnUrl = (string) (config('hyperswitch.defaults.return_url') ?: url('/wallet'));

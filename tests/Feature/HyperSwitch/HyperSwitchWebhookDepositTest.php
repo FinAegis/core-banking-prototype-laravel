@@ -149,3 +149,16 @@ it('rejects a webhook with a bad signature when a secret is configured', functio
     expect(HyperSwitchDepositIntent::where('hyperswitch_payment_id', 'pay_sig')->value('status'))
         ->toBe(HyperSwitchDepositIntent::STATUS_PENDING);
 });
+
+it('credits only once across two different event_ids for the same payment', function () {
+    [$account] = hsSeedDeposit('pay_two_evt', 15_000, 'USD');
+
+    // Same payment, two distinct event_ids. The locked intent-status claim must
+    // let only the first through (lockForUpdate serializes; the second reads
+    // status=completed and no-ops) — no double credit.
+    $this->postJson('/api/webhooks/hyperswitch', hsPayload('payment_succeeded', 'pay_two_evt', 'evt_a', 15_000, 'USD'))->assertOk();
+    $this->postJson('/api/webhooks/hyperswitch', hsPayload('payment_succeeded', 'pay_two_evt', 'evt_b', 15_000, 'USD'))->assertOk();
+
+    expect(AccountBalance::where('account_uuid', $account->uuid)->where('asset_code', 'USD')->value('balance'))
+        ->toBe(15_000);
+});
