@@ -49,7 +49,7 @@ FinAegis provides the foundation for building digital banking applications. The 
 | Distributed tracing | OpenTelemetry, Zipkin, Jaeger, per-request trace propagation (v6.2.0) |
 | AI agent commerce | A2A messaging, DID identity, escrow, reputation framework (v6.3.0) |
 | Machine payments | MPP multi-rail (Stripe, USDC, Lightning), AP2 mandates, x402 Solana (v6.4.0) |
-| Payment orchestration (experimental) | HyperSwitch client + webhook scaffold — disabled by default (`HYPERSWITCH_ENABLED=false`), not yet wired into payment flows (v6.4.2) |
+| Payment orchestration (experimental, opt-in) | HyperSwitch routing for card deposits behind `HYPERSWITCH_ENABLED` (off by default — Stripe is the default rail); webhook-credited deposit completion (v6.4.2, wired in #1118) |
 | Mobile launch readiness | Quest auto-triggers, device attestation, JIT funding, rewards (v6.5.0) |
 | SMS multi-rail payments | VertexSMS integration, MPP-gated SMS, MCP tool for AI agents (v7.10.7) |
 | Public MCP server | OAuth-secured Model Context Protocol server at `mcp.zelta.app`, `@finaegis/mcp` npm wrapper (v7.11.0) |

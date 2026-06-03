@@ -104,10 +104,13 @@ class HyperSwitchWebhookController extends Controller
                 return null;
             }
             if ($intent->status !== HyperSwitchDepositIntent::STATUS_PENDING) {
-                return null; // already terminal
+                return null; // already claimed / terminal
             }
 
-            $intent->update(['status' => HyperSwitchDepositIntent::STATUS_COMPLETED]);
+            // Claim it (gates concurrent webhooks for the same payment). The
+            // terminal status — completed vs completion_failed — is only set
+            // once the tenant-side credit + completion has actually run.
+            $intent->update(['status' => HyperSwitchDepositIntent::STATUS_PROCESSING]);
 
             return [
                 'deposit_uuid' => (string) $intent->deposit_uuid,
@@ -137,10 +140,19 @@ class HyperSwitchWebhookController extends Controller
             PaymentDepositAggregate::retrieve($claim['deposit_uuid'])
                 ->completeDeposit('hs_' . $claim['payment_id'])
                 ->persist();
+
+            HyperSwitchDepositIntent::where('hyperswitch_payment_id', $claim['payment_id'])
+                ->update(['status' => HyperSwitchDepositIntent::STATUS_COMPLETED]);
         } catch (Throwable $e) {
-            // The dedupe row is already committed, so retries won't re-run this;
-            // surface for operator reconciliation instead of failing the webhook.
-            Log::error('HyperSwitch: deposit completion failed after claim', [
+            // The dedupe row + the 'processing' claim are already committed, so
+            // retries won't re-run this. Mark the intent completion_failed (NOT
+            // completed) so a failed deposit is never disguised as a successful
+            // one — it stays queryable (`status = completion_failed`) for
+            // operator reconciliation, and is logged loud.
+            HyperSwitchDepositIntent::where('hyperswitch_payment_id', $claim['payment_id'])
+                ->update(['status' => HyperSwitchDepositIntent::STATUS_COMPLETION_FAILED]);
+
+            Log::error('HyperSwitch: deposit completion failed after claim — intent marked completion_failed', [
                 'payment_id'   => $claim['payment_id'],
                 'deposit_uuid' => $claim['deposit_uuid'],
                 'exception'    => $e->getMessage(),

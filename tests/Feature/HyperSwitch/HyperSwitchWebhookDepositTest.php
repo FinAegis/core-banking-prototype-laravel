@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 use App\Domain\Account\Models\Account;
 use App\Domain\Account\Models\AccountBalance;
+use App\Domain\Account\Services\AccountCreditService;
 use App\Domain\Payment\Aggregates\PaymentDepositAggregate;
 use App\Domain\Payment\DataObjects\StripeDeposit;
 use App\Domain\Payment\Models\HyperSwitchDepositIntent;
@@ -161,4 +162,25 @@ it('credits only once across two different event_ids for the same payment', func
 
     expect(AccountBalance::where('account_uuid', $account->uuid)->where('asset_code', 'USD')->value('balance'))
         ->toBe(15_000);
+});
+
+it('marks the intent completion_failed (not completed) when crediting throws', function () {
+    [$account] = hsSeedDeposit('pay_creditfail', 10_000, 'USD');
+
+    // Force the tenant-side credit to fail; the webhook must NOT disguise this
+    // as a successful, completed deposit.
+    app()->instance(AccountCreditService::class, new class () extends AccountCreditService {
+        public function credit(string $accountUuid, int $amountMinor, string $assetCode): void
+        {
+            throw new RuntimeException('credit boom');
+        }
+    });
+
+    $this->postJson('/api/webhooks/hyperswitch', hsPayload('payment_succeeded', 'pay_creditfail', 'evt_creditfail', 10_000, 'USD'))
+        ->assertOk();
+
+    expect(HyperSwitchDepositIntent::where('hyperswitch_payment_id', 'pay_creditfail')->value('status'))
+        ->toBe(HyperSwitchDepositIntent::STATUS_COMPLETION_FAILED)
+        ->and(AccountBalance::where('account_uuid', $account->uuid)->where('asset_code', 'USD')->exists())
+        ->toBeFalse();
 });

@@ -24,9 +24,15 @@ class HyperSwitchDepositIntent extends Model
 {
     public const STATUS_PENDING = 'pending';
 
+    /** Claimed by a webhook; the tenant-side credit + completion is in flight. */
+    public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_COMPLETED = 'completed';
 
     public const STATUS_FAILED = 'failed';
+
+    /** Claimed + payment succeeded, but the credit/completion threw — needs reconciliation. */
+    public const STATUS_COMPLETION_FAILED = 'completion_failed';
 
     protected $table = 'hyperswitch_deposit_intents';
 
